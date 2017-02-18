@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2017/02/18 21:08:36 by gpinchon         ###   ########.fr        #
+#    Updated: 2017/02/18 23:16:06 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,12 +26,12 @@ LIBDIR		=	./libs/ezmem/	\
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
 
 ifeq ($(OS), Windows_NT)
-LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lmingw32 -lSDL2  -lopengl32 -lm
+LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lmingw32 -lSDL2main -lSDL2 -lopengl32 -lm
 else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -L ~/.brew/lib -lSDL2 -lm
 INCLUDE		=	-I ~/.brew/include $(INCLUDE)
 else
-LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -ljson -lSDLframework -lSDL2main -lSDL2 -lGL -lm -lpthread
+LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -ljson -lSDL2main -lSDL2 -lGL -lm
 endif
 
 CFLAGS		=	-Ofast -ffast-math -Wall -Wextra -Werror $(INCLUDE)
