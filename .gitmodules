@@ -1,0 +1,6 @@
+[submodule "libs/ezmem"]
+	path = libs/ezmem
+	url = https://github.com/Gpinchon/EzMem.git
+[submodule "libs/vml"]
+	path = libs/vml
+	url = https://github.com/Gpinchon/VML.git
