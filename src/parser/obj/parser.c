@@ -14,14 +14,11 @@
 
 typedef struct		s_obj_parser
 {
-	char			*directory;
-	char			*name;
+	char			**split;
 	char			*mtllib;
 	bool			first_object;
 	int				fd;
-	t_mesh			*obj;
-	t_vert_group	*g;
-	//t_shader		*shader;
+	t_mesh			mesh;
 	t_vec3			*v_array;
 	t_vec3			*vn_array;
 	t_vec3			*vt_array;
@@ -33,9 +30,11 @@ typedef struct		s_obj_parser
 
 
 
-t_mesh	*load_obj(t_engine *engine, char *path)
+int	load_obj(t_engine *engine, char *path)
 {
 	t_obj_parser	p;
 
-	
+	p.split = split_path(path);
+	ezarray_push(engine->meshes, mesh);
+	return (p.mesh.length);
 }
