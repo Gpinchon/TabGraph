@@ -6,12 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/19 00:30:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/19 01:26:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
-#include <stdio.h>
 
 int	main_loop(t_engine engine, t_window w)
 {
@@ -23,6 +22,7 @@ int	main_loop(t_engine engine, t_window w)
 		glClear(w.clear_mask);
 		SDL_GL_SwapWindow(w.sdl_window);
 	}
+	return (0);
 }
 
 /*
@@ -33,7 +33,7 @@ t_engine	*init_engine()
 {
 	static t_engine	*engine = NULL;
 
-	if (engine || !(engine = ezmemalloc(sizeof(t_engine))))
+	if (engine || !(engine = ft_memalloc(sizeof(t_engine))))
 		return (engine);
 	SDL_Init(SDL_INIT_EVERYTHING);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
@@ -81,7 +81,7 @@ t_window		*init_window(t_engine *engine, const char *name, int width, int height
 {
 	static t_window	*window = NULL;
 
-	if (window || !(window = ezmemalloc(sizeof(t_window))))
+	if (window || !(window = ft_memalloc(sizeof(t_window))))
 		return (window);
 	window->sdl_window = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED, width, height,
@@ -99,6 +99,5 @@ t_window		*init_window(t_engine *engine, const char *name, int width, int height
 
 int main(int argc, char *argv[])
 {
-	printf("Hello World !\n");
 	return (argc + argv[0][0]);
 }

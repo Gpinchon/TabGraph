@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/19 00:30:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/19 01:05:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <stdint.h>
 # include <ezmem.h>
 # include <vml.h>
+# include <libft.h>
 
 typedef struct	s_point
 {

@@ -4,3 +4,6 @@
 [submodule "libs/vml"]
 	path = libs/vml
 	url = https://github.com/Gpinchon/VML.git
+[submodule "libs/libft"]
+	path = libs/libft
+	url = https://github.com/Gpinchon/libft.git
