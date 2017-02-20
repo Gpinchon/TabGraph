@@ -6,13 +6,14 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2017/02/19 01:39:31 by gpinchon         ###   ########.fr        #
+#    Updated: 2017/02/20 14:33:51 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scope
 SRC			=	./src/main.c			\
-				./src/parser/tools.c
+				./src/parser/tools.c	\
+				./src/parser/obj/parser.c
 
 OBJ			=	$(SRC:.c=.o)
 CC			=	gcc
@@ -41,7 +42,7 @@ else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW -lft
 endif
 
-CFLAGS		=	-Ofast -ffast-math -Wall -Wextra -Werror $(INCLUDE)
+CFLAGS		=	-g -Wall -Wextra -Werror $(INCLUDE)
 
 $(NAME): $(LIBFILES) $(OBJ)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) && ) true

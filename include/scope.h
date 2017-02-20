@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/19 01:05:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/20 14:05:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ typedef struct	s_vert_group
 	ARRAY		vn;
 	ARRAY		vt;
 	ARRAY		tangent;
-	ARRAY		index;
+	ARRAY		vindex;
 }				t_vert_group;
 
 typedef struct	s_mesh
@@ -109,5 +109,19 @@ typedef struct	s_engine
 	ARRAY		lights;
 	ARRAY		transforms;
 }				t_engine;
+
+/*
+** Parser tools
+*/
+
+char	**split_path(const char *path);
+
+/*
+** .obj parser
+*/
+
+int		load_obj(t_engine *engine, char *path);
+
+
 
 #endif

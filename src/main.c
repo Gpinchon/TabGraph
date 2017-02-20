@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/19 01:26:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/20 14:01:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,5 +99,10 @@ t_window		*init_window(t_engine *engine, const char *name, int width, int height
 
 int main(int argc, char *argv[])
 {
+	t_engine	*e;
+
+	e = init_engine();
+	if (argc >= 2)
+		load_obj(e, argv[1]);
 	return (argc + argv[0][0]);
 }
