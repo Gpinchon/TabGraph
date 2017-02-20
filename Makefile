@@ -6,14 +6,16 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2017/02/20 15:15:53 by gpinchon         ###   ########.fr        #
+#    Updated: 2017/02/20 20:48:14 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scope
 SRC			=	./src/main.c			\
+				./src/material.c		\
 				./src/parser/tools.c	\
-				./src/parser/obj/parser.c
+				./src/parser/obj/parser.c	\
+				./src/parser/mtllib/parser.c
 
 OBJ			=	$(SRC:.c=.o)
 CC			=	gcc

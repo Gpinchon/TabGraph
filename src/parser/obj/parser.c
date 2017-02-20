@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   obj_parser.c                                       :+:      :+:    :+:   */
+/*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2016/08/11 12:32:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/20 21:00:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,21 +17,23 @@ typedef struct		s_obj_parser
 {
 	char			**path_split;
 	int				fd;
+	t_engine		*e;
 	t_mesh			mesh;
 	ARRAY			v;
 	ARRAY			vn;
 	ARRAY			vt;
-	t_vert_group	vg;
+	ARRAY			mtllib;
+	t_vgroup		vg;
 }					t_obj_parser;
 
-t_vert_group	new_vert_group()
+t_vgroup	new_vgroup()
 {
-	t_vert_group	vg;
+	t_vgroup	vg;
 
-	ft_memset(&vg, 0, sizeof(t_vert_group));
+	ft_memset(&vg, 0, sizeof(t_vgroup));
 	vg.v = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vn = new_ezarray(other, 0, sizeof(VEC3));
-	vg.vt = new_ezarray(other, 0, sizeof(VEC3));
+	vg.vt = new_ezarray(other, 0, sizeof(VEC2));
 	vg.vindex = new_ezarray(other, 0, sizeof(int));
 	return (vg);
 }
@@ -41,7 +43,7 @@ t_mesh	new_mesh()
 	t_mesh			m;
 
 	ft_memset(&m, 0, sizeof(t_mesh));
-	m.vert_groups = new_ezarray(other, 0, sizeof(t_vert_group));
+	m.vgroups = new_ezarray(other, 0, sizeof(t_vgroup));
 	return (m);
 }
 
@@ -60,25 +62,49 @@ VEC3	parse_vec3(char **split)
 	return (new_vec3(v[0], v[1], v[2]));
 }
 
+VEC2	parse_vec2(char **split)
+{
+	float	v[2];
+	int		i;
+
+	i = 0;
+	ft_memset(v, 0, sizeof(float));
+	while (split[i] && i < 2)
+	{
+		v[i] = atof(split[i]);
+		i++;
+	}
+	return (new_vec2(v[0], v[1]));
+}
+
 void	parse_vtn(t_obj_parser *p, char **split)
 {
 	VEC3			v;
+	VEC2			vn;
 
-	v = parse_vec3(&split[1]);
 	if (!ft_strcmp(split[0], "v"))
+	{
+		v = parse_vec3(&split[1]);
 		ezarray_push(&p->v, &v);
+	}
 	else if (!ft_strcmp(split[0], "vn"))
+	{
+		v = parse_vec3(&split[1]);
 		ezarray_push(&p->vn, &v);
+	}
 	else if (!ft_strcmp(split[0], "vt"))
-		ezarray_push(&p->vt, &v);
+	{
+		vn = parse_vec2(&split[1]);
+		ezarray_push(&p->vt, &vn);
+	}
 }
 
 void	parse_vg(t_obj_parser *p, char **split)
 {
 	if (p->vg.v.length > 0)
 	{
-		ezarray_push(&p->mesh.vert_groups, &p->vg);
-		p->vg = new_vert_group();
+		ezarray_push(&p->mesh.vgroups, &p->vg);
+		p->vg = new_vgroup();
 	}
 	(void)split;
 }
@@ -110,25 +136,50 @@ char	vindex_in_array(ARRAY a, int index)
 
 void	parse_v(t_obj_parser *p, char **split)
 {
-	VEC3	v[3];
+	VEC3	v;
+	VEC3	vn;
+	VEC2	vt;
 	int		i;
 	int		vindex;
+	int		tablen;
+	int		slash;
 	char	**fsplit;
 
 	i = 0;
-	while (split[i] && i < 3)
+	while (split[i])
 	{
 		fsplit = ft_strsplit(split[i], '/');
+		slash = count_char(split[i], '/');
+		tablen = ft_chartablen(fsplit);
 		vindex = ft_atoi(fsplit[0]);
-		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex - 1));
-		if (ft_chartablen(fsplit) == 1)
+		v = *((VEC3*)ezarray_get_index(p->v, vindex - 1));
+		if (tablen == 3 && slash == 2)
 		{
-			if (!vindex_in_array(p->vg.vindex, vindex))
-				ezarray_push(&p->vg.v, &v[i]);
+			vt = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
+			vn = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[2]) - 1));
 		}
-		else
+		else if (tablen == 2 && slash == 2)
 		{
-			ezarray_push(&p->vg.v, &v[i]);
+			vn = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[1]) - 1));
+			vt = new_vec2(0, 0);
+		}
+		else if (tablen == 2 && slash == 1)
+		{
+			vn = new_vec3(0, 0, 0);
+			vt = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
+		}
+		if (tablen == 1 && !vindex_in_array(p->vg.vindex, vindex))
+		{
+			ezarray_push(&p->vg.v, &v);
+			v = new_vec3(0, 0, 0);
+			ezarray_push(&p->vg.vn, &v);
+			ezarray_push(&p->vg.vt, &v);
+		}
+		else if (tablen > 1)
+		{
+			ezarray_push(&p->vg.v, &v);
+			ezarray_push(&p->vg.vt, &vt);
+			ezarray_push(&p->vg.vn, &vn);
 			vindex = p->vg.v.length;
 		}
 		ezarray_push(&p->vg.vindex, &vindex);
@@ -140,22 +191,21 @@ void	parse_v(t_obj_parser *p, char **split)
 void	parse_f(t_obj_parser *p, char **split)
 {
 	int		chartablen;
-	char	*tri[3];
 
 	chartablen = ft_chartablen(split);
-	if (chartablen == 3)
-		parse_v(p, split);
-	else if (chartablen == 4)
-	{
-		tri[0] = split[0];
-		tri[1] = split[2];
-		tri[2] = split[3];
-		parse_v(p, split);
-		parse_v(p, tri);
-	}
+	if (chartablen >= 3)
+		parse_v(p, (char*[4]){split[0], split[1], split[2], NULL});
+	if (chartablen == 4)
+		parse_v(p, (char*[4]){split[0], split[2], split[3], NULL});
 }
 
-int	start_parsing(t_obj_parser *p, char *path)
+void	get_material(t_obj_parser *p, char **split)
+{
+	p->vg.mtl_id = hash((unsigned char *)split[0]);
+	p->vg.mtl_index = get_material_index_by_id(p->e->materials, p->vg.mtl_id);
+}
+
+int	start_obj_parsing(t_obj_parser *p, char *path)
 {
 	char	**split;
 	char	*line;
@@ -163,11 +213,11 @@ int	start_parsing(t_obj_parser *p, char *path)
 
 	if (access(path, F_OK | W_OK))
 		return (-1);
-	ft_memset(p, 0, sizeof(t_obj_parser));
+	//
 	p->path_split = split_path(path);
 	p->fd = open(path, O_RDONLY);
 	p->mesh = new_mesh();
-	p->vg = new_vert_group();
+	p->vg = new_vgroup();
 	p->v = new_ezarray(other, 0, sizeof(VEC3));
 	p->vn = new_ezarray(other, 0, sizeof(VEC3));
 	p->vt = new_ezarray(other, 0, sizeof(VEC3));
@@ -181,8 +231,12 @@ int	start_parsing(t_obj_parser *p, char *path)
 				parse_vtn(p, split);
 			else if (split[0][0] == 'f')
 				parse_f(p, &split[1]);
-			else if (split[0][0] == 'g')
+			else if (split[0][0] == 'g'
+			|| split[0][0] == 'o'
+			|| !ft_strcmp(split[0], "usemtl"))
 				parse_vg(p, split);
+			if (!ft_strcmp(split[0], "usemtl"))
+				get_material(p, &split[1]);
 		}
 		ft_free_chartab(split);
 		free(line);
@@ -194,34 +248,59 @@ int	start_parsing(t_obj_parser *p, char *path)
 	return (0);
 }
 
+int	get_mtllib(t_obj_parser *p, char *path)
+{
+	char	**split;
+	ARRAY	mtl_pathes;
+	char	*line;
+	int		fd;
+	unsigned int i;
+	STRING	s;
+
+	if (access(path, F_OK | W_OK))
+		return (-1);
+	fd = open(path, O_RDONLY);
+	mtl_pathes = new_ezarray(other, 0, sizeof(STRING));
+	while (get_next_line(fd, &line))
+	{
+		split = ft_strsplitwspace((const char *)line);
+		if (split && split[0] && split[0][0] != '#')
+		{
+			if (!ft_strcmp(split[0], "mtllib"))
+			{
+				s = new_ezstring(split[1]);
+				ezarray_push(&mtl_pathes, &s);
+			}
+		}
+		ft_free_chartab(split);
+		free(line);
+	}
+	close(fd);
+	i = 0;
+	while (i < mtl_pathes.length)
+	{
+		s = *((STRING *)ezarray_get_index(mtl_pathes, i));
+		printf("mtllib : %s\n", s.tostring);
+		load_mtllib(p->e, ft_strjoin(p->path_split[0], s.tostring));
+		destroy_ezstring(&s);
+		i++;
+	}
+	ft_free_chartab(p->path_split);
+	return (0);
+}
+
 int	load_obj(t_engine *engine, char *path)
 {
 	t_obj_parser	p;
 
-	if (start_parsing(&p, path))
+	ft_memset(&p, 0, sizeof(t_obj_parser));
+	p.e = engine;
+	p.path_split = split_path(path);
+	get_mtllib(&p, path);
+	if (start_obj_parsing(&p, path))
 		return (-1);
-	if (!p.mesh.vert_groups.length && p.vg.v.length)
-		ezarray_push(&p.mesh.vert_groups, &p.vg);
+	if (!p.mesh.vgroups.length && p.vg.v.length)
+		ezarray_push(&p.mesh.vgroups, &p.vg);
 	ezarray_push(&engine->meshes, &p.mesh);
-	VEC3	*v;
-	int		i;
-	int		j;
-	int		*vindex;
-	t_vert_group	*vg;
-	i = 0;
-	j = 0;
-	while ((vg = ezarray_get_index(p.mesh.vert_groups, i)))
-	{
-		j = 0;
-		while ((vindex = ezarray_get_index(vg->vindex, j)))
-		{
-			v = ezarray_get_index(vg->v, *vindex - 1);
-			printf("v %i : %f, %f, %f\n", *vindex, v->x, v->y, v->z);
-			if (!((j + 1)%3))
-				printf("\n");
-			j++;
-		}
-		i++;
-	}
 	return (engine->meshes.length);
 }

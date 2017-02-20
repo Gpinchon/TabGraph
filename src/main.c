@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/20 14:01:32 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/20 20:45:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ t_engine	*init_engine()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	engine->materials = new_ezarray(other, 1, sizeof(t_material));
 	engine->meshes = new_ezarray(other, 0, sizeof(t_mesh));
 	engine->transforms = new_ezarray(other, 0, sizeof(t_transform));
 	engine->lights = new_ezarray(other, 0, sizeof(t_light));
