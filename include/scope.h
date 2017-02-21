@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/20 20:52:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/21 20:29:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,9 @@
 # include <ezmem.h>
 # include <vml.h>
 # include <libft.h>
+# include <stdio.h>
+
+# define UP		(VEC3){0, 1, 0}
 
 typedef struct	s_point
 {
@@ -95,6 +98,7 @@ typedef struct	s_material
 {
 	STRING		name;
 	int8_t		type;
+	GLuint		prog;
 	unsigned long	id;
 	t_mtl_data	data;
 }				t_material;
@@ -116,6 +120,16 @@ typedef struct	s_mesh
 	ARRAY		vgroups;
 }				t_mesh;
 
+typedef struct	s_camera
+{
+	int			transform_index;
+	int			target_index;
+	MAT4		view;
+	MAT4		projection;
+	float		fov;
+	FRUSTUM		frustum;
+}				t_camera;
+
 typedef struct	s_window
 {
 	SDL_Window		*sdl_window;
@@ -135,6 +149,9 @@ typedef struct	s_engine
 	ARRAY		transforms;
 	ARRAY		materials;
 }				t_engine;
+
+char	*g_program_path;
+
 
 t_material	new_material();
 int			get_material_index_by_name(ARRAY materials, char *name);
@@ -160,6 +177,7 @@ int		load_obj(t_engine *engine, char *path);
 VEC3	parse_vec3(char **split);
 VEC2	parse_vec2(char **split);
 
-
+GLuint	load_shaders(const char * vertex_file_path,const char * fragment_file_path);
+int		create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale, VEC3 up);
 
 #endif

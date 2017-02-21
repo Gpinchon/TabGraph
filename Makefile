@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2017/02/20 20:48:14 by gpinchon         ###   ########.fr        #
+#    Updated: 2017/02/21 17:05:47 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ SRC			=	./src/main.c			\
 				./src/material.c		\
 				./src/parser/tools.c	\
 				./src/parser/obj/parser.c	\
+				./src/parser/shaders/parser.c	\
 				./src/parser/mtllib/parser.c
 
 OBJ			=	$(SRC:.c=.o)
@@ -36,7 +37,8 @@ LIBFILES	=	./libs/ezmem/libezmem.a	\
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
 
 ifeq ($(OS), Windows_NT)
-LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lmingw32 -lSDL2main -lSDL2 -lopengl32 -lm
+LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lft -lmingw32 -lSDL2main -lSDL2 -lm -lglew32 -lopengl32
+#LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lm -lglew32 -lft -lmingw32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -L ~/.brew/lib -lSDL2 -lm -lGLEW -lft
 INCLUDE		=	-I ~/.brew/include $(INCLUDE)

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/20 21:00:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/21 20:30:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -292,6 +292,7 @@ int	get_mtllib(t_obj_parser *p, char *path)
 int	load_obj(t_engine *engine, char *path)
 {
 	t_obj_parser	p;
+	TRANSFORM		t;
 
 	ft_memset(&p, 0, sizeof(t_obj_parser));
 	p.e = engine;
@@ -301,6 +302,8 @@ int	load_obj(t_engine *engine, char *path)
 		return (-1);
 	if (!p.mesh.vgroups.length && p.vg.v.length)
 		ezarray_push(&p.mesh.vgroups, &p.vg);
+	p.mesh.transform_index = create_transform(e, new_vec3(0, 0, 0),
+		new_vec3(0, 0, 0), new_vec3(1, 1, 1));
 	ezarray_push(&engine->meshes, &p.mesh);
 	return (engine->meshes.length);
 }
