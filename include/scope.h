@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/21 20:29:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/21 22:25:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,6 @@ typedef struct	s_vgroup
 	ARRAY		vn;
 	ARRAY		vt;
 	ARRAY		tangent;
-	ARRAY		vindex;
 }				t_vgroup;
 
 typedef struct	s_mesh
@@ -178,6 +177,6 @@ VEC3	parse_vec3(char **split);
 VEC2	parse_vec2(char **split);
 
 GLuint	load_shaders(const char * vertex_file_path,const char * fragment_file_path);
-int		create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale, VEC3 up);
+int		create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/21 20:34:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/22 00:35:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,39 +123,18 @@ int	create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale)
 	return (e->transforms.length);
 }
 
-int main(int argc, char *argv[])
+void	render_mesh(t_mesh m)
 {
-	t_engine	*e;
-
-	e = init_engine();
-	init_window(e, "Scope", 1024, 768);
-	GLuint	prog = load_shaders("/src/shaders/default.vertex.glsl", "/src/shaders/default.fragment.glsl");
-	/*if (argc >= 2)
-		load_obj(e, argv[1]);*/
-	printf("%s\n", glGetString(GL_VERSION));
-	static const GLfloat g_vertex_buffer_data[] = {
-	-1.0f, -1.0f, 0.0f,
-	1.0f, -1.0f, 0.0f,
-	0.0f,  1.0f, 0.0f,
-	};
-	GLuint vertexbuffer;
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(VEC3) * 3, g_vertex_buffer_data, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	unsigned	i;
+	t_vgroup	vg;
 	t_camera	cam;
 
+	GLuint	prog = load_shaders("/src/shaders/default.vertex.glsl", "/src/shaders/default.fragment.glsl");
 	cam.view = mat4_lookat(new_vec3(4, 3, 3), new_vec3(0, 0, 0), UP);
 	cam.projection = mat4_perspective(45, (float)1024 / (float)768, 0.1, 100);
-	//cam.projection = mat4_orthographic(new_frustum(-10, 10, -10, 10), 0.1, 100);
 	t_transform	t;
 
-	t = new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP);
+	t = new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(0.1, 0.1, 0.1), UP);
 	transform_update(&t);
 	MAT4	mvp;
 
@@ -163,10 +142,45 @@ int main(int argc, char *argv[])
 	glUseProgram(prog);
 	GLuint MatrixID = glGetUniformLocation(prog, "in_Transform");
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp.m[0]);
+	GLuint vertexbuffer;
+	GLuint VertexArrayID;
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+	glGenBuffers(1, &vertexbuffer);
+	i = 0;
+	while (i < m.vgroups.length)
+	{
+		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);
+		printf("%i\n", vg.v.total_size);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, vg.v.total_size, vg.v.data, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+		glDrawArrays(GL_TRIANGLES, 0, vg.v.length);
+		i++;
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	t_engine	*e;
+
+	e = init_engine();
+	init_window(e, "Scope", 1024, 768);
+	if (argc >= 2)
+		load_obj(e, argv[1]);
+	printf("%s\n", glGetString(GL_VERSION));
+	/*static const GLfloat g_vertex_buffer_data[] = {
+	-1.0f, -1.0f, 0.0f,
+	1.0f, -1.0f, 0.0f,
+	0.0f,  1.0f, 0.0f,
+	};*/
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// Draw the triangle !
-	glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+	 // Starting from vertex 0; 3 vertices total -> 1 triangle
+	render_mesh(*(t_mesh*)ezarray_get_index(e->meshes, 0));
 	glDisableVertexAttribArray(0);
 	SDL_GL_SwapWindow(e->window->sdl_window);
 	sleep(5);
