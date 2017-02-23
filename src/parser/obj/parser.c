@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/22 00:41:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/23 23:14:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,7 +215,6 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 		ft_free_chartab(split);
 		free(line);
 	}
-	ft_free_chartab(p->path_split);
 	destroy_ezarray(&p->v);
 	destroy_ezarray(&p->vn);
 	destroy_ezarray(&p->vt);
@@ -231,6 +230,7 @@ int	get_mtllib(t_obj_parser *p)
 	while (i < p->mtl_pathes.length)
 	{
 		s = *((STRING *)ezarray_get_index(p->mtl_pathes, i));
+		printf("%s\n", p->path_split[0]);
 		printf("mtllib : %s\n", s.tostring);
 		load_mtllib(p->e, ft_strjoin(p->path_split[0], s.tostring));
 		destroy_ezstring(&s);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/22 00:35:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/23 23:03:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,10 +166,11 @@ int main(int argc, char *argv[])
 {
 	t_engine	*e;
 
+	if (argc < 2)
+		return (0);
 	e = init_engine();
 	init_window(e, "Scope", 1024, 768);
-	if (argc >= 2)
-		load_obj(e, argv[1]);
+	load_obj(e, argv[1]);
 	printf("%s\n", glGetString(GL_VERSION));
 	/*static const GLfloat g_vertex_buffer_data[] = {
 	-1.0f, -1.0f, 0.0f,
