@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/23 23:14:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/23 23:22:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,7 +230,6 @@ int	get_mtllib(t_obj_parser *p)
 	while (i < p->mtl_pathes.length)
 	{
 		s = *((STRING *)ezarray_get_index(p->mtl_pathes, i));
-		printf("%s\n", p->path_split[0]);
 		printf("mtllib : %s\n", s.tostring);
 		load_mtllib(p->e, ft_strjoin(p->path_split[0], s.tostring));
 		destroy_ezstring(&s);

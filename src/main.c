@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/23 23:03:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/02/23 23:35:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,7 +151,9 @@ void	render_mesh(t_mesh m)
 	while (i < m.vgroups.length)
 	{
 		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);
-		printf("%i\n", vg.v.total_size);
+		printf("length %i\n", vg.v.length);
+		printf("data size %i\n", vg.v.data_size);
+		printf("total size %i\n", vg.v.total_size);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glBufferData(GL_ARRAY_BUFFER, vg.v.total_size, vg.v.data, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
