@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/23 23:35:45 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/09 22:51:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,8 @@ void	render_mesh(t_mesh m)
 	t_vgroup	vg;
 	t_camera	cam;
 
-	GLuint	prog = load_shaders("/src/shaders/default.vertex.glsl", "/src/shaders/default.fragment.glsl");
+	//GLuint	prog = load_shaders("/src/shaders/default.vert", "/src/shaders/default.frag");
+	GLuint	prog = load_shaders("/src/shaders/point.vert", "/src/shaders/point.frag");
 	cam.view = mat4_lookat(new_vec3(4, 3, 3), new_vec3(0, 0, 0), UP);
 	cam.projection = mat4_perspective(45, (float)1024 / (float)768, 0.1, 100);
 	t_transform	t;
@@ -140,6 +141,7 @@ void	render_mesh(t_mesh m)
 
 	mvp = mat4_combine(cam.projection, cam.view, t.transform);
 	glUseProgram(prog);
+	glEnable(GL_PROGRAM_POINT_SIZE);
 	GLuint MatrixID = glGetUniformLocation(prog, "in_Transform");
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp.m[0]);
 	GLuint vertexbuffer;
@@ -159,7 +161,7 @@ void	render_mesh(t_mesh m)
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-		glDrawArrays(GL_TRIANGLES, 0, vg.v.length);
+		glDrawArrays(GL_POINTS, 0, vg.v.length);
 		i++;
 	}
 }
