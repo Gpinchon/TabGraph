@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/23 23:22:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/23 23:44:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ VEC3	parse_vec3(char **split)
 	int		i;
 
 	i = 0;
-	ft_memset(v, 0, sizeof(float));
+	ft_memset(v, 0, sizeof(float) * 3);
 	while (split[i] && i < 3)
 	{
 		v[i] = atof(split[i]);
@@ -67,7 +67,7 @@ VEC2	parse_vec2(char **split)
 	int		i;
 
 	i = 0;
-	ft_memset(v, 0, sizeof(float));
+	ft_memset(v, 0, sizeof(float) * 3);
 	while (split[i] && i < 2)
 	{
 		v[i] = atof(split[i]);

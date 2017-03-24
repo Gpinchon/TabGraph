@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/21 22:25:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/23 23:04:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,12 @@ typedef struct	s_vgroup
 	ARRAY		v;
 	ARRAY		vn;
 	ARRAY		vt;
-	ARRAY		tangent;
+	ARRAY		tan;
+	GLuint		v_arrayid;
+	GLuint		v_bufferid;
+	GLuint		vn_bufferid;
+	GLuint		vt_bufferid;
+	GLuint		tan_bufferid;
 }				t_vgroup;
 
 typedef struct	s_mesh
