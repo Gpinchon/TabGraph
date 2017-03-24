@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/24 00:12:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/24 19:33:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,6 +200,8 @@ void	render_mesh(t_mesh m)
 	GLuint MatrixID = glGetUniformLocation(prog, "in_Transform");
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp.m[0]);
 	i = 0;
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 	while (i < m.vgroups.length)
 	{
 		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);

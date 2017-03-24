@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/21 18:01:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/24 21:29:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,21 +85,32 @@ GLuint		link_shaders(GLuint vertexid, GLuint fragmentid)
 	return(progid);
 }
 
-GLuint	load_shaders(const char *vertex_file_path,const char *fragment_file_path)
+void		get_shader_loc(&t_shader shader)
+{
+	ARRAY
+	ARRAY	attributes;
+
+
+}
+
+t_shader	load_shaders(const char *vertex_file_path,const char *fragment_file_path)
 {	
-	GLuint VertexShaderID = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
-	GLuint FragmentShaderID = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
-	if(!VertexShaderID || !FragmentShaderID)
+	GLuint		vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
+	GLuint		fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
+	t_shader	shader;
+
+	ft_memset(&shader, sizeof(t_shader), 0);
+	if(!vertexid || !fragmentid)
 	{
 		ft_putendl("Impossible to open file !");
 		return 0;
 	}
-	check_shader(VertexShaderID);
-	check_shader(FragmentShaderID);
-	GLuint ProgramID = link_shaders(VertexShaderID, FragmentShaderID);
-	glDetachShader(ProgramID, VertexShaderID);
-	glDetachShader(ProgramID, FragmentShaderID);
-	glDeleteShader(VertexShaderID);
-	glDeleteShader(FragmentShaderID);
-	return ProgramID;
+	if (check_shader(vertexid) || check_shader(fragmentid))
+		return (shader);
+	shader.program = link_shaders(vertexid, fragmentid);
+	glDetachShader(ProgramID, vertexid);
+	glDetachShader(ProgramID, fragmentid);
+	glDeleteShader(vertexid);
+	glDeleteShader(fragmentid);
+	return (shader);
 }

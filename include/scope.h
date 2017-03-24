@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/23 23:04:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/24 19:59:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,11 +94,27 @@ typedef union	s_mtl_data
 	t_pbrmtl	pbr;
 }				t_mtl_data;
 
+typedef struct	s_shaderlocation
+{
+	unsigned long	id;
+	STRING		name;
+	GLint		size;
+	GLenum		type;
+	GLuint		loc;
+}				t_shaderlocation;
+
+typedef struct	s_shader
+{
+	GLuint		program;
+	ARRAY		uniforms;
+	ARRAY		attributes;
+}				t_shader;
+
 typedef struct	s_material
 {
 	STRING		name;
 	int8_t		type;
-	GLuint		prog;
+	int			shader_index;
 	unsigned long	id;
 	t_mtl_data	data;
 }				t_material;
