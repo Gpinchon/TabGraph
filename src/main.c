@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/24 19:33:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/26 23:32:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,7 +184,7 @@ void	render_mesh(t_mesh m)
 	t_vgroup	vg;
 	t_camera	cam;
 
-	GLuint	prog = load_shaders("/src/shaders/default.vert", "/src/shaders/default.frag");
+	t_shader	shader = load_shaders("/src/shaders/default.vert", "/src/shaders/default.frag");
 	//GLuint	prog = load_shaders("/src/shaders/point.vert", "/src/shaders/point.frag");
 	cam.view = mat4_lookat(new_vec3(4, 3, 3), new_vec3(0, 0, 0), UP);
 	cam.projection = mat4_perspective(45, (float)1024 / (float)768, 0.1, 100);
@@ -195,9 +195,9 @@ void	render_mesh(t_mesh m)
 	MAT4	mvp;
 
 	mvp = mat4_combine(cam.projection, cam.view, t.transform);
-	glUseProgram(prog);
+	glUseProgram(shader.program);
 	glEnable(GL_PROGRAM_POINT_SIZE);
-	GLuint MatrixID = glGetUniformLocation(prog, "in_Transform");
+	GLuint MatrixID = glGetUniformLocation(shader.program, "in_Transform");
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp.m[0]);
 	i = 0;
 	glEnable(GL_CULL_FACE);

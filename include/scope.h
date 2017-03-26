@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/24 19:59:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/26 23:40:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,14 +94,14 @@ typedef union	s_mtl_data
 	t_pbrmtl	pbr;
 }				t_mtl_data;
 
-typedef struct	s_shaderlocation
+typedef struct	s_shadervariable
 {
-	unsigned long	id;
+	long long int	id;
 	STRING		name;
 	GLint		size;
 	GLenum		type;
 	GLuint		loc;
-}				t_shaderlocation;
+}				t_shadervariable;
 
 typedef struct	s_shader
 {
@@ -115,13 +115,13 @@ typedef struct	s_material
 	STRING		name;
 	int8_t		type;
 	int			shader_index;
-	unsigned long	id;
+	long long int	id;
 	t_mtl_data	data;
 }				t_material;
 
 typedef struct	s_vgroup
 {
-	unsigned long	mtl_id;
+	long long int	mtl_id;
 	int			mtl_index;
 	ARRAY		v;
 	ARRAY		vn;
@@ -175,14 +175,14 @@ char	*g_program_path;
 
 t_material	new_material();
 int			get_material_index_by_name(ARRAY materials, char *name);
-int			get_material_index_by_id(ARRAY materials, unsigned long	h);
+int			get_material_index_by_id(ARRAY materials, long long int	h);
 
 /*
 ** Parser tools
 */
 
 char			**split_path(const char *path);
-unsigned long	hash(unsigned char *str);
+long long int	hash(unsigned char *str);
 
 /*
 ** .mtllib parser
@@ -197,7 +197,7 @@ int		load_obj(t_engine *engine, char *path);
 VEC3	parse_vec3(char **split);
 VEC2	parse_vec2(char **split);
 
-GLuint	load_shaders(const char * vertex_file_path,const char * fragment_file_path);
+t_shader	load_shaders(const char *vertex_file_path,const char *fragment_file_path);
 int		create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale);
 
 #endif

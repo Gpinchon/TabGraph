@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/24 21:29:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/26 23:31:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,12 +85,40 @@ GLuint		link_shaders(GLuint vertexid, GLuint fragmentid)
 	return(progid);
 }
 
-void		get_shader_loc(&t_shader shader)
+void		get_shader_loc(t_shader *shader)
 {
-	ARRAY
+	t_shadervariable	v;
+	ARRAY	uniforms;
 	ARRAY	attributes;
+	GLint	ivcount;
+	GLsizei	length;
+	char	*name;
 
-
+	name = malloc(sizeof(char) * 4096);
+	glGetProgramiv(shader->program, GL_ACTIVE_ATTRIBUTES, &ivcount);
+	attributes = new_ezarray(other, 0, sizeof(t_shadervariable));
+	while (--ivcount >= 0)
+	{
+		name = ft_memset(name, sizeof(char) * 4096, 0);
+		glGetActiveAttrib(shader->program, (GLuint)ivcount, 4096, &length, &v.size, &v.type, name);
+		v.name = new_ezstring(name);
+		v.id = hash((unsigned char *)name);
+		v.loc = glGetUniformLocation(shader->program, name);
+		ezarray_push(&attributes, &v);
+	}
+	glGetProgramiv(shader->program, GL_ACTIVE_UNIFORMS, &ivcount);
+	uniforms = new_ezarray(other, 0, sizeof(t_shadervariable));
+	while (--ivcount >= 0)
+	{
+		name = ft_memset(name, sizeof(char) * 4096, 0);
+		glGetActiveUniform(shader->program, (GLuint)ivcount, 4096, &length, &v.size, &v.type, name);
+		v.name = new_ezstring(name);
+		v.id = hash((unsigned char *)name);
+		v.loc = glGetUniformLocation(shader->program, name);
+		ezarray_push(&uniforms, &v);
+	}
+	shader->uniforms = uniforms;
+	shader->attributes = attributes;
 }
 
 t_shader	load_shaders(const char *vertex_file_path,const char *fragment_file_path)
@@ -103,13 +131,14 @@ t_shader	load_shaders(const char *vertex_file_path,const char *fragment_file_pat
 	if(!vertexid || !fragmentid)
 	{
 		ft_putendl("Impossible to open file !");
-		return 0;
+		return (shader);
 	}
 	if (check_shader(vertexid) || check_shader(fragmentid))
 		return (shader);
 	shader.program = link_shaders(vertexid, fragmentid);
-	glDetachShader(ProgramID, vertexid);
-	glDetachShader(ProgramID, fragmentid);
+	get_shader_loc(&shader);
+	glDetachShader(shader.program, vertexid);
+	glDetachShader(shader.program, fragmentid);
 	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
 	return (shader);

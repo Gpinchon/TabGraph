@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/02/20 20:49:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/26 23:42:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ int	load_mtllib(t_engine *engine, char *path)
 	i = 0;
 	while ((mtl = ezarray_get_index(p.e->materials, i)))
 	{
-		printf("mtl id %li\n", mtl->id);
+		printf("mtl id %I64d\n", mtl->id);
 		i++;
 	}
 	return (engine->materials.length);
