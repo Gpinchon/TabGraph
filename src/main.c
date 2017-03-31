@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/26 23:32:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/31 21:53:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,6 +202,7 @@ void	render_mesh(t_mesh m)
 	i = 0;
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
 	while (i < m.vgroups.length)
 	{
 		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);

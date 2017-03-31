@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/26 23:41:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/26 23:53:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ t_material	new_material()
 int			get_material_index_by_name(ARRAY materials, char *name)
 {
 	int			i;
-	long long int	h;
+	ULL			h;
 	t_material	*m;
 
 	i = 0;
@@ -37,7 +37,7 @@ int			get_material_index_by_name(ARRAY materials, char *name)
 	return (0);
 }
 
-int			get_material_index_by_id(ARRAY materials, long long int	h)
+int			get_material_index_by_id(ARRAY materials, ULL h)
 {
 	int			i;
 	t_material	*m;

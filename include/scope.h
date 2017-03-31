@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/26 23:40:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/26 23:51:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 # include <stdio.h>
 
 # define UP		(VEC3){0, 1, 0}
+# define ULL	unsigned long long
 
 typedef struct	s_point
 {
@@ -96,7 +97,7 @@ typedef union	s_mtl_data
 
 typedef struct	s_shadervariable
 {
-	long long int	id;
+	ULL	id;
 	STRING		name;
 	GLint		size;
 	GLenum		type;
@@ -115,13 +116,13 @@ typedef struct	s_material
 	STRING		name;
 	int8_t		type;
 	int			shader_index;
-	long long int	id;
+	ULL	id;
 	t_mtl_data	data;
 }				t_material;
 
 typedef struct	s_vgroup
 {
-	long long int	mtl_id;
+	ULL	mtl_id;
 	int			mtl_index;
 	ARRAY		v;
 	ARRAY		vn;
@@ -175,14 +176,14 @@ char	*g_program_path;
 
 t_material	new_material();
 int			get_material_index_by_name(ARRAY materials, char *name);
-int			get_material_index_by_id(ARRAY materials, long long int	h);
+int			get_material_index_by_id(ARRAY materials, ULL	h);
 
 /*
 ** Parser tools
 */
 
 char			**split_path(const char *path);
-long long int	hash(unsigned char *str);
+ULL	hash(unsigned char *str);
 
 /*
 ** .mtllib parser
