@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/31 21:53:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/04/01 00:05:03 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,7 +178,34 @@ int		load_mesh(t_mesh *m)
 	return (ret);
 }
 
-void	render_mesh(t_mesh m)
+void	set_shader_uniform(t_shader *shader, char *name, void *value)
+{
+	ARRAY				uniforms;
+	t_shadervariable	v;
+	unsigned			i;
+	ULL					h;
+
+	uniforms = shader->uniforms;
+	i = 0;
+	h = hash((unsigned char*)name);
+	while (i < uniforms.length)
+	{
+		v = *(t_shadervariable*)ezarray_get_index(uniforms, i);
+		if (v.type == GL_FLOAT_VEC3 && v.id == h)
+		{
+			glUniform3fv(v.loc, 1, ((float*)value));
+			break ;
+		}
+		else if (v.type == GL_FLOAT_MAT4 && v.id == h)
+		{
+			glUniformMatrix4fv(v.loc, 1, GL_FALSE, ((float*)value));
+			break ;
+		}
+		i++;
+	}
+}
+
+void	render_mesh(t_engine *engine, t_mesh m)
 {
 	unsigned	i;
 	t_vgroup	vg;
@@ -190,22 +217,28 @@ void	render_mesh(t_mesh m)
 	cam.projection = mat4_perspective(45, (float)1024 / (float)768, 0.1, 100);
 	t_transform	t;
 
-	t = new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP);
+	t = new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(0.1, 0.1, 0.1), UP);
 	transform_update(&t);
 	MAT4	mvp;
 
 	mvp = mat4_combine(cam.projection, cam.view, t.transform);
 	glUseProgram(shader.program);
 	glEnable(GL_PROGRAM_POINT_SIZE);
-	GLuint MatrixID = glGetUniformLocation(shader.program, "in_Transform");
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp.m[0]);
+	/*GLuint MatrixID = glGetUniformLocation(shader.program, "in_Transform");
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp.m[0]);*/
+	set_shader_uniform(&shader, "in_Transform", &mvp.m[0]);
 	i = 0;
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	ARRAY mtllib;
+	mtllib = engine->materials;
 	while (i < m.vgroups.length)
 	{
 		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);
+		t_material *mtl = ezarray_get_index(mtllib, vg.mtl_index);
+		//printf("%f, %f, %f\n", ((float*)&mtl->data.blin.diffuse)[0], ((float*)&mtl->data.blin.diffuse)[1], ((float*)&mtl->data.blin.diffuse)[2]);
+		set_shader_uniform(&shader, "in_Albedo", &mtl->data.blin.diffuse);
 		glBindVertexArray(vg.v_arrayid);
 		glDrawArrays(GL_TRIANGLES, 0, vg.v.length);
 		i++;
@@ -233,7 +266,7 @@ int main(int argc, char *argv[])
 	// Draw the triangle !
 	 // Starting from vertex 0; 3 vertices total -> 1 triangle
 	load_mesh(ezarray_get_index(e->meshes, 0));
-	render_mesh(*(t_mesh*)ezarray_get_index(e->meshes, 0));
+	render_mesh(e, *(t_mesh*)ezarray_get_index(e->meshes, 0));
 	glDisableVertexAttribArray(0);
 	SDL_GL_SwapWindow(e->window->sdl_window);
 	sleep(5);

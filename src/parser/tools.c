@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/19 01:27:17 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/26 23:53:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/31 23:16:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ char	**split_path(const char *path)
 	final_path[1] = (char *)ft_memalloc(sizeof(char) * (pathlen - i + 1));
 	final_path[2] = NULL;
 	ft_strncpy(final_path[0], path, i);
+	final_path[0] = ft_strjoin(final_path[0], "/");
 	while (i < pathlen)
 	{
 		final_path[1][j] = path[i];

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/26 23:51:17 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/31 22:48:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ typedef struct	s_light
 
 typedef struct	s_pbrmtl
 {
-	VEC3		base;
+	VEC3		albedo;
 	VEC3		ambient;
 	VEC3		specular;
 	//VEC2		uv_scale;

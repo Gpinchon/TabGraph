@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/23 23:44:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2017/03/31 23:22:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,8 +230,10 @@ int	get_mtllib(t_obj_parser *p)
 	while (i < p->mtl_pathes.length)
 	{
 		s = *((STRING *)ezarray_get_index(p->mtl_pathes, i));
-		printf("mtllib : %s\n", s.tostring);
-		load_mtllib(p->e, ft_strjoin(p->path_split[0], s.tostring));
+		char *path = ft_strjoin(p->path_split[0], s.tostring);
+		printf("mtllib : %s\n", path);
+		load_mtllib(p->e, path);
+		free(path);
 		destroy_ezstring(&s);
 		i++;
 	}
@@ -242,14 +244,14 @@ int	get_mtllib(t_obj_parser *p)
 
 void	assign_materials(t_engine *e, t_mesh m)
 {
-	t_vgroup	vg;
+	t_vgroup	*vg;
 	unsigned	i;
 
 	i = 0;
 	while (i < m.vgroups.length)
 	{
-		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);
-		vg.mtl_index = get_material_index_by_id(e->materials, vg.mtl_id);
+		vg = (t_vgroup*)ezarray_get_index(m.vgroups, i);
+		vg->mtl_index = get_material_index_by_id(e->materials, vg->mtl_id);
 		i++;
 	}
 }
@@ -269,6 +271,7 @@ int	load_obj(t_engine *engine, char *path)
 		ezarray_push(&p.mesh.vgroups, &p.vg);
 	p.mesh.transform_index = create_transform(engine, new_vec3(0, 0, 0),
 		new_vec3(0, 0, 0), new_vec3(1, 1, 1));
+	assign_materials(engine, p.mesh);
 	ezarray_push(&engine->meshes, &p.mesh);
 	return (engine->meshes.length);
 }
