@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 01:32:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 16:51:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,6 +216,7 @@ void	render_mesh(t_engine *engine, t_mesh m)
 	t_vgroup	vg;
 	t_camera	cam;
 
+	glClearColor(0.46f, 0.53f, 0.6f, 1.0f);
 	t_shader	shader = load_shaders("/src/shaders/default.vert", "/src/shaders/default.frag");
 	//GLuint	prog = load_shaders("/src/shaders/point.vert", "/src/shaders/point.frag");
 	cam.position = new_vec3(4, 3, 3);
@@ -247,15 +248,15 @@ void	render_mesh(t_engine *engine, t_mesh m)
 	{
 		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);
 		t_material *mtl = ezarray_get_index(mtllib, vg.mtl_index);
-		printf("%f, %f, %f\n", ((float*)&mtl->data.blin.diffuse)[0], ((float*)&mtl->data.blin.diffuse)[1], ((float*)&mtl->data.blin.diffuse)[2]);
-		set_shader_uniform(&shader, "in_Albedo", &mtl->data.pbr.albedo);
-		set_shader_uniform(&shader, "in_UVScale", &mtl->data.pbr.uv_scale);
-		set_shader_uniform(&shader, "in_Specular", &mtl->data.pbr.specular);
-		set_shader_uniform(&shader, "in_Roughness", &mtl->data.pbr.roughness);
-		set_shader_uniform(&shader, "in_Metallic", &mtl->data.pbr.metallic);
-		set_shader_uniform(&shader, "in_Refraction", &mtl->data.pbr.refraction);
-		set_shader_uniform(&shader, "in_Alpha", &mtl->data.pbr.alpha);
-		set_shader_uniform(&shader, "in_Parallax", &mtl->data.pbr.parallax);
+		printf("%f, %f, %f\n", ((float*)&mtl->data.albedo)[0], ((float*)&mtl->data.albedo)[1], ((float*)&mtl->data.albedo)[2]);
+		set_shader_uniform(&shader, "in_Albedo", &mtl->data.albedo);
+		set_shader_uniform(&shader, "in_UVScale", &mtl->data.uv_scale);
+		set_shader_uniform(&shader, "in_Specular", &mtl->data.specular);
+		set_shader_uniform(&shader, "in_Roughness", &mtl->data.roughness);
+		set_shader_uniform(&shader, "in_Metallic", &mtl->data.metallic);
+		set_shader_uniform(&shader, "in_Refraction", &mtl->data.refraction);
+		set_shader_uniform(&shader, "in_Alpha", &mtl->data.alpha);
+		set_shader_uniform(&shader, "in_Parallax", &mtl->data.parallax);
 		glBindVertexArray(vg.v_arrayid);
 		glDrawArrays(GL_TRIANGLES, 0, vg.v.length);
 		i++;

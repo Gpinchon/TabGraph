@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/12 22:46:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 17:40:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,19 +64,18 @@ typedef struct	s_light
 	t_light_data	data;
 }				t_light;
 
-typedef struct	s_pbrmtl
+typedef struct	s_mtl
 {
 	VEC3		albedo;
 	VEC2		uv_scale;
-	float		specular;
 	float		roughness;
 	float		metallic;
 	float		refraction;
 	float		alpha;
 	float		parallax;
-}				t_pbrmtl;
+}				t_mtl;
 
-typedef struct	s_blinmtl
+/*typedef struct	s_blinmtl
 {
 	VEC3		diffuse;
 	VEC3		ambient;
@@ -91,8 +90,8 @@ typedef struct	s_blinmtl
 typedef union	s_mtl_data
 {
 	t_blinmtl	blin;
-	t_pbrmtl	pbr;
-}				t_mtl_data;
+	t_mtl	pbr;
+}				t_mtl_data;*/
 
 typedef struct	s_shadervariable
 {
@@ -113,10 +112,10 @@ typedef struct	s_shader
 typedef struct	s_material
 {
 	STRING		name;
-	int8_t		type;
+	//int8_t		type;
 	int			shader_index;
-	ULL	id;
-	t_mtl_data	data;
+	ULL			id;
+	t_mtl		data;
 }				t_material;
 
 typedef struct	s_vgroup

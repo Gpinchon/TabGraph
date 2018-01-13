@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/26 23:53:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 17:43:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ t_material	new_material()
 	t_material	mtl;
 
 	ft_memset(&mtl, 0, sizeof(t_material));
+	mtl.data.refraction = 1;
+	mtl.data.metallic = 0.5;
 	return (mtl);
 }
 

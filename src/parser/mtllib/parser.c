@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/12 22:50:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 17:40:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ void	parse_color(t_mtl_parser *p, char **split, t_material *mtl)
 		mtl->data.bpr.ambient = parse_vec3(&split[1]);
 	else */
 	if (split[0][1] == 'd')
-		mtl->data.pbr.albedo = parse_vec3(&split[1]);
+		mtl->data.albedo = parse_vec3(&split[1]);
 	/*else if (split[0][1] == 's')
 		mtl->data.blin.specular = parse_vec3(&split[1]);*/
 	(void)p;
@@ -49,7 +49,9 @@ void	parse_mtl(t_mtl_parser *p, char **split)
 		if (msplit[0] && msplit[0][0] == 'K')
 			parse_color(p, &msplit[0], &mtl);
 		else if (msplit[0] && !ft_strcmp(msplit[0], "Ns"))
-			mtl.data.pbr.specular = atof(msplit[1]);
+			mtl.data.roughness = 1.f / atof(msplit[1]);
+		else if (msplit[0] && !ft_strcmp(msplit[0], "Ni"))
+			mtl.data.refraction = atof(msplit[1]);
 		else if (msplit[0] && !ft_strcmp(msplit[0], "newmtl"))
 			parse_mtl(p, &msplit[1]);
 		ft_free_chartab(msplit);
