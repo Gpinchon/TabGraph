@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 16:51:29 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 21:27:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,10 +25,6 @@ int	main_loop(t_engine engine, t_window w)
 	return (0);
 }
 
-/*
-** engine is a singleton
-*/
-
 char		*convert_backslash(char *str)
 {
 	unsigned int	i;
@@ -43,6 +39,9 @@ char		*convert_backslash(char *str)
 	return (str);
 }
 
+/*
+** engine is a singleton
+*/
 t_engine	*init_engine()
 {
 	static t_engine	*engine = NULL;
@@ -55,6 +54,7 @@ t_engine	*init_engine()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	engine->textures = new_ezarray(other, 1, sizeof(t_texture));
 	engine->materials = new_ezarray(other, 1, sizeof(t_material));
 	engine->meshes = new_ezarray(other, 0, sizeof(t_mesh));
 	engine->transforms = new_ezarray(other, 0, sizeof(t_transform));
@@ -244,6 +244,18 @@ void	render_mesh(t_engine *engine, t_mesh m)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	ARRAY mtllib;
 	mtllib = engine->materials;
+
+	int albedo = load_bmp(engine, "./duck.bmp");
+	t_texture *texture = ezarray_get_index(engine->textures, albedo);
+	if (!texture)
+		return;
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture->id_ogl);
+	GLuint	textureUnit = 0;
+	set_shader_uniform(&shader, "in_Texture_Albedo", &textureUnit);
+	textureUnit = 1;
+	set_shader_uniform(&shader, "in_Use_Texture_Albedo", &textureUnit);
+
 	while (i < m.vgroups.length)
 	{
 		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);
@@ -251,7 +263,6 @@ void	render_mesh(t_engine *engine, t_mesh m)
 		printf("%f, %f, %f\n", ((float*)&mtl->data.albedo)[0], ((float*)&mtl->data.albedo)[1], ((float*)&mtl->data.albedo)[2]);
 		set_shader_uniform(&shader, "in_Albedo", &mtl->data.albedo);
 		set_shader_uniform(&shader, "in_UVScale", &mtl->data.uv_scale);
-		set_shader_uniform(&shader, "in_Specular", &mtl->data.specular);
 		set_shader_uniform(&shader, "in_Roughness", &mtl->data.roughness);
 		set_shader_uniform(&shader, "in_Metallic", &mtl->data.metallic);
 		set_shader_uniform(&shader, "in_Refraction", &mtl->data.refraction);
@@ -287,6 +298,6 @@ int main(int argc, char *argv[])
 	render_mesh(e, *(t_mesh*)ezarray_get_index(e->meshes, 0));
 	glDisableVertexAttribArray(0);
 	SDL_GL_SwapWindow(e->window->sdl_window);
-	sleep(30);
+	sleep(5);
 	return (argc + argv[0][0]);
 }

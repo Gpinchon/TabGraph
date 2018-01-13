@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 17:40:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 20:47:05 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,10 @@ typedef struct	s_mtl
 	float		refraction;
 	float		alpha;
 	float		parallax;
+	int			texture_albedo;
+	int			texture_roughness;
+	int			texture_metallic;
+	int			texture_parallax;
 }				t_mtl;
 
 /*typedef struct	s_blinmtl
@@ -93,9 +97,16 @@ typedef union	s_mtl_data
 	t_mtl	pbr;
 }				t_mtl_data;*/
 
+typedef struct	s_texture
+{
+	ULL			id;
+	GLuint		id_ogl;
+	STRING		name;
+}				t_texture;
+
 typedef struct	s_shadervariable
 {
-	ULL	id;
+	ULL			id;
 	STRING		name;
 	GLint		size;
 	GLenum		type;
@@ -111,16 +122,15 @@ typedef struct	s_shader
 
 typedef struct	s_material
 {
-	STRING		name;
-	//int8_t		type;
-	int			shader_index;
 	ULL			id;
+	STRING		name;
+	int			shader_index;
 	t_mtl		data;
 }				t_material;
 
 typedef struct	s_vgroup
 {
-	ULL	mtl_id;
+	ULL			mtl_id;
 	int			mtl_index;
 	ARRAY		v;
 	ARRAY		vn;
@@ -167,6 +177,7 @@ typedef struct	s_engine
 	ARRAY		lights;
 	ARRAY		transforms;
 	ARRAY		materials;
+	ARRAY		textures;
 }				t_engine;
 
 char	*g_program_path;
@@ -195,6 +206,13 @@ int		load_mtllib(t_engine *engine, char *path);
 int		load_obj(t_engine *engine, char *path);
 VEC3	parse_vec3(char **split);
 VEC2	parse_vec2(char **split);
+
+/*
+** .bmp parser
+*/
+
+int	load_bmp(t_engine *e, const char *imagepath);
+
 
 t_shader	load_shaders(const char *vertex_file_path,const char *fragment_file_path);
 int		create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale);

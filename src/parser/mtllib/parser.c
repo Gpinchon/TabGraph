@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 17:40:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 20:27:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,14 @@ void	parse_color(t_mtl_parser *p, char **split, t_material *mtl)
 		mtl->data.blin.specular = parse_vec3(&split[1]);*/
 	(void)p;
 }
+
+/*void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
+{
+	if (split[0][4] == 'd')
+	{
+
+	}
+}*/
 
 void	parse_mtl(t_mtl_parser *p, char **split)
 {

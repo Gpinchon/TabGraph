@@ -4,14 +4,18 @@
 uniform vec3		in_CamPos;
 uniform vec3		in_Albedo;
 uniform vec2		in_UVScale;
-uniform float		in_Specular;
 uniform float		in_Roughness;
 uniform float		in_Metallic;
 uniform float		in_Refraction;
 uniform float		in_Alpha;
 uniform float		in_Parallax;
+uniform bool		in_Use_Texture_Albedo; 
+uniform sampler2D	in_Texture_Albedo;
+
 in vec3			frag_Normal;
 in vec3			frag_Position;
+in vec2			frag_Texcoord;
+
 out vec4		out_Color;
 
 float D_GGX(in float NdH)
@@ -28,6 +32,14 @@ float G_schlick(in float NdV, in float NdL)
     float V = NdV * (1.0 - k) + k;
     float L = NdL * (1.0 - k) + k;
     return 0.25 / (V * L);
+}
+
+float D_blinn(in float NdH)
+{
+    float m = in_Roughness * in_Roughness;
+    float m2 = m * m;
+    float n = 2.0 / m2 - 2.0;
+    return (n + 2.0) / (2.0 * M_PI) * pow(NdH, n);
 }
 
 vec3 S_Cooktorrance(in float NdL, in float NdV, in float NdH, in vec3 specular)
@@ -53,11 +65,13 @@ vec3 fresnel_factor(in vec3 f0, in float product)
 
 void main()
 {
-	vec3	light_Pos = vec3(5, 5, 0);
+	vec3	light_Pos = vec3(3, 3, 0);
 	vec3	light_Color = vec3(1, 1, 1);
 	float	light_Power = 10;
 	float	light_Attenuation = light_Power * 1.f / (1 + distance(light_Pos, frag_Position));
 	light_Color *= light_Attenuation;
+
+	vec3	albedo = in_Use_Texture_Albedo ? texture(in_Texture_Albedo, frag_Texcoord).xyz : in_Albedo;
 
 	vec3 L = normalize(light_Pos - frag_Position);
     vec3 V = normalize(in_CamPos - frag_Position);
@@ -68,15 +82,15 @@ void main()
     float HdV = max(0.001, dot(H, V));
     float LdV = max(0.001, dot(L, V));
 
-    vec3	c_Specular = mix(vec3(0.04), in_Albedo, in_Metallic);
-    vec3	f_Fresnel = fresnel_factor(c_Specular, HdV);
-    vec3	f_Specular = S_Cooktorrance(NdL, NdV, NdH, f_Fresnel) * vec3(NdL);
-	vec3	f_Diffuse = (vec3(1) - f_Fresnel) * D_Phong(NdL);
-	vec3	c_RefLight = f_Specular * light_Color;
-	vec3	c_DifLight = f_Diffuse * light_Color;
+    vec3	c_Specular = mix(vec3(0.04), albedo, in_Metallic);
+    vec3	f_SpecFresnel = fresnel_factor(c_Specular, HdV);
+    vec3	f_SpecRef = S_Cooktorrance(NdL, NdV, NdH, f_SpecFresnel);
+	vec3	f_DiffRef = (vec3(1) - f_SpecFresnel) * D_Phong(NdL);
+	vec3	c_RefLight = f_SpecRef * light_Color;
+	vec3	c_DifLight = f_DiffRef * light_Color;
 	
-	//out_Color = vec4(c_RefLight, 1);
-	out_Color = vec4(c_DifLight * mix(in_Albedo, vec3(0), in_Metallic) /** c_RefLight*/, 1);
+	//out_Color = vec4(frag_Texcoord, 1, 1);
+	out_Color = vec4(c_DifLight * mix(albedo, vec3(0), in_Metallic) + c_RefLight, 1);
 }
 
 

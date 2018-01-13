@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 00:27:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 19:41:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,6 +144,7 @@ void	parse_v(t_obj_parser *p, char **split)
 		fsplit = ft_strsplit(split[i], '/');
 		vindex[i] = ft_atoi(fsplit[0]);
 		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[i] - 1));
+		ft_free_chartab(fsplit);
 		i++;
 	}
 	i = 0;
@@ -152,9 +153,11 @@ void	parse_v(t_obj_parser *p, char **split)
 		fsplit = ft_strsplit(split[i], '/');
 		slash = count_char(split[i], '/');
 		tablen = ft_chartablen(fsplit);
-		//vindex = ft_atoi(fsplit[0]);
-		vt = new_vec2(0, 0);
-		vn = new_vec3(0, 0, 0);
+		float r = sqrt(v[i].x * v[i].x + v[i].y * v[i].y + v[i].z * v[i].z);
+		float o = atan(v[i].y / v[i].x);
+		float b = acos(v[i].z / r);
+		vn =vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
+		vt = new_vec2(r * cos(o) * sin(b), r * sin(o) * sin(b));
 		if (tablen == 3 && slash == 2)
 		{
 			vt = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
@@ -163,10 +166,7 @@ void	parse_v(t_obj_parser *p, char **split)
 		else if (tablen == 2 && slash == 2)
 			vn = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[1]) - 1));
 		else if (tablen == 2 && slash == 1)
-		{
 			vt = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
-			vn = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
-		}
 		else
 			vn = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));	
 		if (p->vg.v.length == p->vg.v.reserved)
@@ -235,6 +235,7 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 		ft_free_chartab(split);
 		free(line);
 	}
+	ezarray_push(&p->mesh.vgroups, &p->vg);
 	destroy_ezarray(&p->v);
 	destroy_ezarray(&p->vn);
 	destroy_ezarray(&p->vt);

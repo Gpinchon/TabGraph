@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/01/13 01:32:51 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/01/13 20:38:01 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ SRC			=	./src/main.c			\
 				./src/material.c		\
 				./src/parser/tools.c	\
 				./src/parser/obj/parser.c	\
+				./src/parser/bmp/parser.c	\
 				./src/parser/shaders/parser.c	\
 				./src/parser/mtllib/parser.c
 
@@ -46,7 +47,7 @@ else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW -lft
 endif
 
-CFLAGS		=	-Ofast -Wall -Wextra -Werror $(INCLUDE)
+CFLAGS		=	-g -Wall -Wextra -Werror $(INCLUDE)
 
 $(NAME): $(LIBFILES) $(OBJ)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) && ) true
