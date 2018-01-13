@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/04/01 00:05:03 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 01:32:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,6 +131,7 @@ int		load_vbuffer(GLuint attrib, int size, ARRAY array, GLuint *bufferid)
 	if (glIsBuffer(lbufferid))
 		glDeleteBuffers(1, &lbufferid);
 	glGenBuffers(1, &lbufferid);
+	printf("%i\n", lbufferid);
 	glBindBuffer(GL_ARRAY_BUFFER, lbufferid);
 	glBufferData(GL_ARRAY_BUFFER, array.total_size, array.data, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(attrib);
@@ -151,10 +152,14 @@ int		load_vgroup(t_vgroup *vg)
 		glDeleteVertexArrays(1, &lvg.v_arrayid);
 	glGenVertexArrays(1, &lvg.v_arrayid);
 	glBindVertexArray(lvg.v_arrayid);
-	ret = !ret && !load_vbuffer(0, 3, lvg.v, &lvg.v_bufferid);
-	ret = !ret && !load_vbuffer(1, 3, lvg.vn, &lvg.vn_bufferid);
-	ret = !ret && !load_vbuffer(2, 3, lvg.tan, &lvg.tan_bufferid);
-	ret = !ret && !load_vbuffer(3, 2, lvg.vt, &lvg.vt_bufferid);
+	ret = !ret | !load_vbuffer(0, 3, lvg.v, &lvg.v_bufferid);
+	ret = !ret | !load_vbuffer(1, 3, lvg.vn, &lvg.vn_bufferid);
+	ret = !ret | !load_vbuffer(2, 3, lvg.tan, &lvg.tan_bufferid);
+	ret = !ret | !load_vbuffer(3, 2, lvg.vt, &lvg.vt_bufferid);
+	printf("Total Size %i, Buffer ID %i\n", lvg.v.total_size, lvg.v_bufferid);
+	printf("Total Size %i, Buffer ID %i\n", lvg.vn.total_size, lvg.vn_bufferid);
+	printf("Total Size %i, Buffer ID %i\n", lvg.tan.total_size, lvg.tan_bufferid);
+	printf("Total Size %i, Buffer ID %i\n", lvg.vt.total_size, lvg.vt_bufferid);
 	glBindVertexArray(0);
 	*vg = lvg;
 	return (ret);
@@ -213,11 +218,13 @@ void	render_mesh(t_engine *engine, t_mesh m)
 
 	t_shader	shader = load_shaders("/src/shaders/default.vert", "/src/shaders/default.frag");
 	//GLuint	prog = load_shaders("/src/shaders/point.vert", "/src/shaders/point.frag");
+	cam.position = new_vec3(4, 3, 3);
+	cam.target_index = create_transform(engine, new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
 	cam.view = mat4_lookat(new_vec3(4, 3, 3), new_vec3(0, 0, 0), UP);
 	cam.projection = mat4_perspective(45, (float)1024 / (float)768, 0.1, 100);
 	t_transform	t;
 
-	t = new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(0.1, 0.1, 0.1), UP);
+	t = new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP);
 	transform_update(&t);
 	MAT4	mvp;
 
@@ -227,6 +234,9 @@ void	render_mesh(t_engine *engine, t_mesh m)
 	/*GLuint MatrixID = glGetUniformLocation(shader.program, "in_Transform");
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp.m[0]);*/
 	set_shader_uniform(&shader, "in_Transform", &mvp.m[0]);
+	MAT4	normal_matrix = mat4_transpose(mat4_inverse(t.transform));
+	set_shader_uniform(&shader, "in_NormalMatrix", &normal_matrix.m[0]);
+	set_shader_uniform(&shader, "in_CamPos", &cam.position);
 	i = 0;
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
@@ -237,8 +247,15 @@ void	render_mesh(t_engine *engine, t_mesh m)
 	{
 		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);
 		t_material *mtl = ezarray_get_index(mtllib, vg.mtl_index);
-		//printf("%f, %f, %f\n", ((float*)&mtl->data.blin.diffuse)[0], ((float*)&mtl->data.blin.diffuse)[1], ((float*)&mtl->data.blin.diffuse)[2]);
-		set_shader_uniform(&shader, "in_Albedo", &mtl->data.blin.diffuse);
+		printf("%f, %f, %f\n", ((float*)&mtl->data.blin.diffuse)[0], ((float*)&mtl->data.blin.diffuse)[1], ((float*)&mtl->data.blin.diffuse)[2]);
+		set_shader_uniform(&shader, "in_Albedo", &mtl->data.pbr.albedo);
+		set_shader_uniform(&shader, "in_UVScale", &mtl->data.pbr.uv_scale);
+		set_shader_uniform(&shader, "in_Specular", &mtl->data.pbr.specular);
+		set_shader_uniform(&shader, "in_Roughness", &mtl->data.pbr.roughness);
+		set_shader_uniform(&shader, "in_Metallic", &mtl->data.pbr.metallic);
+		set_shader_uniform(&shader, "in_Refraction", &mtl->data.pbr.refraction);
+		set_shader_uniform(&shader, "in_Alpha", &mtl->data.pbr.alpha);
+		set_shader_uniform(&shader, "in_Parallax", &mtl->data.pbr.parallax);
 		glBindVertexArray(vg.v_arrayid);
 		glDrawArrays(GL_TRIANGLES, 0, vg.v.length);
 		i++;
@@ -269,6 +286,6 @@ int main(int argc, char *argv[])
 	render_mesh(e, *(t_mesh*)ezarray_get_index(e->meshes, 0));
 	glDisableVertexAttribArray(0);
 	SDL_GL_SwapWindow(e->window->sdl_window);
-	sleep(5);
+	sleep(30);
 	return (argc + argv[0][0]);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/31 22:48:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/12 22:46:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,11 +67,10 @@ typedef struct	s_light
 typedef struct	s_pbrmtl
 {
 	VEC3		albedo;
-	VEC3		ambient;
-	VEC3		specular;
-	//VEC2		uv_scale;
+	VEC2		uv_scale;
+	float		specular;
 	float		roughness;
-	float		metalness;
+	float		metallic;
 	float		refraction;
 	float		alpha;
 	float		parallax;
@@ -82,7 +81,7 @@ typedef struct	s_blinmtl
 	VEC3		diffuse;
 	VEC3		ambient;
 	VEC3		specular;
-	//VEC2		uv_scale;
+	VEC2		uv_scale;
 	float		spec_pow;
 	float		refraction;
 	float		alpha;
@@ -143,12 +142,12 @@ typedef struct	s_mesh
 
 typedef struct	s_camera
 {
-	int			transform_index;
-	int			target_index;
+	VEC3		position;
 	MAT4		view;
 	MAT4		projection;
-	float		fov;
 	FRUSTUM		frustum;
+	float		fov;
+	int			target_index;
 }				t_camera;
 
 typedef struct	s_window

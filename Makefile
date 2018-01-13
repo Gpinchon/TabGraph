@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2017/02/23 23:21:02 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/01/13 01:32:51 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -65,6 +65,7 @@ pull:
 	git pull origin master
 	git submodule update --init --recursive
 	git submodule foreach git reset --hard origin/master
+	git submodule foreach git pull origin master
 
 clean:
 	rm -rf $(OBJ)

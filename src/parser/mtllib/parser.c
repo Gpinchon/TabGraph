@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/31 23:09:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/12 22:50:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,13 @@ typedef struct		s_mtl_parser
 
 void	parse_color(t_mtl_parser *p, char **split, t_material *mtl)
 {
-	if (split[0][1] == 'a')
-		mtl->data.blin.ambient = parse_vec3(&split[1]);
-	else if (split[0][1] == 'd')
-		mtl->data.blin.diffuse = parse_vec3(&split[1]);
-	else if (split[0][1] == 'a')
-		mtl->data.blin.specular = parse_vec3(&split[1]);
+	/*if (split[0][1] == 'a')
+		mtl->data.bpr.ambient = parse_vec3(&split[1]);
+	else */
+	if (split[0][1] == 'd')
+		mtl->data.pbr.albedo = parse_vec3(&split[1]);
+	/*else if (split[0][1] == 's')
+		mtl->data.blin.specular = parse_vec3(&split[1]);*/
 	(void)p;
 }
 
@@ -47,6 +48,8 @@ void	parse_mtl(t_mtl_parser *p, char **split)
 		msplit = ft_strsplitwspace((const char *)line);
 		if (msplit[0] && msplit[0][0] == 'K')
 			parse_color(p, &msplit[0], &mtl);
+		else if (msplit[0] && !ft_strcmp(msplit[0], "Ns"))
+			mtl.data.pbr.specular = atof(msplit[1]);
 		else if (msplit[0] && !ft_strcmp(msplit[0], "newmtl"))
 			parse_mtl(p, &msplit[1]);
 		ft_free_chartab(msplit);
@@ -99,7 +102,7 @@ int	load_mtllib(t_engine *engine, char *path)
 	i = 0;
 	while ((mtl = ezarray_get_index(p.e->materials, i)))
 	{
-		printf("mtl id %I64d\n", mtl->id);
+		printf("load_mtllib -> mtl id %I64d\n", mtl->id);
 		i++;
 	}
 	return (engine->materials.length);

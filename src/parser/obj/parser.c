@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/31 23:22:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/13 00:27:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,16 +84,22 @@ void	parse_vtn(t_obj_parser *p, char **split)
 	if (!ft_strcmp(split[0], "v"))
 	{
 		v = parse_vec3(&split[1]);
+		if (p->v.length == p->v.reserved)
+			ezarray_reserve(&p->v, p->v.length * 2);
 		ezarray_push(&p->v, &v);
 	}
 	else if (!ft_strcmp(split[0], "vn"))
 	{
 		v = parse_vec3(&split[1]);
+		if (p->vn.length == p->vn.reserved)
+			ezarray_reserve(&p->vn, p->vn.length * 2);
 		ezarray_push(&p->vn, &v);
 	}
 	else if (!ft_strcmp(split[0], "vt"))
 	{
 		vn = parse_vec2(&split[1]);
+		if (p->vt.length == p->vt.reserved)
+			ezarray_reserve(&p->vt, p->vt.length * 2);
 		ezarray_push(&p->vt, &vn);
 	}
 }
@@ -102,6 +108,9 @@ void	parse_vg(t_obj_parser *p, char **split)
 {
 	if (p->vg.v.length > 0)
 	{
+		ezarray_shrink(&p->vg.v);
+		ezarray_shrink(&p->vg.vn);
+		ezarray_shrink(&p->vg.vt);
 		ezarray_push(&p->mesh.vgroups, &p->vg);
 		p->vg = new_vgroup();
 	}
@@ -120,11 +129,11 @@ int		ft_chartablen(char **s)
 
 void	parse_v(t_obj_parser *p, char **split)
 {
-	VEC3	v;
+	VEC3	v[3];
 	VEC3	vn;
 	VEC2	vt;
 	int		i;
-	int		vindex;
+	int		vindex[3];
 	int		tablen;
 	int		slash;
 	char	**fsplit;
@@ -133,10 +142,17 @@ void	parse_v(t_obj_parser *p, char **split)
 	while (split[i])
 	{
 		fsplit = ft_strsplit(split[i], '/');
+		vindex[i] = ft_atoi(fsplit[0]);
+		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[i] - 1));
+		i++;
+	}
+	i = 0;
+	while (split[i])
+	{
+		fsplit = ft_strsplit(split[i], '/');
 		slash = count_char(split[i], '/');
 		tablen = ft_chartablen(fsplit);
-		vindex = ft_atoi(fsplit[0]);
-		v = *((VEC3*)ezarray_get_index(p->v, vindex - 1));
+		//vindex = ft_atoi(fsplit[0]);
 		vt = new_vec2(0, 0);
 		vn = new_vec3(0, 0, 0);
 		if (tablen == 3 && slash == 2)
@@ -147,8 +163,19 @@ void	parse_v(t_obj_parser *p, char **split)
 		else if (tablen == 2 && slash == 2)
 			vn = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[1]) - 1));
 		else if (tablen == 2 && slash == 1)
+		{
 			vt = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
-		ezarray_push(&p->vg.v, &v);
+			vn = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
+		}
+		else
+			vn = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));	
+		if (p->vg.v.length == p->vg.v.reserved)
+			ezarray_reserve(&p->vg.v, p->v.length * 2);
+		if (p->vg.vn.length == p->vg.vn.reserved)
+			ezarray_reserve(&p->vg.vn, p->vn.length * 2);
+		if (p->vg.vt.length == p->vg.vt.reserved)
+			ezarray_reserve(&p->vg.vt, p->vt.length * 2);
+		ezarray_push(&p->vg.v, &v[i]);
 		ezarray_push(&p->vg.vt, &vt);
 		ezarray_push(&p->vg.vn, &vn);
 		ft_free_chartab(fsplit);
@@ -165,12 +192,6 @@ void	parse_f(t_obj_parser *p, char **split)
 		parse_v(p, (char*[4]){split[0], split[1], split[2], NULL});
 	if (chartablen == 4)
 		parse_v(p, (char*[4]){split[0], split[2], split[3], NULL});
-}
-
-void	get_material(t_obj_parser *p, char **split)
-{
-	p->vg.mtl_id = hash((unsigned char *)split[0]);
-	//p->vg.mtl_index = get_material_index_by_id(p->e->materials, p->vg.mtl_id);
 }
 
 int	start_obj_parsing(t_obj_parser *p, char *path)
@@ -210,7 +231,6 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 			}
 			if (!ft_strcmp(split[0], "usemtl"))
 				p->vg.mtl_id = hash((unsigned char *)split[1]);
-				//get_material(p, &split[1]);
 		}
 		ft_free_chartab(split);
 		free(line);
