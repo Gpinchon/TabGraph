@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/01/13 20:38:01 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/01/14 01:02:30 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -63,7 +63,7 @@ $(NAME): $(LIBFILES) $(OBJ)
 	$(MAKE) -C ./libs/libft/
 
 pull:
-	git pull origin master
+	git pull
 	git submodule update --init --recursive
 	git submodule foreach git reset --hard origin/master
 	git submodule foreach git pull origin master
