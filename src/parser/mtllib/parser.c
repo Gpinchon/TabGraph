@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 20:27:45 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/14 01:04:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,7 @@ int	load_mtllib(t_engine *engine, char *path)
 	p.e = engine;
 	if (start_mtllib_parsing(&p, path))
 		return (-1);
-	int	i;
+	/*int	i;
 	t_material	*mtl;
 
 	i = 0;
@@ -114,6 +114,6 @@ int	load_mtllib(t_engine *engine, char *path)
 	{
 		printf("load_mtllib -> mtl id %I64d\n", mtl->id);
 		i++;
-	}
+	}*/
 	return (engine->materials.length);
 }

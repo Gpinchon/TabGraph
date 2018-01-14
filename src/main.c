@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 21:27:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/14 01:08:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,7 +245,7 @@ void	render_mesh(t_engine *engine, t_mesh m)
 	ARRAY mtllib;
 	mtllib = engine->materials;
 
-	int albedo = load_bmp(engine, "./duck.bmp");
+	int albedo = load_bmp(engine, "./duck_alpha.bmp");
 	t_texture *texture = ezarray_get_index(engine->textures, albedo);
 	if (!texture)
 		return;

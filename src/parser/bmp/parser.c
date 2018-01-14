@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 21:27:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/14 01:11:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,18 +44,17 @@ typedef struct	s_bmp_parser
 	t_bmp_header		header;
 	UCHAR				*data;
 	unsigned			size_read;
-	unsigned			width, height;
 }				t_bmp_parser;
 
-void			convert_bmp(t_bmp_parser *bmp_parser)
+void			convert_bmp(t_bmp_parser *bmp_parser, t_bmp_info *bmp_info)
 {
 	UCHAR	*pixel_temp = (UCHAR*)calloc(bmp_parser->header.size, sizeof(UCHAR));
 	UCHAR	a, b, g, r;
-	unsigned		i = 0, j = 0, x, y;
+	int		i = 0, j = 0, x, y;
 
-	for (y = 0; y < bmp_parser->height; y++)
+	for (y = 0; y < bmp_info->height; y++)
 	{
-		for(x = 0; x < bmp_parser->width; x++)
+		for(x = 0; x < bmp_info->width; x++)
 		{
 			a = bmp_parser->data[i];
 			b = bmp_parser->data[i+1];
@@ -123,12 +122,12 @@ int			load_bmp(t_engine *e, const char *imagepath)
 	parser.data = (UCHAR*)ft_memalloc(bmp_info.size * sizeof(UCHAR));
 	parser.size_read = read(parser.fd, parser.data, bmp_info.size);
 	close(parser.fd);
-	printf("bpp : %i\nsize : %i\nwidth : %i\nheigth : %i\n", bmp_info.bpp, bmp_info.size, bmp_info.width, bmp_info.height);
-	printf("Read Value %i\n", parser.size_read);
 	if (parser.size_read != bmp_info.size)
 		return (-1);
 	if (bmp_info.bpp == 32)
-		convert_bmp(&parser);
+		convert_bmp(&parser, &bmp_info);
+	printf("bpp : %i\nsize : %i\nwidth : %i\nheigth : %i\n", bmp_info.bpp, bmp_info.size, bmp_info.width, bmp_info.height);
+	printf("Read Value %i\n", parser.size_read);
 	texture_id = load_texture(&parser, &bmp_info);
 	free(parser.data);
 	t_texture	texture = new_texture(imagepath, texture_id);
