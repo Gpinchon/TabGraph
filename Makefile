@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/01/14 01:02:30 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/01/19 14:35:12 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -47,7 +47,7 @@ else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW -lft
 endif
 
-CFLAGS		=	-g -Wall -Wextra -Werror $(INCLUDE)
+CFLAGS		=	-Ofast -Wall -Wextra -Werror $(INCLUDE)
 
 $(NAME): $(LIBFILES) $(OBJ)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) && ) true

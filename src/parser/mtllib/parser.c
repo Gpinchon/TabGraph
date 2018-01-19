@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/14 01:04:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/19 14:36:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,13 +32,34 @@ void	parse_color(t_mtl_parser *p, char **split, t_material *mtl)
 	(void)p;
 }
 
-/*void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
+void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
 {
-	if (split[0][4] == 'd')
+	char *path;
+	if (split[0][5] == 'd')
 	{
-
+		path = ft_strjoin(p->path_split[0], split[1]);
+		mtl->data.texture_albedo = load_bmp(p->e, path);
+		free(path);
 	}
-}*/
+	else if (split[0][5] == 'r')
+	{
+		path = ft_strjoin(p->path_split[0], split[1]);
+		mtl->data.texture_roughness = load_bmp(p->e, path);
+		free(path);
+	}
+	else if (split[0][5] == 'm')
+	{
+		path = ft_strjoin(p->path_split[0], split[1]);
+		mtl->data.texture_metallic = load_bmp(p->e, path);
+		free(path);
+	}
+	else if (ft_strstr(&split[0][4], "bump"))
+	{
+		path = ft_strjoin(p->path_split[0], split[1]);
+		mtl->data.texture_normal = load_bmp(p->e, path);
+		free(path);
+	}
+}
 
 void	parse_mtl(t_mtl_parser *p, char **split)
 {
@@ -56,8 +77,14 @@ void	parse_mtl(t_mtl_parser *p, char **split)
 		msplit = ft_strsplitwspace((const char *)line);
 		if (msplit[0] && msplit[0][0] == 'K')
 			parse_color(p, &msplit[0], &mtl);
+		else if (msplit[0] && ft_strstr(msplit[0], "map"))
+			parse_texture(p, msplit, &mtl);
 		else if (msplit[0] && !ft_strcmp(msplit[0], "Ns"))
-			mtl.data.roughness = 1.f / atof(msplit[1]);
+			mtl.data.roughness = CLAMP(1.f / (1.f + atof(msplit[1])) * 50.f, 0, 1);
+		else if (msplit[0] && !ft_strcmp(msplit[0], "Nr"))
+			mtl.data.roughness = atof(msplit[1]);
+		else if (msplit[0] && !ft_strcmp(msplit[0], "Nm"))
+			mtl.data.metallic = atof(msplit[1]);
 		else if (msplit[0] && !ft_strcmp(msplit[0], "Ni"))
 			mtl.data.refraction = atof(msplit[1]);
 		else if (msplit[0] && !ft_strcmp(msplit[0], "newmtl"))

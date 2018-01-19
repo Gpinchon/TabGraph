@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 20:47:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/18 22:36:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ typedef struct	s_mtl
 	int			texture_albedo;
 	int			texture_roughness;
 	int			texture_metallic;
+	int			texture_normal;
 	int			texture_parallax;
 }				t_mtl;
 
@@ -102,6 +103,12 @@ typedef struct	s_texture
 	ULL			id;
 	GLuint		id_ogl;
 	STRING		name;
+	int			width;
+	int			height;
+	char		bpp;
+	GLenum		target;
+	UCHAR		*data;
+	BOOL		loaded;
 }				t_texture;
 
 typedef struct	s_shadervariable
@@ -136,11 +143,13 @@ typedef struct	s_vgroup
 	ARRAY		vn;
 	ARRAY		vt;
 	ARRAY		tan;
+	ARRAY		bitan;
 	GLuint		v_arrayid;
 	GLuint		v_bufferid;
 	GLuint		vn_bufferid;
 	GLuint		vt_bufferid;
 	GLuint		tan_bufferid;
+	GLuint		bitan_bufferid;
 }				t_vgroup;
 
 typedef struct	s_mesh
@@ -187,6 +196,8 @@ t_material	new_material();
 int			get_material_index_by_name(ARRAY materials, char *name);
 int			get_material_index_by_id(ARRAY materials, ULL	h);
 
+t_texture	new_texture(const char *name);
+
 /*
 ** Parser tools
 */
@@ -211,7 +222,7 @@ VEC2	parse_vec2(char **split);
 ** .bmp parser
 */
 
-int	load_bmp(t_engine *e, const char *imagepath);
+int			load_bmp(t_engine *e, const char *imagepath);
 
 
 t_shader	load_shaders(const char *vertex_file_path,const char *fragment_file_path);

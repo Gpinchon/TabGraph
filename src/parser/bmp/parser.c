@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/14 01:11:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/19 13:45:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,53 +50,29 @@ void			convert_bmp(t_bmp_parser *bmp_parser, t_bmp_info *bmp_info)
 {
 	UCHAR	*pixel_temp = (UCHAR*)calloc(bmp_parser->header.size, sizeof(UCHAR));
 	UCHAR	a, b, g, r;
-	int		i = 0, j = 0, x, y;
+	int		i = 0, x, y;
 
 	for (y = 0; y < bmp_info->height; y++)
 	{
 		for(x = 0; x < bmp_info->width; x++)
 		{
-			a = bmp_parser->data[i];
-			b = bmp_parser->data[i+1];
-			g = bmp_parser->data[i+2];
-			r = bmp_parser->data[i+3];
-
-			pixel_temp[j] = r;
-			pixel_temp[j+1] = g;
-			pixel_temp[j+2] = b;
-			pixel_temp[j+3] = a;
-
-			i+=4;
-			j+=4;
+			if (bmp_info->bpp == 32)
+			{
+				a = bmp_parser->data[i];
+				pixel_temp[i + 3] = a;
+			}
+			
+			b = bmp_parser->data[i + 1];
+			g = bmp_parser->data[i + 2];
+			r = bmp_parser->data[i + 3];
+			pixel_temp[i + 0] = r;
+			pixel_temp[i + 1] = g;
+			pixel_temp[i + 2] = b;
+			i += (bmp_info->bpp / 8);
 		}
 	}
     free(bmp_parser->data);
     bmp_parser->data = pixel_temp;
-}
-
-GLuint			load_texture(t_bmp_parser *parser, t_bmp_info *bmp_info)
-{
-	GLuint tex;
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexImage2D(GL_TEXTURE_2D, 0, bmp_info->bpp == 32 ? GL_RGBA8UI : GL_RGB8UI, bmp_info->width, bmp_info->height, 0, bmp_info->bpp == 32 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, parser->data);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	return (tex);
-}
-
-t_texture	new_texture(const char *name, GLuint oglid)
-{
-	t_texture	texture;
-
-	texture.id_ogl = oglid;
-	texture.name = new_ezstring(name);
-	texture.id = hash((unsigned char*)name);
-	return (texture);
 }
 
 #include <fcntl.h>
@@ -105,11 +81,10 @@ int			load_bmp(t_engine *e, const char *imagepath)
 {
 	t_bmp_parser	parser;
 	t_bmp_info		bmp_info;
-	GLuint			texture_id;
+	t_texture		texture;
 
 	if (access(imagepath, F_OK | W_OK))
 		return (-1);
-
 	if ((parser.fd = open(imagepath, O_RDONLY)) <= 0)
 		return(-1);
 	if (read(parser.fd, &parser.header, sizeof(t_bmp_header)) != sizeof(t_bmp_header)
@@ -126,11 +101,15 @@ int			load_bmp(t_engine *e, const char *imagepath)
 		return (-1);
 	if (bmp_info.bpp == 32)
 		convert_bmp(&parser, &bmp_info);
-	printf("bpp : %i\nsize : %i\nwidth : %i\nheigth : %i\n", bmp_info.bpp, bmp_info.size, bmp_info.width, bmp_info.height);
-	printf("Read Value %i\n", parser.size_read);
-	texture_id = load_texture(&parser, &bmp_info);
-	free(parser.data);
-	t_texture	texture = new_texture(imagepath, texture_id);
+	ft_memset(&texture, 0, sizeof(t_texture));
+	//texture = new_texture(imagepath);
+	texture.name = new_ezstring(imagepath);
+	texture.id = hash((unsigned char*)imagepath);
+	texture.width = bmp_info.width;
+	texture.height = bmp_info.height;
+	texture.bpp = bmp_info.bpp;
+	texture.data = parser.data;
+	printf("image : %s, bpp : %i\n", imagepath, texture.bpp);
 	ezarray_push(&e->textures, &texture);
-	return (e->textures.length);
+	return (e->textures.length - 1);
 }

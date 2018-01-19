@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/14 01:08:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/19 23:21:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ t_engine	*init_engine()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	engine->textures = new_ezarray(other, 1, sizeof(t_texture));
+	engine->textures = new_ezarray(other, 0, sizeof(t_texture));
 	engine->materials = new_ezarray(other, 1, sizeof(t_material));
 	engine->meshes = new_ezarray(other, 0, sizeof(t_mesh));
 	engine->transforms = new_ezarray(other, 0, sizeof(t_transform));
@@ -131,7 +131,6 @@ int		load_vbuffer(GLuint attrib, int size, ARRAY array, GLuint *bufferid)
 	if (glIsBuffer(lbufferid))
 		glDeleteBuffers(1, &lbufferid);
 	glGenBuffers(1, &lbufferid);
-	printf("%i\n", lbufferid);
 	glBindBuffer(GL_ARRAY_BUFFER, lbufferid);
 	glBufferData(GL_ARRAY_BUFFER, array.total_size, array.data, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(attrib);
@@ -154,12 +153,14 @@ int		load_vgroup(t_vgroup *vg)
 	glBindVertexArray(lvg.v_arrayid);
 	ret = !ret | !load_vbuffer(0, 3, lvg.v, &lvg.v_bufferid);
 	ret = !ret | !load_vbuffer(1, 3, lvg.vn, &lvg.vn_bufferid);
-	ret = !ret | !load_vbuffer(2, 3, lvg.tan, &lvg.tan_bufferid);
-	ret = !ret | !load_vbuffer(3, 2, lvg.vt, &lvg.vt_bufferid);
+	ret = !ret | !load_vbuffer(2, 2, lvg.vt, &lvg.vt_bufferid);
+	ret = !ret | !load_vbuffer(3, 3, lvg.tan, &lvg.tan_bufferid);
+	ret = !ret | !load_vbuffer(4, 3, lvg.bitan, &lvg.bitan_bufferid);
 	printf("Total Size %i, Buffer ID %i\n", lvg.v.total_size, lvg.v_bufferid);
 	printf("Total Size %i, Buffer ID %i\n", lvg.vn.total_size, lvg.vn_bufferid);
-	printf("Total Size %i, Buffer ID %i\n", lvg.tan.total_size, lvg.tan_bufferid);
 	printf("Total Size %i, Buffer ID %i\n", lvg.vt.total_size, lvg.vt_bufferid);
+	printf("Total Size %i, Buffer ID %i\n", lvg.tan.total_size, lvg.tan_bufferid);
+	printf("Total Size %i, Buffer ID %i\n", lvg.bitan.total_size, lvg.bitan_bufferid);
 	glBindVertexArray(0);
 	*vg = lvg;
 	return (ret);
@@ -198,16 +199,142 @@ void	set_shader_uniform(t_shader *shader, char *name, void *value)
 		v = *(t_shadervariable*)ezarray_get_index(uniforms, i);
 		if (v.type == GL_FLOAT_VEC3 && v.id == h)
 		{
+			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
 			glUniform3fv(v.loc, 1, ((float*)value));
 			break ;
 		}
 		else if (v.type == GL_FLOAT_MAT4 && v.id == h)
 		{
+			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
 			glUniformMatrix4fv(v.loc, 1, GL_FALSE, ((float*)value));
+			break ;
+		}
+		else if ((v.type == GL_INT || v.type == GL_BOOL || v.type == GL_SAMPLER_2D || v.type == GL_SAMPLER_CUBE) && v.id == h)
+		{
+			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
+			glUniform1i(v.loc, *((int*)value));
+			break ;
+		}
+		else if (v.type == GL_UNSIGNED_INT && v.id == h)
+		{
+			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
+			glUniform1ui(v.loc, *((int*)value));
+			break ;
+		}
+		else if (v.type == GL_FLOAT && v.id == h)
+		{
+			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
+			glUniform1f(v.loc, *((float*)value));
 			break ;
 		}
 		i++;
 	}
+}
+
+GLuint			load_texture(t_texture *texture, GLenum target)
+{
+	GLenum format = GL_BGR;
+	GLenum internal_format = GL_RGB;
+
+	if (!texture)
+		return (0);
+	if (texture->bpp == 8)
+	{
+		format = GL_RED;
+		internal_format = GL_RED;
+	}
+	else if (texture->bpp == 32)
+	{
+		format = GL_BGRA;
+		internal_format =  GL_RGBA;
+	}
+	texture->target = target;
+	glGenTextures(1, &texture->id_ogl);
+	glBindTexture(target, texture->id_ogl);
+	glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexImage2D(target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);
+	glGenerateMipmap(target);
+	glBindTexture(target, 0);
+	return (texture->id_ogl);
+}
+
+GLuint			assign_texture(t_texture *texture, GLuint id, GLenum target)
+{
+	GLenum format = GL_BGR;
+	GLenum internal_format = GL_RGB;
+
+	if (!texture)
+		return (0);
+	if (texture->bpp == 8)
+	{
+		format = GL_RED;
+		internal_format = GL_RED;
+	}
+	else if (texture->bpp == 32)
+	{
+		format = GL_BGRA;
+		internal_format =  GL_RGBA;
+	}
+	glBindTexture(target, id);
+	glTexImage2D(target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);
+	glGenerateMipmap(target);
+	glBindTexture(target, 0);
+	return (id);
+}
+
+void	set_shader_texture(t_shader *shader, char *name, t_texture *texture, GLenum texture_unit)
+{
+	glActiveTexture(texture_unit);
+	glBindTexture(texture->target, texture->id_ogl);
+	texture_unit -= GL_TEXTURE0;
+	set_shader_uniform(shader, name, &texture_unit);
+}
+
+GLuint	generate_texture(t_texture *texture)
+{
+	glGenTextures(1, &texture->id_ogl);
+	glBindTexture(texture->target, texture->id_ogl);
+	glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(texture->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(texture->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(texture->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glBindTexture(texture->target, 0);
+	return (texture->id_ogl);
+}
+
+void	set_material_textures(t_engine *engine, t_shader *shader, t_material *mtl)
+{
+	t_texture	*texture[4];
+	GLint		use_texture;
+
+	texture[0] = ezarray_get_index(engine->textures, mtl->data.texture_albedo);
+	if (texture[0] && !texture[0]->loaded)
+			load_texture(texture[0], GL_TEXTURE_2D);
+	texture[1] = ezarray_get_index(engine->textures, mtl->data.texture_normal);
+	if (texture[1] && !texture[1]->loaded)
+			load_texture(texture[1], GL_TEXTURE_2D);
+	texture[2] = ezarray_get_index(engine->textures, mtl->data.texture_roughness);
+	if (texture[2] && !texture[2]->loaded)
+			load_texture(texture[2], GL_TEXTURE_2D);
+	texture[3] = ezarray_get_index(engine->textures, mtl->data.texture_metallic);
+	if (texture[3] && !texture[3]->loaded)
+			load_texture(texture[3], GL_TEXTURE_2D);
+	if ((use_texture = texture[0] ? 1 : 0))
+		set_shader_texture(shader, "in_Texture_Albedo", texture[0], GL_TEXTURE0 + 2);
+	set_shader_uniform(shader, "in_Use_Texture_Albedo", &use_texture);
+	if ((use_texture = texture[1] ? 1 : 0))
+		set_shader_texture(shader, "in_Texture_Normal", texture[1], GL_TEXTURE0 + 3);
+	set_shader_uniform(shader, "in_Use_Texture_Normal", &use_texture);
+	if ((use_texture = texture[2] ? 1 : 0))
+		set_shader_texture(shader, "in_Texture_Roughness", texture[2], GL_TEXTURE0 + 4);
+	set_shader_uniform(shader, "in_Use_Texture_Roughness", &use_texture);
+	if ((use_texture = texture[3] ? 1 : 0))
+		set_shader_texture(shader, "in_Texture_Metallic", texture[3], GL_TEXTURE0 + 5);
+	set_shader_uniform(shader, "in_Use_Texture_Metallic", &use_texture);
 }
 
 void	render_mesh(t_engine *engine, t_mesh m)
@@ -219,9 +346,9 @@ void	render_mesh(t_engine *engine, t_mesh m)
 	glClearColor(0.46f, 0.53f, 0.6f, 1.0f);
 	t_shader	shader = load_shaders("/src/shaders/default.vert", "/src/shaders/default.frag");
 	//GLuint	prog = load_shaders("/src/shaders/point.vert", "/src/shaders/point.frag");
-	cam.position = new_vec3(4, 3, 3);
+	cam.position = new_vec3(-1, 0.9, 1);
 	cam.target_index = create_transform(engine, new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
-	cam.view = mat4_lookat(new_vec3(4, 3, 3), new_vec3(0, 0, 0), UP);
+	cam.view = mat4_lookat(cam.position, new_vec3(0, 0.5, 0), UP);
 	cam.projection = mat4_perspective(45, (float)1024 / (float)768, 0.1, 100);
 	t_transform	t;
 
@@ -232,8 +359,6 @@ void	render_mesh(t_engine *engine, t_mesh m)
 	mvp = mat4_combine(cam.projection, cam.view, t.transform);
 	glUseProgram(shader.program);
 	glEnable(GL_PROGRAM_POINT_SIZE);
-	/*GLuint MatrixID = glGetUniformLocation(shader.program, "in_Transform");
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp.m[0]);*/
 	set_shader_uniform(&shader, "in_Transform", &mvp.m[0]);
 	MAT4	normal_matrix = mat4_transpose(mat4_inverse(t.transform));
 	set_shader_uniform(&shader, "in_NormalMatrix", &normal_matrix.m[0]);
@@ -241,26 +366,55 @@ void	render_mesh(t_engine *engine, t_mesh m)
 	i = 0;
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	ARRAY mtllib;
 	mtllib = engine->materials;
 
-	int albedo = load_bmp(engine, "./duck_alpha.bmp");
-	t_texture *texture = ezarray_get_index(engine->textures, albedo);
-	if (!texture)
-		return;
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture->id_ogl);
-	GLuint	textureUnit = 0;
-	set_shader_uniform(&shader, "in_Texture_Albedo", &textureUnit);
-	textureUnit = 1;
-	set_shader_uniform(&shader, "in_Use_Texture_Albedo", &textureUnit);
+	int X0 = load_bmp(engine, "./res/skybox/cloudtop/X+.bmp"), X1 = load_bmp(engine, "./res/skybox/cloudtop/X-.bmp"),
+	Y0 = load_bmp(engine, "./res/skybox/cloudtop/Y-.bmp"), Y1 = load_bmp(engine, "./res/skybox/cloudtop/Y+.bmp"),
+	Z0 = load_bmp(engine, "./res/skybox/cloudtop/Z+.bmp"), Z1 = load_bmp(engine, "./res/skybox/cloudtop/Z-.bmp");
+	int X0_spec = load_bmp(engine, "./res/skybox/cloudtop/X+_spec.bmp"), X1_spec = load_bmp(engine, "./res/skybox/cloudtop/X-_spec.bmp"),
+	Y0_spec = load_bmp(engine, "./res/skybox/cloudtop/Y-_spec.bmp"), Y1_spec = load_bmp(engine, "./res/skybox/cloudtop/Y+_spec.bmp"),
+	Z0_spec = load_bmp(engine, "./res/skybox/cloudtop/Z+_spec.bmp"), Z1_spec = load_bmp(engine, "./res/skybox/cloudtop/Z-_spec.bmp");
+
+
+	t_texture	env;
+	env.target = GL_TEXTURE_CUBE_MAP;
+	generate_texture(&env);
+	glBindTexture(env.target, env.id_ogl);
+	assign_texture(ezarray_get_index(engine->textures, X0), env.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+	assign_texture(ezarray_get_index(engine->textures, X1), env.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+	assign_texture(ezarray_get_index(engine->textures, Y0), env.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+	assign_texture(ezarray_get_index(engine->textures, Y1), env.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+	assign_texture(ezarray_get_index(engine->textures, Z0), env.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+	assign_texture(ezarray_get_index(engine->textures, Z1), env.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+	glGenerateMipmap(env.target);
+	glBindTexture(env.target, 0);
+
+	t_texture	env_spec;
+	env_spec.target = GL_TEXTURE_CUBE_MAP;
+	generate_texture(&env_spec);
+	glBindTexture(env_spec.target, env_spec.id_ogl);
+	assign_texture(ezarray_get_index(engine->textures, X0_spec), env_spec.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+	assign_texture(ezarray_get_index(engine->textures, X1_spec), env_spec.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+	assign_texture(ezarray_get_index(engine->textures, Y0_spec), env_spec.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+	assign_texture(ezarray_get_index(engine->textures, Y1_spec), env_spec.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+	assign_texture(ezarray_get_index(engine->textures, Z0_spec), env_spec.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+	assign_texture(ezarray_get_index(engine->textures, Z1_spec), env_spec.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+	glGenerateMipmap(env_spec.target);
+	glBindTexture(env_spec.target, 0);
 
 	while (i < m.vgroups.length)
 	{
+		glUseProgram(shader.program);
 		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);
 		t_material *mtl = ezarray_get_index(mtllib, vg.mtl_index);
-		printf("%f, %f, %f\n", ((float*)&mtl->data.albedo)[0], ((float*)&mtl->data.albedo)[1], ((float*)&mtl->data.albedo)[2]);
+		set_material_textures(engine, &shader, mtl);
+		set_shader_texture(&shader, "in_Texture_Env", &env, GL_TEXTURE0);
+		set_shader_texture(&shader, "in_Texture_Env_Spec", &env_spec, GL_TEXTURE0 + 1);
 		set_shader_uniform(&shader, "in_Albedo", &mtl->data.albedo);
 		set_shader_uniform(&shader, "in_UVScale", &mtl->data.uv_scale);
 		set_shader_uniform(&shader, "in_Roughness", &mtl->data.roughness);

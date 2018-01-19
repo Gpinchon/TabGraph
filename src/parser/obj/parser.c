@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/13 19:41:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/19 23:18:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ typedef struct		s_obj_parser
 	ARRAY			vt;
 	ARRAY			mtl_pathes;
 	t_vgroup		vg;
+	VEC3			min, max, center;
 }					t_obj_parser;
 
 t_vgroup	new_vgroup()
@@ -34,6 +35,8 @@ t_vgroup	new_vgroup()
 	vg.v = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vn = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vt = new_ezarray(other, 0, sizeof(VEC2));
+	vg.tan = new_ezarray(other, 0, sizeof(VEC3));
+	vg.bitan = new_ezarray(other, 0, sizeof(VEC3));
 	return (vg);
 }
 
@@ -84,6 +87,13 @@ void	parse_vtn(t_obj_parser *p, char **split)
 	if (!ft_strcmp(split[0], "v"))
 	{
 		v = parse_vec3(&split[1]);
+		p->min.x = v.x < p->min.x ? v.x : p->min.x;
+		p->min.y = v.y < p->min.y ? v.y : p->min.y;
+		p->min.z = v.z < p->min.z ? v.z : p->min.z;
+		p->max.x = v.x > p->max.x ? v.x : p->max.x;
+		p->max.y = v.y > p->max.y ? v.y : p->max.y;
+		p->max.z = v.z > p->max.z ? v.z : p->max.z;
+		p->center = vec3_fdiv(vec3_add(p->min, p->max), 2);
 		if (p->v.length == p->v.reserved)
 			ezarray_reserve(&p->v, p->v.length * 2);
 		ezarray_push(&p->v, &v);
@@ -127,11 +137,47 @@ int		ft_chartablen(char **s)
 	return (i);
 }
 
-void	parse_v(t_obj_parser *p, char **split)
+void	calculate_tan(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
+{
+	int i;
+
+	i = 0;
+	VEC3 v0 = v[0];
+	VEC3 v1 = v[1];
+	VEC3 v2 = v[2];
+
+	// Shortcuts for UVs
+	VEC2 uv0 = vt[0];
+	VEC2 uv1 = vt[1];
+	VEC2 uv2 = vt[2];
+
+	// Edges of the triangle : postion delta
+	VEC3 deltaPos1 = vec3_sub(v1, v0);
+	VEC3 deltaPos2 = vec3_sub(v2, v0);
+
+	// UV delta
+	VEC2 deltaUV1 = vec2_sub(uv1, uv0);
+	VEC2 deltaUV2 = vec2_sub(uv2, uv0);
+	float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+	VEC3 tangent = vec3_scale(vec3_sub(vec3_scale(deltaPos1, deltaUV2.y), vec3_scale(deltaPos2, deltaUV1.y)), r);
+	//VEC3 bitangent = vec3_scale(vec3_sub(vec3_scale(deltaPos2, deltaUV1.x), vec3_scale(deltaPos1, deltaUV2.x)), r);
+	while (i < 3)
+	{
+		//VEC3	otan = vec3_cross(vn[i], tangent);
+		//VEC3	obitan = vec3_cross(vn[i], bitangent);
+		VEC3	otan = vec3_normalize(vec3_sub(tangent, vec3_scale(vn[i], vec3_dot(vn[i], tangent))));
+		VEC3	obitan = vec3_normalize(vec3_cross(otan, vn[i]));
+		ezarray_push(&p->vg.tan, &otan);
+		ezarray_push(&p->vg.bitan, &obitan);
+		i++;
+	}
+}
+
+void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 {
 	VEC3	v[3];
-	VEC3	vn;
-	VEC2	vt;
+	VEC3	vn[3];
+	VEC2	vt[3];
 	int		i;
 	int		vindex[3];
 	int		tablen;
@@ -143,7 +189,18 @@ void	parse_v(t_obj_parser *p, char **split)
 	{
 		fsplit = ft_strsplit(split[i], '/');
 		vindex[i] = ft_atoi(fsplit[0]);
+		if (vindex[i] <= 0 || !ezarray_get_index(p->v, vindex[i] - 1))
+			return;
 		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[i] - 1));
+		if (!in_vt)
+		{
+			VEC3 vec = vec3_normalize(vec3_sub(v[i], p->center));
+			//vt[i] = new_vec2(vec.x, vec.y);
+			float phi = acosf(-vec3_dot(UP, vec));
+			vt[i] = new_vec2((phi / M_PI), (acosf(CLAMP(vec3_dot(vec, vec3_cross(UP, (VEC3){0, 0, 1})) / sin(phi), -1, 1)) / (2.f * M_PI)));
+		}
+		else
+			vt[i] = in_vt[i];
 		ft_free_chartab(fsplit);
 		i++;
 	}
@@ -153,34 +210,30 @@ void	parse_v(t_obj_parser *p, char **split)
 		fsplit = ft_strsplit(split[i], '/');
 		slash = count_char(split[i], '/');
 		tablen = ft_chartablen(fsplit);
-		float r = sqrt(v[i].x * v[i].x + v[i].y * v[i].y + v[i].z * v[i].z);
-		float o = atan(v[i].y / v[i].x);
-		float b = acos(v[i].z / r);
-		vn =vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
-		vt = new_vec2(r * cos(o) * sin(b), r * sin(o) * sin(b));
+		vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
 		if (tablen == 3 && slash == 2)
 		{
-			vt = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
-			vn = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[2]) - 1));
+			vt[i] = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
+			vn[i] = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[2]) - 1));
 		}
 		else if (tablen == 2 && slash == 2)
-			vn = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[1]) - 1));
+			vn[i] = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[1]) - 1));
 		else if (tablen == 2 && slash == 1)
-			vt = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
+			vt[i] = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
 		else
-			vn = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));	
-		if (p->vg.v.length == p->vg.v.reserved)
-			ezarray_reserve(&p->vg.v, p->v.length * 2);
-		if (p->vg.vn.length == p->vg.vn.reserved)
-			ezarray_reserve(&p->vg.vn, p->vn.length * 2);
-		if (p->vg.vt.length == p->vg.vt.reserved)
-			ezarray_reserve(&p->vg.vt, p->vt.length * 2);
-		ezarray_push(&p->vg.v, &v[i]);
-		ezarray_push(&p->vg.vt, &vt);
-		ezarray_push(&p->vg.vn, &vn);
+			vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));	
 		ft_free_chartab(fsplit);
 		i++;
 	}
+	i = 0;
+	while (i < 3)
+	{
+		ezarray_push(&p->vg.v, &v[i]);
+		ezarray_push(&p->vg.vt, &vt[i]);
+		ezarray_push(&p->vg.vn, &vn[i]);
+		i++;
+	}
+	calculate_tan(p, v, vn, vt);
 }
 
 void	parse_f(t_obj_parser *p, char **split)
@@ -189,9 +242,9 @@ void	parse_f(t_obj_parser *p, char **split)
 
 	chartablen = ft_chartablen(split);
 	if (chartablen >= 3)
-		parse_v(p, (char*[4]){split[0], split[1], split[2], NULL});
+		parse_v(p, (char*[4]){split[0], split[1], split[2], NULL}, chartablen == 4 ? (t_vec2[3]){new_vec2(0, 0), new_vec2(0, 1), new_vec2(1, 1)} : NULL);
 	if (chartablen == 4)
-		parse_v(p, (char*[4]){split[0], split[2], split[3], NULL});
+		parse_v(p, (char*[4]){split[0], split[2], split[3], NULL}, (t_vec2[3]){new_vec2(0, 0), new_vec2(1, 1), new_vec2(1, 0)});
 }
 
 int	start_obj_parsing(t_obj_parser *p, char *path)
