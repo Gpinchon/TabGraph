@@ -68,29 +68,6 @@ float chiGGX(float v)
     return v > 0 ? 1 : 0;
 }
 
-// Single term for separable Schlick-GGX below.
-float gaSchlickG1(float cosTheta, float k)
-{
-	return cosTheta / (cosTheta * (1.0 - k) + k);
-}
-
-// Schlick-GGX approximation of geometric attenuation function using Smith's method.
-float gaSchlickGGX(float cosLi, float cosLo, float roughness)
-{
-	float r = roughness + 1.0;
-	float k = (r * r) / 8.0; // Epic suggests using this roughness remapping for analytic lights.
-	return gaSchlickG1(cosLi, k) * gaSchlickG1(cosLo, k);
-}
-
-float ndfGGX(float NdH, float roughness)
-{
-	float alpha   = roughness * roughness;
-	float alphaSq = alpha * alpha;
-
-	float denom = (NdH * NdH) * (alphaSq - 1.0) + 1.0;
-	return alphaSq / (M_PI * denom * denom);
-}
-
 float	GGX_Geometry(in float NdV, in float roughness)
 {
 	float NdV2 = 2 * NdV;
@@ -116,8 +93,7 @@ float Cooktorrance_Specular(in float NdL, in float NdV, in float NdH, in float H
 {
 	float	D = GGX_Distribution(NdH, roughness);
 	float	G = GGX_Geometry(NdV, roughness);
-	//float	rim = mix(1.0 - roughness * 0.9, 1.0, NdV);
-	return (/*(1 / rim) * */D * G);
+	return (D * G);
 }
 
 float D_Phong(in float NdL)
@@ -158,7 +134,7 @@ vec3 fresnel_factor(in vec3 f0, in float product)
 
 vec3	light_Pos = vec3(-3, 3, 3);
 vec3	light_Color = vec3(1, 1, 1);
-float	light_Power = 5;
+float	light_Power = 10;
 
 void main()
 {
@@ -192,22 +168,10 @@ void main()
 	float HdV = max(0.001, dot(H, V));
 	float LdV = max(0.001, dot(L, V));
 
-	/*vec3 F0 = Fresnel_F0(in_Refraction, metallic, albedo);
-	vec3 fresnel = Fresnel_Schlick(HdV, F0);
-	vec3 diffuse = vec3(Oren_Nayar_Diffuse(LdV, NdL, NdV, roughness));
-
-	out_Color = vec4(diffuse, 1);*/
-
-	/*vec3 envspec = textureLod(
-		in_Texture_Env_Spec, refl, max(roughness * 10.0, textureQueryLod(in_Texture_Env, refl).y)
-	).xyz;*/
-
-	//vec3	c_Specular = mix(vec3(0.04), albedo, metallic);
 	vec3	F0 = Fresnel_F0(in_Refraction, metallic, albedo);
 	vec3	fresnel = Fresnel_Schlick(NdV, F0);
 	vec3	kd = mix(vec3(1.0) - fresnel, vec3(0.04), metallic);
 
-	//vec3	specular = (fresnel * distribution * geometry);
 	vec3	specular = fresnel * Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness);
 	vec3	diffuse = kd * albedo * Oren_Nayar_Diffuse(LdV, NdL, NdV, roughness);
 	
@@ -218,16 +182,6 @@ void main()
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 10.f).xyz * fresnel;
 
 	//vec3	reflection = mix(albedo, env_reflection, max(0.15, metallic));
-	//out_Color = vec4(light_Color, 1);
+	//out_Color = vec4(light_Color * specular, 1);
 	out_Color = vec4(env_reflection + env_diffuse + env_specular + light_Color * specular + light_Color * diffuse, 1);
-	/*vec3	f_DiffRef = (vec3(1) - fresnel) * Oren_Nayar_Diffuse(LdV, NdL, NdV, roughness);
-	vec3	c_RefLight = specular * light_Color;
-	vec3	c_DifLight = f_DiffRef * light_Color;
-	vec3	iblspec = textureLod(in_Texture_Env_Spec, refl, roughness * 10.f).xyz;//min(vec3(0.99), Fresnel_Schlick(NdV, F0));
-	c_RefLight += iblspec;// * envspec;
-    c_DifLight += c_Reflection + envdiff * (1.f / M_PI);
-
-	//out_Color = vec4((normal + 1) / 2.f, 1);
-	//out_Color = vec4(vec3(GGX_GeometryTerm(NdV, HdV, roughness)), 1);
-	out_Color = vec4(c_DifLight * mix(vec3(0.0), albedo, metallic) + c_RefLight, alpha);*/
 }
