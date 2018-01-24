@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/18 22:36:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/24 01:59:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,8 @@
 # include <libft.h>
 # include <stdio.h>
 
+# define WIDTH	1280
+# define HEIGHT	720
 # define UP		(VEC3){0, 1, 0}
 # define ULL	unsigned long long
 
@@ -77,26 +79,8 @@ typedef struct	s_mtl
 	int			texture_roughness;
 	int			texture_metallic;
 	int			texture_normal;
-	int			texture_parallax;
+	int			texture_height;
 }				t_mtl;
-
-/*typedef struct	s_blinmtl
-{
-	VEC3		diffuse;
-	VEC3		ambient;
-	VEC3		specular;
-	VEC2		uv_scale;
-	float		spec_pow;
-	float		refraction;
-	float		alpha;
-	float		parallax;
-}				t_blinmtl;
-
-typedef union	s_mtl_data
-{
-	t_blinmtl	blin;
-	t_mtl	pbr;
-}				t_mtl_data;*/
 
 typedef struct	s_texture
 {
@@ -122,6 +106,8 @@ typedef struct	s_shadervariable
 
 typedef struct	s_shader
 {
+	ULL			id;
+	STRING		name;
 	GLuint		program;
 	ARRAY		uniforms;
 	ARRAY		attributes;
@@ -131,7 +117,6 @@ typedef struct	s_material
 {
 	ULL			id;
 	STRING		name;
-	int			shader_index;
 	t_mtl		data;
 }				t_material;
 
@@ -139,6 +124,29 @@ typedef struct	s_vgroup
 {
 	ULL			mtl_id;
 	int			mtl_index;
+	int			shader_index;
+	int			in_campos;
+	int			in_transform;
+	int			in_normalmatrix;
+	int			in_albedo;
+	int			in_uv_scale;
+	int			in_roughness;
+	int			in_metallic;
+	int			in_refraction;
+	int			in_alpha;
+	int			in_parallax;
+	int			in_texture_albedo;
+	int			in_use_texture_albedo;
+	int			in_texture_roughness;
+	int			in_use_texture_roughness;
+	int			in_texture_metallic;
+	int			in_use_texture_metallic;
+	int			in_texture_normal;
+	int			in_use_texture_normal;
+	int			in_texture_height;
+	int			in_use_texture_height;
+	int			in_texture_env;
+	int			in_texture_env_spec;
 	ARRAY		v;
 	ARRAY		vn;
 	ARRAY		vt;
@@ -152,9 +160,17 @@ typedef struct	s_vgroup
 	GLuint		bitan_bufferid;
 }				t_vgroup;
 
+typedef struct	s_aabb
+{
+	VEC3		min;
+	VEC3		max;
+	VEC3		center;
+}				t_aabb;
+
 typedef struct	s_mesh
 {
 	int			transform_index;
+	t_aabb		bounding_box;
 	ARRAY		vgroups;
 }				t_mesh;
 
@@ -182,11 +198,15 @@ typedef struct	s_engine
 	int8_t		loop;
 	int8_t		swap_interval;
 	t_window	*window;
+	t_camera	camera;
 	ARRAY		meshes;
 	ARRAY		lights;
 	ARRAY		transforms;
 	ARRAY		materials;
+	ARRAY		shaders;
 	ARRAY		textures;
+	int			env;
+	int			env_spec;
 }				t_engine;
 
 char	*g_program_path;
@@ -225,7 +245,7 @@ VEC2	parse_vec2(char **split);
 int			load_bmp(t_engine *e, const char *imagepath);
 
 
-t_shader	load_shaders(const char *vertex_file_path,const char *fragment_file_path);
+int		load_shaders(t_engine *engine, const char *name, const char *vertex_file_path,const char *fragment_file_path);
 int		create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale);
 
 #endif

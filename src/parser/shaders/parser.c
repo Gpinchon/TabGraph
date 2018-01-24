@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/26 23:31:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/23 20:41:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,25 +121,28 @@ void		get_shader_loc(t_shader *shader)
 	shader->attributes = attributes;
 }
 
-t_shader	load_shaders(const char *vertex_file_path,const char *fragment_file_path)
+int	load_shaders(t_engine *engine, const char *name, const char *vertex_file_path,const char *fragment_file_path)
 {	
 	GLuint		vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
 	GLuint		fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
 	t_shader	shader;
 
-	ft_memset(&shader, sizeof(t_shader), 0);
 	if(!vertexid || !fragmentid)
 	{
 		ft_putendl("Impossible to open file !");
-		return (shader);
+		return (-1);
 	}
 	if (check_shader(vertexid) || check_shader(fragmentid))
-		return (shader);
+		return (-1);
+	ft_memset(&shader, sizeof(t_shader), 0);
 	shader.program = link_shaders(vertexid, fragmentid);
+	shader.name = new_ezstring(name);
+	shader.id = hash((unsigned char *)name);
 	get_shader_loc(&shader);
 	glDetachShader(shader.program, vertexid);
 	glDetachShader(shader.program, fragmentid);
 	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
-	return (shader);
+	ezarray_push(&engine->shaders, &shader);
+	return (engine->shaders.length - 1);
 }

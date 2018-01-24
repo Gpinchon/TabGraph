@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/19 14:15:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/24 02:17:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,11 @@ t_material	new_material()
 	t_material	mtl;
 
 	ft_memset(&mtl, 0, sizeof(t_material));
-	mtl.data.refraction = 1;
+	ft_memset(&mtl.data, -1, sizeof(t_mtl));
+	mtl.data.albedo = new_vec3(0, 0, 0);
 	mtl.data.metallic = 0;
-	mtl.data.alpha = 1;
-	mtl.data.texture_albedo = -1;
-	mtl.data.texture_roughness = -1;
-	mtl.data.texture_metallic = -1;
-	mtl.data.texture_parallax = -1;
-	mtl.data.texture_normal = -1;
+	mtl.data.roughness = 0.5;
+	mtl.data.refraction = 1.5;
 	return (mtl);
 }
 

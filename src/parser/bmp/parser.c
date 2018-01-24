@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/19 13:45:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/24 02:39:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,19 +97,16 @@ int			load_bmp(t_engine *e, const char *imagepath)
 	parser.data = (UCHAR*)ft_memalloc(bmp_info.size * sizeof(UCHAR));
 	parser.size_read = read(parser.fd, parser.data, bmp_info.size);
 	close(parser.fd);
-	if (parser.size_read != bmp_info.size)
-		return (-1);
 	if (bmp_info.bpp == 32)
 		convert_bmp(&parser, &bmp_info);
 	ft_memset(&texture, 0, sizeof(t_texture));
-	//texture = new_texture(imagepath);
+	texture.target = GL_TEXTURE_2D;
 	texture.name = new_ezstring(imagepath);
 	texture.id = hash((unsigned char*)imagepath);
 	texture.width = bmp_info.width;
 	texture.height = bmp_info.height;
 	texture.bpp = bmp_info.bpp;
 	texture.data = parser.data;
-	printf("image : %s, bpp : %i\n", imagepath, texture.bpp);
 	ezarray_push(&e->textures, &texture);
 	return (e->textures.length - 1);
 }

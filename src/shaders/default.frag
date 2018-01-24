@@ -14,10 +14,12 @@ uniform bool		in_Use_Texture_Albedo;
 uniform bool		in_Use_Texture_Roughness;
 uniform bool		in_Use_Texture_Metallic;
 uniform bool		in_Use_Texture_Normal;
+uniform bool		in_Use_Texture_Height;
 uniform sampler2D	in_Texture_Albedo;
 uniform sampler2D	in_Texture_Roughness;
 uniform sampler2D	in_Texture_Metallic;
 uniform sampler2D	in_Texture_Normal;
+uniform sampler2D	in_Texture_Height;
 
 uniform samplerCube	in_Texture_Env;
 uniform samplerCube	in_Texture_Env_Spec;
@@ -30,38 +32,6 @@ in vec3			frag_Bitangent;
 in mat3			frag_NormalMatrix;
 
 out vec4		out_Color;
-
-/*float D_GGX(in float NdH, in float roughness)
-{
-    float m = roughness * roughness;
-    float m2 = m * m;
-    float d = (NdH * m2 - NdH) * NdH + 1.0;
-    return m2 / (M_PI * d * d);
-}
-
-float G_schlick(in float NdV, in float NdL, in float roughness)
-{
-    float k = roughness * roughness * 0.5;
-    float V = NdV * (1.0 - k) + k;
-    float L = NdL * (1.0 - k) + k;
-    return 0.25 / (V * L);
-}
-
-float D_blinn(in float NdH, in float roughness)
-{
-    float m = roughness * roughness;
-    float m2 = m * m;
-    float n = 2.0 / m2 - 2.0;
-    return (n + 2.0) / (2.0 * M_PI) * pow(NdH, n);
-}
-
-vec3 S_Cooktorrance(in float NdL, in float NdV, in float NdH, in vec3 specular, in float roughness)
-{
-    float D = D_GGX(NdH, roughness);
-    float G = G_schlick(NdV, NdL, roughness);
-    float rim = mix(1.0 - roughness * 0.9, 1.0, NdV);
-    return (1.0 / rim) * specular * G * D;
-}*/
 
 float chiGGX(float v)
 {
@@ -96,11 +66,6 @@ float Cooktorrance_Specular(in float NdL, in float NdV, in float NdH, in float H
 	return (D * G);
 }
 
-float D_Phong(in float NdL)
-{
-    return ((1.0 / M_PI) * NdL);
-}
-
 float	Oren_Nayar_Diffuse(in float LdV, in float NdL, in float NdV, in float roughness)
 {
 	float	lde;
@@ -125,11 +90,6 @@ vec3 Fresnel_F0(in float ior, in float metallic, in vec3 albedo)
 vec3 Fresnel_Schlick(in float HdV, in vec3 F0)
 {
   return F0 + (1-F0) * pow( 1 - HdV, 5);
-}
-
-vec3 fresnel_factor(in vec3 f0, in float product)
-{
-    return mix(f0, vec3(1.0), pow(1.01 - product, 5.0));
 }
 
 vec3	light_Pos = vec3(-3, 3, 3);
@@ -182,6 +142,6 @@ void main()
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 10.f).xyz * fresnel;
 
 	//vec3	reflection = mix(albedo, env_reflection, max(0.15, metallic));
-	//out_Color = vec4(light_Color * specular, 1);
+	//out_Color = vec4(albedo, 1);
 	out_Color = vec4(env_reflection + env_diffuse + env_specular + light_Color * specular + light_Color * diffuse, 1);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/19 14:36:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/24 02:33:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,8 @@ typedef struct		s_mtl_parser
 
 void	parse_color(t_mtl_parser *p, char **split, t_material *mtl)
 {
-	/*if (split[0][1] == 'a')
-		mtl->data.bpr.ambient = parse_vec3(&split[1]);
-	else */
 	if (split[0][1] == 'd')
 		mtl->data.albedo = parse_vec3(&split[1]);
-	/*else if (split[0][1] == 's')
-		mtl->data.blin.specular = parse_vec3(&split[1]);*/
 	(void)p;
 }
 
@@ -39,6 +34,7 @@ void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
 	{
 		path = ft_strjoin(p->path_split[0], split[1]);
 		mtl->data.texture_albedo = load_bmp(p->e, path);
+		printf("%s, %i\n", path, mtl->data.texture_albedo);
 		free(path);
 	}
 	else if (split[0][5] == 'r')
@@ -75,20 +71,23 @@ void	parse_mtl(t_mtl_parser *p, char **split)
 	while (get_next_line(fd, &line))
 	{
 		msplit = ft_strsplitwspace((const char *)line);
-		if (msplit[0] && msplit[0][0] == 'K')
-			parse_color(p, &msplit[0], &mtl);
-		else if (msplit[0] && ft_strstr(msplit[0], "map"))
-			parse_texture(p, msplit, &mtl);
-		else if (msplit[0] && !ft_strcmp(msplit[0], "Ns"))
-			mtl.data.roughness = CLAMP(1.f / (1.f + atof(msplit[1])) * 50.f, 0, 1);
-		else if (msplit[0] && !ft_strcmp(msplit[0], "Nr"))
-			mtl.data.roughness = atof(msplit[1]);
-		else if (msplit[0] && !ft_strcmp(msplit[0], "Nm"))
-			mtl.data.metallic = atof(msplit[1]);
-		else if (msplit[0] && !ft_strcmp(msplit[0], "Ni"))
-			mtl.data.refraction = atof(msplit[1]);
-		else if (msplit[0] && !ft_strcmp(msplit[0], "newmtl"))
-			parse_mtl(p, &msplit[1]);
+		if (!ft_strchr(msplit[0], '#'))
+		{
+			if (msplit[0] && msplit[0][0] == 'K')
+				parse_color(p, &msplit[0], &mtl);
+			else if (msplit[0] && ft_strstr(msplit[0], "map"))
+				parse_texture(p, msplit, &mtl);
+			else if (msplit[0] && !ft_strcmp(msplit[0], "Ns"))
+				mtl.data.roughness = CLAMP(1.f / (1.f + atof(msplit[1])) * 50.f, 0, 1);
+			else if (msplit[0] && !ft_strcmp(msplit[0], "Nr"))
+				mtl.data.roughness = atof(msplit[1]);
+			else if (msplit[0] && !ft_strcmp(msplit[0], "Nm"))
+				mtl.data.metallic = atof(msplit[1]);
+			else if (msplit[0] && !ft_strcmp(msplit[0], "Ni"))
+				mtl.data.refraction = atof(msplit[1]);
+			else if (msplit[0] && !ft_strcmp(msplit[0], "newmtl"))
+				parse_mtl(p, &msplit[1]);
+		}
 		ft_free_chartab(msplit);
 		free(line);
 	}

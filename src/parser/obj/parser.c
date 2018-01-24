@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/19 23:18:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/23 23:35:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ typedef struct		s_obj_parser
 	ARRAY			vt;
 	ARRAY			mtl_pathes;
 	t_vgroup		vg;
-	VEC3			min, max, center;
+	t_aabb			bbox;
 }					t_obj_parser;
 
 t_vgroup	new_vgroup()
@@ -87,13 +87,13 @@ void	parse_vtn(t_obj_parser *p, char **split)
 	if (!ft_strcmp(split[0], "v"))
 	{
 		v = parse_vec3(&split[1]);
-		p->min.x = v.x < p->min.x ? v.x : p->min.x;
-		p->min.y = v.y < p->min.y ? v.y : p->min.y;
-		p->min.z = v.z < p->min.z ? v.z : p->min.z;
-		p->max.x = v.x > p->max.x ? v.x : p->max.x;
-		p->max.y = v.y > p->max.y ? v.y : p->max.y;
-		p->max.z = v.z > p->max.z ? v.z : p->max.z;
-		p->center = vec3_fdiv(vec3_add(p->min, p->max), 2);
+		p->bbox.min.x = v.x < p->bbox.min.x ? v.x : p->bbox.min.x;
+		p->bbox.min.y = v.y < p->bbox.min.y ? v.y : p->bbox.min.y;
+		p->bbox.min.z = v.z < p->bbox.min.z ? v.z : p->bbox.min.z;
+		p->bbox.max.x = v.x > p->bbox.max.x ? v.x : p->bbox.max.x;
+		p->bbox.max.y = v.y > p->bbox.max.y ? v.y : p->bbox.max.y;
+		p->bbox.max.z = v.z > p->bbox.max.z ? v.z : p->bbox.max.z;
+		p->bbox.center = vec3_fdiv(vec3_add(p->bbox.min, p->bbox.max), 2);
 		if (p->v.length == p->v.reserved)
 			ezarray_reserve(&p->v, p->v.length * 2);
 		ezarray_push(&p->v, &v);
@@ -142,22 +142,14 @@ void	calculate_tan(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
 	int i;
 
 	i = 0;
-	VEC3 v0 = v[0];
-	VEC3 v1 = v[1];
-	VEC3 v2 = v[2];
-
-	// Shortcuts for UVs
-	VEC2 uv0 = vt[0];
-	VEC2 uv1 = vt[1];
-	VEC2 uv2 = vt[2];
 
 	// Edges of the triangle : postion delta
-	VEC3 deltaPos1 = vec3_sub(v1, v0);
-	VEC3 deltaPos2 = vec3_sub(v2, v0);
+	VEC3 deltaPos1 = vec3_sub(v[1], v[0]);
+	VEC3 deltaPos2 = vec3_sub(v[2], v[0]);
 
 	// UV delta
-	VEC2 deltaUV1 = vec2_sub(uv1, uv0);
-	VEC2 deltaUV2 = vec2_sub(uv2, uv0);
+	VEC2 deltaUV1 = vec2_sub(vt[1], vt[0]);
+	VEC2 deltaUV2 = vec2_sub(vt[2], vt[0]);
 	float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
 	VEC3 tangent = vec3_scale(vec3_sub(vec3_scale(deltaPos1, deltaUV2.y), vec3_scale(deltaPos2, deltaUV1.y)), r);
 	//VEC3 bitangent = vec3_scale(vec3_sub(vec3_scale(deltaPos2, deltaUV1.x), vec3_scale(deltaPos1, deltaUV2.x)), r);
@@ -194,7 +186,7 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[i] - 1));
 		if (!in_vt)
 		{
-			VEC3 vec = vec3_normalize(vec3_sub(v[i], p->center));
+			VEC3 vec = vec3_normalize(vec3_sub(v[i], p->bbox.center));
 			//vt[i] = new_vec2(vec.x, vec.y);
 			float phi = acosf(-vec3_dot(UP, vec));
 			vt[i] = new_vec2((phi / M_PI), (acosf(CLAMP(vec3_dot(vec, vec3_cross(UP, (VEC3){0, 0, 1})) / sin(phi), -1, 1)) / (2.f * M_PI)));
@@ -335,6 +327,8 @@ int	load_obj(t_engine *engine, char *path)
 	t_obj_parser	p;
 
 	ft_memset(&p, 0, sizeof(t_obj_parser));
+	p.bbox.min = new_vec3(1000, 1000, 1000);
+	p.bbox.max = new_vec3(-1000, -1000, -1000);
 	p.e = engine;
 	p.path_split = split_path(path);
 	p.mtl_pathes = new_ezarray(other, 0, sizeof(STRING));
@@ -343,9 +337,10 @@ int	load_obj(t_engine *engine, char *path)
 	get_mtllib(&p);
 	if (!p.mesh.vgroups.length && p.vg.v.length)
 		ezarray_push(&p.mesh.vgroups, &p.vg);
+	p.mesh.bounding_box = p.bbox;
 	p.mesh.transform_index = create_transform(engine, new_vec3(0, 0, 0),
 		new_vec3(0, 0, 0), new_vec3(1, 1, 1));
 	assign_materials(engine, p.mesh);
 	ezarray_push(&engine->meshes, &p.mesh);
-	return (engine->meshes.length);
+	return (engine->meshes.length - 1);
 }
