@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/23 23:35:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/26 00:19:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,10 @@ t_vgroup	new_vgroup()
 	vg.v = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vn = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vt = new_ezarray(other, 0, sizeof(VEC2));
-	vg.tan = new_ezarray(other, 0, sizeof(VEC3));
-	vg.bitan = new_ezarray(other, 0, sizeof(VEC3));
+	vg.uvmin = new_vec2(0, 0);
+	vg.uvmax = new_vec2(1, 1);
+	//vg.tan = new_ezarray(other, 0, sizeof(VEC3));
+	//vg.bitan = new_ezarray(other, 0, sizeof(VEC3));
 	return (vg);
 }
 
@@ -114,6 +116,27 @@ void	parse_vtn(t_obj_parser *p, char **split)
 	}
 }
 
+void	vt_min_max(t_vgroup *vg)
+{
+	unsigned	i = 0;
+	vg->uvmin = new_vec2(1000, 1000);
+	vg->uvmax = new_vec2(-1000, -1000);
+
+	while (i < vg->vt.length)
+	{
+		VEC2	v = *((VEC2 *)ezarray_get_index(vg->vt, i));
+		if (v.x < vg->uvmin.x)
+			vg->uvmin.x = v.x;
+		if (v.y < vg->uvmin.y)
+			vg->uvmin.y = v.y;
+		if (v.x > vg->uvmax.x)
+			vg->uvmax.x = v.x;
+		if (v.y > vg->uvmax.y)
+			vg->uvmax.y = v.y;
+		i++;
+	}
+}
+
 void	parse_vg(t_obj_parser *p, char **split)
 {
 	if (p->vg.v.length > 0)
@@ -121,6 +144,7 @@ void	parse_vg(t_obj_parser *p, char **split)
 		ezarray_shrink(&p->vg.v);
 		ezarray_shrink(&p->vg.vn);
 		ezarray_shrink(&p->vg.vt);
+		vt_min_max(&p->vg);
 		ezarray_push(&p->mesh.vgroups, &p->vg);
 		p->vg = new_vgroup();
 	}
@@ -135,34 +159,6 @@ int		ft_chartablen(char **s)
 	while (s[i])
 		i++;
 	return (i);
-}
-
-void	calculate_tan(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
-{
-	int i;
-
-	i = 0;
-
-	// Edges of the triangle : postion delta
-	VEC3 deltaPos1 = vec3_sub(v[1], v[0]);
-	VEC3 deltaPos2 = vec3_sub(v[2], v[0]);
-
-	// UV delta
-	VEC2 deltaUV1 = vec2_sub(vt[1], vt[0]);
-	VEC2 deltaUV2 = vec2_sub(vt[2], vt[0]);
-	float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-	VEC3 tangent = vec3_scale(vec3_sub(vec3_scale(deltaPos1, deltaUV2.y), vec3_scale(deltaPos2, deltaUV1.y)), r);
-	//VEC3 bitangent = vec3_scale(vec3_sub(vec3_scale(deltaPos2, deltaUV1.x), vec3_scale(deltaPos1, deltaUV2.x)), r);
-	while (i < 3)
-	{
-		//VEC3	otan = vec3_cross(vn[i], tangent);
-		//VEC3	obitan = vec3_cross(vn[i], bitangent);
-		VEC3	otan = vec3_normalize(vec3_sub(tangent, vec3_scale(vn[i], vec3_dot(vn[i], tangent))));
-		VEC3	obitan = vec3_normalize(vec3_cross(otan, vn[i]));
-		ezarray_push(&p->vg.tan, &otan);
-		ezarray_push(&p->vg.bitan, &obitan);
-		i++;
-	}
 }
 
 void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
@@ -186,15 +182,33 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[i] - 1));
 		if (!in_vt)
 		{
-			VEC3 vec = vec3_normalize(vec3_sub(v[i], p->bbox.center));
-			//vt[i] = new_vec2(vec.x, vec.y);
-			float phi = acosf(-vec3_dot(UP, vec));
-			vt[i] = new_vec2((phi / M_PI), (acosf(CLAMP(vec3_dot(vec, vec3_cross(UP, (VEC3){0, 0, 1})) / sin(phi), -1, 1)) / (2.f * M_PI)));
+			VEC3 vec = vec3_normalize(vec3_sub(p->bbox.center, v[i]));
+			vt[i].x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));
+			vt[i].y = vec.y * 0.5f + 0.5f;
+			//vt[i].y = 0.5f - asin(vec.y) / M_PI;
 		}
 		else
 			vt[i] = in_vt[i];
 		ft_free_chartab(fsplit);
 		i++;
+	}
+	if (!in_vt)
+	{
+		VEC3	texa, texb, texc;
+		texa = vec2_to_vec3(vt[0], 0);
+		texb = vec2_to_vec3(vt[1], 0);
+		texc = vec2_to_vec3(vt[2], 0);
+		VEC3	texnormal;
+		texnormal = vec3_cross(vec3_sub(texb, texa), vec3_sub(texc, texa));
+		if (texnormal.z < 0)
+		{
+			if (vt[0].x < 0.25f)
+				vt[0].x += 1.f;
+			if (vt[1].x < 0.25f)
+				vt[1].x += 1.f;
+			if (vt[2].x < 0.25f)
+				vt[2].x += 1.f;
+		}
 	}
 	i = 0;
 	while (split[i])
@@ -205,13 +219,19 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
 		if (tablen == 3 && slash == 2)
 		{
-			vt[i] = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
+			in_vt = ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1);
+			if (in_vt)
+				vt[i] = *in_vt;
 			vn[i] = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[2]) - 1));
 		}
 		else if (tablen == 2 && slash == 2)
 			vn[i] = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[1]) - 1));
 		else if (tablen == 2 && slash == 1)
-			vt[i] = *((VEC2*)ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1));
+		{
+			in_vt = ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1);
+			if (in_vt)
+				vt[i] = *in_vt;
+		}
 		else
 			vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));	
 		ft_free_chartab(fsplit);
@@ -225,7 +245,7 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		ezarray_push(&p->vg.vn, &vn[i]);
 		i++;
 	}
-	calculate_tan(p, v, vn, vt);
+	//calculate_tan(p, v, vn, vt);
 }
 
 void	parse_f(t_obj_parser *p, char **split)
@@ -246,10 +266,9 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 	int		fd;
 	STRING	s;
 
-	if (access(path, F_OK | W_OK))
+	if (access(path, F_OK | W_OK) || (p->fd = open(path, O_RDONLY)) <= 0)
 		return (-1);
 	p->path_split = split_path(path);
-	p->fd = open(path, O_RDONLY);
 	p->mesh = new_mesh();
 	p->vg = new_vgroup();
 	p->v = new_ezarray(other, 0, sizeof(VEC3));
@@ -280,7 +299,7 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 		ft_free_chartab(split);
 		free(line);
 	}
-	ezarray_push(&p->mesh.vgroups, &p->vg);
+	parse_vg(p, split);
 	destroy_ezarray(&p->v);
 	destroy_ezarray(&p->vn);
 	destroy_ezarray(&p->vt);
@@ -338,7 +357,7 @@ int	load_obj(t_engine *engine, char *path)
 	if (!p.mesh.vgroups.length && p.vg.v.length)
 		ezarray_push(&p.mesh.vgroups, &p.vg);
 	p.mesh.bounding_box = p.bbox;
-	p.mesh.transform_index = create_transform(engine, new_vec3(0, 0, 0),
+	p.mesh.transform_index = transform_create(engine, new_vec3(0, 0, 0),
 		new_vec3(0, 0, 0), new_vec3(1, 1, 1));
 	assign_materials(engine, p.mesh);
 	ezarray_push(&engine->meshes, &p.mesh);

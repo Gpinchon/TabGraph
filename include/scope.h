@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/24 01:59:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/25 21:12:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,14 +127,17 @@ typedef struct	s_vgroup
 	int			shader_index;
 	int			in_campos;
 	int			in_transform;
+	int			in_modelmatrix;
 	int			in_normalmatrix;
 	int			in_albedo;
-	int			in_uv_scale;
+	int			in_uvmin;
+	int			in_uvmax;
 	int			in_roughness;
 	int			in_metallic;
 	int			in_refraction;
 	int			in_alpha;
 	int			in_parallax;
+	int			in_use_texture_albedo_alpha;
 	int			in_texture_albedo;
 	int			in_use_texture_albedo;
 	int			in_texture_roughness;
@@ -150,14 +153,12 @@ typedef struct	s_vgroup
 	ARRAY		v;
 	ARRAY		vn;
 	ARRAY		vt;
-	ARRAY		tan;
-	ARRAY		bitan;
+	VEC2		uvmax;
+	VEC2		uvmin;
 	GLuint		v_arrayid;
 	GLuint		v_bufferid;
 	GLuint		vn_bufferid;
 	GLuint		vt_bufferid;
-	GLuint		tan_bufferid;
-	GLuint		bitan_bufferid;
 }				t_vgroup;
 
 typedef struct	s_aabb
@@ -198,7 +199,7 @@ typedef struct	s_engine
 	int8_t		loop;
 	int8_t		swap_interval;
 	t_window	*window;
-	t_camera	camera;
+	ARRAY		cameras;
 	ARRAY		meshes;
 	ARRAY		lights;
 	ARRAY		transforms;
@@ -246,6 +247,6 @@ int			load_bmp(t_engine *e, const char *imagepath);
 
 
 int		load_shaders(t_engine *engine, const char *name, const char *vertex_file_path,const char *fragment_file_path);
-int		create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale);
+int		transform_create(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale);
 
 #endif

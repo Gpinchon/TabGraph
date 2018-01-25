@@ -6,24 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/24 02:59:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/26 00:43:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
-
-int	main_loop(t_engine engine, t_window w)
-{
-	SDL_GL_SetSwapInterval(engine.swap_interval);
-	while(engine.loop)
-	{
-		glClearColor(w.clear_color.x, w.clear_color.y,
-			w.clear_color.z, w.clear_color.w);
-		glClear(w.clear_mask);
-		SDL_GL_SwapWindow(w.sdl_window);
-	}
-	return (0);
-}
 
 char		*convert_backslash(char *str)
 {
@@ -42,7 +29,7 @@ char		*convert_backslash(char *str)
 /*
 ** engine is a singleton
 */
-t_engine	*init_engine()
+t_engine	*engine_init()
 {
 	static t_engine	*engine = NULL;
 
@@ -54,6 +41,7 @@ t_engine	*init_engine()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	engine->cameras = new_ezarray(other, 0, sizeof(t_camera));
 	engine->shaders = new_ezarray(other, 0, sizeof(t_shader));
 	engine->textures = new_ezarray(other, 0, sizeof(t_texture));
 	engine->materials = new_ezarray(other, 1, sizeof(t_material));
@@ -61,6 +49,7 @@ t_engine	*init_engine()
 	engine->transforms = new_ezarray(other, 0, sizeof(t_transform));
 	engine->lights = new_ezarray(other, 0, sizeof(t_light));
 	engine->loop = 1;
+	engine->swap_interval = 1;
 	g_program_path = convert_backslash(getcwd(NULL, 2048));
 	return (engine);
 }
@@ -94,7 +83,7 @@ static float	*create_display_quad()
 ** window is a singleton
 */
 
-t_window		*init_window(t_engine *engine, const char *name, int width, int height)
+t_window		*window_init(t_engine *engine, const char *name, int width, int height)
 {
 	static t_window	*window = NULL;
 
@@ -114,7 +103,7 @@ t_window		*init_window(t_engine *engine, const char *name, int width, int height
 	return (engine->window = window);
 }
 
-int	create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale)
+int	transform_create(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale)
 {
 	t_transform	t;
 
@@ -124,7 +113,7 @@ int	create_transform(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale)
 	return (e->transforms.length - 1);
 }
 
-int		load_vbuffer(GLuint attrib, int size, ARRAY array, GLuint *bufferid)
+int		vbuffer_load(GLuint attrib, int size, ARRAY array, GLuint *bufferid)
 {
 	GLuint	lbufferid = *bufferid;
 	if (!size || !array.length)
@@ -141,7 +130,7 @@ int		load_vbuffer(GLuint attrib, int size, ARRAY array, GLuint *bufferid)
 	return (0);
 }
 
-int		load_vgroup(t_vgroup *vg)
+int		vgroup_load(t_vgroup *vg)
 {
 	t_vgroup	lvg;
 	int			ret;
@@ -152,22 +141,22 @@ int		load_vgroup(t_vgroup *vg)
 		glDeleteVertexArrays(1, &lvg.v_arrayid);
 	glGenVertexArrays(1, &lvg.v_arrayid);
 	glBindVertexArray(lvg.v_arrayid);
-	ret = !ret | !load_vbuffer(0, 3, lvg.v, &lvg.v_bufferid);
-	ret = !ret | !load_vbuffer(1, 3, lvg.vn, &lvg.vn_bufferid);
-	ret = !ret | !load_vbuffer(2, 2, lvg.vt, &lvg.vt_bufferid);
-	ret = !ret | !load_vbuffer(3, 3, lvg.tan, &lvg.tan_bufferid);
-	ret = !ret | !load_vbuffer(4, 3, lvg.bitan, &lvg.bitan_bufferid);
+	ret = !ret | !vbuffer_load(0, 3, lvg.v, &lvg.v_bufferid);
+	ret = !ret | !vbuffer_load(1, 3, lvg.vn, &lvg.vn_bufferid);
+	ret = !ret | !vbuffer_load(2, 2, lvg.vt, &lvg.vt_bufferid);
+	//ret = !ret | !vbuffer_load(3, 3, lvg.tan, &lvg.tan_bufferid);
+	//ret = !ret | !vbuffer_load(4, 3, lvg.bitan, &lvg.bitan_bufferid);
 	printf("Total Size %i, Buffer ID %i\n", lvg.v.total_size, lvg.v_bufferid);
 	printf("Total Size %i, Buffer ID %i\n", lvg.vn.total_size, lvg.vn_bufferid);
 	printf("Total Size %i, Buffer ID %i\n", lvg.vt.total_size, lvg.vt_bufferid);
-	printf("Total Size %i, Buffer ID %i\n", lvg.tan.total_size, lvg.tan_bufferid);
-	printf("Total Size %i, Buffer ID %i\n", lvg.bitan.total_size, lvg.bitan_bufferid);
+	//printf("Total Size %i, Buffer ID %i\n", lvg.tan.total_size, lvg.tan_bufferid);
+	//printf("Total Size %i, Buffer ID %i\n", lvg.bitan.total_size, lvg.bitan_bufferid);
 	glBindVertexArray(0);
 	*vg = lvg;
 	return (ret);
 }
 
-void		load_mesh(t_engine *engine, int mesh_index)
+void		mesh_load(t_engine *engine, int mesh_index)
 {
 	GLuint	i;
 	t_mesh	*mesh;
@@ -178,7 +167,7 @@ void		load_mesh(t_engine *engine, int mesh_index)
 		return;
 	while (i < mesh->vgroups.length)
 	{
-		load_vgroup(ezarray_get_index(mesh->vgroups, i));
+		vgroup_load(ezarray_get_index(mesh->vgroups, i));
 		i++;
 	}
 }
@@ -195,30 +184,17 @@ void	set_shader_uniform(t_engine *engine, int shader_index, int uniform_index, v
 	if (!variable)
 		return ;
 	if (variable->type == GL_FLOAT_VEC3)
-	{
-		printf("uniform name : %s | uniform type : %i\n", variable->name.tostring, variable->type);
 		glUniform3fv(variable->loc, 1, ((float*)value));
-	}
+	else if (variable->type == GL_FLOAT_VEC2)
+		glUniform2fv(variable->loc, 1, ((float*)value));
 	else if (variable->type == GL_FLOAT_MAT4)
-	{
-		printf("uniform name : %s | uniform type : %i\n", variable->name.tostring, variable->type);
 		glUniformMatrix4fv(variable->loc, 1, GL_FALSE, ((float*)value));
-	}
 	else if ((variable->type == GL_INT || variable->type == GL_BOOL || variable->type == GL_SAMPLER_2D || variable->type == GL_SAMPLER_CUBE))
-	{
-		printf("uniform name : %s | uniform type : %i\n", variable->name.tostring, variable->type);
 		glUniform1i(variable->loc, *((int*)value));
-	}
 	else if (variable->type == GL_UNSIGNED_INT)
-	{
-		printf("uniform name : %s | uniform type : %i\n", variable->name.tostring, variable->type);
 		glUniform1ui(variable->loc, *((int*)value));
-	}
 	else if (variable->type == GL_FLOAT)
-	{
-		printf("uniform name : %s | uniform type : %i\n", variable->name.tostring, variable->type);
 		glUniform1f(variable->loc, *((float*)value));
-	}
 }
 
 int		get_uniform_index(t_engine *engine, int shader_index, char *name)
@@ -240,53 +216,6 @@ int		get_uniform_index(t_engine *engine, int shader_index, char *name)
 	}
 	return (-1);
 }
-
-/*void	set_shader_uniform(t_shader *shader, char *name, void *value)
-{
-	ARRAY				uniforms;
-	t_shadervariable	v;
-	unsigned			i;
-	ULL					h;
-
-	uniforms = shader->uniforms;
-	i = 0;
-	h = hash((unsigned char*)name);
-	while (i < uniforms.length)
-	{
-		v = *(t_shadervariable*)ezarray_get_index(uniforms, i);
-		if (v.type == GL_FLOAT_VEC3 && v.id == h)
-		{
-			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
-			glUniform3fv(v.loc, 1, ((float*)value));
-			break ;
-		}
-		else if (v.type == GL_FLOAT_MAT4 && v.id == h)
-		{
-			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
-			glUniformMatrix4fv(v.loc, 1, GL_FALSE, ((float*)value));
-			break ;
-		}
-		else if ((v.type == GL_INT || v.type == GL_BOOL || v.type == GL_SAMPLER_2D || v.type == GL_SAMPLER_CUBE) && v.id == h)
-		{
-			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
-			glUniform1i(v.loc, *((int*)value));
-			break ;
-		}
-		else if (v.type == GL_UNSIGNED_INT && v.id == h)
-		{
-			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
-			glUniform1ui(v.loc, *((int*)value));
-			break ;
-		}
-		else if (v.type == GL_FLOAT && v.id == h)
-		{
-			printf("uniform name : %s | uniform type : %i\n", v.name.tostring, v.type);
-			glUniform1f(v.loc, *((float*)value));
-			break ;
-		}
-		i++;
-	}
-}*/
 
 GLuint			load_texture(t_texture *texture, GLenum target)
 {
@@ -314,9 +243,12 @@ GLuint			load_texture(t_texture *texture, GLenum target)
 	glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	if (texture->bpp < 32)
+		glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	glTexImage2D(target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);
 	glGenerateMipmap(target);
 	glBindTexture(target, 0);
+	texture->loaded = 1;
 	return (texture->id_ogl);
 }
 
@@ -371,45 +303,11 @@ GLuint	generate_texture(t_texture *texture)
 	glTexParameteri(texture->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glTexParameteri(texture->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(texture->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	if (texture->bpp < 32)
+		glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	glBindTexture(texture->target, 0);
 	return (texture->id_ogl);
 }
-
-/*void	set_shader_textures(t_engine *engine, int shader_index, int mesh_index, int vgroup_index)
-{
-	t_texture	*texture[4];
-	t_material	*mtl;
-	t_vgroup	*vgroup;
-	t_mesh		*mesh;
-	GLint		use_texture;
-
-	mesh = ezarray_get_index(engine->meshes, mesh_index);
-	vgroup = ezarray_get_index(mesh->vgroups, vgroup_index);
-	texture[0] = ezarray_get_index(engine->textures, mtl->data.texture_albedo);
-	if (texture[0] && !texture[0]->loaded)
-			load_texture(texture[0], GL_TEXTURE_2D);
-	texture[1] = ezarray_get_index(engine->textures, mtl->data.texture_normal);
-	if (texture[1] && !texture[1]->loaded)
-			load_texture(texture[1], GL_TEXTURE_2D);
-	texture[2] = ezarray_get_index(engine->textures, mtl->data.texture_roughness);
-	if (texture[2] && !texture[2]->loaded)
-			load_texture(texture[2], GL_TEXTURE_2D);
-	texture[3] = ezarray_get_index(engine->textures, mtl->data.texture_metallic);
-	if (texture[3] && !texture[3]->loaded)
-			load_texture(texture[3], GL_TEXTURE_2D);
-	if ((use_texture = texture[0] ? 1 : 0))
-		set_shader_texture(engine, shader_index, vgroup->shader_texture_albedo, texture[0], GL_TEXTURE0 + 2);
-	set_shader_uniform(engine, shader_index, vgroup->shader_use_texture_albedo, &use_texture);
-	if ((use_texture = texture[1] ? 1 : 0))
-		set_shader_texture(engine, shader_index, vgroup->shader_texture_normal, texture[1], GL_TEXTURE0 + 3);
-	set_shader_uniform(engine, shader_index, vgroup->shader_use_texture_normal, &use_texture);
-	if ((use_texture = texture[2] ? 1 : 0))
-		set_shader_texture(engine, shader_index, vgroup->shader_texture_roughness, texture[2], GL_TEXTURE0 + 4);
-	set_shader_uniform(engine, shader_index, vgroup->shader_use_texture_roughness, &use_texture);
-	if ((use_texture = texture[3] ? 1 : 0))
-		set_shader_texture(engine, shader_index, vgroup->shader_texture_metallic, texture[3], GL_TEXTURE0 + 5);
-	set_shader_uniform(engine, shader_index, vgroup->shader_use_texture_metallic, &use_texture);
-}*/
 
 void	assign_shader_to_vgroup(t_engine *engine, int mesh_index, int vgroup_index, int shader_index)
 {
@@ -423,9 +321,11 @@ void	assign_shader_to_vgroup(t_engine *engine, int mesh_index, int vgroup_index,
 	vgroup->shader_index = shader_index;
 	vgroup->in_campos = get_uniform_index(engine, shader_index, "in_CamPos");
 	vgroup->in_transform = get_uniform_index(engine, shader_index, "in_Transform");
+	vgroup->in_modelmatrix = get_uniform_index(engine, shader_index, "in_ModelMatrix");
 	vgroup->in_normalmatrix = get_uniform_index(engine, shader_index, "in_NormalMatrix");
 	vgroup->in_albedo = get_uniform_index(engine, shader_index, "in_Albedo");
-	vgroup->in_uv_scale = get_uniform_index(engine, shader_index, "in_UVScale");
+	vgroup->in_uvmax = get_uniform_index(engine, shader_index, "in_UVMax");
+	vgroup->in_uvmin = get_uniform_index(engine, shader_index, "in_UVMin");
 	vgroup->in_roughness = get_uniform_index(engine, shader_index, "in_Roughness");
 	vgroup->in_metallic = get_uniform_index(engine, shader_index, "in_Metallic");
 	vgroup->in_refraction = get_uniform_index(engine, shader_index, "in_Refraction");
@@ -460,64 +360,6 @@ void	assign_shader_to_mesh(t_engine *engine, int mesh_index, int shader_index)
 		vgroup_index++;
 	}
 }
-
-/*void	render_mesh(t_engine *engine, int mesh_index)
-{
-	unsigned	i;
-	t_vgroup	vg;
-	t_camera	cam;
-	t_mesh		m;
-
-	m = *((t_mesh*)ezarray_get_index(engine->meshes, mesh_index));
-	glClearColor(0.46f, 0.53f, 0.6f, 1.0f);
-	t_shader	shader = load_shaders("/src/shaders/default.vert", "/src/shaders/default.frag");
-	//GLuint	prog = load_shaders("/src/shaders/point.vert", "/src/shaders/point.frag");
-	cam.position = new_vec3(-1, 0.9, 1);
-	cam.target_index = create_transform(engine, new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
-	cam.view = mat4_lookat(cam.position, new_vec3(0, 0.5, 0), UP);
-	cam.projection = mat4_perspective(45, (float)1024 / (float)768, 0.1, 100);
-	t_transform	t;
-
-	t = new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP);
-	transform_update(&t);
-	MAT4	mvp;
-
-	mvp = mat4_combine(cam.projection, cam.view, t.transform);
-	glUseProgram(shader.program);
-	glEnable(GL_PROGRAM_POINT_SIZE);
-	set_shader_uniform(&shader, "in_Transform", &mvp.m[0]);
-	MAT4	normal_matrix = mat4_transpose(mat4_inverse(t.transform));
-	set_shader_uniform(&shader, "in_NormalMatrix", &normal_matrix.m[0]);
-	set_shader_uniform(&shader, "in_CamPos", &cam.position);
-	i = 0;
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	ARRAY mtllib;
-	mtllib = engine->materials;
-
-
-
-	while (i < m.vgroups.length)
-	{
-		glUseProgram(shader.program);
-		vg = *(t_vgroup*)ezarray_get_index(m.vgroups, i);
-		t_material *mtl = ezarray_get_index(mtllib, vg.mtl_index);
-		set_material_textures(engine, &shader, mtl);
-		set_shader_texture(&shader, "in_Texture_Env", &env, GL_TEXTURE0);
-		set_shader_texture(&shader, "in_Texture_Env_Spec", &env_spec, GL_TEXTURE0 + 1);
-		set_shader_uniform(&shader, "in_Albedo", &mtl->data.albedo);
-		set_shader_uniform(&shader, "in_UVScale", &mtl->data.uv_scale);
-		set_shader_uniform(&shader, "in_Roughness", &mtl->data.roughness);
-		set_shader_uniform(&shader, "in_Metallic", &mtl->data.metallic);
-		set_shader_uniform(&shader, "in_Refraction", &mtl->data.refraction);
-		set_shader_uniform(&shader, "in_Alpha", &mtl->data.alpha);
-		set_shader_uniform(&shader, "in_Parallax", &mtl->data.parallax);
-		glBindVertexArray(vg.v_arrayid);
-		glDrawArrays(GL_TRIANGLES, 0, vg.v.length);
-		i++;
-	}
-	glBindVertexArray(0);
-}*/
 
 void	load_material_textures(t_engine *engine, int material_index)
 {
@@ -561,16 +403,18 @@ void	set_shader_textures(t_engine *engine, t_vgroup *vgroup, t_material *materia
 	set_shader_texture(engine, vgroup->shader_index, vgroup->in_texture_env_spec, ezarray_get_index(engine->textures, engine->env_spec), GL_TEXTURE0 + i + 1);
 }
 
-void	render_vgroup(t_engine *engine, int mesh_index, int vgroup_index)
+void	vgroup_render(t_engine *engine, int camera_index, int mesh_index, int vgroup_index)
 {
 	t_mesh		*mesh;
 	t_vgroup	*vgroup;
 	t_shader	*shader;
 	t_material	*material;
+	t_camera	*camera;
 
 	mesh = ezarray_get_index(engine->meshes, mesh_index);
 	vgroup = ezarray_get_index(mesh->vgroups, vgroup_index);
-	if (!vgroup)
+	camera = ezarray_get_index(engine->cameras, camera_index);
+	if (!mesh || !vgroup || !camera)
 		return;
 	material = ezarray_get_index(engine->materials, vgroup->mtl_index);
 	if (!material)
@@ -580,39 +424,40 @@ void	render_vgroup(t_engine *engine, int mesh_index, int vgroup_index)
 		return;
 	load_material_textures(engine, vgroup->mtl_index);
 	t_transform *t = ezarray_get_index(engine->transforms, mesh->transform_index);
+
 	MAT4 transform;
-	transform = mat4_combine(engine->camera.projection, engine->camera.view, t->transform);
+	transform = mat4_combine(camera->projection, camera->view, t->transform);
 	MAT4	normal_matrix = mat4_transpose(mat4_inverse(t->transform));
+
 	glUseProgram(shader->program);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	set_shader_textures(engine, vgroup, material);
-	//set_shader_uniform(&shader, "in_CamPos", &cam.position);
-	//set_shader_textures(engine, vgroup->shader_index, mesh_index, vgroup_index);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_campos, &engine->camera.position);
+
+	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_campos, &camera->position);
+	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_modelmatrix, &t->transform);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_normalmatrix, &normal_matrix);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_transform, &transform);
+	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_uvmin, &vgroup->uvmin);
+	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_uvmax, &vgroup->uvmax);
 
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_albedo, &material->data.albedo);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_uv_scale, &material->data.uv_scale);
+	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_alpha, &material->data.alpha);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_roughness, &material->data.roughness);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_metallic, &material->data.metallic);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_refraction, &material->data.refraction);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_alpha, &material->data.alpha);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_parallax, &material->data.parallax);
-	/*t_material *mtl = ezarray_get_index(mtllib, vgroup->mtl_index);
-	set_material_textures(engine, &shader, mtl);
-	set_shader_texture(&shader, "in_Texture_Env", &env, GL_TEXTURE0);
-	set_shader_texture(&shader, "in_Texture_Env_Spec", &env_spec, GL_TEXTURE0 + 1);*/
 	glBindVertexArray(vgroup->v_arrayid);
 	glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
 
-void	render_mesh(t_engine *engine, int mesh_index)
+void	mesh_render(t_engine *engine, int camera_index, int mesh_index)
 {
 	t_mesh		*mesh;
 	unsigned	vgroup_index;
@@ -624,50 +469,77 @@ void	render_mesh(t_engine *engine, int mesh_index)
 	vgroup_index = 0;
 	while (vgroup_index < mesh->vgroups.length)
 	{
-		render_vgroup(engine, mesh_index, vgroup_index);
+		vgroup_render(engine, camera_index, mesh_index, vgroup_index);
 		vgroup_index++;
 	}
 }
 
-void	update_camera(t_engine *engine, int camera_index)
+void	camera_update(t_engine *engine, int camera_index)
 {
-	t_transform *camera_target;
-
-	camera_target = ezarray_get_index(engine->transforms, engine->camera.target_index);
-	engine->camera.view = mat4_lookat(engine->camera.position, camera_target->position, UP);
-	engine->camera.projection = mat4_perspective(60, (float)WIDTH / (float)HEIGHT, 0.1, 10000);
+	t_transform	*camera_target;
+	VEC3		target;
+	t_camera	*camera;
+	
+	camera = ezarray_get_index(engine->cameras, camera_index);
+	if (!camera)
+		return ;
+	camera_target = ezarray_get_index(engine->transforms, camera->target_index);
+	target = camera_target ? camera_target->position : new_vec3(0, 0, 0);
+	camera->view = mat4_lookat(camera->position, target, UP);
+	camera->projection = mat4_perspective(camera->fov, (float)WIDTH / (float)HEIGHT, 0.1, 1000);
 	(void)camera_index;
 }
 
 void	camera_set_target(t_engine *engine, int camera_index, int mesh_index)
 {
-	engine->camera.target_index = ((t_mesh*)ezarray_get_index(engine->meshes, mesh_index))->transform_index;
-	(void)camera_index;
+	t_mesh		*mesh;
+	t_camera	*camera;
+
+
+	mesh = ezarray_get_index(engine->meshes, mesh_index);
+	camera = ezarray_get_index(engine->cameras, camera_index);
+	if (!mesh || !camera)
+		return ;
+	camera->target_index = mesh->transform_index;
 }
 
 void	camera_set_position(t_engine *engine, int camera_index, VEC3 position)
 {
-	engine->camera.position = position;
-	(void)camera_index;
+	t_camera	*camera;
+
+	camera = ezarray_get_index(engine->cameras, camera_index);
+	if (!camera)
+		return;
+	camera->position = position;
 }
 
-void	render_scene(t_engine *engine)
+int		camera_create(t_engine *engine, float fov)
+{
+	t_camera	camera;
+
+	ft_memset(&camera, 0, sizeof(t_camera));
+	camera.fov = fov;
+	camera.target_index = -1;
+	ezarray_push(&engine->cameras, &camera);
+	return (engine->cameras.length - 1);
+}
+
+void	scene_render(t_engine *engine, int camera_index)
 {
 	unsigned	mesh_index;
 
 	mesh_index = 0;
 	glClearColor(0.46f, 0.53f, 0.6f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	printf("rendering\n");
-	update_camera(engine, 0);
+	camera_update(engine, camera_index);
 	while (mesh_index < engine->meshes.length)
 	{
-		render_mesh(engine, mesh_index);
+		mesh_render(engine, camera_index, mesh_index);
 		mesh_index++;
 	}
 }
 
-void	center_vgroup(t_engine *engine, int mesh_index, int vgroup_index)
+void	vgroup_center(t_engine *engine, int mesh_index, int vgroup_index)
 {
 	t_mesh		*mesh;
 	t_vgroup	*vgroup;
@@ -687,7 +559,7 @@ void	center_vgroup(t_engine *engine, int mesh_index, int vgroup_index)
 	}
 }
 
-void	center_mesh(t_engine *engine, int mesh_index)
+void	mesh_center(t_engine *engine, int mesh_index)
 {
 	t_mesh		*mesh;
 	unsigned	vgroup_index;
@@ -698,7 +570,7 @@ void	center_mesh(t_engine *engine, int mesh_index)
 	vgroup_index = 0;
 	while (vgroup_index < mesh->vgroups.length)
 	{
-		center_vgroup(engine, mesh_index, vgroup_index);
+		vgroup_center(engine, mesh_index, vgroup_index);
 		vgroup_index++;
 	}
 	mesh->bounding_box.center = new_vec3(0, 0, 0);
@@ -708,12 +580,12 @@ void	center_mesh(t_engine *engine, int mesh_index)
 
 void load_env(t_engine *engine)
 {
-	int X0 = load_bmp(engine, "./res/skybox/cloudtop/X+.bmp"), X1 = load_bmp(engine, "./res/skybox/cloudtop/X-.bmp"),
-	Y0 = load_bmp(engine, "./res/skybox/cloudtop/Y-.bmp"), Y1 = load_bmp(engine, "./res/skybox/cloudtop/Y+.bmp"),
-	Z0 = load_bmp(engine, "./res/skybox/cloudtop/Z+.bmp"), Z1 = load_bmp(engine, "./res/skybox/cloudtop/Z-.bmp");
-	int X0_spec = load_bmp(engine, "./res/skybox/cloudtop/X+_spec.bmp"), X1_spec = load_bmp(engine, "./res/skybox/cloudtop/X-_spec.bmp"),
-	Y0_spec = load_bmp(engine, "./res/skybox/cloudtop/Y-_spec.bmp"), Y1_spec = load_bmp(engine, "./res/skybox/cloudtop/Y+_spec.bmp"),
-	Z0_spec = load_bmp(engine, "./res/skybox/cloudtop/Z+_spec.bmp"), Z1_spec = load_bmp(engine, "./res/skybox/cloudtop/Z-_spec.bmp");
+	int X0 = load_bmp(engine, "./res/skybox/museum/X+.bmp"), X1 = load_bmp(engine, "./res/skybox/museum/X-.bmp"),
+	Y0 = load_bmp(engine, "./res/skybox/museum/Y-.bmp"), Y1 = load_bmp(engine, "./res/skybox/museum/Y+.bmp"),
+	Z0 = load_bmp(engine, "./res/skybox/museum/Z+.bmp"), Z1 = load_bmp(engine, "./res/skybox/museum/Z-.bmp");
+	int X0_spec = load_bmp(engine, "./res/skybox/museum/X+_spec.bmp"), X1_spec = load_bmp(engine, "./res/skybox/museum/X-_spec.bmp"),
+	Y0_spec = load_bmp(engine, "./res/skybox/museum/Y-_spec.bmp"), Y1_spec = load_bmp(engine, "./res/skybox/museum/Y+_spec.bmp"),
+	Z0_spec = load_bmp(engine, "./res/skybox/museum/Z+_spec.bmp"), Z1_spec = load_bmp(engine, "./res/skybox/museum/Z-_spec.bmp");
 
 
 	t_texture	env;
@@ -744,7 +616,80 @@ void load_env(t_engine *engine)
 	glBindTexture(env.target, 0);
 	ezarray_push(&engine->textures, &env);
 	engine->env_spec = engine->textures.length - 1;
-	//return (engine->textures.length - 2);
+}
+
+int	mesh_get_transform_index(t_engine *engine, int mesh_index)
+{
+	t_mesh *mesh;
+
+	mesh = ezarray_get_index(engine->meshes, mesh_index);
+	if (!mesh)
+		return (-1);
+	return (mesh->transform_index);
+}
+
+void	event_window(t_engine *engine, SDL_Event *event)
+{
+	if (event->window.event == SDL_WINDOWEVENT_CLOSE)
+		engine->loop = 0;
+}
+
+void	event_keyboard(t_engine *engine, SDL_Event *event)
+{
+	if (event->type == SDL_KEYDOWN)
+	{
+		printf("scancode : %i\n", event->key.keysym.scancode);
+	}
+	(void)engine;
+}
+
+int 	event_callback(void *e, SDL_Event *event)
+{
+	t_engine *engine;
+
+	engine = e;
+	if (event->type == SDL_QUIT)
+		engine->loop = 0;
+	else if (event->type == SDL_WINDOWEVENT)
+		event_window(engine, event);
+	else if (event->type == SDL_KEYUP
+		|| event->type == SDL_KEYDOWN)
+		event_keyboard(engine, event);
+	return (0);
+}
+
+int	main_loop(t_engine *engine)
+{
+	//SDL_Event event;
+	unsigned ticks, last_ticks;
+
+	SDL_GL_SetSwapInterval(engine->swap_interval);
+	last_ticks = SDL_GetTicks();
+	int frames = 0;
+	SDL_SetEventFilter(event_callback, engine);
+	while(engine->loop)
+	{
+		SDL_PumpEvents();
+		ticks = SDL_GetTicks();
+		//SDL_PollEvent(&event);
+		glClearColor(engine->window->clear_color.x, engine->window->clear_color.y,
+			engine->window->clear_color.z, engine->window->clear_color.w);
+		glClear(engine->window->clear_mask);
+		t_transform *transform = ezarray_get_index(engine->transforms, mesh_get_transform_index(engine, 0));
+		if (transform)
+			transform->rotation.y = CYCLE(transform->rotation.y + 0.001 * (float)(ticks - last_ticks), 0, 2 * M_PI);
+		scene_render(engine, 0);
+		SDL_GL_SwapWindow(engine->window->sdl_window);
+		//printf("\rFrame Time %f", (float)(ticks - last_ticks));
+		//printf("\rFPS %f", (1000 - (ticks - last_ticks)) * (60.f / 1000.f));
+		/*if (frames == 120)
+			break;*/
+		printf("\rFPS %f\t\t", (1000.f / (float)(ticks - last_ticks)));
+		last_ticks = ticks;
+		frames++;
+	}
+	//sleep(5);
+	return (0);
 }
 
 int main(int argc, char *argv[])
@@ -753,21 +698,22 @@ int main(int argc, char *argv[])
 
 	if (argc < 2)
 		return (0);
-	e = init_engine();
-	init_window(e, "Scope", WIDTH, HEIGHT);
+	e = engine_init();
+	window_init(e, "Scope", WIDTH, HEIGHT);
 	printf("%s\n", glGetString(GL_VERSION));
 	load_env(e);
 	int obj = load_obj(e, argv[1]);
-	center_mesh(e, obj);
+	mesh_center(e, obj);
 	int shader = load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag");
-	camera_set_target(e, 0, obj);
-	camera_set_position(e, 0, new_vec3(-500, 4, 500));
-	load_mesh(e, obj);
+	int camera = camera_create(e, 45);
+	camera_set_target(e, camera, obj);
+	camera_set_position(e, camera, new_vec3(-3.5, 0.0, 3.5));
+	mesh_load(e, obj);
 	assign_shader_to_mesh(e, obj, shader);
-	render_scene(e);
-	//render_mesh(e, obj);
+	//render_scene(e);
+	main_loop(e);
+	//mesh_render(e, obj);
 	glDisableVertexAttribArray(0);
-	SDL_GL_SwapWindow(e->window->sdl_window);
-	sleep(5);
+	//SDL_GL_SwapWindow(e->window->sdl_window);
 	return (argc + argv[0][0]);
 }
