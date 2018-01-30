@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/26 00:43:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/30 23:13:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -490,11 +490,20 @@ void	camera_update(t_engine *engine, int camera_index)
 	(void)camera_index;
 }
 
+int		camera_get_target_index(t_engine *engine, int camera_index)
+{
+	t_camera	*camera;
+
+	camera = ezarray_get_index(engine->cameras, camera_index);
+	if (!camera)
+		return (-1);
+	return (camera->target_index);
+}
+
 void	camera_set_target(t_engine *engine, int camera_index, int mesh_index)
 {
 	t_mesh		*mesh;
 	t_camera	*camera;
-
 
 	mesh = ezarray_get_index(engine->meshes, mesh_index);
 	camera = ezarray_get_index(engine->cameras, camera_index);
@@ -634,13 +643,51 @@ void	event_window(t_engine *engine, SDL_Event *event)
 		engine->loop = 0;
 }
 
+void	camera_orbite(t_engine *engine, int camera_index, float phi, float theta, float radius)
+{
+	VEC3	target_position;
+	VEC3	new_position;
+
+	t_transform *target = ezarray_get_index(engine->transforms, camera_get_target_index(engine, camera_index));
+	if (target)
+		target_position = target->position;
+	else
+		target_position = new_vec3(0, 0, 0);
+	new_position.x = target_position.x + radius * sin(phi) * cos(theta);
+	new_position.z = target_position.y + radius * sin(phi) * sin(theta);
+	new_position.y = target_position.z + radius * cos(phi);
+	camera_set_position(engine, 0, new_position);
+}
+
+void	callback_camera(t_engine *engine, SDL_Event *event)
+{
+	static float phi = M_PI / 2.f;
+	static float theta = M_PI / 2.f;
+	static float radius = 5.f;
+	if (event && event->type == SDL_KEYDOWN)
+	{
+		if (event->key.keysym.sym == SDLK_UP || event->key.keysym.sym == SDLK_DOWN)
+			phi += (event->key.keysym.sym == SDLK_DOWN ? 0.1 : -0.1);
+		else if (event->key.keysym.sym == SDLK_LEFT || event->key.keysym.sym == SDLK_RIGHT)
+			theta += (event->key.keysym.sym == SDLK_LEFT ? 0.1 : -0.1);
+		else if (event->key.keysym.sym == SDLK_KP_PLUS || event->key.keysym.sym == SDLK_KP_MINUS)
+			radius += event->key.keysym.sym == SDLK_KP_PLUS ? -0.1 : 0.1;
+		phi = CLAMP(phi, 0.01, M_PI - 0.01);
+		theta = CYCLE(theta, 0, 2 * M_PI);
+		radius = CLAMP(radius, 0.1f, 1000.f);
+	}
+	camera_orbite(engine, 0, phi, theta, radius);
+}
+
+void	engine_set_key_callback(t_engine *engine, SDL_Scancode keycode, kcallback callback)
+{
+	engine->kcallbacks[keycode] = callback;
+}
+
 void	event_keyboard(t_engine *engine, SDL_Event *event)
 {
-	if (event->type == SDL_KEYDOWN)
-	{
-		printf("scancode : %i\n", event->key.keysym.scancode);
-	}
-	(void)engine;
+	if (engine->kcallbacks[event->key.keysym.scancode])
+		engine->kcallbacks[event->key.keysym.scancode](engine, event);
 }
 
 int 	event_callback(void *e, SDL_Event *event)
@@ -658,9 +705,20 @@ int 	event_callback(void *e, SDL_Event *event)
 	return (0);
 }
 
+int		event_refresh(void *e)
+{
+	t_engine *engine;
+
+	engine = e;
+	//t_transform *transform = ezarray_get_index(engine->transforms, mesh_get_transform_index(engine, 0));
+	//if (transform)
+	//	transform->rotation.y = CYCLE(transform->rotation.y + 0.001 * (float)engine->delta_time, 0, 2 * M_PI);
+	printf("\rFPS %i%c[2K", (int)(1000.f / (float)(engine->delta_time)), 27);
+	return (0);
+}
+
 int	main_loop(t_engine *engine)
 {
-	//SDL_Event event;
 	unsigned ticks, last_ticks;
 
 	SDL_GL_SetSwapInterval(engine->swap_interval);
@@ -669,22 +727,15 @@ int	main_loop(t_engine *engine)
 	SDL_SetEventFilter(event_callback, engine);
 	while(engine->loop)
 	{
-		SDL_PumpEvents();
 		ticks = SDL_GetTicks();
-		//SDL_PollEvent(&event);
+		engine->delta_time = ticks - last_ticks;
+		SDL_PumpEvents();
+		event_refresh(engine);
 		glClearColor(engine->window->clear_color.x, engine->window->clear_color.y,
 			engine->window->clear_color.z, engine->window->clear_color.w);
-		glClear(engine->window->clear_mask);
-		t_transform *transform = ezarray_get_index(engine->transforms, mesh_get_transform_index(engine, 0));
-		if (transform)
-			transform->rotation.y = CYCLE(transform->rotation.y + 0.001 * (float)(ticks - last_ticks), 0, 2 * M_PI);
+		glClear(engine->window->clear_mask);		
 		scene_render(engine, 0);
 		SDL_GL_SwapWindow(engine->window->sdl_window);
-		//printf("\rFrame Time %f", (float)(ticks - last_ticks));
-		//printf("\rFPS %f", (1000 - (ticks - last_ticks)) * (60.f / 1000.f));
-		/*if (frames == 120)
-			break;*/
-		printf("\rFPS %f\t\t", (1000.f / (float)(ticks - last_ticks)));
 		last_ticks = ticks;
 		frames++;
 	}
@@ -707,7 +758,14 @@ int main(int argc, char *argv[])
 	int shader = load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag");
 	int camera = camera_create(e, 45);
 	camera_set_target(e, camera, obj);
-	camera_set_position(e, camera, new_vec3(-3.5, 0.0, 3.5));
+	//camera_set_position(e, camera, new_vec3(-3.5, 0.0, 3.5));
+	camera_orbite(e, 0, M_PI / 2.f, M_PI / 2.f, 5.f);
+	engine_set_key_callback(e, SDL_SCANCODE_UP, callback_camera);
+	engine_set_key_callback(e, SDL_SCANCODE_DOWN, callback_camera);
+	engine_set_key_callback(e, SDL_SCANCODE_LEFT, callback_camera);
+	engine_set_key_callback(e, SDL_SCANCODE_RIGHT, callback_camera);
+	engine_set_key_callback(e, SDL_SCANCODE_KP_PLUS, callback_camera);
+	engine_set_key_callback(e, SDL_SCANCODE_KP_MINUS, callback_camera);	
 	mesh_load(e, obj);
 	assign_shader_to_mesh(e, obj, shader);
 	//render_scene(e);

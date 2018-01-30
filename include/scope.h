@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/25 21:12:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/30 20:27:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,6 +194,9 @@ typedef struct	s_window
 	float			*display_quad;
 }				t_window;
 
+struct s_engine;
+typedef void(*kcallback)(struct s_engine *engine, SDL_Event *event);
+
 typedef struct	s_engine
 {
 	int8_t		loop;
@@ -208,6 +211,8 @@ typedef struct	s_engine
 	ARRAY		textures;
 	int			env;
 	int			env_spec;
+	int			delta_time;
+	kcallback	kcallbacks[285];
 }				t_engine;
 
 char	*g_program_path;

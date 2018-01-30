@@ -288,8 +288,8 @@ void main()
 	
 
 	vec3	refl = reflect(V, worldNormal);
-	vec3	env_diffuse = textureLod(in_Texture_Env, -worldNormal, 10.0).xyz * albedo;// * kd;
 	fresnel = Fresnel_Schlick(NdV, F0);
+	vec3	env_diffuse = textureLod(in_Texture_Env, -worldNormal, 10.0).xyz * albedo;// * kd;
 	vec3	env_reflection = textureLod(in_Texture_Env, refl, roughness * 10.f).xyz * fresnel;
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 10.f).xyz * F0;
 
