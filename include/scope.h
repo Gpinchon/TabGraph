@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/30 20:27:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/31 00:05:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,7 @@ typedef struct	s_light
 typedef struct	s_mtl
 {
 	VEC3		albedo;
+	VEC3		emitting;
 	VEC2		uv_scale;
 	float		roughness;
 	float		metallic;
@@ -130,6 +131,7 @@ typedef struct	s_vgroup
 	int			in_modelmatrix;
 	int			in_normalmatrix;
 	int			in_albedo;
+	int			in_emitting;
 	int			in_uvmin;
 	int			in_uvmax;
 	int			in_roughness;

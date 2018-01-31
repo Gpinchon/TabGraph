@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/30 23:13:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/31 14:39:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,6 +324,7 @@ void	assign_shader_to_vgroup(t_engine *engine, int mesh_index, int vgroup_index,
 	vgroup->in_modelmatrix = get_uniform_index(engine, shader_index, "in_ModelMatrix");
 	vgroup->in_normalmatrix = get_uniform_index(engine, shader_index, "in_NormalMatrix");
 	vgroup->in_albedo = get_uniform_index(engine, shader_index, "in_Albedo");
+	vgroup->in_emitting = get_uniform_index(engine, shader_index, "in_Emitting");
 	vgroup->in_uvmax = get_uniform_index(engine, shader_index, "in_UVMax");
 	vgroup->in_uvmin = get_uniform_index(engine, shader_index, "in_UVMin");
 	vgroup->in_roughness = get_uniform_index(engine, shader_index, "in_Roughness");
@@ -445,6 +446,7 @@ void	vgroup_render(t_engine *engine, int camera_index, int mesh_index, int vgrou
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_uvmax, &vgroup->uvmax);
 
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_albedo, &material->data.albedo);
+	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_emitting, &material->data.emitting);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_alpha, &material->data.alpha);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_roughness, &material->data.roughness);
 	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_metallic, &material->data.metallic);
@@ -589,12 +591,12 @@ void	mesh_center(t_engine *engine, int mesh_index)
 
 void load_env(t_engine *engine)
 {
-	int X0 = load_bmp(engine, "./res/skybox/museum/X+.bmp"), X1 = load_bmp(engine, "./res/skybox/museum/X-.bmp"),
-	Y0 = load_bmp(engine, "./res/skybox/museum/Y-.bmp"), Y1 = load_bmp(engine, "./res/skybox/museum/Y+.bmp"),
-	Z0 = load_bmp(engine, "./res/skybox/museum/Z+.bmp"), Z1 = load_bmp(engine, "./res/skybox/museum/Z-.bmp");
-	int X0_spec = load_bmp(engine, "./res/skybox/museum/X+_spec.bmp"), X1_spec = load_bmp(engine, "./res/skybox/museum/X-_spec.bmp"),
-	Y0_spec = load_bmp(engine, "./res/skybox/museum/Y-_spec.bmp"), Y1_spec = load_bmp(engine, "./res/skybox/museum/Y+_spec.bmp"),
-	Z0_spec = load_bmp(engine, "./res/skybox/museum/Z+_spec.bmp"), Z1_spec = load_bmp(engine, "./res/skybox/museum/Z-_spec.bmp");
+	int X0 = load_bmp(engine, "./res/skybox/cloudtop/X+.bmp"), X1 = load_bmp(engine, "./res/skybox/cloudtop/X-.bmp"),
+	Y0 = load_bmp(engine, "./res/skybox/cloudtop/Y-.bmp"), Y1 = load_bmp(engine, "./res/skybox/cloudtop/Y+.bmp"),
+	Z0 = load_bmp(engine, "./res/skybox/cloudtop/Z+.bmp"), Z1 = load_bmp(engine, "./res/skybox/cloudtop/Z-.bmp");
+	int X0_spec = load_bmp(engine, "./res/skybox/cloudtop/X+_spec.bmp"), X1_spec = load_bmp(engine, "./res/skybox/cloudtop/X-_spec.bmp"),
+	Y0_spec = load_bmp(engine, "./res/skybox/cloudtop/Y-_spec.bmp"), Y1_spec = load_bmp(engine, "./res/skybox/cloudtop/Y+_spec.bmp"),
+	Z0_spec = load_bmp(engine, "./res/skybox/cloudtop/Z+_spec.bmp"), Z1_spec = load_bmp(engine, "./res/skybox/cloudtop/Z-_spec.bmp");
 
 
 	t_texture	env;

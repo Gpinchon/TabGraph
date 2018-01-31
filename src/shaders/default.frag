@@ -3,6 +3,7 @@
 
 uniform vec3		in_CamPos;
 uniform vec3		in_Albedo;
+uniform vec3		in_Emitting;
 uniform vec2		in_UVMax;
 uniform vec2		in_UVMin;
 uniform float		in_Roughness;
@@ -62,7 +63,7 @@ float Cooktorrance_Specular(in float NdL, in float NdV, in float NdH, in float H
 {
 	float	D = GGX_Distribution(NdH, roughness);
 	float	G = GGX_Geometry(NdV, roughness);
-	return (D * G);
+	return (max(0, D * G));
 }
 
 float	Oren_Nayar_Diffuse(in float LdV, in float NdL, in float NdV, in float roughness)
@@ -72,10 +73,10 @@ float	Oren_Nayar_Diffuse(in float LdV, in float NdL, in float NdV, in float roug
 
 	lde = LdV - NdL * NdV;
 	r2 = roughness * roughness;
-	return (clamp(
+	return (max(
 		max(0.0, NdL) * ((1.0 + r2 * (1 / (r2 + 0.13) + 0.5 / (r2 + 0.33))) +
 		(0.45 * r2 / (r2 + 0.09)) * lde / mix(1.0, max(NdL, NdV),
-		step(0.0, lde))) / M_PI, 0, 1));
+		step(0.0, lde))) / M_PI, 0));
 }
 
 vec3 Fresnel_F0(in float ior, in float metallic, in vec3 albedo)
@@ -230,7 +231,7 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 
 vec3	light_Pos = vec3(-3, 3, 3);
 vec3	light_Color = vec3(1, 1, 1);
-float	light_Power = 5;
+float	light_Power = 0;
 
 void main()
 {
@@ -294,6 +295,6 @@ void main()
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 10.f).xyz * F0;
 
 	//vec3	reflection = mix(albedo, env_reflection, max(0.15, metallic));
-	//out_Color = vec4(vec3(in_UVMax, 0), 1);
-	out_Color = vec4(env_reflection + env_diffuse + env_specular + light_Color * specular + light_Color * diffuse, alpha);
+	//out_Color = vec4(textureLod(in_Texture_Env, refl, 1).xyz, 1);
+	out_Color = vec4(in_Emitting + env_reflection + env_diffuse + env_specular + light_Color * specular + light_Color * diffuse, alpha);
 }

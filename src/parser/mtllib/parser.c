@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/25 19:27:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/31 00:05:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@ void	parse_color(t_mtl_parser *p, char **split, t_material *mtl)
 {
 	if (split[0][1] == 'd')
 		mtl->data.albedo = parse_vec3(&split[1]);
+	if (split[0][1] == 'e')
+		mtl->data.emitting = parse_vec3(&split[1]);
 	(void)p;
 }
 
