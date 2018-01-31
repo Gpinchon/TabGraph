@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/31 14:39:41 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/31 23:20:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,18 +64,12 @@ static float	*create_display_quad()
 
 	if (quad || !(quad = malloc(sizeof(float) * 12)))
 		return (quad);
-	quad[0] = -1;
-	quad[1] = -1;
-	quad[2] = 1;
-	quad[3] = -1;
-	quad[4] = -1;
-	quad[5] = 1;
-	quad[6] = -1;
-	quad[7] = 1;
-	quad[8] = 1;
-	quad[9] = -1;
-	quad[10] = 1;
-	quad[11] = 1;
+	quad[0] = -1.0f; quad[1] = -1.0f;
+    quad[2] = 1.0f; quad[3] = -1.0f;
+    quad[4] = -1.0f; quad[5] = 1.0f;
+    quad[6] = -1.0f; quad[7] = 1.0f;
+    quad[8] = 1.0f; quad[9] = -1.0f;
+    quad[10] = 1.0f; quad[11] = 1.0f;
 	return (quad);
 }
 
@@ -275,14 +269,6 @@ GLuint			assign_texture(t_texture *texture, GLuint id, GLenum target)
 	glBindTexture(target, 0);
 	return (id);
 }
-
-/*void	set_shader_texture(t_shader *shader, char *name, t_texture *texture, GLenum texture_unit)
-{
-	glActiveTexture(texture_unit);
-	glBindTexture(texture->target, texture->id_ogl);
-	texture_unit -= GL_TEXTURE0;
-	set_shader_uniform(shader, name, &texture_unit);
-}*/
 
 void	set_shader_texture(t_engine *engine, int shader_index, int uniform_index, t_texture *texture, GLenum texture_unit)
 {
@@ -727,21 +713,76 @@ int	main_loop(t_engine *engine)
 	last_ticks = SDL_GetTicks();
 	int frames = 0;
 	SDL_SetEventFilter(event_callback, engine);
+
+	t_texture color_texture;
+	color_texture.target = GL_TEXTURE_2D;
+	generate_texture(&color_texture);
+	glBindTexture(GL_TEXTURE_2D, color_texture.id_ogl);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	t_texture depth_texture;
+	depth_texture.target = GL_TEXTURE_2D;
+	generate_texture(&depth_texture);
+	glBindTexture(GL_TEXTURE_2D, depth_texture.id_ogl);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, WIDTH, HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	GLuint frame_buffer = 0;
+	glGenFramebuffers(1, &frame_buffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_texture.id_ogl, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture.id_ogl, 0);
+	GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
+	glDrawBuffers(2, DrawBuffers);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	GLuint bufferid, render_quadid;
+	glGenVertexArrays(1, &render_quadid);
+	glBindVertexArray(render_quadid);
+	glGenBuffers(1, &bufferid);
+	glBindBuffer(GL_ARRAY_BUFFER, bufferid);
+	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), engine->window->display_quad, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	int shader_index = load_shaders(engine, "render", "/src/shaders/render.vert", "/src/shaders/render.frag");
+	t_shader *render_shader = ezarray_get_index(engine->shaders, shader_index);
 	while(engine->loop)
 	{
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 		ticks = SDL_GetTicks();
 		engine->delta_time = ticks - last_ticks;
 		SDL_PumpEvents();
 		event_refresh(engine);
 		glClearColor(engine->window->clear_color.x, engine->window->clear_color.y,
 			engine->window->clear_color.z, engine->window->clear_color.w);
-		glClear(engine->window->clear_mask);		
+		glClear(engine->window->clear_mask);
 		scene_render(engine, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glUseProgram(render_shader->program);
+		glDisable(GL_DEPTH_TEST);
+		set_shader_texture(engine, shader_index,
+			get_uniform_index(engine, shader_index, "in_Texture_Color"),
+			&color_texture, GL_TEXTURE0);
+		set_shader_texture(engine, shader_index,
+			get_uniform_index(engine, shader_index, "in_Texture_Depth"),
+			&depth_texture, GL_TEXTURE1);
+		//set_shader_uniform(engine, shader_index, get_uniform_index(engine, shader_index, "in_Texture_Color"), );
+		glBindVertexArray(render_quadid);
+		glDrawArrays(GL_TRIANGLES, 0, 18);
+		glBindVertexArray(0);
+		glUseProgram(0);
 		SDL_GL_SwapWindow(engine->window->sdl_window);
 		last_ticks = ticks;
 		frames++;
 	}
-	//sleep(5);
 	return (0);
 }
 

@@ -7,20 +7,14 @@ uniform mat4					in_Transform;
 uniform mat4					in_ModelMatrix;
 uniform mat4					in_NormalMatrix;
 
-out vec3			frag_ModelPosition;
 out vec3			frag_WorldPosition;
-out vec3			frag_ModelNormal;
 out vec3			frag_WorldNormal;
 out vec2			frag_Texcoord;
-out vec3			frag_Tangent;
-out vec3			frag_Bitangent;
 
 void main()
 {
 	gl_Position = in_Transform * vec4(in_Position, 1);
-	frag_ModelPosition = in_Position;
 	frag_WorldPosition = vec3(in_ModelMatrix * vec4(in_Position, 1));
-	frag_ModelNormal = in_Normal;
 	frag_WorldNormal = normalize(mat3(in_NormalMatrix) * in_Normal);
 	frag_Texcoord = in_Texcoord;
 }

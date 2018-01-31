@@ -2,17 +2,17 @@
 #define M_PI 3.1415926535897932384626433832795
 
 uniform vec3		in_CamPos;
-uniform vec3		in_Albedo;
-uniform vec3		in_Emitting;
+
 uniform vec2		in_UVMax;
 uniform vec2		in_UVMin;
+
+uniform vec3		in_Albedo;
+uniform vec3		in_Emitting;
 uniform float		in_Roughness;
 uniform float		in_Metallic;
 uniform float		in_Refraction;
 uniform float		in_Alpha;
 uniform float		in_Parallax;
-
-uniform mat4		in_Transform;
 
 uniform bool		in_Use_Texture_Albedo;
 uniform bool		in_Use_Texture_Roughness;
@@ -28,15 +28,13 @@ uniform sampler2D	in_Texture_Height;
 uniform samplerCube	in_Texture_Env;
 uniform samplerCube	in_Texture_Env_Spec;
 
-in vec3			frag_ModelPosition;
-in vec3			frag_ModelNormal;
 in vec3			frag_WorldNormal;
 in vec3			frag_WorldPosition;
 in vec2			frag_Texcoord;
 in vec3			frag_Tangent;
 in vec3			frag_Bitangent;
 
-out vec4		out_Color;
+layout(location = 0) out vec4		out_Color;
 
 float chiGGX(float v)
 {
@@ -231,7 +229,7 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 
 vec3	light_Pos = vec3(-3, 3, 3);
 vec3	light_Color = vec3(1, 1, 1);
-float	light_Power = 0;
+float	light_Power = 1;
 
 void main()
 {
@@ -290,11 +288,12 @@ void main()
 
 	vec3	refl = reflect(V, worldNormal);
 	fresnel = Fresnel_Schlick(NdV, F0);
-	vec3	env_diffuse = textureLod(in_Texture_Env, -worldNormal, 10.0).xyz * albedo;// * kd;
-	vec3	env_reflection = textureLod(in_Texture_Env, refl, roughness * 10.f).xyz * fresnel;
-	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 10.f).xyz * F0;
+	vec3	env_diffuse = textureLod(in_Texture_Env, -worldNormal, 10.0).rgb * albedo;// * kd;
+	vec3	env_reflection = textureLod(in_Texture_Env, refl, roughness * 10.f).rgb * fresnel;
+	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 10.f).rgb * F0;
 
 	//vec3	reflection = mix(albedo, env_reflection, max(0.15, metallic));
 	//out_Color = vec4(textureLod(in_Texture_Env, refl, 1).xyz, 1);
+	//float	brightness = (max(0, in_Emitting.r - 1) + max(0, in_Emitting.g - 1) + max(0, in_Emitting.b - 1));
 	out_Color = vec4(in_Emitting + env_reflection + env_diffuse + env_specular + light_Color * specular + light_Color * diffuse, alpha);
 }

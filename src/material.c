@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/25 18:48:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/31 17:15:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ t_material	new_material()
 	mtl.data.alpha = 1;
 	mtl.data.parallax = 0.01;
 	mtl.data.albedo = new_vec3(0, 0, 0);
+	mtl.data.emitting = new_vec3(0, 0, 0);
 	mtl.data.metallic = 0;
 	mtl.data.roughness = 0.5;
 	mtl.data.refraction = 1.5;
