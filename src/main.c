@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/31 23:20:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/01 01:14:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -577,12 +577,12 @@ void	mesh_center(t_engine *engine, int mesh_index)
 
 void load_env(t_engine *engine)
 {
-	int X0 = load_bmp(engine, "./res/skybox/cloudtop/X+.bmp"), X1 = load_bmp(engine, "./res/skybox/cloudtop/X-.bmp"),
-	Y0 = load_bmp(engine, "./res/skybox/cloudtop/Y-.bmp"), Y1 = load_bmp(engine, "./res/skybox/cloudtop/Y+.bmp"),
-	Z0 = load_bmp(engine, "./res/skybox/cloudtop/Z+.bmp"), Z1 = load_bmp(engine, "./res/skybox/cloudtop/Z-.bmp");
-	int X0_spec = load_bmp(engine, "./res/skybox/cloudtop/X+_spec.bmp"), X1_spec = load_bmp(engine, "./res/skybox/cloudtop/X-_spec.bmp"),
-	Y0_spec = load_bmp(engine, "./res/skybox/cloudtop/Y-_spec.bmp"), Y1_spec = load_bmp(engine, "./res/skybox/cloudtop/Y+_spec.bmp"),
-	Z0_spec = load_bmp(engine, "./res/skybox/cloudtop/Z+_spec.bmp"), Z1_spec = load_bmp(engine, "./res/skybox/cloudtop/Z-_spec.bmp");
+	int X0 = load_bmp(engine, "./res/skybox/museum/X+.bmp"), X1 = load_bmp(engine, "./res/skybox/museum/X-.bmp"),
+	Y0 = load_bmp(engine, "./res/skybox/museum/Y-.bmp"), Y1 = load_bmp(engine, "./res/skybox/museum/Y+.bmp"),
+	Z0 = load_bmp(engine, "./res/skybox/museum/Z+.bmp"), Z1 = load_bmp(engine, "./res/skybox/museum/Z-.bmp");
+	int X0_spec = load_bmp(engine, "./res/skybox/museum/X+_spec.bmp"), X1_spec = load_bmp(engine, "./res/skybox/museum/X-_spec.bmp"),
+	Y0_spec = load_bmp(engine, "./res/skybox/museum/Y-_spec.bmp"), Y1_spec = load_bmp(engine, "./res/skybox/museum/Y+_spec.bmp"),
+	Z0_spec = load_bmp(engine, "./res/skybox/museum/Z+_spec.bmp"), Z1_spec = load_bmp(engine, "./res/skybox/museum/Z-_spec.bmp");
 
 
 	t_texture	env;

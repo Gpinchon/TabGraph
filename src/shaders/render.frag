@@ -46,7 +46,11 @@ void main()
 				final += (color) * weight;
 		}
 	}
+	vec3	color = texture(in_Texture_Color, frag_UV).rgb;
+	/*float	brightness = max(0, color.r - 1) + max(0, color.g - 1) + max(0, color.z - 1);
+	if (brightness > 0.f)
+		color -= brightness;*/
 	//out_Color = vec4(final, 1);
 	//out_Color = vec4(vec3(texture(in_Texture_Color, frag_UV).x), 1);
-	out_Color = vec4(texture(in_Texture_Color, frag_UV).xyz + final, 1);
+	out_Color = vec4(color + final, 1);
 }

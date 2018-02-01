@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/31 23:27:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/01/31 23:31:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,7 +185,6 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 			VEC3 vec = vec3_normalize(vec3_sub(p->bbox.center, v[i]));
 			vt[i].x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));
 			vt[i].y = -vec.y * 0.5f + 0.5f;
-			//vt[i].y = 0.5f - asin(vec.y) / M_PI;
 		}
 		else
 			vt[i] = in_vt[i];
@@ -241,11 +240,16 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 	while (i < 3)
 	{
 		ezarray_push(&p->vg.v, &v[i]);
+		if (p->vg.v.length == p->vg.v.reserved)
+			ezarray_reserve(&p->vg.v, p->vg.v.length * 2);
 		ezarray_push(&p->vg.vt, &vt[i]);
+		if (p->vg.vt.length == p->vg.vt.reserved)
+			ezarray_reserve(&p->vg.vt, p->vg.vt.length * 2);
 		ezarray_push(&p->vg.vn, &vn[i]);
+		if (p->vg.vn.length == p->vg.vn.reserved)
+			ezarray_reserve(&p->vg.vn, p->vg.vn.length * 2);
 		i++;
 	}
-	//calculate_tan(p, v, vn, vt);
 }
 
 void	parse_f(t_obj_parser *p, char **split)
