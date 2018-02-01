@@ -35,6 +35,7 @@ in vec3			frag_Tangent;
 in vec3			frag_Bitangent;
 
 layout(location = 0) out vec4		out_Color;
+layout(location = 1) out vec4		out_Normal;
 
 float chiGGX(float v)
 {
@@ -193,9 +194,9 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 	return(transpose(mat3(T, B, normal)));
 }
 
-vec3	light_Pos = vec3(0, 3, 0);
+vec3	light_Pos = vec3(-3, 3, 0);
 vec3	light_Color = vec3(1, 1, 1);
-float	light_Power = 10;
+float	light_Power = 5;
 
 void main()
 {
@@ -260,5 +261,6 @@ void main()
 	//out_Color = vec4(env_reflection, 1);
 	float	brightness = (in_Emitting.r + in_Emitting.g + in_Emitting.z) / 3.f;
 	out_Color = vec4(((brightness * 1 + in_Emitting)) + env_reflection + env_diffuse + env_specular + light_Color * specular + light_Color * diffuse, alpha);
+	out_Normal = vec4(worldNormal, 1);
 	//out_Color = vec4(vec3(Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness)), 1);
 }

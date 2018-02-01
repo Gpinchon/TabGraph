@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/01 01:14:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/01 22:30:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,47 +107,41 @@ int	transform_create(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale)
 	return (e->transforms.length - 1);
 }
 
-int		vbuffer_load(GLuint attrib, int size, ARRAY array, GLuint *bufferid)
+GLuint		vbuffer_load(GLuint attrib, int size, ARRAY array)
 {
-	GLuint	lbufferid = *bufferid;
+	GLuint	lbufferid;
 	if (!size || !array.length)
 		return (-1);
-	if (glIsBuffer(lbufferid))
-		glDeleteBuffers(1, &lbufferid);
 	glGenBuffers(1, &lbufferid);
 	glBindBuffer(GL_ARRAY_BUFFER, lbufferid);
 	glBufferData(GL_ARRAY_BUFFER, array.total_size, array.data, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(attrib);
 	glVertexAttribPointer(attrib, size, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	*bufferid = lbufferid;
-	return (0);
+	return (lbufferid);
 }
 
 int		vgroup_load(t_vgroup *vg)
 {
 	t_vgroup	lvg;
-	int			ret;
 
 	lvg = *vg;
-	ret = 0;
 	if (glIsVertexArray(lvg.v_arrayid))
 		glDeleteVertexArrays(1, &lvg.v_arrayid);
 	glGenVertexArrays(1, &lvg.v_arrayid);
 	glBindVertexArray(lvg.v_arrayid);
-	ret = !ret | !vbuffer_load(0, 3, lvg.v, &lvg.v_bufferid);
-	ret = !ret | !vbuffer_load(1, 3, lvg.vn, &lvg.vn_bufferid);
-	ret = !ret | !vbuffer_load(2, 2, lvg.vt, &lvg.vt_bufferid);
-	//ret = !ret | !vbuffer_load(3, 3, lvg.tan, &lvg.tan_bufferid);
-	//ret = !ret | !vbuffer_load(4, 3, lvg.bitan, &lvg.bitan_bufferid);
-	printf("Total Size %i, Buffer ID %i\n", lvg.v.total_size, lvg.v_bufferid);
-	printf("Total Size %i, Buffer ID %i\n", lvg.vn.total_size, lvg.vn_bufferid);
-	printf("Total Size %i, Buffer ID %i\n", lvg.vt.total_size, lvg.vt_bufferid);
-	//printf("Total Size %i, Buffer ID %i\n", lvg.tan.total_size, lvg.tan_bufferid);
-	//printf("Total Size %i, Buffer ID %i\n", lvg.bitan.total_size, lvg.bitan_bufferid);
+	if (glIsBuffer(lvg.v_bufferid))
+		glDeleteBuffers(1, &lvg.v_bufferid);
+	lvg.v_bufferid = vbuffer_load(0, 3, lvg.v);
+	if (glIsBuffer(lvg.vn_bufferid))
+		glDeleteBuffers(1, &lvg.v_bufferid);
+	lvg.vn_bufferid = vbuffer_load(1, 3, lvg.vn);
+	if (glIsBuffer(lvg.vt_bufferid))
+		glDeleteBuffers(1, &lvg.v_bufferid);
+	lvg.vt_bufferid = vbuffer_load(2, 2, lvg.vt);
 	glBindVertexArray(0);
 	*vg = lvg;
-	return (ret);
+	return (0);
 }
 
 void		mesh_load(t_engine *engine, int mesh_index)
@@ -166,7 +160,7 @@ void		mesh_load(t_engine *engine, int mesh_index)
 	}
 }
 
-void	set_shader_uniform(t_engine *engine, int shader_index, int uniform_index, void *value)
+void	shader_set_uniform(t_engine *engine, int shader_index, int uniform_index, void *value)
 {
 	t_shadervariable	*variable;
 	t_shader			*shader;
@@ -191,7 +185,7 @@ void	set_shader_uniform(t_engine *engine, int shader_index, int uniform_index, v
 		glUniform1f(variable->loc, *((float*)value));
 }
 
-int		get_uniform_index(t_engine *engine, int shader_index, char *name)
+int		shader_get_uniform_index(t_engine *engine, int shader_index, char *name)
 {
 	t_shader			*shader;
 	unsigned			i;
@@ -211,15 +205,17 @@ int		get_uniform_index(t_engine *engine, int shader_index, char *name)
 	return (-1);
 }
 
-GLuint			load_texture(t_texture *texture, GLenum target)
+void	texture_load(t_engine *engine, int texture_index)
 {
-	GLenum format = GL_BGR;
-	GLenum internal_format = GL_RGB;
+	t_texture	*texture;
+	GLenum		format;
+	GLenum		internal_format;
 
-	if (texture->loaded)
-		return (texture->id_ogl);
-	if (!texture)
-		return (0);
+	texture = ezarray_get_index(engine->textures, texture_index);
+	if (!texture || texture->loaded)
+		return ;
+	format = GL_BGR;
+	internal_format = GL_RGB;
 	if (texture->bpp == 8)
 	{
 		format = GL_RED;
@@ -230,29 +226,34 @@ GLuint			load_texture(t_texture *texture, GLenum target)
 		format = GL_BGRA;
 		internal_format =  GL_RGBA;
 	}
-	texture->target = target;
 	glGenTextures(1, &texture->id_ogl);
-	glBindTexture(target, texture->id_ogl);
-	glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glBindTexture(texture->target, texture->id_ogl);
+	glTexParameteri(texture->target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(texture->target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	if (texture->bpp < 32)
-		glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-	glTexImage2D(target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);
-	glGenerateMipmap(target);
-	glBindTexture(target, 0);
+		glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	glTexImage2D(texture->target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);
+	glGenerateMipmap(texture->target);
+	glBindTexture(texture->target, 0);
 	texture->loaded = 1;
-	return (texture->id_ogl);
+	return ;
 }
 
-GLuint			assign_texture(t_texture *texture, GLuint id, GLenum target)
+void	texture_assign(t_engine *engine, int texture_index, int dest_texture_index, GLenum target)
 {
-	GLenum format = GL_BGR;
-	GLenum internal_format = GL_RGB;
-
-	if (!texture)
-		return (0);
+	t_texture	*texture;
+	t_texture	*dest_texture;
+	GLenum format;
+	GLenum internal_format;
+	
+	texture = ezarray_get_index(engine->textures, texture_index);
+	dest_texture = ezarray_get_index(engine->textures, dest_texture_index);
+	if (!texture || !dest_texture)
+		return ;
+	format = GL_BGR;
+	internal_format = GL_RGB;
 	if (texture->bpp == 8)
 	{
 		format = GL_RED;
@@ -263,39 +264,71 @@ GLuint			assign_texture(t_texture *texture, GLuint id, GLenum target)
 		format = GL_BGRA;
 		internal_format =  GL_RGBA;
 	}
-	glBindTexture(target, id);
+	glBindTexture(dest_texture->target, dest_texture->id_ogl);
+	glBindTexture(target, dest_texture->id_ogl);
 	glTexImage2D(target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);
-	glGenerateMipmap(target);
 	glBindTexture(target, 0);
-	return (id);
+	glBindTexture(dest_texture->target, 0);
+	return ;
 }
 
-void	set_shader_texture(t_engine *engine, int shader_index, int uniform_index, t_texture *texture, GLenum texture_unit)
+void	shader_set_texture(t_engine *engine, int shader_index, int uniform_index, int texture_index, GLenum texture_unit)
 {
+	t_texture *texture;
+
+	texture = ezarray_get_index(engine->textures, texture_index);
 	if (!texture)
 		return;
 	glActiveTexture(texture_unit);
 	glBindTexture(texture->target, texture->id_ogl);
 	texture_unit -= GL_TEXTURE0;
-	set_shader_uniform(engine, shader_index, uniform_index, &texture_unit);
+	shader_set_uniform(engine, shader_index, uniform_index, &texture_unit);
 }
 
-GLuint	generate_texture(t_texture *texture)
+GLuint	texture_get_ogl_id(t_engine *engine, int texture_index)
 {
-	glGenTextures(1, &texture->id_ogl);
-	glBindTexture(texture->target, texture->id_ogl);
-	glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(texture->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(texture->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(texture->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	if (texture->bpp < 32)
-		glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-	glBindTexture(texture->target, 0);
+	t_texture	*texture;
+
+	texture = ezarray_get_index(engine->textures, texture_index);
+	if (!texture)
+		return (0);
 	return (texture->id_ogl);
 }
 
-void	assign_shader_to_vgroup(t_engine *engine, int mesh_index, int vgroup_index, int shader_index)
+void	texture_set_parameters(t_engine *engine, int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values)
+{
+	t_texture *texture;
+
+	texture = ezarray_get_index(engine->textures, texture_index);
+	if (!texture)
+		return;
+	glBindTexture(texture->target, texture->id_ogl);
+	while (parameter_nbr > 0)
+	{
+		glTexParameteri(texture->target, parameters[parameter_nbr - 1], values[parameter_nbr - 1]);
+		parameter_nbr--;
+	}
+	glBindTexture(texture->target, 0);
+}
+
+int		texture_generate(t_engine *engine, VEC2 size, GLenum target, GLenum internal_format, GLenum format)
+{
+	t_texture	texture;
+
+	ft_memset(&texture, 0, sizeof(t_texture));
+	texture.target = target;
+	glGenTextures(1, &texture.id_ogl);
+	glBindTexture(texture.target, texture.id_ogl);
+	if (size.x > 0 && size.y > 0)
+		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, size.x, size.y, 0, format, GL_FLOAT, NULL);
+	if (texture.bpp < 32)
+		glTexParameteri(texture.target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	glBindTexture(texture.target, 0);
+	ezarray_push(&engine->textures, &texture);
+	return (engine->textures.length - 1);
+}
+
+void	shader_assign_to_vgroup(t_engine *engine, int mesh_index, int vgroup_index, int shader_index)
 {
 	t_mesh		*mesh;
 	t_vgroup	*vgroup;
@@ -305,31 +338,31 @@ void	assign_shader_to_vgroup(t_engine *engine, int mesh_index, int vgroup_index,
 	if (!vgroup)
 		return;
 	vgroup->shader_index = shader_index;
-	vgroup->in_campos = get_uniform_index(engine, shader_index, "in_CamPos");
-	vgroup->in_transform = get_uniform_index(engine, shader_index, "in_Transform");
-	vgroup->in_modelmatrix = get_uniform_index(engine, shader_index, "in_ModelMatrix");
-	vgroup->in_normalmatrix = get_uniform_index(engine, shader_index, "in_NormalMatrix");
-	vgroup->in_albedo = get_uniform_index(engine, shader_index, "in_Albedo");
-	vgroup->in_emitting = get_uniform_index(engine, shader_index, "in_Emitting");
-	vgroup->in_uvmax = get_uniform_index(engine, shader_index, "in_UVMax");
-	vgroup->in_uvmin = get_uniform_index(engine, shader_index, "in_UVMin");
-	vgroup->in_roughness = get_uniform_index(engine, shader_index, "in_Roughness");
-	vgroup->in_metallic = get_uniform_index(engine, shader_index, "in_Metallic");
-	vgroup->in_refraction = get_uniform_index(engine, shader_index, "in_Refraction");
-	vgroup->in_alpha = get_uniform_index(engine, shader_index, "in_Alpha");
-	vgroup->in_parallax = get_uniform_index(engine, shader_index, "in_Parallax");
-	vgroup->in_texture_albedo = get_uniform_index(engine, shader_index, "in_Texture_Albedo");
-	vgroup->in_texture_roughness = get_uniform_index(engine, shader_index, "in_Texture_Roughness");
-	vgroup->in_texture_metallic = get_uniform_index(engine, shader_index, "in_Texture_Metallic");
-	vgroup->in_texture_normal = get_uniform_index(engine, shader_index, "in_Texture_Normal");
-	vgroup->in_texture_height = get_uniform_index(engine, shader_index, "in_Texture_Height");
-	vgroup->in_use_texture_albedo = get_uniform_index(engine, shader_index, "in_Use_Texture_Albedo");
-	vgroup->in_use_texture_roughness = get_uniform_index(engine, shader_index, "in_Use_Texture_Roughness");
-	vgroup->in_use_texture_metallic = get_uniform_index(engine, shader_index, "in_Use_Texture_Metallic");
-	vgroup->in_use_texture_normal = get_uniform_index(engine, shader_index, "in_Use_Texture_Normal");
-	vgroup->in_use_texture_height = get_uniform_index(engine, shader_index, "in_Use_Texture_Height");
-	vgroup->in_texture_env = get_uniform_index(engine, shader_index, "in_Texture_Env");
-	vgroup->in_texture_env_spec = get_uniform_index(engine, shader_index, "in_Texture_Env_Spec");
+	vgroup->in_campos = shader_get_uniform_index(engine, shader_index, "in_CamPos");
+	vgroup->in_transform = shader_get_uniform_index(engine, shader_index, "in_Transform");
+	vgroup->in_modelmatrix = shader_get_uniform_index(engine, shader_index, "in_ModelMatrix");
+	vgroup->in_normalmatrix = shader_get_uniform_index(engine, shader_index, "in_NormalMatrix");
+	vgroup->in_albedo = shader_get_uniform_index(engine, shader_index, "in_Albedo");
+	vgroup->in_emitting = shader_get_uniform_index(engine, shader_index, "in_Emitting");
+	vgroup->in_uvmax = shader_get_uniform_index(engine, shader_index, "in_UVMax");
+	vgroup->in_uvmin = shader_get_uniform_index(engine, shader_index, "in_UVMin");
+	vgroup->in_roughness = shader_get_uniform_index(engine, shader_index, "in_Roughness");
+	vgroup->in_metallic = shader_get_uniform_index(engine, shader_index, "in_Metallic");
+	vgroup->in_refraction = shader_get_uniform_index(engine, shader_index, "in_Refraction");
+	vgroup->in_alpha = shader_get_uniform_index(engine, shader_index, "in_Alpha");
+	vgroup->in_parallax = shader_get_uniform_index(engine, shader_index, "in_Parallax");
+	vgroup->in_texture_albedo = shader_get_uniform_index(engine, shader_index, "in_Texture_Albedo");
+	vgroup->in_texture_roughness = shader_get_uniform_index(engine, shader_index, "in_Texture_Roughness");
+	vgroup->in_texture_metallic = shader_get_uniform_index(engine, shader_index, "in_Texture_Metallic");
+	vgroup->in_texture_normal = shader_get_uniform_index(engine, shader_index, "in_Texture_Normal");
+	vgroup->in_texture_height = shader_get_uniform_index(engine, shader_index, "in_Texture_Height");
+	vgroup->in_use_texture_albedo = shader_get_uniform_index(engine, shader_index, "in_Use_Texture_Albedo");
+	vgroup->in_use_texture_roughness = shader_get_uniform_index(engine, shader_index, "in_Use_Texture_Roughness");
+	vgroup->in_use_texture_metallic = shader_get_uniform_index(engine, shader_index, "in_Use_Texture_Metallic");
+	vgroup->in_use_texture_normal = shader_get_uniform_index(engine, shader_index, "in_Use_Texture_Normal");
+	vgroup->in_use_texture_height = shader_get_uniform_index(engine, shader_index, "in_Use_Texture_Height");
+	vgroup->in_texture_env = shader_get_uniform_index(engine, shader_index, "in_Texture_Env");
+	vgroup->in_texture_env_spec = shader_get_uniform_index(engine, shader_index, "in_Texture_Env_Spec");
 }
 
 void	assign_shader_to_mesh(t_engine *engine, int mesh_index, int shader_index)
@@ -343,14 +376,13 @@ void	assign_shader_to_mesh(t_engine *engine, int mesh_index, int shader_index)
 	vgroup_index = 0;
 	while(vgroup_index < mesh->vgroups.length)
 	{
-		assign_shader_to_vgroup(engine, mesh_index, vgroup_index, shader_index);
+		shader_assign_to_vgroup(engine, mesh_index, vgroup_index, shader_index);
 		vgroup_index++;
 	}
 }
 
 void	load_material_textures(t_engine *engine, int material_index)
 {
-	t_texture	*texture;
 	t_material	*material;
 	int			*textures;
 	int			i;
@@ -360,16 +392,13 @@ void	load_material_textures(t_engine *engine, int material_index)
 	i = 0;
 	while (i < 5)
 	{
-		texture = ezarray_get_index(engine->textures, textures[i]);
-		if (texture)
-			load_texture(texture, texture->target);
+		texture_load(engine, textures[i]);
 		i++;
 	}
 }
 
-void	set_shader_textures(t_engine *engine, t_vgroup *vgroup, t_material *material)
+void	shader_set_textures(t_engine *engine, t_vgroup *vgroup, t_material *material)
 {
-	t_texture	*texture;
 	int			use_texture;
 	int			*shader_textures;
 	int			*textures;
@@ -380,14 +409,13 @@ void	set_shader_textures(t_engine *engine, t_vgroup *vgroup, t_material *materia
 	i = 0;
 	while (i < 5)
 	{
-		texture = ezarray_get_index(engine->textures, textures[i]);
-		set_shader_texture(engine, vgroup->shader_index, shader_textures[i * 2 + 0], texture, GL_TEXTURE0 + i);
-		use_texture = texture ? 1 : 0;
-		set_shader_uniform(engine, vgroup->shader_index, shader_textures[i * 2 + 1], &use_texture);
+		shader_set_texture(engine, vgroup->shader_index, shader_textures[i * 2 + 0], textures[i], GL_TEXTURE0 + i);
+		use_texture = textures[i] == -1 ? 0 : 1;
+		shader_set_uniform(engine, vgroup->shader_index, shader_textures[i * 2 + 1], &use_texture);
 		i++;
 	}
-	set_shader_texture(engine, vgroup->shader_index, vgroup->in_texture_env, ezarray_get_index(engine->textures, engine->env), GL_TEXTURE0 + i);
-	set_shader_texture(engine, vgroup->shader_index, vgroup->in_texture_env_spec, ezarray_get_index(engine->textures, engine->env_spec), GL_TEXTURE0 + i + 1);
+	shader_set_texture(engine, vgroup->shader_index, vgroup->in_texture_env, engine->env, GL_TEXTURE0 + i);
+	shader_set_texture(engine, vgroup->shader_index, vgroup->in_texture_env_spec, engine->env_spec, GL_TEXTURE0 + i + 1);
 }
 
 void	vgroup_render(t_engine *engine, int camera_index, int mesh_index, int vgroup_index)
@@ -422,23 +450,23 @@ void	vgroup_render(t_engine *engine, int camera_index, int mesh_index, int vgrou
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	set_shader_textures(engine, vgroup, material);
+	shader_set_textures(engine, vgroup, material);
 
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_campos, &camera->position);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_modelmatrix, &t->transform);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_normalmatrix, &normal_matrix);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_transform, &transform);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_uvmin, &vgroup->uvmin);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_uvmax, &vgroup->uvmax);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_campos, &camera->position);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_modelmatrix, &t->transform);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_normalmatrix, &normal_matrix);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_transform, &transform);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_uvmin, &vgroup->uvmin);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_uvmax, &vgroup->uvmax);
 
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_albedo, &material->data.albedo);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_emitting, &material->data.emitting);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_alpha, &material->data.alpha);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_roughness, &material->data.roughness);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_metallic, &material->data.metallic);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_refraction, &material->data.refraction);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_alpha, &material->data.alpha);
-	set_shader_uniform(engine, vgroup->shader_index, vgroup->in_parallax, &material->data.parallax);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_albedo, &material->data.albedo);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_emitting, &material->data.emitting);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_alpha, &material->data.alpha);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_roughness, &material->data.roughness);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_metallic, &material->data.metallic);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_refraction, &material->data.refraction);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_alpha, &material->data.alpha);
+	shader_set_uniform(engine, vgroup->shader_index, vgroup->in_parallax, &material->data.parallax);
 	glBindVertexArray(vgroup->v_arrayid);
 	glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
 	glBindVertexArray(0);
@@ -575,44 +603,47 @@ void	mesh_center(t_engine *engine, int mesh_index)
 	mesh->bounding_box.max = vec3_sub(mesh->bounding_box.max, mesh->bounding_box.center);
 }
 
+void	texture_generate_mipmap(t_engine *engine, int texture_index)
+{
+	t_texture *texture;
+
+	texture = ezarray_get_index(engine->textures, texture_index);
+	if (!texture)
+		return;
+	texture_set_parameters(engine, texture_index, 2,
+		(GLenum[2]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER},
+		(GLenum[2]){GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR});
+	glBindTexture(texture->target, texture->id_ogl);
+	glGenerateMipmap(texture->target);
+	glBindTexture(texture->target, 0);
+}
+
 void load_env(t_engine *engine)
 {
-	int X0 = load_bmp(engine, "./res/skybox/museum/X+.bmp"), X1 = load_bmp(engine, "./res/skybox/museum/X-.bmp"),
-	Y0 = load_bmp(engine, "./res/skybox/museum/Y-.bmp"), Y1 = load_bmp(engine, "./res/skybox/museum/Y+.bmp"),
-	Z0 = load_bmp(engine, "./res/skybox/museum/Z+.bmp"), Z1 = load_bmp(engine, "./res/skybox/museum/Z-.bmp");
-	int X0_spec = load_bmp(engine, "./res/skybox/museum/X+_spec.bmp"), X1_spec = load_bmp(engine, "./res/skybox/museum/X-_spec.bmp"),
-	Y0_spec = load_bmp(engine, "./res/skybox/museum/Y-_spec.bmp"), Y1_spec = load_bmp(engine, "./res/skybox/museum/Y+_spec.bmp"),
-	Z0_spec = load_bmp(engine, "./res/skybox/museum/Z+_spec.bmp"), Z1_spec = load_bmp(engine, "./res/skybox/museum/Z-_spec.bmp");
+	int X0 = load_bmp(engine, "./res/skybox/cloudtop/X+.bmp"), X1 = load_bmp(engine, "./res/skybox/cloudtop/X-.bmp"),
+	Y0 = load_bmp(engine, "./res/skybox/cloudtop/Y-.bmp"), Y1 = load_bmp(engine, "./res/skybox/cloudtop/Y+.bmp"),
+	Z0 = load_bmp(engine, "./res/skybox/cloudtop/Z+.bmp"), Z1 = load_bmp(engine, "./res/skybox/cloudtop/Z-.bmp");
+	int X0_spec = load_bmp(engine, "./res/skybox/cloudtop/X+_spec.bmp"), X1_spec = load_bmp(engine, "./res/skybox/cloudtop/X-_spec.bmp"),
+	Y0_spec = load_bmp(engine, "./res/skybox/cloudtop/Y-_spec.bmp"), Y1_spec = load_bmp(engine, "./res/skybox/cloudtop/Y+_spec.bmp"),
+	Z0_spec = load_bmp(engine, "./res/skybox/cloudtop/Z+_spec.bmp"), Z1_spec = load_bmp(engine, "./res/skybox/cloudtop/Z-_spec.bmp");
 
+	engine->env = texture_generate(engine, new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
+	texture_assign(engine, X0, engine->env, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+	texture_assign(engine, X1, engine->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+	texture_assign(engine, Y0, engine->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+	texture_assign(engine, Y1, engine->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+	texture_assign(engine, Z0, engine->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+	texture_assign(engine, Z1, engine->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+	texture_generate_mipmap(engine, engine->env);
 
-	t_texture	env;
-	env.target = GL_TEXTURE_CUBE_MAP;
-	generate_texture(&env);
-	glBindTexture(env.target, env.id_ogl);
-	assign_texture(ezarray_get_index(engine->textures, X0), env.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-	assign_texture(ezarray_get_index(engine->textures, X1), env.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-	assign_texture(ezarray_get_index(engine->textures, Y0), env.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-	assign_texture(ezarray_get_index(engine->textures, Y1), env.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-	assign_texture(ezarray_get_index(engine->textures, Z0), env.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-	assign_texture(ezarray_get_index(engine->textures, Z1), env.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
-	glGenerateMipmap(env.target);
-	glBindTexture(env.target, 0);
-	ezarray_push(&engine->textures, &env);
-	engine->env = engine->textures.length - 1;
-
-	env.target = GL_TEXTURE_CUBE_MAP;
-	generate_texture(&env);
-	glBindTexture(env.target, env.id_ogl);
-	assign_texture(ezarray_get_index(engine->textures, X0_spec), env.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-	assign_texture(ezarray_get_index(engine->textures, X1_spec), env.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-	assign_texture(ezarray_get_index(engine->textures, Y0_spec), env.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-	assign_texture(ezarray_get_index(engine->textures, Y1_spec), env.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-	assign_texture(ezarray_get_index(engine->textures, Z0_spec), env.id_ogl, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-	assign_texture(ezarray_get_index(engine->textures, Z1_spec), env.id_ogl, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
-	glGenerateMipmap(env.target);
-	glBindTexture(env.target, 0);
-	ezarray_push(&engine->textures, &env);
-	engine->env_spec = engine->textures.length - 1;
+	engine->env_spec = texture_generate(engine, new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
+	texture_assign(engine, X0_spec, engine->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+	texture_assign(engine, X1_spec, engine->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+	texture_assign(engine, Y0_spec, engine->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+	texture_assign(engine, Y1_spec, engine->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+	texture_assign(engine, Z0_spec, engine->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+	texture_assign(engine, Z1_spec, engine->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+	texture_generate_mipmap(engine, engine->env_spec);
 }
 
 int	mesh_get_transform_index(t_engine *engine, int mesh_index)
@@ -698,11 +729,33 @@ int		event_refresh(void *e)
 	t_engine *engine;
 
 	engine = e;
-	//t_transform *transform = ezarray_get_index(engine->transforms, mesh_get_transform_index(engine, 0));
-	//if (transform)
-	//	transform->rotation.y = CYCLE(transform->rotation.y + 0.001 * (float)engine->delta_time, 0, 2 * M_PI);
 	printf("\rFPS %i%c[2K", (int)(1000.f / (float)(engine->delta_time)), 27);
 	return (0);
+}
+
+t_framebuffer	build_render_buffer(t_engine *engine)
+{
+	t_framebuffer	framebuffer;
+	framebuffer.texture_color = texture_generate(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB16F, GL_RGB);
+	texture_set_parameters(engine, framebuffer.texture_color, 2, 
+		(GLenum[2]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER},
+		(GLenum[2]){GL_LINEAR, GL_LINEAR});
+	framebuffer.texture_normal = texture_generate(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB16F, GL_RGB);
+	texture_set_parameters(engine, framebuffer.texture_normal, 2,
+		(GLenum[2]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER},
+		(GLenum[2]){GL_LINEAR, GL_LINEAR});
+	framebuffer.texture_depth = texture_generate(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+	texture_set_parameters(engine, framebuffer.texture_depth, 2,
+		(GLenum[2]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER},
+		(GLenum[2]){GL_LINEAR, GL_LINEAR});
+	glGenFramebuffers(1, &framebuffer.id);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(engine, framebuffer.texture_color), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_get_ogl_id(engine, framebuffer.texture_normal), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_get_ogl_id(engine, framebuffer.texture_depth), 0);
+	glDrawBuffers(2, (GLenum[2]){GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	return (framebuffer);
 }
 
 int	main_loop(t_engine *engine)
@@ -711,35 +764,8 @@ int	main_loop(t_engine *engine)
 
 	SDL_GL_SetSwapInterval(engine->swap_interval);
 	last_ticks = SDL_GetTicks();
-	int frames = 0;
 	SDL_SetEventFilter(event_callback, engine);
 
-	t_texture color_texture;
-	color_texture.target = GL_TEXTURE_2D;
-	generate_texture(&color_texture);
-	glBindTexture(GL_TEXTURE_2D, color_texture.id_ogl);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	t_texture depth_texture;
-	depth_texture.target = GL_TEXTURE_2D;
-	generate_texture(&depth_texture);
-	glBindTexture(GL_TEXTURE_2D, depth_texture.id_ogl);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, WIDTH, HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	GLuint frame_buffer = 0;
-	glGenFramebuffers(1, &frame_buffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_texture.id_ogl, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture.id_ogl, 0);
-	GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
-	glDrawBuffers(2, DrawBuffers);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	GLuint bufferid, render_quadid;
 	glGenVertexArrays(1, &render_quadid);
@@ -752,11 +778,12 @@ int	main_loop(t_engine *engine)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	t_framebuffer renderbuffer = build_render_buffer(engine);
 	int shader_index = load_shaders(engine, "render", "/src/shaders/render.vert", "/src/shaders/render.frag");
 	t_shader *render_shader = ezarray_get_index(engine->shaders, shader_index);
 	while(engine->loop)
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, renderbuffer.id);
 		ticks = SDL_GetTicks();
 		engine->delta_time = ticks - last_ticks;
 		SDL_PumpEvents();
@@ -768,20 +795,21 @@ int	main_loop(t_engine *engine)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glUseProgram(render_shader->program);
 		glDisable(GL_DEPTH_TEST);
-		set_shader_texture(engine, shader_index,
-			get_uniform_index(engine, shader_index, "in_Texture_Color"),
-			&color_texture, GL_TEXTURE0);
-		set_shader_texture(engine, shader_index,
-			get_uniform_index(engine, shader_index, "in_Texture_Depth"),
-			&depth_texture, GL_TEXTURE1);
-		//set_shader_uniform(engine, shader_index, get_uniform_index(engine, shader_index, "in_Texture_Color"), );
+		shader_set_texture(engine, shader_index,
+			shader_get_uniform_index(engine, shader_index, "in_Texture_Color"),
+			renderbuffer.texture_color, GL_TEXTURE0);
+		shader_set_texture(engine, shader_index,
+			shader_get_uniform_index(engine, shader_index, "in_Texture_Normal"),
+			renderbuffer.texture_normal, GL_TEXTURE1);
+		shader_set_texture(engine, shader_index,
+			shader_get_uniform_index(engine, shader_index, "in_Texture_Depth"),
+			renderbuffer.texture_depth, GL_TEXTURE2);
 		glBindVertexArray(render_quadid);
-		glDrawArrays(GL_TRIANGLES, 0, 18);
+		glDrawArrays(GL_TRIANGLES, 0, 12);
 		glBindVertexArray(0);
 		glUseProgram(0);
 		SDL_GL_SwapWindow(engine->window->sdl_window);
 		last_ticks = ticks;
-		frames++;
 	}
 	return (0);
 }

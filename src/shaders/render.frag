@@ -1,56 +1,53 @@
 #version 450 core
 
 uniform sampler2D	in_Texture_Color;
+uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Depth;
 
 in vec2				frag_UV;
 
 out vec4			out_Color;
 
-int	kernel_size = 15;
-
-float				gaussian_kernel[] = {
-0.001198,	0.001553,	0.001934,	0.002314,	0.00266,	0.002939,	0.00312,	0.003183,	0.00312,	0.002939,	0.00266,	0.002314,	0.001934,	0.001553,	0.001198,
-0.001553,	0.002012,	0.002506,	0.002998,	0.003447,	0.003808,	0.004043,	0.004124,	0.004043,	0.003808,	0.003447,	0.002998,	0.002506,	0.002012,	0.001553,
-0.001934,	0.002506,	0.00312,	0.003733,	0.004292,	0.004742,	0.005034,	0.005135,	0.005034,	0.004742,	0.004292,	0.003733,	0.00312,	0.002506,	0.001934,
-0.002314,	0.002998,	0.003733,	0.004467,	0.005136,	0.005674,	0.006023,	0.006145,	0.006023,	0.005674,	0.005136,	0.004467,	0.003733,	0.002998,	0.002314,
-0.00266,	0.003447,	0.004292,	0.005136,	0.005905,	0.006523,	0.006925,	0.007065,	0.006925,	0.006523,	0.005905,	0.005136,	0.004292,	0.003447,	0.00266,
-0.002939,	0.003808,	0.004742,	0.005674,	0.006523,	0.007207,	0.007651,	0.007805,	0.007651,	0.007207,	0.006523,	0.005674,	0.004742,	0.003808,	0.002939,
-0.00312,	0.004043,	0.005034,	0.006023,	0.006925,	0.007651,	0.008123,	0.008286,	0.008123,	0.007651,	0.006925,	0.006023,	0.005034,	0.004043,	0.00312,
-0.003183,	0.004124,	0.005135,	0.006145,	0.007065,	0.007805,	0.008286,	0.008453,	0.008286,	0.007805,	0.007065,	0.006145,	0.005135,	0.004124,	0.003183,
-0.00312,	0.004043,	0.005034,	0.006023,	0.006925,	0.007651,	0.008123,	0.008286,	0.008123,	0.007651,	0.006925,	0.006023,	0.005034,	0.004043,	0.00312,
-0.002939,	0.003808,	0.004742,	0.005674,	0.006523,	0.007207,	0.007651,	0.007805,	0.007651,	0.007207,	0.006523,	0.005674,	0.004742,	0.003808,	0.002939,
-0.00266,	0.003447,	0.004292,	0.005136,	0.005905,	0.006523,	0.006925,	0.007065,	0.006925,	0.006523,	0.005905,	0.005136,	0.004292,	0.003447,	0.00266,
-0.002314,	0.002998,	0.003733,	0.004467,	0.005136,	0.005674,	0.006023,	0.006145,	0.006023,	0.005674,	0.005136,	0.004467,	0.003733,	0.002998,	0.002314,
-0.001934,	0.002506,	0.00312,	0.003733,	0.004292,	0.004742,	0.005034,	0.005135,	0.005034,	0.004742,	0.004292,	0.003733,	0.00312,	0.002506,	0.001934,
-0.001553,	0.002012,	0.002506,	0.002998,	0.003447,	0.003808,	0.004043,	0.004124,	0.004043,	0.003808,	0.003447,	0.002998,	0.002506,	0.002012,	0.001553,
-0.001198,	0.001553,	0.001934,	0.002314,	0.00266,	0.002939,	0.00312,	0.003183,	0.00312,	0.002939,	0.00266,	0.002314,	0.001934,	0.001553,	0.001198
+const int			kernel_size = 9;
+const float			gaussian_kernel[] = {
+	0.091637, 0.105358, 0.1164, 0.123573, 0.126061, 0.123573, 0.1164, 0.105358, 0.091637
 };
 
 void main()
 {
-	float	sampledist = 2.f;
-	vec3	final = vec3(0);
+	vec3	color = texture(in_Texture_Color, frag_UV).rgb;
+	vec3	normal = texture(in_Texture_Normal, frag_UV).xyz;
+	float	depth = texture(in_Texture_Depth, frag_UV).r;
+	float	sampledist = 2.5f;
+	vec3	finalColor = vec3(0);
+	float	brightness = 0;
 	vec2	texture_Size = 1.f / textureSize(in_Texture_Color, 0);
+	float	occlusion = 0;
 	for (int i = 0; i < kernel_size; i++) 
 	{
 		for (int j = 0; j < kernel_size; j++) 
 		{
-			vec2	offset = vec2((i - kernel_size / 2.f) * sampledist, (j - kernel_size / 2.f) * sampledist) * texture_Size;
-			vec2	sample_UV = frag_UV + offset;
-			vec3	color = texture(in_Texture_Color, sample_UV).rgb;
-			float	brightness = max(0, color.r - 1) + max(0, color.g - 1) + max(0, color.z - 1);
-			float	weight = gaussian_kernel[i + kernel_size * j];
-			//float	weight = 1.f / float(kernel_size * kernel_size);
-			if (brightness > 0.f)
-				final += (color) * weight;
+			vec2	offset = vec2(float(i - kernel_size / 2.f) * sampledist, float(j - kernel_size / 2.f) * sampledist) * texture_Size;
+			vec3	sampleColor = texture(in_Texture_Color, frag_UV + offset).rgb;
+			float	weight = gaussian_kernel[i] * gaussian_kernel[j];
+			brightness += (max(0, sampleColor.r - 1) + max(0, sampleColor.g - 1) + max(0, sampleColor.z - 1) * weight);
+			finalColor += (sampleColor * weight);
+			offset = vec2(float(i - kernel_size / 2.f) * (1 + (1 - depth) * 2.5f), float(j - kernel_size / 2.f) * (1 + (1 - depth) * 2.5f)) * texture_Size;
+			float	sampleDepth = texture(in_Texture_Depth, frag_UV + offset).r;
+			if (depth == 1 || sampleDepth == 1)
+				continue;
+			vec3	sampleNormal = texture(in_Texture_Normal, frag_UV + offset).xyz;
+			float	difference = max(0, depth - sampleDepth);
+			float	angle = max(0, dot(sampleNormal, normal));
+			occlusion += angle / (1.f + difference) * weight;
 		}
 	}
-	vec3	color = texture(in_Texture_Color, frag_UV).rgb;
-	/*float	brightness = max(0, color.r - 1) + max(0, color.g - 1) + max(0, color.z - 1);
-	if (brightness > 0.f)
-		color -= brightness;*/
-	//out_Color = vec4(final, 1);
-	//out_Color = vec4(vec3(texture(in_Texture_Color, frag_UV).x), 1);
-	out_Color = vec4(color + final, 1);
+	occlusion = depth == 1 ? 0 : 1 - occlusion;
+	occlusion *= 0.5f;
+	brightness /=  float(kernel_size * kernel_size);
+	finalColor *= brightness;
+	finalColor += color - occlusion;
+	//out_Color = vec4(texture(in_Texture_Color, frag_UV).xyz, 1);
+	out_Color = vec4(finalColor, 1);
+	//out_Color = vec4(vec3(occlusion), 1);
 }
