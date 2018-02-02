@@ -36,6 +36,7 @@ in vec3			frag_Bitangent;
 
 layout(location = 0) out vec4		out_Color;
 layout(location = 1) out vec4		out_Normal;
+layout(location = 2) out vec4		out_Position;
 
 float chiGGX(float v)
 {
@@ -262,5 +263,6 @@ void main()
 	float	brightness = (in_Emitting.r + in_Emitting.g + in_Emitting.z) / 3.f;
 	out_Color = vec4(((brightness * 1 + in_Emitting)) + env_reflection + env_diffuse + env_specular + light_Color * specular + light_Color * diffuse, alpha);
 	out_Normal = vec4(worldNormal, 1);
+	out_Position = vec4(worldPosition, 1);
 	//out_Color = vec4(vec3(Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness)), 1);
 }

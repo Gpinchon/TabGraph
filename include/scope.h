@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/01 22:17:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/02 18:01:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,12 +119,6 @@ typedef struct	s_material
 	ULL			id;
 	STRING		name;
 	t_mtl		data;
-}				t_material;
-
-typedef struct	s_vgroup
-{
-	ULL			mtl_id;
-	int			mtl_index;
 	int			shader_index;
 	int			in_campos;
 	int			in_transform;
@@ -152,6 +146,12 @@ typedef struct	s_vgroup
 	int			in_use_texture_height;
 	int			in_texture_env;
 	int			in_texture_env_spec;
+}				t_material;
+
+typedef struct	s_vgroup
+{
+	ULL			mtl_id;
+	int			mtl_index;
 	ARRAY		v;
 	ARRAY		vn;
 	ARRAY		vt;
@@ -192,6 +192,7 @@ typedef struct	s_framebuffer
 	GLuint		id;
 	int			texture_color;
 	int			texture_normal;
+	int			texture_position;
 	int			texture_depth;
 }				t_framebuffer;
 
