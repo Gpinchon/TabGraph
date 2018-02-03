@@ -95,7 +95,8 @@ vec3 Fresnel_F0(in float ior, in float metallic, in vec3 albedo)
 
 vec3 Fresnel_Schlick(in float HdV, in vec3 F0)
 {
-  return (F0 + (1-F0) * pow(1 - HdV, 5));
+	float denom = pow(max(0, 1 - HdV), 5);
+	return (F0 + (1-F0) * denom);
 }
 
 /*vec2	sample_height_map(in vec3 tbnV, in vec2 vt)
@@ -186,10 +187,10 @@ vec2 Parallax_Mapping(in vec3 tbnV, in vec2 T, out float parallaxHeight)
 
 mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 {
-	vec3 Q1 = dFdxCoarse(position);
-	vec3 Q2 = dFdyCoarse(position);
-	vec2 st1 = dFdxCoarse(texcoord);
-	vec2 st2 = dFdyCoarse(texcoord);
+	vec3 Q1 = dFdx(position);
+	vec3 Q2 = dFdy(position);
+	vec2 st1 = dFdx(texcoord);
+	vec2 st2 = dFdy(texcoord);
 	vec3 T = normalize(Q1*st2.t - Q2*st1.t);
 	vec3 B = normalize(-Q1*st2.s + Q2*st1.s);
 	return(transpose(mat3(T, B, normal)));
@@ -202,7 +203,7 @@ float	light_Power = 5;
 void main()
 {
 	vec3	worldPosition = frag_WorldPosition;
-	vec3	worldNormal = frag_WorldNormal;
+	vec3	worldNormal = normalize(frag_WorldNormal);
 	vec3	albedo = in_Albedo;
 	vec2	vt = frag_Texcoord;
 	float	alpha = in_Alpha;
@@ -230,7 +231,10 @@ void main()
 	if (alpha == 0.f)
 		discard;
 	if (in_Use_Texture_Normal)
-		worldNormal = normalize((texture(in_Texture_Normal, vt).xyz * 2 - 1) * tbn);
+	{
+		vec3 sampleNormal = texture(in_Texture_Normal, vt).xyz * 2 - 1;
+		worldNormal = normalize(sampleNormal * tbn);
+	}
 	if (in_Use_Texture_Roughness)
 		roughness = texture(in_Texture_Roughness, vt).x;
 	if (in_Use_Texture_Metallic)
@@ -239,30 +243,28 @@ void main()
 	float	light_Attenuation = light_Power * 1.f / (1 + distance(light_Pos, worldPosition));
 	light_Color *= light_Attenuation;
 
-	float NdH = max(0, dot(worldNormal, H));
-	float NdL = max(0, dot(worldNormal, L));
-	float NdV = max(0, dot(worldNormal, V));
-	float HdV = max(0, dot(H, V));
-	float LdV = max(0, dot(L, V));
+	float	NdH = max(0, dot(worldNormal, H));
+	float	NdL = max(0, dot(worldNormal, L));
+	float	NdV = max(0, dot(worldNormal, V));
+	float	HdV = max(0, dot(H, V));
+	float	LdV = max(0, dot(L, V));
 
 	vec3	F0 = Fresnel_F0(in_Refraction, metallic, albedo);
 	vec3	fresnel = Fresnel_Schlick(NdH, F0);
 	vec3	kd = mix(vec3(1.0) - fresnel, vec3(0.04), metallic);
 
-	vec3	specular = fresnel * Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness);
+	vec3	specular = fresnel * Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness) * light_Color;
 	vec3	diffuse = kd * albedo * Oren_Nayar_Diffuse(LdV, NdL, NdV, roughness);
 	
 
 	vec3	refl = reflect(V, worldNormal);
 	fresnel = Fresnel_Schlick(NdV, F0);
-	vec3	env_diffuse = textureLod(in_Texture_Env, -worldNormal, 10.0).rgb * albedo;// * kd;
+	vec3	env_diffuse = textureLod(in_Texture_Env, -worldNormal, 10.0).rgb * albedo;
 	vec3	env_reflection = textureLod(in_Texture_Env, refl, roughness * 10.f).rgb * fresnel;
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 10.f).rgb * F0;
 
-	//out_Color = vec4(env_reflection, 1);
 	float	brightness = (in_Emitting.r + in_Emitting.g + in_Emitting.z) / 3.f;
 	out_Color = vec4(((brightness * 1 + in_Emitting)) + env_reflection + env_diffuse + env_specular + light_Color * specular + light_Color * diffuse, alpha);
 	out_Normal = vec4(worldNormal, 1);
 	out_Position = vec4(worldPosition, 1);
-	//out_Color = vec4(vec3(Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness)), 1);
 }

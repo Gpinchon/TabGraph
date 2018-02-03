@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/03 00:11:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/03 16:45:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ t_engine	*engine_init()
 	engine->transforms = new_ezarray(other, 0, sizeof(t_transform));
 	engine->lights = new_ezarray(other, 0, sizeof(t_light));
 	engine->loop = 1;
-	engine->swap_interval = -1;
+	engine->swap_interval = 1;
 	g_program_path = convert_backslash(getcwd(NULL, 2048));
 	return (engine);
 }
@@ -474,8 +474,8 @@ void	vgroup_render(t_engine *engine, int camera_index, int mesh_index, int vgrou
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	material_set_uniforms(engine, vgroup->mtl_index);
 	shader_set_uniform(engine, material->shader_index, material->in_campos, &camera->position);
 	shader_set_uniform(engine, material->shader_index, material->in_modelmatrix, &t->transform);
@@ -626,9 +626,9 @@ void	texture_generate_mipmap(t_engine *engine, int texture_index)
 	texture = ezarray_get_index(engine->textures, texture_index);
 	if (!texture)
 		return;
-	texture_set_parameters(engine, texture_index, 2,
-		(GLenum[2]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER},
-		(GLenum[2]){GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR});
+	texture_set_parameters(engine, texture_index, 1,
+		(GLenum[1]){GL_TEXTURE_MIN_FILTER},
+		(GLenum[1]){GL_LINEAR_MIPMAP_LINEAR});
 	glBindTexture(texture->target, texture->id_ogl);
 	glGenerateMipmap(texture->target);
 	glBindTexture(texture->target, 0);
@@ -753,29 +753,29 @@ t_framebuffer	build_render_buffer(t_engine *engine)
 {
 	t_framebuffer	framebuffer;
 
-	framebuffer.texture_color = texture_create(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB16F, GL_RGB);
+	framebuffer.texture_color = texture_create(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB16F_ARB, GL_RGB);
 	texture_set_parameters(engine, framebuffer.texture_color, 4, 
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
-	framebuffer.texture_position = texture_create(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB16F, GL_RGB);
+		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
+	framebuffer.texture_position = texture_create(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB32F_ARB, GL_RGB);
 	texture_set_parameters(engine, framebuffer.texture_position, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
-	framebuffer.texture_normal = texture_create(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB16F, GL_RGB);
+		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
+	framebuffer.texture_normal = texture_create(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB16F_ARB, GL_RGB);
 	texture_set_parameters(engine, framebuffer.texture_normal, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
+		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
 	framebuffer.texture_depth = texture_create(engine, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
 	texture_set_parameters(engine, framebuffer.texture_depth, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
+		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
 	glGenFramebuffers(1, &framebuffer.id);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(engine, framebuffer.texture_color), 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_get_ogl_id(engine, framebuffer.texture_normal), 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texture_get_ogl_id(engine, framebuffer.texture_position), 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_get_ogl_id(engine, framebuffer.texture_depth), 0);
-	glDrawBuffers(3, (GLenum[3]){GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2});
+	glDrawBuffers(4, (GLenum[4]){GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2});
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return (framebuffer);
 }
@@ -830,7 +830,7 @@ int	main_loop(t_engine *engine)
 			shader_get_uniform_index(engine, shader_index, "in_Texture_Depth"),
 			renderbuffer.texture_depth, GL_TEXTURE3);
 		glBindVertexArray(render_quadid);
-		glDrawArrays(GL_TRIANGLES, 0, 12);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 		glUseProgram(0);
 		SDL_GL_SwapWindow(engine->window->sdl_window);

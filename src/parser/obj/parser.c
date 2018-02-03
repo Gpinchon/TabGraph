@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/31 23:31:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/03 02:02:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,7 +232,9 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 				vt[i] = *in_vt;
 		}
 		else
-			vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));	
+			vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
+		if (!vn[i].x && !vn[i].y && !vn[i].z)
+			printf("dafuq\n");
 		ft_free_chartab(fsplit);
 		i++;
 	}

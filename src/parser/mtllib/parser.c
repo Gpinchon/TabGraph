@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/31 00:05:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/03 14:34:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
 	{
 		path = ft_strjoin(p->path_split[0], split[1]);
 		mtl->data.texture_albedo = load_bmp(p->e, path);
-		printf("%s, %i\n", path, mtl->data.texture_albedo);
 		free(path);
 	}
 	else if (split[0][5] == 'h')
@@ -57,7 +56,7 @@ void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
 		mtl->data.texture_metallic = load_bmp(p->e, path);
 		free(path);
 	}
-	else if (ft_strstr(&split[0][4], "bump"))
+	else if (ft_strstr(&split[0][4], "bump\0"))
 	{
 		path = ft_strjoin(p->path_split[0], split[1]);
 		mtl->data.texture_normal = load_bmp(p->e, path);
