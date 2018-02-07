@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/03 01:21:42 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/07 23:27:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,7 @@ typedef struct	s_mtl
 	int			texture_albedo;
 	int			texture_roughness;
 	int			texture_metallic;
+	int			texture_emitting;
 	int			texture_normal;
 	int			texture_height;
 }				t_mtl;
@@ -140,6 +141,8 @@ typedef struct	s_material
 	int			in_use_texture_roughness;
 	int			in_texture_metallic;
 	int			in_use_texture_metallic;
+	int			in_texture_emitting;
+	int			in_use_texture_emitting;
 	int			in_texture_normal;
 	int			in_use_texture_normal;
 	int			in_texture_height;
@@ -203,6 +206,7 @@ typedef struct	s_window
 	VEC4			clear_color;
 	GLbitfield		clear_mask;
 	float			*display_quad;
+	int				render_shader;
 	t_framebuffer	render_buffer;	
 }				t_window;
 
@@ -229,19 +233,71 @@ typedef struct	s_engine
 
 char	*g_program_path;
 
+/*
+** Engine functions
+*/
 
-t_material	new_material();
-int			get_material_index_by_name(ARRAY materials, char *name);
-int			get_material_index_by_id(ARRAY materials, ULL	h);
+t_engine	*engine_init();
+void		engine_load_env(t_engine *e);
+void		engine_set_key_callback(t_engine *engine, SDL_Scancode keycode, kcallback callback);
 
-t_texture	new_texture(const char *name);
+/*
+** Camera functions
+*/
+
+int			camera_create(t_engine *engine, float fov);
+void		camera_set_target(t_engine *engine, int camera_index, int transform_index);
+void		camera_set_position(t_engine *engine, int camera_index, VEC3 position);
+void		camera_orbite(t_engine *engine, int camera_index, float phi, float theta, float radius);
+void		camera_update(t_engine *engine, int camera_index);
+
+/*
+** Material functions
+*/
+
+int		material_get_index_by_name(t_engine *engine, char *name);
+int		material_get_index_by_id(t_engine *engine, ULL h);
+void	material_assign_shader(t_engine *engine, int material_index, int shader_index);
+void	material_set_textures(t_engine *engine, int material_index);
+void	material_set_uniforms(t_engine *engine, int material_index);
+void	material_load_textures(t_engine *engine, int material_index);
+
+/*
+** Mesh functions
+*/
+void	mesh_rotate(t_engine *engine, int mesh_index, VEC3 rotation);
+void	mesh_scale(t_engine *engine, int mesh_index, VEC3 scale);
+void	mesh_translate(t_engine *engine, int mesh_index, VEC3 position);
+void	mesh_load(t_engine *engine, int mesh_index);
+void	mesh_center(t_engine *engine, int mesh_index);
+void	mesh_render(t_engine *engine, int camera_index, int mesh_index);
+
+/*
+** Vgroup functions
+*/
+
+void	vgroup_load(t_engine *engine, int mesh_index, int vgroup_index);
+void	vgroup_render(t_engine *engine, int camera_index, int mesh_index, int vgroup_index);
+void	vgroup_center(t_engine *engine, int mesh_index, int vgroup_index);
+
+/*
+** Texture functions
+*/
+
+GLuint		texture_get_ogl_id(t_engine *engine, int texture_index);
+int			texture_create(t_engine *engine, VEC2 size, GLenum target, GLenum internal_format, GLenum format);
+void		texture_set_parameters(t_engine *engine, int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values);
+void		texture_assign(t_engine *engine, int texture_index, int dest_texture_index, GLenum target);
+void		texture_load(t_engine *engine, int texture_index);
+void		texture_generate_mipmap(t_engine *engine, int texture_index);
 
 /*
 ** Parser tools
 */
 
-char			**split_path(const char *path);
-ULL	hash(unsigned char *str);
+char		**split_path(const char *path);
+ULL			hash(unsigned char *str);
+char		*convert_backslash(char *str);
 
 /*
 ** .mtllib parser
@@ -262,7 +318,15 @@ VEC2	parse_vec2(char **split);
 
 int			load_bmp(t_engine *e, const char *imagepath);
 
+/*
+** Shader functions
+*/
 
+void	shader_set_texture(t_engine *engine, int shader_index, int uniform_index, int texture_index, GLenum texture_unit);
+void	shader_set_uniform(t_engine *engine, int shader_index, int uniform_index, void *value);
+void	shader_use(t_engine *engine, int shader_index);
+int		shader_get_uniform_index(t_engine *engine, int shader_index, char *name);
+int		shader_get_by_name(t_engine *engine, char *name);
 int		load_shaders(t_engine *engine, const char *name, const char *vertex_file_path,const char *fragment_file_path);
 int		transform_create(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale);
 

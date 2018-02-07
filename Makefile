@@ -6,12 +6,19 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/01/25 23:58:27 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/02/07 18:28:15 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scope
 SRC			=	./src/main.c			\
+				./src/engine.c			\
+				./src/camera.c			\
+				./src/shader.c			\
+				./src/texture.c			\
+				./src/transform.c		\
+				./src/mesh.c			\
+				./src/vgroup.c			\
 				./src/material.c		\
 				./src/parser/tools.c	\
 				./src/parser/obj/parser.c	\

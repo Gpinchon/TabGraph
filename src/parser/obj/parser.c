@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/03 02:02:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/07 23:54:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,8 +233,6 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		}
 		else
 			vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
-		if (!vn[i].x && !vn[i].y && !vn[i].z)
-			printf("dafuq\n");
 		ft_free_chartab(fsplit);
 		i++;
 	}
@@ -342,7 +340,7 @@ void	assign_materials(t_engine *e, t_mesh m)
 	while (i < m.vgroups.length)
 	{
 		vg = (t_vgroup*)ezarray_get_index(m.vgroups, i);
-		vg->mtl_index = get_material_index_by_id(e->materials, vg->mtl_id);
+		vg->mtl_index = material_get_index_by_id(e, vg->mtl_id);
 		i++;
 	}
 }

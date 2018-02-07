@@ -6,11 +6,25 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/19 01:27:17 by gpinchon          #+#    #+#             */
-/*   Updated: 2017/03/31 23:16:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/07 18:29:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <libft.h>
+
+char		*convert_backslash(char *str)
+{
+	unsigned int	i;
+
+	i = 0;
+	while(str[i])
+	{
+		if (str[i] == '\\')
+			str[i] = '/';
+		i++;
+	}
+	return (str);
+}
 
 char	**split_path(const char *path)
 {
