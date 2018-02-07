@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/07 23:29:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 00:21:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,8 @@ int main(int argc, char *argv[])
 	e = engine_init();
 	window_init(e, "Scope", WIDTH, HEIGHT);
 	printf("%s\n", glGetString(GL_VERSION));
-	load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag");
+	material_assign_shader(e, 0,
+		load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag"));
 	engine_load_env(e);
 	int obj = load_obj(e, argv[1]);
 	mesh_center(e, obj);

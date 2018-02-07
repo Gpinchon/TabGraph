@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/07 23:54:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 00:38:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ t_vgroup	new_vgroup()
 	t_vgroup	vg;
 
 	ft_memset(&vg, 0, sizeof(t_vgroup));
+	vg.mtl_id = hash((unsigned char*)"default");
 	vg.v = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vn = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vt = new_ezarray(other, 0, sizeof(VEC2));

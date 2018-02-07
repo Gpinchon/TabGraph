@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/07 21:26:17 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 00:37:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,9 +142,16 @@ int	start_mtllib_parsing(t_mtl_parser *p, char *path)
 int	load_mtllib(t_engine *engine, char *path)
 {
 	t_mtl_parser	p;
+	t_material		mtl;
 
 	ft_memset(&p, 0, sizeof(t_mtl_parser));
 	p.e = engine;
+	if (material_get_index_by_name(engine, "default") == -1)
+	{
+		mtl = new_material("default");
+		ezarray_push(&engine->materials, &mtl);
+		material_assign_shader(engine, engine->materials.length - 1, shader_get_by_name(engine, "default"));
+	}
 	if (start_mtllib_parsing(&p, path))
 		return (-1);
 	return (engine->materials.length);
