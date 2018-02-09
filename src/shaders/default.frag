@@ -165,7 +165,7 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 
 vec3	light_Pos = vec3(-3, 3, 0);
 vec3	light_Color = vec3(1, 1, 1);
-float	light_Power = 5;
+float	light_Power = 6;
 
 void main()
 {

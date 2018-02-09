@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 13:44:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/09 13:36:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,8 +175,6 @@ int	main_loop(t_engine *engine)
 	SDL_GL_SetSwapInterval(engine->swap_interval);
 	last_ticks = SDL_GetTicks();
 	SDL_SetEventFilter(event_callback, engine);
-
-
 	GLuint bufferid, render_quadid;
 	glGenVertexArrays(1, &render_quadid);
 	glBindVertexArray(render_quadid);
@@ -187,7 +185,6 @@ int	main_loop(t_engine *engine)
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
 	while(engine->loop)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, engine->window->render_buffer.id);
