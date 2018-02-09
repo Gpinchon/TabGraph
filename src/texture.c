@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/09 13:52:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/09 15:29:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,13 +110,11 @@ void	texture_load(t_engine *engine, int texture_index)
 	glGenTextures(1, &texture->id_ogl);
 	glBindTexture(texture->target, texture->id_ogl);
 	glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(texture->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(texture->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	if (texture->bpp < 32)
 		glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	glTexImage2D(texture->target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);
-	//glGenerateMipmap(texture->target);
+	glGenerateMipmap(texture->target);
 	glBindTexture(texture->target, 0);
 	texture->loaded = 1;
 	return ;
