@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/09 14:54:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/09 15:59:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@ t_engine	*engine_init()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MSAA);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	engine->cameras = new_ezarray(other, 0, sizeof(t_camera));
 	engine->shaders = new_ezarray(other, 0, sizeof(t_shader));
@@ -42,7 +44,6 @@ t_engine	*engine_init()
 
 void engine_load_env(t_engine *e)
 {
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	e->env = texture_create(e, new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
 	texture_assign(e, load_bmp(e, "./res/skybox/hell/X+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
 	texture_assign(e, load_bmp(e, "./res/skybox/hell/X-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);

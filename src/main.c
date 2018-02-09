@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/09 13:36:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/09 15:44:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,8 @@ t_window		*window_init(t_engine *engine, const char *name, int width, int height
 	window->display_quad = create_display_quad();
 	window->render_shader = load_shaders(engine, "render", "/src/shaders/render.vert", "/src/shaders/render.frag");
 	window->render_buffer = framebuffer_build(engine);
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	return (engine->window = window);
 }
 

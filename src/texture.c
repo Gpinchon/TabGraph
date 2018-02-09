@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/09 15:29:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/09 15:58:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,8 +48,9 @@ int		texture_create(t_engine *engine, VEC2 size, GLenum target, GLenum internal_
 	glBindTexture(texture.target, texture.id_ogl);
 	if (size.x > 0 && size.y > 0)
 		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, size.x, size.y, 0, format, GL_FLOAT, NULL);
-//	if (texture.bpp < 32)
-//		glTexParameteri(texture.target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	if (format == GL_RGB)
+		glTexParameteri(texture.target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	glTexParameterf(texture.target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 	glBindTexture(texture.target, 0);
 	ezarray_push(&engine->textures, &texture);
 	return (engine->textures.length - 1);
@@ -111,6 +112,7 @@ void	texture_load(t_engine *engine, int texture_index)
 	glBindTexture(texture->target, texture->id_ogl);
 	glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameterf(texture->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.f);
 	if (texture->bpp < 32)
 		glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	glTexImage2D(texture->target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);

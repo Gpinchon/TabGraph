@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 11:38:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/09 15:58:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@
 # define HEIGHT	720
 # define UP		(VEC3){0, 1, 0}
 # define ULL	unsigned long long
+# define ANISOTROPY	16.f
+# define MSAA		8
 
 typedef struct	s_point
 {
