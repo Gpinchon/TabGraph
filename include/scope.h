@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/07 23:27:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 11:38:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,7 +244,7 @@ void		engine_set_key_callback(t_engine *engine, SDL_Scancode keycode, kcallback 
 /*
 ** Camera functions
 */
-
+int			camera_get_target_index(t_engine *engine, int camera_index);
 int			camera_create(t_engine *engine, float fov);
 void		camera_set_target(t_engine *engine, int camera_index, int transform_index);
 void		camera_set_position(t_engine *engine, int camera_index, VEC3 position);
@@ -254,7 +254,7 @@ void		camera_update(t_engine *engine, int camera_index);
 /*
 ** Material functions
 */
-
+t_material	new_material(char *name);
 int		material_get_index_by_name(t_engine *engine, char *name);
 int		material_get_index_by_id(t_engine *engine, ULL h);
 void	material_assign_shader(t_engine *engine, int material_index, int shader_index);

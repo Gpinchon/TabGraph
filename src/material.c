@@ -6,11 +6,29 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/07 21:09:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 00:12:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
+
+t_material	new_material(char *name)
+{
+	t_material	mtl;
+
+	ft_memset(&mtl, 0, sizeof(t_material));
+	ft_memset(&mtl.data, -1, sizeof(t_mtl));
+	mtl.data.alpha = 1;
+	mtl.data.parallax = 0.01;
+	mtl.data.albedo = new_vec3(0.1, 0.1, 0.1);
+	mtl.data.emitting = new_vec3(0, 0, 0);
+	mtl.data.metallic = 0;
+	mtl.data.roughness = 0.5;
+	mtl.data.refraction = 1.5;
+	mtl.name = new_ezstring(name);
+	mtl.id = hash((unsigned char *)mtl.name.tostring);
+	return (mtl);
+}
 
 void	material_assign_shader(t_engine *engine, int material_index, int shader_index)
 {

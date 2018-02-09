@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 00:21:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 13:44:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,6 +123,11 @@ void	callback_camera(t_engine *engine, SDL_Event *event)
 		else if (event->key.keysym.sym == SDLK_KP_PLUS
 		|| event->key.keysym.sym == SDLK_KP_MINUS)
 			radius += event->key.keysym.sym == SDLK_KP_PLUS ? -0.1 : 0.1;
+		else if (event->key.keysym.sym == SDLK_PAGEDOWN
+		|| event->key.keysym.sym == SDLK_PAGEUP)
+			((t_transform*)ezarray_get_index(engine->transforms,
+			camera_get_target_index(engine, 0)))->position.y
+			+= event->key.keysym.sym == SDLK_PAGEUP ? 0.1 : -0.1;
 		phi = CLAMP(phi, 0.01, M_PI - 0.01);
 		theta = CYCLE(theta, 0, 2 * M_PI);
 		radius = CLAMP(radius, 0.1f, 1000.f);
@@ -238,8 +243,7 @@ int main(int argc, char *argv[])
 	e = engine_init();
 	window_init(e, "Scope", WIDTH, HEIGHT);
 	printf("%s\n", glGetString(GL_VERSION));
-	material_assign_shader(e, 0,
-		load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag"));
+	load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag");
 	engine_load_env(e);
 	int obj = load_obj(e, argv[1]);
 	mesh_center(e, obj);
@@ -252,6 +256,8 @@ int main(int argc, char *argv[])
 	engine_set_key_callback(e, SDL_SCANCODE_RIGHT, callback_camera);
 	engine_set_key_callback(e, SDL_SCANCODE_KP_PLUS, callback_camera);
 	engine_set_key_callback(e, SDL_SCANCODE_KP_MINUS, callback_camera);	
+	engine_set_key_callback(e, SDL_SCANCODE_PAGEDOWN, callback_camera);	
+	engine_set_key_callback(e, SDL_SCANCODE_PAGEUP, callback_camera);	
 	mesh_load(e, obj);
 	main_loop(e);
 	return (argc + argv[0][0]);

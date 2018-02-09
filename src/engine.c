@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 00:34:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/09 00:28:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,20 +43,20 @@ t_engine	*engine_init()
 void engine_load_env(t_engine *e)
 {
 	e->env = texture_create(e, new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/X+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/X-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/Y-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/Y+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/Z+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/Z-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/X+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/X-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Y-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Y+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Z+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Z-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
 	texture_generate_mipmap(e, e->env);
 	e->env_spec = texture_create(e, new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/X+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/X-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/Y-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/Y+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/Z+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-	texture_assign(e, load_bmp(e, "./res/skybox/museum/Z-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/X+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/X-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Y-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Y+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Z+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Z-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
 	texture_generate_mipmap(e, e->env_spec);
 }
 

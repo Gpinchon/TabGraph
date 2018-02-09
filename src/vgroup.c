@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:47:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/07 21:35:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 22:29:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,11 +73,11 @@ void	vgroup_render(t_engine *engine, int camera_index, int mesh_index, int vgrou
 	transform = mat4_combine(camera->projection, camera->view, t->transform);
 	MAT4	normal_matrix = mat4_transpose(mat4_inverse(t->transform));
 	shader_use(engine, material->shader_index);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	material_set_uniforms(engine, vgroup->mtl_index);
 	shader_set_uniform(engine, material->shader_index, material->in_campos, &camera->position);
 	shader_set_uniform(engine, material->shader_index, material->in_modelmatrix, &t->transform);

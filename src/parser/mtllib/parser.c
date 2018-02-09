@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 00:37:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 13:00:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,24 +19,6 @@ typedef struct		s_mtl_parser
 	int				fd;
 	t_engine		*e;
 }					t_mtl_parser;
-
-t_material	new_material(char *name)
-{
-	t_material	mtl;
-
-	ft_memset(&mtl, 0, sizeof(t_material));
-	ft_memset(&mtl.data, -1, sizeof(t_mtl));
-	mtl.data.alpha = 1;
-	mtl.data.parallax = 0.01;
-	mtl.data.albedo = new_vec3(0, 0, 0);
-	mtl.data.emitting = new_vec3(0, 0, 0);
-	mtl.data.metallic = 0;
-	mtl.data.roughness = 0.5;
-	mtl.data.refraction = 1.5;
-	mtl.name = new_ezstring(name);
-	mtl.id = hash((unsigned char *)mtl.name.tostring);
-	return (mtl);
-}
 
 void	parse_color(t_mtl_parser *p, char **split, t_material *mtl)
 {
@@ -62,7 +44,8 @@ void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
 		mtl->data.texture_roughness = load_bmp(p->e, path);
 	else if (ft_strstr(split[0], "map_Km"))
 		mtl->data.texture_metallic = load_bmp(p->e, path);
-	else if (ft_strstr(split[0], "map_bump"))
+	else if (ft_strstr(split[0], "map_bump")
+		|| ft_strstr(split[0], "map_Bump"))
 		mtl->data.texture_normal = load_bmp(p->e, path);
 	free(path);
 }
@@ -142,16 +125,9 @@ int	start_mtllib_parsing(t_mtl_parser *p, char *path)
 int	load_mtllib(t_engine *engine, char *path)
 {
 	t_mtl_parser	p;
-	t_material		mtl;
 
 	ft_memset(&p, 0, sizeof(t_mtl_parser));
 	p.e = engine;
-	if (material_get_index_by_name(engine, "default") == -1)
-	{
-		mtl = new_material("default");
-		ezarray_push(&engine->materials, &mtl);
-		material_assign_shader(engine, engine->materials.length - 1, shader_get_by_name(engine, "default"));
-	}
 	if (start_mtllib_parsing(&p, path))
 		return (-1);
 	return (engine->materials.length);

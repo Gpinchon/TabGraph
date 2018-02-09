@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 00:38:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 21:23:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -314,14 +314,20 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 int	get_mtllib(t_obj_parser *p)
 {
 	unsigned int i;
+	t_material		mtl;
 	STRING	s;
 
 	i = 0;
+	if (material_get_index_by_name(p->e, "default") == -1)
+	{
+		mtl = new_material("default");
+		ezarray_push(&p->e->materials, &mtl);
+		material_assign_shader(p->e, p->e->materials.length - 1, shader_get_by_name(p->e, "default"));
+	}
 	while (i < p->mtl_pathes.length)
 	{
 		s = *((STRING *)ezarray_get_index(p->mtl_pathes, i));
 		char *path = ft_strjoin(p->path_split[0], s.tostring);
-		printf("mtllib : %s\n", path);
 		load_mtllib(p->e, path);
 		free(path);
 		destroy_ezstring(&s);

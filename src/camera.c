@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/07 16:48:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/08 11:38:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
 
-static int		camera_get_target_index(t_engine *engine, int camera_index)
+int		camera_get_target_index(t_engine *engine, int camera_index)
 {
 	t_camera	*camera;
 
