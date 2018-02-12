@@ -82,9 +82,9 @@ int			load_bmp(t_engine *e, const char *imagepath)
 	t_bmp_info		bmp_info;
 	t_texture		texture;
 
-	if (access(imagepath, F_OK | W_OK))
+	if (access(imagepath, F_OK | R_OK))
 		return (-1);
-	if ((parser.fd = open(imagepath, O_RDONLY | O_BINARY)) <= 0)
+	if ((parser.fd = open(imagepath, O_RDONLY)) <= 0)
 		return(-1);
 	if (read(parser.fd, &parser.header, sizeof(t_bmp_header)) != sizeof(t_bmp_header)
 	|| read(parser.fd, &bmp_info, sizeof(bmp_info)) != sizeof(bmp_info))

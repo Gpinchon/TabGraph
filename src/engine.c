@@ -23,12 +23,11 @@ t_engine	*engine_init()
 		return (engine);
 	SDL_Init(SDL_INIT_EVERYTHING);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MSAA);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	engine->cameras = new_ezarray(other, 0, sizeof(t_camera));
 	engine->shaders = new_ezarray(other, 0, sizeof(t_shader));
 	engine->textures = new_ezarray(other, 0, sizeof(t_texture));
@@ -37,7 +36,7 @@ t_engine	*engine_init()
 	engine->transforms = new_ezarray(other, 0, sizeof(t_transform));
 	engine->lights = new_ezarray(other, 0, sizeof(t_light));
 	engine->loop = 1;
-	engine->swap_interval = 1;
+	engine->swap_interval = 0;
 	g_program_path = convert_backslash(getcwd(NULL, 2048));
 	return (engine);
 }
@@ -45,20 +44,20 @@ t_engine	*engine_init()
 void engine_load_env(t_engine *e)
 {
 	e->env = texture_create(e, new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/X+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/X-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/Y-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/Y+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/Z+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/Z-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/X+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/X-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Y-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Y+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Z+.bmp"), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Z-.bmp"), e->env, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
 	texture_generate_mipmap(e, e->env);
 	e->env_spec = texture_create(e, new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/X+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/X-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/Y-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/Y+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/Z+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-	texture_assign(e, load_bmp(e, "./res/skybox/hell/Z-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/X+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/X-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Y-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Y+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Z+_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+	texture_assign(e, load_bmp(e, "./res/skybox/park/Z-_spec.bmp"), e->env_spec, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
 	texture_generate_mipmap(e, e->env_spec);
 }
 

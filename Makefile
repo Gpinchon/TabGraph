@@ -43,13 +43,12 @@ LIBFILES	=	./libs/ezmem/libezmem.a	\
 				./libs/libft/libft.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-
 ifeq ($(OS), Windows_NT)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lft -lmingw32 -lSDL2main -lSDL2 -lm -lglew32 -lopengl32
-#LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lm -lglew32 -lft -lmingw32 -lopengl32
+INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
 else ifeq ($(shell uname -s), Darwin)
-LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -L ~/.brew/lib -lSDL2 -lm -lGLEW -lft
-INCLUDE		=	-I ~/.brew/include $(INCLUDE)
+LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -L ~/.brew/lib -lSDL2 -lm -lGLEW -lft -framework OpenGL
+INCLUDE		=	-I ~/.brew/include $(addprefix -I, $(INCLUDE_REP))
 else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW -lft
 endif

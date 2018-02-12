@@ -73,7 +73,7 @@ VEC2	parse_vec2(char **split)
 	int		i;
 
 	i = 0;
-	ft_memset(v, 0, sizeof(float) * 3);
+	ft_memset(v, 0, sizeof(float) * 2);
 	while (split[i] && i < 2)
 	{
 		v[i] = atof(split[i]);
@@ -271,7 +271,7 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 	int		fd;
 	STRING	s;
 
-	if (access(path, F_OK | W_OK) || (p->fd = open(path, O_RDONLY)) <= 0)
+	if (access(path, F_OK | R_OK) || (p->fd = open(path, O_RDONLY)) <= 0)
 		return (-1);
 	p->path_split = split_path(path);
 	p->mesh = new_mesh();

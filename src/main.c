@@ -72,7 +72,9 @@ t_window		*window_init(t_engine *engine, const char *name, int width, int height
 	window->sdl_window = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED, width, height,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+	printf("window %p\n", window->sdl_window);
 	window->gl_context = SDL_GL_CreateContext(window->sdl_window);
+	printf("context %p\n", window->gl_context);
 	glewExperimental = GL_TRUE;
 	if (!window->sdl_window || glewInit() != GLEW_OK)
 	{
@@ -118,18 +120,18 @@ void	callback_camera(t_engine *engine, SDL_Event *event)
 	{
 		if (event->key.keysym.sym == SDLK_UP
 		|| event->key.keysym.sym == SDLK_DOWN)
-			phi += (event->key.keysym.sym == SDLK_DOWN ? 0.1 : -0.1);
+			phi += (event->key.keysym.sym == SDLK_DOWN ? 0.001 : -0.001) * engine->delta_time;
 		else if (event->key.keysym.sym == SDLK_LEFT
 		|| event->key.keysym.sym == SDLK_RIGHT)
-			theta += (event->key.keysym.sym == SDLK_LEFT ? 0.1 : -0.1);
+			theta += (event->key.keysym.sym == SDLK_LEFT ? 0.001 : -0.001) * engine->delta_time;
 		else if (event->key.keysym.sym == SDLK_KP_PLUS
 		|| event->key.keysym.sym == SDLK_KP_MINUS)
-			radius += event->key.keysym.sym == SDLK_KP_PLUS ? -0.1 : 0.1;
+			radius += (event->key.keysym.sym == SDLK_KP_PLUS ? -0.001 : 0.001) * engine->delta_time;
 		else if (event->key.keysym.sym == SDLK_PAGEDOWN
 		|| event->key.keysym.sym == SDLK_PAGEUP)
 			((t_transform*)ezarray_get_index(engine->transforms,
 			camera_get_target_index(engine, 0)))->position.y
-			+= event->key.keysym.sym == SDLK_PAGEUP ? 0.1 : -0.1;
+			+= (event->key.keysym.sym == SDLK_PAGEUP ? 0.001 : -0.001) * engine->delta_time;
 		phi = CLAMP(phi, 0.01, M_PI - 0.01);
 		theta = CYCLE(theta, 0, 2 * M_PI);
 		radius = CLAMP(radius, 0.1f, 1000.f);
@@ -166,7 +168,6 @@ int		event_refresh(void *e)
 	engine = e;
 	rotation.y = CYCLE(rotation.y + 0.0001 * engine->delta_time, 0, 2 * M_PI);
 	mesh_rotate(engine, 0, rotation);
-	printf("\rFPS %i%c[2K", (int)(1000.f / (float)(engine->delta_time)), 27);
 	return (0);
 }
 
@@ -242,6 +243,7 @@ int main(int argc, char *argv[])
 	e = engine_init();
 	window_init(e, "Scope", WIDTH, HEIGHT);
 	printf("%s\n", glGetString(GL_VERSION));
+	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag");
 	engine_load_env(e);
 	int obj = load_obj(e, argv[1]);

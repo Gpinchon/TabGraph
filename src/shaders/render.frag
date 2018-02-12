@@ -1,4 +1,4 @@
-#version 450 core
+#version 410 core
 #define	KERNEL_SIZE 9
 
 uniform sampler2D	in_Texture_Color;
@@ -12,9 +12,9 @@ in vec3				frag_Cube_UV;
 
 out vec4			out_Color;
 
-const float			gaussian_kernel[KERNEL_SIZE] = {
+const float			gaussian_kernel[] = float[KERNEL_SIZE](
 	0.091637, 0.105358, 0.1164, 0.123573, 0.126061, 0.123573, 0.1164, 0.105358, 0.091637
-};
+);
 
 vec3	texture_gaussian(sampler2D tex, vec2 tex_Coord, float width)
 {
