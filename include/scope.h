@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/09 15:58:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/15 15:29:03 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,50 +22,56 @@
 # include <libft.h>
 # include <stdio.h>
 
-# define WIDTH	1280
-# define HEIGHT	720
-# define UP		(VEC3){0, 1, 0}
-# define ULL	unsigned long long
+# define WIDTH		1280
+# define HEIGHT		720
+# define IWIDTH		WIDTH
+# define IHEIGHT	HEIGHT
+# define SHADOWRES	4096
+# define UP			(VEC3){0, 1, 0}
+# define ULL		unsigned long long
 # define ANISOTROPY	16.f
-# define MSAA		8
+# define MSAA		4
+
+typedef struct	s_framebuffer
+{
+	GLuint		id;
+	int			texture_color;
+	int			texture_normal;
+	int			texture_position;
+	int			texture_depth;
+}				t_framebuffer;
 
 typedef struct	s_point
 {
-	int			transform_index;
+	VEC3		color;
 	float		power;
 	float		attenuation;
 	float		falloff;
-	VEC3		color;
 }				t_point;
 
 typedef t_point	t_spot;
 
 typedef struct	s_dir
 {
-	int			transform_index;
-	float		power;
 	VEC3		color;
+	float		power;
 }				t_dir;
-
-typedef struct	s_ambient
-{
-	float		power;
-	VEC3		color;
-}				t_ambient;
 
 typedef union	u_light_data
 {
 	t_point		point;
 	t_spot		spot;
 	t_dir		directional;
-	t_ambient	ambient;
 }				t_light_data;
 
 typedef struct	s_light
 {
+	int				transform_index;
 	int8_t			type;
 	int8_t			cast_shadow;
 	t_light_data	data;
+	int				shader_index;
+	t_framebuffer	framebuffer;
 }				t_light;
 
 typedef struct	s_mtl
@@ -151,6 +157,8 @@ typedef struct	s_material
 	int			in_use_texture_height;
 	int			in_texture_env;
 	int			in_texture_env_spec;
+	int			in_texture_shadow;
+	int			in_shadowtransform;
 }				t_material;
 
 typedef struct	s_vgroup
@@ -192,15 +200,6 @@ typedef struct	s_camera
 	int			target_index;
 }				t_camera;
 
-typedef struct	s_framebuffer
-{
-	GLuint		id;
-	int			texture_color;
-	int			texture_normal;
-	int			texture_position;
-	int			texture_depth;
-}				t_framebuffer;
-
 typedef struct	s_window
 {
 	SDL_Window		*sdl_window;
@@ -227,6 +226,7 @@ typedef struct	s_engine
 	ARRAY		materials;
 	ARRAY		shaders;
 	ARRAY		textures;
+	ARRAY		textures_env;
 	int			env;
 	int			env_spec;
 	int			delta_time;

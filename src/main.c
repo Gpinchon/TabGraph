@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/09 15:44:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/15 15:42:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,23 +29,40 @@ static float	*create_display_quad()
 	return (quad);
 }
 
-t_framebuffer	framebuffer_build(t_engine *e)
+t_framebuffer	shadow_buffer_build(t_engine *engine)
+{
+	t_framebuffer	f;
+	
+	ft_memset(&f, -1, sizeof(t_framebuffer));
+	f.texture_depth = texture_create(engine, new_vec2(SHADOWRES, SHADOWRES), GL_TEXTURE_2D, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT);
+	texture_set_parameters(engine, f.texture_depth, 6,
+		(GLenum[6]){GL_TEXTURE_COMPARE_FUNC, GL_TEXTURE_COMPARE_MODE, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
+		(GLenum[6]){GL_LEQUAL, GL_COMPARE_REF_TO_TEXTURE, GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
+	glGenFramebuffers(1, &f.id);
+	glBindFramebuffer(GL_FRAMEBUFFER, f.id);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_get_ogl_id(engine, f.texture_depth), 0);
+	glDrawBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	return (f);
+}
+
+t_framebuffer	render_buffer_build(t_engine *e)
 {
 	t_framebuffer	f;
 
-	f.texture_color = texture_create(e, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
+	f.texture_color = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
 	texture_set_parameters(e, f.texture_color, 4, 
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
-	f.texture_position = texture_create(e, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB32F_ARB, GL_RGB);
+		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
+	f.texture_position = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGB32F_ARB, GL_RGB);
 	texture_set_parameters(e, f.texture_position, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
-	f.texture_normal = texture_create(e, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_RGB16F_ARB, GL_RGB);
+	f.texture_normal = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGB16F_ARB, GL_RGB);
 	texture_set_parameters(e, f.texture_normal, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
-	f.texture_depth = texture_create(e, new_vec2(WIDTH, HEIGHT), GL_TEXTURE_2D, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+	f.texture_depth = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
 	texture_set_parameters(e, f.texture_depth, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
@@ -83,7 +100,7 @@ t_window		*window_init(t_engine *engine, const char *name, int width, int height
 	}
 	window->display_quad = create_display_quad();
 	window->render_shader = load_shaders(engine, "render", "/src/shaders/render.vert", "/src/shaders/render.frag");
-	window->render_buffer = framebuffer_build(engine);
+	window->render_buffer = render_buffer_build(engine);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	return (engine->window = window);
@@ -108,6 +125,18 @@ void	event_window(t_engine *engine, SDL_Event *event)
 {
 	if (event->window.event == SDL_WINDOWEVENT_CLOSE)
 		engine->loop = 0;
+}
+
+void	callback_background(t_engine *engine, SDL_Event *event)
+{
+	static unsigned	background = 0;
+
+	if (event && event->type == SDL_KEYDOWN)
+		return;
+	background = CYCLE(background + 1, 0, engine->textures_env.length / 2);
+	engine->env = *((int*)ezarray_get_index(engine->textures_env, background * 2 + 0));
+	engine->env_spec = *((int*)ezarray_get_index(engine->textures_env, background * 2 + 1));
+	(void)event;
 }
 
 void	callback_camera(t_engine *engine, SDL_Event *event)
@@ -171,6 +200,85 @@ int		event_refresh(void *e)
 	return (0);
 }
 
+#define MIN(x, y) (x < y ? x : y)
+#define MAX(x, y) (x > y ? x : y)
+
+FRUSTUM	full_scene_frustum(t_engine *engine)
+{
+	t_mesh	*mesh;
+	int		mesh_index = 0;
+	VEC3	min = new_vec3(1000, 1000, 1000), max = new_vec3(-1000, -1000, -1000);
+
+	while ((mesh = ezarray_get_index(engine->meshes, mesh_index)))
+	{
+		t_transform *t = ezarray_get_index(engine->transforms, mesh->transform_index);
+		VEC3	curmin, curmax;
+		curmin = mat4_mult_vec3(t->transform, mesh->bounding_box.min);
+		curmax = mat4_mult_vec3(t->transform, mesh->bounding_box.max);
+		min.x = curmin.x < min.x ? curmin.x : min.x;
+		min.y = curmin.y < min.y ? curmin.y : min.y;
+		min.z = curmin.z < min.z ? curmin.z : min.z;
+		max.x = curmax.x > max.x ? curmax.x : max.x;
+		max.y = curmax.y > max.y ? curmax.y : max.y;
+		max.z = curmax.z > max.z ? curmax.z : max.z;
+		//printf("curmin %f, %f, %f\n", curmin.x, curmin.y, curmin.z);
+		//printf("curmax %f, %f, %f\n", curmax.x, curmax.y, curmax.z);
+		mesh_index++;
+	}
+	//float minimum = MIN(min.x, MIN(min.y, min.z));
+	//float maximum = MAX(max.x, MAX(max.y, max.z));
+	//float value = MAX(fabs(minimum), fabs(maximum));
+	float value = MAX(1.5, vec3_distance(min, max) / 2.f);
+	return (new_frustum(-value, value, -value, value));
+}
+
+void	shadow_render(t_engine *engine)
+{
+	FRUSTUM frustum = full_scene_frustum(engine);
+	MAT4	projection = mat4_orthographic(frustum, frustum.x, frustum.y);
+	MAT4	view = mat4_lookat(new_vec3(-1, 1, 0), new_vec3(0, 0, 0), UP);
+	MAT4	transform;
+	t_mesh	*mesh;
+	int		mesh_index = 0;
+	t_light	*light = ezarray_get_index(engine->lights, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, light->framebuffer.id);
+	glClearDepthf(1);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, SHADOWRES, SHADOWRES);
+	glEnable(GL_DEPTH_TEST);
+	while ((mesh = ezarray_get_index(engine->meshes, mesh_index)))
+	{
+		t_vgroup	*vgroup;
+		int			vgroup_index = 0;
+		t_transform *t = ezarray_get_index(engine->transforms, mesh->transform_index);
+		transform = mat4_combine(projection, view, t->transform);
+		while ((vgroup = ezarray_get_index(mesh->vgroups, vgroup_index)))
+		{
+			t_material *material = ezarray_get_index(engine->materials, vgroup->mtl_index);
+			shader_set_uniform(engine, material->shader_index,
+				material->in_shadowtransform, &transform);
+			shader_set_texture(engine, material->shader_index,
+				material->in_texture_shadow, light->framebuffer.texture_depth, GL_TEXTURE8);
+			shader_use(engine, light->shader_index);
+			shader_set_texture(engine, light->shader_index,
+				shader_get_uniform_index(engine, light->shader_index, "in_Texture_Albedo"),
+				material->data.texture_albedo, GL_TEXTURE0);
+			int use_texture = material->data.texture_albedo == -1 ? 0 : 1;
+			shader_set_uniform(engine, light->shader_index,
+				shader_get_uniform_index(engine, light->shader_index, "in_Use_Texture_Albedo"),
+				&use_texture);
+			shader_set_uniform(engine, light->shader_index,
+				shader_get_uniform_index(engine, light->shader_index, "in_Transform"), &transform);
+			glBindVertexArray(vgroup->v_arrayid);
+			glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
+			glBindVertexArray(0);
+			vgroup_index++;
+		}
+		mesh_index++;
+	}
+}
+
 int	main_loop(t_engine *engine)
 {
 	unsigned ticks, last_ticks;
@@ -188,16 +296,26 @@ int	main_loop(t_engine *engine)
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+
 	while(engine->loop)
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, engine->window->render_buffer.id);
 		ticks = SDL_GetTicks();
 		engine->delta_time = ticks - last_ticks;
 		SDL_PumpEvents();
 		event_refresh(engine);
 		glClear(engine->window->clear_mask);
+
+		
+		shadow_render(engine);
+		//glEnable(GL_CULL_FACE);
+		//glCullFace(GL_FRONT);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, engine->window->render_buffer.id);
+		glViewport(0, 0, IWIDTH, IHEIGHT);
 		scene_render(engine, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, WIDTH, HEIGHT);
 		shader_use(engine, engine->window->render_shader);
 		glDisable(GL_DEPTH_TEST);
 		shader_set_texture(engine, engine->window->render_shader,
@@ -234,6 +352,19 @@ int	main_loop(t_engine *engine)
 	return (0);
 }
 
+int	light_create(t_engine *engine, VEC3 position, VEC3 color, float power)
+{
+	t_light l;
+
+	l.framebuffer = shadow_buffer_build(engine);
+	l.shader_index = shader_get_by_name(engine, "shadow");
+	l.data.directional.power = power;
+	l.data.directional.color = color;
+	l.transform_index = transform_create(engine, position, new_vec3(0, 0, 0), new_vec3(1, 1, 1));
+	ezarray_push(&engine->lights, &l);
+	return (engine->lights.length - 1);
+}
+
 int main(int argc, char *argv[])
 {
 	t_engine	*e;
@@ -245,7 +376,9 @@ int main(int argc, char *argv[])
 	printf("%s\n", glGetString(GL_VERSION));
 	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag");
+	load_shaders(e, "shadow", "/src/shaders/shadow.vert", "/src/shaders/shadow.frag");
 	engine_load_env(e);
+	light_create(e, new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
 	int obj = load_obj(e, argv[1]);
 	mesh_center(e, obj);
 	int camera = camera_create(e, 45);
@@ -256,9 +389,10 @@ int main(int argc, char *argv[])
 	engine_set_key_callback(e, SDL_SCANCODE_LEFT, callback_camera);
 	engine_set_key_callback(e, SDL_SCANCODE_RIGHT, callback_camera);
 	engine_set_key_callback(e, SDL_SCANCODE_KP_PLUS, callback_camera);
-	engine_set_key_callback(e, SDL_SCANCODE_KP_MINUS, callback_camera);	
-	engine_set_key_callback(e, SDL_SCANCODE_PAGEDOWN, callback_camera);	
-	engine_set_key_callback(e, SDL_SCANCODE_PAGEUP, callback_camera);	
+	engine_set_key_callback(e, SDL_SCANCODE_KP_MINUS, callback_camera);
+	engine_set_key_callback(e, SDL_SCANCODE_PAGEDOWN, callback_camera);
+	engine_set_key_callback(e, SDL_SCANCODE_PAGEUP, callback_camera);
+	engine_set_key_callback(e, SDL_SCANCODE_SPACE, callback_background);
 	mesh_load(e, obj);
 	main_loop(e);
 	return (argc + argv[0][0]);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 00:12:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/15 14:49:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,8 @@ void	material_assign_shader(t_engine *engine, int material_index, int shader_ind
 	material->in_use_texture_height = shader_get_uniform_index(engine, shader_index, "in_Use_Texture_Height");
 	material->in_texture_env = shader_get_uniform_index(engine, shader_index, "in_Texture_Env");
 	material->in_texture_env_spec = shader_get_uniform_index(engine, shader_index, "in_Texture_Env_Spec");
+	material->in_texture_shadow = shader_get_uniform_index(engine, shader_index, "in_Texture_Shadow");
+	material->in_shadowtransform = shader_get_uniform_index(engine, shader_index, "in_ShadowTransform");
 }
 
 int			material_get_index_by_name(t_engine *engine, char *name)

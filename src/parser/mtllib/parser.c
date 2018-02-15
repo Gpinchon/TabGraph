@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 13:00:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/15 02:08:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,11 @@ void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
 		mtl->data.texture_albedo = load_bmp(p->e, path);
 	else if (ft_strstr(split[0], "map_Ke"))
 		mtl->data.texture_emitting = load_bmp(p->e, path);
-	else if (ft_strstr(split[0], "map_Kh"))
+	else if (ft_strstr(split[0], "map_Nh"))
 		mtl->data.texture_height = load_bmp(p->e, path);
-	else if (ft_strstr(split[0], "map_Kr"))
+	else if (ft_strstr(split[0], "map_Nr"))
 		mtl->data.texture_roughness = load_bmp(p->e, path);
-	else if (ft_strstr(split[0], "map_Km"))
+	else if (ft_strstr(split[0], "map_Nm"))
 		mtl->data.texture_metallic = load_bmp(p->e, path);
 	else if (ft_strstr(split[0], "map_bump")
 		|| ft_strstr(split[0], "map_Bump"))

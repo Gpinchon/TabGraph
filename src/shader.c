@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 00:30:42 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/15 14:51:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ void	shader_set_uniform(t_engine *engine, int shader_index, int uniform_index, v
 	t_shadervariable	*variable;
 	t_shader			*shader;
 
+	shader_use(engine, shader_index);
 	shader = ezarray_get_index(engine->shaders, shader_index);
 	if (!shader)
 		return ;
@@ -56,7 +57,7 @@ void	shader_set_uniform(t_engine *engine, int shader_index, int uniform_index, v
 		glUniform2fv(variable->loc, 1, ((float*)value));
 	else if (variable->type == GL_FLOAT_MAT4)
 		glUniformMatrix4fv(variable->loc, 1, GL_FALSE, ((float*)value));
-	else if ((variable->type == GL_INT || variable->type == GL_BOOL || variable->type == GL_SAMPLER_2D || variable->type == GL_SAMPLER_CUBE))
+	else if ((variable->type == GL_INT || variable->type == GL_BOOL || variable->type == GL_SAMPLER_2D || variable->type == GL_SAMPLER_CUBE || variable->type == GL_SAMPLER_2D_SHADOW))
 		glUniform1i(variable->loc, *((int*)value));
 	else if (variable->type == GL_UNSIGNED_INT)
 		glUniform1ui(variable->loc, *((int*)value));

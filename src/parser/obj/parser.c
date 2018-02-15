@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/08 21:23:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/15 10:45:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,6 @@ t_vgroup	new_vgroup()
 	vg.vt = new_ezarray(other, 0, sizeof(VEC2));
 	vg.uvmin = new_vec2(0, 0);
 	vg.uvmax = new_vec2(1, 1);
-	//vg.tan = new_ezarray(other, 0, sizeof(VEC3));
-	//vg.bitan = new_ezarray(other, 0, sizeof(VEC3));
 	return (vg);
 }
 

@@ -39,7 +39,7 @@ void main()
 	vec3	normal = texture(in_Texture_Normal, frag_UV).xyz;
 	vec3	position = texture(in_Texture_Position, frag_UV).xyz;
 	float	depth = texture(in_Texture_Depth, frag_UV).r;
-	float	sampledist = 2.5f;
+	float	sampledist = 3.5f;
 	vec3	finalColor = vec3(0);
 	float	brightness = 0.f;
 	vec2	texture_Size = 1.f / textureSize(in_Texture_Color, 0);
@@ -52,9 +52,9 @@ void main()
 			vec2	sampleUV = frag_UV + index * sampledist * texture_Size;
 			vec3	sampleColor = texture(in_Texture_Color, sampleUV).rgb;
 			float	weight = gaussian_kernel[i] * gaussian_kernel[j];
-			brightness += (max(0, sampleColor.r - 1) + max(0, sampleColor.g - 1) + max(0, sampleColor.z - 1) * weight);
-			//brightness += dot(sampleColor, vec3(0.2126, 0.7152, 0.0722)) * weight;
+			brightness += min(1, max(0, sampleColor.r - 1) + max(0, sampleColor.g - 1) + max(0, sampleColor.z - 1)) * weight;
 			finalColor += (sampleColor * weight);
+			sampleUV = frag_UV + index * 5.f * texture_Size;
 			float	sampleDepth = texture(in_Texture_Depth, sampleUV).r;
 			if (depth == 1 || sampleDepth == 1)
 				continue;
@@ -63,9 +63,9 @@ void main()
 			float	D = length(V);
 			if (D < 0.001f)
 				continue;
-			D /= sampledist;
+			D /= 5.f;
 			float	bias = 0.001 + sampleDepth * 0.5f;
-			float	factor = dot(normal, normalize(V));// * (texture(in_Texture_Depth, frag_UV).r - depth);
+			float	factor = dot(normal, normalize(V));
 			if (isnan(factor))
 				continue;
 			float	angle = max(0, factor - bias);
@@ -73,10 +73,10 @@ void main()
 		}
 	}
 	occlusion = depth == 1 ? 0 : occlusion;
-	brightness /=  float(KERNEL_SIZE * KERNEL_SIZE);
-	finalColor *= min(1, brightness);
+	finalColor *= brightness;
 	finalColor += color.xyz * color.w - occlusion;
 	finalColor = finalColor / (finalColor + vec3(1));
 	out_Color = texture(in_Texture_Env, frag_Cube_UV) * (1 - color.a);
 	out_Color += vec4(finalColor, 1);
+	//out_Color = vec4(vec3(occlusion), 1);
 }
