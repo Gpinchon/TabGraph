@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/15 15:42:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/16 12:40:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -318,6 +318,7 @@ int	main_loop(t_engine *engine)
 		glViewport(0, 0, WIDTH, HEIGHT);
 		shader_use(engine, engine->window->render_shader);
 		glDisable(GL_DEPTH_TEST);
+		texture_generate_mipmap(engine, engine->window->render_buffer.texture_color);
 		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Color"),
 			engine->window->render_buffer.texture_color, GL_TEXTURE0);

@@ -201,8 +201,9 @@ void main()
 	vec3	H = normalize(L + V);
 	if (in_Use_Texture_Albedo)
 	{
-		albedo = texture(in_Texture_Albedo, vt).rgb;
-		alpha = texture(in_Texture_Albedo, vt).a;
+		vec4 col = texture(in_Texture_Albedo, vt);
+		albedo = col.rgb;
+		alpha = col.a;
 	}
 	if (alpha <= 0.05f)
 		discard;
@@ -212,7 +213,7 @@ void main()
 		metallic = texture(in_Texture_Metallic, vt).x;
 	if (in_Use_Texture_Emitting)
 		emitting = texture(in_Texture_Emitting, vt).xyz;
-	//float	light_Attenuation = light_Power * 1.f / (1 + distance(light_Pos, worldPosition));
+	//light_Color = textureLod(in_Texture_Env, -L, 10).rgb;
 	light_Color *= light_Power;
 	light_Color *= texture(in_Texture_Shadow, vec3(frag_ShadowPosition.xy, frag_ShadowPosition.z * 0.995));
 	float	NdH = max(0, dot(worldNormal, H));
@@ -228,13 +229,16 @@ void main()
 
 	vec3	refl = reflect(V, worldNormal);
 	fresnel = Fresnel_Schlick(NdV, F0);
-	vec3	env_diffuse = (textureLod(in_Texture_Env, -worldNormal, 10.0).rgb + textureLod(in_Texture_Env_Spec, -worldNormal, 10.0).rgb) * albedo;
+	vec3	env_diffuse = textureLod(in_Texture_Env, -worldNormal, 10).rgb * albedo;
+	vec3	env_diffuse_brightness = textureLod(in_Texture_Env_Spec, -worldNormal, 10).rgb * albedo;
 	vec3	env_reflection = textureLod(in_Texture_Env, refl, roughness * 11.f).rgb * fresnel;
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 11.f).rgb * fresnel;
 
-	float	brightness = min((emitting.r + emitting.g + emitting.z), 1);
-	out_Color = vec4((brightness + emitting) + env_reflection + env_diffuse + env_specular + specular + diffuse, alpha);
-	//out_Color = vec4(vec3(length(worldNormal)), 1);
+	vec3	env_color = env_diffuse + env_reflection;
+	env_color /= 1 + env_reflection;
+	vec3	env_brightness = env_diffuse_brightness + env_specular;
+
+	out_Color = vec4((emitting * (vec3(1) + emitting)) + env_color + env_brightness + specular + diffuse, alpha);
 	out_Normal = vec4(worldNormal, 1);
 	out_Position = vec4(worldPosition, 1);
 }

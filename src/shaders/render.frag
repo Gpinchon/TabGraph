@@ -39,9 +39,9 @@ void main()
 	vec3	normal = texture(in_Texture_Normal, frag_UV).xyz;
 	vec3	position = texture(in_Texture_Position, frag_UV).xyz;
 	float	depth = texture(in_Texture_Depth, frag_UV).r;
-	float	sampledist = 3.5f;
+	float	sampledist = 2.5f;
 	vec3	finalColor = vec3(0);
-	float	brightness = 0.f;
+	vec3	bloom = vec3(0);
 	vec2	texture_Size = 1.f / textureSize(in_Texture_Color, 0);
 	float	occlusion = 0.f;
 	for (int i = 0; i < KERNEL_SIZE; i++) 
@@ -50,10 +50,9 @@ void main()
 		{
 			vec2	index = vec2(float(i - KERNEL_SIZE / 2.f), float(j - KERNEL_SIZE / 2.f));
 			vec2	sampleUV = frag_UV + index * sampledist * texture_Size;
-			vec3	sampleColor = texture(in_Texture_Color, sampleUV).rgb;
+			vec3	sampleColor = textureLod(in_Texture_Color, sampleUV, 2.5f).rgb;
 			float	weight = gaussian_kernel[i] * gaussian_kernel[j];
-			brightness += min(1, max(0, sampleColor.r - 1) + max(0, sampleColor.g - 1) + max(0, sampleColor.z - 1)) * weight;
-			finalColor += (sampleColor * weight);
+			bloom += max(vec3(0), sampleColor - 1) * weight;
 			sampleUV = frag_UV + index * 5.f * texture_Size;
 			float	sampleDepth = texture(in_Texture_Depth, sampleUV).r;
 			if (depth == 1 || sampleDepth == 1)
@@ -72,11 +71,8 @@ void main()
 			occlusion += (angle * (1.f / (1.f + D))) * weight;
 		}
 	}
-	occlusion = depth == 1 ? 0 : occlusion;
-	finalColor *= brightness;
-	finalColor += color.xyz * color.w - occlusion;
-	finalColor = finalColor / (finalColor + vec3(1));
+	finalColor = bloom + color.rgb * color.a - occlusion;
 	out_Color = texture(in_Texture_Env, frag_Cube_UV) * (1 - color.a);
 	out_Color += vec4(finalColor, 1);
-	//out_Color = vec4(vec3(occlusion), 1);
+	//out_Color = vec4(bloom, 1);
 }
