@@ -1,4 +1,4 @@
-#version 410 core
+#version 410
 #define M_PI 3.1415926535897932384626433832795
 
 uniform vec3		in_CamPos;
@@ -37,8 +37,9 @@ in vec3			frag_WorldPosition;
 in vec2			frag_Texcoord;
 
 layout(location = 0) out vec4		out_Color;
-layout(location = 1) out vec4		out_Normal;
-layout(location = 2) out vec4		out_Position;
+layout(location = 1) out vec4		out_Bright;
+layout(location = 2) out vec4		out_Normal;
+layout(location = 3) out vec4		out_Position;
 
 float chiGGX(float v)
 {
@@ -63,27 +64,21 @@ float	GGX_Distribution(in float NdH, in float roughness)
 
 float Cooktorrance_Specular(in float NdL, in float NdV, in float NdH, in float HdV, in float roughness)
 {
-/*	float a2 = roughness*roughness;
-	float G_V = NdV + sqrt( (NdV - NdV * a2) * NdV + a2 );
-	float G_L = NdL + sqrt( (NdL - NdL * a2) * NdL + a2 );
-	return (1 / (G_V * G_L));*/
-
 	float	D = GGX_Distribution(NdH, roughness);
 	float	G = GGX_Geometry(NdL, roughness);
 	return (clamp(D * G, 0, 1));
-	//return (G);
 }
 
 float Oren_Nayar_Diffuse(in float LdV, in float NdL, in float NdV, in float roughness)
 {
-  float s = LdV - NdL * NdV;
-  float t = mix(1.0, max(NdL, NdV), step(0.0, s));
+	float s = LdV - NdL * NdV;
+	float t = mix(1.0, max(NdL, NdV), step(0.0, s));
 
-  float sigma2 = roughness * roughness;
-  float A = 1.0 + sigma2 * (1 / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
-  float B = 0.45 * sigma2 / (sigma2 + 0.09);
+	float sigma2 = roughness * roughness;
+	float A = 1.0 + sigma2 * (1 / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
+	float B = 0.45 * sigma2 / (sigma2 + 0.09);
 
-  return max(0.0, NdL) * (A + B * s / (0.0001 + t)) / M_PI;//(max(0.0001, s) / max(0.0001, t));//max(0.0, NdL) * (A + B * s / t) / M_PI;
+	return max(0.0, NdL) * (A + B * s / (0.0001 + t)) / M_PI;
 }
 
 
@@ -213,7 +208,7 @@ void main()
 		metallic = texture(in_Texture_Metallic, vt).x;
 	if (in_Use_Texture_Emitting)
 		emitting = texture(in_Texture_Emitting, vt).xyz;
-	//light_Color = textureLod(in_Texture_Env, -L, 10).rgb;
+	light_Color = vec3(1) / (1 + textureLod(in_Texture_Env, -L, 10).rgb);
 	light_Color *= light_Power;
 	light_Color *= texture(in_Texture_Shadow, vec3(frag_ShadowPosition.xy, frag_ShadowPosition.z * 0.995));
 	float	NdH = max(0, dot(worldNormal, H));
@@ -235,10 +230,11 @@ void main()
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 11.f).rgb * fresnel;
 
 	vec3	env_color = env_diffuse + env_reflection;
-	env_color /= 1 + env_reflection;
+	env_color /= 1 + albedo;
 	vec3	env_brightness = env_diffuse_brightness + env_specular;
 
-	out_Color = vec4((emitting * (vec3(1) + emitting)) + env_color + env_brightness + specular + diffuse, alpha);
+	out_Color = vec4(emitting + env_color + env_brightness + specular + diffuse, alpha);
+	out_Bright = vec4(max(vec3(0), out_Color.rgb - 0.9) + emitting, alpha);
 	out_Normal = vec4(worldNormal, 1);
 	out_Position = vec4(worldPosition, 1);
 }

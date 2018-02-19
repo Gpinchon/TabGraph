@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   scope.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/15 15:29:03 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/18 22:40:25 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,18 +24,19 @@
 
 # define WIDTH		1280
 # define HEIGHT		720
-# define IWIDTH		WIDTH
-# define IHEIGHT	HEIGHT
+# define IWIDTH		1920
+# define IHEIGHT	1080
 # define SHADOWRES	4096
 # define UP			(VEC3){0, 1, 0}
 # define ULL		unsigned long long
 # define ANISOTROPY	16.f
-# define MSAA		4
+# define MSAA		8
 
 typedef struct	s_framebuffer
 {
 	GLuint		id;
 	int			texture_color;
+	int			texture_bright;
 	int			texture_normal;
 	int			texture_position;
 	int			texture_depth;
@@ -229,7 +230,7 @@ typedef struct	s_engine
 	ARRAY		textures_env;
 	int			env;
 	int			env_spec;
-	int			delta_time;
+	float		delta_time;
 	kcallback	kcallbacks[285];
 }				t_engine;
 

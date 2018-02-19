@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   camera.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/14 00:29:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/18 16:07:17 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,6 @@ void	camera_update(t_engine *engine, int camera_index)
 	camera_target = ezarray_get_index(engine->transforms, camera->target_index);
 	target = camera_target ? camera_target->position : new_vec3(0, 0, 0);
 	camera->view = mat4_lookat(camera->position, target, UP);
-	camera->projection = mat4_perspective(camera->fov, (float)IWIDTH / (float)IHEIGHT, 0.1, 1000);
+	camera->projection = mat4_perspective(camera->fov, (float)WIDTH / (float)HEIGHT, 0.1, 1000);
 	(void)camera_index;
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/01/23 20:41:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/18 16:03:26 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,10 +44,11 @@ int		check_shader(GLuint id)
 	result = GL_FALSE;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
 	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &loglength);
-	if (loglength > 0)
+	if (loglength > 1)
 	{
 		log = ft_memalloc(sizeof(char) * loglength);
 		glGetShaderInfoLog(id, loglength, NULL, &log[0]);
+		ft_putendl("Error compiling shader : ");
 		ft_putendl(log);
 		free(log);
 		return (-1);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/16 12:40:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/19 22:49:41 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,25 +54,30 @@ t_framebuffer	render_buffer_build(t_engine *e)
 	texture_set_parameters(e, f.texture_color, 4, 
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
+	f.texture_bright = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA32F_ARB, GL_RGBA);
+	texture_set_parameters(e, f.texture_bright, 4, 
+		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
+		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
 	f.texture_position = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGB32F_ARB, GL_RGB);
 	texture_set_parameters(e, f.texture_position, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
+		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
 	f.texture_normal = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGB16F_ARB, GL_RGB);
 	texture_set_parameters(e, f.texture_normal, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
+		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
 	f.texture_depth = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
 	texture_set_parameters(e, f.texture_depth, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_NEAREST, GL_NEAREST, GL_CLAMP, GL_CLAMP});
+		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
 	glGenFramebuffers(1, &f.id);
 	glBindFramebuffer(GL_FRAMEBUFFER, f.id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_color), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_normal), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_position), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_bright), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_normal), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_position), 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_depth), 0);
-	glDrawBuffers(3, (GLenum[3]){GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2});
+	glDrawBuffers(4, (GLenum[4]){GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3});
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return (f);
 }
@@ -89,9 +94,7 @@ t_window		*window_init(t_engine *engine, const char *name, int width, int height
 	window->sdl_window = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED, width, height,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-	printf("window %p\n", window->sdl_window);
 	window->gl_context = SDL_GL_CreateContext(window->sdl_window);
-	printf("context %p\n", window->gl_context);
 	glewExperimental = GL_TRUE;
 	if (!window->sdl_window || glewInit() != GLEW_OK)
 	{
@@ -149,18 +152,18 @@ void	callback_camera(t_engine *engine, SDL_Event *event)
 	{
 		if (event->key.keysym.sym == SDLK_UP
 		|| event->key.keysym.sym == SDLK_DOWN)
-			phi += (event->key.keysym.sym == SDLK_DOWN ? 0.001 : -0.001) * engine->delta_time;
+			phi += (event->key.keysym.sym == SDLK_DOWN ? 2 : -2) * engine->delta_time;
 		else if (event->key.keysym.sym == SDLK_LEFT
 		|| event->key.keysym.sym == SDLK_RIGHT)
-			theta += (event->key.keysym.sym == SDLK_LEFT ? 0.001 : -0.001) * engine->delta_time;
+			theta += (event->key.keysym.sym == SDLK_LEFT ? 2 : -2) * engine->delta_time;
 		else if (event->key.keysym.sym == SDLK_KP_PLUS
 		|| event->key.keysym.sym == SDLK_KP_MINUS)
-			radius += (event->key.keysym.sym == SDLK_KP_PLUS ? -0.001 : 0.001) * engine->delta_time;
+			radius += (event->key.keysym.sym == SDLK_KP_PLUS ? -2 : 2) * engine->delta_time;
 		else if (event->key.keysym.sym == SDLK_PAGEDOWN
 		|| event->key.keysym.sym == SDLK_PAGEUP)
 			((t_transform*)ezarray_get_index(engine->transforms,
 			camera_get_target_index(engine, 0)))->position.y
-			+= (event->key.keysym.sym == SDLK_PAGEUP ? 0.001 : -0.001) * engine->delta_time;
+			+= (event->key.keysym.sym == SDLK_PAGEUP ? 2 : -2) * engine->delta_time;
 		phi = CLAMP(phi, 0.01, M_PI - 0.01);
 		theta = CYCLE(theta, 0, 2 * M_PI);
 		radius = CLAMP(radius, 0.1f, 1000.f);
@@ -195,7 +198,7 @@ int		event_refresh(void *e)
 	static VEC3	rotation = (VEC3){0, 0, 0};
 
 	engine = e;
-	rotation.y = CYCLE(rotation.y + 0.0001 * engine->delta_time, 0, 2 * M_PI);
+	rotation.y = CYCLE(rotation.y + 0.1 * engine->delta_time, 0, 2 * M_PI);
 	mesh_rotate(engine, 0, rotation);
 	return (0);
 }
@@ -260,19 +263,22 @@ void	shadow_render(t_engine *engine)
 				material->in_shadowtransform, &transform);
 			shader_set_texture(engine, material->shader_index,
 				material->in_texture_shadow, light->framebuffer.texture_depth, GL_TEXTURE8);
-			shader_use(engine, light->shader_index);
-			shader_set_texture(engine, light->shader_index,
-				shader_get_uniform_index(engine, light->shader_index, "in_Texture_Albedo"),
-				material->data.texture_albedo, GL_TEXTURE0);
-			int use_texture = material->data.texture_albedo == -1 ? 0 : 1;
-			shader_set_uniform(engine, light->shader_index,
-				shader_get_uniform_index(engine, light->shader_index, "in_Use_Texture_Albedo"),
-				&use_texture);
-			shader_set_uniform(engine, light->shader_index,
-				shader_get_uniform_index(engine, light->shader_index, "in_Transform"), &transform);
-			glBindVertexArray(vgroup->v_arrayid);
-			glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
-			glBindVertexArray(0);
+			if (material->data.alpha > 0.5f)
+			{
+				shader_use(engine, light->shader_index);
+				shader_set_texture(engine, light->shader_index,
+					shader_get_uniform_index(engine, light->shader_index, "in_Texture_Albedo"),
+					material->data.texture_albedo, GL_TEXTURE0);
+				int use_texture = material->data.texture_albedo == -1 ? 0 : 1;
+				shader_set_uniform(engine, light->shader_index,
+					shader_get_uniform_index(engine, light->shader_index, "in_Use_Texture_Albedo"),
+					&use_texture);
+				shader_set_uniform(engine, light->shader_index,
+					shader_get_uniform_index(engine, light->shader_index, "in_Transform"), &transform);
+				glBindVertexArray(vgroup->v_arrayid);
+				glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
+				glBindVertexArray(0);
+			}
 			vgroup_index++;
 		}
 		mesh_index++;
@@ -281,10 +287,10 @@ void	shadow_render(t_engine *engine)
 
 int	main_loop(t_engine *engine)
 {
-	unsigned ticks, last_ticks;
+	float ticks, last_ticks;
 
 	SDL_GL_SetSwapInterval(engine->swap_interval);
-	last_ticks = SDL_GetTicks();
+	last_ticks = SDL_GetTicks() / 1000.f;
 	SDL_SetEventFilter(event_callback, engine);
 	GLuint bufferid, render_quadid;
 	glGenVertexArrays(1, &render_quadid);
@@ -300,17 +306,13 @@ int	main_loop(t_engine *engine)
 
 	while(engine->loop)
 	{
-		ticks = SDL_GetTicks();
+		ticks = SDL_GetTicks() / 1000.f;
 		engine->delta_time = ticks - last_ticks;
+		last_ticks = ticks;
 		SDL_PumpEvents();
 		event_refresh(engine);
 		glClear(engine->window->clear_mask);
-
-		
 		shadow_render(engine);
-		//glEnable(GL_CULL_FACE);
-		//glCullFace(GL_FRONT);
-
 		glBindFramebuffer(GL_FRAMEBUFFER, engine->window->render_buffer.id);
 		glViewport(0, 0, IWIDTH, IHEIGHT);
 		scene_render(engine, 0);
@@ -318,22 +320,25 @@ int	main_loop(t_engine *engine)
 		glViewport(0, 0, WIDTH, HEIGHT);
 		shader_use(engine, engine->window->render_shader);
 		glDisable(GL_DEPTH_TEST);
-		texture_generate_mipmap(engine, engine->window->render_buffer.texture_color);
+		//texture_generate_mipmap(engine, engine->window->render_buffer.texture_bright);
 		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Color"),
 			engine->window->render_buffer.texture_color, GL_TEXTURE0);
 		shader_set_texture(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Normal"),
-			engine->window->render_buffer.texture_normal, GL_TEXTURE1);
+			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Bright"),
+			engine->window->render_buffer.texture_bright, GL_TEXTURE1);
 		shader_set_texture(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Position"),
+			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Normal"),
 			engine->window->render_buffer.texture_normal, GL_TEXTURE2);
 		shader_set_texture(engine, engine->window->render_shader,
+			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Position"),
+			engine->window->render_buffer.texture_normal, GL_TEXTURE3);
+		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Depth"),
-			engine->window->render_buffer.texture_depth, GL_TEXTURE3);
+			engine->window->render_buffer.texture_depth, GL_TEXTURE4);
 		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Env"),
-			engine->env, GL_TEXTURE4);
+			engine->env, GL_TEXTURE5);
 		t_camera *camera = ezarray_get_index(engine->cameras, 0);
 		MAT4 matrix = mat4_inverse(camera->view);
 		shader_set_uniform(engine, engine->window->render_shader,
@@ -348,7 +353,6 @@ int	main_loop(t_engine *engine)
 		glBindVertexArray(0);
 		glUseProgram(0);
 		SDL_GL_SwapWindow(engine->window->sdl_window);
-		last_ticks = ticks;
 	}
 	return (0);
 }

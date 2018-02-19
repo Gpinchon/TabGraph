@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   engine.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/15 15:18:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/18 19:03:32 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,9 @@ void engine_load_env(t_engine *e)
 	while ((entry = readdir(dir)))
     {
     	if (entry->d_name[0] == '.')
+    	{
     		continue;
+    	}
 		e->env = texture_create(e, new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
 		buffer = ft_strjoinfreebool("./res/skybox/", ft_strjoin(entry->d_name, "/X+.bmp"), 0, 1);
 		texture_assign(e, load_bmp(e, buffer), e->env, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
