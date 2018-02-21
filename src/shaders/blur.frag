@@ -3,7 +3,6 @@
 
 uniform sampler2D	in_Texture_Color;
 uniform vec2		in_Direction;
-uniform float		in_Radius;
 
 in vec2				frag_UV;
 
@@ -15,12 +14,12 @@ uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
 
 void main()
 {
-	out_Color.a = 1;
 	for (int i = 0; i < KERNEL_SIZE; i++)
 	{
 		float	weight = gaussian_kernel[i];
 		vec2	index = vec2(float(i - (KERNEL_SIZE - 1) / 2.f), float(i - (KERNEL_SIZE - 1) / 2.f)) * in_Direction;
-		vec2	sampleUV = frag_UV + ((index * in_Radius) / textureSize(in_Texture_Color, 0));
-		out_Color.rgb += texture(in_Texture_Color, sampleUV).rgb * weight;
+		vec2	sampleUV = frag_UV + (index / textureSize(in_Texture_Color, 0));
+		vec4	color = texture(in_Texture_Color, sampleUV);
+		out_Color +=  color * weight;
 	}
 }

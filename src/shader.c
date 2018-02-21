@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/15 14:51:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/21 21:53:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,10 @@ void	shader_use(t_engine *engine, int shader_index)
 
 	shader = ezarray_get_index(engine->shaders, shader_index);
 	if (!shader)
+	{
+		glUseProgram(0);
 		return;
+	}
 	glUseProgram(shader->program);
 }
 

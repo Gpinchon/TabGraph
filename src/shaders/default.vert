@@ -11,7 +11,10 @@ uniform mat4					in_ShadowTransform;
 out vec3			frag_ShadowPosition;
 out vec3			frag_WorldPosition;
 out vec3			frag_WorldNormal;
+out vec3			frag_ModelPosition;
+out vec3			frag_ModelNormal;
 out vec2			frag_Texcoord;
+out mat4			frag_DepthBiasTransform;
 
 mat4 biasMatrix = mat4( 
 0.5, 0.0, 0.0, 0.0, 
@@ -23,6 +26,9 @@ mat4 biasMatrix = mat4(
 void main()
 {
 	mat4 depthBiasTransform = biasMatrix * in_ShadowTransform;
+	frag_DepthBiasTransform = depthBiasTransform;
+	frag_ModelPosition = in_Position;
+	frag_ModelNormal = in_Normal;
 	gl_Position = in_Transform * vec4(in_Position, 1);
 	frag_WorldPosition = vec3(in_ModelMatrix * vec4(in_Position, 1));
 	frag_ShadowPosition = vec3(depthBiasTransform * vec4(in_Position, 1));

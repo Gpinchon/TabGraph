@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   texture.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/19 14:37:42 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/02/21 22:11:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,23 @@ GLuint	texture_get_ogl_id(t_engine *engine, int texture_index)
 	if (!texture)
 		return (0);
 	return (texture->id_ogl);
+}
+
+int		texture_get_by_name(t_engine *engine, char *name)
+{
+	int			i;
+	ULL			h;
+	t_texture	*t;
+
+	i = 0;
+	h = hash((unsigned char*)name);
+	while ((t = ezarray_get_index(engine->textures, i)))
+	{
+		if (h == t->id)
+			return (i);
+		i++;
+	}
+	return (-1);
 }
 
 void	texture_set_parameters(t_engine *engine, int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values)

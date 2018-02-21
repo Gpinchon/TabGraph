@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/15 14:49:42 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/21 22:14:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ t_material	new_material(char *name)
 
 	ft_memset(&mtl, 0, sizeof(t_material));
 	ft_memset(&mtl.data, -1, sizeof(t_mtl));
+	mtl.data.stupidity = 0;
 	mtl.data.alpha = 1;
 	mtl.data.parallax = 0.01;
 	mtl.data.albedo = new_vec3(0.1, 0.1, 0.1);
@@ -53,6 +54,8 @@ void	material_assign_shader(t_engine *engine, int material_index, int shader_ind
 	material->in_refraction = shader_get_uniform_index(engine, shader_index, "in_Refraction");
 	material->in_alpha = shader_get_uniform_index(engine, shader_index, "in_Alpha");
 	material->in_parallax = shader_get_uniform_index(engine, shader_index, "in_Parallax");
+	material->in_stupidity = shader_get_uniform_index(engine, shader_index, "in_Stupidity");
+	material->in_texture_stupid = shader_get_uniform_index(engine, shader_index, "in_Texture_Stupid");
 	material->in_texture_albedo = shader_get_uniform_index(engine, shader_index, "in_Texture_Albedo");
 	material->in_texture_roughness = shader_get_uniform_index(engine, shader_index, "in_Texture_Roughness");
 	material->in_texture_metallic = shader_get_uniform_index(engine, shader_index, "in_Texture_Metallic");
@@ -124,6 +127,7 @@ void	material_set_textures(t_engine *engine, int material_index)
 	}
 	shader_set_texture(engine, material->shader_index, material->in_texture_env, engine->env, GL_TEXTURE0 + i);
 	shader_set_texture(engine, material->shader_index, material->in_texture_env_spec, engine->env_spec, GL_TEXTURE0 + i + 1);
+	shader_set_texture(engine, material->shader_index, material->in_texture_stupid, material->data.texture_stupid, GL_TEXTURE0 + i + 2);
 }
 
 void	material_set_uniforms(t_engine *engine, int material_index)
@@ -142,6 +146,7 @@ void	material_set_uniforms(t_engine *engine, int material_index)
 	shader_set_uniform(engine, material->shader_index, material->in_refraction, &material->data.refraction);
 	shader_set_uniform(engine, material->shader_index, material->in_alpha, &material->data.alpha);
 	shader_set_uniform(engine, material->shader_index, material->in_parallax, &material->data.parallax);
+	shader_set_uniform(engine, material->shader_index, material->in_stupidity, &material->data.stupidity);
 }
 
 void	material_load_textures(t_engine *engine, int material_index)
@@ -153,7 +158,7 @@ void	material_load_textures(t_engine *engine, int material_index)
 	material = ezarray_get_index(engine->materials, material_index);
 	textures = &material->data.texture_albedo;
 	i = 0;
-	while (i < 6)
+	while (i < 7)
 	{
 		texture_load(engine, textures[i]);
 		i++;

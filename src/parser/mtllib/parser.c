@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/15 02:08:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/21 22:49:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ void	parse_mtl(t_mtl_parser *p, char **split)
 	if (material_get_index_by_name(p->e, split[0]) != -1)
 		return ;
 	mtl = new_material(split[0]);
+	mtl.data.texture_stupid = texture_get_by_name(p->e, "./res/stupid.bmp");
 	while (get_next_line(p->fd, &line) == 1)
 	{
 		msplit = ft_strsplitwspace((const char *)line);

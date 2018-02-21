@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/20 19:13:17 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/21 22:42:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@
 # define ULL		unsigned long long
 # define ANISOTROPY	16.f
 # define MSAA		8
-# define BLOOM		7
+# define BLOOMPASS	2
 
 typedef struct	s_framebuffer
 {
@@ -41,6 +41,8 @@ typedef struct	s_framebuffer
 	int			color2;
 	int			color3;
 	int			depth;
+	int			shader;
+	GLuint		render_quad;
 }				t_framebuffer;
 
 typedef struct	s_point
@@ -72,7 +74,6 @@ typedef struct	s_light
 	int8_t			type;
 	int8_t			cast_shadow;
 	t_light_data	data;
-	int				shader_index;
 	t_framebuffer	framebuffer;
 }				t_light;
 
@@ -86,12 +87,14 @@ typedef struct	s_mtl
 	float		refraction;
 	float		alpha;
 	float		parallax;
+	float		stupidity;
 	int			texture_albedo;
 	int			texture_roughness;
 	int			texture_metallic;
 	int			texture_emitting;
 	int			texture_normal;
 	int			texture_height;
+	int			texture_stupid;
 }				t_mtl;
 
 typedef struct	s_texture
@@ -144,6 +147,7 @@ typedef struct	s_material
 	int			in_refraction;
 	int			in_alpha;
 	int			in_parallax;
+	int			in_stupidity;
 	int			in_use_texture_albedo_alpha;
 	int			in_texture_albedo;
 	int			in_use_texture_albedo;
@@ -159,6 +163,7 @@ typedef struct	s_material
 	int			in_use_texture_height;
 	int			in_texture_env;
 	int			in_texture_env_spec;
+	int			in_texture_stupid;
 	int			in_texture_shadow;
 	int			in_shadowtransform;
 }				t_material;
@@ -208,8 +213,7 @@ typedef struct	s_window
 	SDL_GLContext	gl_context;
 	VEC4			clear_color;
 	GLbitfield		clear_mask;
-	float			*display_quad;
-	int				render_shader;
+	//float			*display_quad;
 	t_framebuffer	render_buffer;	
 }				t_window;
 
@@ -232,6 +236,8 @@ typedef struct	s_engine
 	int			env;
 	int			env_spec;
 	float		delta_time;
+	float		stupidity;
+	float		new_stupidity;
 	kcallback	kcallbacks[285];
 }				t_engine;
 
@@ -289,6 +295,7 @@ void	vgroup_center(t_engine *engine, int mesh_index, int vgroup_index);
 */
 
 GLuint		texture_get_ogl_id(t_engine *engine, int texture_index);
+int			texture_get_by_name(t_engine *engine, char *name);
 int			texture_create(t_engine *engine, VEC2 size, GLenum target, GLenum internal_format, GLenum format);
 void		texture_set_parameters(t_engine *engine, int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values);
 void		texture_assign(t_engine *engine, int texture_index, int dest_texture_index, GLenum target);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/21 01:27:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/21 22:49:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,17 +16,29 @@
 ** quad is a singleton
 */
 
-static float	*create_display_quad()
+static GLuint	create_display_quad()
 {
-	static float	*quad = NULL;
+	static GLuint	render_quadid = 0;
+	GLuint			bufferid;
+	float			quad[8];
 
-	if (quad || !(quad = malloc(sizeof(float) * 8)))
-		return (quad);
+	if (render_quadid)
+		return (render_quadid);
 	quad[0] = -1.0f; quad[1] = -1.0f;
 	quad[2] = 1.0f; quad[3] = -1.0f;
 	quad[4] = -1.0f; quad[5] = 1.0f;
 	quad[6] = 1.0f; quad[7] = 1.0f;
-	return (quad);
+	glGenVertexArrays(1, &render_quadid);
+	glBindVertexArray(render_quadid);
+	glGenBuffers(1, &bufferid);
+	glBindBuffer(GL_ARRAY_BUFFER, bufferid);
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), quad, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	return (render_quadid);
 }
 
 t_framebuffer	shadow_buffer_build(t_engine *engine)
@@ -34,7 +46,8 @@ t_framebuffer	shadow_buffer_build(t_engine *engine)
 	t_framebuffer	f;
 	
 	ft_memset(&f, -1, sizeof(t_framebuffer));
-	f.depth = texture_create(engine, new_vec2(SHADOWRES, SHADOWRES), GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT);
+	f.shader = shader_get_by_name(engine, "shadow");
+	f.depth = texture_create(engine, new_vec2(SHADOWRES, SHADOWRES), GL_TEXTURE_2D, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT);
 	texture_set_parameters(engine, f.depth, 6,
 		(GLenum[6]){GL_TEXTURE_COMPARE_FUNC, GL_TEXTURE_COMPARE_MODE, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[6]){GL_LEQUAL, GL_COMPARE_REF_TO_TEXTURE, GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
@@ -50,6 +63,8 @@ t_framebuffer	render_buffer_build(t_engine *e)
 {
 	t_framebuffer	f;
 
+	f.shader = shader_get_by_name(e, "render");
+	f.render_quad = create_display_quad();
 	f.color0 = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
 	texture_set_parameters(e, f.color0, 4, 
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
@@ -101,8 +116,6 @@ t_window		*window_init(t_engine *engine, const char *name, int width, int height
 		free(window);
 		return (window = NULL);
 	}
-	window->display_quad = create_display_quad();
-	window->render_shader = shader_get_by_name(engine, "render");
 	window->render_buffer = render_buffer_build(engine);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -134,7 +147,7 @@ void	callback_background(t_engine *engine, SDL_Event *event)
 {
 	static unsigned	background = 0;
 
-	if (event && event->type == SDL_KEYDOWN)
+	if (event && event->type == SDL_KEYUP)
 		return;
 	background = CYCLE(background + 1, 0, engine->textures_env.length / 2);
 	engine->env = *((int*)ezarray_get_index(engine->textures_env, background * 2 + 0));
@@ -192,12 +205,35 @@ int 	event_callback(void *e, SDL_Event *event)
 	return (0);
 }
 
+void	callback_stupidity(t_engine *engine, SDL_Event *event)
+{
+	if (event && event->type == SDL_KEYUP)
+		return;
+	engine->new_stupidity = !engine->new_stupidity;
+}
+
 int		event_refresh(void *e)
 {
-	t_engine *engine;
+	t_engine		*engine;
+	t_material		*m;
+	int				i;
 	static VEC3	rotation = (VEC3){0, 0, 0};
 
 	engine = e;
+	static float val = 0;
+	if (engine->stupidity != engine->new_stupidity)
+	{
+		val = CLAMP(val + 0.1, 0, 1);
+		engine->stupidity = interp_cubic(!engine->new_stupidity, engine->new_stupidity, val);
+		i = 0;
+		while ((m = ezarray_get_index(engine->materials, i)))
+		{
+			m->data.stupidity = engine->stupidity;
+			i++;
+		}
+	}
+	else
+		val = 0;
 	rotation.y = CYCLE(rotation.y + 0.1 * engine->delta_time, 0, 2 * M_PI);
 	mesh_rotate(engine, 0, rotation);
 	return (0);
@@ -208,30 +244,29 @@ int		event_refresh(void *e)
 
 FRUSTUM	full_scene_frustum(t_engine *engine)
 {
-	t_mesh	*mesh;
-	int		mesh_index = 0;
-	VEC3	min = new_vec3(1000, 1000, 1000), max = new_vec3(-1000, -1000, -1000);
+	t_mesh		*mesh;
+	t_transform	*t;
+	float		value;
+	int			mesh_index = 0;
+	VEC3		v[2];
 
+	v[0] = new_vec3(1000, 1000, 1000);
+	v[1] = new_vec3(-1000, -1000, -1000);
 	while ((mesh = ezarray_get_index(engine->meshes, mesh_index)))
 	{
-		t_transform *t = ezarray_get_index(engine->transforms, mesh->transform_index);
+		t = ezarray_get_index(engine->transforms, mesh->transform_index);
 		VEC3	curmin, curmax;
 		curmin = mat4_mult_vec3(t->transform, mesh->bounding_box.min);
 		curmax = mat4_mult_vec3(t->transform, mesh->bounding_box.max);
-		min.x = curmin.x < min.x ? curmin.x : min.x;
-		min.y = curmin.y < min.y ? curmin.y : min.y;
-		min.z = curmin.z < min.z ? curmin.z : min.z;
-		max.x = curmax.x > max.x ? curmax.x : max.x;
-		max.y = curmax.y > max.y ? curmax.y : max.y;
-		max.z = curmax.z > max.z ? curmax.z : max.z;
-		//printf("curmin %f, %f, %f\n", curmin.x, curmin.y, curmin.z);
-		//printf("curmax %f, %f, %f\n", curmax.x, curmax.y, curmax.z);
+		v[0].x = curmin.x < v[0].x ? curmin.x : v[0].x;
+		v[0].y = curmin.y < v[0].y ? curmin.y : v[0].y;
+		v[0].z = curmin.z < v[0].z ? curmin.z : v[0].z;
+		v[1].x = curmax.x > v[1].x ? curmax.x : v[1].x;
+		v[1].y = curmax.y > v[1].y ? curmax.y : v[1].y;
+		v[1].z = curmax.z > v[1].z ? curmax.z : v[1].z;
 		mesh_index++;
 	}
-	//float minimum = MIN(min.x, MIN(min.y, min.z));
-	//float maximum = MAX(max.x, MAX(max.y, max.z));
-	//float value = MAX(fabs(minimum), fabs(maximum));
-	float value = MAX(1.5, vec3_distance(min, max) / 2.f);
+	value = MAX(1.5, vec3_distance(v[0], v[1]) / 2.f);
 	return (new_frustum(-value, value, -value, value));
 }
 
@@ -262,19 +297,19 @@ void	shadow_render(t_engine *engine)
 			shader_set_uniform(engine, material->shader_index,
 				material->in_shadowtransform, &transform);
 			shader_set_texture(engine, material->shader_index,
-				material->in_texture_shadow, light->framebuffer.depth, GL_TEXTURE8);
+				material->in_texture_shadow, light->framebuffer.depth, GL_TEXTURE9);
 			if (material->data.alpha > 0.5f)
 			{
-				shader_use(engine, light->shader_index);
-				shader_set_texture(engine, light->shader_index,
-					shader_get_uniform_index(engine, light->shader_index, "in_Texture_Albedo"),
+				shader_use(engine, light->framebuffer.shader);
+				shader_set_texture(engine, light->framebuffer.shader,
+					shader_get_uniform_index(engine, light->framebuffer.shader, "in_Texture_Albedo"),
 					material->data.texture_albedo, GL_TEXTURE0);
 				int use_texture = material->data.texture_albedo == -1 ? 0 : 1;
-				shader_set_uniform(engine, light->shader_index,
-					shader_get_uniform_index(engine, light->shader_index, "in_Use_Texture_Albedo"),
+				shader_set_uniform(engine, light->framebuffer.shader,
+					shader_get_uniform_index(engine, light->framebuffer.shader, "in_Use_Texture_Albedo"),
 					&use_texture);
-				shader_set_uniform(engine, light->shader_index,
-					shader_get_uniform_index(engine, light->shader_index, "in_Transform"), &transform);
+				shader_set_uniform(engine, light->framebuffer.shader,
+					shader_get_uniform_index(engine, light->framebuffer.shader, "in_Transform"), &transform);
 				glBindVertexArray(vgroup->v_arrayid);
 				glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
 				glBindVertexArray(0);
@@ -285,16 +320,18 @@ void	shadow_render(t_engine *engine)
 	}
 }
 
-/*void	blur_texture(t_engine *engine, int texture, int pass)
+void	blur_texture(t_engine *engine, int texture, int pass, float radius)
 {
-	t_framebuffer	*blur = NULL;
-	int	i;
-	int	blur_shader;
+	static t_framebuffer	*blur = NULL;
+	float					angle;
+	VEC2					direction;
 
 	if (!blur)
 	{
 		blur = malloc(sizeof(t_framebuffer));
 		ft_memset(blur, -1, sizeof(t_framebuffer));
+		blur->shader = shader_get_by_name(engine, "blur");
+		blur->render_quad = create_display_quad();
 		blur->color0 = texture_create(engine, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
 		texture_set_parameters(engine, blur->color0, 4,
 			(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
@@ -303,15 +340,77 @@ void	shadow_render(t_engine *engine)
 		glBindFramebuffer(GL_FRAMEBUFFER, blur->id);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(engine, blur->color0), 0);
 		glDrawBuffers(1, (GLenum[1]){GL_COLOR_ATTACHMENT0});
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
-	blur_shader = shader_get_by_name(engine, "blur");
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	i = 0;
-	while (i < pass * 2)
+	glBindFramebuffer(GL_FRAMEBUFFER, blur->id);
+	glDisable(GL_DEPTH_TEST);
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	shader_use(engine, blur->shader);
+	glBindVertexArray(blur->render_quad);
+	angle = 0;
+	pass *= 4;
+	while (pass)
 	{
-		i++;
+		direction = vec2_scale(direction, radius);
+		shader_set_texture(engine, blur->shader,
+			shader_get_uniform_index(engine, blur->shader, "in_Texture_Color"),
+			texture, GL_TEXTURE0);
+		shader_set_uniform(engine, blur->shader,
+			shader_get_uniform_index(engine, blur->shader, "in_Direction"),
+			&direction);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		angle = CYCLE(angle + 90, 0, 270);
+		direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
+		int temp = texture;
+		texture = blur->color0;
+		blur->color0 = temp;
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+			texture_get_ogl_id(engine, blur->color0), 0);
+		pass--;
 	}
-}*/
+	shader_use(engine, -1);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+inline void	render_present(t_engine *engine)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
+	glViewport(0, 0, WIDTH, HEIGHT);
+	shader_use(engine, engine->window->render_buffer.shader);
+	shader_set_texture(engine, engine->window->render_buffer.shader,
+		shader_get_uniform_index(engine, engine->window->render_buffer.shader, "in_Texture_Color"),
+		engine->window->render_buffer.color0, GL_TEXTURE0);
+	shader_set_texture(engine, engine->window->render_buffer.shader,
+		shader_get_uniform_index(engine, engine->window->render_buffer.shader, "in_Texture_Bright"),
+		engine->window->render_buffer.color1, GL_TEXTURE1);
+	shader_set_texture(engine, engine->window->render_buffer.shader,
+		shader_get_uniform_index(engine, engine->window->render_buffer.shader, "in_Texture_Normal"),
+		engine->window->render_buffer.color2, GL_TEXTURE2);
+	shader_set_texture(engine, engine->window->render_buffer.shader,
+		shader_get_uniform_index(engine, engine->window->render_buffer.shader, "in_Texture_Position"),
+		engine->window->render_buffer.color3, GL_TEXTURE3);
+	shader_set_texture(engine, engine->window->render_buffer.shader,
+		shader_get_uniform_index(engine, engine->window->render_buffer.shader, "in_Texture_Depth"),
+		engine->window->render_buffer.depth, GL_TEXTURE4);
+	shader_set_texture(engine, engine->window->render_buffer.shader,
+		shader_get_uniform_index(engine, engine->window->render_buffer.shader, "in_Texture_Env"),
+		engine->env, GL_TEXTURE5);
+	t_camera *camera = ezarray_get_index(engine->cameras, 0);
+	MAT4 matrix = mat4_inverse(camera->view);
+	shader_set_uniform(engine, engine->window->render_buffer.shader,
+		shader_get_uniform_index(engine, engine->window->render_buffer.shader, "in_InvViewMatrix"),
+		&matrix);
+	matrix = mat4_inverse(camera->projection);
+	shader_set_uniform(engine, engine->window->render_buffer.shader,
+		shader_get_uniform_index(engine, engine->window->render_buffer.shader, "in_InvProjMatrix"),
+		&matrix);
+	glBindVertexArray(engine->window->render_buffer.render_quad);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+	glUseProgram(0);
+}
 
 int	main_loop(t_engine *engine)
 {
@@ -320,29 +419,6 @@ int	main_loop(t_engine *engine)
 	SDL_GL_SetSwapInterval(engine->swap_interval);
 	last_ticks = SDL_GetTicks() / 1000.f;
 	SDL_SetEventFilter(event_callback, engine);
-	GLuint bufferid, render_quadid;
-	glGenVertexArrays(1, &render_quadid);
-	glBindVertexArray(render_quadid);
-	glGenBuffers(1, &bufferid);
-	glBindBuffer(GL_ARRAY_BUFFER, bufferid);
-	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), engine->window->display_quad, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	t_framebuffer	blur;
-	ft_memset(&blur, -1, sizeof(t_framebuffer));
-	blur.color0 = texture_create(engine, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
-	texture_set_parameters(engine, blur.color0, 4,
-		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
-	glGenFramebuffers(1, &blur.id);
-	glBindFramebuffer(GL_FRAMEBUFFER, blur.id);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(engine, blur.color0), 0);
-	glDrawBuffers(1, (GLenum[1]){GL_COLOR_ATTACHMENT0});
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	int blur_shader = shader_get_by_name(engine, "blur");
 
 	while(engine->loop)
 	{
@@ -356,69 +432,9 @@ int	main_loop(t_engine *engine)
 		glBindFramebuffer(GL_FRAMEBUFFER, engine->window->render_buffer.id);
 		glViewport(0, 0, IWIDTH, IHEIGHT);
 		scene_render(engine, 0);
-		glDisable(GL_DEPTH_TEST);
-		
-
-		glBindFramebuffer(GL_FRAMEBUFFER, blur.id);
-		shader_use(engine, blur_shader);
-		glBindVertexArray(render_quadid);
-		VEC2	direction = new_vec2(1, 0);
-		for (int i = 0; i < BLOOM * 2; i++)
-		{
-			float	radius = 5.f;
-			shader_set_texture(engine, blur_shader,
-				shader_get_uniform_index(engine, blur_shader, "in_Texture_Color"),
-				engine->window->render_buffer.color1, GL_TEXTURE0);
-			shader_set_uniform(engine, blur_shader,
-				shader_get_uniform_index(engine, blur_shader, "in_Radius"),
-				&radius);
-			shader_set_uniform(engine, blur_shader,
-				shader_get_uniform_index(engine, blur_shader, "in_Direction"),
-				&direction);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-			direction.x = !direction.x;
-			direction.y = !direction.y;
-			int temp = engine->window->render_buffer.color1;
-			engine->window->render_buffer.color1 = blur.color0;
-			blur.color0 = temp;
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-				texture_get_ogl_id(engine, blur.color0), 0);
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, WIDTH, HEIGHT);
-		shader_use(engine, engine->window->render_shader);
-		shader_set_texture(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Color"),
-			engine->window->render_buffer.color0, GL_TEXTURE0);
-		shader_set_texture(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Bright"),
-			engine->window->render_buffer.color1, GL_TEXTURE1);
-		shader_set_texture(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Normal"),
-			engine->window->render_buffer.color2, GL_TEXTURE2);
-		shader_set_texture(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Position"),
-			engine->window->render_buffer.color3, GL_TEXTURE3);
-		shader_set_texture(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Depth"),
-			engine->window->render_buffer.depth, GL_TEXTURE4);
-		shader_set_texture(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Env"),
-			engine->env, GL_TEXTURE5);
-		t_camera *camera = ezarray_get_index(engine->cameras, 0);
-		MAT4 matrix = mat4_inverse(camera->view);
-		shader_set_uniform(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_InvViewMatrix"),
-			&matrix);
-		matrix = mat4_inverse(camera->projection);
-		shader_set_uniform(engine, engine->window->render_shader,
-			shader_get_uniform_index(engine, engine->window->render_shader, "in_InvProjMatrix"),
-			&matrix);
-		glBindVertexArray(render_quadid);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		glBindVertexArray(0);
-		glUseProgram(0);
+		blur_texture(engine, engine->window->render_buffer.color1, BLOOMPASS, 10);
+		blur_texture(engine, engine->window->render_buffer.color2, 1, 5);
+		render_present(engine);
 		SDL_GL_SwapWindow(engine->window->sdl_window);
 	}
 	return (0);
@@ -429,17 +445,12 @@ int	light_create(t_engine *engine, VEC3 position, VEC3 color, float power)
 	t_light l;
 
 	l.framebuffer = shadow_buffer_build(engine);
-	l.shader_index = shader_get_by_name(engine, "shadow");
 	l.data.directional.power = power;
 	l.data.directional.color = color;
 	l.transform_index = transform_create(engine, position, new_vec3(0, 0, 0), new_vec3(1, 1, 1));
 	ezarray_push(&engine->lights, &l);
 	return (engine->lights.length - 1);
 }
-
-const float			circular_weights[] = {
-	1.f, 4.f / 5.f, 3.f / 5.f, 2.f / 5.f, 1.f / 5.f
-};
 
 int main(int argc, char *argv[])
 {
@@ -451,6 +462,7 @@ int main(int argc, char *argv[])
 	window_init(e, "Scope", WIDTH, HEIGHT);
 	printf("%s\n", glGetString(GL_VERSION));
 	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	load_bmp(e, "./res/stupid.bmp");
 	load_shaders(e, "render", "/src/shaders/render.vert", "/src/shaders/render.frag");
 	load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag");
 	load_shaders(e, "shadow", "/src/shaders/shadow.vert", "/src/shaders/shadow.frag");
@@ -463,6 +475,7 @@ int main(int argc, char *argv[])
 	camera_set_target(e, camera, transform_create(e, new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera_orbite(e, camera, M_PI / 2.f, M_PI / 2.f, 5.f);
 	engine_set_key_callback(e, SDL_SCANCODE_UP, callback_camera);
+	engine_set_key_callback(e, SDL_SCANCODE_S, callback_stupidity);
 	engine_set_key_callback(e, SDL_SCANCODE_DOWN, callback_camera);
 	engine_set_key_callback(e, SDL_SCANCODE_LEFT, callback_camera);
 	engine_set_key_callback(e, SDL_SCANCODE_RIGHT, callback_camera);
