@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   scope.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/18 22:40:25 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/02/20 19:13:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,15 +31,16 @@
 # define ULL		unsigned long long
 # define ANISOTROPY	16.f
 # define MSAA		8
+# define BLOOM		7
 
 typedef struct	s_framebuffer
 {
 	GLuint		id;
-	int			texture_color;
-	int			texture_bright;
-	int			texture_normal;
-	int			texture_position;
-	int			texture_depth;
+	int			color0;
+	int			color1;
+	int			color2;
+	int			color3;
+	int			depth;
 }				t_framebuffer;
 
 typedef struct	s_point

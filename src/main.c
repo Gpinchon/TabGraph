@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/19 22:49:41 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/02/21 01:27:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,13 +34,13 @@ t_framebuffer	shadow_buffer_build(t_engine *engine)
 	t_framebuffer	f;
 	
 	ft_memset(&f, -1, sizeof(t_framebuffer));
-	f.texture_depth = texture_create(engine, new_vec2(SHADOWRES, SHADOWRES), GL_TEXTURE_2D, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT);
-	texture_set_parameters(engine, f.texture_depth, 6,
+	f.depth = texture_create(engine, new_vec2(SHADOWRES, SHADOWRES), GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT);
+	texture_set_parameters(engine, f.depth, 6,
 		(GLenum[6]){GL_TEXTURE_COMPARE_FUNC, GL_TEXTURE_COMPARE_MODE, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[6]){GL_LEQUAL, GL_COMPARE_REF_TO_TEXTURE, GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
 	glGenFramebuffers(1, &f.id);
 	glBindFramebuffer(GL_FRAMEBUFFER, f.id);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_get_ogl_id(engine, f.texture_depth), 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_get_ogl_id(engine, f.depth), 0);
 	glDrawBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return (f);
@@ -50,33 +50,33 @@ t_framebuffer	render_buffer_build(t_engine *e)
 {
 	t_framebuffer	f;
 
-	f.texture_color = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
-	texture_set_parameters(e, f.texture_color, 4, 
+	f.color0 = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
+	texture_set_parameters(e, f.color0, 4, 
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
-	f.texture_bright = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA32F_ARB, GL_RGBA);
-	texture_set_parameters(e, f.texture_bright, 4, 
+	f.color1 = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
+	texture_set_parameters(e, f.color1, 4, 
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
-	f.texture_position = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGB32F_ARB, GL_RGB);
-	texture_set_parameters(e, f.texture_position, 4,
+	f.color2 = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGB16F_ARB, GL_RGB);
+	texture_set_parameters(e, f.color2, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
-	f.texture_normal = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGB16F_ARB, GL_RGB);
-	texture_set_parameters(e, f.texture_normal, 4,
+	f.color3 = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGB32F_ARB, GL_RGB);
+	texture_set_parameters(e, f.color3, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
-	f.texture_depth = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
-	texture_set_parameters(e, f.texture_depth, 4,
+	f.depth = texture_create(e, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT);
+	texture_set_parameters(e, f.depth, 4,
 		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
 	glGenFramebuffers(1, &f.id);
 	glBindFramebuffer(GL_FRAMEBUFFER, f.id);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_color), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_bright), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_normal), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_position), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_get_ogl_id(e, f.texture_depth), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(e, f.color0), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, texture_get_ogl_id(e, f.color1), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, texture_get_ogl_id(e, f.color2), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, texture_get_ogl_id(e, f.color3), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_get_ogl_id(e, f.depth), 0);
 	glDrawBuffers(4, (GLenum[4]){GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3});
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return (f);
@@ -102,7 +102,7 @@ t_window		*window_init(t_engine *engine, const char *name, int width, int height
 		return (window = NULL);
 	}
 	window->display_quad = create_display_quad();
-	window->render_shader = load_shaders(engine, "render", "/src/shaders/render.vert", "/src/shaders/render.frag");
+	window->render_shader = shader_get_by_name(engine, "render");
 	window->render_buffer = render_buffer_build(engine);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -262,7 +262,7 @@ void	shadow_render(t_engine *engine)
 			shader_set_uniform(engine, material->shader_index,
 				material->in_shadowtransform, &transform);
 			shader_set_texture(engine, material->shader_index,
-				material->in_texture_shadow, light->framebuffer.texture_depth, GL_TEXTURE8);
+				material->in_texture_shadow, light->framebuffer.depth, GL_TEXTURE8);
 			if (material->data.alpha > 0.5f)
 			{
 				shader_use(engine, light->shader_index);
@@ -285,6 +285,34 @@ void	shadow_render(t_engine *engine)
 	}
 }
 
+/*void	blur_texture(t_engine *engine, int texture, int pass)
+{
+	t_framebuffer	*blur = NULL;
+	int	i;
+	int	blur_shader;
+
+	if (!blur)
+	{
+		blur = malloc(sizeof(t_framebuffer));
+		ft_memset(blur, -1, sizeof(t_framebuffer));
+		blur->color0 = texture_create(engine, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
+		texture_set_parameters(engine, blur->color0, 4,
+			(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
+			(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
+		glGenFramebuffers(1, &blur->id);
+		glBindFramebuffer(GL_FRAMEBUFFER, blur->id);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(engine, blur->color0), 0);
+		glDrawBuffers(1, (GLenum[1]){GL_COLOR_ATTACHMENT0});
+	}
+	blur_shader = shader_get_by_name(engine, "blur");
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	i = 0;
+	while (i < pass * 2)
+	{
+		i++;
+	}
+}*/
+
 int	main_loop(t_engine *engine)
 {
 	float ticks, last_ticks;
@@ -303,6 +331,18 @@ int	main_loop(t_engine *engine)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	t_framebuffer	blur;
+	ft_memset(&blur, -1, sizeof(t_framebuffer));
+	blur.color0 = texture_create(engine, new_vec2(IWIDTH, IHEIGHT), GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
+	texture_set_parameters(engine, blur.color0, 4,
+		(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
+		(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
+	glGenFramebuffers(1, &blur.id);
+	glBindFramebuffer(GL_FRAMEBUFFER, blur.id);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(engine, blur.color0), 0);
+	glDrawBuffers(1, (GLenum[1]){GL_COLOR_ATTACHMENT0});
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	int blur_shader = shader_get_by_name(engine, "blur");
 
 	while(engine->loop)
 	{
@@ -316,26 +356,53 @@ int	main_loop(t_engine *engine)
 		glBindFramebuffer(GL_FRAMEBUFFER, engine->window->render_buffer.id);
 		glViewport(0, 0, IWIDTH, IHEIGHT);
 		scene_render(engine, 0);
+		glDisable(GL_DEPTH_TEST);
+		
+
+		glBindFramebuffer(GL_FRAMEBUFFER, blur.id);
+		shader_use(engine, blur_shader);
+		glBindVertexArray(render_quadid);
+		VEC2	direction = new_vec2(1, 0);
+		for (int i = 0; i < BLOOM * 2; i++)
+		{
+			float	radius = 5.f;
+			shader_set_texture(engine, blur_shader,
+				shader_get_uniform_index(engine, blur_shader, "in_Texture_Color"),
+				engine->window->render_buffer.color1, GL_TEXTURE0);
+			shader_set_uniform(engine, blur_shader,
+				shader_get_uniform_index(engine, blur_shader, "in_Radius"),
+				&radius);
+			shader_set_uniform(engine, blur_shader,
+				shader_get_uniform_index(engine, blur_shader, "in_Direction"),
+				&direction);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			direction.x = !direction.x;
+			direction.y = !direction.y;
+			int temp = engine->window->render_buffer.color1;
+			engine->window->render_buffer.color1 = blur.color0;
+			blur.color0 = temp;
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+				texture_get_ogl_id(engine, blur.color0), 0);
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, WIDTH, HEIGHT);
 		shader_use(engine, engine->window->render_shader);
-		glDisable(GL_DEPTH_TEST);
-		//texture_generate_mipmap(engine, engine->window->render_buffer.texture_bright);
 		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Color"),
-			engine->window->render_buffer.texture_color, GL_TEXTURE0);
+			engine->window->render_buffer.color0, GL_TEXTURE0);
 		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Bright"),
-			engine->window->render_buffer.texture_bright, GL_TEXTURE1);
+			engine->window->render_buffer.color1, GL_TEXTURE1);
 		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Normal"),
-			engine->window->render_buffer.texture_normal, GL_TEXTURE2);
+			engine->window->render_buffer.color2, GL_TEXTURE2);
 		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Position"),
-			engine->window->render_buffer.texture_normal, GL_TEXTURE3);
+			engine->window->render_buffer.color3, GL_TEXTURE3);
 		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Depth"),
-			engine->window->render_buffer.texture_depth, GL_TEXTURE4);
+			engine->window->render_buffer.depth, GL_TEXTURE4);
 		shader_set_texture(engine, engine->window->render_shader,
 			shader_get_uniform_index(engine, engine->window->render_shader, "in_Texture_Env"),
 			engine->env, GL_TEXTURE5);
@@ -370,6 +437,10 @@ int	light_create(t_engine *engine, VEC3 position, VEC3 color, float power)
 	return (engine->lights.length - 1);
 }
 
+const float			circular_weights[] = {
+	1.f, 4.f / 5.f, 3.f / 5.f, 2.f / 5.f, 1.f / 5.f
+};
+
 int main(int argc, char *argv[])
 {
 	t_engine	*e;
@@ -380,8 +451,10 @@ int main(int argc, char *argv[])
 	window_init(e, "Scope", WIDTH, HEIGHT);
 	printf("%s\n", glGetString(GL_VERSION));
 	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	load_shaders(e, "render", "/src/shaders/render.vert", "/src/shaders/render.frag");
 	load_shaders(e, "default", "/src/shaders/default.vert", "/src/shaders/default.frag");
 	load_shaders(e, "shadow", "/src/shaders/shadow.vert", "/src/shaders/shadow.frag");
+	load_shaders(e, "blur", "/src/shaders/blur.vert", "/src/shaders/blur.frag");
 	engine_load_env(e);
 	light_create(e, new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
 	int obj = load_obj(e, argv[1]);
