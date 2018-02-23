@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/22 23:34:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/23 01:30:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,6 @@ typedef struct	s_framebuffer
 {
 	GLuint		id;
 	ARRAY		color_attachements;
-	int			color0;
-	int			color1;
-	int			color2;
-	int			color3;
 	int			depth;
 	int			shader;
 	VEC2		size;

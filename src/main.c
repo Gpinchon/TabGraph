@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/22 23:16:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/23 01:42:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,7 +225,6 @@ void	shadow_render()
 	framebuffer_bind(light->render_buffer);
 	glClearDepthf(1);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, SHADOWRES, SHADOWRES);
 	glEnable(GL_DEPTH_TEST);
 	while ((mesh = ezarray_get_index(engine_get()->meshes, mesh_index)))
 	{
@@ -264,54 +263,42 @@ void	shadow_render()
 
 void	blur_texture(int texture, int pass, float radius)
 {
-	static t_framebuffer	*blur = NULL;
+	static int				blur = -1;
 	float					angle;
 	VEC2					direction;
 
-	if (!blur)
-	{
-		blur = malloc(sizeof(t_framebuffer));
-		ft_memset(blur, -1, sizeof(t_framebuffer));
-		blur->shader = shader_get_by_name("blur");
-		blur->size = new_vec2(IWIDTH, IHEIGHT);
-		blur->color0 = texture_create(blur->size, GL_TEXTURE_2D, GL_RGBA16F_ARB, GL_RGBA);
-		texture_set_parameters(blur->color0, 4,
-			(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-			(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
-		glGenFramebuffers(1, &blur->id);
-		glBindFramebuffer(GL_FRAMEBUFFER, blur->id);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_get_ogl_id(blur->color0), 0);
-		glDrawBuffers(1, (GLenum[1]){GL_COLOR_ATTACHMENT0});
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, blur->id);
-	glViewport(0, 0, blur->size.x, blur->size.y);
+	if (blur == -1)
+		blur = framebuffer_create(new_vec2(IWIDTH, IHEIGHT), shader_get_by_name("blur"), 1, 0);
+	framebuffer_bind(blur);
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
-	shader_use(blur->shader);
+	shader_use(framebuffer_get_shader(blur));
 	glBindVertexArray(display_quad_get());
 	angle = 0;
 	pass *= 4;
+	int	color0 = framebuffer_get_attachement(blur, 0);
 	while (pass)
 	{
 		direction = vec2_scale(direction, radius);
-		shader_set_texture(blur->shader,
-			shader_get_uniform_index(blur->shader, "in_Texture_Color"),
+		shader_set_texture(framebuffer_get_shader(blur),
+			shader_get_uniform_index(framebuffer_get_shader(blur), "in_Texture_Color"),
 			texture, GL_TEXTURE0);
-		shader_set_uniform(blur->shader,
-			shader_get_uniform_index(blur->shader, "in_Direction"),
+		shader_set_uniform(framebuffer_get_shader(blur),
+			shader_get_uniform_index(framebuffer_get_shader(blur), "in_Direction"),
 			&direction);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		angle = CYCLE(angle + 90, 0, 270);
 		direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
 		int temp = texture;
-		texture = blur->color0;
-		blur->color0 = temp;
+		texture = color0;
+		color0 = temp;
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-			texture_get_ogl_id(blur->color0), 0);
+			texture_get_ogl_id(color0), 0);
 		pass--;
 	}
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+			texture_get_ogl_id(framebuffer_get_attachement(blur, 0)), 0);
 	shader_use(-1);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -373,7 +360,6 @@ int	main_loop()
 		glClear(engine_get()->window->clear_mask);
 		shadow_render();
 		framebuffer_bind(engine_get()->window->render_buffer);
-		glViewport(0, 0, IWIDTH, IHEIGHT);
 		scene_render(0);
 		blur_texture(framebuffer_get_attachement(engine_get()->window->render_buffer, 1), BLOOMPASS, 10);
 		blur_texture(framebuffer_get_attachement(engine_get()->window->render_buffer, 2), 1, 5);

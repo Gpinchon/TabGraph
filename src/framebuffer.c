@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/22 23:04:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/23 01:34:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ void			framebuffer_bind(int framebuffer)
 	if (!buffer)
 		return ;
 	glBindFramebuffer(GL_FRAMEBUFFER, buffer->id);
+	glViewport(0, 0, buffer->size.x, buffer->size.y);
 }
 
 int				framebuffer_get_attachement(int framebuffer, int color_attachement)
