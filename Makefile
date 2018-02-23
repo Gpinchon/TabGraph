@@ -6,12 +6,13 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/02/21 21:20:19 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/02/22 21:58:46 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scope
 SRC			=	./src/main.c			\
+				./src/framebuffer.c		\
 				./src/engine.c			\
 				./src/camera.c			\
 				./src/shader.c			\

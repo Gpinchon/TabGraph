@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:47:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/21 22:06:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/22 22:08:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,12 +26,12 @@ static GLuint	vbuffer_load(GLuint attrib, int size, ARRAY array)
 	return (lbufferid);
 }
 
-void	vgroup_load(t_engine *engine, int mesh_index, int vgroup_index)
+void	vgroup_load(int mesh_index, int vgroup_index)
 {
 	t_mesh		*mesh;
 	t_vgroup	*vgroup;
 
-	if (!(mesh = ezarray_get_index(engine->meshes, mesh_index)))
+	if (!(mesh = ezarray_get_index(engine_get()->meshes, mesh_index)))
 		return;
 	if (!(vgroup = ezarray_get_index(mesh->vgroups, vgroup_index)))
 		return;
@@ -51,53 +51,53 @@ void	vgroup_load(t_engine *engine, int mesh_index, int vgroup_index)
 	glBindVertexArray(0);
 }
 
-void	vgroup_render(t_engine *engine, int camera_index, int mesh_index, int vgroup_index)
+void	vgroup_render(int camera_index, int mesh_index, int vgroup_index)
 {
 	t_mesh		*mesh;
 	t_vgroup	*vgroup;
 	t_material	*material;
 	t_camera	*camera;
 
-	mesh = ezarray_get_index(engine->meshes, mesh_index);
+	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
 	vgroup = ezarray_get_index(mesh->vgroups, vgroup_index);
-	camera = ezarray_get_index(engine->cameras, camera_index);
+	camera = ezarray_get_index(engine_get()->cameras, camera_index);
 	if (!mesh || !vgroup || !camera)
 		return;
-	material = ezarray_get_index(engine->materials, vgroup->mtl_index);
+	material = ezarray_get_index(engine_get()->materials, vgroup->mtl_index);
 	if (!material)
 		return;
-	material_load_textures(engine, vgroup->mtl_index);
-	t_transform *t = ezarray_get_index(engine->transforms, mesh->transform_index);
+	material_load_textures(vgroup->mtl_index);
+	t_transform *t = ezarray_get_index(engine_get()->transforms, mesh->transform_index);
 
 	MAT4 transform;
 	transform = mat4_combine(camera->projection, camera->view, t->transform);
 	MAT4	normal_matrix = mat4_transpose(mat4_inverse(t->transform));
-	shader_use(engine, material->shader_index);
+	shader_use(material->shader_index);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	material_set_uniforms(engine, vgroup->mtl_index);
-	shader_set_uniform(engine, material->shader_index, material->in_campos, &camera->position);
-	shader_set_uniform(engine, material->shader_index, material->in_modelmatrix, &t->transform);
-	shader_set_uniform(engine, material->shader_index, material->in_normalmatrix, &normal_matrix);
-	shader_set_uniform(engine, material->shader_index, material->in_transform, &transform);
-	shader_set_uniform(engine, material->shader_index, material->in_uvmin, &vgroup->uvmin);
-	shader_set_uniform(engine, material->shader_index, material->in_uvmax, &vgroup->uvmax);
+	material_set_uniforms(vgroup->mtl_index);
+	shader_set_uniform(material->shader_index, material->in_campos, &camera->position);
+	shader_set_uniform(material->shader_index, material->in_modelmatrix, &t->transform);
+	shader_set_uniform(material->shader_index, material->in_normalmatrix, &normal_matrix);
+	shader_set_uniform(material->shader_index, material->in_transform, &transform);
+	shader_set_uniform(material->shader_index, material->in_uvmin, &vgroup->uvmin);
+	shader_set_uniform(material->shader_index, material->in_uvmax, &vgroup->uvmax);
 	glBindVertexArray(vgroup->v_arrayid);
 	glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
 
-void	vgroup_center(t_engine *engine, int mesh_index, int vgroup_index)
+void	vgroup_center(int mesh_index, int vgroup_index)
 {
 	t_mesh		*mesh;
 	t_vgroup	*vgroup;
 	VEC3		*v;
 	unsigned	v_index;
 
-	mesh = ezarray_get_index(engine->meshes, mesh_index);
+	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
 	vgroup = ezarray_get_index(mesh->vgroups, vgroup_index);
 	if (!vgroup)
 		return;

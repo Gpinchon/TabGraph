@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/15 10:45:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/22 22:08:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@ typedef struct		s_obj_parser
 {
 	char			**path_split;
 	int				fd;
-	t_engine		*e;
 	t_mesh			mesh;
 	ARRAY			v;
 	ARRAY			vn;
@@ -220,18 +219,24 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 			in_vt = ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1);
 			if (in_vt)
 				vt[i] = *in_vt;
-			vn[i] = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[2]) - 1));
+			VEC3 *normal = ezarray_get_index(p->vn, ft_atoi(fsplit[2]) - 1);
+			if (normal)
+				vn[i] = *normal;
 		}
 		else if (tablen == 2 && slash == 2)
-			vn[i] = *((VEC3*)ezarray_get_index(p->vn, ft_atoi(fsplit[1]) - 1));
+		{
+			VEC3 *normal = ezarray_get_index(p->vn, ft_atoi(fsplit[1]) - 1);
+			if (normal)
+				vn[i] = *normal;
+		}
 		else if (tablen == 2 && slash == 1)
 		{
 			in_vt = ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1);
 			if (in_vt)
 				vt[i] = *in_vt;
 		}
-		else
-			vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
+		//else
+		//	vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
 		ft_free_chartab(fsplit);
 		i++;
 	}
@@ -316,17 +321,17 @@ int	get_mtllib(t_obj_parser *p)
 	STRING	s;
 
 	i = 0;
-	if (material_get_index_by_name(p->e, "default") == -1)
+	if (material_get_index_by_name("default") == -1)
 	{
 		mtl = new_material("default");
-		ezarray_push(&p->e->materials, &mtl);
-		material_assign_shader(p->e, p->e->materials.length - 1, shader_get_by_name(p->e, "default"));
+		ezarray_push(&engine_get()->materials, &mtl);
+		material_assign_shader(engine_get()->materials.length - 1, shader_get_by_name("default"));
 	}
 	while (i < p->mtl_pathes.length)
 	{
 		s = *((STRING *)ezarray_get_index(p->mtl_pathes, i));
 		char *path = ft_strjoin(p->path_split[0], s.tostring);
-		load_mtllib(p->e, path);
+		load_mtllib(path);
 		free(path);
 		destroy_ezstring(&s);
 		i++;
@@ -336,7 +341,7 @@ int	get_mtllib(t_obj_parser *p)
 	return (0);
 }
 
-void	assign_materials(t_engine *e, t_mesh m)
+void	assign_materials(t_mesh m)
 {
 	t_vgroup	*vg;
 	unsigned	i;
@@ -345,19 +350,18 @@ void	assign_materials(t_engine *e, t_mesh m)
 	while (i < m.vgroups.length)
 	{
 		vg = (t_vgroup*)ezarray_get_index(m.vgroups, i);
-		vg->mtl_index = material_get_index_by_id(e, vg->mtl_id);
+		vg->mtl_index = material_get_index_by_id(vg->mtl_id);
 		i++;
 	}
 }
 
-int	load_obj(t_engine *engine, char *path)
+int	load_obj(char *path)
 {
 	t_obj_parser	p;
 
 	ft_memset(&p, 0, sizeof(t_obj_parser));
 	p.bbox.min = new_vec3(1000, 1000, 1000);
 	p.bbox.max = new_vec3(-1000, -1000, -1000);
-	p.e = engine;
 	p.path_split = split_path(path);
 	p.mtl_pathes = new_ezarray(other, 0, sizeof(STRING));
 	if (start_obj_parsing(&p, path))
@@ -366,9 +370,9 @@ int	load_obj(t_engine *engine, char *path)
 	if (!p.mesh.vgroups.length && p.vg.v.length)
 		ezarray_push(&p.mesh.vgroups, &p.vg);
 	p.mesh.bounding_box = p.bbox;
-	p.mesh.transform_index = transform_create(engine, new_vec3(0, 0, 0),
+	p.mesh.transform_index = transform_create(new_vec3(0, 0, 0),
 		new_vec3(0, 0, 0), new_vec3(1, 1, 1));
-	assign_materials(engine, p.mesh);
-	ezarray_push(&engine->meshes, &p.mesh);
-	return (engine->meshes.length - 1);
+	assign_materials(p.mesh);
+	ezarray_push(&engine_get()->meshes, &p.mesh);
+	return (engine_get()->meshes.length - 1);
 }

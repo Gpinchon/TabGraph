@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/21 22:49:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/22 22:08:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@ typedef struct		s_mtl_parser
 {
 	char			**path_split;
 	int				fd;
-	t_engine		*e;
 }					t_mtl_parser;
 
 void	parse_color(t_mtl_parser *p, char **split, t_material *mtl)
@@ -35,18 +34,18 @@ void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
 
 	path = ft_strjoin(p->path_split[0], split[1]);
 	if (ft_strstr(split[0], "map_Kd"))
-		mtl->data.texture_albedo = load_bmp(p->e, path);
+		mtl->data.texture_albedo = load_bmp(path);
 	else if (ft_strstr(split[0], "map_Ke"))
-		mtl->data.texture_emitting = load_bmp(p->e, path);
+		mtl->data.texture_emitting = load_bmp(path);
 	else if (ft_strstr(split[0], "map_Nh"))
-		mtl->data.texture_height = load_bmp(p->e, path);
+		mtl->data.texture_height = load_bmp(path);
 	else if (ft_strstr(split[0], "map_Nr"))
-		mtl->data.texture_roughness = load_bmp(p->e, path);
+		mtl->data.texture_roughness = load_bmp(path);
 	else if (ft_strstr(split[0], "map_Nm"))
-		mtl->data.texture_metallic = load_bmp(p->e, path);
+		mtl->data.texture_metallic = load_bmp(path);
 	else if (ft_strstr(split[0], "map_bump")
 		|| ft_strstr(split[0], "map_Bump"))
-		mtl->data.texture_normal = load_bmp(p->e, path);
+		mtl->data.texture_normal = load_bmp(path);
 	free(path);
 }
 
@@ -73,10 +72,10 @@ void	parse_mtl(t_mtl_parser *p, char **split)
 	char		*line;
 	char		**msplit;
 
-	if (material_get_index_by_name(p->e, split[0]) != -1)
+	if (material_get_index_by_name(split[0]) != -1)
 		return ;
 	mtl = new_material(split[0]);
-	mtl.data.texture_stupid = texture_get_by_name(p->e, "./res/stupid.bmp");
+	mtl.data.texture_stupid = texture_get_by_name("./res/stupid.bmp");
 	while (get_next_line(p->fd, &line) == 1)
 	{
 		msplit = ft_strsplitwspace((const char *)line);
@@ -94,8 +93,8 @@ void	parse_mtl(t_mtl_parser *p, char **split)
 		ft_free_chartab(msplit);
 		free(line);
 	}
-	ezarray_push(&p->e->materials, &mtl);
-	material_assign_shader(p->e, p->e->materials.length - 1, shader_get_by_name(p->e, "default"));
+	ezarray_push(&engine_get()->materials, &mtl);
+	material_assign_shader(engine_get()->materials.length - 1, shader_get_by_name("default"));
 }
 
 int	start_mtllib_parsing(t_mtl_parser *p, char *path)
@@ -123,13 +122,12 @@ int	start_mtllib_parsing(t_mtl_parser *p, char *path)
 	return (0);
 }
 
-int	load_mtllib(t_engine *engine, char *path)
+int	load_mtllib(char *path)
 {
 	t_mtl_parser	p;
 
 	ft_memset(&p, 0, sizeof(t_mtl_parser));
-	p.e = engine;
 	if (start_mtllib_parsing(&p, path))
 		return (-1);
-	return (engine->materials.length);
+	return (engine_get()->materials.length);
 }

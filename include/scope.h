@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/21 22:42:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/22 23:34:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 # define HEIGHT		720
 # define IWIDTH		1920
 # define IHEIGHT	1080
-# define SHADOWRES	4096
+# define SHADOWRES	2048
 # define UP			(VEC3){0, 1, 0}
 # define ULL		unsigned long long
 # define ANISOTROPY	16.f
@@ -36,13 +36,14 @@
 typedef struct	s_framebuffer
 {
 	GLuint		id;
+	ARRAY		color_attachements;
 	int			color0;
 	int			color1;
 	int			color2;
 	int			color3;
 	int			depth;
 	int			shader;
-	GLuint		render_quad;
+	VEC2		size;
 }				t_framebuffer;
 
 typedef struct	s_point
@@ -74,7 +75,7 @@ typedef struct	s_light
 	int8_t			type;
 	int8_t			cast_shadow;
 	t_light_data	data;
-	t_framebuffer	framebuffer;
+	int				render_buffer;
 }				t_light;
 
 typedef struct	s_mtl
@@ -213,12 +214,10 @@ typedef struct	s_window
 	SDL_GLContext	gl_context;
 	VEC4			clear_color;
 	GLbitfield		clear_mask;
-	//float			*display_quad;
-	t_framebuffer	render_buffer;	
+	int				render_buffer;
 }				t_window;
 
-struct s_engine;
-typedef void(*kcallback)(struct s_engine *engine, SDL_Event *event);
+typedef void(*kcallback)(SDL_Event *event);
 
 typedef struct	s_engine
 {
@@ -233,74 +232,76 @@ typedef struct	s_engine
 	ARRAY		shaders;
 	ARRAY		textures;
 	ARRAY		textures_env;
+	ARRAY		framebuffers;
 	int			env;
 	int			env_spec;
 	float		delta_time;
 	float		stupidity;
 	float		new_stupidity;
 	kcallback	kcallbacks[285];
+	char		*program_path;
 }				t_engine;
 
-char	*g_program_path;
+//extern t_engine	*engine_get();
 
 /*
 ** Engine functions
 */
 
-t_engine	*engine_init();
-void		engine_load_env(t_engine *e);
-void		engine_set_key_callback(t_engine *engine, SDL_Scancode keycode, kcallback callback);
+t_engine	*engine_get();
+void		engine_load_env();
+void		engine_set_key_callback(SDL_Scancode keycode, kcallback callback);
 
 /*
 ** Camera functions
 */
-int			camera_get_target_index(t_engine *engine, int camera_index);
-int			camera_create(t_engine *engine, float fov);
-void		camera_set_target(t_engine *engine, int camera_index, int transform_index);
-void		camera_set_position(t_engine *engine, int camera_index, VEC3 position);
-void		camera_orbite(t_engine *engine, int camera_index, float phi, float theta, float radius);
-void		camera_update(t_engine *engine, int camera_index);
+int			camera_get_target_index(int camera_index);
+int			camera_create(float fov);
+void		camera_set_target(int camera_index, int transform_index);
+void		camera_set_position(int camera_index, VEC3 position);
+void		camera_orbite(int camera_index, float phi, float theta, float radius);
+void		camera_update(int camera_index);
 
 /*
 ** Material functions
 */
 t_material	new_material(char *name);
-int		material_get_index_by_name(t_engine *engine, char *name);
-int		material_get_index_by_id(t_engine *engine, ULL h);
-void	material_assign_shader(t_engine *engine, int material_index, int shader_index);
-void	material_set_textures(t_engine *engine, int material_index);
-void	material_set_uniforms(t_engine *engine, int material_index);
-void	material_load_textures(t_engine *engine, int material_index);
+int			material_get_index_by_name(char *name);
+int			material_get_index_by_id(ULL h);
+void		material_assign_shader(int material_index, int shader_index);
+void		material_set_textures(int material_index);
+void		material_set_uniforms(int material_index);
+void		material_load_textures(int material_index);
 
 /*
 ** Mesh functions
 */
-void	mesh_rotate(t_engine *engine, int mesh_index, VEC3 rotation);
-void	mesh_scale(t_engine *engine, int mesh_index, VEC3 scale);
-void	mesh_translate(t_engine *engine, int mesh_index, VEC3 position);
-void	mesh_load(t_engine *engine, int mesh_index);
-void	mesh_center(t_engine *engine, int mesh_index);
-void	mesh_render(t_engine *engine, int camera_index, int mesh_index);
+void		mesh_rotate(int mesh_index, VEC3 rotation);
+void		mesh_scale(int mesh_index, VEC3 scale);
+void		mesh_translate(int mesh_index, VEC3 position);
+void		mesh_load(int mesh_index);
+void		mesh_center(int mesh_index);
+void		mesh_render(int camera_index, int mesh_index);
 
 /*
 ** Vgroup functions
 */
 
-void	vgroup_load(t_engine *engine, int mesh_index, int vgroup_index);
-void	vgroup_render(t_engine *engine, int camera_index, int mesh_index, int vgroup_index);
-void	vgroup_center(t_engine *engine, int mesh_index, int vgroup_index);
+void		vgroup_load(int mesh_index, int vgroup_index);
+void		vgroup_render(int camera_index, int mesh_index, int vgroup_index);
+void		vgroup_center(int mesh_index, int vgroup_index);
 
 /*
 ** Texture functions
 */
 
-GLuint		texture_get_ogl_id(t_engine *engine, int texture_index);
-int			texture_get_by_name(t_engine *engine, char *name);
-int			texture_create(t_engine *engine, VEC2 size, GLenum target, GLenum internal_format, GLenum format);
-void		texture_set_parameters(t_engine *engine, int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values);
-void		texture_assign(t_engine *engine, int texture_index, int dest_texture_index, GLenum target);
-void		texture_load(t_engine *engine, int texture_index);
-void		texture_generate_mipmap(t_engine *engine, int texture_index);
+GLuint		texture_get_ogl_id(int texture_index);
+int			texture_get_by_name(char *name);
+int			texture_create(VEC2 size, GLenum target, GLenum internal_format, GLenum format);
+void		texture_set_parameters(int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values);
+void		texture_assign(int texture_index, int dest_texture_index, GLenum target);
+void		texture_load(int texture_index);
+void		texture_generate_mipmap(int texture_index);
 
 /*
 ** Parser tools
@@ -313,32 +314,42 @@ char		*convert_backslash(char *str);
 /*
 ** .mtllib parser
 */
-int		load_mtllib(t_engine *engine, char *path);
+int			load_mtllib(char *path);
 
 /*
 ** .obj parser
 */
 
-int		load_obj(t_engine *engine, char *path);
-VEC3	parse_vec3(char **split);
-VEC2	parse_vec2(char **split);
+int			load_obj(char *path);
+VEC3		parse_vec3(char **split);
+VEC2		parse_vec2(char **split);
 
 /*
 ** .bmp parser
 */
 
-int			load_bmp(t_engine *e, const char *imagepath);
+int			load_bmp(const char *imagepath);
 
 /*
 ** Shader functions
 */
 
-void	shader_set_texture(t_engine *engine, int shader_index, int uniform_index, int texture_index, GLenum texture_unit);
-void	shader_set_uniform(t_engine *engine, int shader_index, int uniform_index, void *value);
-void	shader_use(t_engine *engine, int shader_index);
-int		shader_get_uniform_index(t_engine *engine, int shader_index, char *name);
-int		shader_get_by_name(t_engine *engine, char *name);
-int		load_shaders(t_engine *engine, const char *name, const char *vertex_file_path,const char *fragment_file_path);
-int		transform_create(t_engine *e, VEC3 position, VEC3 rotation, VEC3 scale);
+void		shader_set_texture(int shader_index, int uniform_index, int texture_index, GLenum texture_unit);
+void		shader_set_uniform(int shader_index, int uniform_index, void *value);
+void		shader_use(int shader_index);
+int			shader_get_uniform_index(int shader_index, char *name);
+int			shader_get_by_name(char *name);
+int			load_shaders(const char *name, const char *vertex_file_path,const char *fragment_file_path);
+int			transform_create(VEC3 position, VEC3 rotation, VEC3 scale);
+
+/*
+** Framebuffer functions
+*/
+
+void			framebuffer_bind(int framebuffer);
+int				framebuffer_get_attachement(int framebuffer, int color_attachement);
+int				framebuffer_get_depth(int framebuffer);
+int				framebuffer_get_shader(int framebuffer);
+int				framebuffer_create(VEC2 size, int shader, int color_attachements, int depth);
 
 #endif

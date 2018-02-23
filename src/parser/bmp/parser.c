@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/13 19:41:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/22 22:08:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ void			convert_bmp(t_bmp_parser *bmp_parser, t_bmp_info *bmp_info)
 
 #include <fcntl.h>
 
-int			load_bmp(t_engine *e, const char *imagepath)
+int			load_bmp(const char *imagepath)
 {
 	t_bmp_parser	parser;
 	t_bmp_info		bmp_info;
@@ -106,6 +106,6 @@ int			load_bmp(t_engine *e, const char *imagepath)
 	texture.height = bmp_info.height;
 	texture.bpp = bmp_info.bpp;
 	texture.data = parser.data;
-	ezarray_push(&e->textures, &texture);
-	return (e->textures.length - 1);
+	ezarray_push(&engine_get()->textures, &texture);
+	return (engine_get()->textures.length - 1);
 }

@@ -6,17 +6,17 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/21 21:53:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/22 22:08:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
 
-void	shader_use(t_engine *engine, int shader_index)
+void	shader_use(int shader_index)
 {
 	t_shader	*shader;
 
-	shader = ezarray_get_index(engine->shaders, shader_index);
+	shader = ezarray_get_index(engine_get()->shaders, shader_index);
 	if (!shader)
 	{
 		glUseProgram(0);
@@ -25,7 +25,7 @@ void	shader_use(t_engine *engine, int shader_index)
 	glUseProgram(shader->program);
 }
 
-int		shader_get_by_name(t_engine *engine, char *name)
+int		shader_get_by_name(char *name)
 {
 	int			i;
 	ULL			h;
@@ -33,7 +33,7 @@ int		shader_get_by_name(t_engine *engine, char *name)
 
 	i = 0;
 	h = hash((unsigned char*)name);
-	while ((s = ezarray_get_index(engine->shaders, i)))
+	while ((s = ezarray_get_index(engine_get()->shaders, i)))
 	{
 		if (h == s->id)
 			return (i);
@@ -42,13 +42,13 @@ int		shader_get_by_name(t_engine *engine, char *name)
 	return (0);
 }
 
-void	shader_set_uniform(t_engine *engine, int shader_index, int uniform_index, void *value)
+void	shader_set_uniform(int shader_index, int uniform_index, void *value)
 {
 	t_shadervariable	*variable;
 	t_shader			*shader;
 
-	shader_use(engine, shader_index);
-	shader = ezarray_get_index(engine->shaders, shader_index);
+	shader_use(shader_index);
+	shader = ezarray_get_index(engine_get()->shaders, shader_index);
 	if (!shader)
 		return ;
 	variable = ezarray_get_index(shader->uniforms, uniform_index);
@@ -68,13 +68,13 @@ void	shader_set_uniform(t_engine *engine, int shader_index, int uniform_index, v
 		glUniform1f(variable->loc, *((float*)value));
 }
 
-int		shader_get_uniform_index(t_engine *engine, int shader_index, char *name)
+int		shader_get_uniform_index(int shader_index, char *name)
 {
 	t_shader			*shader;
 	unsigned			i;
 	ULL					h;
 
-	shader = ezarray_get_index(engine->shaders, shader_index);
+	shader = ezarray_get_index(engine_get()->shaders, shader_index);
 	if (!shader)
 		return (-1);
 	i = 0;
@@ -88,15 +88,15 @@ int		shader_get_uniform_index(t_engine *engine, int shader_index, char *name)
 	return (-1);
 }
 
-void	shader_set_texture(t_engine *engine, int shader_index, int uniform_index, int texture_index, GLenum texture_unit)
+void	shader_set_texture(int shader_index, int uniform_index, int texture_index, GLenum texture_unit)
 {
 	t_texture *texture;
 
-	texture = ezarray_get_index(engine->textures, texture_index);
+	texture = ezarray_get_index(engine_get()->textures, texture_index);
 	if (!texture)
 		return;
 	glActiveTexture(texture_unit);
 	glBindTexture(texture->target, texture->id_ogl);
 	texture_unit -= GL_TEXTURE0;
-	shader_set_uniform(engine, shader_index, uniform_index, &texture_unit);
+	shader_set_uniform(shader_index, uniform_index, &texture_unit);
 }

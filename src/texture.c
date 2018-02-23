@@ -6,23 +6,23 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/21 22:11:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/22 22:08:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
 
-GLuint	texture_get_ogl_id(t_engine *engine, int texture_index)
+GLuint	texture_get_ogl_id(int texture_index)
 {
 	t_texture	*texture;
 
-	texture = ezarray_get_index(engine->textures, texture_index);
+	texture = ezarray_get_index(engine_get()->textures, texture_index);
 	if (!texture)
 		return (0);
 	return (texture->id_ogl);
 }
 
-int		texture_get_by_name(t_engine *engine, char *name)
+int		texture_get_by_name(char *name)
 {
 	int			i;
 	ULL			h;
@@ -30,7 +30,7 @@ int		texture_get_by_name(t_engine *engine, char *name)
 
 	i = 0;
 	h = hash((unsigned char*)name);
-	while ((t = ezarray_get_index(engine->textures, i)))
+	while ((t = ezarray_get_index(engine_get()->textures, i)))
 	{
 		if (h == t->id)
 			return (i);
@@ -39,11 +39,11 @@ int		texture_get_by_name(t_engine *engine, char *name)
 	return (-1);
 }
 
-void	texture_set_parameters(t_engine *engine, int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values)
+void	texture_set_parameters(int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values)
 {
 	t_texture *texture;
 
-	texture = ezarray_get_index(engine->textures, texture_index);
+	texture = ezarray_get_index(engine_get()->textures, texture_index);
 	if (!texture)
 		return;
 	glBindTexture(texture->target, texture->id_ogl);
@@ -55,7 +55,7 @@ void	texture_set_parameters(t_engine *engine, int texture_index, int parameter_n
 	glBindTexture(texture->target, 0);
 }
 
-int		texture_create(t_engine *engine, VEC2 size, GLenum target, GLenum internal_format, GLenum format)
+int		texture_create(VEC2 size, GLenum target, GLenum internal_format, GLenum format)
 {
 	t_texture	texture;
 
@@ -69,19 +69,19 @@ int		texture_create(t_engine *engine, VEC2 size, GLenum target, GLenum internal_
 		glTexParameteri(texture.target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	glTexParameterf(texture.target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 	glBindTexture(texture.target, 0);
-	ezarray_push(&engine->textures, &texture);
-	return (engine->textures.length - 1);
+	ezarray_push(&engine_get()->textures, &texture);
+	return (engine_get()->textures.length - 1);
 }
 
-void	texture_assign(t_engine *engine, int texture_index, int dest_texture_index, GLenum target)
+void	texture_assign(int texture_index, int dest_texture_index, GLenum target)
 {
 	t_texture	*texture;
 	t_texture	*dest_texture;
 	GLenum format;
 	GLenum internal_format;
 	
-	texture = ezarray_get_index(engine->textures, texture_index);
-	dest_texture = ezarray_get_index(engine->textures, dest_texture_index);
+	texture = ezarray_get_index(engine_get()->textures, texture_index);
+	dest_texture = ezarray_get_index(engine_get()->textures, dest_texture_index);
 	if (!texture || !dest_texture)
 		return ;
 	format = GL_BGR;
@@ -104,13 +104,13 @@ void	texture_assign(t_engine *engine, int texture_index, int dest_texture_index,
 	return ;
 }
 
-void	texture_load(t_engine *engine, int texture_index)
+void	texture_load(int texture_index)
 {
 	t_texture	*texture;
 	GLenum		format;
 	GLenum		internal_format;
 
-	texture = ezarray_get_index(engine->textures, texture_index);
+	texture = ezarray_get_index(engine_get()->textures, texture_index);
 	if (!texture || texture->loaded)
 		return ;
 	format = GL_BGR;
@@ -139,14 +139,14 @@ void	texture_load(t_engine *engine, int texture_index)
 	return ;
 }
 
-void	texture_generate_mipmap(t_engine *engine, int texture_index)
+void	texture_generate_mipmap(int texture_index)
 {
 	t_texture *texture;
 
-	texture = ezarray_get_index(engine->textures, texture_index);
+	texture = ezarray_get_index(engine_get()->textures, texture_index);
 	if (!texture)
 		return;
-	texture_set_parameters(engine, texture_index, 1,
+	texture_set_parameters(texture_index, 1,
 		(GLenum[1]){GL_TEXTURE_MIN_FILTER},
 		(GLenum[1]){GL_LINEAR_MIPMAP_LINEAR});
 	glBindTexture(texture->target, texture->id_ogl);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/18 16:03:26 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/02/22 22:08:12 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ GLuint	compile_shader(const char *path, GLenum type)
 	int		fd;
 	char	*buf;
 
-	buf = ft_strjoin(g_program_path, path);
+	buf = ft_strjoin(engine_get()->program_path, path);
 	if (access(buf, F_OK | W_OK)
 	|| (fd = open(buf, O_RDONLY)) <= 0)
 	{
@@ -122,7 +122,7 @@ void		get_shader_loc(t_shader *shader)
 	shader->attributes = attributes;
 }
 
-int	load_shaders(t_engine *engine, const char *name, const char *vertex_file_path,const char *fragment_file_path)
+int	load_shaders(const char *name, const char *vertex_file_path,const char *fragment_file_path)
 {	
 	GLuint		vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
 	GLuint		fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
@@ -144,6 +144,6 @@ int	load_shaders(t_engine *engine, const char *name, const char *vertex_file_pat
 	glDetachShader(shader.program, fragmentid);
 	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
-	ezarray_push(&engine->shaders, &shader);
-	return (engine->shaders.length - 1);
+	ezarray_push(&engine_get()->shaders, &shader);
+	return (engine_get()->shaders.length - 1);
 }

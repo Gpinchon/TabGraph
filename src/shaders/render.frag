@@ -17,38 +17,8 @@ uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
 	0.033619, 0.072215, 0.124675, 0.173006, 0.192969, 0.173006, 0.124675, 0.072215, 0.033619
 );
 
-uniform float		circular_weights[] = float[5](
-	1.f, 4.f / 5.f, 3.f / 5.f, 2.f / 5.f, 1.f / 5.f
-);
-
-vec3	kernel[KERNEL_SIZE];
-
-highp float rand(vec2 co)
-{
-    highp float a = 12.9898;
-    highp float b = 78.233;
-    highp float c = 43758.5453;
-    highp float dt= dot(co.xy ,vec2(a,b));
-    highp float sn= mod(dt,3.14);
-    return fract(sin(sn) * c);
-}
-
-void	fill_kernel()
-{
-	for (int i = 0; i < KERNEL_SIZE; ++i) {
-		kernel[i] = vec3(
-		rand(vec2(-1, 1)),
-		rand(vec2(-1, 1)),
-		rand(vec2(0, 1))
-		);
-		kernel[i] = normalize(kernel[i]);
-		kernel[i] *= rand(vec2(0, 1));
-	}
-}
-
 void main()
 {
-	fill_kernel();
 	vec4	color = texture(in_Texture_Color, frag_UV);
 	vec3	normal = texture(in_Texture_Normal, frag_UV).xyz;
 	vec3	position = texture(in_Texture_Position, frag_UV).xyz;

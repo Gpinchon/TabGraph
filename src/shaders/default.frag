@@ -88,7 +88,7 @@ float Oren_Nayar_Diffuse(in float LdV, in float NdL, in float NdV, in float roug
 
 vec3 Fresnel_F0(in float ior, in float metallic, in vec3 albedo)
 {
-	vec3	F0 = vec3(abs((ior - 1) / (ior + 1)));
+	vec3	F0 = vec3((ior - 1) / (ior + 1));
 	F0 = mix(F0 * F0, albedo, metallic);
 	return (F0);
 }
@@ -151,7 +151,7 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 }
 
 uniform vec3	L = normalize(vec3(-1, 1, 0));
-vec3	light_Color = mix(vec3(0.5, 0.5, 0.5), textureLod(in_Texture_Env, -L, 10).rgb, 0.5);
+vec3	light_Color = mix(vec3(1), textureLod(in_Texture_Env, -L, 10).rgb, 0.5);
 
 void main()
 {
