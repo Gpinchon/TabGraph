@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/23 01:42:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/26 00:19:31 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,6 +309,7 @@ static void	render_present()
 	glDisable(GL_DEPTH_TEST);
 	glViewport(0, 0, WIDTH, HEIGHT);
 	int	shader = framebuffer_get_shader(engine_get()->window->render_buffer);
+	//texture_generate_mipmap(framebuffer_get_attachement(engine_get()->window->render_buffer, 0));
 	shader_use(shader);
 	shader_set_texture(shader,
 		shader_get_uniform_index(shader, "in_Texture_Color"),
@@ -374,6 +375,9 @@ int	light_create(VEC3 position, VEC3 color, float power)
 	t_light l;
 
 	l.render_buffer = framebuffer_create(new_vec2(SHADOWRES, SHADOWRES), shader_get_by_name("shadow"), 0, 1);
+	texture_set_parameters(framebuffer_get_depth(l.render_buffer), 6,
+		(GLenum[6]){GL_TEXTURE_COMPARE_FUNC, GL_TEXTURE_COMPARE_MODE, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
+		(GLenum[6]){GL_LEQUAL, GL_COMPARE_REF_TO_TEXTURE, GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
 	l.data.directional.power = power;
 	l.data.directional.color = color;
 	l.transform_index = transform_create(position, new_vec3(0, 0, 0), new_vec3(1, 1, 1));

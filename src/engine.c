@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   engine.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/22 22:52:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/23 22:56:00 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ inline t_engine	*engine_get()
 	engine->framebuffers = new_ezarray(other, 0, sizeof(t_framebuffer));
 	engine->loop = 1;
 	engine->swap_interval = 1;
-	engine->program_path = convert_backslash(getcwd(NULL, 2048));
+	engine->program_path = convert_backslash(getcwd(NULL, 4096));
 	return (engine);
 }
 

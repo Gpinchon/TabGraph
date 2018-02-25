@@ -89,7 +89,7 @@ float Oren_Nayar_Diffuse(in float LdV, in float NdL, in float NdV, in float roug
 vec3 Fresnel_F0(in float ior, in float metallic, in vec3 albedo)
 {
 	vec3	F0 = vec3((ior - 1) / (ior + 1));
-	F0 = mix(F0 * F0, albedo, metallic);
+	F0 = mix(F0 * F0, albedo * (F0 * F0), metallic);
 	return (F0);
 }
 
@@ -97,6 +97,11 @@ vec3 Fresnel_Schlick(in float HdV, in vec3 F0)
 {
 	float denom = pow(max(0, 1 - HdV), 5);
 	return (F0 + (1-F0) * denom);
+}
+
+vec3	Fresnel_Schlick_Roughness(in float factor, in vec3 F0, in float roughness)
+{
+	return (F0 + (max(vec3(1 - roughness), F0) - F0) * pow(1 - factor, 5));
 }
 
 vec2 Parallax_Mapping(in vec3 tbnV, in vec2 T, out float parallaxHeight)
@@ -208,23 +213,25 @@ void main()
 	float	HdV = max(0, dot(H, V));
 	float	LdV = max(0, dot(L, V));
 
+	//vec3	F0 = Fresnel_F0(in_Refraction, metallic, albedo);
 	vec3	F0 = Fresnel_F0(in_Refraction, metallic, albedo);
-	vec3	fresnel = Fresnel_Schlick(1 - NdH, F0);
+	vec3	fresnel = Fresnel_Schlick_Roughness(1 - NdH, F0, roughness);
 	vec3	specular = (light_Color * light_Power) * fresnel * Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness);
 	vec3	diffuse = (light_Color * light_Power) * albedo * Oren_Nayar_Diffuse(LdV, NdL, NdV, roughness);
 
 	vec3	refl = reflect(V, worldNormal);
-	fresnel = Fresnel_Schlick(NdV, F0);
+	fresnel = Fresnel_Schlick_Roughness(NdV, F0, roughness);
 	vec3	env_diffuse = textureLod(in_Texture_Env, -worldNormal, 10).rgb * albedo;
 	vec3	env_diffuse_brightness = textureLod(in_Texture_Env_Spec, -worldNormal, 10).rgb * albedo;
 	vec3	env_reflection = textureLod(in_Texture_Env, refl, roughness * 11.f).rgb * fresnel;
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 11.f).rgb * fresnel;
 
 	vec3	env_color = env_diffuse + env_reflection;
-	env_color /= 1 + albedo;
+	//env_color /= 1 + albedo;
 	vec3	env_brightness = env_diffuse_brightness + env_specular;
 
 	out_Color = vec4(emitting + env_color + env_brightness + specular + diffuse, alpha);
+	//out_Color = vec4(fresnel, alpha);
 	out_Color = mix(out_Color, stupid, in_Stupidity);
 	out_Bright = vec4(max(vec3(0), out_Color.rgb - 0.9) + emitting, alpha);
 	out_Normal = vec4(worldNormal, 1);
