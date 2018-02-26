@@ -89,7 +89,7 @@ float Oren_Nayar_Diffuse(in float LdV, in float NdL, in float NdV, in float roug
 vec3 Fresnel_F0(in float ior, in float metallic, in vec3 albedo)
 {
 	vec3	F0 = vec3((ior - 1) / (ior + 1));
-	F0 = mix(F0 * F0, albedo * (F0 * F0), metallic);
+	F0 = mix(F0 * F0, albedo * F0, metallic);
 	return (F0);
 }
 

@@ -20,7 +20,7 @@ uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
 void main()
 {
 	//float	centerDepth = texture(in_Texture_Depth, vec2(0.5, 0.5)).r;
-	vec3	normal = texture(in_Texture_Normal, frag_UV).xyz;
+	vec3	normal = normalize(texture(in_Texture_Normal, frag_UV).xyz);
 	vec3	position = texture(in_Texture_Position, frag_UV).xyz;
 	float	depth = texture(in_Texture_Depth, frag_UV).r;
 	vec4	color = texture(in_Texture_Color, frag_UV);

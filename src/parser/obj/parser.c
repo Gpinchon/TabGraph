@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/22 22:08:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/02/26 12:20:54 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,6 +324,7 @@ int	get_mtllib(t_obj_parser *p)
 	if (material_get_index_by_name("default") == -1)
 	{
 		mtl = new_material("default");
+		mtl.data.texture_stupid = texture_get_by_name("./res/stupid.bmp");
 		ezarray_push(&engine_get()->materials, &mtl);
 		material_assign_shader(engine_get()->materials.length - 1, shader_get_by_name("default"));
 	}
