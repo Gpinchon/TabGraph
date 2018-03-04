@@ -6,7 +6,7 @@
 /*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/26 00:19:31 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/03/02 12:20:33 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ FRUSTUM	full_scene_frustum()
 		v[1].z = curmax.z > v[1].z ? curmax.z : v[1].z;
 		mesh_index++;
 	}
-	value = MAX(1.5, vec3_distance(v[0], v[1]) / 2.f);
+	value = MAX(1.5, vec3_distance(v[0], v[1]));
 	return (new_frustum(-value, value, -value, value));
 }
 

@@ -199,11 +199,11 @@ void main()
 	if (alpha <= 0.05f)
 		discard;
 	if (in_Use_Texture_Roughness)
-		roughness = texture(in_Texture_Roughness, vt).x;
+		roughness = texture(in_Texture_Roughness, vt).r;
 	if (in_Use_Texture_Metallic)
-		metallic = texture(in_Texture_Metallic, vt).x;
+		metallic = texture(in_Texture_Metallic, vt).r;
 	if (in_Use_Texture_Emitting)
-		emitting = texture(in_Texture_Emitting, vt).xyz;
+		emitting = texture(in_Texture_Emitting, vt).rgb;
 	vec3	V = normalize(in_CamPos - worldPosition);
 	vec3	H = normalize(L + V);
 	float	light_Power = texture(in_Texture_Shadow, vec3(shadowPosition.xy, shadowPosition.z * 0.995));
@@ -213,7 +213,6 @@ void main()
 	float	HdV = max(0, dot(H, V));
 	float	LdV = max(0, dot(L, V));
 
-	//vec3	F0 = Fresnel_F0(in_Refraction, metallic, albedo);
 	vec3	F0 = Fresnel_F0(in_Refraction, metallic, albedo);
 	vec3	fresnel = Fresnel_Schlick_Roughness(1 - NdH, F0, roughness);
 	vec3	specular = (light_Color * light_Power) * fresnel * Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness);
@@ -227,13 +226,12 @@ void main()
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 11.f).rgb * fresnel;
 
 	vec3	env_color = env_diffuse + env_reflection;
-	//env_color /= 1 + albedo;
 	vec3	env_brightness = env_diffuse_brightness + env_specular;
 
 	out_Color = vec4(emitting + env_color + env_brightness + specular + diffuse, alpha);
 	//out_Color = vec4(fresnel, alpha);
 	out_Color = mix(out_Color, stupid, in_Stupidity);
-	out_Bright = vec4(max(vec3(0), out_Color.rgb - 0.9) + emitting, alpha);
+	out_Bright = vec4(max(vec3(0), out_Color.rgb - 1) + emitting, alpha);
 	out_Normal = vec4(worldNormal, 1);
 	out_Position = vec4(worldPosition, 1);
 }
