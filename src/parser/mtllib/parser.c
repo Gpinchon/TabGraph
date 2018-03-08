@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/26 11:57:18 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/03/08 01:51:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,82 +19,95 @@ typedef struct		s_mtl_parser
 	int				fd;
 }					t_mtl_parser;
 
-void	parse_color(t_mtl_parser *p, char **split, t_material *mtl)
+void	parse_color(t_mtl_parser *p, char **split, int mtl)
 {
 	if (split[0][1] == 'd')
-		mtl->data.albedo = parse_vec3(&split[1]);
-	if (split[0][1] == 'e')
-		mtl->data.emitting = parse_vec3(&split[1]);
+		material_set_albedo(mtl, parse_vec3(&split[1]));
+	else if (split[0][1] == 's')
+		material_set_specular(mtl, parse_vec3(&split[1]));
+	else if (split[0][1] == 'e')
+		material_set_emitting(mtl, parse_vec3(&split[1]));
 	(void)p;
 }
 
-void	parse_texture(t_mtl_parser *p, char **split, t_material *mtl)
+void	parse_texture(t_mtl_parser *p, char **split, int mtl)
 {
 	char *path;
 
 	path = ft_strjoin(p->path_split[0], split[1]);
 	if (ft_strstr(split[0], "map_Kd"))
-		mtl->data.texture_albedo = load_bmp(path);
+		material_set_texture_albedo(mtl, load_bmp(path));
+	else if (ft_strstr(split[0], "map_Ks"))
+		material_set_texture_specular(mtl, load_bmp(path));
 	else if (ft_strstr(split[0], "map_Ke"))
-		mtl->data.texture_emitting = load_bmp(path);
+	{
+		printf("%s\n", path);
+		material_set_texture_emitting(mtl, load_bmp(path));
+		printf("%i\n", material_get_texture_emitting(mtl));
+	}
 	else if (ft_strstr(split[0], "map_Nh"))
-		mtl->data.texture_height = load_bmp(path);
+		material_set_texture_height(mtl, load_bmp(path));
+	else if (ft_strstr(split[0], "map_No"))
+		material_set_texture_ao(mtl, load_bmp(path));
 	else if (ft_strstr(split[0], "map_Nr"))
-		mtl->data.texture_roughness = load_bmp(path);
+		material_set_texture_roughness(mtl, load_bmp(path));
 	else if (ft_strstr(split[0], "map_Nm"))
-		mtl->data.texture_metallic = load_bmp(path);
+		material_set_texture_metallic(mtl, load_bmp(path));
 	else if (ft_strstr(split[0], "map_bump")
 		|| ft_strstr(split[0], "map_Bump"))
-		mtl->data.texture_normal = load_bmp(path);
+		material_set_texture_normal(mtl, load_bmp(path));
 	free(path);
 }
 
-void	parse_number(t_mtl_parser *p, char **split, t_material *mtl)
+void	parse_number(t_mtl_parser *p, char **split, int mtl)
 {
 	if (ft_strstr(split[0], "Np"))
-		mtl->data.parallax = atof(split[1]);
+		material_set_parallax(mtl, atof(split[1]));
 	else if (ft_strstr(split[0], "Ns"))
-		mtl->data.roughness = CLAMP(1.f / (1.f + atof(split[1])) * 50.f, 0, 1);
+		material_set_roughness(mtl, CLAMP(1.f / (1.f + atof(split[1])) * 50.f, 0, 1));
 	else if (ft_strstr(split[0], "Nr"))
-		mtl->data.roughness = atof(split[1]);
+		material_set_roughness(mtl, atof(split[1]));
 	else if (ft_strstr(split[0], "Nm"))
-		mtl->data.metallic = atof(split[1]);
+		material_set_metallic(mtl, atof(split[1]));
 	else if (ft_strstr(split[0], "Ni"))
-		mtl->data.refraction = atof(split[1]);
+	{
+		float ior = atof(split[1]);
+		ior = (ior - 1) / (ior + 1);
+		ior *= ior;
+		material_set_specular(mtl, new_vec3(ior, ior, ior));
+	}
 	else if (ft_strstr(split[0], "Tr"))
-		mtl->data.alpha = 1 - atof(split[1]);
+		material_set_alpha(mtl, 1 - atof(split[1]));
 	(void)p;
 }
 
 void	parse_mtl(t_mtl_parser *p, char **split)
 {
-	t_material	mtl;
+	int			mtl;
 	char		*line;
 	char		**msplit;
 
 	if (material_get_index_by_name(split[0]) != -1)
 		return ;
-	mtl = new_material(split[0]);
-	mtl.data.texture_stupid = texture_get_by_name("./res/stupid.bmp");
+	mtl = material_create(split[0]);
 	while (get_next_line(p->fd, &line) == 1)
 	{
 		msplit = ft_strsplitwspace((const char *)line);
 		if (msplit[0] && msplit[0][0] != '#')
 		{
 			if (msplit[0][0] == 'K')
-				parse_color(p, msplit, &mtl);
+				parse_color(p, msplit, mtl);
 			else if (msplit[0][0] == 'N' || msplit[0][0] == 'T')
-				parse_number(p, msplit, &mtl);
+				parse_number(p, msplit, mtl);
 			else if (ft_strstr(msplit[0], "map_"))
-				parse_texture(p, msplit, &mtl);
+				parse_texture(p, msplit, mtl);
 			else if (!ft_strcmp(msplit[0], "newmtl"))
 				parse_mtl(p, &msplit[1]);
 		}
 		ft_free_chartab(msplit);
 		free(line);
 	}
-	ezarray_push(&engine_get()->materials, &mtl);
-	material_assign_shader(engine_get()->materials.length - 1, shader_get_by_name("default"));
+	//material_assign_shader(engine_get()->materials.length - 1, shader_get_by_name("default"));
 }
 
 int	start_mtllib_parsing(t_mtl_parser *p, char *path)

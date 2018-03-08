@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/22 22:08:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/08 01:46:05 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,13 +88,25 @@ int		shader_get_uniform_index(int shader_index, char *name)
 	return (-1);
 }
 
-void	shader_set_texture(int shader_index, int uniform_index, int texture_index, GLenum texture_unit)
+void	shader_unbind_texture(int shader_index, GLenum texture_unit)
+{
+	shader_use(shader_index);
+	glActiveTexture(texture_unit);
+	glDisable (GL_TEXTURE_2D);
+	glDisable (GL_TEXTURE_CUBE_MAP);
+}
+
+void	shader_bind_texture(int shader_index, int uniform_index, int texture_index, GLenum texture_unit)
 {
 	t_texture *texture;
 
 	texture = ezarray_get_index(engine_get()->textures, texture_index);
 	if (!texture)
+	{
+		shader_unbind_texture(shader_index, texture_unit);
 		return;
+	}
+	shader_use(shader_index);
 	glActiveTexture(texture_unit);
 	glBindTexture(texture->target, texture->id_ogl);
 	texture_unit -= GL_TEXTURE0;

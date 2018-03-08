@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/26 12:20:54 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/03/06 23:56:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -317,17 +317,9 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 int	get_mtllib(t_obj_parser *p)
 {
 	unsigned int i;
-	t_material		mtl;
 	STRING	s;
 
 	i = 0;
-	if (material_get_index_by_name("default") == -1)
-	{
-		mtl = new_material("default");
-		mtl.data.texture_stupid = texture_get_by_name("./res/stupid.bmp");
-		ezarray_push(&engine_get()->materials, &mtl);
-		material_assign_shader(engine_get()->materials.length - 1, shader_get_by_name("default"));
-	}
 	while (i < p->mtl_pathes.length)
 	{
 		s = *((STRING *)ezarray_get_index(p->mtl_pathes, i));
@@ -339,6 +331,8 @@ int	get_mtllib(t_obj_parser *p)
 	}
 	ft_free_chartab(p->path_split);
 	destroy_ezarray(&p->mtl_pathes);
+	if (material_get_index_by_name("default") == -1)
+		material_create("default");
 	return (0);
 }
 

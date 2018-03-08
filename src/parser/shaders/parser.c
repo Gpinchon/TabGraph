@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/22 22:08:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/06 23:56:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,12 +95,12 @@ void		get_shader_loc(t_shader *shader)
 	GLsizei	length;
 	char	*name;
 
-	name = malloc(sizeof(char) * 4096);
+	name = ft_memalloc(sizeof(char) * 4096);
 	glGetProgramiv(shader->program, GL_ACTIVE_ATTRIBUTES, &ivcount);
 	attributes = new_ezarray(other, 0, sizeof(t_shadervariable));
 	while (--ivcount >= 0)
 	{
-		name = ft_memset(name, sizeof(char) * 4096, 0);
+		name = ft_memset(name, 0, sizeof(char) * 4096);
 		glGetActiveAttrib(shader->program, (GLuint)ivcount, 4096, &length, &v.size, &v.type, name);
 		v.name = new_ezstring(name);
 		v.id = hash((unsigned char *)name);
@@ -111,7 +111,7 @@ void		get_shader_loc(t_shader *shader)
 	uniforms = new_ezarray(other, 0, sizeof(t_shadervariable));
 	while (--ivcount >= 0)
 	{
-		name = ft_memset(name, sizeof(char) * 4096, 0);
+		name = ft_memset(name, 0, sizeof(char) * 4096);
 		glGetActiveUniform(shader->program, (GLuint)ivcount, 4096, &length, &v.size, &v.type, name);
 		v.name = new_ezstring(name);
 		v.id = hash((unsigned char *)name);
@@ -135,7 +135,7 @@ int	load_shaders(const char *name, const char *vertex_file_path,const char *frag
 	}
 	if (check_shader(vertexid) || check_shader(fragmentid))
 		return (-1);
-	ft_memset(&shader, sizeof(t_shader), 0);
+	ft_memset(&shader, 0, sizeof(t_shader));
 	shader.program = link_shaders(vertexid, fragmentid);
 	shader.name = new_ezstring(name);
 	shader.id = hash((unsigned char *)name);

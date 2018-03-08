@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/23 01:30:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/08 01:44:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,22 +77,67 @@ typedef struct	s_light
 typedef struct	s_mtl
 {
 	VEC3		albedo;
+	VEC3		specular;
 	VEC3		emitting;
 	VEC2		uv_scale;
 	float		roughness;
 	float		metallic;
-	float		refraction;
 	float		alpha;
 	float		parallax;
 	float		stupidity;
 	int			texture_albedo;
+	int			texture_specular;
 	int			texture_roughness;
 	int			texture_metallic;
 	int			texture_emitting;
 	int			texture_normal;
 	int			texture_height;
+	int			texture_ao;
 	int			texture_stupid;
 }				t_mtl;
+
+typedef struct	s_material
+{
+	ULL			id;
+	STRING		name;
+	t_mtl		data;
+	int			shader_index;
+	int			in_campos;
+	int			in_transform;
+	int			in_modelmatrix;
+	int			in_normalmatrix;
+	int			in_albedo;
+	int			in_emitting;
+	int			in_uvmin;
+	int			in_uvmax;
+	int			in_roughness;
+	int			in_metallic;
+	int			in_specular;
+	int			in_alpha;
+	int			in_parallax;
+	int			in_stupidity;
+	int			in_texture_albedo;
+	int			in_use_texture_albedo;
+	int			in_texture_specular;
+	int			in_use_texture_specular;
+	int			in_texture_roughness;
+	int			in_use_texture_roughness;
+	int			in_texture_metallic;
+	int			in_use_texture_metallic;
+	int			in_texture_emitting;
+	int			in_use_texture_emitting;
+	int			in_texture_normal;
+	int			in_use_texture_normal;
+	int			in_texture_height;
+	int			in_use_texture_height;
+	int			in_texture_ao;
+	int			in_use_texture_ao;
+	int			in_texture_env;
+	int			in_texture_env_spec;
+	int			in_texture_stupid;
+	int			in_texture_shadow;
+	int			in_shadowtransform;
+}				t_material;
 
 typedef struct	s_texture
 {
@@ -124,46 +169,6 @@ typedef struct	s_shader
 	ARRAY		uniforms;
 	ARRAY		attributes;
 }				t_shader;
-
-typedef struct	s_material
-{
-	ULL			id;
-	STRING		name;
-	t_mtl		data;
-	int			shader_index;
-	int			in_campos;
-	int			in_transform;
-	int			in_modelmatrix;
-	int			in_normalmatrix;
-	int			in_albedo;
-	int			in_emitting;
-	int			in_uvmin;
-	int			in_uvmax;
-	int			in_roughness;
-	int			in_metallic;
-	int			in_refraction;
-	int			in_alpha;
-	int			in_parallax;
-	int			in_stupidity;
-	int			in_use_texture_albedo_alpha;
-	int			in_texture_albedo;
-	int			in_use_texture_albedo;
-	int			in_texture_roughness;
-	int			in_use_texture_roughness;
-	int			in_texture_metallic;
-	int			in_use_texture_metallic;
-	int			in_texture_emitting;
-	int			in_use_texture_emitting;
-	int			in_texture_normal;
-	int			in_use_texture_normal;
-	int			in_texture_height;
-	int			in_use_texture_height;
-	int			in_texture_env;
-	int			in_texture_env_spec;
-	int			in_texture_stupid;
-	int			in_texture_shadow;
-	int			in_shadowtransform;
-}				t_material;
 
 typedef struct	s_vgroup
 {
@@ -219,7 +224,6 @@ typedef struct	s_engine
 {
 	int8_t		loop;
 	int8_t		swap_interval;
-	t_window	*window;
 	ARRAY		cameras;
 	ARRAY		meshes;
 	ARRAY		lights;
@@ -238,7 +242,7 @@ typedef struct	s_engine
 	char		*program_path;
 }				t_engine;
 
-//extern t_engine	*engine_get();
+//extern t_engine	*g_engine;
 
 /*
 ** Engine functions
@@ -261,13 +265,48 @@ void		camera_update(int camera_index);
 /*
 ** Material functions
 */
-t_material	new_material(char *name);
+int			material_create(char *name);
 int			material_get_index_by_name(char *name);
 int			material_get_index_by_id(ULL h);
 void		material_assign_shader(int material_index, int shader_index);
-void		material_set_textures(int material_index);
+void		material_bind_textures(int material_index);
 void		material_set_uniforms(int material_index);
 void		material_load_textures(int material_index);
+void		material_set_albedo(int material_index, VEC3 value);
+void		material_set_specular(int material_index, VEC3 value);
+void		material_set_emitting(int material_index, VEC3 value);
+void		material_set_uv_scale(int material_index, VEC2 value);
+void		material_set_roughness(int material_index, float value);
+void		material_set_metallic(int material_index, float value);
+void		material_set_alpha(int material_index, float value);
+void		material_set_parallax(int material_index, float value);
+void		material_set_stupidity(int material_index, float value);
+void		material_set_texture_albedo(int material_index, int value);
+void		material_set_texture_specular(int material_index, int value);
+void		material_set_texture_roughness(int material_index, int value);
+void		material_set_texture_metallic(int material_index, int value);
+void		material_set_texture_emitting(int material_index, int value);
+void		material_set_texture_normal(int material_index, int value);
+void		material_set_texture_height(int material_index, int value);
+void		material_set_texture_ao(int material_index, int value);
+void		material_set_texture_stupid(int material_index, int value);
+VEC3		material_get_albedo(int material_index);
+VEC3		material_get_specular(int material_index);
+VEC3		material_get_emitting(int material_index);
+VEC2		material_get_uv_scale(int material_index);
+float		material_get_roughness(int material_index);
+float		material_get_metallic(int material_index);
+float		material_get_alpha(int material_index);
+float		material_get_parallax(int material_index);
+float		material_get_stupidity(int material_index);
+int			material_get_texture_albedo(int material_index);
+int			material_get_texture_roughness(int material_index);
+int			material_get_texture_metallic(int material_index);
+int			material_get_texture_emitting(int material_index);
+int			material_get_texture_normal(int material_index);
+int			material_get_texture_height(int material_index);
+int			material_get_texture_ao(int material_index);
+int			material_get_texture_stupid(int material_index);
 
 /*
 ** Mesh functions
@@ -330,7 +369,8 @@ int			load_bmp(const char *imagepath);
 ** Shader functions
 */
 
-void		shader_set_texture(int shader_index, int uniform_index, int texture_index, GLenum texture_unit);
+void		shader_bind_texture(int shader_index, int uniform_index, int texture_index, GLenum texture_unit);
+void		shader_unbind_texture(int shader_index, GLenum texture_unit);
 void		shader_set_uniform(int shader_index, int uniform_index, void *value);
 void		shader_use(int shader_index);
 int			shader_get_uniform_index(int shader_index, char *name);

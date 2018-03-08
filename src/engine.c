@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   engine.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/27 15:02:28 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/03/07 10:41:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
 #include <dirent.h>
 
+//t_engine *g_engine = NULL;
 
 /*
 ** engine is a singleton
@@ -23,7 +24,7 @@ inline t_engine	*engine_get()
 
 	if (engine || !(engine = ft_memalloc(sizeof(t_engine))))
 		return (engine);
-	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_Init(SDL_INIT_VIDEO);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -84,8 +85,8 @@ void engine_load_env()
 		texture_generate_mipmap(engine_get()->env_spec);
 		ezarray_push(&engine_get()->textures_env, &engine_get()->env);
 		ezarray_push(&engine_get()->textures_env, &engine_get()->env_spec);
-    }
-    engine_get()->env = *((int*)ezarray_get_index(engine_get()->textures_env, 0));
+	}
+	engine_get()->env = *((int*)ezarray_get_index(engine_get()->textures_env, 0));
 	engine_get()->env_spec = *((int*)ezarray_get_index(engine_get()->textures_env, 1));
 }
 

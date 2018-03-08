@@ -19,11 +19,12 @@ uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
 
 void main()
 {
-	//float	centerDepth = texture(in_Texture_Depth, vec2(0.5, 0.5)).r;
+	float	centerDepth = texture(in_Texture_Depth, vec2(0.5, 0.5)).r;
 	vec3	normal = normalize(texture(in_Texture_Normal, frag_UV).xyz);
 	vec3	position = texture(in_Texture_Position, frag_UV).xyz;
 	float	depth = texture(in_Texture_Depth, frag_UV).r;
-	vec4	color = texture(in_Texture_Color, frag_UV);
+	float	dof = min(5, 50.f * abs(centerDepth - depth));
+	vec4	color = textureLod(in_Texture_Color, frag_UV, dof);
 	float	sampledist = 5;
 	vec3	finalColor = vec3(0);
 	float	occlusion = 0.f;
@@ -47,7 +48,7 @@ void main()
 		}
 	}
 	finalColor = texture(in_Texture_Bright, frag_UV).rgb + color.rgb * color.a * (1 - occlusion);
-	out_Color = texture(in_Texture_Env, frag_Cube_UV) * max(0, 1 - color.a);
+	out_Color = textureLod(in_Texture_Env, frag_Cube_UV, dof) * max(0, 1 - color.a);
 	out_Color += vec4(finalColor, 1);
 	//out_Color = vec4(vec3(depth), 1);
 }
