@@ -21,17 +21,24 @@
 # include <vml.h>
 # include <libft.h>
 # include <stdio.h>
+# include <fcntl.h>
 
 # define WIDTH		1280
 # define HEIGHT		720
-# define IWIDTH		1920
-# define IHEIGHT	1080
+# define IWIDTH		WIDTH
+# define IHEIGHT	HEIGHT
 # define SHADOWRES	2048
 # define UP			(VEC3){0, 1, 0}
 # define ULL		unsigned long long
 # define ANISOTROPY	16.f
 # define MSAA		8
 # define BLOOMPASS	2
+# define MAXTEXRES	1024
+# ifndef O_BINARY
+#  define O_BINARY 0x0004
+# endif //O_BINARY
+# define MIN(x, y) (x < y ? x : y)
+# define MAX(x, y) (x > y ? x : y)
 
 typedef struct	s_framebuffer
 {

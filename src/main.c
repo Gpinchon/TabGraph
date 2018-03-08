@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/08 01:34:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/08 16:50:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,9 +187,6 @@ int		event_refresh()
 	return (0);
 }
 
-#define MIN(x, y) (x < y ? x : y)
-#define MAX(x, y) (x > y ? x : y)
-
 FRUSTUM	full_scene_frustum()
 {
 	t_mesh		*mesh;
@@ -214,14 +211,14 @@ FRUSTUM	full_scene_frustum()
 		v[1].z = curmax.z > v[1].z ? curmax.z : v[1].z;
 		mesh_index++;
 	}
-	value = MAX(1.5, vec3_distance(v[0], v[1]));
+	value = MAX(1.5, vec3_distance(v[0], v[1]) / 2.f);
 	return (new_frustum(-value, value, -value, value));
 }
 
 void	shadow_render()
 {
-	FRUSTUM frustum = full_scene_frustum(engine_get());
-	MAT4	projection = mat4_orthographic(frustum, frustum.x, frustum.y);
+	FRUSTUM frustum = full_scene_frustum();
+	MAT4	projection = mat4_orthographic(frustum, frustum.x * 2.f, frustum.y * 2.f);
 	MAT4	view = mat4_lookat(new_vec3(-1, 1, 0), new_vec3(0, 0, 0), UP);
 	MAT4	transform;
 	t_mesh	*mesh;
@@ -267,7 +264,7 @@ void	shadow_render()
 	}
 }
 
-void	blur_texture(int texture, int pass, float radius)
+static inline void	blur_texture(int texture, int pass, float radius)
 {
 	static int				blur = -1;
 	float					angle;
@@ -293,14 +290,14 @@ void	blur_texture(int texture, int pass, float radius)
 		shader_set_uniform(framebuffer_get_shader(blur),
 			shader_get_uniform_index(framebuffer_get_shader(blur), "in_Direction"),
 			&direction);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+			texture_get_ogl_id(color0), 0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		angle = CYCLE(angle + 90, 0, 270);
 		direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
 		int temp = texture;
 		texture = color0;
 		color0 = temp;
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-			texture_get_ogl_id(color0), 0);
 		pass--;
 	}
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
@@ -381,9 +378,9 @@ int	light_create(VEC3 position, VEC3 color, float power)
 	t_light l;
 
 	l.render_buffer = framebuffer_create(new_vec2(SHADOWRES, SHADOWRES), shader_get_by_name("shadow"), 0, 1);
-	//texture_set_parameters(framebuffer_get_depth(l.render_buffer), 6,
-	//	(GLenum[6]){GL_TEXTURE_COMPARE_FUNC, GL_TEXTURE_COMPARE_MODE, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-	//	(GLenum[6]){GL_LEQUAL, GL_COMPARE_REF_TO_TEXTURE, GL_LINEAR, GL_LINEAR, GL_CLAMP, GL_CLAMP});
+	texture_set_parameters(framebuffer_get_depth(l.render_buffer), 6,
+		(GLenum[6]){GL_TEXTURE_COMPARE_FUNC, GL_TEXTURE_COMPARE_MODE, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
+		(GLenum[6]){GL_LEQUAL, GL_COMPARE_REF_TO_TEXTURE, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
 	l.data.directional.power = power;
 	l.data.directional.color = color;
 	l.transform_index = transform_create(position, new_vec3(0, 0, 0), new_vec3(1, 1, 1));
@@ -401,7 +398,7 @@ int main(int argc, char *argv[])
 	window_init("Scope", WIDTH, HEIGHT);
 	printf("%s\n", glGetString(GL_VERSION));
 	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
-	printf("%i\n", load_bmp("./res/stupid.bmp"));
+	load_bmp("./res/stupid.bmp");
 	load_shaders("render", "/src/shaders/render.vert", "/src/shaders/render.frag");
 	load_shaders("default", "/src/shaders/default.vert", "/src/shaders/default.frag");
 	load_shaders("shadow", "/src/shaders/shadow.vert", "/src/shaders/shadow.frag");
@@ -424,6 +421,6 @@ int main(int argc, char *argv[])
 	engine_set_key_callback(SDL_SCANCODE_PAGEUP, callback_camera);
 	engine_set_key_callback(SDL_SCANCODE_SPACE, callback_background);
 	mesh_load(obj);
-	main_loop(e);
+	main_loop();
 	return (argc + argv[0][0]);
 }

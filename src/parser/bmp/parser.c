@@ -74,8 +74,6 @@ void			convert_bmp(t_bmp_parser *bmp_parser, t_bmp_info *bmp_info)
     bmp_parser->data = pixel_temp;
 }
 
-#include <fcntl.h>
-
 int			load_bmp(const char *imagepath)
 {
 	t_bmp_parser	parser;

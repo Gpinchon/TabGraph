@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/08 01:51:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/08 16:46:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,11 +40,7 @@ void	parse_texture(t_mtl_parser *p, char **split, int mtl)
 	else if (ft_strstr(split[0], "map_Ks"))
 		material_set_texture_specular(mtl, load_bmp(path));
 	else if (ft_strstr(split[0], "map_Ke"))
-	{
-		printf("%s\n", path);
 		material_set_texture_emitting(mtl, load_bmp(path));
-		printf("%i\n", material_get_texture_emitting(mtl));
-	}
 	else if (ft_strstr(split[0], "map_Nh"))
 		material_set_texture_height(mtl, load_bmp(path));
 	else if (ft_strstr(split[0], "map_No"))

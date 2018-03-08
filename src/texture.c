@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/06 21:33:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/08 16:05:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,64 @@ void	texture_assign(int texture_index, int dest_texture_index, GLenum target)
 	return ;
 }
 
+void	texture_resize(int texture_index, VEC2 new_size)
+{
+	t_texture	*texture;
+	UCHAR		*data;
+	char		opp;
+
+	texture = ezarray_get_index(engine_get()->textures, texture_index);
+	opp = texture->bpp / 8;
+	data = ft_memalloc(new_size.x * new_size.y * opp);
+
+	unsigned x = 0, y;
+	while (x < new_size.x)
+	{
+		float fx = x / (float)new_size.x;
+		y = 0;
+		while (y < new_size.y)
+		{
+			float fy = y / (float)new_size.y;
+			UCHAR	*new_texel;
+			new_texel = &data[y * (int)new_size.x * opp + x * opp];
+
+			UCHAR	*old_texels[4];
+			VEC2	old_coords[4];
+			float	weights[4];
+			old_coords[0] = new_vec2(MIN(texture->width - 1, fx * texture->width), MIN(texture->height - 1, fy * texture->height));
+			old_coords[1] = new_vec2(MIN(texture->width - 1, old_coords[0].x + 1), MIN(texture->height - 1, old_coords[0].y + 1));
+			old_coords[2] = new_vec2(old_coords[0].x, old_coords[1].y);
+			old_coords[3] = new_vec2(old_coords[1].x, old_coords[0].y);
+			old_texels[0] = &texture->data[(int)old_coords[0].y * texture->width * opp + (int)old_coords[0].x * opp];
+			old_texels[1] = &texture->data[(int)old_coords[1].y * texture->width * opp + (int)old_coords[1].x * opp];
+			old_texels[2] = &texture->data[(int)old_coords[2].y * texture->width * opp + (int)old_coords[2].x * opp];
+			old_texels[3] = &texture->data[(int)old_coords[3].y * texture->width * opp + (int)old_coords[3].x * opp];
+			VEC2	uv = new_vec2(fract(old_coords[0].x), fract(old_coords[0].y));
+			weights[0] = ((1 - uv.x) * (1 - uv.y));
+			weights[1] = (uv.x * (1 - uv.y));
+			weights[2] = ((1 - uv.x) * uv.y);
+			weights[3] = (uv.x * uv.y);
+			int i = 0;
+			while (i < opp)
+			{
+				int j = 0;
+				while(j < 4)
+				{
+					new_texel[i] += old_texels[j][i] * weights[j];
+					j++;
+				}
+				i++;
+			}
+			y++;
+		}
+		x++;
+	}
+	free(texture->data);
+	texture->data = data;
+	texture->width = new_size.x;
+	texture->height = new_size.y;
+}
+
 void	texture_load(int texture_index)
 {
 	t_texture	*texture;
@@ -125,6 +183,10 @@ void	texture_load(int texture_index)
 		format = GL_BGRA;
 		internal_format =  GL_RGBA;
 	}
+	if (texture->width > MAXTEXRES || texture->height > MAXTEXRES)
+		texture_resize(texture_index, new_vec2(
+			texture->width > MAXTEXRES ? MAXTEXRES : texture->width,
+			texture->height > MAXTEXRES ? MAXTEXRES : texture->height));
 	glGenTextures(1, &texture->id_ogl);
 	glBindTexture(texture->target, texture->id_ogl);
 	glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
