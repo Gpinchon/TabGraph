@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/06 23:56:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/09 21:08:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,8 @@ t_vgroup	new_vgroup()
 	ft_memset(&vg, 0, sizeof(t_vgroup));
 	vg.mtl_id = hash((unsigned char*)"default");
 	vg.v = new_ezarray(other, 0, sizeof(VEC3));
-	vg.vn = new_ezarray(other, 0, sizeof(VEC3));
+	vg.vn = new_ezarray(other, 0, 4);
+	//vg.vn = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vt = new_ezarray(other, 0, sizeof(VEC2));
 	vg.uvmin = new_vec2(0, 0);
 	vg.uvmax = new_vec2(1, 1);
@@ -249,7 +250,16 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		ezarray_push(&p->vg.vt, &vt[i]);
 		if (p->vg.vt.length == p->vg.vt.reserved)
 			ezarray_reserve(&p->vg.vt, p->vg.vt.length * 2);
-		ezarray_push(&p->vg.vn, &vn[i]);
+		/*vn[i] = vec3_fadd(vn[i], 1);
+		vn[i] = vec3_scale(vn[i], 0.5);
+		vn[i] = vec3_scale(vn[i], 255);
+		ezarray_push(&p->vg.vn, &vn);*/
+		unsigned char ub[4];
+		ub[0] = (vn[i].x + 1) * 0.5 * 255;
+		ub[1] = (vn[i].y + 1) * 0.5 * 255;
+		ub[2] = (vn[i].z + 1) * 0.5 * 255;
+		ub[3] = 255;
+		ezarray_push(&p->vg.vn, &ub);
 		if (p->vg.vn.length == p->vg.vn.reserved)
 			ezarray_reserve(&p->vg.vn, p->vg.vn.length * 2);
 		i++;

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/06 23:56:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/09 14:49:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,8 +100,8 @@ int			load_bmp(const char *imagepath)
 	texture.target = GL_TEXTURE_2D;
 	texture.name = new_ezstring(imagepath);
 	texture.id = hash((unsigned char*)imagepath);
-	texture.width = bmp_info.width;
-	texture.height = bmp_info.height;
+	texture.size.x = bmp_info.width;
+	texture.size.y = bmp_info.height;
 	texture.bpp = bmp_info.bpp;
 	texture.data = parser.data;
 	ezarray_push(&engine_get()->textures, &texture);

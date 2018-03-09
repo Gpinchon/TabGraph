@@ -25,10 +25,10 @@ mat4 biasMatrix = mat4(
 void main()
 {
 	frag_ModelPosition = in_Position;
-	frag_ModelNormal = in_Normal;
+	frag_ModelNormal = (in_Normal / 255.f) * 2 - 1;
 	gl_Position = in_Transform * vec4(in_Position, 1);
 	frag_WorldPosition = vec3(in_ModelMatrix * vec4(in_Position, 1));
 	frag_ShadowPosition = vec3((biasMatrix * in_ShadowTransform) * vec4(in_Position, 1));
-	frag_WorldNormal = normalize(mat3(in_NormalMatrix) * in_Normal);
+	frag_WorldNormal = normalize(mat3(in_NormalMatrix) * frag_ModelNormal);
 	frag_Texcoord = in_Texcoord;
 }

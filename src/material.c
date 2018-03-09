@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/08 02:04:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/09 16:16:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -391,7 +391,7 @@ int		material_create(char *name)
 	mtl.data.emitting = new_vec3(0, 0, 0);
 	mtl.data.metallic = 0;
 	mtl.data.roughness = 0.5;
-	mtl.data.specular = new_vec3(0.5, 0.5, 0.5);
+	mtl.data.specular = new_vec3(0.04, 0.04, 0.04);
 	mtl.name = new_ezstring(name);
 	mtl.id = hash((unsigned char *)mtl.name.tostring);
 	ezarray_push(&engine_get()->materials, &mtl);

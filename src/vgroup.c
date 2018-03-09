@@ -6,22 +6,25 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:47:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/02/22 22:08:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/09 19:51:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
 
-static GLuint	vbuffer_load(GLuint attrib, int size, ARRAY array)
+static GLuint	vbuffer_load(GLuint attrib, int size, ARRAY a)
 {
 	GLuint	lbufferid;
-	if (!size || !array.length)
+	if (!size || !a.length)
 		return (-1);
 	glGenBuffers(1, &lbufferid);
 	glBindBuffer(GL_ARRAY_BUFFER, lbufferid);
-	glBufferData(GL_ARRAY_BUFFER, array.total_size, array.data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, a.total_size, a.data, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(attrib);
-	glVertexAttribPointer(attrib, size, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glVertexAttribPointer(attrib, size,
+		a.data_size == 4 ? GL_UNSIGNED_BYTE : GL_FLOAT,
+		//(a.data_size == sizeof(VEC3) || a.data_size == sizeof(VEC2)) ? GL_FLOAT : GL_UNSIGNED_BYTE,
+		GL_FALSE, 0, (void*)0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	return (lbufferid);
 }
@@ -44,7 +47,7 @@ void	vgroup_load(int mesh_index, int vgroup_index)
 	vgroup->v_bufferid = vbuffer_load(0, 3, vgroup->v);
 	if (glIsBuffer(vgroup->vn_bufferid))
 		glDeleteBuffers(1, &vgroup->v_bufferid);
-	vgroup->vn_bufferid = vbuffer_load(1, 3, vgroup->vn);
+	vgroup->vn_bufferid = vbuffer_load(1, 4, vgroup->vn);
 	if (glIsBuffer(vgroup->vt_bufferid))
 		glDeleteBuffers(1, &vgroup->v_bufferid);
 	vgroup->vt_bufferid = vbuffer_load(2, 2, vgroup->vt);

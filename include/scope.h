@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/08 01:44:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/09 15:43:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,8 +151,7 @@ typedef struct	s_texture
 	ULL			id;
 	GLuint		id_ogl;
 	STRING		name;
-	int			width;
-	int			height;
+	VEC2		size;
 	char		bpp;
 	GLenum		target;
 	UCHAR		*data;

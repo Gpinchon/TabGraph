@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/08 16:05:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/09 19:37:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,81 +85,124 @@ void	texture_assign(int texture_index, int dest_texture_index, GLenum target)
 	if (!texture || !dest_texture)
 		return ;
 	format = GL_BGR;
-	internal_format = GL_RGB;
+	internal_format = GL_COMPRESSED_RGB;
 	if (texture->bpp == 8)
 	{
 		format = GL_RED;
-		internal_format = GL_RED;
+		internal_format = GL_COMPRESSED_RED;
 	}
 	else if (texture->bpp == 32)
 	{
 		format = GL_BGRA;
-		internal_format =  GL_RGBA;
+		internal_format =  GL_COMPRESSED_RGBA;
 	}
 	glBindTexture(dest_texture->target, dest_texture->id_ogl);
 	glBindTexture(target, dest_texture->id_ogl);
-	glTexImage2D(target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);
+	glTexImage2D(target, 0, internal_format, texture->size.x, texture->size.y, 0, format, GL_UNSIGNED_BYTE, texture->data);
 	glBindTexture(target, 0);
 	glBindTexture(dest_texture->target, 0);
-	return ;
 }
 
-void	texture_resize(int texture_index, VEC2 new_size)
+VEC4	texture_texelfetch(int texture_index, VEC2 uv)
 {
 	t_texture	*texture;
-	UCHAR		*data;
+	VEC4		value;
 	char		opp;
+	UCHAR		*texel;
+	int			i;
 
+	value = new_vec4(0, 0, 0, 0);
 	texture = ezarray_get_index(engine_get()->textures, texture_index);
+	if (!texture || !texture->data)
+		return (value);
+	i = 0;
+	uv = new_vec2(
+		CLAMP(texture->size.x * uv.x, 0, texture->size.x - 1),
+		CLAMP(texture->size.y * uv.y, 0, texture->size.y - 1));
 	opp = texture->bpp / 8;
-	data = ft_memalloc(new_size.x * new_size.y * opp);
-
-	unsigned x = 0, y;
-	while (x < new_size.x)
+	texel = &texture->data[(int)(uv.y * texture->size.x) * opp + (int)uv.x * opp];
+	while (i < opp)
 	{
-		float fx = x / (float)new_size.x;
-		y = 0;
-		while (y < new_size.y)
-		{
-			float fy = y / (float)new_size.y;
-			UCHAR	*new_texel;
-			new_texel = &data[y * (int)new_size.x * opp + x * opp];
+		((float*)&value)[i] = texel[i];
+		i++;
+	}
+	return (value);
+}
 
-			UCHAR	*old_texels[4];
-			VEC2	old_coords[4];
-			float	weights[4];
-			old_coords[0] = new_vec2(MIN(texture->width - 1, fx * texture->width), MIN(texture->height - 1, fy * texture->height));
-			old_coords[1] = new_vec2(MIN(texture->width - 1, old_coords[0].x + 1), MIN(texture->height - 1, old_coords[0].y + 1));
-			old_coords[2] = new_vec2(old_coords[0].x, old_coords[1].y);
-			old_coords[3] = new_vec2(old_coords[1].x, old_coords[0].y);
-			old_texels[0] = &texture->data[(int)old_coords[0].y * texture->width * opp + (int)old_coords[0].x * opp];
-			old_texels[1] = &texture->data[(int)old_coords[1].y * texture->width * opp + (int)old_coords[1].x * opp];
-			old_texels[2] = &texture->data[(int)old_coords[2].y * texture->width * opp + (int)old_coords[2].x * opp];
-			old_texels[3] = &texture->data[(int)old_coords[3].y * texture->width * opp + (int)old_coords[3].x * opp];
-			VEC2	uv = new_vec2(fract(old_coords[0].x), fract(old_coords[0].y));
-			weights[0] = ((1 - uv.x) * (1 - uv.y));
-			weights[1] = (uv.x * (1 - uv.y));
-			weights[2] = ((1 - uv.x) * uv.y);
-			weights[3] = (uv.x * uv.y);
-			int i = 0;
-			while (i < opp)
+VEC4	texture_sample(int texture_index, VEC2 uv)
+{
+	t_texture	*texture;
+	VEC2		coords[4];
+	float		weights[4];
+	VEC4		value;
+	UCHAR		*texel;
+
+	value = new_vec4(0, 0, 0, 0);
+	texture = ezarray_get_index(engine_get()->textures, texture_index);
+	if (!texture || !texture->data)
+		return (value);
+	coords[0] = new_vec2(CLAMP(texture->size.x * uv.x, 0, texture->size.x - 1),
+		CLAMP(texture->size.y * uv.y, 0, texture->size.y - 1));
+	coords[1] = new_vec2(MIN(texture->size.x - 1, coords[0].x + 1), MIN(texture->size.y - 1, coords[0].y + 1));
+	coords[2] = new_vec2(coords[0].x, coords[1].y);
+	coords[3] = new_vec2(coords[1].x, coords[0].y);
+	uv = new_vec2(fract(coords[0].x), fract(coords[0].y));
+	weights[0] = ((1 - uv.x) * (1 - uv.y));
+	weights[1] = (uv.x * (1 - uv.y));
+	weights[2] = ((1 - uv.x) * uv.y);
+	weights[3] = (uv.x * uv.y);
+	int i = 0;
+	int j;
+	while (i < (texture->bpp / 8))
+	{
+		j = 0;
+		while(j < 4)
+		{
+			texel = &texture->data[(int)(coords[j].y * texture->size.x) * (texture->bpp / 8) + (int)coords[j].x * (texture->bpp / 8)];
+			((float*)&value)[i] += texel[i] * weights[j];
+			j++;
+		}
+		i++;
+	}
+	return (value);
+}
+
+void	texture_resize(int texture_index, VEC2 size)
+{
+	t_texture	*t;
+	UCHAR		*d;
+	UCHAR		*tex;
+	unsigned	x, y;
+	VEC2		uv;
+	int			i;
+
+	t = ezarray_get_index(engine_get()->textures, texture_index);
+	if (t->size.x == size.x && t->size.y == size.y)
+		return ;
+	d = ft_memalloc(size.x * size.y * (t->bpp / 8));
+	x = 0;
+	while (x < size.x)
+	{
+		y = 0;
+		while (y < size.y)
+		{
+			uv = new_vec2(x / (float)size.x, y / (float)size.y);			
+			VEC4	value = texture_sample(texture_index, uv);
+			tex = &d[y * (int)size.x * (t->bpp / 8) + x * (t->bpp / 8)];
+			i = 0;
+			while (i < (t->bpp / 8))
 			{
-				int j = 0;
-				while(j < 4)
-				{
-					new_texel[i] += old_texels[j][i] * weights[j];
-					j++;
-				}
+				tex[i] = ((float*)&value)[i];
 				i++;
 			}
 			y++;
 		}
 		x++;
 	}
-	free(texture->data);
-	texture->data = data;
-	texture->width = new_size.x;
-	texture->height = new_size.y;
+	free(t->data);
+	t->data = d;
+	t->size.x = size.x;
+	t->size.y = size.y;
 }
 
 void	texture_load(int texture_index)
@@ -172,21 +215,19 @@ void	texture_load(int texture_index)
 	if (!texture || texture->loaded)
 		return ;
 	format = GL_BGR;
-	internal_format = GL_RGB;
+	internal_format = GL_COMPRESSED_RGB;
 	if (texture->bpp == 8)
 	{
 		format = GL_RED;
-		internal_format = GL_RED;
+		internal_format = GL_COMPRESSED_RED;
 	}
 	else if (texture->bpp == 32)
 	{
 		format = GL_BGRA;
-		internal_format =  GL_RGBA;
+		internal_format =  GL_COMPRESSED_RGBA;
 	}
-	if (texture->width > MAXTEXRES || texture->height > MAXTEXRES)
-		texture_resize(texture_index, new_vec2(
-			texture->width > MAXTEXRES ? MAXTEXRES : texture->width,
-			texture->height > MAXTEXRES ? MAXTEXRES : texture->height));
+	texture_resize(texture_index, new_vec2(MIN(texture->size.x, MAXTEXRES),
+		MIN(texture->size.y, MAXTEXRES)));
 	glGenTextures(1, &texture->id_ogl);
 	glBindTexture(texture->target, texture->id_ogl);
 	glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -194,11 +235,10 @@ void	texture_load(int texture_index)
 	glTexParameterf(texture->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.f);
 	if (texture->bpp < 32)
 		glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-	glTexImage2D(texture->target, 0, internal_format, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data);
+	glTexImage2D(texture->target, 0, internal_format, texture->size.x, texture->size.y, 0, format, GL_UNSIGNED_BYTE, texture->data);
 	glGenerateMipmap(texture->target);
 	glBindTexture(texture->target, 0);
 	texture->loaded = 1;
-	return ;
 }
 
 void	texture_generate_mipmap(int texture_index)

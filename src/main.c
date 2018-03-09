@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/08 16:50:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/09 19:40:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -390,11 +390,9 @@ int	light_create(VEC3 position, VEC3 color, float power)
 
 int main(int argc, char *argv[])
 {
-	t_engine	*e;
-
 	if (argc < 2)
 		return (0);
-	e = engine_get();
+	engine_get();
 	window_init("Scope", WIDTH, HEIGHT);
 	printf("%s\n", glGetString(GL_VERSION));
 	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -422,5 +420,6 @@ int main(int argc, char *argv[])
 	engine_set_key_callback(SDL_SCANCODE_SPACE, callback_background);
 	mesh_load(obj);
 	main_loop();
+	SDL_Quit();
 	return (argc + argv[0][0]);
 }
