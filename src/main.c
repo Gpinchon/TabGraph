@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/09 19:40:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/10 16:47:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,13 +95,19 @@ void	event_window(SDL_Event *event)
 
 void	callback_background(SDL_Event *event)
 {
-	static unsigned	background = 0;
+	static int	background = 0;
 
-	if (event && event->type == SDL_KEYUP)
+	if (event && (event->type == SDL_KEYUP || event->key.repeat))
 		return;
-	background = CYCLE(background + 1, 0, engine_get()->textures_env.length / 2);
+	background = CYCLE(background + 1, 0, (int)engine_get()->textures_env.length / 2);
 	engine_get()->env = *((int*)ezarray_get_index(engine_get()->textures_env, background * 2 + 0));
 	engine_get()->env_spec = *((int*)ezarray_get_index(engine_get()->textures_env, background * 2 + 1));
+	(void)event;
+}
+
+void	callback_exit(SDL_Event *event)
+{
+	engine_get()->loop = 0;
 	(void)event;
 }
 
@@ -392,7 +398,7 @@ int main(int argc, char *argv[])
 {
 	if (argc < 2)
 		return (0);
-	engine_get();
+	engine_init();
 	window_init("Scope", WIDTH, HEIGHT);
 	printf("%s\n", glGetString(GL_VERSION));
 	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -418,6 +424,7 @@ int main(int argc, char *argv[])
 	engine_set_key_callback(SDL_SCANCODE_PAGEDOWN, callback_camera);
 	engine_set_key_callback(SDL_SCANCODE_PAGEUP, callback_camera);
 	engine_set_key_callback(SDL_SCANCODE_SPACE, callback_background);
+	engine_set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
 	mesh_load(obj);
 	main_loop();
 	SDL_Quit();

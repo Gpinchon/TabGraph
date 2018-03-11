@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/07 10:41:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/10 12:25:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,18 @@ inline t_engine	*engine_get()
 {
 	static t_engine	*engine = NULL;
 
-	if (engine || !(engine = ft_memalloc(sizeof(t_engine))))
-		return (engine);
+	if (!engine)
+		engine = ft_memalloc(sizeof(t_engine));
+	return (engine);
+}
+
+void	engine_init()
+{
+	t_engine	*engine;
+
+	engine = engine_get();
+	if (!engine)
+		return ;
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -43,7 +53,6 @@ inline t_engine	*engine_get()
 	engine->loop = 1;
 	engine->swap_interval = 1;
 	engine->program_path = convert_backslash(getcwd(NULL, 4096));
-	return (engine);
 }
 
 void engine_load_env()

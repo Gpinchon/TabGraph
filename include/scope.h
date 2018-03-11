@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/09 15:43:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/10 17:08:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,6 +255,7 @@ typedef struct	s_engine
 */
 
 t_engine	*engine_get();
+void		engine_init();
 void		engine_load_env();
 void		engine_set_key_callback(SDL_Scancode keycode, kcallback callback);
 

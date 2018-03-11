@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/09 21:08:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/10 17:08:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,22 +95,16 @@ void	parse_vtn(t_obj_parser *p, char **split)
 		p->bbox.max.y = v.y > p->bbox.max.y ? v.y : p->bbox.max.y;
 		p->bbox.max.z = v.z > p->bbox.max.z ? v.z : p->bbox.max.z;
 		p->bbox.center = vec3_fdiv(vec3_add(p->bbox.min, p->bbox.max), 2);
-		if (p->v.length == p->v.reserved)
-			ezarray_reserve(&p->v, p->v.length * 2);
 		ezarray_push(&p->v, &v);
 	}
 	else if (!ft_strcmp(split[0], "vn"))
 	{
 		v = parse_vec3(&split[1]);
-		if (p->vn.length == p->vn.reserved)
-			ezarray_reserve(&p->vn, p->vn.length * 2);
 		ezarray_push(&p->vn, &v);
 	}
 	else if (!ft_strcmp(split[0], "vt"))
 	{
 		vn = parse_vec2(&split[1]);
-		if (p->vt.length == p->vt.reserved)
-			ezarray_reserve(&p->vt, p->vt.length * 2);
 		ezarray_push(&p->vt, &vn);
 	}
 }
@@ -245,11 +239,7 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 	while (i < 3)
 	{
 		ezarray_push(&p->vg.v, &v[i]);
-		if (p->vg.v.length == p->vg.v.reserved)
-			ezarray_reserve(&p->vg.v, p->vg.v.length * 2);
 		ezarray_push(&p->vg.vt, &vt[i]);
-		if (p->vg.vt.length == p->vg.vt.reserved)
-			ezarray_reserve(&p->vg.vt, p->vg.vt.length * 2);
 		/*vn[i] = vec3_fadd(vn[i], 1);
 		vn[i] = vec3_scale(vn[i], 0.5);
 		vn[i] = vec3_scale(vn[i], 255);
@@ -260,8 +250,6 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		ub[2] = (vn[i].z + 1) * 0.5 * 255;
 		ub[3] = 255;
 		ezarray_push(&p->vg.vn, &ub);
-		if (p->vg.vn.length == p->vg.vn.reserved)
-			ezarray_reserve(&p->vg.vn, p->vg.vn.length * 2);
 		i++;
 	}
 }
