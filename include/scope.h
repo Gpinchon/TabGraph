@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/10 17:08:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/13 00:40:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@
 # define SHADOWRES	2048
 # define UP			(VEC3){0, 1, 0}
 # define ULL		unsigned long long
-# define ANISOTROPY	16.f
-# define MSAA		8
+# define ANISOTROPY	8.f
+# define MSAA		4
 # define BLOOMPASS	2
 # define MAXTEXRES	1024
 # ifndef O_BINARY
@@ -260,6 +260,14 @@ void		engine_load_env();
 void		engine_set_key_callback(SDL_Scancode keycode, kcallback callback);
 
 /*
+** Window functions
+*/
+
+t_window	*window_get();
+void		window_init(const char *name, int width, int height);
+void		window_fullscreen(char fullscreen);
+
+/*
 ** Camera functions
 */
 int			camera_get_target_index(int camera_index);
@@ -394,5 +402,16 @@ int				framebuffer_get_attachement(int framebuffer, int color_attachement);
 int				framebuffer_get_depth(int framebuffer);
 int				framebuffer_get_shader(int framebuffer);
 int				framebuffer_create(VEC2 size, int shader, int color_attachements, int depth);
+
+/*
+** Callback functions
+*/
+
+void	callback_scale(SDL_Event *event);
+void	callback_stupidity(SDL_Event *event);
+void	callback_background(SDL_Event *event);
+void	callback_exit(SDL_Event *event);
+void	callback_fullscreen(SDL_Event *event);
+void	callback_camera(SDL_Event *event);
 
 #endif

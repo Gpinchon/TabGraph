@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/06 23:56:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/12 19:51:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,8 @@ void	camera_orbite(int camera_index, float phi, float theta, float radius)
 	VEC3	target_position;
 	VEC3	new_position;
 
-	t_transform *target = ezarray_get_index(engine_get()->transforms, camera_get_target_index(camera_index));
+	t_transform *target = ezarray_get_index(engine_get()->transforms,
+		camera_get_target_index(camera_index));
 	if (target)
 		target_position = target->position;
 	else
@@ -72,16 +73,18 @@ void	camera_orbite(int camera_index, float phi, float theta, float radius)
 
 void	camera_update(int camera_index)
 {
-	t_transform	*camera_target;
+	t_transform	*ct;
 	VEC3		target;
-	t_camera	*camera;
+	t_camera	*c;
+	int			size[2];
 	
-	camera = ezarray_get_index(engine_get()->cameras, camera_index);
-	if (!camera)
+	c = ezarray_get_index(engine_get()->cameras, camera_index);
+	if (!c)
 		return ;
-	camera_target = ezarray_get_index(engine_get()->transforms, camera->target_index);
-	target = camera_target ? camera_target->position : new_vec3(0, 0, 0);
-	camera->view = mat4_lookat(camera->position, target, UP);
-	camera->projection = mat4_perspective(camera->fov, (float)WIDTH / (float)HEIGHT, 0.1, 1000);
-	(void)camera_index;
+	ct = ezarray_get_index(engine_get()->transforms, c->target_index);
+	target = ct ? ct->position : new_vec3(0, 0, 0);
+	c->view = mat4_lookat(c->position, target, UP);
+	SDL_GetWindowSize(window_get()->sdl_window, &size[0], &size[1]);
+	c->projection = mat4_perspective(c->fov,
+		(float)size[0] / (float)size[1], 0.1, 1000);
 }

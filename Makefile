@@ -6,12 +6,14 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/09 21:07:20 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/12 11:26:47 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scope
 SRC			=	./src/main.c			\
+				./src/callbacks.c		\
+				./src/window.c			\
 				./src/framebuffer.c		\
 				./src/engine.c			\
 				./src/camera.c			\

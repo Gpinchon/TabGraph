@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/10 16:47:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/13 00:39:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,37 +41,6 @@ static GLuint	display_quad_get()
 	return (render_quadid);
 }
 
-t_window		*window_get()
-{
-	static t_window	*window = NULL;
-
-	if (!window)
-		window = ft_memalloc(sizeof(t_window));
-	return (window);
-}
-
-/*
-** window is a singleton
-*/
-void		window_init(const char *name, int width, int height)
-{
-	t_window	*window;
-
-	window = window_get();
-	if (!window)
-		return;
-	window->sdl_window = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED, width, height,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-	window->gl_context = SDL_GL_CreateContext(window->sdl_window);
-	glewExperimental = GL_TRUE;
-	if (!window->sdl_window || glewInit() != GLEW_OK)
-		return;
-	window->render_buffer = framebuffer_create(new_vec2(IWIDTH, IHEIGHT), shader_get_by_name("render"), 4, 1);
-	glEnable(GL_MULTISAMPLE);
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-}
-
 void	scene_render(int camera_index)
 {
 	unsigned	mesh_index;
@@ -89,55 +58,10 @@ void	scene_render(int camera_index)
 
 void	event_window(SDL_Event *event)
 {
+	if (event->window.event == SDL_WINDOWEVENT_MAXIMIZED)
+		printf("MAXIMISE !!!\n");
 	if (event->window.event == SDL_WINDOWEVENT_CLOSE)
 		engine_get()->loop = 0;
-}
-
-void	callback_background(SDL_Event *event)
-{
-	static int	background = 0;
-
-	if (event && (event->type == SDL_KEYUP || event->key.repeat))
-		return;
-	background = CYCLE(background + 1, 0, (int)engine_get()->textures_env.length / 2);
-	engine_get()->env = *((int*)ezarray_get_index(engine_get()->textures_env, background * 2 + 0));
-	engine_get()->env_spec = *((int*)ezarray_get_index(engine_get()->textures_env, background * 2 + 1));
-	(void)event;
-}
-
-void	callback_exit(SDL_Event *event)
-{
-	engine_get()->loop = 0;
-	(void)event;
-}
-
-void	callback_camera(SDL_Event *event)
-{
-	static float phi = M_PI / 2.f;
-	static float theta = M_PI / 2.f;
-	static float radius = 5.f;
-
-	if (event && event->type == SDL_KEYDOWN)
-	{
-		if (event->key.keysym.sym == SDLK_UP
-		|| event->key.keysym.sym == SDLK_DOWN)
-			phi += (event->key.keysym.sym == SDLK_DOWN ? 2 : -2) * engine_get()->delta_time;
-		else if (event->key.keysym.sym == SDLK_LEFT
-		|| event->key.keysym.sym == SDLK_RIGHT)
-			theta += (event->key.keysym.sym == SDLK_LEFT ? 2 : -2) * engine_get()->delta_time;
-		else if (event->key.keysym.sym == SDLK_KP_PLUS
-		|| event->key.keysym.sym == SDLK_KP_MINUS)
-			radius += (event->key.keysym.sym == SDLK_KP_PLUS ? -2 : 2) * engine_get()->delta_time;
-		else if (event->key.keysym.sym == SDLK_PAGEDOWN
-		|| event->key.keysym.sym == SDLK_PAGEUP)
-			((t_transform*)ezarray_get_index(engine_get()->transforms,
-			camera_get_target_index(0)))->position.y
-			+= (event->key.keysym.sym == SDLK_PAGEUP ? 2 : -2) * engine_get()->delta_time;
-		phi = CLAMP(phi, 0.01, M_PI - 0.01);
-		theta = CYCLE(theta, 0, 2 * M_PI);
-		radius = CLAMP(radius, 0.1f, 1000.f);
-	}
-	camera_orbite(0, phi, theta, radius);
 }
 
 void	event_keyboard(SDL_Event *event)
@@ -161,13 +85,6 @@ int 	event_callback(void *e, SDL_Event *event)
 	return (0);
 }
 
-void	callback_stupidity(SDL_Event *event)
-{
-	if (event && event->type == SDL_KEYUP)
-		return;
-	engine_get()->new_stupidity = !engine_get()->new_stupidity;
-}
-
 int		event_refresh()
 {
 	t_material		*m;
@@ -189,6 +106,7 @@ int		event_refresh()
 	else
 		val = 0;
 	rotation.y = CYCLE(rotation.y + 0.1 * engine_get()->delta_time, 0, 2 * M_PI);
+	callback_camera(NULL);
 	mesh_rotate(0, rotation);
 	return (0);
 }
@@ -224,7 +142,7 @@ FRUSTUM	full_scene_frustum()
 void	shadow_render()
 {
 	FRUSTUM frustum = full_scene_frustum();
-	MAT4	projection = mat4_orthographic(frustum, frustum.x * 2.f, frustum.y * 2.f);
+	MAT4	projection = mat4_orthographic(frustum, frustum.x * 1.5f, frustum.y * 1.5f);
 	MAT4	view = mat4_lookat(new_vec3(-1, 1, 0), new_vec3(0, 0, 0), UP);
 	MAT4	transform;
 	t_mesh	*mesh;
@@ -314,9 +232,12 @@ static inline void	blur_texture(int texture, int pass, float radius)
 
 static void	render_present()
 {
+	int w, h;
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
-	glViewport(0, 0, WIDTH, HEIGHT);
+	SDL_GetWindowSize(window_get()->sdl_window, &w, &h);
+	glViewport(0, 0, w, h);
 	int	shader = framebuffer_get_shader(window_get()->render_buffer);
 	texture_generate_mipmap(framebuffer_get_attachement(window_get()->render_buffer, 0));
 	shader_use(shader);
@@ -414,17 +335,19 @@ int main(int argc, char *argv[])
 	int camera = camera_create(45);
 	camera_set_target(camera, transform_create(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera_orbite(camera, M_PI / 2.f, M_PI / 2.f, 5.f);
-	engine_set_key_callback(SDL_SCANCODE_UP, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_S, callback_stupidity);
+	/*engine_set_key_callback(SDL_SCANCODE_UP, callback_camera);
 	engine_set_key_callback(SDL_SCANCODE_DOWN, callback_camera);
 	engine_set_key_callback(SDL_SCANCODE_LEFT, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_RIGHT, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_KP_PLUS, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_KP_MINUS, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_PAGEDOWN, callback_camera);
+	engine_set_key_callback(SDL_SCANCODE_RIGHT, callback_camera);*/
+	engine_set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
+	engine_set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
+	/*engine_set_key_callback(SDL_SCANCODE_PAGEDOWN, callback_camera);
 	engine_set_key_callback(SDL_SCANCODE_PAGEUP, callback_camera);
+	engine_set_key_callback(SDL_SCANCODE_LSHIFT, callback_camera);*/
 	engine_set_key_callback(SDL_SCANCODE_SPACE, callback_background);
 	engine_set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
+	engine_set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
+	engine_set_key_callback(SDL_SCANCODE_S, callback_stupidity);
 	mesh_load(obj);
 	main_loop();
 	SDL_Quit();

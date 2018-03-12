@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/10 12:25:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/12 11:12:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ void	engine_init()
 	engine->lights = new_ezarray(other, 0, sizeof(t_light));
 	engine->framebuffers = new_ezarray(other, 0, sizeof(t_framebuffer));
 	engine->loop = 1;
-	engine->swap_interval = 1;
+	engine->swap_interval = 0;
 	engine->program_path = convert_backslash(getcwd(NULL, 4096));
 }
 
