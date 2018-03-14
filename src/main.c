@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/13 00:39:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/14 22:15:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,21 +45,27 @@ void	scene_render(int camera_index)
 {
 	unsigned	mesh_index;
 
-	mesh_index = 0;
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	camera_update(camera_index);
+	mesh_index = 0;
 	while (mesh_index < engine_get()->meshes.length)
 	{
-		mesh_render(camera_index, mesh_index);
+		mesh_update(mesh_index);
+		mesh_render(mesh_index, camera_index, render_opaque);
+		mesh_index++;
+	}
+	mesh_index = 0;
+	while (mesh_index < engine_get()->meshes.length)
+	{
+		mesh_sort_draw(mesh_index, camera_index);
+		mesh_render(mesh_index, camera_index, render_transparent);
 		mesh_index++;
 	}
 }
 
 void	event_window(SDL_Event *event)
 {
-	if (event->window.event == SDL_WINDOWEVENT_MAXIMIZED)
-		printf("MAXIMISE !!!\n");
 	if (event->window.event == SDL_WINDOWEVENT_CLOSE)
 		engine_get()->loop = 0;
 }
@@ -335,15 +341,8 @@ int main(int argc, char *argv[])
 	int camera = camera_create(45);
 	camera_set_target(camera, transform_create(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera_orbite(camera, M_PI / 2.f, M_PI / 2.f, 5.f);
-	/*engine_set_key_callback(SDL_SCANCODE_UP, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_DOWN, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_LEFT, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_RIGHT, callback_camera);*/
 	engine_set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
 	engine_set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
-	/*engine_set_key_callback(SDL_SCANCODE_PAGEDOWN, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_PAGEUP, callback_camera);
-	engine_set_key_callback(SDL_SCANCODE_LSHIFT, callback_camera);*/
 	engine_set_key_callback(SDL_SCANCODE_SPACE, callback_background);
 	engine_set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
 	engine_set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
@@ -351,5 +350,6 @@ int main(int argc, char *argv[])
 	mesh_load(obj);
 	main_loop();
 	SDL_Quit();
+	engine_destroy();
 	return (argc + argv[0][0]);
 }

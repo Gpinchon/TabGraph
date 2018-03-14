@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/13 00:43:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/14 18:19:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,21 +22,20 @@ void	callback_stupidity(SDL_Event *event)
 
 void	callback_scale(SDL_Event *event)
 {
-	const Uint8		*state;
+	const Uint8		*s;
 	static float	scale = 1;
 
 	if (!event || (event && event->type == SDL_KEYUP))
 		return;
-	state = SDL_GetKeyboardState(NULL);
-	if (!state[SDL_SCANCODE_LCTRL])
+	s = SDL_GetKeyboardState(NULL);
+	if (!s[SDL_SCANCODE_LCTRL])
 		return;
-	if (state[SDL_SCANCODE_KP_PLUS])
-		scale += (0.005 * (state[SDL_SCANCODE_LSHIFT] + 1));
-	else if (state[SDL_SCANCODE_KP_MINUS])
-		scale -= (0.005 * (state[SDL_SCANCODE_LSHIFT] + 1));
+	if (s[SDL_SCANCODE_KP_PLUS])
+		scale += (0.005 * (s[SDL_SCANCODE_LSHIFT] + 1));
+	else if (s[SDL_SCANCODE_KP_MINUS])
+		scale -= (0.005 * (s[SDL_SCANCODE_LSHIFT] + 1));
 	scale = CLAMP(scale, 0.0001, 1000);
 	mesh_scale(0, new_vec3(scale, scale, scale));
-	(void)event;
 }
 
 void	callback_background(SDL_Event *event)
@@ -61,10 +60,10 @@ void	callback_exit(SDL_Event *event)
 void	callback_fullscreen(SDL_Event *event)
 {
 	static char	fullscreen = 0;
-	const Uint8	*state;
+	const Uint8	*s;
 
-	state = SDL_GetKeyboardState(NULL);
-	if (state[SDL_SCANCODE_RETURN] && state[SDL_SCANCODE_LALT])
+	s = SDL_GetKeyboardState(NULL);
+	if (s[SDL_SCANCODE_RETURN] && s[SDL_SCANCODE_LALT])
 	{
 		fullscreen = !fullscreen;
 		window_fullscreen(fullscreen);
@@ -75,47 +74,35 @@ void	callback_fullscreen(SDL_Event *event)
 void	callback_camera(SDL_Event *e)
 {
 	static VEC3	val = (VEC3){M_PI / 2.f, M_PI / 2.f, 5.f};
-	static VEC3 velocity[] = {(VEC3){0, 0, 0}, (VEC3){0, 0, 0}};
+	static VEC4 v[] = {(VEC4){0, 0, 0, 0}, (VEC4){0, 0, 0, 0}};
 	float		mv;
-	const Uint8	*state;
+	const Uint8	*s;
 	t_transform	*t;
 
-	state = SDL_GetKeyboardState(NULL);
-	if (state[SDL_SCANCODE_DOWN])
-		velocity[0].x = CLAMP(velocity[0].x + 0.1, 0, 1);
-	else
-		velocity[0].x = CLAMP(velocity[0].x - 0.2, 0, 1);
-	if (state[SDL_SCANCODE_UP])
-		velocity[1].x = CLAMP(velocity[1].x + 0.1, 0, 1);
-	else
-		velocity[1].x = CLAMP(velocity[1].x - 0.2, 0, 1);
-	if (state[SDL_SCANCODE_LEFT])
-		velocity[0].y = CLAMP(velocity[0].y + 0.1, 0, 1);
-	else
-		velocity[0].y = CLAMP(velocity[0].y - 0.2, 0, 1);
-	if (state[SDL_SCANCODE_RIGHT])
-		velocity[1].y = CLAMP(velocity[1].y + 0.1, 0, 1);
-	else
-		velocity[1].y = CLAMP(velocity[1].y - 0.2, 0, 1);
-	if (state[SDL_SCANCODE_KP_MINUS] && !state[SDL_SCANCODE_LCTRL])
-		velocity[0].z = CLAMP(velocity[0].z + 0.1, 0, 1);
-	else
-		velocity[0].z = CLAMP(velocity[0].z - 0.2, 0, 1);
-	if (state[SDL_SCANCODE_KP_PLUS] && !state[SDL_SCANCODE_LCTRL])
-		velocity[1].z = CLAMP(velocity[1].z + 0.1, 0, 1);
-	else
-		velocity[1].z = CLAMP(velocity[1].z - 0.2, 0, 1);
-	mv = (1 + state[SDL_SCANCODE_LSHIFT]) * engine_get()->delta_time;
+	s = SDL_GetKeyboardState(NULL);
+	mv = (1 + s[SDL_SCANCODE_LSHIFT]) * engine_get()->delta_time;
 	t = ezarray_get_index(engine_get()->transforms,
 		camera_get_target_index(0));
-	val.x += (state[SDL_SCANCODE_DOWN] + velocity[0].x) * mv;
-	val.x += (state[SDL_SCANCODE_UP] + velocity[1].x) * -mv;
-	val.y += (state[SDL_SCANCODE_LEFT] + velocity[0].y) * mv;
-	val.y += (state[SDL_SCANCODE_RIGHT] + velocity[1].y) * -mv;
-	val.z += (state[SDL_SCANCODE_KP_MINUS] + velocity[0].z) * mv;
-	val.z += (state[SDL_SCANCODE_KP_PLUS] + velocity[1].z) * -mv;
-	t->position.y += state[SDL_SCANCODE_PAGEUP] * mv;
-	t->position.y += state[SDL_SCANCODE_PAGEDOWN] * -mv;	
+	v[0] = vec4_add(v[0], new_vec4(
+		s[SDL_SCANCODE_DOWN] ? 0.1 : -0.2,
+		s[SDL_SCANCODE_LEFT] ? 0.1 : -0.2,
+		(s[SDL_SCANCODE_KP_MINUS] && !s[SDL_SCANCODE_LCTRL]) ? 0.1 : -0.2,
+		s[SDL_SCANCODE_PAGEUP] ? 0.1 : -0.2));
+	v[1] = vec4_add(v[1], new_vec4(
+		s[SDL_SCANCODE_UP] ? 0.1 : -0.2,
+		s[SDL_SCANCODE_RIGHT] ? 0.1 : -0.2,
+		(s[SDL_SCANCODE_KP_PLUS] && !s[SDL_SCANCODE_LCTRL]) ? 0.1 : -0.2,
+		s[SDL_SCANCODE_PAGEDOWN] ? 0.1 : -0.2));
+	v[0] = new_vec4(CLAMP(v[0].x, 0, 1), CLAMP(v[0].y, 0, 1), CLAMP(v[0].z, 0, 1), CLAMP(v[0].w, 0, 1));
+	v[1] = new_vec4(CLAMP(v[1].x, 0, 1), CLAMP(v[1].y, 0, 1), CLAMP(v[1].z, 0, 1), CLAMP(v[1].w, 0, 1));
+	val.x += (s[SDL_SCANCODE_DOWN] + v[0].x) * mv;
+	val.x += (s[SDL_SCANCODE_UP] + v[1].x) * -mv;
+	val.y += (s[SDL_SCANCODE_LEFT] + v[0].y) * mv;
+	val.y += (s[SDL_SCANCODE_RIGHT] + v[1].y) * -mv;
+	val.z += ((s[SDL_SCANCODE_KP_MINUS] && !s[SDL_SCANCODE_LCTRL]) + v[0].z) * mv;
+	val.z += ((s[SDL_SCANCODE_KP_PLUS] && !s[SDL_SCANCODE_LCTRL]) + v[1].z) * -mv;
+	t->position.y += (s[SDL_SCANCODE_PAGEUP] + v[0].w) * mv;
+	t->position.y += (s[SDL_SCANCODE_PAGEDOWN] + v[1].w) * -mv;
 	val.x = CLAMP(val.x, 0.01, M_PI - 0.01);
 	val.y = CYCLE(val.y, 0, 2 * M_PI);
 	val.z = CLAMP(val.z, 0.1f, 1000.f);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/12 19:58:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/14 21:28:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,6 +240,16 @@ void	texture_load(int texture_index)
 	glGenerateMipmap(t->target);
 	glBindTexture(t->target, 0);
 	t->loaded = 1;
+}
+
+UCHAR		texture_get_bpp(int texture_index)
+{
+	t_texture *texture;
+
+	texture = ezarray_get_index(engine_get()->textures, texture_index);
+	if (!texture)
+		return (0);
+	return (texture->bpp);
 }
 
 void	texture_generate_mipmap(int texture_index)

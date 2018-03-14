@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/10 17:08:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/14 17:49:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@ t_vgroup	new_vgroup()
 
 	ft_memset(&vg, 0, sizeof(t_vgroup));
 	vg.mtl_id = hash((unsigned char*)"default");
+	vg.bounding_box.min = new_vec3(100000, 100000, 100000);
+	vg.bounding_box.max = new_vec3(-100000, -100000, -100000);
 	vg.v = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vn = new_ezarray(other, 0, 4);
 	//vg.vn = new_ezarray(other, 0, sizeof(VEC3));
@@ -112,8 +114,8 @@ void	parse_vtn(t_obj_parser *p, char **split)
 void	vt_min_max(t_vgroup *vg)
 {
 	unsigned	i = 0;
-	vg->uvmin = new_vec2(1000, 1000);
-	vg->uvmax = new_vec2(-1000, -1000);
+	vg->uvmin = new_vec2(100000, 100000);
+	vg->uvmax = new_vec2(-100000, -100000);
 
 	while (i < vg->vt.length)
 	{
@@ -238,12 +240,15 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 	i = 0;
 	while (i < 3)
 	{
+		p->vg.bounding_box.min.x = v[i].x < p->vg.bounding_box.min.x ? v[i].x : p->vg.bounding_box.min.x;
+		p->vg.bounding_box.min.y = v[i].y < p->vg.bounding_box.min.y ? v[i].y : p->vg.bounding_box.min.y;
+		p->vg.bounding_box.min.z = v[i].z < p->vg.bounding_box.min.z ? v[i].z : p->vg.bounding_box.min.z;
+		p->vg.bounding_box.max.x = v[i].x > p->vg.bounding_box.max.x ? v[i].x : p->vg.bounding_box.max.x;
+		p->vg.bounding_box.max.y = v[i].y > p->vg.bounding_box.max.y ? v[i].y : p->vg.bounding_box.max.y;
+		p->vg.bounding_box.max.z = v[i].z > p->vg.bounding_box.max.z ? v[i].z : p->vg.bounding_box.max.z;
+		p->vg.bounding_box.center = vec3_scale(vec3_add(p->vg.bounding_box.min, p->vg.bounding_box.max), 0.5);
 		ezarray_push(&p->vg.v, &v[i]);
 		ezarray_push(&p->vg.vt, &vt[i]);
-		/*vn[i] = vec3_fadd(vn[i], 1);
-		vn[i] = vec3_scale(vn[i], 0.5);
-		vn[i] = vec3_scale(vn[i], 255);
-		ezarray_push(&p->vg.vn, &vn);*/
 		unsigned char ub[4];
 		ub[0] = (vn[i].x + 1) * 0.5 * 255;
 		ub[1] = (vn[i].y + 1) * 0.5 * 255;
@@ -353,8 +358,8 @@ int	load_obj(char *path)
 	t_obj_parser	p;
 
 	ft_memset(&p, 0, sizeof(t_obj_parser));
-	p.bbox.min = new_vec3(1000, 1000, 1000);
-	p.bbox.max = new_vec3(-1000, -1000, -1000);
+	p.bbox.min = new_vec3(100000, 100000, 100000);
+	p.bbox.max = new_vec3(-100000, -100000, -100000);
 	p.path_split = split_path(path);
 	p.mtl_pathes = new_ezarray(other, 0, sizeof(STRING));
 	if (start_obj_parsing(&p, path))

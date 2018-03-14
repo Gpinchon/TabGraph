@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/13 00:40:32 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/14 21:47:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,12 @@
 # endif //O_BINARY
 # define MIN(x, y) (x < y ? x : y)
 # define MAX(x, y) (x > y ? x : y)
+# define RENDERTYPE	enum e_rendertype
+
+enum e_rendertype
+{
+	render_all = 0, render_opaque = 1, render_transparent = 2
+};
 
 typedef struct	s_framebuffer
 {
@@ -176,10 +182,18 @@ typedef struct	s_shader
 	ARRAY		attributes;
 }				t_shader;
 
+typedef struct	s_aabb
+{
+	VEC3		min;
+	VEC3		max;
+	VEC3		center;
+}				t_aabb;
+
 typedef struct	s_vgroup
 {
 	ULL			mtl_id;
 	int			mtl_index;
+	t_aabb		bounding_box;
 	ARRAY		v;
 	ARRAY		vn;
 	ARRAY		vt;
@@ -190,13 +204,6 @@ typedef struct	s_vgroup
 	GLuint		vn_bufferid;
 	GLuint		vt_bufferid;
 }				t_vgroup;
-
-typedef struct	s_aabb
-{
-	VEC3		min;
-	VEC3		max;
-	VEC3		center;
-}				t_aabb;
 
 typedef struct	s_mesh
 {
@@ -255,6 +262,7 @@ typedef struct	s_engine
 */
 
 t_engine	*engine_get();
+void		engine_destroy();
 void		engine_init();
 void		engine_load_env();
 void		engine_set_key_callback(SDL_Scancode keycode, kcallback callback);
@@ -326,12 +334,14 @@ int			material_get_texture_stupid(int material_index);
 /*
 ** Mesh functions
 */
+void		mesh_update(int mesh_index);
 void		mesh_rotate(int mesh_index, VEC3 rotation);
 void		mesh_scale(int mesh_index, VEC3 scale);
 void		mesh_translate(int mesh_index, VEC3 position);
 void		mesh_load(int mesh_index);
 void		mesh_center(int mesh_index);
-void		mesh_render(int camera_index, int mesh_index);
+void		mesh_render(int mesh_index, int camera_index, RENDERTYPE type);
+void		mesh_sort_draw(int mesh_index, int camera_index);
 
 /*
 ** Vgroup functions
@@ -346,6 +356,7 @@ void		vgroup_center(int mesh_index, int vgroup_index);
 */
 
 GLuint		texture_get_ogl_id(int texture_index);
+UCHAR		texture_get_bpp(int texture_index);
 int			texture_get_by_name(char *name);
 int			texture_create(VEC2 size, GLenum target, GLenum internal_format, GLenum format);
 void		texture_set_parameters(int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values);
@@ -391,7 +402,14 @@ void		shader_use(int shader_index);
 int			shader_get_uniform_index(int shader_index, char *name);
 int			shader_get_by_name(char *name);
 int			load_shaders(const char *name, const char *vertex_file_path,const char *fragment_file_path);
+
+/*
+** Transform functions
+*/
+
 int			transform_create(VEC3 position, VEC3 rotation, VEC3 scale);
+VEC3		transform_set_position(int transform_index, VEC3 position);
+VEC3		transform_get_position(int transform_index);
 
 /*
 ** Framebuffer functions
