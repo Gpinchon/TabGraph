@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/08 01:46:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/15 14:59:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,7 +100,7 @@ void	shader_bind_texture(int shader_index, int uniform_index, int texture_index,
 {
 	t_texture *texture;
 
-	texture = ezarray_get_index(engine_get()->textures, texture_index);
+	texture = texture_get(texture_index);
 	if (!texture)
 	{
 		shader_unbind_texture(shader_index, texture_unit);
@@ -108,7 +108,7 @@ void	shader_bind_texture(int shader_index, int uniform_index, int texture_index,
 	}
 	shader_use(shader_index);
 	glActiveTexture(texture_unit);
-	glBindTexture(texture->target, texture->id_ogl);
+	glBindTexture(texture->target, texture->glid);
 	texture_unit -= GL_TEXTURE0;
 	shader_set_uniform(shader_index, uniform_index, &texture_unit);
 }

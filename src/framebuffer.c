@@ -77,7 +77,7 @@ int				framebuffer_create(VEC2 size, int shader, int color_attachements, int dep
 		texture_set_parameters(*attachement, 4, 
 			(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 			(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texture_get_ogl_id(*attachement), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texture_get_glid(*attachement), 0);
 		attachements[i] = GL_COLOR_ATTACHMENT0 + i;
 		i++;
 	}
@@ -88,7 +88,7 @@ int				framebuffer_create(VEC2 size, int shader, int color_attachements, int dep
 			(GLenum[4]){GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 			(GLenum[4]){GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
 		glDrawBuffers(color_attachements, attachements);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_get_ogl_id(f.depth), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_get_glid(f.depth), 0);
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	ezarray_push(&engine_get()->framebuffers, &f);

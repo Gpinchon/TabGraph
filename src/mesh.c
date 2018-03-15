@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/14 23:24:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/15 14:54:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	mesh_sort_draw(int mesh_index, int camera_index)
 	{
 		v[0] = ezarray_get_index(m->vgroups, i + 0);
 		v[1] = ezarray_get_index(m->vgroups, i + 1);
-		if (vec3_distance(c->position, mat4_mult_vec3(t, v[0]->bounding_box.center)) <
+		if (vec3_distance(c->position, mat4_mult_vec3(t, v[0]->bounding_box.center)) >
 		vec3_distance(c->position, mat4_mult_vec3(t, v[1]->bounding_box.center)))
 		{
 			t_vgroup temp;

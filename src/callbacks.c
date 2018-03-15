@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/14 18:19:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/15 15:05:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void	callback_background(SDL_Event *event)
 
 	if (event && (event->type == SDL_KEYUP || event->key.repeat))
 		return;
-	b = CYCLE(b + 1, 0, (int)engine_get()->textures_env.length / 2 - 1);
+	b = CYCLE(b + 1, 0, (int)engine_get()->textures_env.length / 2);
 	engine_get()->env = *((int*)ezarray_get_index(
 		engine_get()->textures_env, b * 2 + 0));
 	engine_get()->env_spec = *((int*)ezarray_get_index(

@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/12 11:26:47 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/15 15:52:56 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,7 @@ SRC			=	./src/main.c			\
 				./src/camera.c			\
 				./src/shader.c			\
 				./src/texture.c			\
+				./src/texture1.c		\
 				./src/transform.c		\
 				./src/mesh.c			\
 				./src/vgroup.c			\
@@ -56,7 +57,7 @@ else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW -lft
 endif
 
-CFLAGS		=	-Ofast -Wall -Wextra -Werror $(INCLUDE)
+CFLAGS		=	-Ofast -arch x86_64 -Wall -Wextra -Werror $(INCLUDE)
 
 $(NAME): $(LIBFILES) $(OBJ)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) && ) true

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/14 21:47:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/15 17:54:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@
 
 # define WIDTH		1280
 # define HEIGHT		720
-# define IWIDTH		WIDTH
-# define IHEIGHT	HEIGHT
+# define IWIDTH		1024
+# define IHEIGHT	1024
 # define SHADOWRES	2048
 # define UP			(VEC3){0, 1, 0}
 # define ULL		unsigned long long
@@ -155,7 +155,7 @@ typedef struct	s_material
 typedef struct	s_texture
 {
 	ULL			id;
-	GLuint		id_ogl;
+	GLuint		glid;
 	STRING		name;
 	VEC2		size;
 	char		bpp;
@@ -355,7 +355,9 @@ void		vgroup_center(int mesh_index, int vgroup_index);
 ** Texture functions
 */
 
-GLuint		texture_get_ogl_id(int texture_index);
+t_texture	*texture_get(int texture_index);
+void		texture_get_format(int texture_index, GLenum *format, GLenum *internal_format);
+GLuint		texture_get_glid(int texture_index);
 UCHAR		texture_get_bpp(int texture_index);
 int			texture_get_by_name(char *name);
 int			texture_create(VEC2 size, GLenum target, GLenum internal_format, GLenum format);

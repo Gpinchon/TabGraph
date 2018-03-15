@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/14 22:15:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/15 16:11:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,7 +221,7 @@ static inline void	blur_texture(int texture, int pass, float radius)
 			shader_get_uniform_index(framebuffer_get_shader(blur), "in_Direction"),
 			&direction);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-			texture_get_ogl_id(color0), 0);
+			texture_get_glid(color0), 0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		angle = CYCLE(angle + 90, 0, 270);
 		direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
@@ -231,7 +231,7 @@ static inline void	blur_texture(int texture, int pass, float radius)
 		pass--;
 	}
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-			texture_get_ogl_id(framebuffer_get_attachement(blur, 0)), 0);
+			texture_get_glid(framebuffer_get_attachement(blur, 0)), 0);
 	shader_use(-1);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -327,8 +327,6 @@ int main(int argc, char *argv[])
 		return (0);
 	engine_init();
 	window_init("Scope", WIDTH, HEIGHT);
-	printf("%s\n", glGetString(GL_VERSION));
-	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	load_bmp("./res/stupid.bmp");
 	load_shaders("render", "/src/shaders/render.vert", "/src/shaders/render.frag");
 	load_shaders("default", "/src/shaders/default.vert", "/src/shaders/default.frag");
