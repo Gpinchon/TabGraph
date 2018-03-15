@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/15 17:54:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/15 18:22:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -356,6 +356,7 @@ void		vgroup_center(int mesh_index, int vgroup_index);
 */
 
 t_texture	*texture_get(int texture_index);
+void		texture_resize(int texture_index, VEC2 new_size);
 void		texture_get_format(int texture_index, GLenum *format, GLenum *internal_format);
 GLuint		texture_get_glid(int texture_index);
 UCHAR		texture_get_bpp(int texture_index);

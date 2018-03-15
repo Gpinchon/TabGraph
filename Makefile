@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/15 15:52:56 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/15 18:21:38 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,7 @@ SRC			=	./src/main.c			\
 				./src/shader.c			\
 				./src/texture.c			\
 				./src/texture1.c		\
+				./src/texture2.c		\
 				./src/transform.c		\
 				./src/mesh.c			\
 				./src/vgroup.c			\
