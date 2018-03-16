@@ -30,3 +30,6 @@
 # Debug files
 *.dSYM/
 *.su
+
+# Mac OS trash
+.DS_Store
