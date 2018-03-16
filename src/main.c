@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 17:31:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/16 21:49:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,6 @@ void	scene_render(int camera_index)
 	mesh_index = 0;
 	while (mesh_index < engine_get()->meshes.length)
 	{
-		mesh_sort_draw(mesh_index, camera_index);
 		mesh_render(mesh_index, camera_index, render_transparent);
 		mesh_index++;
 	}

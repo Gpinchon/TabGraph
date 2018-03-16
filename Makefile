@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/16 17:25:27 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/16 21:14:11 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -50,17 +50,17 @@ LIBFILES	=	./libs/ezmem/libezmem.a	\
 				./libs/libft/libft.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
+CFLAGS		=	-Ofast -march=native -Wall -Wextra -Werror $(INCLUDE)
+
 ifeq ($(OS), Windows_NT)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lft -lmingw32 -lSDL2main -lSDL2 -lm -lglew32 -lopengl32
-INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
 else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -L ~/.brew/lib -lSDL2 -lm -lGLEW -lft -framework OpenGL
 INCLUDE		=	-I ~/.brew/include $(addprefix -I, $(INCLUDE_REP))
+CFLAGS		=	-Ofast -arch x86_64 -Wall -Wextra -Werror $(INCLUDE)
 else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW -lft
 endif
-
-CFLAGS		=	-Ofast -arch x86_64 -Wall -Wextra -Werror $(INCLUDE)
 
 $(NAME): $(LIBFILES) $(OBJ)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) && ) true
