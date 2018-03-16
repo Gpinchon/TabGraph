@@ -6,18 +6,20 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/15 18:21:38 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/16 17:25:27 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scope
 SRC			=	./src/main.c			\
 				./src/callbacks.c		\
+				./src/event.c			\
 				./src/window.c			\
 				./src/framebuffer.c		\
 				./src/engine.c			\
 				./src/camera.c			\
 				./src/shader.c			\
+				./src/cubemap.c			\
 				./src/texture.c			\
 				./src/texture1.c		\
 				./src/texture2.c		\

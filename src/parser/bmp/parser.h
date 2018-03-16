@@ -6,13 +6,17 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 14:36:49 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/15 14:37:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/16 17:10:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#ifndef PARSER_H
+# define PARSER_H
+
+# include <scope.h>
 
 # pragma pack(1)
+
 typedef struct	s_bmp_header
 {
 	char		type[2];
@@ -41,7 +45,14 @@ typedef struct	s_bmp_info
 typedef struct	s_bmp_parser
 {
 	int					fd;
+	t_bmp_info			info;
 	t_bmp_header		header;
 	UCHAR				*data;
 	unsigned			size_read;
 }				t_bmp_parser;
+
+/*
+** endif PARSER_H
+*/
+
+#endif

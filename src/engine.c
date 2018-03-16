@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/14 18:15:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/16 17:34:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,15 @@ t_engine *g_engine = NULL;
 /*
 ** engine is a singleton
 */
-inline t_engine	*engine_get()
+
+inline t_engine	*engine_get(void)
 {
 	if (!g_engine)
 		g_engine = ft_memalloc(sizeof(t_engine));
 	return (g_engine);
 }
 
-void	engine_init()
+void			engine_init(void)
 {
 	t_engine	*engine;
 
@@ -38,7 +39,8 @@ void	engine_init()
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MSAA);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+		SDL_GL_CONTEXT_PROFILE_CORE);
 	engine->cameras = new_ezarray(other, 0, sizeof(t_camera));
 	engine->shaders = new_ezarray(other, 0, sizeof(t_shader));
 	engine->textures = new_ezarray(other, 0, sizeof(t_texture));
@@ -53,7 +55,7 @@ void	engine_init()
 	engine->program_path = convert_backslash(getcwd(NULL, 4096));
 }
 
-void	engine_destroy()
+void			engine_destroy(void)
 {
 	t_engine *engine;
 
@@ -71,54 +73,37 @@ void	engine_destroy()
 	g_engine = NULL;
 }
 
-void	load_side(int texture_index, char *path, GLenum side)
+void			engine_load_env(void)
 {
-	texture_assign(load_bmp(path), texture_index, side);
-	free(path);
-}
-
-int	load_cubemap(char *path, char *name)
-{
-	int	t;
-	t = texture_create(new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
-	load_side(t, ft_strjoinfreebool(path, ft_strjoin(name, "/X+.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-	load_side(t, ft_strjoinfreebool(path, ft_strjoin(name, "/X-.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-	load_side(t, ft_strjoinfreebool(path, ft_strjoin(name, "/Y-.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-	load_side(t, ft_strjoinfreebool(path, ft_strjoin(name, "/Y+.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-	load_side(t, ft_strjoinfreebool(path, ft_strjoin(name, "/Z+.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-	load_side(t, ft_strjoinfreebool(path, ft_strjoin(name, "/Z-.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
-	texture_generate_mipmap(t);
-	return (t);
-}
-
-void engine_load_env()
-{
-	int		t;
-	DIR		*dir;
-	struct	dirent *e;
+	int				t;
+	DIR				*dir;
+	struct dirent	*e;
+	char			*b;
 
 	dir = opendir("./res/skybox");
 	while ((e = readdir(dir)))
 	{
 		if (e->d_name[0] == '.')
 			continue;
-		t = load_cubemap("./res/skybox/", e->d_name);
+		t = cubemap_load("./res/skybox/", e->d_name);
 		ezarray_push(&engine_get()->textures_env, &t);
-		t = texture_create(new_vec2(0, 0), GL_TEXTURE_CUBE_MAP, 0, 0);
-		load_side(t, ft_strjoinfreebool("./res/skybox/", ft_strjoin(e->d_name, "/X+_spec.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-		load_side(t, ft_strjoinfreebool("./res/skybox/", ft_strjoin(e->d_name, "/X-_spec.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-		load_side(t, ft_strjoinfreebool("./res/skybox/", ft_strjoin(e->d_name, "/Y-_spec.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-		load_side(t, ft_strjoinfreebool("./res/skybox/", ft_strjoin(e->d_name, "/Y+_spec.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-		load_side(t, ft_strjoinfreebool("./res/skybox/", ft_strjoin(e->d_name, "/Z+_spec.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-		load_side(t, ft_strjoinfreebool("./res/skybox/", ft_strjoin(e->d_name, "/Z-_spec.bmp"), 0, 1), GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
-		texture_generate_mipmap(t);
+		b = ft_strjoin(e->d_name, "/light");
+		t = cubemap_load("./res/skybox/", b);
+		free(b);
 		ezarray_push(&engine_get()->textures_env, &t);
 	}
-	engine_get()->env = *((int*)ezarray_get_index(engine_get()->textures_env, 0));
-	engine_get()->env_spec = *((int*)ezarray_get_index(engine_get()->textures_env, 1));
+	engine_get()->env = *((int*)ezarray_get_index(
+		engine_get()->textures_env, 0));
+	engine_get()->env_spec = *((int*)ezarray_get_index(
+		engine_get()->textures_env, 1));
 }
 
-void	engine_set_key_callback(SDL_Scancode keycode, kcallback callback)
+void			set_key_callback(SDL_Scancode key, kcallback callback)
 {
-	engine_get()->kcallbacks[keycode] = callback;
+	engine_get()->kcallbacks[key] = callback;
+}
+
+void			set_refresh_callback(kcallback callback)
+{
+	engine_get()->rcallback = callback;
 }

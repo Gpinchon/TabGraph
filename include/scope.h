@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/15 18:22:32 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/16 17:34:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -252,10 +252,9 @@ typedef struct	s_engine
 	float		stupidity;
 	float		new_stupidity;
 	kcallback	kcallbacks[285];
+	kcallback	rcallback;
 	char		*program_path;
 }				t_engine;
-
-//extern t_engine	*g_engine;
 
 /*
 ** Engine functions
@@ -265,7 +264,8 @@ t_engine	*engine_get();
 void		engine_destroy();
 void		engine_init();
 void		engine_load_env();
-void		engine_set_key_callback(SDL_Scancode keycode, kcallback callback);
+void		set_key_callback(SDL_Scancode keycode, kcallback callback);
+void		set_refresh_callback(kcallback callback);
 
 /*
 ** Window functions
@@ -274,6 +274,20 @@ void		engine_set_key_callback(SDL_Scancode keycode, kcallback callback);
 t_window	*window_get();
 void		window_init(const char *name, int width, int height);
 void		window_fullscreen(char fullscreen);
+
+/*
+** Event functions
+*/
+void		event_window(SDL_Event *event);
+void		event_keyboard(SDL_Event *event);
+int 		event_callback(void *e, SDL_Event *event);
+int			event_refresh(void);
+
+/*
+** Cubemap functions
+*/
+void		cubemap_load_side(int texture_index, char *path, GLenum side);
+int			cubemap_load(char *path, char *n);
 
 /*
 ** Camera functions
@@ -428,6 +442,7 @@ int				framebuffer_create(VEC2 size, int shader, int color_attachements, int dep
 ** Callback functions
 */
 
+void	callback_refresh(SDL_Event *event);
 void	callback_scale(SDL_Event *event);
 void	callback_stupidity(SDL_Event *event);
 void	callback_background(SDL_Event *event);

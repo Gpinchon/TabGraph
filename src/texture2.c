@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 18:20:54 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/15 18:21:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/16 15:26:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,22 @@ VEC4	texture_texelfetch(int texture_index, VEC2 uv)
 		i++;
 	}
 	return (value);
+}
+
+void	texture_set_parameters(int ti, int p_nbr, GLenum *p, GLenum *v)
+{
+	t_texture *texture;
+
+	texture = texture_get(ti);
+	if (!texture)
+		return ;
+	glBindTexture(texture->target, texture->glid);
+	while (p_nbr > 0)
+	{
+		glTexParameteri(texture->target, p[p_nbr - 1], v[p_nbr - 1]);
+		p_nbr--;
+	}
+	glBindTexture(texture->target, 0);
 }
 
 VEC4	texture_sample(int texture_index, VEC2 uv)

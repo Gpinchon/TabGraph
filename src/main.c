@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/15 16:11:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/16 17:31:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,59 +62,6 @@ void	scene_render(int camera_index)
 		mesh_render(mesh_index, camera_index, render_transparent);
 		mesh_index++;
 	}
-}
-
-void	event_window(SDL_Event *event)
-{
-	if (event->window.event == SDL_WINDOWEVENT_CLOSE)
-		engine_get()->loop = 0;
-}
-
-void	event_keyboard(SDL_Event *event)
-{
-	if (engine_get()->kcallbacks[event->key.keysym.scancode])
-		engine_get()->kcallbacks[event->key.keysym.scancode](event);
-}
-
-int 	event_callback(void *e, SDL_Event *event)
-{
-	t_engine *engine;
-
-	engine = e;
-	if (event->type == SDL_QUIT)
-		engine->loop = 0;
-	else if (event->type == SDL_WINDOWEVENT)
-		event_window(event);
-	else if (event->type == SDL_KEYUP
-		|| event->type == SDL_KEYDOWN)
-		event_keyboard(event);
-	return (0);
-}
-
-int		event_refresh()
-{
-	t_material		*m;
-	int				i;
-	static VEC3	rotation = (VEC3){0, 0, 0};
-
-	static float val = 0;
-	if (engine_get()->stupidity != engine_get()->new_stupidity)
-	{
-		val = CLAMP(val + 0.1, 0, 1);
-		engine_get()->stupidity = interp_cubic(!engine_get()->new_stupidity, engine_get()->new_stupidity, val);
-		i = 0;
-		while ((m = ezarray_get_index(engine_get()->materials, i)))
-		{
-			m->data.stupidity = engine_get()->stupidity;
-			i++;
-		}
-	}
-	else
-		val = 0;
-	rotation.y = CYCLE(rotation.y + 0.1 * engine_get()->delta_time, 0, 2 * M_PI);
-	callback_camera(NULL);
-	mesh_rotate(0, rotation);
-	return (0);
 }
 
 FRUSTUM	full_scene_frustum()
@@ -339,12 +286,13 @@ int main(int argc, char *argv[])
 	int camera = camera_create(45);
 	camera_set_target(camera, transform_create(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera_orbite(camera, M_PI / 2.f, M_PI / 2.f, 5.f);
-	engine_set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
-	engine_set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
-	engine_set_key_callback(SDL_SCANCODE_SPACE, callback_background);
-	engine_set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
-	engine_set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
-	engine_set_key_callback(SDL_SCANCODE_S, callback_stupidity);
+	set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
+	set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
+	set_key_callback(SDL_SCANCODE_SPACE, callback_background);
+	set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
+	set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
+	set_key_callback(SDL_SCANCODE_S, callback_stupidity);
+	set_refresh_callback(callback_refresh);
 	mesh_load(obj);
 	main_loop();
 	SDL_Quit();

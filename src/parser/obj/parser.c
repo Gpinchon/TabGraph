@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/14 17:49:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/16 17:46:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,7 @@ t_vgroup	new_vgroup()
 	vg.bounding_box.min = new_vec3(100000, 100000, 100000);
 	vg.bounding_box.max = new_vec3(-100000, -100000, -100000);
 	vg.v = new_ezarray(other, 0, sizeof(VEC3));
-	vg.vn = new_ezarray(other, 0, 4);
-	//vg.vn = new_ezarray(other, 0, sizeof(VEC3));
+	vg.vn = new_ezarray(other, 0, 4 * sizeof(UCHAR));
 	vg.vt = new_ezarray(other, 0, sizeof(VEC2));
 	vg.uvmin = new_vec2(0, 0);
 	vg.uvmax = new_vec2(1, 1);
@@ -310,7 +309,10 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 		ft_free_chartab(split);
 		free(line);
 	}
-	parse_vg(p, split);
+	if (p->vg.v.length)
+		parse_vg(p, split);
+	else
+		return (-1);
 	destroy_ezarray(&p->v);
 	destroy_ezarray(&p->vn);
 	destroy_ezarray(&p->vt);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 15:11:03 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/15 18:20:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/16 15:26:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ t_texture	*texture_get(int texture_index)
 	return (ezarray_get_index(engine_get()->textures, texture_index));
 }
 
-void	texture_get_format(int ti, GLenum *format, GLenum *internal_format)
+void		texture_get_format(int ti, GLenum *format, GLenum *internal_format)
 {
 	t_texture	*texture;
 
@@ -78,20 +78,4 @@ int			texture_get_by_name(char *name)
 		i++;
 	}
 	return (-1);
-}
-
-void	texture_set_parameters(int ti, int p_nbr, GLenum *p, GLenum *v)
-{
-	t_texture *texture;
-
-	texture = texture_get(ti);
-	if (!texture)
-		return ;
-	glBindTexture(texture->target, texture->glid);
-	while (p_nbr > 0)
-	{
-		glTexParameteri(texture->target, p[p_nbr - 1], v[p_nbr - 1]);
-		p_nbr--;
-	}
-	glBindTexture(texture->target, 0);
 }

@@ -6,69 +6,76 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/15 14:38:03 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/16 17:17:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser.h"
 
-void			convert_bmp(t_bmp_parser *bmp_parser, t_bmp_info *bmp_info)
+void	convert_bmp(t_bmp_parser *parser)
 {
-	UCHAR	*pixel_temp = (UCHAR*)calloc(bmp_parser->header.size, sizeof(UCHAR));
-	UCHAR	a, b, g, r;
-	int		i = 0, x, y;
+	unsigned char	*pixel_temp;
+	unsigned char	rgba[4];
+	int				i[3];
 
-	for (y = 0; y < bmp_info->height; y++)
+	pixel_temp = ft_memalloc(parser->header.size * sizeof(unsigned char));
+	i[0] = 0;
+	i[1] = -1;
+	while (++i[1] < parser->info.width)
 	{
-		for(x = 0; x < bmp_info->width; x++)
+		i[2] = -1;
+		while (++i[2] < parser->info.height)
 		{
-			r = bmp_parser->data[i + 1];
-			g = bmp_parser->data[i + 2];
-			b = bmp_parser->data[i + 3];
-			pixel_temp[i + 0] = r;
-			pixel_temp[i + 1] = g;
-			pixel_temp[i + 2] = b;
-			if (bmp_info->bpp == 32)
-			{
-				a = bmp_parser->data[i];
-				pixel_temp[i + 3] = a;
-			}
-			i += (bmp_info->bpp / 8);
+			rgba[0] = parser->data[i[0] + 1];
+			rgba[1] = parser->data[i[0] + 2];
+			rgba[2] = parser->data[i[0] + 3];
+			rgba[3] = parser->data[i[0] + 0];
+			pixel_temp[i[0] + 0] = rgba[0];
+			pixel_temp[i[0] + 1] = rgba[1];
+			pixel_temp[i[0] + 2] = rgba[2];
+			pixel_temp[i[0] + 3] = rgba[3];
+			i[0] += (parser->info.bpp / 8);
 		}
 	}
-    free(bmp_parser->data);
-    bmp_parser->data = pixel_temp;
+	free(parser->data);
+	parser->data = pixel_temp;
 }
 
-int			load_bmp(const char *imagepath)
+int		read_data(t_bmp_parser *p, const char *imagepath)
+{
+	if ((p->fd = open(imagepath, O_RDONLY | O_BINARY)) <= 0)
+		return (-1);
+	if (read(p->fd, &p->header, sizeof(p->header)) != sizeof(p->header)
+	|| read(p->fd, &p->info, sizeof(p->info)) != sizeof(p->info))
+	{
+		close(p->fd);
+		return (-1);
+	}
+	lseek(p->fd, p->header.data_offset, SEEK_SET);
+	p->data = (unsigned char*)ft_memalloc(p->info.size * sizeof(UCHAR));
+	p->size_read = read(p->fd, p->data, p->info.size);
+	close(p->fd);
+	if (p->info.bpp == 32)
+		convert_bmp(p);
+	return (0);
+}
+
+int		load_bmp(const char *imagepath)
 {
 	t_bmp_parser	parser;
-	t_bmp_info		bmp_info;
 	t_texture		texture;
 
 	if (access(imagepath, F_OK | R_OK))
 		return (-1);
-	if ((parser.fd = open(imagepath, O_RDONLY | O_BINARY)) <= 0)
-		return(-1);
-	if (read(parser.fd, &parser.header, sizeof(t_bmp_header)) != sizeof(t_bmp_header)
-	|| read(parser.fd, &bmp_info, sizeof(bmp_info)) != sizeof(bmp_info))
-	{
-		close(parser.fd);
-		return(-1);
-	}
-	lseek(parser.fd, parser.header.data_offset, SEEK_SET);
-	parser.data = (UCHAR*)ft_memalloc(bmp_info.size * sizeof(UCHAR));
-	parser.size_read = read(parser.fd, parser.data, bmp_info.size);
-	close(parser.fd);
-	if (bmp_info.bpp == 32)
-		convert_bmp(&parser, &bmp_info);
+	if (read_data(&parser, imagepath) == -1)
+		return (-1);
 	ft_memset(&texture, 0, sizeof(t_texture));
 	texture.target = GL_TEXTURE_2D;
 	texture.name = new_ezstring(imagepath);
 	texture.id = hash((unsigned char*)imagepath);
-	texture.size.x = bmp_info.width;
-	texture.size.y = bmp_info.height;
-	texture.bpp = bmp_info.bpp;
+	texture.size.x = parser.info.width;
+	texture.size.y = parser.info.height;
+	texture.bpp = parser.info.bpp;
 	texture.data = parser.data;
 	ezarray_push(&engine_get()->textures, &texture);
 	return (engine_get()->textures.length - 1);
