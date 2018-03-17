@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/15 14:59:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 16:55:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,98 @@ int		shader_get_by_name(char *name)
 		i++;
 	}
 	return (0);
+}
+
+inline void	shader_set_int(int shader_index, int uniform_index, int value)
+{
+	t_shadervariable	*v;
+	t_shader			*shader;
+
+	shader_use(shader_index);
+	shader = ezarray_get_index(engine_get()->shaders, shader_index);
+	if (!shader)
+		return ;
+	v = ezarray_get_index(shader->uniforms, uniform_index);
+	if (!v ||
+	!(v->type == GL_INT || v->type == GL_BOOL || v->type == GL_SAMPLER_2D
+	|| v->type == GL_SAMPLER_CUBE || v->type == GL_SAMPLER_2D_SHADOW))
+		return ;
+	glUniform1i(v->loc, value);
+}
+
+inline void	shader_set_uint(int shader_index, int uniform_index, unsigned value)
+{
+	t_shadervariable	*variable;
+	t_shader			*shader;
+
+	shader_use(shader_index);
+	shader = ezarray_get_index(engine_get()->shaders, shader_index);
+	if (!shader)
+		return ;
+	variable = ezarray_get_index(shader->uniforms, uniform_index);
+	if (!variable || variable->type != GL_UNSIGNED_INT)
+		return ;
+	glUniform1ui(variable->loc, value);
+}
+
+inline void	shader_set_float(int shader_index, int uniform_index, float value)
+{
+	t_shadervariable	*variable;
+	t_shader			*shader;
+
+	shader_use(shader_index);
+	shader = ezarray_get_index(engine_get()->shaders, shader_index);
+	if (!shader)
+		return ;
+	variable = ezarray_get_index(shader->uniforms, uniform_index);
+	if (!variable || variable->type != GL_FLOAT)
+		return ;
+	glUniform1f(variable->loc, value);
+}
+
+inline void	shader_set_vec2(int shader_index, int uniform_index, VEC2 value)
+{
+	t_shadervariable	*variable;
+	t_shader			*shader;
+
+	shader_use(shader_index);
+	shader = ezarray_get_index(engine_get()->shaders, shader_index);
+	if (!shader)
+		return ;
+	variable = ezarray_get_index(shader->uniforms, uniform_index);
+	if (!variable || variable->type != GL_FLOAT_VEC2)
+		return ;
+	glUniform2f(variable->loc, value.x, value.y);
+}
+
+inline void	shader_set_vec3(int shader_index, int uniform_index, VEC3 value)
+{
+	t_shadervariable	*variable;
+	t_shader			*shader;
+
+	shader_use(shader_index);
+	shader = ezarray_get_index(engine_get()->shaders, shader_index);
+	if (!shader)
+		return ;
+	variable = ezarray_get_index(shader->uniforms, uniform_index);
+	if (!variable || variable->type != GL_FLOAT_VEC3)
+		return ;
+	glUniform3f(variable->loc, value.x, value.y, value.z);
+}
+
+inline void	shader_set_mat4(int shader_index, int uniform_index, MAT4 value)
+{
+	t_shadervariable	*variable;
+	t_shader			*shader;
+
+	shader_use(shader_index);
+	shader = ezarray_get_index(engine_get()->shaders, shader_index);
+	if (!shader)
+		return ;
+	variable = ezarray_get_index(shader->uniforms, uniform_index);
+	if (!variable || variable->type != GL_FLOAT_MAT4)
+		return ;
+	glUniformMatrix4fv(variable->loc, 1, GL_FALSE, (float*)&value);
 }
 
 void	shader_set_uniform(int shader_index, int uniform_index, void *value)

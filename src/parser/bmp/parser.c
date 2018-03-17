@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 17:17:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 16:25:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser.h"
 
-void	convert_bmp(t_bmp_parser *parser)
+static void	convert_bmp(t_bmp_parser *parser)
 {
 	unsigned char	*pixel_temp;
 	unsigned char	rgba[4];
@@ -41,7 +41,7 @@ void	convert_bmp(t_bmp_parser *parser)
 	parser->data = pixel_temp;
 }
 
-int		read_data(t_bmp_parser *p, const char *imagepath)
+static int	read_data(t_bmp_parser *p, const char *imagepath)
 {
 	if ((p->fd = open(imagepath, O_RDONLY | O_BINARY)) <= 0)
 		return (-1);
@@ -60,7 +60,26 @@ int		read_data(t_bmp_parser *p, const char *imagepath)
 	return (0);
 }
 
-int		load_bmp(const char *imagepath)
+static void	get_format(t_texture *texture)
+{
+	if (texture->bpp == 8)
+	{
+		texture->format = GL_RED;
+		texture->internal_format = GL_COMPRESSED_RED;
+	}
+	else if (texture->bpp == 24)
+	{
+		texture->format = GL_BGR;
+		texture->internal_format = GL_COMPRESSED_RGB;
+	}
+	else if (texture->bpp == 32)
+	{
+		texture->format = GL_BGRA;
+		texture->internal_format = GL_COMPRESSED_RGBA;
+	}
+}
+
+int			load_bmp(const char *imagepath)
 {
 	t_bmp_parser	parser;
 	t_texture		texture;
@@ -77,6 +96,7 @@ int		load_bmp(const char *imagepath)
 	texture.size.y = parser.info.height;
 	texture.bpp = parser.info.bpp;
 	texture.data = parser.data;
+	get_format(&texture);
 	ezarray_push(&engine_get()->textures, &texture);
 	return (engine_get()->textures.length - 1);
 }

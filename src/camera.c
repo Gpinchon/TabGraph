@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/12 19:51:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 16:29:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,26 +22,6 @@ int		camera_get_target_index(int camera_index)
 	return (camera->target_index);
 }
 
-void	camera_set_target(int camera_index, int transform_index)
-{
-	t_camera	*camera;
-
-	camera = ezarray_get_index(engine_get()->cameras, camera_index);
-	if (!camera)
-		return ;
-	camera->target_index = transform_index;
-}
-
-void	camera_set_position(int camera_index, VEC3 position)
-{
-	t_camera	*camera;
-
-	camera = ezarray_get_index(engine_get()->cameras, camera_index);
-	if (!camera)
-		return;
-	camera->position = position;
-}
-
 int		camera_create(float fov)
 {
 	t_camera	camera;
@@ -53,13 +33,13 @@ int		camera_create(float fov)
 	return (engine_get()->cameras.length - 1);
 }
 
-
 void	camera_orbite(int camera_index, float phi, float theta, float radius)
 {
-	VEC3	target_position;
-	VEC3	new_position;
+	VEC3		target_position;
+	VEC3		new_position;
+	t_transform	*target;
 
-	t_transform *target = ezarray_get_index(engine_get()->transforms,
+	target = ezarray_get_index(engine_get()->transforms,
 		camera_get_target_index(camera_index));
 	if (target)
 		target_position = target->position;
@@ -77,7 +57,7 @@ void	camera_update(int camera_index)
 	VEC3		target;
 	t_camera	*c;
 	int			size[2];
-	
+
 	c = ezarray_get_index(engine_get()->cameras, camera_index);
 	if (!c)
 		return ;

@@ -6,24 +6,28 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/15 18:21:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 16:11:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
 
-int		texture_create(VEC2 s, GLenum target, GLenum fi, GLenum f)
+int		texture_create(VEC2 s, GLenum target, GLenum f, GLenum fi)
 {
 	t_texture	t;
 
 	ft_memset(&t, 0, sizeof(t_texture));
 	t.target = target;
+	t.format = f;
+	t.internal_format = fi;
 	glGenTextures(1, &t.glid);
 	glBindTexture(t.target, t.glid);
 	if (s.x > 0 && s.y > 0)
 		glTexImage2D(GL_TEXTURE_2D, 0, fi, s.x, s.y, 0, f, GL_FLOAT, NULL);
 	if (f == GL_RGB)
 		glTexParameteri(t.target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	glTexParameteri(t.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(t.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(t.target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 	glBindTexture(t.target, 0);
 	ezarray_push(&engine_get()->textures, &t);
@@ -64,9 +68,6 @@ void	texture_load(int ti)
 		MIN(t->size.y, MAXTEXRES)));
 	glGenTextures(1, &t->glid);
 	glBindTexture(t->target, t->glid);
-	glTexParameteri(t->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(t->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameterf(t->target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 	if (t->bpp < 32)
 		glTexParameteri(t->target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	glTexImage2D(t->target, 0, internal_format, t->size.x, t->size.y, 0,

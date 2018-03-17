@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/12 11:25:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 14:52:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,15 @@ t_window		*window_get()
 	if (!window)
 		window = ft_memalloc(sizeof(t_window));
 	return (window);
+}
+
+VEC2		window_get_size()
+{
+	int	w;
+	int	h;
+
+	SDL_GetWindowSize(window_get()->sdl_window, &w, &h);
+	return (new_vec2(w, h));
 }
 
 void		window_fullscreen(char fullscreen)

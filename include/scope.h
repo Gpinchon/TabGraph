@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 17:34:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 16:49:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,6 +160,8 @@ typedef struct	s_texture
 	VEC2		size;
 	char		bpp;
 	GLenum		target;
+	GLenum		format;
+	GLenum		internal_format;
 	UCHAR		*data;
 	BOOL		loaded;
 }				t_texture;
@@ -272,6 +274,7 @@ void		set_refresh_callback(kcallback callback);
 */
 
 t_window	*window_get();
+VEC2		window_get_size();
 void		window_init(const char *name, int width, int height);
 void		window_fullscreen(char fullscreen);
 
@@ -375,7 +378,7 @@ void		texture_get_format(int texture_index, GLenum *format, GLenum *internal_for
 GLuint		texture_get_glid(int texture_index);
 UCHAR		texture_get_bpp(int texture_index);
 int			texture_get_by_name(char *name);
-int			texture_create(VEC2 size, GLenum target, GLenum internal_format, GLenum format);
+int			texture_create(VEC2 size, GLenum target, GLenum format, GLenum internal_format);
 void		texture_set_parameters(int texture_index, int parameter_nbr, GLenum *parameters, GLenum *values);
 void		texture_assign(int texture_index, int dest_texture_index, GLenum target);
 void		texture_load(int texture_index);
@@ -415,6 +418,12 @@ int			load_bmp(const char *imagepath);
 void		shader_bind_texture(int shader_index, int uniform_index, int texture_index, GLenum texture_unit);
 void		shader_unbind_texture(int shader_index, GLenum texture_unit);
 void		shader_set_uniform(int shader_index, int uniform_index, void *value);
+void		shader_set_int(int shader_index, int uniform_index, int value);
+void		shader_set_uint(int shader_index, int uniform_index, unsigned value);
+void		shader_set_float(int shader_index, int uniform_index, float value);
+void		shader_set_vec2(int shader_index, int uniform_index, VEC2 value);
+void		shader_set_vec3(int shader_index, int uniform_index, VEC3 value);
+void		shader_set_mat4(int shader_index, int uniform_index, MAT4 value);
 void		shader_use(int shader_index);
 int			shader_get_uniform_index(int shader_index, char *name);
 int			shader_get_by_name(char *name);

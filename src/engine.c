@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 17:34:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 16:30:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,14 +96,4 @@ void			engine_load_env(void)
 		engine_get()->textures_env, 0));
 	engine_get()->env_spec = *((int*)ezarray_get_index(
 		engine_get()->textures_env, 1));
-}
-
-void			set_key_callback(SDL_Scancode key, kcallback callback)
-{
-	engine_get()->kcallbacks[key] = callback;
-}
-
-void			set_refresh_callback(kcallback callback)
-{
-	engine_get()->rcallback = callback;
 }

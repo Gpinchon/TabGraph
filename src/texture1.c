@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 15:11:03 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 15:26:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 15:37:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,21 +26,8 @@ void		texture_get_format(int ti, GLenum *format, GLenum *internal_format)
 	*internal_format = 0;
 	if (!texture)
 		return ;
-	if (texture->bpp == 8)
-	{
-		*format = GL_RED;
-		*internal_format = GL_COMPRESSED_RED;
-	}
-	else if (texture->bpp == 24)
-	{
-		*format = GL_BGR;
-		*internal_format = GL_COMPRESSED_RGB;
-	}
-	else if (texture->bpp == 32)
-	{
-		*format = GL_BGRA;
-		*internal_format = GL_COMPRESSED_RGBA;
-	}
+	*format = texture->format;
+	*internal_format = texture->internal_format;
 }
 
 UCHAR		texture_get_bpp(int texture_index)

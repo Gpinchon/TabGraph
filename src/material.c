@@ -6,195 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/09 16:16:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 17:01:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
-
-VEC3	material_get_albedo(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (new_vec3(0, 0, 0));
-	return (mtl->data.albedo);
-}
-
-VEC3	material_get_specular(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (new_vec3(0, 0, 0));
-	return (mtl->data.specular);
-}
-
-VEC3	material_get_emitting(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (new_vec3(0, 0, 0));
-	return (mtl->data.emitting);
-}
-
-VEC2	material_get_uv_scale(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return new_vec2(0, 0);
-	return (mtl->data.uv_scale);
-}
-
-float	material_get_roughness(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (0);
-	return (mtl->data.roughness);
-}
-
-float	material_get_metallic(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (0);
-	return (mtl->data.metallic);
-}
-
-float	material_get_alpha(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (0);
-	return (mtl->data.alpha);
-}
-
-float	material_get_parallax(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (0);
-	return (mtl->data.parallax);
-}
-
-float	material_get_stupidity(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (0);
-	return (mtl->data.stupidity);
-}
-
-int		material_get_texture_albedo(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (-1);
-	return (mtl->data.texture_albedo);
-}
-
-int		material_get_texture_specular(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (-1);
-	return(-1);
-	//return (mtl->data.texture_specular);
-}
-
-int		material_get_texture_roughness(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (-1);
-	return (mtl->data.texture_roughness);
-}
-
-int		material_get_texture_metallic(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (-1);
-	return (mtl->data.texture_metallic);
-}
-
-int		material_get_texture_emitting(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (-1);
-	return (mtl->data.texture_emitting);
-}
-
-int		material_get_texture_normal(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (-1);
-	return (mtl->data.texture_normal);
-}
-
-int		material_get_texture_height(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (-1);
-	return (mtl->data.texture_height);
-}
-
-int		material_get_texture_ao(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (-1);
-	return(-1);
-	//return (mtl->data.texture_ao);
-}
-
-int		material_get_texture_stupid(int material_index)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return (-1);
-	return (mtl->data.texture_stupid);
-}
-
-
 
 void	material_set_albedo(int material_index, VEC3 value)
 {
@@ -202,7 +18,7 @@ void	material_set_albedo(int material_index, VEC3 value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.albedo = value;
 }
 
@@ -212,7 +28,7 @@ void	material_set_specular(int material_index, VEC3 value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.specular = value;
 }
 
@@ -222,7 +38,7 @@ void	material_set_emitting(int material_index, VEC3 value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.emitting = value;
 }
 
@@ -232,7 +48,7 @@ void	material_set_uv_scale(int material_index, VEC2 value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.uv_scale = value;
 }
 
@@ -242,7 +58,7 @@ void	material_set_roughness(int material_index, float value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.roughness = value;
 }
 
@@ -252,7 +68,7 @@ void	material_set_metallic(int material_index, float value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.metallic = value;
 }
 
@@ -262,7 +78,7 @@ void	material_set_alpha(int material_index, float value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.alpha = value;
 }
 
@@ -272,7 +88,7 @@ void	material_set_parallax(int material_index, float value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.parallax = value;
 }
 
@@ -282,7 +98,7 @@ void	material_set_stupidity(int material_index, float value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.stupidity = value;
 }
 
@@ -292,7 +108,7 @@ void		material_set_texture_albedo(int material_index, int value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.texture_albedo = value;
 }
 
@@ -302,7 +118,7 @@ void		material_set_texture_specular(int material_index, int value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.texture_specular = value;
 
 }
@@ -313,7 +129,7 @@ void		material_set_texture_roughness(int material_index, int value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.texture_roughness = value;
 }
 
@@ -323,7 +139,7 @@ void		material_set_texture_metallic(int material_index, int value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.texture_metallic = value;
 }
 
@@ -333,7 +149,7 @@ void		material_set_texture_emitting(int material_index, int value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.texture_emitting = value;
 }
 
@@ -343,7 +159,7 @@ void		material_set_texture_normal(int material_index, int value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.texture_normal = value;
 }
 
@@ -353,7 +169,7 @@ void		material_set_texture_height(int material_index, int value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.texture_height = value;
 }
 
@@ -363,7 +179,7 @@ void		material_set_texture_ao(int material_index, int value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.texture_ao = value;
 }
 
@@ -373,7 +189,7 @@ void		material_set_texture_stupid(int material_index, int value)
 
 	mtl = ezarray_get_index(engine_get()->materials, material_index);
 	if (!mtl)
-		return;
+		return ;
 	mtl->data.texture_stupid = value;
 }
 
@@ -407,7 +223,7 @@ void	material_assign_shader(int material_index, int shader_index)
 	shader = ezarray_get_index(engine_get()->shaders, shader_index);
 	material = ezarray_get_index(engine_get()->materials, material_index);
 	if (!material || !shader)
-		return;
+		return ;
 	material->shader_index = shader_index;
 	material->in_campos = shader_get_uniform_index(shader_index, "in_CamPos");
 	material->in_transform = shader_get_uniform_index(shader_index, "in_Transform");
@@ -508,18 +324,16 @@ void	material_set_uniforms(int material_index)
 
 	material = ezarray_get_index(engine_get()->materials, material_index);
 	if (!material)
-		return;
+		return ;
 	material_bind_textures(material_index);
-	shader_set_uniform(material->shader_index, material->in_albedo, &material->data.albedo);
-	shader_set_uniform(material->shader_index, material->in_specular, &material->data.specular);
-	//printf("%f, %f, %f\n", material->data.specular.x, material->data.specular.y, material->data.specular.z);
-	shader_set_uniform(material->shader_index, material->in_emitting, &material->data.emitting);
-	shader_set_uniform(material->shader_index, material->in_alpha, &material->data.alpha);
-	shader_set_uniform(material->shader_index, material->in_roughness, &material->data.roughness);
-	shader_set_uniform(material->shader_index, material->in_metallic, &material->data.metallic);
-	shader_set_uniform(material->shader_index, material->in_alpha, &material->data.alpha);
-	shader_set_uniform(material->shader_index, material->in_parallax, &material->data.parallax);
-	shader_set_uniform(material->shader_index, material->in_stupidity, &material->data.stupidity);
+	shader_set_vec3(material->shader_index, material->in_albedo, material->data.albedo);
+	shader_set_vec3(material->shader_index, material->in_specular, material->data.specular);
+	shader_set_vec3(material->shader_index, material->in_emitting, material->data.emitting);
+	shader_set_float(material->shader_index, material->in_alpha, material->data.alpha);
+	shader_set_float(material->shader_index, material->in_roughness, material->data.roughness);
+	shader_set_float(material->shader_index, material->in_metallic, material->data.metallic);
+	shader_set_float(material->shader_index, material->in_parallax, material->data.parallax);
+	shader_set_float(material->shader_index, material->in_stupidity, material->data.stupidity);
 }
 
 void	material_load_textures(int material_index)

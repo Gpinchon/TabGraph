@@ -6,18 +6,21 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/16 21:14:11 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/17 16:37:33 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scope
 SRC			=	./src/main.c			\
 				./src/callbacks.c		\
+				./src/callbacks1.c		\
 				./src/event.c			\
 				./src/window.c			\
 				./src/framebuffer.c		\
+				./src/framebuffer1.c	\
 				./src/engine.c			\
 				./src/camera.c			\
+				./src/camera1.c			\
 				./src/shader.c			\
 				./src/cubemap.c			\
 				./src/texture.c			\
@@ -27,6 +30,10 @@ SRC			=	./src/main.c			\
 				./src/mesh.c			\
 				./src/vgroup.c			\
 				./src/material.c		\
+				./src/material_get.c	\
+				./src/material_get1.c	\
+				./src/material_get2.c	\
+				./src/material_get3.c	\
 				./src/parser/tools.c	\
 				./src/parser/obj/parser.c	\
 				./src/parser/bmp/parser.c	\
