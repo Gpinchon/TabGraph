@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 17:01:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 17:11:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -310,7 +310,7 @@ void	material_bind_textures(int material_index)
 	{
 		shader_bind_texture(material->shader_index, shader_textures[i * 2 + 0], textures[i], GL_TEXTURE0 + i);
 		use_texture = textures[i] == -1 ? 0 : 1;
-		shader_set_uniform(material->shader_index, shader_textures[i * 2 + 1], &use_texture);
+		shader_set_int(material->shader_index, shader_textures[i * 2 + 1], use_texture);
 		i++;
 	}
 	shader_bind_texture(material->shader_index, material->in_texture_env, engine_get()->env, GL_TEXTURE10);

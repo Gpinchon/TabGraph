@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:47:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/10 17:11:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 17:20:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,17 +76,17 @@ void	vgroup_render(int camera_index, int mesh_index, int vgroup_index)
 	transform = mat4_combine(camera->projection, camera->view, t->transform);
 	MAT4	normal_matrix = mat4_transpose(mat4_inverse(t->transform));
 	shader_use(material->shader_index);
-	glDisable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	material_set_uniforms(vgroup->mtl_index);
-	shader_set_uniform(material->shader_index, material->in_campos, &camera->position);
-	shader_set_uniform(material->shader_index, material->in_modelmatrix, &t->transform);
-	shader_set_uniform(material->shader_index, material->in_normalmatrix, &normal_matrix);
-	shader_set_uniform(material->shader_index, material->in_transform, &transform);
-	shader_set_uniform(material->shader_index, material->in_uvmin, &vgroup->uvmin);
-	shader_set_uniform(material->shader_index, material->in_uvmax, &vgroup->uvmax);
+	shader_set_vec3(material->shader_index, material->in_campos, camera->position);
+	shader_set_mat4(material->shader_index, material->in_modelmatrix, t->transform);
+	shader_set_mat4(material->shader_index, material->in_normalmatrix, normal_matrix);
+	shader_set_mat4(material->shader_index, material->in_transform, transform);
+	shader_set_vec2(material->shader_index, material->in_uvmin, vgroup->uvmin);
+	shader_set_vec2(material->shader_index, material->in_uvmax, vgroup->uvmax);
 	glBindVertexArray(vgroup->v_arrayid);
 	glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
 	glBindVertexArray(0);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 16:55:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/17 17:15:12 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,7 @@ inline void	shader_set_int(int shader_index, int uniform_index, int value)
 	if (!shader)
 		return ;
 	v = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!v ||
-	!(v->type == GL_INT || v->type == GL_BOOL || v->type == GL_SAMPLER_2D
-	|| v->type == GL_SAMPLER_CUBE || v->type == GL_SAMPLER_2D_SHADOW))
+	if (!v)
 		return ;
 	glUniform1i(v->loc, value);
 }
@@ -69,7 +67,7 @@ inline void	shader_set_uint(int shader_index, int uniform_index, unsigned value)
 	if (!shader)
 		return ;
 	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable || variable->type != GL_UNSIGNED_INT)
+	if (!variable)
 		return ;
 	glUniform1ui(variable->loc, value);
 }
@@ -84,7 +82,7 @@ inline void	shader_set_float(int shader_index, int uniform_index, float value)
 	if (!shader)
 		return ;
 	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable || variable->type != GL_FLOAT)
+	if (!variable)
 		return ;
 	glUniform1f(variable->loc, value);
 }
@@ -99,7 +97,7 @@ inline void	shader_set_vec2(int shader_index, int uniform_index, VEC2 value)
 	if (!shader)
 		return ;
 	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable || variable->type != GL_FLOAT_VEC2)
+	if (!variable)
 		return ;
 	glUniform2f(variable->loc, value.x, value.y);
 }
@@ -114,7 +112,7 @@ inline void	shader_set_vec3(int shader_index, int uniform_index, VEC3 value)
 	if (!shader)
 		return ;
 	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable || variable->type != GL_FLOAT_VEC3)
+	if (!variable)
 		return ;
 	glUniform3f(variable->loc, value.x, value.y, value.z);
 }
@@ -129,7 +127,7 @@ inline void	shader_set_mat4(int shader_index, int uniform_index, MAT4 value)
 	if (!shader)
 		return ;
 	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable || variable->type != GL_FLOAT_MAT4)
+	if (!variable)
 		return ;
 	glUniformMatrix4fv(variable->loc, 1, GL_FALSE, (float*)&value);
 }
@@ -201,6 +199,5 @@ void	shader_bind_texture(int shader_index, int uniform_index, int texture_index,
 	shader_use(shader_index);
 	glActiveTexture(texture_unit);
 	glBindTexture(texture->target, texture->glid);
-	texture_unit -= GL_TEXTURE0;
-	shader_set_uniform(shader_index, uniform_index, &texture_unit);
+	shader_set_int(shader_index, uniform_index, texture_unit - GL_TEXTURE0);
 }
