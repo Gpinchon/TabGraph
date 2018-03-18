@@ -173,8 +173,12 @@ void main()
 	float	metallic = in_Metallic;
 	float	ao = 1;
 
-	if (in_Use_Texture_Normal && dot(normal_sample, normal_sample) > 0)
-		worldNormal = normalize(normalize(normal_sample) * tbn);
+	if (in_Use_Texture_Normal)
+	{
+		vec3	new_normal = normal_sample * tbn;
+		if (dot(new_normal, new_normal) > 0)
+			worldNormal = normalize(new_normal);
+	}
 	if (in_Use_Texture_Albedo)
 	{
 		albedo = albedo_sample.rgb;
@@ -198,7 +202,7 @@ void main()
 	
 	float	NdH = max(0, dot(worldNormal, H));
 	float	NdL = max(0, dot(worldNormal, L));
-	float	NdV = max(0, abs(dot(worldNormal, V)));
+	float	NdV = max(0, dot(worldNormal, V));
 	float	HdV = max(0, dot(H, V));
 	float	LdV = max(0, dot(L, V));
 
@@ -206,19 +210,34 @@ void main()
 	vec3	specular = (light_Color * light_Power) * fresnel * Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness);
 	vec3	diffuse = (light_Color * light_Power) * albedo * Oren_Nayar_Diffuse(LdV, NdL, NdV, roughness);
 
-	vec3	refl = reflect(V, worldNormal);
-	fresnel = Fresnel_Schlick_Roughness(NdV, F0, roughness);
-	vec3	kd = albedo * (1 - metallic);
+	H = normalize(worldNormal + V);
+	NdH = max(0, dot(worldNormal, H));
+	NdL = max(0, dot(worldNormal, worldNormal));
+	NdV = max(0, dot(worldNormal, V));
+	HdV = max(0, dot(H, V));
+	LdV = max(0, dot(worldNormal, V));
+	vec3	kd = albedo * Oren_Nayar_Diffuse(LdV, NdL, NdV, roughness);
 	vec3	env_diffuse = textureLod(in_Texture_Env, -worldNormal, 10).rgb * kd;
 	vec3	env_diffuse_brightness = textureLod(in_Texture_Env_Spec, -worldNormal, 10).rgb * kd;
-	vec3	env_reflection = textureLod(in_Texture_Env, refl, roughness * 11.f).rgb * fresnel;
-	vec3	env_specular = textureLod(in_Texture_Env_Spec, refl, roughness * 11.f).rgb * fresnel;
+
+	vec3 R = reflect(V, worldNormal);
+	H = normalize(-R + V);
+	NdH = max(0, dot(worldNormal, H));
+	NdL = max(0, dot(worldNormal, -R));
+	NdV = max(0, dot(worldNormal, V));
+	HdV = max(0, dot(H, V));
+	LdV = max(0, dot(-R, V));
+	fresnel = Fresnel_Schlick_Roughness(NdL, F0, roughness);
+	vec3	env_reflection = textureLod(in_Texture_Env, R, roughness * 11.f).rgb * fresnel;
+	vec3	t = textureLod(in_Texture_Env_Spec, R, roughness * 10).rgb;
+	vec3	env_specular = t * fresnel * min(5, Cooktorrance_Specular(NdL, NdV, NdH, HdV, roughness));
 
 	vec3	env_color = (env_diffuse * ao + env_reflection);
 	vec3	env_brightness = (env_diffuse_brightness * ao + env_specular);
 
 	out_Color = vec4(emitting + env_color + env_brightness + specular + diffuse, alpha);
 	out_Color = mix(out_Color, stupid_sample, in_Stupidity);
+	//out_Color = vec4(vec3(env_specular), 1);
 	out_Bright = vec4(max(vec3(0), out_Color.rgb - 1) + emitting, alpha);
 	out_Normal = vec4(worldNormal, 1);
 	out_Position = vec4(worldPosition, 1);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 16:49:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/18 13:34:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -446,6 +446,9 @@ int				framebuffer_get_attachement(int framebuffer, int color_attachement);
 int				framebuffer_get_depth(int framebuffer);
 int				framebuffer_get_shader(int framebuffer);
 int				framebuffer_create(VEC2 size, int shader, int color_attachements, int depth);
+void			framebuffer_setup_attachements(int fi);
+int				framebuffer_create_attachement(int framebuffer,
+				GLenum format, GLenum iformat);
 
 /*
 ** Callback functions

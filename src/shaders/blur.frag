@@ -20,6 +20,6 @@ void main()
 		vec2	index = vec2(float(i - (KERNEL_SIZE - 1) / 2.f), float(i - (KERNEL_SIZE - 1) / 2.f)) * in_Direction;
 		vec2	sampleUV = frag_UV + (index / textureSize(in_Texture_Color, 0));
 		vec4	color = texture(in_Texture_Color, sampleUV);
-		out_Color +=  color * weight;
+		out_Color += color * weight;
 	}
 }

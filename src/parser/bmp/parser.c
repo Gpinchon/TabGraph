@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 16:25:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/18 17:25:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,8 @@ static int	read_data(t_bmp_parser *p, const char *imagepath)
 		return (-1);
 	}
 	lseek(p->fd, p->header.data_offset, SEEK_SET);
-	p->data = (unsigned char*)ft_memalloc(p->info.size * sizeof(UCHAR));
-	p->size_read = read(p->fd, p->data, p->info.size);
+	p->data = (unsigned char*)ft_memalloc(p->header.size * sizeof(UCHAR));
+	p->size_read = read(p->fd, p->data, p->header.size);
 	close(p->fd);
 	if (p->info.bpp == 32)
 		convert_bmp(p);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 16:14:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/18 13:30:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ int				framebuffer_create(VEC2 size, int shader,
 	t_framebuffer	f;
 	int				fi;
 	int				i;
-	GLenum			attachements[color_attachements];
 
 	f.depth = -1;
 	f.size = size;
@@ -105,10 +104,7 @@ int				framebuffer_create(VEC2 size, int shader,
 	fi = engine_get()->framebuffers.length - 1;
 	i = -1;
 	while (++i < color_attachements)
-	{
 		framebuffer_create_attachement(fi, GL_RGBA, GL_RGBA16F_ARB);
-		attachements[i] = GL_COLOR_ATTACHMENT0 + i;
-	}
 	if (depth)
 		framebuffer_create_attachement(fi, GL_DEPTH_COMPONENT,
 			GL_DEPTH_COMPONENT24);

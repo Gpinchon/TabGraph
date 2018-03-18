@@ -5,7 +5,8 @@ in vec2				frag_Texcoord;
 
 void main()
 {
-	if (in_Use_Texture_Albedo)
-		if (texture(in_Texture_Albedo, frag_Texcoord).a <= 0.5f)
-			discard;
+	
+	float a = texture(in_Texture_Albedo, frag_Texcoord).a;
+	if (in_Use_Texture_Albedo && a <= 0.5f)
+		discard;
 }

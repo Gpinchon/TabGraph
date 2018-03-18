@@ -25,7 +25,7 @@ void main()
 	float	depth = texture(in_Texture_Depth, frag_UV).r;
 	float	dof = min(5, 10.f * abs(frag_CenterDepth - depth));
 	vec4	color = textureLod(in_Texture_Color, frag_UV, dof);
-	float	sampledist = 5;
+	float	sampledist = 2.5;
 	vec3	finalColor = vec3(0);
 	float	occlusion = 0.f;
 	if (depth != 1)
@@ -38,9 +38,11 @@ void main()
 				vec2	index = vec2(float(i - KERNEL_SIZE / 2.f), float(j - KERNEL_SIZE / 2.f));
 				vec2	sampleUV = frag_UV + index * sampledist / textureSize(in_Texture_Position, 0);
 				vec3	samplePosition = texture(in_Texture_Position, sampleUV).xyz;
+				if (texture(in_Texture_Depth, sampleUV).r > depth)
+					continue ;
 				vec3	V = samplePosition - position;
 				float	D = length(V);
-				float	bias = 0.25;
+				float	bias = 0.15;// + D;
 				float	factor = max(0, dot(normal, normalize(V)));
 				float	angle = max(0, factor - bias);
 				occlusion += (angle * (1.f / (1.f + D))) * weight;
@@ -51,4 +53,5 @@ void main()
 	finalColor = texture(in_Texture_Bright, frag_UV).rgb + color.rgb * color.a * (1 - occlusion);
 	out_Color = textureLod(in_Texture_Env, frag_Cube_UV, dof) * max(0, 1 - color.a);
 	out_Color += vec4(finalColor, 1);
+	//out_Color = vec4(vec3(1 - occlusion), 1);
 }

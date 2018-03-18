@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 21:49:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/18 16:18:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,8 +114,8 @@ void	shadow_render()
 		while ((vgroup = ezarray_get_index(mesh->vgroups, vgroup_index)))
 		{
 			t_material *material = ezarray_get_index(engine_get()->materials, vgroup->mtl_index);
-			shader_set_uniform(material->shader_index,
-				material->in_shadowtransform, &transform);
+			shader_set_mat4(material->shader_index,
+				material->in_shadowtransform, transform);
 			shader_bind_texture(material->shader_index,
 				material->in_texture_shadow, framebuffer_get_depth(light->render_buffer), GL_TEXTURE20);
 			if (material->data.alpha > 0.5f)
@@ -124,12 +124,11 @@ void	shadow_render()
 				shader_bind_texture(framebuffer_get_shader(light->render_buffer),
 					shader_get_uniform_index(framebuffer_get_shader(light->render_buffer), "in_Texture_Albedo"),
 					material->data.texture_albedo, GL_TEXTURE0);
-				int use_texture = material->data.texture_albedo == -1 ? 0 : 1;
-				shader_set_uniform(framebuffer_get_shader(light->render_buffer),
+				shader_set_int(framebuffer_get_shader(light->render_buffer),
 					shader_get_uniform_index(framebuffer_get_shader(light->render_buffer), "in_Use_Texture_Albedo"),
-					&use_texture);
-				shader_set_uniform(framebuffer_get_shader(light->render_buffer),
-					shader_get_uniform_index(framebuffer_get_shader(light->render_buffer), "in_Transform"), &transform);
+					!(material->data.texture_albedo == -1));
+				shader_set_mat4(framebuffer_get_shader(light->render_buffer),
+					shader_get_uniform_index(framebuffer_get_shader(light->render_buffer), "in_Transform"), transform);
 				glBindVertexArray(vgroup->v_arrayid);
 				glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
 				glBindVertexArray(0);
@@ -147,7 +146,11 @@ static inline void	blur_texture(int texture, int pass, float radius)
 	VEC2					direction;
 
 	if (blur == -1)
-		blur = framebuffer_create(new_vec2(IWIDTH, IHEIGHT), shader_get_by_name("blur"), 1, 0);
+	{
+		blur = framebuffer_create(new_vec2(IWIDTH, IHEIGHT), shader_get_by_name("blur"), 0, 0);
+		framebuffer_create_attachement(blur, GL_RGB, GL_RGB32F_ARB);
+		framebuffer_setup_attachements(blur);
+	}
 	framebuffer_bind(blur);
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(0, 0, 0, 1);
@@ -257,9 +260,9 @@ int	light_create(VEC3 position, VEC3 color, float power)
 	t_light l;
 
 	l.render_buffer = framebuffer_create(new_vec2(SHADOWRES, SHADOWRES), shader_get_by_name("shadow"), 0, 1);
-	texture_set_parameters(framebuffer_get_depth(l.render_buffer), 6,
-		(GLenum[6]){GL_TEXTURE_COMPARE_FUNC, GL_TEXTURE_COMPARE_MODE, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[6]){GL_LEQUAL, GL_COMPARE_REF_TO_TEXTURE, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
+	texture_set_parameters(framebuffer_get_depth(l.render_buffer), 2,
+		(GLenum[2]){GL_TEXTURE_COMPARE_FUNC, GL_TEXTURE_COMPARE_MODE},
+		(GLenum[2]){GL_LEQUAL, GL_COMPARE_REF_TO_TEXTURE});
 	l.data.directional.power = power;
 	l.data.directional.color = color;
 	l.transform_index = transform_create(position, new_vec3(0, 0, 0), new_vec3(1, 1, 1));

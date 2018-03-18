@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 14:52:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/18 13:41:12 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,13 @@ void		window_init(const char *name, int width, int height)
 	glewExperimental = GL_TRUE;
 	if (!window->sdl_window || glewInit() != GLEW_OK)
 		return;
-	window->render_buffer = framebuffer_create(new_vec2(IWIDTH, IHEIGHT), shader_get_by_name("render"), 4, 1);
+	window->render_buffer = framebuffer_create(new_vec2(IWIDTH, IHEIGHT), shader_get_by_name("render"), 0, 0);
+	framebuffer_create_attachement(window->render_buffer, GL_RGBA, GL_RGBA16F_ARB);
+	framebuffer_create_attachement(window->render_buffer, GL_RGB, GL_RGB16F_ARB);
+	framebuffer_create_attachement(window->render_buffer, GL_RGB, GL_RGB16F_ARB);
+	framebuffer_create_attachement(window->render_buffer, GL_RGB, GL_RGB32F_ARB);
+	framebuffer_create_attachement(window->render_buffer, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
+	framebuffer_setup_attachements(window->render_buffer);
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
