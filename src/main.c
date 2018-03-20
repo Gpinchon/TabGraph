@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/18 16:18:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/20 01:12:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -214,6 +214,9 @@ static void	render_present()
 	shader_bind_texture(shader,
 		shader_get_uniform_index(shader, "in_Texture_Env"),
 		engine_get()->env, GL_TEXTURE5);
+	shader_bind_texture(shader,
+		shader_get_uniform_index(shader, "in_Texture_Env_Spec"),
+		engine_get()->env_spec, GL_TEXTURE6);
 	t_camera *camera = ezarray_get_index(engine_get()->cameras, 0);
 	MAT4 matrix = mat4_inverse(camera->view);
 	shader_set_uniform(shader,

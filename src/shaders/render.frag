@@ -7,6 +7,7 @@ uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
 uniform samplerCube	in_Texture_Env;
+uniform samplerCube	in_Texture_Env_Spec;
 
 in vec2				frag_UV;
 in vec3				frag_Cube_UV;
@@ -51,7 +52,9 @@ void main()
 	}
 	occlusion *= (1 - dof / 5.f);
 	finalColor = texture(in_Texture_Bright, frag_UV).rgb + color.rgb * color.a * (1 - occlusion);
-	out_Color = textureLod(in_Texture_Env, frag_Cube_UV, dof) * max(0, 1 - color.a);
+	vec4 env = textureLod(in_Texture_Env, frag_Cube_UV, dof);
+	out_Color = (env) * max(0, 1 - color.a);
 	out_Color += vec4(finalColor, 1);
+	//out_Color.rgb = pow(out_Color.rgb, vec3(1 / 2.2));
 	//out_Color = vec4(vec3(1 - occlusion), 1);
 }

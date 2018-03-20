@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 17:46:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/19 16:26:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,9 +171,13 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 	{
 		fsplit = ft_strsplit(split[i], '/');
 		vindex[i] = ft_atoi(fsplit[0]);
-		if (vindex[i] <= 0 || !ezarray_get_index(p->v, vindex[i] - 1))
+		if (vindex[i] < 0)
+			vindex[i] = p->v.length + vindex[i];
+		else
+			vindex[i] -= 1;
+		if (vindex[i] < 0 || (unsigned)vindex[i] >= p->v.length)
 			return;
-		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[i] - 1));
+		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[i]));
 		if (!in_vt)
 		{
 			VEC3 vec = vec3_normalize(vec3_sub(p->bbox.center, v[i]));

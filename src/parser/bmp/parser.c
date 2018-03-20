@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/18 17:25:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/19 15:22:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,8 @@ static int	read_data(t_bmp_parser *p, const char *imagepath)
 	if ((p->fd = open(imagepath, O_RDONLY | O_BINARY)) <= 0)
 		return (-1);
 	if (read(p->fd, &p->header, sizeof(p->header)) != sizeof(p->header)
-	|| read(p->fd, &p->info, sizeof(p->info)) != sizeof(p->info))
+	|| read(p->fd, &p->info, sizeof(p->info)) != sizeof(p->info)
+	|| p->header.type != 0x4D42)
 	{
 		close(p->fd);
 		return (-1);

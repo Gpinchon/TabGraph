@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 14:36:49 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 17:10:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/19 15:21:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 
 typedef struct	s_bmp_header
 {
-	char		type[2];
+	short		type;
 	unsigned	size;
 	short		reserved1;
 	short		reserved2;
