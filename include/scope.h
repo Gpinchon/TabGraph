@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/18 13:34:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/21 21:00:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -383,6 +383,9 @@ void		texture_set_parameters(int texture_index, int parameter_nbr, GLenum *param
 void		texture_assign(int texture_index, int dest_texture_index, GLenum target);
 void		texture_load(int texture_index);
 void		texture_generate_mipmap(int texture_index);
+void		texture_set_pixel(int texture_index, VEC2 uv, VEC4 value);
+VEC4		texture_texelfetch(int texture_index, VEC2 uv);
+int			texture_generate_brdf();
 
 /*
 ** Parser tools

@@ -6,12 +6,13 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/19 00:32:17 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/21 21:00:28 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scope
 SRC			=	./src/main.c			\
+				./src/brdf.c			\
 				./src/callbacks.c		\
 				./src/callbacks1.c		\
 				./src/event.c			\

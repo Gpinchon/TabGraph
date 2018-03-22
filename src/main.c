@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/20 01:12:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/21 21:20:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 /*
 ** quad is a singleton
 */
+
+int brdflut = -1;
 
 static GLuint	display_quad_get()
 {
@@ -118,6 +120,8 @@ void	shadow_render()
 				material->in_shadowtransform, transform);
 			shader_bind_texture(material->shader_index,
 				material->in_texture_shadow, framebuffer_get_depth(light->render_buffer), GL_TEXTURE20);
+			shader_bind_texture(material->shader_index,
+				shader_get_uniform_index(material->shader_index, "in_Texture_BRDF"), brdflut, GL_TEXTURE19);
 			if (material->data.alpha > 0.5f)
 			{
 				shader_use(framebuffer_get_shader(light->render_buffer));
@@ -279,7 +283,12 @@ int main(int argc, char *argv[])
 		return (0);
 	engine_init();
 	window_init("Scope", WIDTH, HEIGHT);
+	brdflut = texture_generate_brdf();//load_bmp("./res/brdfLUT.bmp");
+	texture_set_parameters(brdflut, 4,
+		(GLenum[4]){GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
+		(GLenum[4]){GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
 	load_bmp("./res/stupid.bmp");
+	texture_load(brdflut);
 	load_shaders("render", "/src/shaders/render.vert", "/src/shaders/render.frag");
 	load_shaders("default", "/src/shaders/default.vert", "/src/shaders/default.frag");
 	load_shaders("shadow", "/src/shaders/shadow.vert", "/src/shaders/shadow.frag");

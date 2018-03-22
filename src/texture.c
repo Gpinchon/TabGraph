@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 16:11:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/21 20:52:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ int		texture_create(VEC2 s, GLenum target, GLenum f, GLenum fi)
 	t.target = target;
 	t.format = f;
 	t.internal_format = fi;
+	t.size = s;
 	glGenTextures(1, &t.glid);
 	glBindTexture(t.target, t.glid);
 	if (s.x > 0 && s.y > 0)
@@ -63,10 +64,12 @@ void	texture_load(int ti)
 	t = texture_get(ti);
 	if (!t || t->loaded)
 		return ;
+	printf("%s\n", t->name.tostring);
 	texture_get_format(ti, &format, &internal_format);
 	texture_resize(ti, new_vec2(MIN(t->size.x, MAXTEXRES),
 		MIN(t->size.y, MAXTEXRES)));
-	glGenTextures(1, &t->glid);
+	if (!t->glid)
+		glGenTextures(1, &t->glid);
 	glBindTexture(t->target, t->glid);
 	if (t->bpp < 32)
 		glTexParameteri(t->target, GL_TEXTURE_SWIZZLE_A, GL_ONE);

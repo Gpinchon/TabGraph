@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 18:20:54 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 15:26:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/21 20:57:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,29 @@ VEC4	texture_texelfetch(int texture_index, VEC2 uv)
 		i++;
 	}
 	return (value);
+}
+
+void	texture_set_pixel(int texture_index, VEC2 uv, VEC4 value)
+{
+	t_texture		*texture;
+	char			opp;
+	unsigned char	*p;
+	int				i;
+
+	texture = texture_get(texture_index);
+	if (!texture || !texture->data)
+		return ;
+	i = 0;
+	uv = new_vec2(
+		CLAMP(floor(texture->size.x * uv.x), 0, texture->size.x - 1),
+		CLAMP(floor(texture->size.y * uv.y), 0, texture->size.y - 1));
+	opp = texture->bpp / 8;
+	p = &texture->data[(int)(uv.y * texture->size.x + uv.x) * opp];
+	while (i < opp)
+	{
+		p[i] = ((float*)&value)[i] * 255.f;
+		i++;
+	}
 }
 
 void	texture_set_parameters(int ti, int p_nbr, GLenum *p, GLenum *v)
