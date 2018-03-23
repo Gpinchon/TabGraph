@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/21 20:52:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 01:03:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,10 +64,10 @@ void	texture_load(int ti)
 	t = texture_get(ti);
 	if (!t || t->loaded)
 		return ;
-	printf("%s\n", t->name.tostring);
 	texture_get_format(ti, &format, &internal_format);
-	texture_resize(ti, new_vec2(MIN(t->size.x, MAXTEXRES),
-		MIN(t->size.y, MAXTEXRES)));
+	if (t->size.x > MAXTEXRES || t->size.y > MAXTEXRES)
+		texture_resize(ti, new_vec2(MIN(t->size.x, MAXTEXRES),
+			MIN(t->size.y, MAXTEXRES)));
 	if (!t->glid)
 		glGenTextures(1, &t->glid);
 	glBindTexture(t->target, t->glid);

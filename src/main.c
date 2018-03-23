@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/21 21:20:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 01:11:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,11 +283,11 @@ int main(int argc, char *argv[])
 		return (0);
 	engine_init();
 	window_init("Scope", WIDTH, HEIGHT);
-	brdflut = texture_generate_brdf();//load_bmp("./res/brdfLUT.bmp");
-	texture_set_parameters(brdflut, 4,
-		(GLenum[4]){GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[4]){GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
+	brdflut = load_bmp("./res/brdfLUT.bmp");
 	load_bmp("./res/stupid.bmp");
+	texture_set_parameters(brdflut, 2,
+		(GLenum[2]){GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
+		(GLenum[2]){GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
 	texture_load(brdflut);
 	load_shaders("render", "/src/shaders/render.vert", "/src/shaders/render.frag");
 	load_shaders("default", "/src/shaders/default.vert", "/src/shaders/default.frag");

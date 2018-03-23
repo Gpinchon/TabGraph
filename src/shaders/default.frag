@@ -72,18 +72,6 @@ float Specular(in float NdL, in float NdV, in float NdH, in float HdV, in float 
 	return (max(D * G, 0));
 }
 
-float Diffuse(in float LdV, in float NdL, in float NdV, in float roughness, in float albedo)
-{
-	float s = LdV - NdL * NdV;
-	float t = mix(1.0, max(NdL, NdV), step(0.0, s));
-
-	float sigma2 = roughness * roughness;
-	float A = 1.0 + sigma2 * (albedo / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
-	float B = 0.45 * sigma2 / (sigma2 + 0.09);
-
-	return albedo * (NdL * (A + B * s / (0.0001 + t)) / M_PI);
-}
-
 vec3	Fresnel_Schlick_Roughness(in float factor, in vec3 F0, in float roughness)
 {
 	return (F0 + (max(vec3(1 - roughness), F0) - F0) * pow(max(0, 1 - factor), 5));
@@ -130,27 +118,9 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 	return(transpose(mat3(T, B, normal)));
 }
 
-float get_diffuse_factor(in float roughness, in float metallic)
+float	CustomLambertianDiffuse(float NdL, float roughness)
 {
-	float sigma2 = roughness * roughness;
-	float A = 1.0 + sigma2 * (metallic / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
-
-	return min(1, (1 - metallic) + (A / M_PI));
-}
-
-float CustomLambertianDiffuse(float NdL, float roughness)
-{
-	return (1.0 / M_PI) * pow(NdL, 0.5 + 0.3 * roughness);
-}
-
-float EnvBRDFApprox(float Roughness, float NoV)
-{
-	vec4 c0 = vec4(-1, -0.0275, -0.572, 0.022 );
-	vec4 c1 = vec4(1, 0.0425, 1.0, -0.04 );
-	vec4 r = Roughness * c0 + c1;
-	float a004 = min( r.x * r.x, exp2( -9.28 * NoV ) ) * r.x + r.y;
-	vec2 AB = vec2( -1.04, 1.04 ) * a004 + r.zw;
-	return AB.x + AB.y;
+	return pow(NdL, 0.5 + 0.5 * (1 - roughness));
 }
 
 void main()
@@ -210,20 +180,17 @@ void main()
 		ao = ao_sample;
 	if (in_Use_Texture_Emitting)
 		emitting = emitting_sample;
-	//roughness = max(0.05, roughness);
 	F0 = mix(F0, albedo, metallic);
 	vec3	V = normalize(in_CamPos - worldPosition);
 	vec3	H = normalize(L + V);
 	vec3	R = reflect(V, worldNormal);
-	vec3	env_diffuse =	textureLod(in_Texture_Env, -worldNormal, 9 + roughness).rgb +
-							textureLod(in_Texture_Env_Spec, -worldNormal, 9 + roughness).rgb;
-	vec3	env_reflection = textureLod(in_Texture_Env, R, roughness * 10.f).rgb;
-	vec3	env_specular = textureLod(in_Texture_Env_Spec, R, roughness * 10 + 2.5).rgb;
+	vec3	env_diffuse =	textureLod(in_Texture_Env, -worldNormal, 8 + 2 * roughness).rgb +
+							textureLod(in_Texture_Env_Spec, -worldNormal, 8 + 2 * roughness).rgb;
+	vec3	env_reflection = textureLod(in_Texture_Env, R, roughness * 11.f).rgb;
+	vec3	env_specular = textureLod(in_Texture_Env_Spec, R, roughness * 11 + 2.5).rgb;
 
 	if (alpha <= 0.05f)
-		discard;
-	//albedo *= get_diffuse_factor(roughness, metallic);
-	
+		discard;	
 	float	NdH = max(0, dot(worldNormal, H));
 	float	NdL = max(0, dot(worldNormal, L));
 	float	NdV = max(0, dot(worldNormal, V));
@@ -231,9 +198,9 @@ void main()
 	float	LdV = max(0, dot(L, V));
 
 	vec3	fresnel = Fresnel_Schlick_Roughness(NdH, F0, roughness);
-	float	diffuse_factor = get_diffuse_factor(roughness, metallic);
+	float	diffuse_factor = (1 - metallic);
 	vec3	specular = (light_Color * light_Power) * min(vec3(2), fresnel * Specular(NdL, NdV, NdH, HdV, roughness));
-	vec3	diffuse = (light_Color * light_Power) * albedo * Diffuse(LdV, NdL, NdV, roughness, diffuse_factor);
+	vec3	diffuse = (light_Color * light_Power) * albedo * CustomLambertianDiffuse(NdL, roughness) * diffuse_factor;
 
 	fresnel = Fresnel_Schlick_Roughness(NdV, F0, roughness);
 	vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, roughness)).rg;
@@ -241,7 +208,6 @@ void main()
 	env_diffuse *= albedo * diffuse_factor;
 	env_reflection *= fresnel;
 	env_specular = env_specular * (fresnel * BRDF.x + BRDF.y);
-	//env_specular *= (1 - F0) * max(0, 1 - roughness);//(1 - Fresnel_Schlick_Roughness(1, F0, roughness));//(1 - F0) * EnvBRDFApprox(roughness, NdV);
 
 	diffuse += env_diffuse + env_reflection;
 	specular += env_specular;
@@ -249,7 +215,7 @@ void main()
 	alpha += dot(specular, specular);
 	alpha = min(1, alpha);
 	out_Color.rgb = emitting + specular + diffuse;
-	//out_Color.rgb = vec3(env_specular + env_diffuse + env_reflection);
+	out_Color.rgb = vec3(BRDF, 0);
 	//out_Color.rgb = env_reflection + env_diffuse + env_specular + emitting;
 	out_Color.a = alpha;
 	out_Color = mix(out_Color, stupid_sample, in_Stupidity);

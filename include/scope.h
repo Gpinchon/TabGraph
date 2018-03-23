@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/21 21:00:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/22 15:07:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -413,6 +413,7 @@ VEC2		parse_vec2(char **split);
 */
 
 int			load_bmp(const char *imagepath);
+void		bmp_save(int texture, const char *imagepath);
 
 /*
 ** Shader functions

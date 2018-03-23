@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 18:20:54 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/21 20:57:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 00:34:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@ VEC4	texture_texelfetch(int texture_index, VEC2 uv)
 		return (value);
 	i = 0;
 	uv = new_vec2(
-		CLAMP(floor(texture->size.x * uv.x), 0, texture->size.x - 1),
-		CLAMP(floor(texture->size.y * uv.y), 0, texture->size.y - 1));
+		CLAMP(round(texture->size.x * uv.x), 0, texture->size.x - 1),
+		CLAMP(round(texture->size.y * uv.y), 0, texture->size.y - 1));
 	opp = texture->bpp / 8;
 	p = &texture->data[(int)(uv.y * texture->size.x + uv.x) * opp];
 	while (i < opp)
@@ -50,8 +50,8 @@ void	texture_set_pixel(int texture_index, VEC2 uv, VEC4 value)
 		return ;
 	i = 0;
 	uv = new_vec2(
-		CLAMP(floor(texture->size.x * uv.x), 0, texture->size.x - 1),
-		CLAMP(floor(texture->size.y * uv.y), 0, texture->size.y - 1));
+		CLAMP(round(texture->size.x * uv.x), 0, texture->size.x - 1),
+		CLAMP(round(texture->size.y * uv.y), 0, texture->size.y - 1));
 	opp = texture->bpp / 8;
 	p = &texture->data[(int)(uv.y * texture->size.x + uv.x) * opp];
 	while (i < opp)
@@ -100,8 +100,8 @@ VEC4	texture_sample(int texture_index, VEC2 uv)
 	{
 		s[1] = -1;
 		while (++s[1] < 4)
-			((float*)&value)[s[0]] += (&t->data[(int)(floor(vt[s[1]].y) *
-			t->size.x + floor(vt[s[1]].x)) * (t->bpp / 8)])[s[0]] * vt[s[1]].z;
+			((float*)&value)[s[0]] += (&t->data[(int)(round(vt[s[1]].y) *
+			t->size.x + round(vt[s[1]].x)) * (t->bpp / 8)])[s[0]] * vt[s[1]].z;
 	}
 	return (value);
 }
