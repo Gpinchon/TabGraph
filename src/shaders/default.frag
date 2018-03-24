@@ -137,7 +137,7 @@ void main()
 	float	metallic = in_Metallic;
 	float	ao = 1;
 
-	vec3	light_Color = (vec3(0.25) + textureLod(in_Texture_Env, -L, 10).rgb) * 0.5;
+	vec3	light_Color = (vec3(0.5) + texture(in_Texture_Env_Spec, -L).rgb) * 0.5;
 	tbn = tbn_matrix(frag_WorldPosition, frag_WorldNormal, frag_Texcoord);
 	if (in_Use_Texture_Height)
 	{
@@ -185,7 +185,7 @@ void main()
 	vec3	env_diffuse =	textureLod(in_Texture_Env, -worldNormal, roughness + 9).rgb;
 		+ textureLod(in_Texture_Env_Spec, -worldNormal, roughness * 4.f).rgb;
 	vec3	env_reflection = textureLod(in_Texture_Env, R, roughness * 11.f).rgb;
-	vec3	env_reflection_spec = textureLod(in_Texture_Env, R, roughness * 11.f + 5).rgb;
+	vec3	env_reflection_spec = textureLod(in_Texture_Env, R, roughness * 11.f + 2.5).rgb;
 	vec3	env_specular = textureLod(in_Texture_Env_Spec, R, roughness * 4.f).rgb;
 
 	float	NdH = max(0, dot(worldNormal, H));
