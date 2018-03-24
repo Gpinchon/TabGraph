@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/21 20:58:41 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/23 18:14:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/24 11:07:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,7 +171,7 @@ int texture_generate_brdf(VEC2 size)
 		{
 			VEC2    uv = new_vec2(v.x / size.x, v.y / size.y);
 			VEC2    brdf = IntegrateBRDF(uv.x, uv.y);
-			texture_set_pixel(it, new_vec2(1 - uv.x, uv.y),
+			texture_set_pixel(it, new_vec2(uv.x, uv.y),
 				new_vec4(0, brdf.y, brdf.x, 1));
 		}
 	}

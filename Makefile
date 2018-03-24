@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/21 21:00:28 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/23 19:38:17 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,6 +38,7 @@ SRC			=	./src/main.c			\
 				./src/parser/tools.c	\
 				./src/parser/obj/parser.c	\
 				./src/parser/bmp/parser.c	\
+				./src/parser/bmp/saver.c	\
 				./src/parser/shaders/parser.c	\
 				./src/parser/mtllib/parser.c
 
