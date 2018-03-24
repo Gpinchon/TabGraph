@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/18 12:53:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 20:14:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,23 @@ void			engine_destroy(void)
 	g_engine = NULL;
 }
 
+static void			engine_load_env1(void)
+{
+	load_shaders("render",
+		"/src/shaders/render.vert", "/src/shaders/render.frag");
+	load_shaders("default",
+		"/src/shaders/default.vert", "/src/shaders/default.frag");
+	load_shaders("shadow",
+		"/src/shaders/shadow.vert", "/src/shaders/shadow.frag");
+	load_shaders("blur",
+		"/src/shaders/blur.vert", "/src/shaders/blur.frag");
+	engine_get()->brdf_lut = bmp_load("./res/brdfLUT.bmp");
+	texture_set_parameters(engine_get()->brdf_lut, 2,
+		(GLenum[2]){GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
+		(GLenum[2]){GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
+	texture_load(engine_get()->brdf_lut);
+}
+
 void			engine_load_env(void)
 {
 	int				t;
@@ -80,6 +97,7 @@ void			engine_load_env(void)
 	struct dirent	*e;
 	char			*b;
 
+	engine_load_env1();
 	dir = opendir("./res/skybox");
 	while ((e = readdir(dir)))
 	{

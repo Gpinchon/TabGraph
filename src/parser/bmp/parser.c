@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/23 01:10:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 19:37:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ static void	convert_bmp(t_bmp_parser *parser)
 	pixel_temp = ft_memalloc(parser->header.size * sizeof(unsigned char));
 	i[0] = 0;
 	i[1] = -1;
-	printf("dhgqsdig\n");
 	while (++i[1] < parser->info.width)
 	{
 		i[2] = -1;
@@ -89,8 +88,6 @@ static void	get_format(UCHAR bpp, GLenum *format, GLenum *internal_format)
 	}
 }
 
-#include <sys/stat.h>
-
 UCHAR	*convert_to_bgra(UCHAR *data, VEC2 size, UCHAR bpp)
 {
 	unsigned char	*pixel_temp;
@@ -130,41 +127,7 @@ UCHAR	*convert_to_bgra(UCHAR *data, VEC2 size, UCHAR bpp)
 	return (pixel_temp);
 }
 
-void		bmp_save(int texture, const char *imagepath)
-{
-	t_bmp_header	header;
-	t_bmp_info		info;
-	UCHAR			*data;
-	t_texture		*t;
-
-	t = texture_get(texture);
-	ft_memset(&header, 0, sizeof(t_bmp_header));
-	ft_memset(&info, 0, sizeof(t_bmp_info));
-	data = convert_to_bgra(t->data, t->size, t->bpp);
-	header.type = 0x4D42;
-	header.data_offset = sizeof(t_bmp_header) + sizeof(t_bmp_info);
-	header.size = header.data_offset + (t->size.x * t->size.y * 4);
-	info.header_size = sizeof(t_bmp_info);
-	info.width = t->size.x;
-	info.height = t->size.y;
-	info.color_planes = 1;
-	info.bpp = t->bpp;
-	info.size = t->size.x * t->size.y * 4;
-	info.horizontal_resolution = 0x0ec4;
-	info.vertical_resolution = 0x0ec4;
-	int	fd = open(imagepath, O_RDWR | O_CREAT | O_BINARY, S_IRWXU | S_IRWXG | S_IRWXO);
-	write(fd, &header, sizeof(t_bmp_header));
-	write(fd, &info, sizeof(t_bmp_info));
-	int data_size = t->size.x * t->size.y * t->bpp / 8;
-	write(fd, data, data_size);
-	data_size = info.size - data_size;
-	UCHAR	*padding = ft_memalloc(data_size);
-	write(fd, padding, data_size);
-	free(data);
-	close(fd);
-}
-
-int			load_bmp(const char *imagepath)
+int			bmp_load(const char *imagepath)
 {
 	int				t;
 	t_bmp_parser	parser;

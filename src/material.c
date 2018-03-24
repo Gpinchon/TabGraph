@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 17:11:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 20:16:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,6 +240,7 @@ void	material_assign_shader(int material_index, int shader_index)
 	material->in_parallax = shader_get_uniform_index(shader_index, "in_Parallax");
 	material->in_stupidity = shader_get_uniform_index(shader_index, "in_Stupidity");
 	material->in_texture_stupid = shader_get_uniform_index(shader_index, "in_Texture_Stupid");
+	material->in_texture_brdf = shader_get_uniform_index(shader_index, "in_Texture_BRDF");
 	material->in_texture_albedo = shader_get_uniform_index(shader_index, "in_Texture_Albedo");
 	material->in_texture_specular = shader_get_uniform_index(shader_index, "in_Texture_Specular");
 	material->in_texture_roughness = shader_get_uniform_index(shader_index, "in_Texture_Roughness");
@@ -315,7 +316,8 @@ void	material_bind_textures(int material_index)
 	}
 	shader_bind_texture(material->shader_index, material->in_texture_env, engine_get()->env, GL_TEXTURE10);
 	shader_bind_texture(material->shader_index, material->in_texture_env_spec, engine_get()->env_spec, GL_TEXTURE11);
-	shader_bind_texture(material->shader_index, material->in_texture_stupid, material->data.texture_stupid, GL_TEXTURE12);
+	shader_bind_texture(material->shader_index, material->in_texture_brdf, engine_get()->brdf_lut, GL_TEXTURE12);
+	shader_bind_texture(material->shader_index, material->in_texture_stupid, material->data.texture_stupid, GL_TEXTURE13);
 }
 
 void	material_set_uniforms(int material_index)

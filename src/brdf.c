@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/21 20:58:41 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/23 01:03:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 18:14:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,31 +149,31 @@ VEC2 IntegrateBRDF(float NdotV, float roughness)
 	return new_vec2(A, B);
 }
 
-int texture_generate_brdf()
+int texture_generate_brdf(VEC2 size)
 {
-	int			texture;
+	int			it;
+	VEC2		v;
 	t_texture	*t;
 
-	texture = texture_create(new_vec2(256, 256), GL_TEXTURE_2D, GL_BGR, GL_RGB);
-	t = ezarray_get_index(engine_get()->textures, texture);
-	t->data = ft_memalloc(sizeof(UCHAR) * 3 * t->size.x * t->size.y);
+	it = texture_create(size, GL_TEXTURE_2D, GL_BGR, GL_COMPRESSED_RGB);
+	t = ezarray_get_index(engine_get()->textures, it);
+	t->data = ft_memalloc(sizeof(UCHAR) * 3 * size.x * size.y);
 	t->bpp = 24;
 	t->name = new_ezstring("BRDF");
-	texture_set_parameters(texture, 2,
+	texture_set_parameters(it, 2,
 		(GLenum[2]){GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[2]){GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
-	int x = 0, y;
-	while (x <= t->size.x)
+	v.x = -1;
+	while (++v.x <= size.x)
 	{
-		y = 0;
-		while (y <= t->size.y)
+		v.y = -1;
+		while (++v.y <= size.y)
 		{
-			VEC2    uv = new_vec2(x / t->size.x, y / t->size.y);
+			VEC2    uv = new_vec2(v.x / size.x, v.y / size.y);
 			VEC2    brdf = IntegrateBRDF(uv.x, uv.y);
-			texture_set_pixel(texture, new_vec2(1 - uv.x, uv.y), new_vec4(0, brdf.y, brdf.x, 1));
-			y++;
+			texture_set_pixel(it, new_vec2(1 - uv.x, uv.y),
+				new_vec4(0, brdf.y, brdf.x, 1));
 		}
-		x++;
 	}
-	return (texture);
+	return (it);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/23 01:11:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 20:16:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 /*
 ** quad is a singleton
 */
-
-int brdflut = -1;
 
 static GLuint	display_quad_get()
 {
@@ -120,8 +118,8 @@ void	shadow_render()
 				material->in_shadowtransform, transform);
 			shader_bind_texture(material->shader_index,
 				material->in_texture_shadow, framebuffer_get_depth(light->render_buffer), GL_TEXTURE20);
-			shader_bind_texture(material->shader_index,
-				shader_get_uniform_index(material->shader_index, "in_Texture_BRDF"), brdflut, GL_TEXTURE19);
+			//shader_bind_texture(material->shader_index,
+			//	shader_get_uniform_index(material->shader_index, "in_Texture_BRDF"), engine_get()->brdf_lut, GL_TEXTURE19);
 			if (material->data.alpha > 0.5f)
 			{
 				shader_use(framebuffer_get_shader(light->render_buffer));
@@ -283,16 +281,7 @@ int main(int argc, char *argv[])
 		return (0);
 	engine_init();
 	window_init("Scope", WIDTH, HEIGHT);
-	brdflut = load_bmp("./res/brdfLUT.bmp");
-	load_bmp("./res/stupid.bmp");
-	texture_set_parameters(brdflut, 2,
-		(GLenum[2]){GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
-		(GLenum[2]){GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
-	texture_load(brdflut);
-	load_shaders("render", "/src/shaders/render.vert", "/src/shaders/render.frag");
-	load_shaders("default", "/src/shaders/default.vert", "/src/shaders/default.frag");
-	load_shaders("shadow", "/src/shaders/shadow.vert", "/src/shaders/shadow.frag");
-	load_shaders("blur", "/src/shaders/blur.vert", "/src/shaders/blur.frag");
+	bmp_load("./res/stupid.bmp");
 	engine_load_env();
 	light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
 	int obj = load_obj(argv[1]);

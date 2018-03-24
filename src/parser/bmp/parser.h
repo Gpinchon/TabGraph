@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 14:36:49 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/22 16:48:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 18:59:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define PARSER_H
 
 # include <scope.h>
+# include <sys/stat.h>
 
 # pragma pack(1)
 

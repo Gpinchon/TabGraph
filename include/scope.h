@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/22 15:07:29 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 20:14:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,6 +148,7 @@ typedef struct	s_material
 	int			in_texture_env;
 	int			in_texture_env_spec;
 	int			in_texture_stupid;
+	int			in_texture_brdf;
 	int			in_texture_shadow;
 	int			in_shadowtransform;
 }				t_material;
@@ -250,6 +251,7 @@ typedef struct	s_engine
 	ARRAY		framebuffers;
 	int			env;
 	int			env_spec;
+	int			brdf_lut;
 	float		delta_time;
 	float		stupidity;
 	float		new_stupidity;
@@ -412,7 +414,7 @@ VEC2		parse_vec2(char **split);
 ** .bmp parser
 */
 
-int			load_bmp(const char *imagepath);
+int			bmp_load(const char *imagepath);
 void		bmp_save(int texture, const char *imagepath);
 
 /*

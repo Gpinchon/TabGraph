@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 16:36:45 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 19:35:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 void	cubemap_load_side(int texture_index, char *path, GLenum side)
 {
-	texture_assign(load_bmp(path), texture_index, side);
+	texture_assign(bmp_load(path), texture_index, side);
 }
 
 int		cubemap_load(char *path, char *n)

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 21:21:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/23 20:08:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,9 +98,8 @@ void	mesh_render(int mesh_index, int camera_index, RENDERTYPE type)
 			material = ((t_vgroup*)ezarray_get_index(mesh->vgroups, vgroup_index))->mtl_index;
 			alpha = material_get_alpha(material);
 			bpp = texture_get_bpp(material_get_texture_albedo(material));
-			if (type == render_opaque && alpha == 1 && bpp < 32)
-				vgroup_render(camera_index, mesh_index, vgroup_index);
-			else if (type == render_transparent && (alpha < 1 || bpp == 32))
+			if ((type == render_opaque && alpha == 1 && bpp < 32)
+			|| (type == render_transparent && (alpha < 1 || bpp == 32)))
 				vgroup_render(camera_index, mesh_index, vgroup_index);
 		}
 		else

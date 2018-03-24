@@ -31,14 +31,15 @@ uniform sampler2D	in_Texture_Emitting;
 uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Height;
 uniform sampler2D	in_Texture_AO;
+
 uniform sampler2D	in_Texture_Stupid;
 uniform sampler2D	in_Texture_BRDF;
-
-uniform vec3		L = normalize(vec3(-1, 1, 0));
 
 uniform sampler2DShadow	in_Texture_Shadow;
 uniform samplerCube	in_Texture_Env;
 uniform samplerCube	in_Texture_Env_Spec;
+
+uniform vec3		L = normalize(vec3(-1, 1, 0));
 
 in vec3			frag_ShadowPosition;
 in vec3			frag_WorldNormal;
@@ -127,18 +128,21 @@ void main()
 {
 	vec3	worldPosition = frag_WorldPosition;
 	vec3	worldNormal = normalize(frag_WorldNormal);
-	vec3	shadowPosition = frag_ShadowPosition;
 	mat3x3	tbn;
 	vec2	vt = frag_Texcoord;
+	vec4	albedo = vec4(in_Albedo, in_Alpha);
+	vec3	emitting = in_Emitting;
+	vec3	F0 = in_Specular;
+	float	roughness = in_Roughness;
+	float	metallic = in_Metallic;
+	float	ao = 1;
 
-	vec3	light_Color = (vec3(1) + textureLod(in_Texture_Env, -L, 10).rgb) * 0.5;
+	vec3	light_Color = (vec3(0.25) + textureLod(in_Texture_Env, -L, 10).rgb) * 0.5;
 	tbn = tbn_matrix(frag_WorldPosition, frag_WorldNormal, frag_Texcoord);
 	if (in_Use_Texture_Height)
 	{
 		float ph;
 		vt = Parallax_Mapping(tbn * normalize(in_CamPos - worldPosition), vt, ph);
-		if(vt.x > in_UVMax.x || vt.y > in_UVMax.y || vt.x < in_UVMin.x || vt.y < in_UVMin.y)
-			discard;
 		worldPosition = worldPosition - (worldNormal * ph);
 	}
 	vec4	albedo_sample = texture(in_Texture_Albedo, vt);
@@ -149,15 +153,7 @@ void main()
 	float	metallic_sample = texture(in_Texture_Metallic, vt).r;
 	float	ao_sample = texture(in_Texture_AO, vt).r;
 	vec4	stupid_sample = texture(in_Texture_Stupid, vt);
-	float	light_Power = texture(in_Texture_Shadow, vec3(shadowPosition.xy, shadowPosition.z * 0.995));
-
-	vec3	albedo = in_Albedo;
-	vec3	emitting = in_Emitting;
-	vec3	F0 = in_Specular;
-	float	alpha = in_Alpha;
-	float	roughness = in_Roughness;
-	float	metallic = in_Metallic;
-	float	ao = 1;
+	float	light_Power = texture(in_Texture_Shadow, vec3(frag_ShadowPosition.xy, frag_ShadowPosition.z * 0.995));
 
 	if (in_Use_Texture_Normal)
 	{
@@ -167,9 +163,11 @@ void main()
 	}
 	if (in_Use_Texture_Albedo)
 	{
-		albedo = albedo_sample.rgb;
-		alpha = albedo_sample.a;
+		albedo.rgb = albedo_sample.rgb;
+		albedo.a = albedo_sample.a;
 	}
+	if (step(0.05, albedo.a) == 0 || vt.x > in_UVMax.x || vt.y > in_UVMax.y || vt.x < in_UVMin.x || vt.y < in_UVMin.y)
+		discard;
 	if (in_Use_Texture_Specular)
 		F0 = specular_sample;
 	if (in_Use_Texture_Roughness)
@@ -180,17 +178,16 @@ void main()
 		ao = ao_sample;
 	if (in_Use_Texture_Emitting)
 		emitting = emitting_sample;
-	F0 = mix(F0, albedo, metallic);
+	F0 = mix(F0, albedo.rgb, metallic);
 	vec3	V = normalize(in_CamPos - worldPosition);
 	vec3	H = normalize(L + V);
 	vec3	R = reflect(V, worldNormal);
-	vec3	env_diffuse =	textureLod(in_Texture_Env, -worldNormal, 8 + 2 * roughness).rgb +
-							textureLod(in_Texture_Env_Spec, -worldNormal, 8 + 2 * roughness).rgb;
+	vec3	env_diffuse =	textureLod(in_Texture_Env, -worldNormal, roughness + 9).rgb;
+		+ textureLod(in_Texture_Env_Spec, -worldNormal, roughness * 4.f).rgb;
 	vec3	env_reflection = textureLod(in_Texture_Env, R, roughness * 11.f).rgb;
-	vec3	env_specular = textureLod(in_Texture_Env_Spec, R, roughness * 11 + 2.5).rgb;
+	vec3	env_reflection_spec = textureLod(in_Texture_Env, R, roughness * 11.f + 5).rgb;
+	vec3	env_specular = textureLod(in_Texture_Env_Spec, R, roughness * 4.f).rgb;
 
-	if (alpha <= 0.05f)
-		discard;	
 	float	NdH = max(0, dot(worldNormal, H));
 	float	NdL = max(0, dot(worldNormal, L));
 	float	NdV = max(0, dot(worldNormal, V));
@@ -198,28 +195,32 @@ void main()
 	float	LdV = max(0, dot(L, V));
 
 	vec3	fresnel = Fresnel_Schlick_Roughness(NdH, F0, roughness);
-	float	diffuse_factor = (1 - metallic);
-	vec3	specular = (light_Color * light_Power) * min(vec3(2), fresnel * Specular(NdL, NdV, NdH, HdV, roughness));
-	vec3	diffuse = (light_Color * light_Power) * albedo * CustomLambertianDiffuse(NdL, roughness) * diffuse_factor;
+	albedo.rgb *= (1 - metallic);
+	light_Color *= light_Power;
+	vec3	specular = light_Color * fresnel * Specular(NdL, NdV, NdH, HdV, roughness);
+	vec3	diffuse = light_Color * albedo.rgb * CustomLambertianDiffuse(NdL, roughness);
 
 	fresnel = Fresnel_Schlick_Roughness(NdV, F0, roughness);
 	vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, roughness)).rg;
 	
-	env_diffuse *= albedo * diffuse_factor;
-	env_reflection *= fresnel;
-	env_specular = env_specular * (fresnel * BRDF.x + BRDF.y);
+	env_diffuse *= albedo.rgb;
+	env_reflection_spec = pow(env_reflection_spec, vec3(2.2));
+	env_reflection_spec = (1 - fresnel) * (1 - roughness) * env_reflection_spec * dot(env_reflection_spec, vec3(0.299, 0.587, 0.114));
+	env_reflection = env_reflection * fresnel;
+	env_specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, metallic) * BRDF.y;
+	env_specular += env_reflection_spec;
 
 	diffuse += env_diffuse + env_reflection;
 	specular += env_specular;
 
-	alpha += dot(specular, specular);
-	alpha = min(1, alpha);
+	albedo.a += dot(specular, specular);
+	albedo.a = min(1, albedo.a);
 	out_Color.rgb = emitting + specular + diffuse;
-	out_Color.rgb = vec3(BRDF, 0);
-	//out_Color.rgb = env_reflection + env_diffuse + env_specular + emitting;
-	out_Color.a = alpha;
+	//out_Color.rgb = env_diffuse + env_reflection + env_specular;
+	//out_Color.rgb = env_reflection_spec;
+	out_Color.a = albedo.a;
 	out_Color = mix(out_Color, stupid_sample, in_Stupidity);
-	out_Bright = vec4(max(vec3(0), out_Color.rgb - 1) + emitting, alpha);
+	out_Bright = vec4(max(vec3(0), out_Color.rgb - 1) + emitting, albedo.a);
 	out_Normal = vec4(worldNormal, 1);
 	out_Position = vec4(worldPosition, 1);
 }
