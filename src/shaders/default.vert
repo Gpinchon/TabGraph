@@ -29,6 +29,6 @@ void main()
 	gl_Position = in_Transform * vec4(in_Position, 1);
 	frag_WorldPosition = vec3(in_ModelMatrix * vec4(in_Position, 1));
 	frag_ShadowPosition = vec3((biasMatrix * in_ShadowTransform) * vec4(in_Position, 1));
-	frag_WorldNormal = normalize(mat3(in_NormalMatrix) * frag_ModelNormal);
+	frag_WorldNormal = mat3(in_NormalMatrix) * frag_ModelNormal;
 	frag_Texcoord = in_Texcoord;
 }

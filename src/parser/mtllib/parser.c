@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/08 16:46:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/24 22:20:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,8 @@ void	parse_color(t_mtl_parser *p, char **split, int mtl)
 	if (split[0][1] == 'd')
 		material_set_albedo(mtl, parse_vec3(&split[1]));
 	else if (split[0][1] == 's')
-		material_set_specular(mtl, parse_vec3(&split[1]));
+		material_set_specular(mtl, vec3_fdiv(parse_vec3(&split[1]), 
+			1 + (1 - material_get_metallic(mtl)) * 24));
 	else if (split[0][1] == 'e')
 		material_set_emitting(mtl, parse_vec3(&split[1]));
 	(void)p;

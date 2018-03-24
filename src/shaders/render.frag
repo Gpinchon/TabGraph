@@ -1,5 +1,5 @@
 #version 410
-#define	KERNEL_SIZE 9
+#define	KERNEL_SIZE 5
 
 uniform sampler2D	in_Texture_Color;
 uniform sampler2D	in_Texture_Bright;
@@ -16,7 +16,7 @@ in float			frag_CenterDepth;
 out vec4			out_Color;
 
 uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
-	0.033619, 0.072215, 0.124675, 0.173006, 0.192969, 0.173006, 0.124675, 0.072215, 0.033619
+	0.06136, 0.24477, 0.38774, 0.24477, 0.06136
 );
 
 void main()

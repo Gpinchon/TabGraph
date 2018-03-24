@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/23 20:16:29 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/24 17:17:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,15 +309,15 @@ void	material_bind_textures(int material_index)
 	i = 0;
 	while (i < 8)
 	{
-		shader_bind_texture(material->shader_index, shader_textures[i * 2 + 0], textures[i], GL_TEXTURE0 + i);
+		shader_bind_texture(material->shader_index, shader_textures[i * 2 + 0], textures[i], GL_TEXTURE1 + i);
 		use_texture = textures[i] == -1 ? 0 : 1;
 		shader_set_int(material->shader_index, shader_textures[i * 2 + 1], use_texture);
 		i++;
 	}
-	shader_bind_texture(material->shader_index, material->in_texture_env, engine_get()->env, GL_TEXTURE10);
-	shader_bind_texture(material->shader_index, material->in_texture_env_spec, engine_get()->env_spec, GL_TEXTURE11);
-	shader_bind_texture(material->shader_index, material->in_texture_brdf, engine_get()->brdf_lut, GL_TEXTURE12);
-	shader_bind_texture(material->shader_index, material->in_texture_stupid, material->data.texture_stupid, GL_TEXTURE13);
+	shader_bind_texture(material->shader_index, material->in_texture_env, engine_get()->env, GL_TEXTURE11);
+	shader_bind_texture(material->shader_index, material->in_texture_env_spec, engine_get()->env_spec, GL_TEXTURE12);
+	shader_bind_texture(material->shader_index, material->in_texture_brdf, engine_get()->brdf_lut, GL_TEXTURE13);
+	shader_bind_texture(material->shader_index, material->in_texture_stupid, material->data.texture_stupid, GL_TEXTURE14);
 }
 
 void	material_set_uniforms(int material_index)

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 17:15:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/24 17:25:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,8 +182,11 @@ void	shader_unbind_texture(int shader_index, GLenum texture_unit)
 {
 	shader_use(shader_index);
 	glActiveTexture(texture_unit);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glDisable (GL_TEXTURE_2D);
 	glDisable (GL_TEXTURE_CUBE_MAP);
+	shader_use(-1);
 }
 
 void	shader_bind_texture(int shader_index, int uniform_index, int texture_index, GLenum texture_unit)
@@ -194,10 +197,14 @@ void	shader_bind_texture(int shader_index, int uniform_index, int texture_index,
 	if (!texture)
 	{
 		shader_unbind_texture(shader_index, texture_unit);
+		shader_use(shader_index);
+		shader_set_int(shader_index, uniform_index, texture_unit - GL_TEXTURE0);
+		shader_use(-1);
 		return;
 	}
 	shader_use(shader_index);
 	glActiveTexture(texture_unit);
 	glBindTexture(texture->target, texture->glid);
 	shader_set_int(shader_index, uniform_index, texture_unit - GL_TEXTURE0);
+	shader_use(-1);
 }
