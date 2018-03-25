@@ -1,4 +1,5 @@
 #version 410
+#pragma optionNV (unroll all)
 #define	KERNEL_SIZE 5
 
 uniform sampler2D	in_Texture_Color;
@@ -25,6 +26,7 @@ void main()
 	vec3	position = texture(in_Texture_Position, frag_UV).xyz;
 	float	depth = texture(in_Texture_Depth, frag_UV).r;
 	float	dof = min(5, 10.f * abs(frag_CenterDepth - depth));
+	vec4	env = textureLod(in_Texture_Env, frag_Cube_UV, dof);
 	vec4	color = textureLod(in_Texture_Color, frag_UV, dof);
 	float	sampledist = 2.5;
 	vec3	finalColor = vec3(0);
@@ -43,7 +45,7 @@ void main()
 					continue ;
 				vec3	V = samplePosition - position;
 				float	D = length(V);
-				float	bias = 0.15;// + D;
+				float	bias = 0.15;
 				float	factor = max(0, dot(normal, normalize(V)));
 				float	angle = max(0, factor - bias);
 				occlusion += (angle * (1.f / (1.f + D))) * weight;
@@ -52,7 +54,6 @@ void main()
 	}
 	occlusion *= (1 - dof / 5.f);
 	finalColor = texture(in_Texture_Bright, frag_UV).rgb + color.rgb * color.a * (1 - occlusion);
-	vec4 env = textureLod(in_Texture_Env, frag_Cube_UV, dof);
 	out_Color = (env) * max(0, 1 - color.a);
 	out_Color += vec4(finalColor, 1);
 	//out_Color.rgb = pow(out_Color.rgb, vec3(1 / 2.2));

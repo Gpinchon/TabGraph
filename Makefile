@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/23 19:38:17 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/25 20:31:44 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ SRC			=	./src/main.c			\
 				./src/brdf.c			\
 				./src/callbacks.c		\
 				./src/callbacks1.c		\
+				./src/callbacks2.c		\
 				./src/event.c			\
 				./src/window.c			\
 				./src/framebuffer.c		\
@@ -35,6 +36,10 @@ SRC			=	./src/main.c			\
 				./src/material_get1.c	\
 				./src/material_get2.c	\
 				./src/material_get3.c	\
+				./src/material_set.c	\
+				./src/material_set1.c	\
+				./src/material_set2.c	\
+				./src/material_set3.c	\
 				./src/parser/tools.c	\
 				./src/parser/obj/parser.c	\
 				./src/parser/bmp/parser.c	\

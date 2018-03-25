@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/23 20:14:17 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/25 22:28:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void			engine_init(void)
 	engine->cameras = new_ezarray(other, 0, sizeof(t_camera));
 	engine->shaders = new_ezarray(other, 0, sizeof(t_shader));
 	engine->textures = new_ezarray(other, 0, sizeof(t_texture));
-	engine->textures_env = new_ezarray(INT, 0);
+	engine->textures_env = new_ezarray(signed_short, 0);
 	engine->materials = new_ezarray(other, 0, sizeof(t_material));
 	engine->meshes = new_ezarray(other, 0, sizeof(t_mesh));
 	engine->transforms = new_ezarray(other, 0, sizeof(t_transform));

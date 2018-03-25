@@ -6,192 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/24 17:17:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/25 22:40:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
-
-void	material_set_albedo(int material_index, VEC3 value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.albedo = value;
-}
-
-void	material_set_specular(int material_index, VEC3 value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.specular = value;
-}
-
-void	material_set_emitting(int material_index, VEC3 value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.emitting = value;
-}
-
-void	material_set_uv_scale(int material_index, VEC2 value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.uv_scale = value;
-}
-
-void	material_set_roughness(int material_index, float value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.roughness = value;
-}
-
-void	material_set_metallic(int material_index, float value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.metallic = value;
-}
-
-void	material_set_alpha(int material_index, float value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.alpha = value;
-}
-
-void	material_set_parallax(int material_index, float value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.parallax = value;
-}
-
-void	material_set_stupidity(int material_index, float value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.stupidity = value;
-}
-
-void		material_set_texture_albedo(int material_index, int value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.texture_albedo = value;
-}
-
-void		material_set_texture_specular(int material_index, int value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.texture_specular = value;
-
-}
-
-void		material_set_texture_roughness(int material_index, int value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.texture_roughness = value;
-}
-
-void		material_set_texture_metallic(int material_index, int value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.texture_metallic = value;
-}
-
-void		material_set_texture_emitting(int material_index, int value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.texture_emitting = value;
-}
-
-void		material_set_texture_normal(int material_index, int value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.texture_normal = value;
-}
-
-void		material_set_texture_height(int material_index, int value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.texture_height = value;
-}
-
-void		material_set_texture_ao(int material_index, int value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.texture_ao = value;
-}
-
-void		material_set_texture_stupid(int material_index, int value)
-{
-	t_material	*mtl;
-
-	mtl = ezarray_get_index(engine_get()->materials, material_index);
-	if (!mtl)
-		return ;
-	mtl->data.texture_stupid = value;
-}
 
 int		material_create(char *name)
 {
@@ -215,52 +34,92 @@ int		material_create(char *name)
 	return (engine_get()->materials.length - 1);
 }
 
-void	material_assign_shader(int material_index, int shader_index)
+/*static inline void	material_assign_shader1(t_material *m, int si)
 {
-	t_shader	*shader;
-	t_material	*material;
+	m->in_texture_albedo = shader_get_uniform_index(si, "in_Texture_Albedo");
+	m->in_use_texture_albedo = shader_get_uniform_index(si, "in_Texture_Specular");
+	m->in_texture_specular = shader_get_uniform_index(si, "in_Texture_Roughness");
+	m->in_use_texture_specular = shader_get_uniform_index(si, "in_Texture_Metallic");
+	m->in_texture_roughness = shader_get_uniform_index(si, "in_Texture_Emitting");
+	m->in_use_texture_roughness = shader_get_uniform_index(si, "in_Texture_Normal");
+	m->in_texture_metallic = shader_get_uniform_index(si, "in_Texture_Height");
+	m->in_use_texture_metallic = shader_get_uniform_index(si, "in_Texture_AO");
+	m->in_texture_emitting = shader_get_uniform_index(si, "in_Use_Texture_Albedo");
+	m->in_use_texture_emitting = shader_get_uniform_index(si, "in_Use_Texture_Specular");
+	m->in_texture_normal = shader_get_uniform_index(si, "in_Use_Texture_Roughness");
+	m->in_use_texture_normal = shader_get_uniform_index(si, "in_Use_Texture_Metallic");
+	m->in_texture_height = shader_get_uniform_index(si, "in_Use_Texture_Emitting");
+	m->in_use_texture_height = shader_get_uniform_index(si, "in_Use_Texture_Normal");
+	m->in_texture_ao = shader_get_uniform_index(si, "in_Use_Texture_Height");
+	m->in_use_texture_ao = shader_get_uniform_index(si, "in_Use_Texture_AO");
+	m->in_texture_env = shader_get_uniform_index(si, "in_Texture_Env");
+	m->in_texture_env_spec = shader_get_uniform_index(si, "in_Texture_Env_Spec");
+	m->in_texture_shadow = shader_get_uniform_index(si, "in_Texture_Shadow");
+	m->in_shadowtransform = shader_get_uniform_index(si, "in_ShadowTransform");
+}*/
 
-	shader = ezarray_get_index(engine_get()->shaders, shader_index);
-	material = ezarray_get_index(engine_get()->materials, material_index);
-	if (!material || !shader)
+void				material_assign_shader(int material_index, int si)
+{
+	t_material	*m;
+
+	m = ezarray_get_index(engine_get()->materials, material_index);
+	if (!m)
 		return ;
-	material->shader_index = shader_index;
-	material->in_campos = shader_get_uniform_index(shader_index, "in_CamPos");
-	material->in_transform = shader_get_uniform_index(shader_index, "in_Transform");
-	material->in_modelmatrix = shader_get_uniform_index(shader_index, "in_ModelMatrix");
-	material->in_normalmatrix = shader_get_uniform_index(shader_index, "in_NormalMatrix");
-	material->in_albedo = shader_get_uniform_index(shader_index, "in_Albedo");
-	material->in_specular = shader_get_uniform_index(shader_index, "in_Specular");
-	material->in_emitting = shader_get_uniform_index(shader_index, "in_Emitting");
-	material->in_uvmax = shader_get_uniform_index(shader_index, "in_UVMax");
-	material->in_uvmin = shader_get_uniform_index(shader_index, "in_UVMin");
-	material->in_roughness = shader_get_uniform_index(shader_index, "in_Roughness");
-	material->in_metallic = shader_get_uniform_index(shader_index, "in_Metallic");
-	material->in_alpha = shader_get_uniform_index(shader_index, "in_Alpha");
-	material->in_parallax = shader_get_uniform_index(shader_index, "in_Parallax");
-	material->in_stupidity = shader_get_uniform_index(shader_index, "in_Stupidity");
-	material->in_texture_stupid = shader_get_uniform_index(shader_index, "in_Texture_Stupid");
-	material->in_texture_brdf = shader_get_uniform_index(shader_index, "in_Texture_BRDF");
-	material->in_texture_albedo = shader_get_uniform_index(shader_index, "in_Texture_Albedo");
-	material->in_texture_specular = shader_get_uniform_index(shader_index, "in_Texture_Specular");
-	material->in_texture_roughness = shader_get_uniform_index(shader_index, "in_Texture_Roughness");
-	material->in_texture_metallic = shader_get_uniform_index(shader_index, "in_Texture_Metallic");
-	material->in_texture_emitting = shader_get_uniform_index(shader_index, "in_Texture_Emitting");
-	material->in_texture_normal = shader_get_uniform_index(shader_index, "in_Texture_Normal");
-	material->in_texture_height = shader_get_uniform_index(shader_index, "in_Texture_Height");
-	material->in_texture_ao = shader_get_uniform_index(shader_index, "in_Texture_AO");
-	material->in_use_texture_albedo = shader_get_uniform_index(shader_index, "in_Use_Texture_Albedo");
-	material->in_use_texture_specular = shader_get_uniform_index(shader_index, "in_Use_Texture_Specular");
-	material->in_use_texture_roughness = shader_get_uniform_index(shader_index, "in_Use_Texture_Roughness");
-	material->in_use_texture_metallic = shader_get_uniform_index(shader_index, "in_Use_Texture_Metallic");
-	material->in_use_texture_emitting = shader_get_uniform_index(shader_index, "in_Use_Texture_Emitting");
-	material->in_use_texture_normal = shader_get_uniform_index(shader_index, "in_Use_Texture_Normal");
-	material->in_use_texture_height = shader_get_uniform_index(shader_index, "in_Use_Texture_Height");
-	material->in_use_texture_ao = shader_get_uniform_index(shader_index, "in_Use_Texture_AO");
-	material->in_texture_env = shader_get_uniform_index(shader_index, "in_Texture_Env");
-	material->in_texture_env_spec = shader_get_uniform_index(shader_index, "in_Texture_Env_Spec");
-	material->in_texture_shadow = shader_get_uniform_index(shader_index, "in_Texture_Shadow");
-	material->in_shadowtransform = shader_get_uniform_index(shader_index, "in_ShadowTransform");
+	m->shader_index = si;
+	/*m->in_campos = shader_get_uniform_index(si, "in_Campos");
+	m->in_transform = shader_get_uniform_index(si, "in_Transform");
+	m->in_modelmatrix = shader_get_uniform_index(si, "in_ModelMatrix");
+	m->in_normalmatrix = shader_get_uniform_index(si, "in_NormalMatrix");
+	m->shader_in[16] = shader_get_uniform_index(si, "in_Albedo");
+	m->shader_in[18] = shader_get_uniform_index(si, "in_Emitting");
+	m->in_uvmin = shader_get_uniform_index(si, "in_UVMax");
+	m->in_uvmax = shader_get_uniform_index(si, "in_UVMin");
+	m->shader_in[18] = shader_get_uniform_index(si, "in_Roughness");
+	m->shader_in[19] = shader_get_uniform_index(si, "in_Metallic");
+	m->shader_in[17] = shader_get_uniform_index(si, "in_Specular");
+	m->shader_in[20] = shader_get_uniform_index(si, "in_Alpha");
+	m->shader_in[21] = shader_get_uniform_index(si, "in_Parallax");
+	m->in_stupidity = shader_get_uniform_index(si, "in_Stupidity");
+	m->in_texture_stupid = shader_get_uniform_index(si, "in_Texture_Stupid");
+	m->in_texture_brdf = shader_get_uniform_index(si, "in_Texture_BRDF");
+	material_assign_shader1(m, si);*/
+	m->shader_in[0] = shader_get_uniform_index(si, "in_Texture_Albedo");
+	m->shader_in[1] = shader_get_uniform_index(si, "in_Use_Texture_Albedo");
+	m->shader_in[2] = shader_get_uniform_index(si, "in_Texture_Specular");
+	m->shader_in[3] = shader_get_uniform_index(si, "in_Use_Texture_Specular");
+	m->shader_in[4] = shader_get_uniform_index(si, "in_Texture_Roughness");
+	m->shader_in[5] = shader_get_uniform_index(si, "in_Use_Texture_Roughness");
+	m->shader_in[6] = shader_get_uniform_index(si, "in_Texture_Metallic");
+	m->shader_in[7] = shader_get_uniform_index(si, "in_Use_Texture_Metallic");
+	m->shader_in[8] = shader_get_uniform_index(si, "in_Texture_Emitting");
+	m->shader_in[9] = shader_get_uniform_index(si, "in_Use_Texture_Emitting");
+	m->shader_in[10] = shader_get_uniform_index(si, "in_Texture_Normal");
+	m->shader_in[11] = shader_get_uniform_index(si, "in_Use_Texture_Normal");
+	m->shader_in[12] = shader_get_uniform_index(si, "in_Texture_Height");
+	m->shader_in[13] = shader_get_uniform_index(si, "in_Use_Texture_Height");
+	m->shader_in[14] = shader_get_uniform_index(si, "in_Texture_AO");
+	m->shader_in[15] = shader_get_uniform_index(si, "in_Use_Texture_AO");
+	m->shader_in[16] = shader_get_uniform_index(si, "in_Albedo");
+	m->shader_in[17] = shader_get_uniform_index(si, "in_Specular");
+	m->shader_in[18] = shader_get_uniform_index(si, "in_Emitting");
+	m->shader_in[18] = shader_get_uniform_index(si, "in_Roughness");
+	m->shader_in[19] = shader_get_uniform_index(si, "in_Metallic");
+	m->shader_in[20] = shader_get_uniform_index(si, "in_Alpha");
+	m->shader_in[21] = shader_get_uniform_index(si, "in_Parallax");
+	m->in_uvmax = shader_get_uniform_index(si, "in_UVMax");
+	m->in_uvmin = shader_get_uniform_index(si, "in_UVMin");
+	m->in_campos = shader_get_uniform_index(si, "in_CamPos");
+	m->in_transform = shader_get_uniform_index(si, "in_Transform");
+	m->in_modelmatrix = shader_get_uniform_index(si, "in_ModelMatrix");
+	m->in_normalmatrix = shader_get_uniform_index(si, "in_NormalMatrix");
+
+	m->in_stupidity = shader_get_uniform_index(si, "in_Stupidity");
+	m->in_texture_stupid = shader_get_uniform_index(si, "in_Texture_Stupid");
+	m->in_texture_brdf = shader_get_uniform_index(si, "in_Texture_BRDF");
+	m->in_texture_env = shader_get_uniform_index(si, "in_Texture_Env");
+	m->in_texture_env_spec = shader_get_uniform_index(si, "in_Texture_Env_Spec");
+	m->in_texture_shadow = shader_get_uniform_index(si, "in_Texture_Shadow");
+	m->in_shadowtransform = shader_get_uniform_index(si, "in_ShadowTransform");
 }
 
 int			material_get_index_by_name(char *name)
@@ -299,12 +158,12 @@ void	material_bind_textures(int material_index)
 {
 	t_material	*material;
 	int			use_texture;
-	int			*shader_textures;
-	int			*textures;
-	int			i;
+	short		*shader_textures;
+	short		*textures;
+	short		i;
 
 	material = ezarray_get_index(engine_get()->materials, material_index);
-	shader_textures = &material->in_texture_albedo;
+	shader_textures = &material->shader_in[0];
 	textures = &material->data.texture_albedo;
 	i = 0;
 	while (i < 8)
@@ -328,21 +187,21 @@ void	material_set_uniforms(int material_index)
 	if (!material)
 		return ;
 	material_bind_textures(material_index);
-	shader_set_vec3(material->shader_index, material->in_albedo, material->data.albedo);
-	shader_set_vec3(material->shader_index, material->in_specular, material->data.specular);
-	shader_set_vec3(material->shader_index, material->in_emitting, material->data.emitting);
-	shader_set_float(material->shader_index, material->in_alpha, material->data.alpha);
-	shader_set_float(material->shader_index, material->in_roughness, material->data.roughness);
-	shader_set_float(material->shader_index, material->in_metallic, material->data.metallic);
-	shader_set_float(material->shader_index, material->in_parallax, material->data.parallax);
+	shader_set_vec3(material->shader_index, material->shader_in[16], material->data.albedo);
+	shader_set_vec3(material->shader_index, material->shader_in[17], material->data.specular);
+	shader_set_vec3(material->shader_index, material->shader_in[18], material->data.emitting);
+	shader_set_float(material->shader_index, material->shader_in[20], material->data.alpha);
+	shader_set_float(material->shader_index, material->shader_in[18], material->data.roughness);
+	shader_set_float(material->shader_index, material->shader_in[19], material->data.metallic);
+	shader_set_float(material->shader_index, material->shader_in[21], material->data.parallax);
 	shader_set_float(material->shader_index, material->in_stupidity, material->data.stupidity);
 }
 
 void	material_load_textures(int material_index)
 {
 	t_material	*material;
-	int			*textures;
-	int			i;
+	short		*textures;
+	short		i;
 
 	material = ezarray_get_index(engine_get()->materials, material_index);
 	textures = &material->data.texture_albedo;

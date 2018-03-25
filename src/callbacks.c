@@ -6,39 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 17:50:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/25 19:57:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
-
-void	callback_refresh(SDL_Event *event)
-{
-	t_material		*m;
-	int				i;
-	static VEC3		rotation = (VEC3){0, 0, 0};
-	static float	val = 0;
-
-	if (engine_get()->stupidity != engine_get()->new_stupidity)
-	{
-		val = CLAMP(val + 0.1, 0, 1);
-		engine_get()->stupidity = interp_cubic(!engine_get()->new_stupidity,
-			engine_get()->new_stupidity, val);
-		i = 0;
-		while ((m = ezarray_get_index(engine_get()->materials, i)))
-		{
-			m->data.stupidity = engine_get()->stupidity;
-			i++;
-		}
-	}
-	else
-		val = 0;
-	rotation.y = CYCLE(rotation.y + 0.1 * engine_get()->delta_time,
-		0, 2 * M_PI);
-	callback_camera(NULL);
-	mesh_rotate(0, rotation);
-	(void)event;
-}
 
 void	callback_stupidity(SDL_Event *event)
 {
@@ -96,41 +68,4 @@ void	callback_fullscreen(SDL_Event *event)
 		window_fullscreen(fullscreen);
 	}
 	(void)event;
-}
-
-void	callback_camera(SDL_Event *e)
-{
-	static VEC3	val = (VEC3){M_PI / 2.f, M_PI / 2.f, 5.f};
-	static VEC4 v[] = {(VEC4){0, 0, 0, 0}, (VEC4){0, 0, 0, 0}};
-	float		mv;
-	const Uint8	*s;
-	t_transform	*t;
-
-	s = SDL_GetKeyboardState(NULL);
-	mv = (1 + s[SDL_SCANCODE_LSHIFT]) * engine_get()->delta_time;
-	t = ezarray_get_index(engine_get()->transforms,
-		camera_get_target_index(0));
-	v[0] = vec4_add(v[0], new_vec4(
-		s[SDL_SCANCODE_DOWN] ? 0.1 : -0.2,
-		s[SDL_SCANCODE_LEFT] ? 0.1 : -0.2,
-		(s[SDL_SCANCODE_KP_MINUS] && !s[SDL_SCANCODE_LCTRL]) ? 0.1 : -0.2,
-		s[SDL_SCANCODE_PAGEUP] ? 0.1 : -0.2));
-	v[1] = vec4_add(v[1], new_vec4(
-		s[SDL_SCANCODE_UP] ? 0.1 : -0.2,
-		s[SDL_SCANCODE_RIGHT] ? 0.1 : -0.2,
-		(s[SDL_SCANCODE_KP_PLUS] && !s[SDL_SCANCODE_LCTRL]) ? 0.1 : -0.2,
-		s[SDL_SCANCODE_PAGEDOWN] ? 0.1 : -0.2));
-	v[0] = new_vec4(CLAMP(v[0].x, 0, 1), CLAMP(v[0].y, 0, 1), CLAMP(v[0].z, 0, 1), CLAMP(v[0].w, 0, 1));
-	v[1] = new_vec4(CLAMP(v[1].x, 0, 1), CLAMP(v[1].y, 0, 1), CLAMP(v[1].z, 0, 1), CLAMP(v[1].w, 0, 1));
-	val.x += (s[SDL_SCANCODE_DOWN] + v[0].x) * mv + (s[SDL_SCANCODE_UP] + v[1].x) * -mv;
-	val.y += (s[SDL_SCANCODE_LEFT] + v[0].y) * mv + (s[SDL_SCANCODE_RIGHT] + v[1].y) * -mv;
-	val.z += ((s[SDL_SCANCODE_KP_MINUS] && !s[SDL_SCANCODE_LCTRL]) + v[0].z) * mv;
-	val.z += ((s[SDL_SCANCODE_KP_PLUS] && !s[SDL_SCANCODE_LCTRL]) + v[1].z) * -mv;
-	t->position.y += (s[SDL_SCANCODE_PAGEUP] + v[0].w) * mv;
-	t->position.y += (s[SDL_SCANCODE_PAGEDOWN] + v[1].w) * -mv;
-	val.x = CLAMP(val.x, 0.01, M_PI - 0.01);
-	val.y = CYCLE(val.y, 0, 2 * M_PI);
-	val.z = CLAMP(val.z, 0.1f, 1000.f);
-	camera_orbite(0, val.x, val.y, val.z);
-	(void)e;
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/23 20:14:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/26 00:16:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,18 @@
 # define MIN(x, y) (x < y ? x : y)
 # define MAX(x, y) (x > y ? x : y)
 # define RENDERTYPE	enum e_rendertype
+//# define short		unsigned short
+
+/*
+** Key binding
+*/
+
+# define DOWNK		SDL_SCANCODE_DOWN
+# define UPK		SDL_SCANCODE_UP
+# define LEFTK		SDL_SCANCODE_LEFT
+# define RIGHTK		SDL_SCANCODE_RIGHT
+# define ZOOMK		SDL_SCANCODE_KP_PLUS
+# define UNZOOMK	SDL_SCANCODE_KP_MINUS
 
 enum e_rendertype
 {
@@ -50,8 +62,8 @@ typedef struct	s_framebuffer
 {
 	GLuint		id;
 	ARRAY		color_attachements;
-	int			depth;
-	int			shader;
+	short		depth;
+	short		shader;
 	VEC2		size;
 }				t_framebuffer;
 
@@ -80,11 +92,11 @@ typedef union	u_light_data
 
 typedef struct	s_light
 {
-	int				transform_index;
+	short		transform_index;
 	int8_t			type;
 	int8_t			cast_shadow;
 	t_light_data	data;
-	int				render_buffer;
+	short		render_buffer;
 }				t_light;
 
 typedef struct	s_mtl
@@ -98,15 +110,15 @@ typedef struct	s_mtl
 	float		alpha;
 	float		parallax;
 	float		stupidity;
-	int			texture_albedo;
-	int			texture_specular;
-	int			texture_roughness;
-	int			texture_metallic;
-	int			texture_emitting;
-	int			texture_normal;
-	int			texture_height;
-	int			texture_ao;
-	int			texture_stupid;
+	short		texture_albedo;
+	short		texture_specular;
+	short		texture_roughness;
+	short		texture_metallic;
+	short		texture_emitting;
+	short		texture_normal;
+	short		texture_height;
+	short		texture_ao;
+	short		texture_stupid;
 }				t_mtl;
 
 typedef struct	s_material
@@ -114,43 +126,21 @@ typedef struct	s_material
 	ULL			id;
 	STRING		name;
 	t_mtl		data;
-	int			shader_index;
-	int			in_campos;
-	int			in_transform;
-	int			in_modelmatrix;
-	int			in_normalmatrix;
-	int			in_albedo;
-	int			in_emitting;
-	int			in_uvmin;
-	int			in_uvmax;
-	int			in_roughness;
-	int			in_metallic;
-	int			in_specular;
-	int			in_alpha;
-	int			in_parallax;
-	int			in_stupidity;
-	int			in_texture_albedo;
-	int			in_use_texture_albedo;
-	int			in_texture_specular;
-	int			in_use_texture_specular;
-	int			in_texture_roughness;
-	int			in_use_texture_roughness;
-	int			in_texture_metallic;
-	int			in_use_texture_metallic;
-	int			in_texture_emitting;
-	int			in_use_texture_emitting;
-	int			in_texture_normal;
-	int			in_use_texture_normal;
-	int			in_texture_height;
-	int			in_use_texture_height;
-	int			in_texture_ao;
-	int			in_use_texture_ao;
-	int			in_texture_env;
-	int			in_texture_env_spec;
-	int			in_texture_stupid;
-	int			in_texture_brdf;
-	int			in_texture_shadow;
-	int			in_shadowtransform;
+	short		shader_index;
+	short		shader_in[36];
+	short		in_campos;
+	short		in_transform;
+	short		in_modelmatrix;
+	short		in_normalmatrix;
+	short		in_uvmin;
+	short		in_uvmax;
+	short		in_texture_env;
+	short		in_texture_env_spec;
+	short		in_texture_brdf;
+	short		in_texture_shadow;
+	short		in_shadowtransform;
+	short		in_stupidity;
+	short		in_texture_stupid;
 }				t_material;
 
 typedef struct	s_texture
@@ -195,7 +185,7 @@ typedef struct	s_aabb
 typedef struct	s_vgroup
 {
 	ULL			mtl_id;
-	int			mtl_index;
+	short		mtl_index;
 	t_aabb		bounding_box;
 	ARRAY		v;
 	ARRAY		vn;
@@ -210,7 +200,7 @@ typedef struct	s_vgroup
 
 typedef struct	s_mesh
 {
-	int			transform_index;
+	short		transform_index;
 	t_aabb		bounding_box;
 	ARRAY		vgroups;
 }				t_mesh;
@@ -222,7 +212,7 @@ typedef struct	s_camera
 	MAT4		projection;
 	FRUSTUM		frustum;
 	float		fov;
-	int			target_index;
+	short		target_index;
 }				t_camera;
 
 typedef struct	s_window
@@ -231,7 +221,7 @@ typedef struct	s_window
 	SDL_GLContext	gl_context;
 	VEC4			clear_color;
 	GLbitfield		clear_mask;
-	int				render_buffer;
+	short		render_buffer;
 }				t_window;
 
 typedef void(*kcallback)(SDL_Event *event);
@@ -249,9 +239,9 @@ typedef struct	s_engine
 	ARRAY		textures;
 	ARRAY		textures_env;
 	ARRAY		framebuffers;
-	int			env;
-	int			env_spec;
-	int			brdf_lut;
+	short		env;
+	short		env_spec;
+	short		brdf_lut;
 	float		delta_time;
 	float		stupidity;
 	float		new_stupidity;
