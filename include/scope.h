@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/26 00:16:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/26 14:38:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,6 @@
 # define MIN(x, y) (x < y ? x : y)
 # define MAX(x, y) (x > y ? x : y)
 # define RENDERTYPE	enum e_rendertype
-//# define short		unsigned short
 
 /*
 ** Key binding
@@ -132,12 +131,6 @@ typedef struct	s_material
 	short		in_transform;
 	short		in_modelmatrix;
 	short		in_normalmatrix;
-	short		in_uvmin;
-	short		in_uvmax;
-	short		in_texture_env;
-	short		in_texture_env_spec;
-	short		in_texture_brdf;
-	short		in_texture_shadow;
 	short		in_shadowtransform;
 	short		in_stupidity;
 	short		in_texture_stupid;

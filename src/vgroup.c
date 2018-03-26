@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:47:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/25 21:13:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/26 14:29:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,8 +85,8 @@ void	vgroup_render(int camera_index, int mesh_index, int vgroup_index)
 	shader_set_mat4(material->shader_index, material->in_modelmatrix, t->transform);
 	shader_set_mat4(material->shader_index, material->in_normalmatrix, normal_matrix);
 	shader_set_mat4(material->shader_index, material->in_transform, transform);
-	shader_set_vec2(material->shader_index, material->in_uvmin, vgroup->uvmin);
-	shader_set_vec2(material->shader_index, material->in_uvmax, vgroup->uvmax);
+	shader_set_vec2(material->shader_index, material->shader_in[27], vgroup->uvmax);
+	shader_set_vec2(material->shader_index, material->shader_in[28], vgroup->uvmin);
 	glBindVertexArray(vgroup->v_arrayid);
 	glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
 	glBindVertexArray(0);

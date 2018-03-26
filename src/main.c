@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/25 21:12:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/26 14:33:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ void	shadow_render()
 			shader_set_mat4(material->shader_index,
 				material->in_shadowtransform, transform);
 			shader_bind_texture(material->shader_index,
-				material->in_texture_shadow, framebuffer_get_depth(light->render_buffer), GL_TEXTURE20);
+				material->shader_in[26], framebuffer_get_depth(light->render_buffer), GL_TEXTURE20);
 			if (material->data.alpha > 0.5f)
 			{
 				shader_use(framebuffer_get_shader(light->render_buffer));
