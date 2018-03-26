@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/21 20:58:41 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/24 11:07:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/03/26 11:41:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ VEC3 ImportanceSampleGGX(VEC2 Xi, VEC3 N, float roughness)
 	H.x = cos(phi) * sinTheta;
 	H.y = sin(phi) * sinTheta;
 	H.z = cosTheta;
-	up = abs(N.z) < 0.999 ? new_vec3(0.0, 0.0, 1.0) : new_vec3(1.0, 0.0, 0.0);
+	up = fabsf(N.z) < 0.999 ? new_vec3(0.0, 0.0, 1.0) : new_vec3(1.0, 0.0, 0.0);
 	tangent = vec3_normalize(vec3_cross(up, N));
 	bitangent = vec3_cross(N, tangent);
 	
@@ -87,7 +87,7 @@ VEC3 ImportanceSampleGGX(VEC2 Xi, VEC3 N, float roughness)
 	sampleVec = vec3_add(sampleVec, vec3_scale(bitangent, H.y));
 	sampleVec = vec3_add(sampleVec, vec3_scale(N, H.z));
 	return vec3_normalize(sampleVec);
-}  
+}
 
 float RadicalInverse_VdC(unsigned bits) 
 {
@@ -96,7 +96,7 @@ float RadicalInverse_VdC(unsigned bits)
 	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
 	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
 	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-    return (float)(bits) * 2.3283064365386963e-10; // / 0x100000000
+	return (float)(bits) * 2.3283064365386963e-10;
 }
 
 VEC2 Hammersley(unsigned i, unsigned N)
