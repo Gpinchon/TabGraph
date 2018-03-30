@@ -184,7 +184,8 @@ void	main()
 	vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 11.f + 3.5).rgb, vec3(4));
 	vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 5.f).rgb;
 	
-	reflection_spec *= (1 - fresnel) * (1 - roughness) * dot(reflection_spec, vec3(0.299, 0.587, 0.114));
+	float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
+	reflection_spec *= (1 - fresnel) * (1 + brightness) * (1 - roughness) * brightness;
 	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, metallic) * BRDF.y;
 	specular += reflection_spec;
 

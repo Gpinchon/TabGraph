@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/25 20:31:44 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/03/26 15:54:06 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -60,7 +60,7 @@ LIBDIR		=	./libs/ezmem/	\
 				./libs/libft/
 
 LIBFILES	=	./libs/ezmem/libezmem.a	\
-				./libs/vml/libfml.a		\
+				./libs/vml/libvml.a		\
 				./libs/libft/libft.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
@@ -83,7 +83,7 @@ $(NAME): $(LIBFILES) $(OBJ)
 ./libs/ezmem/libezmem.a :
 	$(MAKE) -C ./libs/ezmem/
 
-./libs/vml/libfml.a :
+./libs/vml/libvml.a :
 	$(MAKE) -C ./libs/vml/
 
 ./libs/libft/libft.a :
