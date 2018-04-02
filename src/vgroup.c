@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:47:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/26 14:29:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 16:38:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ static GLuint	vbuffer_load(GLuint attrib, int size, ARRAY a)
 	glEnableVertexAttribArray(attrib);
 	glVertexAttribPointer(attrib, size,
 		a.data_size == 4 ? GL_UNSIGNED_BYTE : GL_FLOAT,
-		//(a.data_size == sizeof(VEC3) || a.data_size == sizeof(VEC2)) ? GL_FLOAT : GL_UNSIGNED_BYTE,
 		GL_FALSE, 0, (void*)0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	return (lbufferid);
@@ -81,12 +80,12 @@ void	vgroup_render(int camera_index, int mesh_index, int vgroup_index)
 	glEnable(GL_BLEND);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	material_set_uniforms(vgroup->mtl_index);
-	shader_set_vec3(material->shader_index, material->in_campos, camera->position);
-	shader_set_mat4(material->shader_index, material->in_modelmatrix, t->transform);
-	shader_set_mat4(material->shader_index, material->in_normalmatrix, normal_matrix);
-	shader_set_mat4(material->shader_index, material->in_transform, transform);
 	shader_set_vec2(material->shader_index, material->shader_in[27], vgroup->uvmax);
 	shader_set_vec2(material->shader_index, material->shader_in[28], vgroup->uvmin);
+	shader_set_vec3(material->shader_index, material->shader_in[29], camera->position);
+	shader_set_mat4(material->shader_index, material->shader_in[30], transform);
+	shader_set_mat4(material->shader_index, material->shader_in[31], t->transform);
+	shader_set_mat4(material->shader_index, material->shader_in[32], normal_matrix);
 	glBindVertexArray(vgroup->v_arrayid);
 	glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
 	glBindVertexArray(0);

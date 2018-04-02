@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/25 19:59:03 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/25 19:59:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 16:20:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void	material_set_stupidity(int material_index, float value)
 	mtl->data.stupidity = value;
 }
 
-void		material_set_texture_albedo(int material_index, int value)
+void	material_set_texture_albedo(int material_index, int value)
 {
 	t_material	*mtl;
 

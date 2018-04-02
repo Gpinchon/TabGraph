@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/24 17:25:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 16:36:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void	shader_use(int shader_index)
 	if (!shader)
 	{
 		glUseProgram(0);
-		return;
+		return ;
 	}
 	glUseProgram(shader->program);
 }
@@ -42,125 +42,10 @@ int		shader_get_by_name(char *name)
 	return (0);
 }
 
-inline void	shader_set_int(int shader_index, int uniform_index, int value)
-{
-	t_shadervariable	*v;
-	t_shader			*shader;
-
-	shader_use(shader_index);
-	shader = ezarray_get_index(engine_get()->shaders, shader_index);
-	if (!shader)
-		return ;
-	v = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!v)
-		return ;
-	glUniform1i(v->loc, value);
-}
-
-inline void	shader_set_uint(int shader_index, int uniform_index, unsigned value)
-{
-	t_shadervariable	*variable;
-	t_shader			*shader;
-
-	shader_use(shader_index);
-	shader = ezarray_get_index(engine_get()->shaders, shader_index);
-	if (!shader)
-		return ;
-	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable)
-		return ;
-	glUniform1ui(variable->loc, value);
-}
-
-inline void	shader_set_float(int shader_index, int uniform_index, float value)
-{
-	t_shadervariable	*variable;
-	t_shader			*shader;
-
-	shader_use(shader_index);
-	shader = ezarray_get_index(engine_get()->shaders, shader_index);
-	if (!shader)
-		return ;
-	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable)
-		return ;
-	glUniform1f(variable->loc, value);
-}
-
-inline void	shader_set_vec2(int shader_index, int uniform_index, VEC2 value)
-{
-	t_shadervariable	*variable;
-	t_shader			*shader;
-
-	shader_use(shader_index);
-	shader = ezarray_get_index(engine_get()->shaders, shader_index);
-	if (!shader)
-		return ;
-	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable)
-		return ;
-	glUniform2f(variable->loc, value.x, value.y);
-}
-
-inline void	shader_set_vec3(int shader_index, int uniform_index, VEC3 value)
-{
-	t_shadervariable	*variable;
-	t_shader			*shader;
-
-	shader_use(shader_index);
-	shader = ezarray_get_index(engine_get()->shaders, shader_index);
-	if (!shader)
-		return ;
-	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable)
-		return ;
-	glUniform3f(variable->loc, value.x, value.y, value.z);
-}
-
-inline void	shader_set_mat4(int shader_index, int uniform_index, MAT4 value)
-{
-	t_shadervariable	*variable;
-	t_shader			*shader;
-
-	shader_use(shader_index);
-	shader = ezarray_get_index(engine_get()->shaders, shader_index);
-	if (!shader)
-		return ;
-	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable)
-		return ;
-	glUniformMatrix4fv(variable->loc, 1, GL_FALSE, (float*)&value);
-}
-
-void	shader_set_uniform(int shader_index, int uniform_index, void *value)
-{
-	t_shadervariable	*variable;
-	t_shader			*shader;
-
-	shader_use(shader_index);
-	shader = ezarray_get_index(engine_get()->shaders, shader_index);
-	if (!shader)
-		return ;
-	variable = ezarray_get_index(shader->uniforms, uniform_index);
-	if (!variable)
-		return ;
-	if (variable->type == GL_FLOAT_VEC3)
-		glUniform3fv(variable->loc, 1, ((float*)value));
-	else if (variable->type == GL_FLOAT_VEC2)
-		glUniform2fv(variable->loc, 1, ((float*)value));
-	else if (variable->type == GL_FLOAT_MAT4)
-		glUniformMatrix4fv(variable->loc, 1, GL_FALSE, ((float*)value));
-	else if ((variable->type == GL_INT || variable->type == GL_BOOL || variable->type == GL_SAMPLER_2D || variable->type == GL_SAMPLER_CUBE || variable->type == GL_SAMPLER_2D_SHADOW))
-		glUniform1i(variable->loc, *((int*)value));
-	else if (variable->type == GL_UNSIGNED_INT)
-		glUniform1ui(variable->loc, *((int*)value));
-	else if (variable->type == GL_FLOAT)
-		glUniform1f(variable->loc, *((float*)value));
-}
-
 int		shader_get_uniform_index(int shader_index, char *name)
 {
 	t_shader			*shader;
+	t_shadervariable	*shader_v;
 	unsigned			i;
 	ULL					h;
 
@@ -171,7 +56,8 @@ int		shader_get_uniform_index(int shader_index, char *name)
 	h = hash((unsigned char*)name);
 	while (i < shader->uniforms.length)
 	{
-		if (((t_shadervariable*)ezarray_get_index(shader->uniforms, i))->id == h)
+		shader_v = ezarray_get_index(shader->uniforms, i);
+		if (shader_v && shader_v->id == h)
 			return (i);
 		i++;
 	}
@@ -184,12 +70,13 @@ void	shader_unbind_texture(int shader_index, GLenum texture_unit)
 	glActiveTexture(texture_unit);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-	glDisable (GL_TEXTURE_2D);
-	glDisable (GL_TEXTURE_CUBE_MAP);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_CUBE_MAP);
 	shader_use(-1);
 }
 
-void	shader_bind_texture(int shader_index, int uniform_index, int texture_index, GLenum texture_unit)
+void	shader_bind_texture(int shader_index, int uniform_index,
+			int texture_index, GLenum texture_unit)
 {
 	t_texture *texture;
 
@@ -200,7 +87,7 @@ void	shader_bind_texture(int shader_index, int uniform_index, int texture_index,
 		shader_use(shader_index);
 		shader_set_int(shader_index, uniform_index, texture_unit - GL_TEXTURE0);
 		shader_use(-1);
-		return;
+		return ;
 	}
 	shader_use(shader_index);
 	glActiveTexture(texture_unit);

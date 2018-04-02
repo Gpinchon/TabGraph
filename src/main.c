@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/26 14:33:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 16:23:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ void	shadow_render()
 		{
 			t_material *material = ezarray_get_index(engine_get()->materials, vgroup->mtl_index);
 			shader_set_mat4(material->shader_index,
-				material->in_shadowtransform, transform);
+				material->shader_in[35], transform);
 			shader_bind_texture(material->shader_index,
 				material->shader_in[26], framebuffer_get_depth(light->render_buffer), GL_TEXTURE20);
 			if (material->data.alpha > 0.5f)
@@ -166,9 +166,9 @@ static inline void	blur_texture(int texture, int pass, float radius)
 		shader_bind_texture(framebuffer_get_shader(blur),
 			shader_get_uniform_index(framebuffer_get_shader(blur), "in_Texture_Color"),
 			texture, GL_TEXTURE0);
-		shader_set_uniform(framebuffer_get_shader(blur),
+		shader_set_vec2(framebuffer_get_shader(blur),
 			shader_get_uniform_index(framebuffer_get_shader(blur), "in_Direction"),
-			&direction);
+			direction);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
 			texture_get_glid(color0), 0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -219,13 +219,13 @@ static void	render_present()
 		engine_get()->env_spec, GL_TEXTURE6);
 	t_camera *camera = ezarray_get_index(engine_get()->cameras, 0);
 	MAT4 matrix = mat4_inverse(camera->view);
-	shader_set_uniform(shader,
+	shader_set_mat4(shader,
 		shader_get_uniform_index(shader, "in_InvViewMatrix"),
-		&matrix);
+		matrix);
 	matrix = mat4_inverse(camera->projection);
-	shader_set_uniform(shader,
+	shader_set_mat4(shader,
 		shader_get_uniform_index(shader, "in_InvProjMatrix"),
-		&matrix);
+		matrix);
 	glBindVertexArray(display_quad_get());
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);

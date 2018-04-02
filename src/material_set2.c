@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/25 19:59:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/25 20:00:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 16:21:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@ void		material_set_texture_specular(int material_index, int value)
 	if (!mtl)
 		return ;
 	mtl->data.texture_specular = value;
-
 }
 
 void		material_set_texture_roughness(int material_index, int value)

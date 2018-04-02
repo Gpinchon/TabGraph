@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/03/26 15:54:06 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/02 16:37:40 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,6 +24,8 @@ SRC			=	./src/main.c			\
 				./src/camera.c			\
 				./src/camera1.c			\
 				./src/shader.c			\
+				./src/shader_set.c		\
+				./src/shader_set1.c		\
 				./src/cubemap.c			\
 				./src/texture.c			\
 				./src/texture1.c		\
@@ -32,6 +34,7 @@ SRC			=	./src/main.c			\
 				./src/mesh.c			\
 				./src/vgroup.c			\
 				./src/material.c		\
+				./src/material1.c		\
 				./src/material_get.c	\
 				./src/material_get1.c	\
 				./src/material_get2.c	\
@@ -92,8 +95,8 @@ $(NAME): $(LIBFILES) $(OBJ)
 pull:
 	git pull
 	git submodule update --init --recursive
-	git submodule foreach git reset --hard origin/master
-	git submodule foreach git pull origin master
+	git submodule foreach git reset --hard origin/42
+	git submodule foreach git pull origin 42
 
 clean:
 	rm -rf $(OBJ)

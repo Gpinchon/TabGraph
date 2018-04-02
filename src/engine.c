@@ -6,14 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/25 22:28:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 16:49:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scope.h>
 #include <dirent.h>
 
-t_engine *g_engine = NULL;
+t_engine	*g_engine = NULL;
 
 /*
 ** engine is a singleton
@@ -73,8 +73,11 @@ void			engine_destroy(void)
 	g_engine = NULL;
 }
 
-static void			engine_load_env1(void)
+static void		engine_load_env1(void)
 {
+	GLenum	v[0];
+
+	(void)v;
 	load_shaders("render",
 		"/src/shaders/render.vert", "/src/shaders/render.frag");
 	load_shaders("default",
