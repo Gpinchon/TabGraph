@@ -6,11 +6,11 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/02 16:37:40 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/02 17:00:58 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME		=	Scope
+NAME		=	Scop
 SRC			=	./src/main.c			\
 				./src/brdf.c			\
 				./src/callbacks.c		\
@@ -32,6 +32,7 @@ SRC			=	./src/main.c			\
 				./src/texture2.c		\
 				./src/transform.c		\
 				./src/mesh.c			\
+				./src/mesh1.c			\
 				./src/vgroup.c			\
 				./src/material.c		\
 				./src/material1.c		\

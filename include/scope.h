@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:26:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 16:55:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -339,7 +339,6 @@ void			mesh_translate(int mesh_index, VEC3 position);
 void			mesh_load(int mesh_index);
 void			mesh_center(int mesh_index);
 void			mesh_render(int mesh_index, int camera_index, RENDERTYPE type);
-void			mesh_sort_draw(int mesh_index, int camera_index);
 
 /*
 ** Vgroup functions

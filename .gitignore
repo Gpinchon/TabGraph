@@ -33,3 +33,6 @@
 
 # Mac OS trash
 .DS_Store
+
+# Project executable
+Scop

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:38:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 16:58:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,41 +30,10 @@ void	mesh_load(int mesh_index)
 	i = 0;
 	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
 	if (!mesh)
-		return;
+		return ;
 	while (i < mesh->vgroups.length)
 	{
 		vgroup_load(mesh_index, i);
-		i++;
-	}
-}
-
-void	mesh_sort_draw(int mesh_index, int camera_index)
-{
-	MAT4		t;
-	t_camera	*c;
-	t_mesh		*m;
-	t_vgroup	*v[2];
-	unsigned	i;
-
-	m = ezarray_get_index(engine_get()->meshes, mesh_index);
-	c = ezarray_get_index(engine_get()->cameras, camera_index);
-	if (!m || !c)
-		return;
-	t = ((t_transform*)ezarray_get_index(engine_get()->transforms, m->transform_index))->transform;
-	i = 0;
-	while (i < m->vgroups.length - 1)
-	{
-		v[0] = ezarray_get_index(m->vgroups, i + 0);
-		v[1] = ezarray_get_index(m->vgroups, i + 1);
-		if (vec3_distance(c->position, mat4_mult_vec3(t, v[0]->bounding_box.center)) >
-		vec3_distance(c->position, mat4_mult_vec3(t, v[1]->bounding_box.center)))
-		{
-			t_vgroup temp;
-			temp = *v[0];
-			*v[0] = *v[1];
-			*v[1] = temp;
-			i = 0;
-		}
 		i++;
 	}
 }
@@ -76,86 +45,56 @@ void	mesh_update(int mesh_index)
 	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
 	if (!mesh)
 		return ;
-	transform_update(ezarray_get_index(engine_get()->transforms, mesh->transform_index));
+	transform_update(ezarray_get_index(
+		engine_get()->transforms, mesh->transform_index));
 }
 
 void	mesh_render(int mesh_index, int camera_index, RENDERTYPE type)
 {
-	t_mesh		*mesh;
-	int			material;
-	unsigned	vgroup_index;
+	t_mesh		*m;
+	int			mtl;
+	unsigned	vi;
 	float		alpha;
 	UCHAR		bpp;
 
-	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
-	if (!mesh)
+	m = ezarray_get_index(engine_get()->meshes, mesh_index);
+	if (!m)
 		return ;
-	vgroup_index = 0;
-	while (vgroup_index < mesh->vgroups.length)
+	vi = 0;
+	while (vi < m->vgroups.length)
 	{
 		if (type)
 		{
-			material = ((t_vgroup*)ezarray_get_index(mesh->vgroups, vgroup_index))->mtl_index;
-			alpha = material_get_alpha(material);
-			bpp = texture_get_bpp(material_get_texture_albedo(material));
+			mtl = ((t_vgroup*)ezarray_get_index(m->vgroups, vi))->mtl_index;
+			alpha = material_get_alpha(mtl);
+			bpp = texture_get_bpp(material_get_texture_albedo(mtl));
 			if ((type == render_opaque && alpha == 1 && bpp < 32)
 			|| (type == render_transparent && (alpha < 1 || bpp == 32)))
-				vgroup_render(camera_index, mesh_index, vgroup_index);
+				vgroup_render(camera_index, mesh_index, vi);
 		}
 		else
-			vgroup_render(camera_index, mesh_index, vgroup_index);
-		vgroup_index++;
+			vgroup_render(camera_index, mesh_index, vi);
+		vi++;
 	}
-}
-
-void	mesh_rotate(int mesh_index, VEC3 rotation)
-{
-	t_mesh		*mesh;
-	t_transform	*transform;
-
-	if (!(mesh = ezarray_get_index(engine_get()->meshes, mesh_index)))
-		return ;
-	transform = ezarray_get_index(engine_get()->transforms, mesh->transform_index);
-	transform->rotation = rotation;
-}
-
-void	mesh_scale(int mesh_index, VEC3 scale)
-{
-	t_mesh		*mesh;
-	t_transform	*transform;
-
-	if (!(mesh = ezarray_get_index(engine_get()->meshes, mesh_index)))
-		return ;
-	transform = ezarray_get_index(engine_get()->transforms, mesh->transform_index);
-	transform->scaling = scale;
-}
-
-void	mesh_translate(int mesh_index, VEC3 position)
-{
-	t_mesh		*mesh;
-	t_transform	*transform;
-
-	if (!(mesh = ezarray_get_index(engine_get()->meshes, mesh_index)))
-		return ;
-	transform = ezarray_get_index(engine_get()->transforms, mesh->transform_index);
-	transform->position = position;
 }
 
 void	mesh_center(int mesh_index)
 {
-	t_mesh		*mesh;
-	unsigned	vgroup_index;
+	t_mesh		*m;
+	unsigned	vi;
 
-	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
-	if (!mesh)
+	m = ezarray_get_index(engine_get()->meshes, mesh_index);
+	if (!m)
 		return ;
-	vgroup_index = 0;
-	while (vgroup_index < mesh->vgroups.length)
+	vi = 0;
+	while (vi < m->vgroups.length)
 	{
-		vgroup_center(mesh_index, vgroup_index);
-		vgroup_index++;
+		vgroup_center(mesh_index, vi);
+		vi++;
 	}
-	mesh->bounding_box.center = new_vec3(0, 0, 0);
-	mesh->bounding_box.min = vec3_sub(mesh->bounding_box.min, mesh->bounding_box.center);
-	mesh->bounding_box.max = vec3_sub(mesh->bounding_box.max, mesh->bounding_box.center);
+	m->bounding_box.center = new_vec3(0, 0, 0);
+	m->bounding_box.min =
+		vec3_sub(m->bounding_box.min, m->bounding_box.center);
+	m->bounding_box.max =
+		vec3_sub(m->bounding_box.max, m->bounding_box.center);
 }
