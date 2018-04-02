@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/23 19:37:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 17:10:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,45 +86,6 @@ static void	get_format(UCHAR bpp, GLenum *format, GLenum *internal_format)
 		*format = 0;
 		*internal_format = 0;
 	}
-}
-
-UCHAR	*convert_to_bgra(UCHAR *data, VEC2 size, UCHAR bpp)
-{
-	unsigned char	*pixel_temp;
-	unsigned char	rgba[4];
-	unsigned		data_size;
-	unsigned		i;
-
-	data_size = size.x * size.y * bpp / 8;
-	pixel_temp = ft_memalloc(data_size);
-	i = 0;
-	while (i < data_size)
-	{
-		if (bpp == 8)
-				pixel_temp[i] = data[i + 0];
-		else if (bpp == 24)
-		{
-			rgba[0] = data[i + 0];
-			rgba[1] = data[i + 1];
-			rgba[2] = data[i + 2];
-			pixel_temp[i + 0] = rgba[2];
-			pixel_temp[i + 1] = rgba[1];
-			pixel_temp[i + 2] = rgba[0];
-		}
-		else if (bpp == 32)
-		{
-			rgba[0] = data[i + 1];
-			rgba[1] = data[i + 2];
-			rgba[2] = data[i + 3];
-			rgba[3] = data[i + 0];
-			pixel_temp[i + 0] = rgba[0];
-			pixel_temp[i + 1] = rgba[1];
-			pixel_temp[i + 2] = rgba[2];
-			pixel_temp[i + 3] = rgba[3];
-		}
-		i += (bpp / 8);
-	}
-	return (pixel_temp);
 }
 
 int			bmp_load(const char *imagepath)
