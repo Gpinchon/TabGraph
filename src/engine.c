@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:53:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 22:35:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,8 @@ void			engine_init(void)
 	engine->lights = new_ezarray(other, 0, sizeof(t_light));
 	engine->framebuffers = new_ezarray(other, 0, sizeof(t_framebuffer));
 	engine->loop = 1;
-	engine->swap_interval = 0;
-	engine->program_path = convert_backslash(getcwd(NULL, 4096));
+	engine->exec_path = convert_backslash(getcwd(NULL, 4096));
+	engine->exec_path = ft_strjoinfreebool(engine->exec_path, "/", 1, 0);
 }
 
 void			engine_destroy(void)
@@ -76,6 +76,7 @@ void			engine_destroy(void)
 static void		engine_load_env1(void)
 {
 	GLenum	v[0];
+	char	*path;
 
 	(void)v;
 	load_shaders("render",
@@ -86,7 +87,11 @@ static void		engine_load_env1(void)
 		"/src/shaders/shadow.vert", "/src/shaders/shadow.frag");
 	load_shaders("blur",
 		"/src/shaders/blur.vert", "/src/shaders/blur.frag");
-	engine_get()->brdf_lut = bmp_load("./res/brdfLUT.bmp");
+	path = ft_strjoin(engine_get()->program_path, "./res/stupid.bmp");
+	bmp_load(path, "stupid");
+	free(path);
+	path = ft_strjoin(engine_get()->program_path, "./res/brdfLUT.bmp");
+	engine_get()->brdf_lut = bmp_load(path, "BrdfLUT");
 	texture_set_parameters(engine_get()->brdf_lut, 2,
 		(GLenum[2]){GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T},
 		(GLenum[2]){GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE});
@@ -99,20 +104,23 @@ void			engine_load_env(void)
 	DIR				*dir;
 	struct dirent	*e;
 	char			*b;
+	char			*folder;
 
 	engine_load_env1();
-	dir = opendir("./res/skybox");
+	folder = ft_strjoin(engine_get()->program_path, "res/skybox/");
+	dir = opendir(folder);
 	while ((e = readdir(dir)))
 	{
 		if (e->d_name[0] == '.')
 			continue;
-		t = cubemap_load("./res/skybox/", e->d_name);
+		t = cubemap_load(folder, e->d_name);
 		ezarray_push(&engine_get()->textures_env, &t);
 		b = ft_strjoin(e->d_name, "/light");
-		t = cubemap_load("./res/skybox/", b);
+		t = cubemap_load(folder, b);
 		free(b);
 		ezarray_push(&engine_get()->textures_env, &t);
 	}
+	free(folder);
 	engine_get()->env = *((int*)ezarray_get_index(
 		engine_get()->textures_env, 0));
 	engine_get()->env_spec = *((int*)ezarray_get_index(

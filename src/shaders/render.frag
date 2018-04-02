@@ -26,7 +26,7 @@ void main()
 	vec3	position = texture(in_Texture_Position, frag_UV).xyz;
 	float	depth = texture(in_Texture_Depth, frag_UV).r;
 	float	dof = min(5, 10.f * abs(frag_CenterDepth - depth));
-	vec4	env = textureLod(in_Texture_Env, frag_Cube_UV, dof);
+	vec4	env = textureLod(in_Texture_Env, frag_Cube_UV, 10.f * abs(frag_CenterDepth - 1));
 	vec4	color = textureLod(in_Texture_Color, frag_UV, dof);
 	float	sampledist = 2.5;
 	vec3	finalColor = vec3(0);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/24 22:20:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 22:05:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,22 +37,22 @@ void	parse_texture(t_mtl_parser *p, char **split, int mtl)
 
 	path = ft_strjoin(p->path_split[0], split[1]);
 	if (ft_strstr(split[0], "map_Kd"))
-		material_set_texture_albedo(mtl, bmp_load(path));
+		material_set_texture_albedo(mtl, bmp_load(path, path));
 	else if (ft_strstr(split[0], "map_Ks"))
-		material_set_texture_specular(mtl, bmp_load(path));
+		material_set_texture_specular(mtl, bmp_load(path, path));
 	else if (ft_strstr(split[0], "map_Ke"))
-		material_set_texture_emitting(mtl, bmp_load(path));
+		material_set_texture_emitting(mtl, bmp_load(path, path));
 	else if (ft_strstr(split[0], "map_Nh"))
-		material_set_texture_height(mtl, bmp_load(path));
+		material_set_texture_height(mtl, bmp_load(path, path));
 	else if (ft_strstr(split[0], "map_No"))
-		material_set_texture_ao(mtl, bmp_load(path));
+		material_set_texture_ao(mtl, bmp_load(path, path));
 	else if (ft_strstr(split[0], "map_Nr"))
-		material_set_texture_roughness(mtl, bmp_load(path));
+		material_set_texture_roughness(mtl, bmp_load(path, path));
 	else if (ft_strstr(split[0], "map_Nm"))
-		material_set_texture_metallic(mtl, bmp_load(path));
+		material_set_texture_metallic(mtl, bmp_load(path, path));
 	else if (ft_strstr(split[0], "map_bump")
 		|| ft_strstr(split[0], "map_Bump"))
-		material_set_texture_normal(mtl, bmp_load(path));
+		material_set_texture_normal(mtl, bmp_load(path, path));
 	free(path);
 }
 
@@ -137,6 +137,7 @@ int	load_mtllib(char *path)
 	t_mtl_parser	p;
 
 	ft_memset(&p, 0, sizeof(t_mtl_parser));
+	path = ft_strjoin(engine_get()->exec_path, path);
 	if (start_mtllib_parsing(&p, path))
 		return (-1);
 	return (engine_get()->materials.length);

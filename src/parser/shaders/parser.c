@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/06 23:56:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 22:29:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,14 +86,38 @@ GLuint		link_shaders(GLuint vertexid, GLuint fragmentid)
 	return(progid);
 }
 
-void		get_shader_loc(t_shader *shader)
+ARRAY		get_shader_uniforms(t_shader *shader)
 {
 	t_shadervariable	v;
-	ARRAY	uniforms;
-	ARRAY	attributes;
-	GLint	ivcount;
-	GLsizei	length;
-	char	*name;
+	ARRAY				uniforms;
+	char				*name;
+	GLint				ivcount;
+	GLsizei				length;
+
+	name = ft_memalloc(sizeof(char) * 4096);
+	glGetProgramiv(shader->program, GL_ACTIVE_UNIFORMS, &ivcount);
+	uniforms = new_ezarray(other, 0, sizeof(t_shadervariable));
+	while (--ivcount >= 0)
+	{
+		name = ft_memset(name, 0, sizeof(char) * 4096);
+		glGetActiveUniform(shader->program, (GLuint)ivcount, 4096, &length,
+			&v.size, &v.type, name);
+		v.name = new_ezstring(name);
+		v.id = hash((unsigned char *)name);
+		v.loc = glGetUniformLocation(shader->program, name);
+		ezarray_push(&uniforms, &v);
+	}
+	free(name);
+	return (uniforms);
+}
+
+ARRAY		get_shader_attributes(t_shader *shader)
+{
+	t_shadervariable	v;
+	ARRAY				attributes;
+	char				*name;
+	GLint				ivcount;
+	GLsizei				length;
 
 	name = ft_memalloc(sizeof(char) * 4096);
 	glGetProgramiv(shader->program, GL_ACTIVE_ATTRIBUTES, &ivcount);
@@ -101,33 +125,32 @@ void		get_shader_loc(t_shader *shader)
 	while (--ivcount >= 0)
 	{
 		name = ft_memset(name, 0, sizeof(char) * 4096);
-		glGetActiveAttrib(shader->program, (GLuint)ivcount, 4096, &length, &v.size, &v.type, name);
+		glGetActiveAttrib(shader->program, (GLuint)ivcount, 4096, &length,
+			&v.size, &v.type, name);
 		v.name = new_ezstring(name);
 		v.id = hash((unsigned char *)name);
 		v.loc = glGetUniformLocation(shader->program, name);
 		ezarray_push(&attributes, &v);
 	}
-	glGetProgramiv(shader->program, GL_ACTIVE_UNIFORMS, &ivcount);
-	uniforms = new_ezarray(other, 0, sizeof(t_shadervariable));
-	while (--ivcount >= 0)
-	{
-		name = ft_memset(name, 0, sizeof(char) * 4096);
-		glGetActiveUniform(shader->program, (GLuint)ivcount, 4096, &length, &v.size, &v.type, name);
-		v.name = new_ezstring(name);
-		v.id = hash((unsigned char *)name);
-		v.loc = glGetUniformLocation(shader->program, name);
-		ezarray_push(&uniforms, &v);
-	}
-	shader->uniforms = uniforms;
-	shader->attributes = attributes;
+	free(name);
+	return (attributes);
 }
 
-int	load_shaders(const char *name, const char *vertex_file_path,const char *fragment_file_path)
+void		get_shader_loc(t_shader *shader)
+{
+	shader->uniforms = get_shader_uniforms(shader);
+	shader->attributes = get_shader_attributes(shader);
+}
+
+int	load_shaders(const char *name, const char *vertex_file_path,
+	const char *fragment_file_path)
 {	
-	GLuint		vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
-	GLuint		fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
+	GLuint		vertexid;
+	GLuint		fragmentid;
 	t_shader	shader;
 
+	vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
+	fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
 	if(!vertexid || !fragmentid)
 	{
 		ft_putendl("Impossible to open file !");

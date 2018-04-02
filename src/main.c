@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:23:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 22:47:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -273,17 +273,33 @@ int	light_create(VEC3 position, VEC3 color, float power)
 	return (engine_get()->lights.length - 1);
 }
 
+void	set_program_path(char *argv0)
+{
+	char		*path;
+	int			len;
+
+	path = ft_strdup(argv0);
+	len = ft_strlen(path);
+	len--;
+	while (len >= 0 && path[len] != '/' && path[len] != '\\')
+		len--;
+	path[len + 1] = 0;
+	engine_get()->program_path = convert_backslash(path);
+}
+
 int main(int argc, char *argv[])
 {
-	if (argc < 2)
-		return (0);
+	set_program_path(argv[0]);
 	engine_init();
-	window_init("Scope", WIDTH, HEIGHT);
-	bmp_load("./res/stupid.bmp");
+	window_init("Scop", WIDTH, HEIGHT);
 	engine_load_env();
 	light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
-	int obj = load_obj(argv[1]);
-	mesh_center(obj);
+	if (argc >= 2)
+	{
+		int obj = load_obj(argv[1]);
+		mesh_center(obj);
+		mesh_load(obj);
+	}
 	int camera = camera_create(45);
 	camera_set_target(camera, transform_create(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera_orbite(camera, M_PI / 2.f, M_PI / 2.f, 5.f);
@@ -294,9 +310,8 @@ int main(int argc, char *argv[])
 	set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
 	set_key_callback(SDL_SCANCODE_S, callback_stupidity);
 	set_refresh_callback(callback_refresh);
-	mesh_load(obj);
 	main_loop();
 	SDL_Quit();
 	engine_destroy();
-	return (argc + argv[0][0]);
+	return (0);
 }

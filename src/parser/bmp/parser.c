@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 17:10:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 22:21:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ static void	get_format(UCHAR bpp, GLenum *format, GLenum *internal_format)
 	}
 }
 
-int			bmp_load(const char *imagepath)
+int			bmp_load(const char *imagepath, const char *texture_name)
 {
 	int				t;
 	t_bmp_parser	parser;
@@ -100,10 +100,11 @@ int			bmp_load(const char *imagepath)
 	if (read_data(&parser, imagepath) == -1)
 		return (-1);
 	get_format(parser.info.bpp, &format[0], &format[1]);
-	t = texture_create(new_vec2(parser.info.width, parser.info.height), GL_TEXTURE_2D, format[0], format[1]);
+	t = texture_create(new_vec2(parser.info.width, parser.info.height),
+		GL_TEXTURE_2D, format[0], format[1]);
 	texture = ezarray_get_index(engine_get()->textures, t);
-	texture->name = new_ezstring(imagepath);
-	texture->id = hash((unsigned char*)imagepath);
+	texture->name = new_ezstring(texture_name);
+	texture->id = hash((unsigned char*)texture_name);
 	texture->size.x = parser.info.width;
 	texture->size.y = parser.info.height;
 	texture->bpp = parser.info.bpp;

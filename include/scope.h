@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:55:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 22:36:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@
 # include <ezmem.h>
 # include <vml.h>
 # include <libft.h>
-# include <stdio.h>
 # include <fcntl.h>
 
 # define WIDTH		1280
@@ -236,6 +235,7 @@ typedef struct	s_engine
 	t_kcallback	kcallbacks[285];
 	t_kcallback	rcallback;
 	char		*program_path;
+	char		*exec_path;
 }				t_engine;
 
 /*
@@ -397,7 +397,7 @@ VEC2			parse_vec2(char **split);
 ** .bmp parser
 */
 
-int				bmp_load(const char *imagepath);
+int				bmp_load(const char *imagepath, const char *texture_name);
 void			bmp_save(int texture, const char *imagepath);
 
 /*

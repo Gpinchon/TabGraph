@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:18:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/02 21:50:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ int		material_create(char *name)
 
 	ft_memset(&mtl, 0, sizeof(t_material));
 	ft_memset(&mtl.data, -1, sizeof(t_mtl));
-	mtl.data.texture_stupid = texture_get_by_name("./res/stupid.bmp");
+	mtl.data.texture_stupid = texture_get_by_name("stupid");
 	mtl.data.stupidity = 0;
 	mtl.data.alpha = 1;
 	mtl.data.parallax = 0.01;
