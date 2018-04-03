@@ -33,6 +33,7 @@ Simply drop a *.obj* file directly onto *Scop*, or run *Scop* through shell with
 - [Left Shift] Speed up movements/scaling
 - [Space] Cycle through environments
 - [LAlt + Enter] Switch fullscreen
+- [S] Switch stupidity on/off
 
 # Features
 - This program features real time Physically based rendering for *.obj* models.
