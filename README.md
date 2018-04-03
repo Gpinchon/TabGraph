@@ -49,7 +49,7 @@ Np [float] //parallax factor
 map_Nr [./relative/path] //roughness map
 map_Nm [./relative/path] //metallic map
 map_Nh [./relative/path] //heigth map
-map_No [./relative/path] //ambient occlusion map (1 == occlusion)
+map_No [./relative/path] //ambient occlusion map (1 == full occlusion)
 ```
 
 # System requirements
