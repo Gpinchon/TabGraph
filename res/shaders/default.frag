@@ -178,8 +178,8 @@ void	main()
 	vec3	fresnel = Fresnel(NdV, F0, roughness);
 	vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, roughness)).rg;
 
-	vec3	diffuse = (textureLod(in_Texture_Env, -worldNormal, roughness + 9).rgb
-			+ textureLod(in_Texture_Env_Spec, -worldNormal, roughness * 4.f).rgb) * ao;
+	vec3	diffuse = ao * (textureLod(in_Texture_Env, -worldNormal, roughness + 9).rgb
+			+ textureLod(in_Texture_Env_Spec, -worldNormal, roughness * 4.f).rgb);
 	vec3	reflection = textureLod(in_Texture_Env, R, roughness * 11.f).rgb * fresnel;
 	vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 11.f + 3.5).rgb, vec3(4));
 	vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 5.f).rgb;

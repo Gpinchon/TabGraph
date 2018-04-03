@@ -41,14 +41,15 @@ void main()
 				vec2	index = vec2(float(i - KERNEL_SIZE / 2.f), float(j - KERNEL_SIZE / 2.f));
 				vec2	sampleUV = frag_UV + index * sampledist / textureSize(in_Texture_Position, 0);
 				vec3	samplePosition = texture(in_Texture_Position, sampleUV).xyz;
-				if (texture(in_Texture_Depth, sampleUV).r > depth)
-					continue ;
-				vec3	V = samplePosition - position;
-				float	D = length(V);
-				float	bias = 0.15;
-				float	factor = max(0, dot(normal, normalize(V)));
-				float	angle = max(0, factor - bias);
-				occlusion += (angle * (1.f / (1.f + D))) * weight;
+				if (texture(in_Texture_Depth, sampleUV).r <= depth)
+				{
+					vec3	V = samplePosition - position;
+					float	D = length(V);
+					float	bias = 0.15;
+					float	factor = max(0, dot(normal, normalize(V)));
+					float	angle = max(0, factor - bias);
+					occlusion += (angle * (1.f / (1.f + D))) * weight;
+				}
 			}
 		}
 	}
