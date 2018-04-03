@@ -37,7 +37,7 @@ Simply drop a *.obj* file directly onto *Scop*, or run *Scop* through shell with
 - This program features real time Physically based rendering for *.obj* models.
 - It features image based lighting using irradiance maps and a custom BRDF Lookup Table (replaceable).
 - It's inspired by Unreal Engine 4 workflow and allows for metallic, roughness and specular (F0).
-- The Specular channel on the material allows for more various materials, such as lacked plastics for instance.
+- The Specular channel on the material allows for more various materials, such as lacquered plastics for instance.
 - You can specify an heigth texture to enable steep parallax mapping.
 - Here, Specular channels are slightly different from Blinn-Phong's specular channel, it influences the material's reflectivity and behavior regarding light as it is used as a precomputed F0 value. A plastic material with a Specular of *vec3(1, 1, 1)* will have a behavior close to metallic materials, but will have a diffuse channel, unlike metallic material. In order to have "normal" plastic, it is recommended to either leave *Ni* and *Ks* empty, use *Ni 1.5* or *Ks 0.04 0.04 0.04*
 - Extra values have been added to mtl files, allowing for physically based materials :
