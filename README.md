@@ -31,6 +31,7 @@ Simply drop a *.obj* file directly onto *Scop*, or run *Scop* through shell with
 - [LCtrl + [Keypad +/-]] Scale up/down model
 - [Page Up/Down] Move camera up/down
 - [Left Shift] Speed up movements/scaling
+- [Space] Cycle through environments
 - [LAlt + Enter] Switch fullscreen
 
 # Features
