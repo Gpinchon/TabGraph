@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/03 16:32:40 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/05 15:59:47 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -73,8 +73,8 @@ CFLAGS		=	-Ofast -Wall -Wextra -Werror $(INCLUDE)
 ifeq ($(OS), Windows_NT)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lft -lmingw32 -lSDL2main -lSDL2 -lm -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
-LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -L ~/.brew/lib -lSDL2 -lm -lGLEW -lft -framework OpenGL
-INCLUDE		=	-I ~/.brew/include $(addprefix -I, $(INCLUDE_REP))
+LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lm -lGLEW -lft -framework OpenGL -framework SDL2
+INCLUDE		=	-I ./libs/glew/include $(addprefix -I, $(INCLUDE_REP))
 CFLAGS		=	-Ofast -arch x86_64 -Wall -Wextra -Werror $(INCLUDE)
 else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW -lft
