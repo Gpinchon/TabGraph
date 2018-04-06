@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/05 15:59:47 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/06 14:15:00 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -81,7 +81,6 @@ LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lGL -lm -lG
 endif
 
 $(NAME): $(LIBFILES) $(OBJ)
-	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) && ) true
 	$(CC) $(CFLAGS) $(OBJ) $(LIBS) -o $(NAME)
 
 ./libs/ezmem/libezmem.a :
