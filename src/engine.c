@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/03 16:31:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/07 16:06:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@ void			engine_init(void)
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MSAA);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
 		SDL_GL_CONTEXT_PROFILE_CORE);
 	engine->cameras = new_ezarray(other, 0, sizeof(t_camera));
@@ -51,6 +50,7 @@ void			engine_init(void)
 	engine->lights = new_ezarray(other, 0, sizeof(t_light));
 	engine->framebuffers = new_ezarray(other, 0, sizeof(t_framebuffer));
 	engine->loop = 1;
+	engine->swap_interval = 1;
 	engine->exec_path = convert_backslash(getcwd(NULL, 4096));
 	engine->exec_path = ft_strjoinfreebool(engine->exec_path, "/", 1, 0);
 }

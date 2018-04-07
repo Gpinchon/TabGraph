@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/03 16:32:40 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/07 16:10:01 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,19 +70,28 @@ LIBFILES	=	./libs/ezmem/libezmem.a	\
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
 CFLAGS		=	-Ofast -Wall -Wextra -Werror $(INCLUDE)
 
+NO_COLOR=\033[0m
+OK_COLOR=\033[32;01m
+OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
+
 ifeq ($(OS), Windows_NT)
+OK_STRING	=	[OK]
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lft -lmingw32 -lSDL2main -lSDL2 -lm -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
-LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -L ~/.brew/lib -lSDL2 -lm -lGLEW -lft -framework OpenGL
-INCLUDE		=	-I ~/.brew/include $(addprefix -I, $(INCLUDE_REP))
+LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lm -lGLEW -lft -framework OpenGL -framework SDL2
+INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
 CFLAGS		=	-Ofast -arch x86_64 -Wall -Wextra -Werror $(INCLUDE)
 else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lezmem -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW -lft
 endif
 
 $(NAME): $(LIBFILES) $(OBJ)
-	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) && ) true
 	$(CC) $(CFLAGS) $(OBJ) $(LIBS) -o $(NAME)
+
+%.o: %.c
+	@echo -n Compiling $@...
+	@($(CC) $(CFLAGS) -o $@ -c $<)
+	@echo "$(OK_STRING)"
 
 ./libs/ezmem/libezmem.a :
 	$(MAKE) -C ./libs/ezmem/

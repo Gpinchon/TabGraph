@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/18 13:30:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/07 16:06:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ int				framebuffer_create(VEC2 size, int shader,
 		framebuffer_create_attachement(fi, GL_RGBA, GL_RGBA16F_ARB);
 	if (depth)
 		framebuffer_create_attachement(fi, GL_DEPTH_COMPONENT,
-			GL_DEPTH_COMPONENT24);
+			GL_DEPTH_COMPONENT);
 	framebuffer_setup_attachements(fi);
 	return (fi);
 }

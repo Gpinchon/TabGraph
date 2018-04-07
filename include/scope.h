@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 22:36:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/07 16:06:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@
 # define SHADOWRES	2048
 # define UP			(VEC3){0, 1, 0}
 # define ULL		unsigned long long
-# define ANISOTROPY	8.f
+# define ANISOTROPY	4.f
 # define MSAA		4
 # define BLOOMPASS	2
 # define MAXTEXRES	1024

@@ -45,7 +45,7 @@ void main()
 				{
 					vec3	V = samplePosition - position;
 					float	D = length(V);
-					float	bias = 0.15;
+					float	bias = 0.25;
 					float	factor = max(0, dot(normal, normalize(V)));
 					float	angle = max(0, factor - bias);
 					occlusion += (angle * (1.f / (1.f + D))) * weight;

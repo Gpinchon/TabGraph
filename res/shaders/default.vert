@@ -12,11 +12,11 @@ uniform samplerCube				in_Texture_Env_Spec;
 
 out vec3						frag_ShadowPosition;
 out vec3						frag_WorldPosition;
-out vec3						frag_WorldNormal;
 out vec3						frag_ModelPosition;
-out vec3						frag_ModelNormal;
-out vec2						frag_Texcoord;
-out vec3						frag_Light_Color;
+out lowp vec3					frag_WorldNormal;
+out lowp vec3					frag_ModelNormal;
+out lowp vec2					frag_Texcoord;
+out lowp vec3					frag_Light_Color;
 
 mat4 biasMatrix = mat4( 
 0.5, 0.0, 0.0, 0.0, 

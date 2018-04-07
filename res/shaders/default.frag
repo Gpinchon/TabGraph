@@ -1,19 +1,19 @@
 #version 410
 #define M_PI 3.1415926535897932384626433832795
 
-uniform vec3		in_CamPos;
+uniform lowp vec3		in_CamPos;
 
-uniform vec2		in_UVMax;
-uniform vec2		in_UVMin;
+uniform lowp vec2		in_UVMax;
+uniform lowp vec2		in_UVMin;
 
-uniform vec3		in_Albedo;
-uniform vec3		in_Specular;
-uniform vec3		in_Emitting;
-uniform mediump float		in_Roughness;
-uniform mediump float		in_Metallic;
-uniform mediump float		in_Alpha;
-uniform mediump float		in_Parallax;
-uniform mediump float		in_Stupidity;
+uniform lowp vec3		in_Albedo;
+uniform lowp vec3		in_Specular;
+uniform lowp vec3		in_Emitting;
+uniform lowp float		in_Roughness;
+uniform lowp float		in_Metallic;
+uniform lowp float		in_Alpha;
+uniform lowp float		in_Parallax;
+uniform lowp float		in_Stupidity;
 
 uniform sampler2D	in_Texture_Albedo;
 uniform bool		in_Use_Texture_Albedo = false;
@@ -39,56 +39,56 @@ uniform sampler2D	in_Texture_Stupid;
 uniform vec3		in_LightDirection = normalize(vec3(-1, 1, 0));
 
 in vec3			frag_ShadowPosition;
-in vec3			frag_WorldNormal;
 in vec3			frag_WorldPosition;
-in vec3			frag_ModelNormal;
-in vec3			frag_ModelPosition;
-in vec2			frag_Texcoord;
-in vec3			frag_Light_Color;
+in lowp vec3	frag_WorldNormal;
+in lowp vec3	frag_ModelNormal;
+in lowp vec3	frag_ModelPosition;
+in lowp vec2	frag_Texcoord;
+in lowp vec3	frag_Light_Color;
 
 
-layout(location = 0) out vec4		out_Color;
-layout(location = 1) out vec4		out_Bright;
-layout(location = 2) out vec4		out_Normal;
+layout(location = 0) out lowp vec4		out_Color;
+layout(location = 1) out lowp vec4		out_Bright;
+layout(location = 2) out lowp vec4		out_Normal;
 layout(location = 3) out vec4		out_Position;
 
-mediump float	GGX_Geometry(in mediump float NdV, in mediump float NdL, in mediump float alpha)
+lowp float	GGX_Geometry(in lowp float NdV, in lowp float NdL, in lowp float alpha)
 {
-	mediump float	alpha2 = alpha * alpha;
+	lowp float	alpha2 = alpha * alpha;
 	return (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
 }
 
-mediump float	GGX_Distribution(in mediump float NdH, in mediump float alpha)
+lowp float	GGX_Distribution(in lowp float NdH, in lowp float alpha)
 {
-	mediump float den = (NdH * NdH) * (alpha - 1) + 1;
+	lowp float den = (NdH * NdH) * (alpha - 1) + 1;
 	return (alpha / (M_PI * den * den));
 }
 
-mediump float	Specular(in mediump float NdL, in mediump float NdV, in mediump float NdH, in mediump float roughness)
+lowp float	Specular(in lowp float NdL, in lowp float NdV, in lowp float NdH, in lowp float roughness)
 {
-	mediump float	alpha = roughness * roughness;
-	mediump float	D = GGX_Distribution(NdH, alpha);
-	mediump float	G = GGX_Geometry(NdV, NdL, alpha);
+	lowp float	alpha = roughness * roughness;
+	lowp float	D = GGX_Distribution(NdH, alpha);
+	lowp float	G = GGX_Geometry(NdV, NdL, alpha);
 	return (max(D * G, 0));
 }
 
 
-vec3	Fresnel(in mediump float factor, in vec3 F0, in mediump float roughness)
+vec3	Fresnel(in lowp float factor, in vec3 F0, in lowp float roughness)
 {
 	return ((max(vec3(1 - roughness), F0) - F0) * pow(max(0, 1 - factor), 5) + F0);
 }
 
-vec2	Parallax_Mapping(in vec3 tbnV, in vec2 T, out mediump float parallaxHeight)
+vec2	Parallax_Mapping(in vec3 tbnV, in vec2 T, out lowp float parallaxHeight)
 {
-	const mediump float minLayers = 64;
-	const mediump float maxLayers = 128;
-	mediump float numLayers = mix(maxLayers, minLayers, abs(tbnV.z));
+	const lowp float minLayers = 64;
+	const lowp float maxLayers = 128;
+	lowp float numLayers = mix(maxLayers, minLayers, abs(tbnV.z));
 	int	tries = int(numLayers);
-	mediump float layerHeight = 1.0 / numLayers;
-	mediump float curLayerHeight = 0;
+	lowp float layerHeight = 1.0 / numLayers;
+	lowp float curLayerHeight = 0;
 	vec2 dtex = in_Parallax * tbnV.xy / tbnV.z / numLayers;
 	vec2 currentTextureCoords = T;
-	mediump float heightFromTexture = 1 - texture(in_Texture_Height, currentTextureCoords).r;
+	lowp float heightFromTexture = 1 - texture(in_Texture_Height, currentTextureCoords).r;
 	while(tries > 0 && heightFromTexture > curLayerHeight) 
 	{
 		tries--;
@@ -97,10 +97,10 @@ vec2	Parallax_Mapping(in vec3 tbnV, in vec2 T, out mediump float parallaxHeight)
 		heightFromTexture = 1 - texture(in_Texture_Height, currentTextureCoords).r;
 	}
 	vec2 prevTCoords = currentTextureCoords + dtex;
-	mediump float nextH	= heightFromTexture - curLayerHeight;
-	mediump float prevH	= 1 - texture(in_Texture_Height, prevTCoords).r
+	lowp float nextH	= heightFromTexture - curLayerHeight;
+	lowp float prevH	= 1 - texture(in_Texture_Height, prevTCoords).r
 	- curLayerHeight + layerHeight;
-	mediump float weight = nextH / (nextH - prevH);
+	lowp float weight = nextH / (nextH - prevH);
 	vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0 - weight);
 	parallaxHeight = (curLayerHeight + prevH * weight + nextH * (1.0 - weight));
 	parallaxHeight *= in_Parallax;
@@ -119,7 +119,7 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 	return(transpose(mat3(T, B, normal)));
 }
 
-mediump float	CustomLambertianDiffuse(mediump float NdL, mediump float roughness)
+lowp float	CustomLambertianDiffuse(lowp float NdL, lowp float roughness)
 {
 	return pow(NdL, 0.5 * (1 - roughness) + 0.5);
 }
@@ -127,27 +127,27 @@ mediump float	CustomLambertianDiffuse(mediump float NdL, mediump float roughness
 void	main()
 {
 	vec3	worldPosition = frag_WorldPosition;
-	vec3	worldNormal = normalize(frag_WorldNormal);
+	lowp vec3	worldNormal = normalize(frag_WorldNormal);
 	mat3x3	tbn;
 	vec2	vt = frag_Texcoord;
-	vec4	albedo = vec4(in_Albedo, in_Alpha);
+	lowp vec4	albedo = vec4(in_Albedo, in_Alpha);
 
 	tbn = tbn_matrix(frag_WorldPosition, frag_WorldNormal, frag_Texcoord);
 	if (in_Use_Texture_Height)
 	{
-		mediump float ph;
+		lowp float ph;
 		vt = Parallax_Mapping(tbn * normalize(in_CamPos - worldPosition), vt, ph);
 		worldPosition = worldPosition - (worldNormal * ph);
 	}
-	vec4	albedo_sample = texture(in_Texture_Albedo, vt);
-	vec3	emitting = texture(in_Texture_Emitting, vt).rgb + in_Emitting;
-	vec3	normal_sample = texture(in_Texture_Normal, vt).xyz * 2 - 1;
-	vec3	specular_sample = texture(in_Texture_Specular, vt).xyz;
-	mediump float	roughness_sample = texture(in_Texture_Roughness, vt).r;
-	mediump float	metallic_sample = texture(in_Texture_Metallic, vt).r;
-	mediump float	ao = 1 - texture(in_Texture_AO, vt).r;
-	vec4	stupid_sample = texture(in_Texture_Stupid, vt);
-	vec3	light_Color = texture(in_Texture_Shadow, vec3(frag_ShadowPosition.xy, frag_ShadowPosition.z * 0.995)) * frag_Light_Color;
+	lowp vec4	albedo_sample = texture(in_Texture_Albedo, vt);
+	lowp vec3	emitting = texture(in_Texture_Emitting, vt).rgb + in_Emitting;
+	lowp vec3	normal_sample = texture(in_Texture_Normal, vt).xyz * 2 - 1;
+	lowp vec3	specular_sample = texture(in_Texture_Specular, vt).xyz;
+	lowp float	roughness_sample = texture(in_Texture_Roughness, vt).r;
+	lowp float	metallic_sample = texture(in_Texture_Metallic, vt).r;
+	lowp float	ao = 1 - texture(in_Texture_AO, vt).r;
+	lowp vec4	stupid_sample = texture(in_Texture_Stupid, vt);
+	lowp vec3	light_Color = texture(in_Texture_Shadow, vec3(frag_ShadowPosition.xy, frag_ShadowPosition.z * 0.995)) * frag_Light_Color;
 
 	if (in_Use_Texture_Albedo)
 	{
@@ -156,7 +156,7 @@ void	main()
 	}
 	if (in_Use_Texture_Normal)
 	{
-		vec3	new_normal = normal_sample * tbn;
+		lowp vec3	new_normal = normal_sample * tbn;
 		if (dot(new_normal, new_normal) > 0)
 			worldNormal = normalize(new_normal);
 	}
@@ -164,27 +164,27 @@ void	main()
 	|| vt.x > in_UVMax.x || vt.y > in_UVMax.y
 	|| vt.x < in_UVMin.x || vt.y < in_UVMin.y)
 		discard;
-	mediump float	roughness = clamp(in_Use_Texture_Roughness ? roughness_sample : in_Roughness, 0.05f, 1.f);
-	mediump float	metallic = clamp(in_Use_Texture_Metallic ? metallic_sample : in_Metallic, 0.f, 1.f);
-	vec3	F0 = mix(in_Use_Texture_Specular ? specular_sample : in_Specular, albedo.rgb, metallic);
-	vec3	V = normalize(in_CamPos - worldPosition);
-	vec3	H = normalize(in_LightDirection + V);
-	vec3	R = reflect(V, worldNormal);
-	mediump float	NdH = max(0, dot(worldNormal, H));
-	mediump float	NdL = max(0, dot(worldNormal, in_LightDirection));
-	mediump float	NdV = max(0, dot(worldNormal, V));
-	mediump float	LdH = max(0, dot(worldNormal, H));
+	lowp float	roughness = clamp(in_Use_Texture_Roughness ? roughness_sample : in_Roughness, 0.05f, 1.f);
+	lowp float	metallic = clamp(in_Use_Texture_Metallic ? metallic_sample : in_Metallic, 0.f, 1.f);
+	lowp vec3	F0 = mix(in_Use_Texture_Specular ? specular_sample : in_Specular, albedo.rgb, metallic);
+	lowp vec3	V = normalize(in_CamPos - worldPosition);
+	lowp vec3	H = normalize(in_LightDirection + V);
+	lowp vec3	R = reflect(V, worldNormal);
+	lowp float	NdH = max(0, dot(worldNormal, H));
+	lowp float	NdL = max(0, dot(worldNormal, in_LightDirection));
+	lowp float	NdV = max(0, dot(worldNormal, V));
+	lowp float	LdH = max(0, dot(worldNormal, H));
 
-	vec3	fresnel = Fresnel(NdV, F0, roughness);
-	vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, roughness)).rg;
+	lowp vec3	fresnel = Fresnel(NdV, F0, roughness);
+	lowp vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, roughness)).rg;
 
-	vec3	diffuse = ao * (textureLod(in_Texture_Env, -worldNormal, roughness + 9).rgb
+	lowp vec3	diffuse = ao * (textureLod(in_Texture_Env, -worldNormal, roughness + 9).rgb
 			+ textureLod(in_Texture_Env_Spec, -worldNormal, roughness * 4.f).rgb);
-	vec3	reflection = textureLod(in_Texture_Env, R, roughness * 11.f).rgb * fresnel;
-	vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 11.f + 3.5).rgb, vec3(4));
-	vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 5.f).rgb;
+	lowp vec3	reflection = textureLod(in_Texture_Env, R, roughness * 11.f).rgb * fresnel;
+	lowp vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 11.f + 3.5).rgb, vec3(4));
+	lowp vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 5.f).rgb;
 	
-	float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
+	lowp float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
 	//reflection_spec *= (1 - fresnel) * (1 + brightness) * (1 - roughness) * brightness;
 	reflection_spec *= brightness * min(vec3(2), fresnel * Specular(1, NdV, 1, roughness));
 	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, metallic) * BRDF.y;
