@@ -31,7 +31,9 @@ Simply drop a *.obj* file directly onto *Scop*, or run *Scop* through shell with
 - [LCtrl + [Keypad +/-]] Scale up/down model
 - [Page Up/Down] Move camera up/down
 - [Left Shift] Speed up movements/scaling
+- [Space] Cycle through environments
 - [LAlt + Enter] Switch fullscreen
+- [S] Switch stupidity on/off
 
 # Features
 - This program features real time Physically based rendering for *.obj* models.
@@ -48,7 +50,7 @@ Np [float] //parallax factor
 map_Nr [./relative/path] //roughness map
 map_Nm [./relative/path] //metallic map
 map_Nh [./relative/path] //heigth map
-map_No [./relative/path] //ambient occlusion map (1 == occlusion)
+map_No [./relative/path] //ambient occlusion map (1 == full occlusion)
 ```
 
 # System requirements
