@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 22:05:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/08 02:35:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,6 @@ void	parse_mtl(t_mtl_parser *p, char **split)
 		ft_free_chartab(msplit);
 		free(line);
 	}
-	//material_assign_shader(engine_get()->materials.length - 1, shader_get_by_name("default"));
 }
 
 int	start_mtllib_parsing(t_mtl_parser *p, char *path)

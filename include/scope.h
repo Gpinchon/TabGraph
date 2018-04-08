@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/07 16:06:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/08 02:34:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -332,6 +332,7 @@ int				material_get_texture_stupid(int material_index);
 /*
 ** Mesh functions
 */
+t_mesh			*mesh_get(int mesh_index);
 void			mesh_update(int mesh_index);
 void			mesh_rotate(int mesh_index, VEC3 rotation);
 void			mesh_scale(int mesh_index, VEC3 scale);

@@ -52,7 +52,7 @@ layout(location = 1) out lowp vec4		out_Bright;
 layout(location = 2) out lowp vec4		out_Normal;
 layout(location = 3) out vec4		out_Position;
 
-lowp float	GGX_Geometry(in lowp float NdV, in lowp float NdL, in lowp float alpha)
+lowp float	GGX_Geometry(in lowp float NdV, in lowp float alpha)
 {
 	lowp float	alpha2 = alpha * alpha;
 	return (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
@@ -64,18 +64,17 @@ lowp float	GGX_Distribution(in lowp float NdH, in lowp float alpha)
 	return (alpha / (M_PI * den * den));
 }
 
-lowp float	Specular(in lowp float NdL, in lowp float NdV, in lowp float NdH, in lowp float roughness)
+lowp float	Specular(in lowp float NdV, in lowp float NdH, in lowp float roughness)
 {
 	lowp float	alpha = roughness * roughness;
 	lowp float	D = GGX_Distribution(NdH, alpha);
-	lowp float	G = GGX_Geometry(NdV, NdL, alpha);
+	lowp float	G = GGX_Geometry(NdV, alpha);
 	return (max(D * G, 0));
 }
 
-
-vec3	Fresnel(in lowp float factor, in vec3 F0, in lowp float roughness)
+lowp vec3	Fresnel(in lowp float factor, in lowp vec3 F0, in lowp float roughness)
 {
-	return ((max(vec3(1 - roughness), F0) - F0) * pow(max(0, 1 - factor), 5) + F0);
+	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
 }
 
 vec2	Parallax_Mapping(in vec3 tbnV, in vec2 T, out lowp float parallaxHeight)
@@ -122,6 +121,16 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 lowp float	CustomLambertianDiffuse(lowp float NdL, lowp float roughness)
 {
 	return pow(NdL, 0.5 * (1 - roughness) + 0.5);
+}
+
+lowp float	Env_Specular(in lowp float NdV, in lowp float roughness)
+{
+	lowp float	alpha = roughness * roughness;
+	lowp float	den = (alpha - 1) + 1;
+	lowp float	D = (alpha / (M_PI * den * den));
+	lowp float	alpha2 = alpha * alpha;
+	lowp float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
+	return (max(D * G, 0));
 }
 
 void	main()
@@ -180,18 +189,17 @@ void	main()
 
 	lowp vec3	diffuse = ao * (textureLod(in_Texture_Env, -worldNormal, roughness + 9).rgb
 			+ textureLod(in_Texture_Env_Spec, -worldNormal, roughness * 4.f).rgb);
-	lowp vec3	reflection = textureLod(in_Texture_Env, R, roughness * 11.f).rgb * fresnel;
-	lowp vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 11.f + 3.5).rgb, vec3(4));
-	lowp vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 5.f).rgb;
+	lowp vec3	reflection = textureLod(in_Texture_Env, R, roughness * 12.f).rgb * fresnel;
+	lowp vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 10.f).rgb;
+	lowp vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 10.f + 3.5).rgb, vec3(4));
 	
 	lowp float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
-	//reflection_spec *= (1 - fresnel) * (1 + brightness) * (1 - roughness) * brightness;
-	reflection_spec *= brightness * min(vec3(2), fresnel * Specular(1, NdV, 1, roughness));
+	reflection_spec *= brightness * min(fresnel + 1, fresnel * Env_Specular(NdV, roughness));
 	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, metallic) * BRDF.y;
 	specular += reflection_spec;
 
 	fresnel = Fresnel(LdH, F0, roughness);
-	specular += light_Color * min(vec3(5), fresnel * Specular(NdL, NdV, NdH, roughness));
+	specular += light_Color * min(fresnel + 1, fresnel * Specular(NdV, NdH, roughness));
 	diffuse += light_Color * CustomLambertianDiffuse(NdL, roughness);
 	diffuse *= albedo.rgb * (1 - metallic);
 

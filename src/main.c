@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 22:47:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/08 02:38:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,15 +294,17 @@ int main(int argc, char *argv[])
 	window_init("Scop", WIDTH, HEIGHT);
 	engine_load_env();
 	light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
-	if (argc >= 2)
-	{
-		int obj = load_obj(argv[1]);
-		mesh_center(obj);
-		mesh_load(obj);
-	}
 	int camera = camera_create(45);
-	camera_set_target(camera, transform_create(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
+	camera_set_target(camera, transform_create(
+		new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera_orbite(camera, M_PI / 2.f, M_PI / 2.f, 5.f);
+	int obj;
+	if (argc >= 2)
+		obj = load_obj(argv[1]);
+	else
+		obj = load_obj("./res/obj/chart.obj");
+	mesh_center(obj);
+	mesh_load(obj);
 	set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
 	set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
 	set_key_callback(SDL_SCANCODE_SPACE, callback_background);
