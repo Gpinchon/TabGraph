@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/19 16:26:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/09 21:11:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,6 @@ t_vgroup	new_vgroup()
 	vg.v = new_ezarray(other, 0, sizeof(VEC3));
 	vg.vn = new_ezarray(other, 0, 4 * sizeof(UCHAR));
 	vg.vt = new_ezarray(other, 0, sizeof(VEC2));
-	vg.uvmin = new_vec2(0, 0);
-	vg.uvmax = new_vec2(1, 1);
 	return (vg);
 }
 
@@ -282,7 +280,6 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 
 	if (access(path, F_OK | R_OK) || (p->fd = open(path, O_RDONLY)) <= 0)
 		return (-1);
-	p->path_split = split_path(path);
 	p->mesh = new_mesh();
 	p->vg = new_vgroup();
 	p->v = new_ezarray(other, 0, sizeof(VEC3));

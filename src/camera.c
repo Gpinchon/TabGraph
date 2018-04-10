@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 16:29:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/08 23:24:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	camera_update(int camera_index)
 	t_transform	*ct;
 	VEC3		target;
 	t_camera	*c;
-	int			size[2];
+	VEC2		size;
 
 	c = ezarray_get_index(engine_get()->cameras, camera_index);
 	if (!c)
@@ -64,7 +64,7 @@ void	camera_update(int camera_index)
 	ct = ezarray_get_index(engine_get()->transforms, c->target_index);
 	target = ct ? ct->position : new_vec3(0, 0, 0);
 	c->view = mat4_lookat(c->position, target, UP);
-	SDL_GetWindowSize(window_get()->sdl_window, &size[0], &size[1]);
+	size = window_get_size();
 	c->projection = mat4_perspective(c->fov,
-		(float)size[0] / (float)size[1], 0.1, 1000);
+		size.x / size.y, 0.1, 1000);
 }

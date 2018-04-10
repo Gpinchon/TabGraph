@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/18 13:41:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/09 18:55:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,18 @@ VEC2		window_get_size()
 	return (new_vec2(w, h));
 }
 
+void		window_resize()
+{
+	VEC2	size = vec2_scale(window_get_size(),
+		engine_get()->internal_quality);
+	framebuffer_resize(window_get()->render_buffer, size);
+}
+
 void		window_fullscreen(char fullscreen)
 {
 	SDL_SetWindowFullscreen(window_get()->sdl_window,
 		fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+	window_resize();
 }
 
 /*
@@ -53,7 +61,8 @@ void		window_init(const char *name, int width, int height)
 	glewExperimental = GL_TRUE;
 	if (!window->sdl_window || glewInit() != GLEW_OK)
 		return;
-	window->render_buffer = framebuffer_create(new_vec2(IWIDTH, IHEIGHT), shader_get_by_name("render"), 0, 0);
+	window->render_buffer = framebuffer_create(vec2_scale(window_get_size(),
+		engine_get()->internal_quality), shader_get_by_name("render"), 0, 0);
 	framebuffer_create_attachement(window->render_buffer, GL_RGBA, GL_RGBA16F_ARB);
 	framebuffer_create_attachement(window->render_buffer, GL_RGB, GL_RGB16F_ARB);
 	framebuffer_create_attachement(window->render_buffer, GL_RGB, GL_RGB16F_ARB);

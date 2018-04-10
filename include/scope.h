@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/08 02:34:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/09 20:00:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,6 +236,7 @@ typedef struct	s_engine
 	t_kcallback	rcallback;
 	char		*program_path;
 	char		*exec_path;
+	float		internal_quality;
 }				t_engine;
 
 /*
@@ -248,12 +249,14 @@ void			engine_init();
 void			engine_load_env();
 void			set_key_callback(SDL_Scancode keycode, t_kcallback callback);
 void			set_refresh_callback(t_kcallback callback);
+void			cleanup();
 
 /*
 ** Window functions
 */
 
 t_window		*window_get();
+void			window_resize();
 VEC2			window_get_size();
 void			window_init(const char *name, int width, int height);
 void			window_fullscreen(char fullscreen);
@@ -444,6 +447,9 @@ int				framebuffer_create(VEC2 size, int shader,
 void			framebuffer_setup_attachements(int fi);
 int				framebuffer_create_attachement(int framebuffer,
 					GLenum format, GLenum iformat);
+void			framebuffer_destroy(void *buffer);
+void			framebuffer_resize(int framebuffer, VEC2 new_size);
+VEC2			framebuffer_get_size(int framebuffer);
 
 /*
 ** Callback functions

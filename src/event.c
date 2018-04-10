@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 17:24:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/16 17:47:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/09 19:37:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@ void	event_window(SDL_Event *event)
 {
 	if (event->window.event == SDL_WINDOWEVENT_CLOSE)
 		engine_get()->loop = 0;
+	else if (event->window.event == SDL_WINDOWEVENT_RESIZED)
+		window_resize();
 }
 
 void	event_keyboard(SDL_Event *event)
