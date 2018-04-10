@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/09 20:00:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 18:55:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -383,6 +383,7 @@ int				texture_generate_brdf();
 char			**split_path(const char *path);
 ULL				hash(unsigned char *str);
 char			*convert_backslash(char *str);
+int				ft_chartablen(char **s);
 
 /*
 ** .mtllib parser
@@ -394,8 +395,6 @@ int				load_mtllib(char *path);
 */
 
 int				load_obj(char *path);
-VEC3			parse_vec3(char **split);
-VEC2			parse_vec2(char **split);
 
 /*
 ** .bmp parser

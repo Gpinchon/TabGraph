@@ -6,12 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 17:32:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 18:55:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
-#include <fcntl.h>
+#include "../parser.h"
 
 typedef struct		s_mtl_parser
 {

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/19 01:27:17 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 18:11:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 18:46:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,4 +61,14 @@ unsigned long long hash(unsigned char *str)
     while ((c = *str++))
         hash = ((hash << 5) + hash) + c;
     return (hash);
+}
+
+int		ft_chartablen(char **s)
+{
+	int	i;
+
+	i = 0;
+	while (s[i])
+		i++;
+	return (i);
 }
