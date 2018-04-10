@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/08 02:38:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/09 19:52:05 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,13 +147,15 @@ static inline void	blur_texture(int texture, int pass, float radius)
 
 	if (blur == -1)
 	{
-		blur = framebuffer_create(new_vec2(IWIDTH, IHEIGHT), shader_get_by_name("blur"), 0, 0);
+		blur = framebuffer_create(vec2_scale(window_get_size(),
+		engine_get()->internal_quality), shader_get_by_name("blur"), 0, 0);
 		framebuffer_create_attachement(blur, GL_RGB, GL_RGB32F_ARB);
 		framebuffer_setup_attachements(blur);
 	}
+	framebuffer_resize(blur, texture_get(texture)->size);
 	framebuffer_bind(blur);
 	glDisable(GL_DEPTH_TEST);
-	glClearColor(0, 0, 0, 1);
+	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	shader_use(framebuffer_get_shader(blur));
 	glBindVertexArray(display_quad_get());
@@ -287,6 +289,16 @@ void	set_program_path(char *argv0)
 	engine_get()->program_path = convert_backslash(path);
 }
 
+void	callback_quality(SDL_Event *e)
+{
+	if (e && (e->type == SDL_KEYUP || e->key.repeat))
+		return ;
+	engine_get()->internal_quality += 0.5f;
+	engine_get()->internal_quality =
+	CYCLE(engine_get()->internal_quality, 0.5, 2);
+	window_resize();
+}
+
 int main(int argc, char *argv[])
 {
 	set_program_path(argv[0]);
@@ -311,6 +323,7 @@ int main(int argc, char *argv[])
 	set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
 	set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
 	set_key_callback(SDL_SCANCODE_S, callback_stupidity);
+	set_key_callback(SDL_SCANCODE_Q, callback_quality);
 	set_refresh_callback(callback_refresh);
 	main_loop();
 	SDL_Quit();

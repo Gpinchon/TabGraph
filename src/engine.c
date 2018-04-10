@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/07 16:15:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/09 19:59:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ void			engine_init(void)
 	engine->framebuffers = new_ezarray(other, 0, sizeof(t_framebuffer));
 	engine->loop = 1;
 	engine->swap_interval = 1;
+	engine->internal_quality = 0.5;
 	engine->exec_path = convert_backslash(getcwd(NULL, 4096));
 	engine->exec_path = ft_strjoinfreebool(engine->exec_path, "/", 1, 0);
 }
@@ -59,16 +60,8 @@ void			engine_destroy(void)
 {
 	t_engine *engine;
 
+	cleanup();
 	engine = engine_get();
-	destroy_ezarray(&engine->cameras);
-	destroy_ezarray(&engine->shaders);
-	destroy_ezarray(&engine->textures);
-	destroy_ezarray(&engine->textures_env);
-	destroy_ezarray(&engine->materials);
-	destroy_ezarray(&engine->meshes);
-	destroy_ezarray(&engine->transforms);
-	destroy_ezarray(&engine->lights);
-	destroy_ezarray(&engine->framebuffers);
 	free(engine);
 	g_engine = NULL;
 }
