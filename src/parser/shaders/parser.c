@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 22:29:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 18:13:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,10 +46,10 @@ int		check_shader(GLuint id)
 	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &loglength);
 	if (loglength > 1)
 	{
-		log = ft_memalloc(sizeof(char) * loglength);
+		log = calloc(loglength, sizeof(char));
 		glGetShaderInfoLog(id, loglength, NULL, &log[0]);
-		ft_putendl("Error compiling shader : ");
-		ft_putendl(log);
+		puts("Error compiling shader : ");
+		puts(log);
 		free(log);
 		return (-1);
 	}
@@ -67,9 +67,9 @@ int		check_program(GLuint id)
 	glGetProgramiv(id, GL_INFO_LOG_LENGTH, &loglength);
 	if (loglength > 0)
 	{
-		log = ft_memalloc(sizeof(char) * loglength);
+		log = calloc(loglength, sizeof(char));
 		glGetProgramInfoLog(id, loglength, NULL, &log[0]);
-		ft_putendl(log);
+		puts(log);
 		free(log);
 		return (-1);
 	}
@@ -94,12 +94,12 @@ ARRAY		get_shader_uniforms(t_shader *shader)
 	GLint				ivcount;
 	GLsizei				length;
 
-	name = ft_memalloc(sizeof(char) * 4096);
+	name = calloc(4096, sizeof(char));
 	glGetProgramiv(shader->program, GL_ACTIVE_UNIFORMS, &ivcount);
 	uniforms = new_ezarray(other, 0, sizeof(t_shadervariable));
 	while (--ivcount >= 0)
 	{
-		name = ft_memset(name, 0, sizeof(char) * 4096);
+		name = memset(name, 0, sizeof(char) * 4096);
 		glGetActiveUniform(shader->program, (GLuint)ivcount, 4096, &length,
 			&v.size, &v.type, name);
 		v.name = new_ezstring(name);
@@ -119,12 +119,12 @@ ARRAY		get_shader_attributes(t_shader *shader)
 	GLint				ivcount;
 	GLsizei				length;
 
-	name = ft_memalloc(sizeof(char) * 4096);
+	name = calloc(4096, sizeof(char));
 	glGetProgramiv(shader->program, GL_ACTIVE_ATTRIBUTES, &ivcount);
 	attributes = new_ezarray(other, 0, sizeof(t_shadervariable));
 	while (--ivcount >= 0)
 	{
-		name = ft_memset(name, 0, sizeof(char) * 4096);
+		name = memset(name, 0, sizeof(char) * 4096);
 		glGetActiveAttrib(shader->program, (GLuint)ivcount, 4096, &length,
 			&v.size, &v.type, name);
 		v.name = new_ezstring(name);
@@ -153,12 +153,12 @@ int	load_shaders(const char *name, const char *vertex_file_path,
 	fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
 	if(!vertexid || !fragmentid)
 	{
-		ft_putendl("Impossible to open file !");
+		puts("Impossible to open file !");
 		return (-1);
 	}
 	if (check_shader(vertexid) || check_shader(fragmentid))
 		return (-1);
-	ft_memset(&shader, 0, sizeof(t_shader));
+	memset(&shader, 0, sizeof(t_shader));
 	shader.program = link_shaders(vertexid, fragmentid);
 	shader.name = new_ezstring(name);
 	shader.id = hash((unsigned char *)name);

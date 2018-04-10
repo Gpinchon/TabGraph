@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/21 20:58:41 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/26 11:41:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 16:25:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,7 +157,7 @@ int texture_generate_brdf(VEC2 size)
 
 	it = texture_create(size, GL_TEXTURE_2D, GL_BGR, GL_COMPRESSED_RGB);
 	t = ezarray_get_index(engine_get()->textures, it);
-	t->data = ft_memalloc(sizeof(UCHAR) * 3 * size.x * size.y);
+	t->data = calloc(3 * size.x * size.y, sizeof(UCHAR));
 	t->bpp = 24;
 	t->name = new_ezstring("BRDF");
 	texture_set_parameters(it, 2,

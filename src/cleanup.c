@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/09 19:57:50 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/09 20:34:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 17:01:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,61 +31,68 @@ void	framebuffer_destroy(void *buffer)
 	destroy_ezarray(&f->color_attachements);
 }
 
-void	material_destroy(void *material)
-{
-	t_material *m;
-
-	m = material;
-	destroy_ezstring(&m->name);
-}
-
-void	shader_variable_destroy(void *variable)
-{
-	t_shadervariable *v;
-
-	v = variable;
-	destroy_ezstring(&v->name);
-}
-
 void	shader_destroy(void *shader)
 {
-	t_shader *s;
+	t_shader			*s;
+	t_shadervariable	*v;
+	unsigned			i;
 
 	s = shader;
-	ezforeach(s->uniforms, shader_variable_destroy);
+	i = 0;
+	while (i < s->uniforms.length)
+	{
+		v = ezarray_get_index(s->uniforms, i);
+		destroy_ezstring(&v->name);
+		i++;
+	}
 	destroy_ezarray(&s->uniforms);
-	ezforeach(s->attributes, shader_variable_destroy);
+	i = 0;
+	while (i < s->attributes.length)
+	{
+		v = ezarray_get_index(s->attributes, i);
+		destroy_ezstring(&v->name);
+		i++;
+	}
 	destroy_ezarray(&s->attributes);
-}
-
-void	vgroup_destroy(void *vgroup)
-{
-	t_vgroup *vg;
-
-	vg = vgroup;
-	destroy_ezarray(&vg->v);
-	destroy_ezarray(&vg->vn);
-	destroy_ezarray(&vg->vt);
 }
 
 void	mesh_destroy(void *mesh)
 {
-	t_mesh *m;
+	t_mesh		*m;
+	t_vgroup	*vg;
+	unsigned	i;
 
+	i = 0;
 	m = mesh;
-	ezforeach(m->vgroups, vgroup_destroy);
+	while (i < m->vgroups.length)
+	{
+		vg = ezarray_get_index(m->vgroups, i);
+		destroy_ezarray(&vg->v);
+		destroy_ezarray(&vg->vn);
+		destroy_ezarray(&vg->vt);
+		i++;
+	}
 	destroy_ezarray(&m->vgroups);
 }
 
-void	cleanup()
+void	cleanup(void)
 {
+	unsigned	i;
+	t_material	*m;
+
+	i = 0;
 	destroy_ezarray(&engine_get()->cameras);
 	ezforeach(engine_get()->shaders, shader_destroy);
 	destroy_ezarray(&engine_get()->shaders);
 	ezforeach(engine_get()->textures, texture_destroy);
 	destroy_ezarray(&engine_get()->textures);
 	destroy_ezarray(&engine_get()->textures_env);
-	ezforeach(engine_get()->materials, material_destroy);
+	while (i < engine_get()->materials.length)
+	{
+		m = ezarray_get_index(engine_get()->materials, i);
+		destroy_ezstring(&m->name);
+		i++;
+	}
 	destroy_ezarray(&engine_get()->materials);
 	ezforeach(engine_get()->meshes, mesh_destroy);
 	destroy_ezarray(&engine_get()->meshes);

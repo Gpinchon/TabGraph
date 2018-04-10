@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/09 21:11:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 16:29:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ t_vgroup	new_vgroup()
 {
 	t_vgroup	vg;
 
-	ft_memset(&vg, 0, sizeof(t_vgroup));
+	memset(&vg, 0, sizeof(t_vgroup));
 	vg.mtl_id = hash((unsigned char*)"default");
 	vg.bounding_box.min = new_vec3(100000, 100000, 100000);
 	vg.bounding_box.max = new_vec3(-100000, -100000, -100000);
@@ -44,7 +44,7 @@ t_mesh	new_mesh()
 {
 	t_mesh			m;
 
-	ft_memset(&m, 0, sizeof(t_mesh));
+	memset(&m, 0, sizeof(t_mesh));
 	m.vgroups = new_ezarray(other, 0, sizeof(t_vgroup));
 	return (m);
 }
@@ -55,7 +55,7 @@ VEC3	parse_vec3(char **split)
 	int		i;
 
 	i = 0;
-	ft_memset(v, 0, sizeof(float) * 3);
+	memset(v, 0, sizeof(float) * 3);
 	while (split[i] && i < 3)
 	{
 		v[i] = atof(split[i]);
@@ -70,7 +70,7 @@ VEC2	parse_vec2(char **split)
 	int		i;
 
 	i = 0;
-	ft_memset(v, 0, sizeof(float) * 2);
+	memset(v, 0, sizeof(float) * 2);
 	while (split[i] && i < 2)
 	{
 		v[i] = atof(split[i]);
@@ -84,7 +84,7 @@ void	parse_vtn(t_obj_parser *p, char **split)
 	VEC3			v;
 	VEC2			vn;
 
-	if (!ft_strcmp(split[0], "v"))
+	if (!strcmp(split[0], "v"))
 	{
 		v = parse_vec3(&split[1]);
 		p->bbox.min.x = v.x < p->bbox.min.x ? v.x : p->bbox.min.x;
@@ -96,12 +96,12 @@ void	parse_vtn(t_obj_parser *p, char **split)
 		p->bbox.center = vec3_fdiv(vec3_add(p->bbox.min, p->bbox.max), 2);
 		ezarray_push(&p->v, &v);
 	}
-	else if (!ft_strcmp(split[0], "vn"))
+	else if (!strcmp(split[0], "vn"))
 	{
 		v = parse_vec3(&split[1]);
 		ezarray_push(&p->vn, &v);
 	}
-	else if (!ft_strcmp(split[0], "vt"))
+	else if (!strcmp(split[0], "vt"))
 	{
 		vn = parse_vec2(&split[1]);
 		ezarray_push(&p->vt, &vn);
@@ -168,7 +168,7 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 	while (split[i])
 	{
 		fsplit = ft_strsplit(split[i], '/');
-		vindex[i] = ft_atoi(fsplit[0]);
+		vindex[i] = atoi(fsplit[0]);
 		if (vindex[i] < 0)
 			vindex[i] = p->v.length + vindex[i];
 		else
@@ -214,27 +214,25 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
 		if (tablen == 3 && slash == 2)
 		{
-			in_vt = ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1);
+			in_vt = ezarray_get_index(p->vt, atoi(fsplit[1]) - 1);
 			if (in_vt)
 				vt[i] = *in_vt;
-			VEC3 *normal = ezarray_get_index(p->vn, ft_atoi(fsplit[2]) - 1);
+			VEC3 *normal = ezarray_get_index(p->vn, atoi(fsplit[2]) - 1);
 			if (normal)
 				vn[i] = *normal;
 		}
 		else if (tablen == 2 && slash == 2)
 		{
-			VEC3 *normal = ezarray_get_index(p->vn, ft_atoi(fsplit[1]) - 1);
+			VEC3 *normal = ezarray_get_index(p->vn, atoi(fsplit[1]) - 1);
 			if (normal)
 				vn[i] = *normal;
 		}
 		else if (tablen == 2 && slash == 1)
 		{
-			in_vt = ezarray_get_index(p->vt, ft_atoi(fsplit[1]) - 1);
+			in_vt = ezarray_get_index(p->vt, atoi(fsplit[1]) - 1);
 			if (in_vt)
 				vt[i] = *in_vt;
 		}
-		//else
-		//	vn[i] = vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0])));
 		ft_free_chartab(fsplit);
 		i++;
 	}
@@ -297,14 +295,14 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 				parse_f(p, &split[1]);
 			else if (split[0][0] == 'g'
 			|| split[0][0] == 'o'
-			|| !ft_strcmp(split[0], "usemtl"))
+			|| !strcmp(split[0], "usemtl"))
 				parse_vg(p, split);
-			else if (!ft_strcmp(split[0], "mtllib"))
+			else if (!strcmp(split[0], "mtllib"))
 			{
 				s = new_ezstring(split[1]);
 				ezarray_push(&p->mtl_pathes, &s);
 			}
-			if (!ft_strcmp(split[0], "usemtl"))
+			if (!strcmp(split[0], "usemtl"))
 				p->vg.mtl_id = hash((unsigned char *)split[1]);
 		}
 		ft_free_chartab(split);
@@ -360,7 +358,7 @@ int	load_obj(char *path)
 {
 	t_obj_parser	p;
 
-	ft_memset(&p, 0, sizeof(t_obj_parser));
+	memset(&p, 0, sizeof(t_obj_parser));
 	p.bbox.min = new_vec3(100000, 100000, 100000);
 	p.bbox.max = new_vec3(-100000, -100000, -100000);
 	p.path_split = split_path(path);

@@ -16,7 +16,7 @@ int		texture_create(VEC2 s, GLenum target, GLenum f, GLenum fi)
 {
 	t_texture	t;
 
-	ft_memset(&t, 0, sizeof(t_texture));
+	memset(&t, 0, sizeof(t_texture));
 	t.target = target;
 	t.format = f;
 	t.internal_format = fi;

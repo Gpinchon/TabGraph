@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 22:21:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 16:15:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ static void	convert_bmp(t_bmp_parser *parser)
 	unsigned char	rgba[4];
 	int				i[3];
 
-	pixel_temp = ft_memalloc(parser->header.size * sizeof(unsigned char));
+	pixel_temp = calloc(parser->header.size, sizeof(unsigned char));
 	i[0] = 0;
 	i[1] = -1;
 	while (++i[1] < parser->info.width)
@@ -56,7 +56,7 @@ static int	read_data(t_bmp_parser *p, const char *imagepath)
 	}
 	data_size = p->info.bpp / 8 * p->info.width * p->info.height;
 	lseek(p->fd, p->header.data_offset, SEEK_SET);
-	p->data = (unsigned char*)ft_memalloc(data_size);
+	p->data = (unsigned char*)calloc(1, data_size);
 	p->size_read = read(p->fd, p->data, data_size);
 	close(p->fd);
 	if (p->info.bpp == 32)

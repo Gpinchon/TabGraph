@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/09 19:59:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 16:14:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ t_engine	*g_engine = NULL;
 inline t_engine	*engine_get(void)
 {
 	if (!g_engine)
-		g_engine = ft_memalloc(sizeof(t_engine));
+		g_engine = calloc(1, sizeof(t_engine));
 	return (g_engine);
 }
 

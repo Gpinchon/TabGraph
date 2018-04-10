@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/09 18:55:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 16:25:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ t_window		*window_get()
 	static t_window	*window = NULL;
 
 	if (!window)
-		window = ft_memalloc(sizeof(t_window));
+		window = calloc(1, sizeof(t_window));
 	return (window);
 }
 

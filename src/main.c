@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/09 19:52:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 18:05:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -280,8 +280,8 @@ void	set_program_path(char *argv0)
 	char		*path;
 	int			len;
 
-	path = ft_strdup(argv0);
-	len = ft_strlen(path);
+	path = strdup(argv0);
+	len = strlen(path);
 	len--;
 	while (len >= 0 && path[len] != '/' && path[len] != '\\')
 		len--;
@@ -295,7 +295,7 @@ void	callback_quality(SDL_Event *e)
 		return ;
 	engine_get()->internal_quality += 0.5f;
 	engine_get()->internal_quality =
-	CYCLE(engine_get()->internal_quality, 0.5, 2);
+	CYCLE(engine_get()->internal_quality, 0.5, 1.5);
 	window_resize();
 }
 

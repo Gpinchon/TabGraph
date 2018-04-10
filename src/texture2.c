@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 18:20:54 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/23 00:34:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 16:18:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ void	texture_resize(int texture_index, VEC2 ns)
 	VEC2			uv;
 
 	t = texture_get(texture_index);
-	d = ft_memalloc(ns.x * ns.y * (t->bpp / 8));
+	d = calloc(ns.x * ns.y * (t->bpp / 8), sizeof(UCHAR));
 	i[0] = -1;
 	while (++i[0] < ns.x)
 	{

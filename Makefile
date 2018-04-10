@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/09 21:11:14 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/10 18:21:31 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,6 +21,7 @@ SRC			=	./src/main.c			\
 				./src/window.c			\
 				./src/framebuffer.c		\
 				./src/framebuffer1.c	\
+				./src/framebuffer2.c	\
 				./src/engine.c			\
 				./src/camera.c			\
 				./src/camera1.c			\

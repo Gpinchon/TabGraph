@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/08 23:24:42 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/10 16:28:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ int		camera_create(float fov)
 {
 	t_camera	camera;
 
-	ft_memset(&camera, 0, sizeof(t_camera));
+	memset(&camera, 0, sizeof(t_camera));
 	camera.fov = fov;
 	camera.target_index = -1;
 	ezarray_push(&engine_get()->cameras, &camera);
