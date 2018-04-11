@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/11 16:05:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/12 00:24:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 # include <vml.h>
 # include <libft.h>
 # include <fcntl.h>
+# include <stdio.h>
 
 # define WIDTH		1280
 # define HEIGHT		720

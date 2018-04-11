@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/11 20:02:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/12 00:29:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,13 +40,14 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 	char	line[4096];
 	STRING	s;
 
-	if (access(path, F_OK | R_OK) || (p->fd = fopen(path, "r")) <= 0)
+	if (access(path, F_OK | R_OK) || !(p->fd = fopen(path, "r")))
 		return (-1);
 	p->mesh = new_mesh();
 	p->vg = new_vgroup();
 	p->v = new_ezarray(other, 0, sizeof(VEC3));
 	p->vn = new_ezarray(other, 0, sizeof(VEC3));
 	p->vt = new_ezarray(other, 0, sizeof(VEC3));
+	split = NULL;
 	while (fgets(line, 4096, p->fd))
 	{
 		split = ft_strsplitwspace((const char *)line);
