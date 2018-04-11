@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:41:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 18:55:29 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/11 16:02:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,12 @@
 # define PARSER_H
 # include <scope.h>
 # include <fcntl.h>
+# include <stdio.h>
 
 typedef struct		s_obj_parser
 {
 	char			**path_split;
-	int				fd;
+	FILE			*fd;
 	t_mesh			mesh;
 	ARRAY			v;
 	ARRAY			vn;

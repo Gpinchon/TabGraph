@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 18:55:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/11 16:05:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,6 @@
 
 # define WIDTH		1280
 # define HEIGHT		720
-# define IWIDTH		1024
-# define IHEIGHT	1024
 # define SHADOWRES	2048
 # define UP			(VEC3){0, 1, 0}
 # define ULL		unsigned long long
@@ -36,8 +34,8 @@
 # ifndef O_BINARY
 #  define O_BINARY 0x0004
 # endif
-# define MIN(x, y) (x < y ? x : y)
-# define MAX(x, y) (x > y ? x : y)
+# define MIN(x, y) (x <= y ? x : y)
+# define MAX(x, y) (x >= y ? x : y)
 # define RENDERTYPE	enum e_rendertype
 # define LDATA		t_light_data
 # define GLCONTEXT	SDL_GLContext

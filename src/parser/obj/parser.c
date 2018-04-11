@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 18:54:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/11 20:02:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,31 +14,40 @@
 
 void	parse_f(t_obj_parser *p, char **split)
 {
-	int		chartablen;
+	short	faces;
+	short	i;
 
-	chartablen = ft_chartablen(split);
-	if (chartablen >= 3)
-		parse_v(p, (char*[4]){split[0], split[1], split[2], NULL}, chartablen == 4 ? (t_vec2[3]){new_vec2(0, 0), new_vec2(0, 1), new_vec2(1, 1)} : NULL);
-	if (chartablen == 4)
-		parse_v(p, (char*[4]){split[0], split[2], split[3], NULL}, (t_vec2[3]){new_vec2(0, 0), new_vec2(1, 1), new_vec2(1, 0)});
+	faces = ft_chartablen(split) - 3 + 1;
+	i = 0;
+	while (i < faces)
+	{
+		if (faces == 2 && i == 0)
+			parse_v(p, (char*[4]){split[0], split[i + 1], split[i + 2], NULL},
+				(t_vec2[3]){new_vec2(0, 0), new_vec2(0, 1), new_vec2(1, 1)});
+		else if (faces == 2 && i >= 1)
+			parse_v(p, (char*[4]){split[0], split[i + 1], split[i + 2], NULL},
+				(t_vec2[3]){new_vec2(0, 0), new_vec2(1, 1), new_vec2(1, 0)});
+		else
+			parse_v(p, (char*[4]){split[0], split[i + 1], split[i + 2], NULL},
+				NULL);
+		i++;
+	}
 }
 
 int	start_obj_parsing(t_obj_parser *p, char *path)
 {
 	char	**split;
-	char	*line;
-	int		fd;
+	char	line[4096];
 	STRING	s;
 
-	if (access(path, F_OK | R_OK) || (p->fd = open(path, O_RDONLY)) <= 0)
+	if (access(path, F_OK | R_OK) || (p->fd = fopen(path, "r")) <= 0)
 		return (-1);
 	p->mesh = new_mesh();
 	p->vg = new_vgroup();
 	p->v = new_ezarray(other, 0, sizeof(VEC3));
 	p->vn = new_ezarray(other, 0, sizeof(VEC3));
 	p->vt = new_ezarray(other, 0, sizeof(VEC3));
-	fd = p->fd;
-	while (get_next_line(fd, &line))
+	while (fgets(line, 4096, p->fd))
 	{
 		split = ft_strsplitwspace((const char *)line);
 		if (split && split[0] && split[0][0] != '#')
@@ -60,7 +69,6 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 				p->vg.mtl_id = hash((unsigned char *)split[1]);
 		}
 		ft_free_chartab(split);
-		free(line);
 	}
 	if (p->vg.v.length)
 		parse_vg(p, split);

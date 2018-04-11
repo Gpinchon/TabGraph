@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 18:05:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/11 13:42:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -293,9 +293,9 @@ void	callback_quality(SDL_Event *e)
 {
 	if (e && (e->type == SDL_KEYUP || e->key.repeat))
 		return ;
-	engine_get()->internal_quality += 0.5f;
+	engine_get()->internal_quality += 0.25f;
 	engine_get()->internal_quality =
-	CYCLE(engine_get()->internal_quality, 0.5, 1.5);
+	CYCLE(engine_get()->internal_quality, 0.5, 1.25);
 	window_resize();
 }
 
