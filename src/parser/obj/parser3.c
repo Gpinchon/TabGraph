@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:46:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/11 16:08:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/12 19:44:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,85 +39,86 @@ void	push_values(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
 	}
 }
 
-void	parse_values(t_obj_parser *p, char **split, VEC3 *v, VEC3 *vn, VEC2 *vt)
+int		get_vi(ARRAY v, const char *str)
 {
-	short	i[3];
-	char	**fsplit;
-	VEC2	*uv;
-	VEC3	*normal;
+	int	vindex;
 
-	i[0] = 0;
-	while (split[i[0]])
+	vindex = atoi(str);
+	if (vindex < 0)
+		vindex = v.length + vindex;
+	else
+		vindex -= 1;
+	if (vindex < 0 || (unsigned)vindex >= v.length)
+		return (-1);
+	return (vindex);
+}
+
+void	parse_indice(t_obj_parser *p, char **split, int vindex[3][3])
+{
+	char		**fsplit;
+	unsigned	i0;
+	unsigned	i1;
+	unsigned	i2;
+
+	i0 = 0;
+	while (split[i0] && i0 < 3)
 	{
-		normal = NULL;
-		uv = NULL;
-		fsplit = ft_strsplit(split[i[0]], '/');
-		i[2] = count_char(split[i[0]], '/');
-		i[1] = ft_chartablen(fsplit);
-		vn[i[0]] = vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0]));
-		if ((i[1] == 3 && i[2] == 2) || (i[1] == 2 && i[2] == 1))
-			uv = ezarray_get_index(p->vt, atoi(fsplit[1]) - 1);
-		if (i[1] == 3 && i[2] == 2)
-			normal = ezarray_get_index(p->vn, atoi(fsplit[2]) - 1);
-		else if (i[1] == 2 && i[2] == 2)
-			normal = ezarray_get_index(p->vn, atoi(fsplit[1]) - 1);
-		vn[i[0]] = vec3_normalize(normal ? *normal : vn[i[0]]);
-		vt[i[0]] = uv ? *uv : vt[i[0]];
-		ft_free_chartab(fsplit);
-		i[0]++;
+		fsplit = ft_strsplit(split[i0], '/');
+		i1 = ft_chartablen(fsplit);
+		i2 = count_char(split[i0], '/');
+		vindex[0][i0] = -1;
+		vindex[1][i0] = -1;
+		vindex[2][i0] = -1;
+		vindex[0][i0] = get_vi(p->v, fsplit[0]);
+		if (vindex[0][i0] == -1)
+			return ;
+		if ((i1 == 3 && i2 == 2) || (i1 == 2 && i2 == 1))
+			vindex[2][i0] = get_vi(p->vt, fsplit[1]);
+		if (i1 == 3 && i2 == 2)
+			vindex[1][i0] = get_vi(p->vn, fsplit[2]);
+		else if (i1 == 2 && i2 == 2)
+			vindex[1][i0] = get_vi(p->vn, fsplit[1]);;
+		i0++;
+	}
+}
+
+void	parse_vn(t_obj_parser *p, int vindex[3][3], VEC3 v[3], VEC3 vn[3])
+{
+	short		i0;
+
+	i0 = 0;
+	while (i0 < 3)
+	{
+		if (vindex[1][i0] != -1)
+			vn[i0] = *((VEC3*)ezarray_get_index(p->vn, vindex[1][i0]));
+		else
+			vn[i0] = generate_vn(v);
+		i0++;
 	}
 }
 
 void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 {
-	VEC3	v[3];
-	VEC3	vn[3];
-	VEC2	vt[3];
-	int		i;
-	int		vindex[3];
-	char	**fsplit;
+	int			vindex[3][3];
+	VEC3		v[3];
+	VEC3		vn[3];
+	VEC2		vt[3];
+	short		i0;
 
-	i = 0;
-	while (split[i])
+	parse_indice(p, split, vindex);
+	i0 = 0;
+	while (i0 < 3)
 	{
-		fsplit = ft_strsplit(split[i], '/');
-		vindex[i] = atoi(fsplit[0]);
-		if (vindex[i] < 0)
-			vindex[i] = p->v.length + vindex[i];
+		if (vindex[0][i0] != -1)
+			v[i0] = *((VEC3*)ezarray_get_index(p->v, vindex[0][i0]));
+		if (vindex[2][i0] != -1)
+			vt[i0] = *((VEC2*)ezarray_get_index(p->vt, vindex[2][i0]));
 		else
-			vindex[i] -= 1;
-		if (vindex[i] < 0 || (unsigned)vindex[i] >= p->v.length)
-			return;
-		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[i]));
-		if (!in_vt)
-		{
-			VEC3 vec = vec3_normalize(vec3_sub(p->bbox.center, v[i]));
-			vt[i].x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));
-			vt[i].y = -vec.y * 0.5f + 0.5f;
-		}
-		else
-			vt[i] = in_vt[i];
-		ft_free_chartab(fsplit);
-		i++;
+			vt[i0] = in_vt ? in_vt[i0] : generate_vt(v[i0], p->bbox.center);
+		i0++;
 	}
+	parse_vn(p, vindex, v, vn);
 	if (!in_vt)
-	{
-		VEC3	texa, texb, texc;
-		texa = vec2_to_vec3(vt[0], 0);
-		texb = vec2_to_vec3(vt[1], 0);
-		texc = vec2_to_vec3(vt[2], 0);
-		VEC3	texnormal;
-		texnormal = vec3_cross(vec3_sub(texb, texa), vec3_sub(texc, texa));
-		if (texnormal.z > 0)
-		{
-			if (vt[0].x < 0.25f)
-				vt[0].x += 1.f;
-			if (vt[1].x < 0.25f)
-				vt[1].x += 1.f;
-			if (vt[2].x < 0.25f)
-				vt[2].x += 1.f;
-		}
-	}
-	parse_values(p, split, v, vn, vt);
+		correct_vt(vt);
 	push_values(p, v, vn, vt);
 }

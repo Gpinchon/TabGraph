@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:45:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 18:54:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/12 19:42:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ static void	vt_min_max(t_vgroup *vg)
 	}
 }
 
-void	parse_vg(t_obj_parser *p, char **split)
+void	parse_vg(t_obj_parser *p)
 {
 	if (p->vg.v.length > 0)
 	{
@@ -44,5 +44,40 @@ void	parse_vg(t_obj_parser *p, char **split)
 		ezarray_push(&p->mesh.vgroups, &p->vg);
 		p->vg = new_vgroup();
 	}
-	(void)split;
+}
+
+void	correct_vt(VEC2 *vt)
+{
+	VEC3	v[3];
+	VEC3	texnormal;
+
+	v[0] = vec2_to_vec3(vt[0], 0);
+	v[1] = vec2_to_vec3(vt[1], 0);
+	v[2] = vec2_to_vec3(vt[2], 0);
+	texnormal = vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0]));
+	if (texnormal.z > 0)
+	{
+		if (vt[0].x < 0.25f)
+			vt[0].x += 1.f;
+		if (vt[1].x < 0.25f)
+			vt[1].x += 1.f;
+		if (vt[2].x < 0.25f)
+			vt[2].x += 1.f;
+	}
+}
+
+VEC2	generate_vt(VEC3 v, VEC3 center)
+{
+	VEC2	vt;
+	VEC3	vec;
+
+	vec = vec3_normalize(vec3_sub(center, v));
+	vt.x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));
+	vt.y = -vec.y * 0.5f + 0.5f;
+	return (vt);
+}
+
+VEC3	generate_vn(VEC3 *v)
+{
+	return (vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0]))));
 }

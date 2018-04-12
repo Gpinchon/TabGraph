@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 16:14:31 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/12 19:05:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,13 +73,13 @@ static void		engine_load_env1(void)
 
 	(void)v;
 	load_shaders("render",
-		"/res/shaders/render.vert", "/res/shaders/render.frag");
+		"./res/shaders/render.vert", "./res/shaders/render.frag");
 	load_shaders("default",
-		"/res/shaders/default.vert", "/res/shaders/default.frag");
+		"./res/shaders/default.vert", "./res/shaders/default.frag");
 	load_shaders("shadow",
-		"/res/shaders/shadow.vert", "/res/shaders/shadow.frag");
+		"./res/shaders/shadow.vert", "./res/shaders/shadow.frag");
 	load_shaders("blur",
-		"/res/shaders/blur.vert", "/res/shaders/blur.frag");
+		"./res/shaders/blur.vert", "./res/shaders/blur.frag");
 	path = ft_strjoin(engine_get()->program_path, "./res/stupid.bmp");
 	bmp_load(path, "stupid");
 	free(path);

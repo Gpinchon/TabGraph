@@ -6,19 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 18:55:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/12 19:49:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../parser.h"
 
-typedef struct		s_mtl_parser
-{
-	char			**path_split;
-	int				fd;
-}					t_mtl_parser;
-
-void	parse_color(t_mtl_parser *p, char **split, int mtl)
+void	parse_color(char **split, int mtl)
 {
 	if (split[0][1] == 'd')
 		material_set_albedo(mtl, parse_vec3(&split[1]));
@@ -27,10 +21,9 @@ void	parse_color(t_mtl_parser *p, char **split, int mtl)
 			1 + (1 - material_get_metallic(mtl)) * 24));
 	else if (split[0][1] == 'e')
 		material_set_emitting(mtl, parse_vec3(&split[1]));
-	(void)p;
 }
 
-void	parse_texture(t_mtl_parser *p, char **split, int mtl)
+void	parse_texture(t_obj_parser *p, char **split, int mtl)
 {
 	char *path;
 
@@ -55,7 +48,7 @@ void	parse_texture(t_mtl_parser *p, char **split, int mtl)
 	free(path);
 }
 
-void	parse_number(t_mtl_parser *p, char **split, int mtl)
+void	parse_number(char **split, int mtl)
 {
 	if (strstr(split[0], "Np"))
 		material_set_parallax(mtl, atof(split[1]));
@@ -74,47 +67,45 @@ void	parse_number(t_mtl_parser *p, char **split, int mtl)
 	}
 	else if (strstr(split[0], "Tr"))
 		material_set_alpha(mtl, 1 - atof(split[1]));
-	(void)p;
 }
 
-void	parse_mtl(t_mtl_parser *p, char **split)
+void	parse_mtl(t_obj_parser *p, char **split)
 {
 	int			mtl;
-	char		*line;
+	char		line[4096];
 	char		**msplit;
 
 	if (material_get_index_by_name(split[0]) != -1)
 		return ;
 	mtl = material_create(split[0]);
-	while (get_next_line(p->fd, &line) == 1)
+	while (fgets(line, 4096, p->fd))
 	{
 		msplit = ft_strsplitwspace((const char *)line);
 		if (msplit[0] && msplit[0][0] != '#')
 		{
 			if (msplit[0][0] == 'K')
-				parse_color(p, msplit, mtl);
+				parse_color(msplit, mtl);
 			else if (msplit[0][0] == 'N' || msplit[0][0] == 'T')
-				parse_number(p, msplit, mtl);
+				parse_number(msplit, mtl);
 			else if (strstr(msplit[0], "map_"))
 				parse_texture(p, msplit, mtl);
 			else if (!strcmp(msplit[0], "newmtl"))
 				parse_mtl(p, &msplit[1]);
 		}
 		ft_free_chartab(msplit);
-		free(line);
 	}
 }
 
-int	start_mtllib_parsing(t_mtl_parser *p, char *path)
+int	start_mtllib_parsing(t_obj_parser *p, char *path)
 {
 	char	**split;
-	char	*line;
+	char	line[4096];
 
 	if (access(path, F_OK | W_OK))
 		return (-1);
 	p->path_split = split_path(path);
-	p->fd = open(path, O_RDONLY);
-	while (get_next_line(p->fd, &line))
+	p->fd = fopen(path, "r");
+	while (fgets(line, 4096, p->fd))
 	{
 		split = ft_strsplitwspace((const char *)line);
 		if (split && split[0] && split[0][0] != '#')
@@ -123,21 +114,8 @@ int	start_mtllib_parsing(t_mtl_parser *p, char *path)
 				parse_mtl(p, &split[1]);
 		}
 		ft_free_chartab(split);
-		free(line);
 	}
 	ft_free_chartab(p->path_split);
-	close(p->fd);
+	fclose(p->fd);
 	return (0);
-}
-
-int	load_mtllib(char *path)
-{
-	t_mtl_parser	p;
-
-	memset(&p, 0, sizeof(t_mtl_parser));
-	path = ft_strjoin(engine_get()->exec_path, path);
-	if (start_mtllib_parsing(&p, path))
-		return (-1);
-	free(path);
-	return (engine_get()->materials.length);
 }

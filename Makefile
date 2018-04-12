@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/10 18:49:35 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/12 19:51:49 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -54,7 +54,8 @@ SRC			=	./src/main.c			\
 				./src/parser/bmp/parser.c	\
 				./src/parser/bmp/saver.c	\
 				./src/parser/shaders/parser.c	\
-				./src/parser/mtllib/parser.c
+				./src/parser/mtllib/parser.c	\
+				./src/parser/mtllib/parser1.c
 
 OBJ			=	$(SRC:.c=.o)
 CC			=	gcc
@@ -73,7 +74,7 @@ LIBFILES	=	./libs/ezmem/libezmem.a	\
 				./libs/libft/libft.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CFLAGS		=	-Ofast -Wall -Wextra -Werror $(INCLUDE)
+CFLAGS		=	-g -Wall -Wextra -Werror $(INCLUDE)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
