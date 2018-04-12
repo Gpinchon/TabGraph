@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:46:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/12 19:44:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/12 21:55:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,8 @@ void	parse_indice(t_obj_parser *p, char **split, int vindex[3][3])
 		if (i1 == 3 && i2 == 2)
 			vindex[1][i0] = get_vi(p->vn, fsplit[2]);
 		else if (i1 == 2 && i2 == 2)
-			vindex[1][i0] = get_vi(p->vn, fsplit[1]);;
+			vindex[1][i0] = get_vi(p->vn, fsplit[1]);
+		ft_free_chartab(fsplit);
 		i0++;
 	}
 }
@@ -112,7 +113,10 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		if (vindex[0][i0] != -1)
 			v[i0] = *((VEC3*)ezarray_get_index(p->v, vindex[0][i0]));
 		if (vindex[2][i0] != -1)
+		{
 			vt[i0] = *((VEC2*)ezarray_get_index(p->vt, vindex[2][i0]));
+			in_vt = (VEC2 *)0x1;
+		}
 		else
 			vt[i0] = in_vt ? in_vt[i0] : generate_vt(v[i0], p->bbox.center);
 		i0++;

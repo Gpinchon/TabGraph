@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 18:13:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/12 21:38:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,22 +16,23 @@
 GLuint	compile_shader(const char *path, GLenum type)
 {
 	GLuint	shaderid;
-	int		fd;
+	FILE	*stream;
 	char	*buf;
 
 	buf = ft_strjoin(engine_get()->program_path, path);
 	if (access(buf, F_OK | W_OK)
-	|| (fd = open(buf, O_RDONLY)) <= 0)
+	|| !(stream = fopen(buf, "rb")))
 	{
 		free(buf);
 		return (0);
 	}
 	free(buf);
-	buf = file_to_str(fd);
+	buf = stream_to_str(stream);
 	shaderid = glCreateShader(type);
 	glShaderSource(shaderid, 1, (const char **)(&buf) , NULL);
 	glCompileShader(shaderid);
 	free(buf);
+	fclose(stream);
 	return (shaderid);
 }
 
