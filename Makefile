@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/12 19:51:49 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/12 21:56:16 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -74,7 +74,7 @@ LIBFILES	=	./libs/ezmem/libezmem.a	\
 				./libs/libft/libft.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CFLAGS		=	-g -Wall -Wextra -Werror $(INCLUDE)
+CFLAGS		=	-Ofast -Wall -Wextra -Werror $(INCLUDE)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
