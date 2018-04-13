@@ -14,6 +14,7 @@ uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
 
 void main()
 {
+	out_Color = vec4(0);
 	for (int i = 0; i < KERNEL_SIZE; i++)
 	{
 		float	weight = gaussian_kernel[i];
