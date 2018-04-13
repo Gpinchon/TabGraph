@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:45:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/12 19:42:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 14:48:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,11 @@
 
 static void	vt_min_max(t_vgroup *vg)
 {
-	unsigned	i = 0;
+	unsigned	i;
+
 	vg->uvmin = new_vec2(100000, 100000);
 	vg->uvmax = new_vec2(-100000, -100000);
-
+	i = 0;
 	while (i < vg->vt.length)
 	{
 		VEC2	v = *((VEC2 *)ezarray_get_index(vg->vt, i));
@@ -48,8 +49,8 @@ void	parse_vg(t_obj_parser *p)
 
 void	correct_vt(VEC2 *vt)
 {
-	VEC3	v[3];
-	VEC3	texnormal;
+	VEC3		v[3];
+	VEC3		texnormal;
 
 	v[0] = vec2_to_vec3(vt[0], 0);
 	v[1] = vec2_to_vec3(vt[1], 0);
@@ -68,8 +69,8 @@ void	correct_vt(VEC2 *vt)
 
 VEC2	generate_vt(VEC3 v, VEC3 center)
 {
-	VEC2	vt;
-	VEC3	vec;
+	VEC2		vt;
+	VEC3		vec;
 
 	vec = vec3_normalize(vec3_sub(center, v));
 	vt.x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));

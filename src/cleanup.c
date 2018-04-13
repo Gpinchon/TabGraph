@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/09 19:57:50 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 17:01:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 void	texture_destroy(void *texture)
 {

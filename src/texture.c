@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/09 19:57:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 int		texture_create(VEC2 s, GLenum target, GLenum f, GLenum fi)
 {

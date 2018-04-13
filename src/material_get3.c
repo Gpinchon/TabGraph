@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/17 16:37:05 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 16:38:29 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 inline float	material_get_roughness(int material_index)
 {

@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 17:24:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/09 19:37:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 void	event_window(SDL_Event *event)
 {

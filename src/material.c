@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 16:28:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:03 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 int		material_create(char *name)
 {

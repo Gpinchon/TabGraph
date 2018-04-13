@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/17 16:14:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 16:30:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:05 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 VEC2			framebuffer_get_size(int framebuffer)
 {

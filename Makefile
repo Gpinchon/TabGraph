@@ -6,14 +6,13 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/12 21:56:16 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/13 16:58:38 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scop
 SRC			=	./src/main.c			\
 				./src/cleanup.c			\
-				./src/brdf.c			\
 				./src/callbacks.c		\
 				./src/callbacks1.c		\
 				./src/callbacks2.c		\
@@ -29,10 +28,15 @@ SRC			=	./src/main.c			\
 				./src/shader_set.c		\
 				./src/shader_set1.c		\
 				./src/cubemap.c			\
+				./src/texture_blur.c	\
 				./src/texture.c			\
 				./src/texture1.c		\
 				./src/texture2.c		\
 				./src/transform.c		\
+				./src/render_quad.c		\
+				./src/render_scene.c	\
+				./src/render_shadow.c	\
+				./src/render_present.c	\
 				./src/mesh.c			\
 				./src/mesh1.c			\
 				./src/vgroup.c			\
@@ -54,6 +58,7 @@ SRC			=	./src/main.c			\
 				./src/parser/bmp/parser.c	\
 				./src/parser/bmp/saver.c	\
 				./src/parser/shaders/parser.c	\
+				./src/parser/shaders/parser1.c	\
 				./src/parser/mtllib/parser.c	\
 				./src/parser/mtllib/parser1.c
 

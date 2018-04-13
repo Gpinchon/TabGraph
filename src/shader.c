@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:36:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 void	shader_use(int shader_index)
 {

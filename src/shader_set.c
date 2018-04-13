@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/02 16:35:57 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:37:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 inline void	shader_set_vec2(int shader_index, int uniform_index, VEC2 value)
 {

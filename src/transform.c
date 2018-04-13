@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:38:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 int	transform_create(VEC3 position, VEC3 rotation, VEC3 scale)
 {

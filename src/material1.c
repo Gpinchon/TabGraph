@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/02 16:16:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:18:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:03 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 static inline void	material_assign_shader1(t_material *m, int si)
 {

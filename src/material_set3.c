@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/25 20:00:57 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:20:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 void		material_set_texture_height(int material_index, int value)
 {

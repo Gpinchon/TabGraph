@@ -1,17 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   scope.h                                            :+:      :+:    :+:   */
+/*   scop.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/12 00:24:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:59:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-#ifndef SCOPE_H
-# define SCOPE_H
+#ifndef scop_H
+# define scop_H
 
 # include <GL/glew.h>
 # include <SDL2/SDL.h>
@@ -373,7 +372,7 @@ void			texture_load(int texture_index);
 void			texture_generate_mipmap(int texture_index);
 void			texture_set_pixel(int texture_index, VEC2 uv, VEC4 value);
 VEC4			texture_texelfetch(int texture_index, VEC2 uv);
-int				texture_generate_brdf();
+void			texture_blur(int texture, int pass, float radius);
 
 /*
 ** Parser tools
@@ -460,5 +459,15 @@ void			callback_background(SDL_Event *event);
 void			callback_exit(SDL_Event *event);
 void			callback_fullscreen(SDL_Event *event);
 void			callback_camera(SDL_Event *event);
+void			callback_quality(SDL_Event *event);
+
+/*
+** render functions
+*/
+
+void			render_shadow();
+void			render_present(int camera_index);
+void			render_scene(int camera_index);
+GLuint			display_quad_get();
 
 #endif

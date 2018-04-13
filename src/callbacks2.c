@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/25 19:43:08 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/25 19:57:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:56:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 static inline void	callback_get_v(VEC4 *v0, VEC4 *v1, const Uint8 *s)
 {
@@ -82,4 +82,14 @@ void				callback_refresh(SDL_Event *event)
 	callback_camera(NULL);
 	mesh_rotate(0, rotation);
 	(void)event;
+}
+
+void	callback_quality(SDL_Event *e)
+{
+	if (e && (e->type == SDL_KEYUP || e->key.repeat))
+		return ;
+	engine_get()->internal_quality += 0.25f;
+	engine_get()->internal_quality =
+	CYCLE(engine_get()->internal_quality, 0.5, 1.25);
+	window_resize();
 }

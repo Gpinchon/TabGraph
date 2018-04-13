@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:41:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/12 19:50:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PARSER_H
 # define PARSER_H
-# include <scope.h>
+# include <scop.h>
 # include <fcntl.h>
 
 typedef struct		s_obj_parser
@@ -38,5 +38,7 @@ void		correct_vt(VEC2 *vt);
 VEC2		generate_vt(VEC3 v, VEC3 center);
 VEC3		generate_vn(VEC3 *v);
 int			start_mtllib_parsing(t_obj_parser *p, char *path);
+ARRAY		get_shader_uniforms(t_shader *shader);
+ARRAY		get_shader_attributes(t_shader *shader);
 
 #endif

@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:47:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:38:08 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 static GLuint	vbuffer_load(GLuint attrib, int size, ARRAY a)
 {

@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 18:20:54 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 16:18:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 VEC4	texture_texelfetch(int texture_index, VEC2 uv)
 {

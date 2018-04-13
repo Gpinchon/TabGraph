@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/17 16:29:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 16:29:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 void	camera_set_target(int camera_index, int transform_index)
 {

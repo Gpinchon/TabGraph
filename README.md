@@ -8,7 +8,7 @@
 - [Credits](#credits)
 
 # What is this ?
-This is the source code for 42's project Scope, a .obj viewer.
+This is the source code for 42's project scop, a .obj viewer.
 See Win64_release for precompiled Windows version
 
 ***If you're a student looking for guidance, jump to Credits section ;-)***

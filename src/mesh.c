@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 16:58:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 int		mesh_get_transform_index(int mesh_index)
 {

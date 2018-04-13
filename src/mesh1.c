@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/02 16:58:38 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/08 02:34:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:35:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 void	mesh_rotate(int mesh_index, VEC3 rotation)
 {

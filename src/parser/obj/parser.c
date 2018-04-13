@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/12 16:59:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 14:45:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../parser.h"
 
-void	parse_f(t_obj_parser *p, char **split)
+static void	parse_f(t_obj_parser *p, char **split)
 {
 	short	faces;
 	short	i;
@@ -34,7 +34,7 @@ void	parse_f(t_obj_parser *p, char **split)
 	}
 }
 
-void	parse_line(t_obj_parser *p, const char *line)
+static void	parse_line(t_obj_parser *p, const char *line)
 {
 	char	**split;
 	char	*path;
@@ -63,7 +63,7 @@ void	parse_line(t_obj_parser *p, const char *line)
 	ft_free_chartab(split);
 }
 
-int	start_obj_parsing(t_obj_parser *p, char *path)
+static int	start_obj_parsing(t_obj_parser *p, char *path)
 {
 	char	line[4096];
 
@@ -86,7 +86,7 @@ int	start_obj_parsing(t_obj_parser *p, char *path)
 	return (0);
 }
 
-int	load_obj(char *path)
+int			load_obj(char *path)
 {
 	t_obj_parser	p;
 

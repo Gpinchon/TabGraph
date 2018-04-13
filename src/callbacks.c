@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/25 19:57:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 void	callback_stupidity(SDL_Event *event)
 {

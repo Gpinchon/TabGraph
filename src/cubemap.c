@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/02 21:51:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 void	cubemap_load_side(int texture_index, char *path, GLenum side)
 {

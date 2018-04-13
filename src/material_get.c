@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/17 16:32:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/03/17 16:39:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 inline VEC3	material_get_albedo(int material_index)
 {

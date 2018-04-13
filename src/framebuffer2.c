@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 16:30:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 16:50:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 16:36:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scope.h>
+#include <scop.h>
 
 static void	framebuffer_resize_attachement(int framebuffer, int attachement,
 	VEC2 ns)

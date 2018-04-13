@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:42:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 18:54:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 15:51:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ t_vgroup	new_vgroup()
 
 t_mesh	new_mesh()
 {
-	t_mesh			m;
+	t_mesh		m;
 
 	memset(&m, 0, sizeof(t_mesh));
 	m.vgroups = new_ezarray(other, 0, sizeof(t_vgroup));
@@ -37,8 +37,8 @@ t_mesh	new_mesh()
 
 VEC3	parse_vec3(char **split)
 {
-	float	v[3];
-	int		i;
+	float		v[3];
+	int			i;
 
 	i = 0;
 	memset(v, 0, sizeof(float) * 3);
@@ -52,8 +52,8 @@ VEC3	parse_vec3(char **split)
 
 VEC2	parse_vec2(char **split)
 {
-	float	v[2];
-	int		i;
+	float		v[2];
+	int			i;
 
 	i = 0;
 	memset(v, 0, sizeof(float) * 2);
@@ -67,8 +67,8 @@ VEC2	parse_vec2(char **split)
 
 void	parse_vtn(t_obj_parser *p, char **split)
 {
-	VEC3			v;
-	VEC2			vn;
+	VEC3	v;
+	VEC2	vn;
 
 	if (!strcmp(split[0], "v"))
 	{
