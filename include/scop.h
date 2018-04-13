@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 16:59:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 19:50:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef scop_H
@@ -243,7 +243,7 @@ typedef struct	s_engine
 
 t_engine		*engine_get();
 void			engine_destroy();
-void			engine_init();
+void			engine_init(char *program_path);
 void			engine_load_env();
 void			set_key_callback(SDL_Scancode keycode, t_kcallback callback);
 void			set_refresh_callback(t_kcallback callback);

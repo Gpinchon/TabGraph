@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/09 19:57:50 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 16:36:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 19:34:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ void	shader_destroy(void *shader)
 		i++;
 	}
 	destroy_ezarray(&s->attributes);
+	destroy_ezstring(&s->name);
 }
 
 void	mesh_destroy(void *mesh)
@@ -100,4 +101,5 @@ void	cleanup(void)
 	destroy_ezarray(&engine_get()->lights);
 	ezforeach(engine_get()->framebuffers, framebuffer_destroy);
 	destroy_ezarray(&engine_get()->framebuffers);
+	free(engine_get()->exec_path);
 }

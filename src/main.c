@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 17:01:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 19:51:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,20 +53,6 @@ int	light_create(VEC3 position, VEC3 color, float power)
 	return (engine_get()->lights.length - 1);
 }
 
-void	set_program_path(char *argv0)
-{
-	char		*path;
-	int			len;
-
-	path = strdup(argv0);
-	len = strlen(path);
-	len--;
-	while (len >= 0 && path[len] != '/' && path[len] != '\\')
-		len--;
-	path[len + 1] = 0;
-	engine_get()->program_path = convert_backslash(path);
-}
-
 void	setup_callbacks()
 {
 	set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
@@ -85,8 +71,7 @@ int	main(int argc, char *argv[])
 	int obj;
 
 	obj = -1;
-	set_program_path(argv[0]);
-	engine_init();
+	engine_init(argv[0]);
 	window_init("Scop", WIDTH, HEIGHT);
 	engine_load_env();
 	light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);

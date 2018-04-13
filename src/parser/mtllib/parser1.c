@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/12 19:49:12 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/12 19:49:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 18:56:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,10 @@ int	load_mtllib(char *path)
 	memset(&p, 0, sizeof(t_obj_parser));
 	path = ft_strjoin(engine_get()->exec_path, path);
 	if (start_mtllib_parsing(&p, path))
+	{
+		free(path);
 		return (-1);
+	}
 	free(path);
 	return (engine_get()->materials.length);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:46:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 14:49:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/13 19:58:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,6 +110,8 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 	{
 		if (vindex[0][i] != -1)
 			v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[0][i]));
+		else
+			return ;
 		if (vindex[2][i] != -1)
 		{
 			vt[i] = *((VEC2*)ezarray_get_index(p->vt, vindex[2][i]));
