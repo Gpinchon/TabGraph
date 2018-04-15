@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:45:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 19:21:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/15 16:52:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ VEC2	generate_vt(VEC3 v, VEC3 center)
 
 	vec = vec3_normalize(vec3_sub(center, v));
 	vt.x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));
-	vt.y = -vec.y * 0.5f + 0.5f;
+	vt.y = 0.5f + -vec.y * 0.5f;
 	return (vt);
 }
 
