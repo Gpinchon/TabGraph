@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 19:51:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/15 20:41:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,8 @@ void	main_loop()
 		render_shadow();
 		framebuffer_bind(window_get()->render_buffer);
 		render_scene(0);
-		texture_blur(framebuffer_get_attachement(window_get()->render_buffer, 1), BLOOMPASS, 10);
-		texture_blur(framebuffer_get_attachement(window_get()->render_buffer, 2), 1, 5);
+		texture_blur(framebuffer_get_attachement(window_get()->render_buffer, 1), BLOOMPASS, 2.5);
+		texture_blur(framebuffer_get_attachement(window_get()->render_buffer, 2), 1, 2.5);
 		render_present(0);
 		SDL_GL_SwapWindow(window_get()->sdl_window);
 	}

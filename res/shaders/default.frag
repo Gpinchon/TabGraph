@@ -77,34 +77,34 @@ lowp vec3	Fresnel(in lowp float factor, in lowp vec3 F0, in lowp float roughness
 	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
 }
 
-vec2	Parallax_Mapping(in vec3 tbnV, in vec2 T, out lowp float parallaxHeight)
+void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out lowp float parallaxHeight)
 {
-	const lowp float minLayers = 64;
-	const lowp float maxLayers = 128;
+	const lowp float minLayers = 10;
+	const lowp float maxLayers = 15;
 	lowp float numLayers = mix(maxLayers, minLayers, abs(tbnV.z));
 	int	tries = int(numLayers);
 	lowp float layerHeight = 1.0 / numLayers;
 	lowp float curLayerHeight = 0;
 	vec2 dtex = in_Parallax * tbnV.xy / tbnV.z / numLayers;
 	vec2 currentTextureCoords = T;
-	lowp float heightFromTexture = 1 - texture(in_Texture_Height, currentTextureCoords).r;
+	lowp float heightFromTexture = texture(in_Texture_Height, currentTextureCoords).r;
 	while(tries > 0 && heightFromTexture > curLayerHeight) 
 	{
 		tries--;
 		curLayerHeight += layerHeight; 
 		currentTextureCoords -= dtex;
-		heightFromTexture = 1 - texture(in_Texture_Height, currentTextureCoords).r;
+		heightFromTexture = texture(in_Texture_Height, currentTextureCoords).r;
 	}
 	vec2 prevTCoords = currentTextureCoords + dtex;
 	lowp float nextH	= heightFromTexture - curLayerHeight;
-	lowp float prevH	= 1 - texture(in_Texture_Height, prevTCoords).r
+	lowp float prevH	= texture(in_Texture_Height, prevTCoords).r
 	- curLayerHeight + layerHeight;
 	lowp float weight = nextH / (nextH - prevH);
 	vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0 - weight);
 	parallaxHeight = (curLayerHeight + prevH * weight + nextH * (1.0 - weight));
 	parallaxHeight *= in_Parallax;
 	parallaxHeight = isnan(parallaxHeight) ? 0 : parallaxHeight;
-	return finalTexCoords;
+	T = finalTexCoords;
 }
 
 mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
@@ -145,7 +145,7 @@ void	main()
 	if (in_Use_Texture_Height)
 	{
 		lowp float ph;
-		vt = Parallax_Mapping(tbn * normalize(in_CamPos - worldPosition), vt, ph);
+		Parallax_Mapping(tbn * normalize(in_CamPos - worldPosition), vt, ph);
 		worldPosition = worldPosition - (worldNormal * ph);
 	}
 	lowp vec4	albedo_sample = texture(in_Texture_Albedo, vt);
