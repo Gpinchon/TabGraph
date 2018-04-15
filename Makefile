@@ -6,51 +6,51 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/13 19:59:11 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/15 18:46:03 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scop
 SRC			=	./src/main.c			\
-				./src/cleanup.c			\
-				./src/callbacks.c		\
-				./src/callbacks1.c		\
-				./src/callbacks2.c		\
 				./src/event.c			\
 				./src/window.c			\
-				./src/framebuffer.c		\
-				./src/framebuffer1.c	\
-				./src/framebuffer2.c	\
-				./src/engine.c			\
-				./src/engine1.c			\
 				./src/camera.c			\
 				./src/camera1.c			\
-				./src/shader.c			\
-				./src/shader_set.c		\
-				./src/shader_set1.c		\
 				./src/cubemap.c			\
-				./src/texture_blur.c	\
-				./src/texture.c			\
-				./src/texture1.c		\
-				./src/texture2.c		\
+				./src/texture/blur.c	\
 				./src/transform.c		\
-				./src/render_quad.c		\
-				./src/render_scene.c	\
-				./src/render_shadow.c	\
-				./src/render_present.c	\
 				./src/mesh.c			\
 				./src/mesh1.c			\
 				./src/vgroup.c			\
-				./src/material.c		\
-				./src/material1.c		\
-				./src/material_get.c	\
-				./src/material_get1.c	\
-				./src/material_get2.c	\
-				./src/material_get3.c	\
-				./src/material_set.c	\
-				./src/material_set1.c	\
-				./src/material_set2.c	\
-				./src/material_set3.c	\
+				./src/callbacks/callbacks.c		\
+				./src/callbacks/callbacks1.c		\
+				./src/callbacks/callbacks2.c		\
+				./src/engine/methods.c			\
+				./src/engine/methods1.c			\
+				./src/engine/cleanup.c			\
+				./src/shader/methods.c			\
+				./src/shader/set.c		\
+				./src/shader/set1.c		\
+				./src/texture/methods.c			\
+				./src/texture/methods1.c		\
+				./src/texture/methods2.c		\
+				./src/framebuffer/methods.c		\
+				./src/framebuffer/methods1.c	\
+				./src/framebuffer/methods2.c	\
+				./src/render/quad.c		\
+				./src/render/scene.c	\
+				./src/render/shadow.c	\
+				./src/render/present.c	\
+				./src/material/methods.c		\
+				./src/material/methods1.c		\
+				./src/material/get.c	\
+				./src/material/get1.c	\
+				./src/material/get2.c	\
+				./src/material/get3.c	\
+				./src/material/set.c	\
+				./src/material/set1.c	\
+				./src/material/set2.c	\
+				./src/material/set3.c	\
 				./src/parser/tools.c	\
 				./src/parser/obj/parser.c	\
 				./src/parser/obj/parser1.c	\
