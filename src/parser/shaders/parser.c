@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../parser.h"
+#include <parser.h>
 
 static GLuint	compile_shader(const char *path, GLenum type)
 {

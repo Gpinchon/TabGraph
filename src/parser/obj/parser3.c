@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../parser.h"
+#include <parser.h>
 
 void	push_values(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
 {

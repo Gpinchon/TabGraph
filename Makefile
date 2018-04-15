@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/15 18:46:03 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/15 20:02:47 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -64,6 +64,7 @@ SRC			=	./src/main.c			\
 				./src/parser/mtllib/parser1.c
 
 OBJ			=	$(SRC:.c=.o)
+HYPER_OBJ	=	final.o
 CC			=	gcc
 
 INCLUDE_REP	=	./include				\
@@ -80,7 +81,7 @@ LIBFILES	=	./libs/ezmem/libezmem.a	\
 				./libs/libft/libft.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CFLAGS		=	-Ofast -Wall -Wextra -Werror $(INCLUDE)
+CFLAGS		=	-Ofast -fno-ipa-cp-clone -Wall -Wextra -Werror $(INCLUDE)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -100,9 +101,23 @@ endif
 $(NAME): $(LIBFILES) $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) $(LIBS) -o $(NAME)
 
+hyper: $(LIBFILES) $(HYPER_OBJ)
+	$(CC) $(CFLAGS) $(HYPER_OBJ) $(LIBS) -o $(NAME)
+
 %.o: %.c
 	@echo -n Compiling $@...
 	@($(CC) $(CFLAGS) -o $@ -c $<)
+	@echo "$(OK_STRING)"
+
+%.o: %.hyper
+	@echo -n Compiling $@...
+	@($(CC) -x c $(CFLAGS) -o $@ -c $<)
+	@echo "$(OK_STRING)"
+
+.INTERMEDIATE: final.hyper
+final.hyper: $(SRC)
+	@echo -n Generating $@...
+	@(cat $^ > final.hyper)
 	@echo "$(OK_STRING)"
 
 ./libs/ezmem/libezmem.a :
@@ -121,11 +136,11 @@ pull:
 	git submodule foreach git pull origin 42
 
 clean:
-	rm -rf $(OBJ)
+	rm -rf $(OBJ) $(HYPER_OBJ)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) clean && ) true
 
 fclean:
-	rm -rf $(OBJ) $(NAME)
+	rm -rf $(OBJ) $(HYPER_OBJ) $(NAME)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) fclean && ) true
 
 re: fclean $(NAME)

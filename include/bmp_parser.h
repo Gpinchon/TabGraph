@@ -6,12 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 14:36:49 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 16:35:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/15 18:54:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PARSER_H
-# define PARSER_H
+#ifndef BMP_PARSER_H
+# define BMP_PARSER_H
 
 # include <scop.h>
 # include <sys/stat.h>
@@ -53,7 +53,7 @@ typedef struct	s_bmp_parser
 }				t_bmp_parser;
 
 /*
-** endif PARSER_H
+** endif BMP_PARSER_H
 */
 
 #endif

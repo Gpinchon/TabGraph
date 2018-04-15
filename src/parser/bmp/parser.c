@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 16:15:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/15 18:55:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parser.h"
+#include <bmp_parser.h>
 
 static void	convert_bmp(t_bmp_parser *parser)
 {

@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../parser.h"
+#include <parser.h>
 
 void	parse_color(char **split, int mtl)
 {

@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../parser.h"
+#include <parser.h>
 
 static void	vt_min_max(t_vgroup *vg)
 {

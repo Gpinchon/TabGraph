@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../parser.h"
+#include <parser.h>
 
 ARRAY		get_shader_uniforms(t_shader *shader)
 {

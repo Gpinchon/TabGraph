@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 19:50:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/15 19:44:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#ifndef scop_H
-# define scop_H
+#ifndef SCOP_H
+# define SCOP_H
 
 # include <GL/glew.h>
 # include <SDL2/SDL.h>

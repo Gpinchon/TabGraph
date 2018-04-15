@@ -6,11 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/23 19:37:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/10 16:28:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/15 18:55:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parser.h"
+#include <bmp_parser.h>
 
 static void	prepare_header(t_bmp_header *header, t_bmp_info *info, t_texture *t)
 {
