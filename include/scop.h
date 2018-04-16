@@ -6,9 +6,10 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/15 19:44:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 16:56:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #ifndef SCOP_H
 # define SCOP_H
 
@@ -465,7 +466,7 @@ void			callback_quality(SDL_Event *event);
 ** render functions
 */
 
-void			render_shadow();
+void			render_shadow(int light_index);
 void			render_present(int camera_index);
 void			render_scene(int camera_index);
 GLuint			display_quad_get();

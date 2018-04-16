@@ -6,18 +6,18 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/19 01:27:17 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 19:37:45 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 18:19:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <libft.h>
 
-char		*convert_backslash(char *str)
+char				*convert_backslash(char *str)
 {
 	unsigned int	i;
 
 	i = 0;
-	while(str[i])
+	while (str[i])
 	{
 		if (str[i] == '\\')
 			str[i] = '/';
@@ -26,7 +26,7 @@ char		*convert_backslash(char *str)
 	return (str);
 }
 
-char	**split_path(const char *path)
+char				**split_path(const char *path)
 {
 	int		i;
 	int		j;
@@ -53,17 +53,18 @@ char	**split_path(const char *path)
 	return (final_path);
 }
 
-unsigned long long hash(unsigned char *str)
+unsigned long long	hash(unsigned char *str)
 {
-    unsigned long long hash = 5381;
-    int c;
+	unsigned long long	hash;
+	int					c;
 
-    while ((c = *str++))
-        hash = ((hash << 5) + hash) + c;
-    return (hash);
+	hash = 5381;
+	while ((c = *str++))
+		hash = ((hash << 5) + hash) + c;
+	return (hash);
 }
 
-int		ft_chartablen(char **s)
+int					ft_chartablen(char **s)
 {
 	int	i;
 

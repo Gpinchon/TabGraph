@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/25 19:43:08 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 16:56:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 17:15:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ void				callback_refresh(SDL_Event *event)
 	(void)event;
 }
 
-void	callback_quality(SDL_Event *e)
+void				callback_quality(SDL_Event *e)
 {
 	if (e && (e->type == SDL_KEYUP || e->key.repeat))
 		return ;

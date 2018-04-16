@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:47:26 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 16:35:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 18:46:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 static GLuint	vbuffer_load(GLuint attrib, int size, ARRAY a)
 {
 	GLuint	lbufferid;
+
 	if (!size || !a.length)
 		return (-1);
 	glGenBuffers(1, &lbufferid);
@@ -28,15 +29,15 @@ static GLuint	vbuffer_load(GLuint attrib, int size, ARRAY a)
 	return (lbufferid);
 }
 
-void	vgroup_load(int mesh_index, int vgroup_index)
+void			vgroup_load(int mesh_index, int vgroup_index)
 {
 	t_mesh		*mesh;
 	t_vgroup	*vgroup;
 
 	if (!(mesh = ezarray_get_index(engine_get()->meshes, mesh_index)))
-		return;
+		return ;
 	if (!(vgroup = ezarray_get_index(mesh->vgroups, vgroup_index)))
-		return;
+		return ;
 	if (glIsVertexArray(vgroup->v_arrayid))
 		glDeleteVertexArrays(1, &vgroup->v_arrayid);
 	glGenVertexArrays(1, &vgroup->v_arrayid);
@@ -53,46 +54,55 @@ void	vgroup_load(int mesh_index, int vgroup_index)
 	glBindVertexArray(0);
 }
 
-void	vgroup_render(int camera_index, int mesh_index, int vgroup_index)
+static void		vgroup_bind(t_vgroup *vgroup, t_camera *camera,
+	int transform_index)
 {
-	t_mesh		*mesh;
+	t_transform	*t;
+	t_material	*mtl;
+	MAT4		transform;
+	MAT4		normal_matrix;
+
+	mtl = ezarray_get_index(engine_get()->materials, vgroup->mtl_index);
+	if (!mtl)
+		return ;
+	t = ezarray_get_index(engine_get()->transforms, transform_index);
+	transform = mat4_combine(camera->projection, camera->view, t->transform);
+	normal_matrix = mat4_transpose(mat4_inverse(t->transform));
+	shader_use(mtl->shader_index);
+	material_set_uniforms(vgroup->mtl_index);
+	shader_set_vec2(mtl->shader_index, mtl->shader_in[27], vgroup->uvmax);
+	shader_set_vec2(mtl->shader_index, mtl->shader_in[28], vgroup->uvmin);
+	shader_set_vec3(mtl->shader_index, mtl->shader_in[29], camera->position);
+	shader_set_mat4(mtl->shader_index, mtl->shader_in[30], transform);
+	shader_set_mat4(mtl->shader_index, mtl->shader_in[31], t->transform);
+	shader_set_mat4(mtl->shader_index, mtl->shader_in[32], normal_matrix);
+}
+
+void			vgroup_render(int camera_index, int mesh_index, int vg_index)
+{
+	t_mesh		*m;
 	t_vgroup	*vgroup;
-	t_material	*material;
 	t_camera	*camera;
 
-	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
-	vgroup = ezarray_get_index(mesh->vgroups, vgroup_index);
+	m = ezarray_get_index(engine_get()->meshes, mesh_index);
+	vgroup = ezarray_get_index(m->vgroups, vg_index);
 	camera = ezarray_get_index(engine_get()->cameras, camera_index);
-	if (!mesh || !vgroup || !camera)
-		return;
-	material = ezarray_get_index(engine_get()->materials, vgroup->mtl_index);
-	if (!material)
-		return;
+	if (!m || !vgroup || !camera)
+		return ;
 	material_load_textures(vgroup->mtl_index);
-	t_transform *t = ezarray_get_index(engine_get()->transforms, mesh->transform_index);
-
-	MAT4 transform;
-	transform = mat4_combine(camera->projection, camera->view, t->transform);
-	MAT4	normal_matrix = mat4_transpose(mat4_inverse(t->transform));
-	shader_use(material->shader_index);
+	vgroup_bind(vgroup, camera, m->transform_index);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	material_set_uniforms(vgroup->mtl_index);
-	shader_set_vec2(material->shader_index, material->shader_in[27], vgroup->uvmax);
-	shader_set_vec2(material->shader_index, material->shader_in[28], vgroup->uvmin);
-	shader_set_vec3(material->shader_index, material->shader_in[29], camera->position);
-	shader_set_mat4(material->shader_index, material->shader_in[30], transform);
-	shader_set_mat4(material->shader_index, material->shader_in[31], t->transform);
-	shader_set_mat4(material->shader_index, material->shader_in[32], normal_matrix);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+		GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glBindVertexArray(vgroup->v_arrayid);
 	glDrawArrays(GL_TRIANGLES, 0, vgroup->v.length);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
 
-void	vgroup_center(int mesh_index, int vgroup_index)
+void			vgroup_center(int mesh_index, int vgroup_index)
 {
 	t_mesh		*mesh;
 	t_vgroup	*vgroup;
@@ -102,7 +112,7 @@ void	vgroup_center(int mesh_index, int vgroup_index)
 	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
 	vgroup = ezarray_get_index(mesh->vgroups, vgroup_index);
 	if (!vgroup)
-		return;
+		return ;
 	v_index = 0;
 	while (v_index < vgroup->v.length)
 	{

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/23 19:37:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/15 18:55:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 17:18:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void		bmp_save(int texture, const char *imagepath)
 	t_bmp_header	header;
 	t_bmp_info		info;
 	t_texture		*t;
-	UCHAR			*padding;
+	unsigned char	*padding;
 	int				fd;
 
 	t = texture_get(texture);
@@ -45,7 +45,7 @@ void		bmp_save(int texture, const char *imagepath)
 	write(fd, &info, sizeof(t_bmp_info));
 	write(fd, t->data, (t->size.x * t->size.y * t->bpp / 8));
 	padding = calloc(info.size - (t->size.x * t->size.y * t->bpp / 8),
-		sizeof(UCHAR));
+		sizeof(unsigned char));
 	write(fd, padding, info.size - (t->size.x * t->size.y * t->bpp / 8));
 	close(fd);
 }

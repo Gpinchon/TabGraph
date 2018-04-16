@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 14:45:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 17:27:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,9 @@ static void	parse_f(t_obj_parser *p, char **split)
 {
 	short	faces;
 	short	i;
+	t_vec2	v[0];
 
+	(void)v;
 	faces = ft_chartablen(split) - 3 + 1;
 	i = 0;
 	while (i < faces)

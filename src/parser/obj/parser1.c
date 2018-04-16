@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:42:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 15:51:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 17:21:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <parser.h>
 
-t_vgroup	new_vgroup()
+t_vgroup	new_vgroup(void)
 {
 	t_vgroup	vg;
 
@@ -26,7 +26,7 @@ t_vgroup	new_vgroup()
 	return (vg);
 }
 
-t_mesh	new_mesh()
+t_mesh		new_mesh(void)
 {
 	t_mesh		m;
 
@@ -35,7 +35,7 @@ t_mesh	new_mesh()
 	return (m);
 }
 
-VEC3	parse_vec3(char **split)
+VEC3		parse_vec3(char **split)
 {
 	float		v[3];
 	int			i;
@@ -50,7 +50,7 @@ VEC3	parse_vec3(char **split)
 	return (new_vec3(v[0], v[1], v[2]));
 }
 
-VEC2	parse_vec2(char **split)
+VEC2		parse_vec2(char **split)
 {
 	float		v[2];
 	int			i;
@@ -65,7 +65,7 @@ VEC2	parse_vec2(char **split)
 	return (new_vec2(v[0], v[1]));
 }
 
-void	parse_vtn(t_obj_parser *p, char **split)
+void		parse_vtn(t_obj_parser *p, char **split)
 {
 	VEC3	v;
 	VEC2	vn;

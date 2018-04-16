@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 14:32:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 18:15:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ static GLuint	compile_shader(const char *path, GLenum type)
 	free(buf);
 	buf = stream_to_str(stream);
 	shaderid = glCreateShader(type);
-	glShaderSource(shaderid, 1, (const char **)(&buf) , NULL);
+	glShaderSource(shaderid, 1, (const char **)(&buf), NULL);
 	glCompileShader(shaderid);
 	free(buf);
 	fclose(stream);
@@ -37,12 +37,13 @@ static GLuint	compile_shader(const char *path, GLenum type)
 
 static GLuint	link_shaders(GLuint vertexid, GLuint fragmentid)
 {
-	GLuint progid = glCreateProgram();
+	GLuint progid;
 
+	progid = glCreateProgram();
 	glAttachShader(progid, vertexid);
 	glAttachShader(progid, fragmentid);
 	glLinkProgram(progid);
-	return(progid);
+	return (progid);
 }
 
 static int		check_shader(GLuint id)
@@ -86,22 +87,23 @@ static int		check_program(GLuint id)
 	return (0);
 }
 
-int				load_shaders(const char *name, const char *vertex_file_path,
+int				load_shaders(const char *name,
+	const char *vertex_file_path,
 	const char *fragment_file_path)
-{	
+{
 	GLuint		vertexid;
 	GLuint		fragmentid;
 	t_shader	shader;
 
 	vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
 	fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
-	if(!vertexid || !fragmentid)
+	if (!vertexid || !fragmentid)
 	{
 		puts("Impossible to open file !");
 		return (-1);
 	}
 	memset(&shader, 0, sizeof(t_shader));
-	if (check_shader(vertexid) || check_shader(fragmentid) || 
+	if (check_shader(vertexid) || check_shader(fragmentid) ||
 		check_program(shader.program = link_shaders(vertexid, fragmentid)))
 		return (-1);
 	shader.name = new_ezstring(name);

@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:46:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/15 16:44:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 17:59:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <parser.h>
 
-void	push_values(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
+static void	push_values(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
 {
 	unsigned		i;
 	unsigned char	ub[4];
@@ -39,7 +39,7 @@ void	push_values(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
 	}
 }
 
-int		get_vi(ARRAY v, const char *str)
+static int	get_vi(ARRAY v, const char *str)
 {
 	int	vindex;
 
@@ -53,7 +53,7 @@ int		get_vi(ARRAY v, const char *str)
 	return (vindex);
 }
 
-void	parse_indice(t_obj_parser *p, char **split, int vindex[3][3])
+static void	parse_indice(t_obj_parser *p, char **split, int vindex[3][3])
 {
 	char		**fsplit;
 	unsigned	i[3];
@@ -81,7 +81,7 @@ void	parse_indice(t_obj_parser *p, char **split, int vindex[3][3])
 	}
 }
 
-void	parse_vn(t_obj_parser *p, int vindex[3][3], VEC3 v[3], VEC3 vn[3])
+static void	parse_vn(t_obj_parser *p, int vindex[3][3], VEC3 v[3], VEC3 vn[3])
 {
 	short	i;
 
@@ -96,7 +96,7 @@ void	parse_vn(t_obj_parser *p, int vindex[3][3], VEC3 v[3], VEC3 vn[3])
 	}
 }
 
-void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
+void		parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 {
 	int		vindex[3][3];
 	VEC3	v[3];
@@ -105,13 +105,12 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 	short	i;
 
 	parse_indice(p, split, vindex);
-	i = 0;
-	while (i < 3)
+	i = -1;
+	while (++i < 3)
 	{
-		if (vindex[0][i] != -1)
-			v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[0][i]));
-		else
+		if (vindex[0][i] == -1)
 			return ;
+		v[i] = *((VEC3*)ezarray_get_index(p->v, vindex[0][i]));
 		if (vindex[2][i] != -1)
 		{
 			vt[i] = *((VEC2*)ezarray_get_index(p->vt, vindex[2][i]));
@@ -119,7 +118,6 @@ void	parse_v(t_obj_parser *p, char **split, VEC2 *in_vt)
 		}
 		else
 			vt[i] = in_vt ? in_vt[i] : generate_vt(v[i], p->bbox.center);
-		i++;
 	}
 	parse_vn(p, vindex, v, vn);
 	if (!in_vt)

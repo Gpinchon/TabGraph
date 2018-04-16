@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/15 18:55:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 17:18:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,6 @@ int			bmp_load(const char *imagepath, const char *texture_name)
 	texture->size.x = parser.info.width;
 	texture->size.y = parser.info.height;
 	texture->bpp = parser.info.bpp;
-	texture->data = parser.data;	
+	texture->data = parser.data;
 	return (t);
 }

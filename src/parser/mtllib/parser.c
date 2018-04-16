@@ -6,24 +6,24 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/12 19:49:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 18:13:03 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <parser.h>
 
-void	parse_color(char **split, int mtl)
+static void	parse_color(char **split, int mtl)
 {
 	if (split[0][1] == 'd')
 		material_set_albedo(mtl, parse_vec3(&split[1]));
 	else if (split[0][1] == 's')
-		material_set_specular(mtl, vec3_fdiv(parse_vec3(&split[1]), 
+		material_set_specular(mtl, vec3_fdiv(parse_vec3(&split[1]),
 			1 + (1 - material_get_metallic(mtl)) * 24));
 	else if (split[0][1] == 'e')
 		material_set_emitting(mtl, parse_vec3(&split[1]));
 }
 
-void	parse_texture(t_obj_parser *p, char **split, int mtl)
+static void	parse_texture(t_obj_parser *p, char **split, int mtl)
 {
 	char *path;
 
@@ -42,25 +42,27 @@ void	parse_texture(t_obj_parser *p, char **split, int mtl)
 		material_set_texture_roughness(mtl, bmp_load(path, path));
 	else if (strstr(split[0], "map_Nm"))
 		material_set_texture_metallic(mtl, bmp_load(path, path));
-	else if (strstr(split[0], "map_bump")
-		|| strstr(split[0], "map_Bump"))
+	else if (strstr(split[0], "map_bump") || strstr(split[0], "map_Bump"))
 		material_set_texture_normal(mtl, bmp_load(path, path));
 	free(path);
 }
 
-void	parse_number(char **split, int mtl)
+static void	parse_number(char **split, int mtl)
 {
+	float ior;
+
 	if (strstr(split[0], "Np"))
 		material_set_parallax(mtl, atof(split[1]));
 	else if (strstr(split[0], "Ns"))
-		material_set_roughness(mtl, CLAMP(1.f / (1.f + atof(split[1])) * 50.f, 0, 1));
+		material_set_roughness(mtl,
+			CLAMP(1.f / (1.f + atof(split[1])) * 50.f, 0, 1));
 	else if (strstr(split[0], "Nr"))
 		material_set_roughness(mtl, atof(split[1]));
 	else if (strstr(split[0], "Nm"))
 		material_set_metallic(mtl, atof(split[1]));
 	else if (strstr(split[0], "Ni"))
 	{
-		float ior = atof(split[1]);
+		ior = atof(split[1]);
 		ior = (ior - 1) / (ior + 1);
 		ior *= ior;
 		material_set_specular(mtl, new_vec3(ior, ior, ior));
@@ -69,7 +71,7 @@ void	parse_number(char **split, int mtl)
 		material_set_alpha(mtl, 1 - atof(split[1]));
 }
 
-void	parse_mtl(t_obj_parser *p, char **split)
+static void	parse_mtl(t_obj_parser *p, char **split)
 {
 	int			mtl;
 	char		line[4096];
@@ -96,7 +98,7 @@ void	parse_mtl(t_obj_parser *p, char **split)
 	}
 }
 
-int	start_mtllib_parsing(t_obj_parser *p, char *path)
+int			start_mtllib_parsing(t_obj_parser *p, char *path)
 {
 	char	**split;
 	char	line[4096];

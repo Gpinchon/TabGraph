@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/13 16:34:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/16 15:32:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 18:29:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,13 +29,13 @@ static void	blur_pass(int blur, int *color0, int *texture, float radius)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
 		texture_get_glid(*color0), 0);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	angle = CYCLE(angle + 1.5708, 0, 4.71239);
+	angle = CYCLE(angle + 0.785398, 0, 2.356194);
 	temp = *texture;
 	*texture = *color0;
 	*color0 = temp;
 }
 
-int			generate_blur_fb()
+static int	generate_blur_fb(void)
 {
 	int	fb;
 

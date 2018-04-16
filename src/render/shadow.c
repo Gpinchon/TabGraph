@@ -1,42 +1,49 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   render_shadow.c                                    :+:      :+:    :+:   */
+/*   shadow.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/13 15:50:41 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 16:35:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 16:56:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <scop.h>
 
-static FRUSTUM	full_scene_frustum()
+static void		find_mesh_minmax(VEC3 *min, VEC3 *max)
 {
+	VEC3		curmin;
+	VEC3		curmax;
 	t_mesh		*mesh;
-	t_transform	*t;
-	float		value;
 	int			mesh_index;
-	VEC3		v[2];
+	t_transform	*t;
 
-	v[0] = new_vec3(1000, 1000, 1000);
-	v[1] = new_vec3(-1000, -1000, -1000);
 	mesh_index = 0;
 	while ((mesh = ezarray_get_index(engine_get()->meshes, mesh_index)))
 	{
 		t = ezarray_get_index(engine_get()->transforms, mesh->transform_index);
-		VEC3	curmin, curmax;
 		curmin = mat4_mult_vec3(t->transform, mesh->bounding_box.min);
 		curmax = mat4_mult_vec3(t->transform, mesh->bounding_box.max);
-		v[0].x = curmin.x < v[0].x ? curmin.x : v[0].x;
-		v[0].y = curmin.y < v[0].y ? curmin.y : v[0].y;
-		v[0].z = curmin.z < v[0].z ? curmin.z : v[0].z;
-		v[1].x = curmax.x > v[1].x ? curmax.x : v[1].x;
-		v[1].y = curmax.y > v[1].y ? curmax.y : v[1].y;
-		v[1].z = curmax.z > v[1].z ? curmax.z : v[1].z;
+		min->x = curmin.x < min->x ? curmin.x : min->x;
+		min->y = curmin.y < min->y ? curmin.y : min->y;
+		min->z = curmin.z < min->z ? curmin.z : min->z;
+		max->x = curmax.x > max->x ? curmax.x : max->x;
+		max->y = curmax.y > max->y ? curmax.y : max->y;
+		max->z = curmax.z > max->z ? curmax.z : max->z;
 		mesh_index++;
 	}
+}
+
+static FRUSTUM	full_scene_frustum(void)
+{
+	float		value;
+	VEC3		v[2];
+
+	v[0] = new_vec3(1000, 1000, 1000);
+	v[1] = new_vec3(-1000, -1000, -1000);
+	find_mesh_minmax(&v[0], &v[1]);
 	value = MAX(1.5, vec3_distance(v[0], v[1]) / 2.f);
 	return (new_frustum(-value, value, -value, value));
 }
@@ -87,7 +94,7 @@ static void		render_shadow_mesh(int mesh_index, int rb, MAT4 *view_proj)
 	}
 }
 
-void			render_shadow()
+void			render_shadow(int light_index)
 {
 	FRUSTUM		frustum;
 	MAT4		projection;
@@ -99,7 +106,7 @@ void			render_shadow()
 	frustum = full_scene_frustum();
 	projection = mat4_orthographic(frustum, frustum.x * 1.5f, frustum.y * 1.5f);
 	view = mat4_lookat(new_vec3(-1, 1, 0), new_vec3(0, 0, 0), UP);
-	light = ezarray_get_index(engine_get()->lights, 0);
+	light = ezarray_get_index(engine_get()->lights, light_index);
 	framebuffer_bind(light->render_buffer);
 	glClearDepthf(1);
 	glClear(GL_DEPTH_BUFFER_BIT);

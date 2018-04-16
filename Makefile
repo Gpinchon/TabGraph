@@ -6,25 +6,26 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/16 16:00:45 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/16 17:16:57 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scop
 SRC			=	./src/main.c			\
 				./src/event.c			\
-				./src/window.c			\
 				./src/camera.c			\
 				./src/camera1.c			\
 				./src/cubemap.c			\
 				./src/texture/blur.c	\
 				./src/transform.c		\
-				./src/mesh.c			\
-				./src/mesh1.c			\
 				./src/vgroup.c			\
 				./src/callbacks/callbacks.c		\
 				./src/callbacks/callbacks1.c		\
 				./src/callbacks/callbacks2.c		\
+				./src/mesh/methods.c			\
+				./src/mesh/methods1.c			\
+				./src/window/methods.c			\
+				./src/window/methods1.c			\
 				./src/engine/methods.c			\
 				./src/engine/methods1.c			\
 				./src/engine/cleanup.c			\

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   engine.c                                           :+:      :+:    :+:   */
+/*   methods.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 19:57:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 17:14:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ inline t_engine	*engine_get(void)
 	return (g_engine);
 }
 
-static void	set_program_path(char *argv0)
+static void		set_program_path(char *argv0)
 {
 	int			len;
 
@@ -37,7 +37,7 @@ static void	set_program_path(char *argv0)
 	engine_get()->program_path = convert_backslash(argv0);
 }
 
-static void	setup_sdl()
+static void		setup_sdl(void)
 {
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
@@ -48,7 +48,7 @@ static void	setup_sdl()
 		SDL_GL_CONTEXT_PROFILE_CORE);
 }
 
-void		engine_init(char *program_path)
+void			engine_init(char *program_path)
 {
 	t_engine	*engine;
 
