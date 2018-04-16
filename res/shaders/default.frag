@@ -41,8 +41,6 @@ uniform vec3		in_LightDirection = normalize(vec3(-1, 1, 0));
 in vec3			frag_ShadowPosition;
 in vec3			frag_WorldPosition;
 in lowp vec3	frag_WorldNormal;
-in lowp vec3	frag_ModelNormal;
-in lowp vec3	frag_ModelPosition;
 in lowp vec2	frag_Texcoord;
 in lowp vec3	frag_Light_Color;
 
@@ -87,17 +85,17 @@ void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out lowp float parallaxHeight)
 	lowp float curLayerHeight = 0;
 	vec2 dtex = in_Parallax * tbnV.xy / tbnV.z / numLayers;
 	vec2 currentTextureCoords = T;
-	lowp float heightFromTexture = texture(in_Texture_Height, currentTextureCoords).r;
+	lowp float heightFromTexture = 1 - texture(in_Texture_Height, currentTextureCoords).r;
 	while(tries > 0 && heightFromTexture > curLayerHeight) 
 	{
 		tries--;
 		curLayerHeight += layerHeight; 
 		currentTextureCoords -= dtex;
-		heightFromTexture = texture(in_Texture_Height, currentTextureCoords).r;
+		heightFromTexture = 1 - texture(in_Texture_Height, currentTextureCoords).r;
 	}
 	vec2 prevTCoords = currentTextureCoords + dtex;
 	lowp float nextH	= heightFromTexture - curLayerHeight;
-	lowp float prevH	= texture(in_Texture_Height, prevTCoords).r
+	lowp float prevH	= 1 - texture(in_Texture_Height, prevTCoords).r
 	- curLayerHeight + layerHeight;
 	lowp float weight = nextH / (nextH - prevH);
 	vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0 - weight);

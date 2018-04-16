@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/04/15 20:02:47 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/04/16 16:00:45 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -102,7 +102,7 @@ $(NAME): $(LIBFILES) $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) $(LIBS) -o $(NAME)
 
 hyper: $(LIBFILES) $(HYPER_OBJ)
-	$(CC) $(CFLAGS) $(HYPER_OBJ) $(LIBS) -o $(NAME)
+	$(CC) $(CFLAGS) $(HYPER_OBJ) $(LIBS) -o $(addprefix Hyper, $(NAME))
 
 %.o: %.c
 	@echo -n Compiling $@...

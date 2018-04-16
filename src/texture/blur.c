@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/13 16:34:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/15 20:33:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/16 15:32:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ static void	blur_pass(int blur, int *color0, int *texture, float radius)
 	int				temp;
 	static float	angle = 0;
 
+	direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
 	direction = vec2_scale(direction, radius);
 	shader_bind_texture(framebuffer_get_shader(blur),
 		shader_get_uniform_index(framebuffer_get_shader(blur),
@@ -29,7 +30,6 @@ static void	blur_pass(int blur, int *color0, int *texture, float radius)
 		texture_get_glid(*color0), 0);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	angle = CYCLE(angle + 1.5708, 0, 4.71239);
-	direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
 	temp = *texture;
 	*texture = *color0;
 	*color0 = temp;

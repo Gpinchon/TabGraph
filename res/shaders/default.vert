@@ -12,9 +12,7 @@ uniform samplerCube				in_Texture_Env_Spec;
 
 out vec3						frag_ShadowPosition;
 out vec3						frag_WorldPosition;
-out vec3						frag_ModelPosition;
 out lowp vec3					frag_WorldNormal;
-out lowp vec3					frag_ModelNormal;
 out lowp vec2					frag_Texcoord;
 out lowp vec3					frag_Light_Color;
 
@@ -27,11 +25,9 @@ mat4 biasMatrix = mat4(
 
 void main()
 {
-	frag_ModelPosition = in_Position;
-	frag_ModelNormal = (in_Normal / 255.f) * 2 - 1;
 	frag_WorldPosition = vec3(in_ModelMatrix * vec4(in_Position, 1));
 	frag_ShadowPosition = vec3((biasMatrix * in_ShadowTransform) * vec4(in_Position, 1));
-	frag_WorldNormal = mat3(in_NormalMatrix) * frag_ModelNormal;
+	frag_WorldNormal = mat3(in_NormalMatrix) * ((in_Normal / 255.f) * 2 - 1);
 	frag_Texcoord = in_Texcoord;
 	frag_Light_Color = vec3(0.5) * texture(in_Texture_Env_Spec, -in_LightDirection).rgb + 0.5;
 	gl_Position = in_Transform * vec4(in_Position, 1);
