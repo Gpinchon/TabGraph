@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   texture2.c                                         :+:      :+:    :+:   */
+/*   methods2.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/15 18:20:54 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 16:35:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/23 11:30:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,18 @@ void	texture_set_pixel(int texture_index, VEC2 uv, VEC4 value)
 		p[i] = ((float*)&value)[i] * 255.f;
 		i++;
 	}
+}
+
+void	texture_set_parameter(int ti,, GLenum p, GLenum v)
+{
+	t_texture *texture;
+
+	texture = texture_get(ti);
+	if (!texture)
+		return ;
+	glBindTexture(texture->target, texture->glid);
+	glTexParameteri(texture->target, p, v);
+	glBindTexture(texture->target, 0);
 }
 
 void	texture_set_parameters(int ti, int p_nbr, GLenum *p, GLenum *v)

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/15 20:41:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/23 11:32:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,17 +40,16 @@ void	main_loop()
 
 int	light_create(VEC3 position, VEC3 color, float power)
 {
-	t_light l;
+	t_light *l = new t_light;
 
-	l.render_buffer = framebuffer_create(new_vec2(SHADOWRES, SHADOWRES), shader_get_by_name("shadow"), 0, 1);
-	texture_set_parameters(framebuffer_get_depth(l.render_buffer), 2,
-		(GLenum[2]){GL_TEXTURE_COMPARE_FUNC, GL_TEXTURE_COMPARE_MODE},
-		(GLenum[2]){GL_LEQUAL, GL_COMPARE_REF_TO_TEXTURE});
-	l.data.directional.power = power;
-	l.data.directional.color = color;
-	l.transform_index = transform_create(position, new_vec3(0, 0, 0), new_vec3(1, 1, 1));
-	ezarray_push(&engine_get()->lights, &l);
-	return (engine_get()->lights.length - 1);
+	l->render_buffer = framebuffer_create(new_vec2(SHADOWRES, SHADOWRES), shader_get_by_name("shadow"), 0, 1);
+	texture_set_parameter(framebuffer_get_depth(l->render_buffer), GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	texture_set_parameter(framebuffer_get_depth(l->render_buffer), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	l->data.directional.power = power;
+	l->data.directional.color = color;
+	l->transform_index = transform_create(position, new_vec3(0, 0, 0), new_vec3(1, 1, 1));
+	engine_get()->lights.push_back(l);
+	return (engine_get()->lights.size() - 1);
 }
 
 void	setup_callbacks()

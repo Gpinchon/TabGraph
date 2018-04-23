@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 17:24:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/15 18:24:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/23 11:37:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ int		event_callback(void *e, SDL_Event *event)
 {
 	t_engine *engine;
 
-	engine = e;
+	engine = static_cast<t_engine*>(e);
 	if (event->type == SDL_QUIT)
 		engine->loop = 0;
 	else if (event->type == SDL_WINDOWEVENT)

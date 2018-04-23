@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 16:35:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/04/23 11:49:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ int		mesh_get_transform_index(int mesh_index)
 {
 	t_mesh *mesh;
 
-	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
+	mesh = engine_get()->meshes[mesh_index];
 	if (!mesh)
 		return (-1);
 	return (mesh->transform_index);
@@ -28,10 +28,10 @@ void	mesh_load(int mesh_index)
 	t_mesh	*mesh;
 
 	i = 0;
-	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
+	mesh = engine_get()->meshes[mesh_index];
 	if (!mesh)
 		return ;
-	while (i < mesh->vgroups.length)
+	while (i < mesh->vgroups.size())
 	{
 		vgroup_load(mesh_index, i);
 		i++;
@@ -42,11 +42,10 @@ void	mesh_update(int mesh_index)
 {
 	t_mesh		*mesh;
 
-	mesh = ezarray_get_index(engine_get()->meshes, mesh_index);
+	mesh = engine_get()->meshes[mesh_index];
 	if (!mesh)
 		return ;
-	transform_update(ezarray_get_index(
-		engine_get()->transforms, mesh->transform_index));
+	transform_update(engine_get()->transforms[mesh->transform_index]);
 }
 
 void	mesh_render(int mesh_index, int camera_index, RENDERTYPE type)
@@ -57,15 +56,15 @@ void	mesh_render(int mesh_index, int camera_index, RENDERTYPE type)
 	float		alpha;
 	UCHAR		bpp;
 
-	m = ezarray_get_index(engine_get()->meshes, mesh_index);
+	m = engine_get()->meshes[mesh_index];
 	if (!m)
 		return ;
 	vi = 0;
-	while (vi < m->vgroups.length)
+	while (vi < m->vgroups.size())
 	{
 		if (type)
 		{
-			mtl = ((t_vgroup*)ezarray_get_index(m->vgroups, vi))->mtl_index;
+			mtl = m->vgroups[vi]->mtl_index;
 			alpha = material_get_alpha(mtl);
 			bpp = texture_get_bpp(material_get_texture_albedo(mtl));
 			if ((type == render_opaque && alpha == 1 && bpp < 32)
@@ -83,11 +82,11 @@ void	mesh_center(int mesh_index)
 	t_mesh		*m;
 	unsigned	vi;
 
-	m = ezarray_get_index(engine_get()->meshes, mesh_index);
+	m = engine_get()->meshes[mesh_index];
 	if (!m)
 		return ;
 	vi = 0;
-	while (vi < m->vgroups.length)
+	while (vi < m->vgroups.size())
 	{
 		vgroup_center(mesh_index, vi);
 		vi++;

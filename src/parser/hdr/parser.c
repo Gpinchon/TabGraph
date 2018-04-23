@@ -1,33 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   camera1.c                                          :+:      :+:    :+:   */
+/*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/03/17 16:29:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/23 11:43:45 by gpinchon         ###   ########.fr       */
+/*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
+/*   Updated: 2018/04/22 01:30:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <scop.h>
+#include <stdio.h>
 
-void	camera_set_target(int camera_index, int transform_index)
+struct hdr_parser
 {
-	t_camera	*camera;
+	char	intro[10];
+};
 
-	camera = engine_get()->cameras[camera_index];
-	if (!camera)
-		return ;
-	camera->target_index = transform_index;
-}
-
-void	camera_set_position(int camera_index, VEC3 position)
+int	load_hdr(char *path)
 {
-	t_camera	*camera;
+	hdr_parser	parser;
 
-	camera = engine_get()->cameras[camera_index];
-	if (!camera)
-		return ;
-	camera->position = position;
+	FILE * stream = fopen(path, "rb");
+	fread(&parser.intro, sizeof(char), 10, stream);
+	if (strncmp(parser.intro, "#?RADIANCE", 10))
+		return (-1);
 }
