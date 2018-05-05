@@ -13,7 +13,7 @@
 #ifndef BMP_PARSER_H
 # define BMP_PARSER_H
 
-# include <scop.h>
+# include "scop.hpp"
 # include <sys/stat.h>
 
 # pragma pack(1)
