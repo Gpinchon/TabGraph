@@ -102,8 +102,8 @@ final.hyper: $(SRC)
 pull:
 	git pull
 	git submodule update --init --recursive
-	git submodule foreach git reset --hard origin/42
-	git submodule foreach git pull origin 42
+	git submodule foreach git reset --hard origin/vml++
+	git submodule foreach git pull origin vml++
 
 clean:
 	rm -rf $(OBJ) $(HYPER_OBJ)
