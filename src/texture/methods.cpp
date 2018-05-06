@@ -243,28 +243,33 @@ VEC4	Texture::sample(const VEC2 &uv)
 void	Texture::resize(const VEC2 &ns)
 {
 	unsigned char	*d;
-	int				i[3];
+	int				x, y, z;
 	VEC4			v;
 	VEC2			uv;
 
 	if (_data)
 	{
-		d = new unsigned char[unsigned(ns.x * ns.y * (_bpp / 8) * sizeof(UCHAR))];
-		i[0] = -1;
-		while (++i[0] < ns.x)
+		d = new unsigned char[unsigned(ns.x * ns.y * (_bpp))];
+		x = 0;
+		while (x < ns.x)
 		{
-			i[1] = -1;
-			while (++i[1] < ns.y)
+			y = 0;
+			while (y < ns.y)
 			{
-				uv = new_vec2(i[0] / (float)ns.x, i[1] / (float)ns.y);
+				uv = new_vec2(x / (float)ns.x, y / (float)ns.y);
 				v = sample(uv);
-				i[2] = -1;
-				while (++i[2] < (_bpp / 8))
-					(&d[(int)(i[1] * ns.x + i[0]) * (_bpp / 8)])[i[2]] =
-					((float*)&v)[i[2]];
+				z = 0;
+				while (z < (_bpp / 8))
+				{
+					(&d[(int)(y * ns.x + x) * (_bpp / 8)])[z] =
+					((float*)&v)[z];
+					z++;
+				}
+				y++;
 			}
+			x++;
 		}
-		delete _data;
+		delete [] _data;
 		_data = d;
 	}
 	_size = ns;

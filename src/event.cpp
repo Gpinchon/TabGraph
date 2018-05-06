@@ -6,11 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 17:24:48 by gpinchon          #+#    #+#             */
-<<<<<<< HEAD:src/event.c
 /*   Updated: 2018/04/23 11:37:45 by gpinchon         ###   ########.fr       */
-=======
-/*   Updated: 2018/05/01 18:12:50 by gpinchon         ###   ########.fr       */
->>>>>>> master:src/event.cpp
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,12 +54,6 @@ void	Events::keyboard(SDL_Event *event)
 
 int		Events::filter(void *, SDL_Event *event)
 {
-<<<<<<< HEAD:src/event.c
-	t_engine *engine;
-
-	engine = static_cast<t_engine*>(e);
-=======
->>>>>>> master:src/event.cpp
 	if (event->type == SDL_QUIT)
 		Engine::stop();
 	else if (event->type == SDL_WINDOWEVENT)

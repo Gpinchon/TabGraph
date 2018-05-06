@@ -18,7 +18,7 @@ static void	convert_bmp(t_bmp_parser *parser)
 	unsigned char	rgba[4];
 	int				i[3];
 
-	pixel_temp = new UCHAR(parser->header.size);
+	pixel_temp = new UCHAR [parser->header.size];
 	i[0] = 0;
 	i[1] = -1;
 	while (++i[1] < parser->info.width)
@@ -37,7 +37,7 @@ static void	convert_bmp(t_bmp_parser *parser)
 			i[0] += (parser->info.bpp / 8);
 		}
 	}
-	free(parser->data);
+	delete [] parser->data;
 	parser->data = pixel_temp;
 }
 
@@ -56,7 +56,7 @@ static int	read_data(t_bmp_parser *p, const char *imagepath)
 	}
 	data_size = p->info.bpp / 8 * p->info.width * p->info.height;
 	lseek(p->fd, p->header.data_offset, SEEK_SET);
-	p->data = (unsigned char*)calloc(1, data_size);
+	p->data = new UCHAR[data_size];
 	p->size_read = read(p->fd, p->data, data_size);
 	close(p->fd);
 	if (p->info.bpp == 32)
