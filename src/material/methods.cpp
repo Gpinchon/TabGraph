@@ -48,16 +48,16 @@ Material	*Material::get_by_name(const std::string &name)
 	i = 0;
 	std::hash<std::string> hash_fn;
 	h = hash_fn(name);
-	std::cout << "Material::get_by_name " << name << std::endl;
 	while ((m = Engine::material(i)))
 	{
-		std::cout << m->name() << " " << m->_id << std::endl;
 		if (h == m->_id)
 			return (m);
 		i++;
 	}
 	return (nullptr);
 }
+
+Texture	*PBRMaterial::_texture_brdf = nullptr;
 
 PBRMaterial::PBRMaterial(const std::string &name) : Material(name),
 	texture_albedo(nullptr),
@@ -69,7 +69,12 @@ PBRMaterial::PBRMaterial(const std::string &name) : Material(name),
 	texture_height(nullptr),
 	texture_ao(nullptr)
 {
-
+	std::cout << "PBRMaterial::PBRMaterial " << name << std::endl;
+	if (!_texture_brdf)
+		_texture_brdf = BMP::parse("brdf", "./res/brdfLUT.bmp");
+	if (!(shader = Shader::get_by_name("defaultPBR")))
+		shader = Shader::load("defaultPBR", "./res/shaders/defaultPBR.vert", "./res/shaders/defaultPBR.frag");
+	std::cout << shader->name();
 }
 
 PBRMaterial	*PBRMaterial::create(const std::string &name)
@@ -83,39 +88,40 @@ PBRMaterial	*PBRMaterial::create(const std::string &name)
 	mtl->metallic = 0;
 	mtl->roughness = 0.5;
 	mtl->specular = new_vec3(0.04, 0.04, 0.04);
-	mtl->shader = Shader::get_by_name("defaultPBR");
+	
 	Engine::add(*mtl);
 	return (mtl);
 }
 
 void	PBRMaterial::bind_textures()
 {
+	//std::cout << "PBRMaterial::bind_textures\n";
 	shader->bind_texture("in_Texture_Albedo", texture_albedo, GL_TEXTURE1);
-	shader->set_uniform("in_Use_Texture_Albedo", texture_albedo ? false : true);
+	shader->set_uniform("in_Use_Texture_Albedo", texture_albedo ? true : false);
 	shader->bind_texture("in_Texture_Specular", texture_specular, GL_TEXTURE2);
-	shader->set_uniform("in_Use_Texture_Specular", texture_specular ? false : true);
+	shader->set_uniform("in_Use_Texture_Specular", texture_specular ? true : false);
 	shader->bind_texture("in_Texture_Roughness", texture_roughness, GL_TEXTURE3);
-	shader->set_uniform("in_Use_Texture_Roughness", texture_roughness ? false : true);
+	shader->set_uniform("in_Use_Texture_Roughness", texture_roughness ? true : false);
 	shader->bind_texture("in_Texture_Metallic", texture_metallic, GL_TEXTURE4);
-	shader->set_uniform("in_Use_Texture_Metallic", texture_metallic ? false : true);
+	shader->set_uniform("in_Use_Texture_Metallic", texture_metallic ? true : false);
 	shader->bind_texture("in_Texture_Emitting", texture_emitting, GL_TEXTURE5);
-	shader->set_uniform("in_Use_Texture_Emitting", texture_emitting ? false : true);
+	shader->set_uniform("in_Use_Texture_Emitting", texture_emitting ? true : false);
 	shader->bind_texture("in_Texture_Normal", texture_normal, GL_TEXTURE6);
-	shader->set_uniform("in_Use_Texture_Normal", texture_normal ? false : true);
+	shader->set_uniform("in_Use_Texture_Normal", texture_normal ? true : false);
 	shader->bind_texture("in_Texture_Height", texture_height, GL_TEXTURE7);
-	shader->set_uniform("in_Use_Texture_Height", texture_height ? false : true);
+	shader->set_uniform("in_Use_Texture_Height", texture_height ? true : false);
 	shader->bind_texture("in_Texture_AO", texture_ao, GL_TEXTURE8);
-	shader->set_uniform("in_Use_Texture_AO", texture_ao ? false : true);
+	shader->set_uniform("in_Use_Texture_AO", texture_ao ? true : false);
 	/*shader->bind_texture("in_Texture_Env",
 		Engine::get().env, GL_TEXTURE11);
 	shader->bind_texture("in_Texture__env_brdf",
-		Engine::get()._env_brdf, GL_TEXTURE12);
-	shader->bind_texture("in_Texture_BRDF",
-		Engine::get().brdf_lut, GL_TEXTURE13);*/
+		Engine::get()._env_brdf, GL_TEXTURE12);*/
+	shader->bind_texture("in_Texture_BRDF", _texture_brdf, GL_TEXTURE13);
 }
 
 void	PBRMaterial::bind_values()
 {
+	//std::cout << "PBRMaterial::bind_values\n";
 	shader->set_uniform("in_Albedo", albedo);
 	shader->set_uniform("in_Specular", specular);
 	shader->set_uniform("in_Emitting", emitting);
@@ -127,12 +133,21 @@ void	PBRMaterial::bind_values()
 
 void				PBRMaterial::load_textures()
 {
-	texture_albedo->load();
-	texture_specular->load();
-	texture_roughness->load();
-	texture_metallic->load();
-	texture_emitting->load();
-	texture_normal->load();
-	texture_height->load();
-	texture_ao->load();
+	_texture_brdf->load();
+	if (texture_albedo)
+		texture_albedo->load();
+	if (texture_specular)
+		texture_specular->load();
+	if (texture_roughness)
+		texture_roughness->load();
+	if (texture_metallic)
+		texture_metallic->load();
+	if (texture_emitting)
+		texture_emitting->load();
+	if (texture_normal)
+		texture_normal->load();
+	if (texture_height)
+		texture_height->load();
+	if (texture_ao)
+		texture_ao->load();
 }

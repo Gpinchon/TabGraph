@@ -43,9 +43,12 @@ void	callback_background(SDL_Event *event)
 		engine_get()->textures_env, b * 2 + 1));
 }*/
 
-void	callback_quality(SDL_Event *)
+void	callback_quality(SDL_Event *event)
 {
-	//std::cout << "quality\n";
+	if (event && event->type != SDL_KEYDOWN)
+		return ;
+	Engine::internal_quality() += 0.25;
+	Engine::internal_quality() = CYCLE(Engine::internal_quality(), 0.25, 1.25);
 }
 
 void	callback_refresh(SDL_Event *)

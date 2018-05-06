@@ -28,7 +28,6 @@ static GLuint	vbuffer_load(GLuint attrib, int size, const std::vector<T> &a)
 {
 	GLuint	lbufferid;
 
-	std::cout << a.size() << std::endl;
 	if (!size || !a.size())
 		return (-1);
 	glGenBuffers(1, &lbufferid);
@@ -88,16 +87,6 @@ void		Mesh::bind()
 		return ;
 	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
 	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
-	/*std::cout << "Engine::current_camera()->projection\n";
-	display_mat4(Engine::current_camera()->projection);
-	std::cout << "Engine::current_camera()->view\n";
-	display_mat4(Engine::current_camera()->view);
-	std::cout << "mat4_transform()\n";
-	display_mat4(mat4_transform());
-	std::cout << "mvp\n";
-	display_mat4(mvp);
-	std::cout << "normal_matrix\n";
-	display_mat4(normal_matrix);*/
 	material->shader->set_uniform("in_UVMax", uvmax);
 	material->shader->set_uniform("in_UVMin", uvmin);
 	material->shader->set_uniform("in_CamPos", Engine::current_camera()->position());
@@ -124,7 +113,7 @@ void			Mesh::render()
 	glBindVertexArray(v_arrayid);
 	glDrawArrays(GL_TRIANGLES, 0, v.size());
 	glBindVertexArray(0);
-	material->shader->use(false);
+	//material->shader->use(false);
 }
 
 void			Mesh::center()

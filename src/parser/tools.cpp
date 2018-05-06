@@ -38,10 +38,11 @@ std::string	convert_backslash(std::string str)
 std::vector<std::string>	split_path(const std::string &path)
 {
 	std::vector<std::string>	final_path(2);
-	auto	slashpos = path.find_last_of("/");
+	auto	localPath = convert_backslash(path);
+	auto	slashpos = localPath.find_last_of("/");
 
-	final_path[0] = std::string(path.substr(0, slashpos));
-	final_path[1] = std::string(path.substr(slashpos));
+	final_path[0] = std::string(localPath.substr(0, slashpos)) + "/";
+	final_path[1] = std::string(localPath.substr(slashpos));
 	return (final_path);
 }
 

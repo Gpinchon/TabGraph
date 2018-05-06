@@ -16,19 +16,19 @@ void	parse_color(std::vector<std::string> &split, PBRMaterial *mtl)
 {
 	if (split[0] == "Kd")
 	{
-		split.erase(split.begin());
+		//split.erase(split.begin());
 		mtl->albedo = parse_vec3(split);
 	}
 		
 	else if (split[0] == "Ks")
 	{
-		split.erase(split.begin());
+		//split.erase(split.begin());
 		mtl->specular = vec3_fdiv(parse_vec3(split),
 			1 + (1 - mtl->metallic) * 24);
 	}	
 	else if (split[0] == "Ke")
 	{
-		split.erase(split.begin());
+		//split.erase(split.begin());
 		mtl->emitting = parse_vec3(split);
 	}
 		

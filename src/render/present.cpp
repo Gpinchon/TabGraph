@@ -40,7 +40,7 @@ void		render_present()
 	glDisable(GL_DEPTH_TEST);
 	glViewport(0, 0, Window::size().x, Window::size().y);
 	Shader	&shader = Window::render_buffer().shader();
-	Window::render_buffer().generate_mipmap();
+	Window::render_buffer().attachement(0).generate_mipmap();
 	shader.use();
 	render_bind_textures(shader);
 	matrix = mat4_inverse(Engine::current_camera()->view);

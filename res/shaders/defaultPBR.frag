@@ -13,7 +13,6 @@ uniform lowp float		in_Roughness;
 uniform lowp float		in_Metallic;
 uniform lowp float		in_Alpha;
 uniform lowp float		in_Parallax;
-uniform lowp float		in_Stupidity;
 
 uniform sampler2D	in_Texture_Albedo;
 uniform bool		in_Use_Texture_Albedo = false;
@@ -34,7 +33,6 @@ uniform sampler2DShadow	in_Texture_Shadow;
 uniform samplerCube	in_Texture_Env;
 uniform samplerCube	in_Texture_Env_Spec;
 uniform sampler2D	in_Texture_BRDF;
-uniform sampler2D	in_Texture_Stupid;
 
 uniform vec3		in_LightDirection = normalize(vec3(-1, 1, 0));
 
@@ -153,8 +151,8 @@ void	main()
 	lowp float	roughness_sample = texture(in_Texture_Roughness, vt).r;
 	lowp float	metallic_sample = texture(in_Texture_Metallic, vt).r;
 	lowp float	ao = 1 - texture(in_Texture_AO, vt).r;
-	lowp vec4	stupid_sample = texture(in_Texture_Stupid, vt);
-	lowp vec3	light_Color = /*texture(in_Texture_Shadow, vec3(frag_ShadowPosition.xy, frag_ShadowPosition.z * 0.995)) **/ frag_Light_Color;
+	lowp vec3	light_Color = vec3(1);
+	//lowp vec3	light_Color = texture(in_Texture_Shadow, vec3(frag_ShadowPosition.xy, frag_ShadowPosition.z * 0.995)) * frag_Light_Color;
 
 	if (in_Use_Texture_Albedo)
 	{
@@ -167,7 +165,6 @@ void	main()
 		if (dot(new_normal, new_normal) > 0)
 			worldNormal = normalize(new_normal);
 	}
-	albedo.a = 1;
 	if (albedo.a <= 0.05
 	|| vt.x > in_UVMax.x || vt.y > in_UVMax.y
 	|| vt.x < in_UVMin.x || vt.y < in_UVMin.y)
@@ -206,8 +203,8 @@ void	main()
 	albedo.a = min(1, albedo.a);
 	out_Color.rgb = emitting + specular + diffuse + reflection;
 	out_Color.a = albedo.a;
-	out_Color = mix(out_Color, stupid_sample, in_Stupidity);
 	out_Bright = vec4(max(vec3(0), out_Color.rgb - 1) + emitting, albedo.a);
 	out_Normal = vec4(worldNormal, 1);
 	out_Position = vec4(worldPosition, 1);
+	//out_Color.rgb = vec3(texture(in_Texture_BRDF, vt));
 }

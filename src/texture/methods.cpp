@@ -12,7 +12,7 @@
 
 #include "scop.hpp"
 
-Texture::Texture(const std::string &name) : _data(nullptr)
+Texture::Texture(const std::string &name) : _glid(0), _data(nullptr), _loaded(false)
 {
 	set_name(name);
 }
@@ -29,7 +29,6 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum
 	Texture	*t;
 
 	t = new Texture(name);
-	memset(t, 0, sizeof(Texture));
 	t->_target = target;
 	t->_format = f;
 	t->_internal_format = fi;
@@ -44,6 +43,7 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum
 	glTexParameteri(t->_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(t->_target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 	glBindTexture(t->_target, 0);
+	glObjectLabel(GL_TEXTURE, t->_glid, -1, name.c_str());
 	Engine::add(*t);
 	return (t);
 }
@@ -77,6 +77,11 @@ void	Texture::load()
 {
 	if (_loaded)
 		return ;
+	std::cout << "Texture::load() " << _name << " _internal_format " << _internal_format << "_format " << _format << std::endl;
+	std::cout << "_target " << _target << std::endl;
+	std::cout << "_size " << _size.x << " " << _size.y << std::endl;
+	std::cout << "data " << &_data << std::endl;
+	std::cout << "_glid " << _glid << std::endl;
 	if (_size.x > MAXTEXRES || _size.y > MAXTEXRES)
 		resize(new_vec2(MIN(_size.x, MAXTEXRES),
 			MIN(_size.y, MAXTEXRES)));
@@ -104,6 +109,16 @@ void		Texture::format(GLenum *format, GLenum *internal_format)
 {
 	*format = _format;
 	*internal_format = _internal_format;
+}
+
+const std::string	&Texture::name()
+{
+	return (_name);
+}
+
+const std::string	&Texture::name() const
+{
+	return (_name);
 }
 
 UCHAR		Texture::bpp() const

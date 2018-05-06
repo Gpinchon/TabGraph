@@ -12,7 +12,7 @@
 
 #include "scop.hpp"
 
-Shader::Shader(const std::string &name) : _uniforms(std::map<std::string, ShaderVariable>()), _attributes()
+Shader::Shader(const std::string &name) : _in_use(false), _uniforms(), _attributes()
 {
 	std::cout << "Shader::Shader\n";
 	set_name(name);
@@ -36,6 +36,19 @@ ShaderVariable	*Shader::get_uniform(const std::string &name)
 	if (it != _uniforms.end())
 		return (&it->second);
 	return (nullptr);
+}
+
+void			Shader::set_uniform(const std::string &name, const Texture *, const int value)
+{
+	auto	v = get_uniform(name);
+	if (!v)
+		return ;
+	bool	bound = in_use();
+	if (!bound)
+		use();
+	glUniform1i(v->loc, value);
+	if (!bound)
+		use(false);
 }
 
 void			Shader::set_uniform(const std::string &name, const int value)
@@ -177,7 +190,7 @@ void	Shader::bind_texture(const std::string &name,
 		glActiveTexture(texture_unit);
 		glBindTexture(texture->target(), texture->glid());
 	}
-	set_uniform(name, texture_unit - GL_TEXTURE0);
+	set_uniform(name, texture, texture_unit - GL_TEXTURE0);
 	if (!bound)
 		use(false);
 }

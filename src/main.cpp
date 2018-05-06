@@ -53,7 +53,7 @@ int		main(int argc, char *argv[])
 	auto argv0 = std::string(argv[0]);
 
 	Engine::init(argv0);
-	//sleep(20);
+	//sleep(10);
 	Window::init("Scop", WIDTH, HEIGHT);
 	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
 	auto &camera = Camera::create("main_camera", 45);

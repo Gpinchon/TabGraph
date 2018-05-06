@@ -182,6 +182,7 @@ void	Engine::fixed_update(void)
 {
 	unsigned	node_index = 0;
 
+	Window::resize();
 	while (auto node = Engine::node(node_index))
 	{
 		node->physics_update();
@@ -212,20 +213,19 @@ void	Engine::run(void)
 		last_ticks = ticks;
 		SDL_PumpEvents();
 		Events::refresh();
-		glClearColor(0.128, 0.128, 0.128, 1);
-		glClear(Window::clear_mask());
 		if (ticks - fixed_timing >= 0.016)
 		{
 			fixed_timing = ticks;
 			fixed_update();
 		}
 		update();
+		glClear(Window::clear_mask());
 		//render_shadow();
-		//Window::render_buffer().bind();
+		Window::render_buffer().bind();
 		render_scene();
-		//Window::render_buffer().attachement(1).blur(BLOOMPASS, 2.5);
+		Window::render_buffer().attachement(1).blur(BLOOMPASS, 2.5);
 		//Window::render_buffer().attachement(2).blur(1, 2.5);
-		//render_present();
+		render_present();
 		Window::swap();
 	}
 }
@@ -275,7 +275,6 @@ Node			*Engine::node(const unsigned &index)
 
 Material		*Engine::material(const unsigned &index)
 {
-	std::cout << "Engine::material " << index << " " << _get()._materials.size() << std::endl;
 	if (index >= _get()._materials.size())
 		return (nullptr);
 	return (_get()._materials[index]);

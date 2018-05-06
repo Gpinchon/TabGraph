@@ -45,8 +45,6 @@ void		Window::init(const std::string &name, int width, int height)
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	Shader::load("render",
 		"./res/shaders/render.vert", "./res/shaders/render.frag");
-	Shader::load("defaultPBR",
-		"./res/shaders/defaultPBR.vert", "./res/shaders/defaultPBR.frag");
 	Shader::load("shadow",
 		"./res/shaders/shadow.vert", "./res/shaders/shadow.frag");
 	Shader::load("blur",
@@ -79,11 +77,16 @@ VEC2		Window::size(void)
 
 void		Window::resize(void)
 {
-	VEC2	size;
+	VEC2		size;
+	static VEC2	lastSize = new_vec2(0, 0);
 
 	size = vec2_scale(Window::size(),
 		Engine::internal_quality());
-	Window::render_buffer().resize(size);
+	if (lastSize.x != size.x || lastSize.y != size.y)
+	{
+		Window::render_buffer().resize(size);
+		lastSize = size;
+	}
 }
 
 void		Window::fullscreen(const bool &fullscreen)

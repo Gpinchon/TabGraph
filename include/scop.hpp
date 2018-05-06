@@ -98,6 +98,7 @@ public :
 					const Texture *, const GLenum &texture_unit);
 	void			unbind_texture(GLenum texture_unit);
 	void			set_name(const std::string &);
+	void			set_uniform(const std::string &name, const Texture *, const int value);
 	void			set_uniform(const std::string &, const int value);
 	void			set_uniform(const std::string &, const unsigned &value);
 	void			set_uniform(const std::string &, const float &value);
@@ -144,7 +145,8 @@ public :
 	VEC2			size() const;
 	VEC4			texelfetch(const VEC2 &uv);
 	VEC4			sample(const VEC2 &uv);
-	std::string		&name() const;
+	const std::string	&name();
+	const std::string	&name() const;
 protected :
 	ULL			_id;
 	GLuint		_glid;
@@ -245,9 +247,9 @@ struct	Material
 {
 	static Material *create(const std::string &);
 	static Material	*get_by_name(const std::string &);
-	void			bind_values() {};
-	void			bind_textures() {};
-	void			load_textures() {};
+	virtual void	bind_values() {};
+	virtual void	bind_textures() {};
+	virtual void	load_textures() {};
 	void			set_name(const std::string &);
 	const std::string		&name();
 	Shader			*shader;
@@ -280,6 +282,7 @@ struct	PBRMaterial : public Material
 	Texture		*texture_height;
 	Texture		*texture_ao;
 private :
+	static Texture	*_texture_brdf;
 	PBRMaterial(const std::string &name);
 };
 
@@ -428,7 +431,6 @@ private :
 	int8_t						_swap_interval;
 	short						_env;
 	short						_env_brdf;
-	short						_brdf_lut;
 	float						_delta_time;
 	std::string					_program_path;
 	std::string					_exec_path;
