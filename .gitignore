@@ -31,6 +31,9 @@
 *.dSYM/
 *.su
 
+# VS Code trash
+.vscode
+
 # Mac OS trash
 .DS_Store
 
