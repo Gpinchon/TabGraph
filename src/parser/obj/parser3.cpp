@@ -69,27 +69,27 @@ static int	get_vi(const std::vector<VEC3> &v, const std::string &str)
 
 static void	parse_indice(t_obj_parser *p, std::vector<std::string> &split, int vindex[3][3])
 {
-	unsigned					i[3];
+	unsigned	i, splitLen, slashCount;
 
-	i[0] = 0;
-	while (i[0] < split.size() && i[0] < 3)
+	i = 0;
+	while (i < split.size() && i < 3)
 	{
-		auto fsplit = strsplit(split[i[0]], '/');
-		i[1] = fsplit.size();
-		i[2] = count_char(split[i[0]], '/');
-		vindex[0][i[0]] = -1;
-		vindex[1][i[0]] = -1;
-		vindex[2][i[0]] = -1;
-		vindex[0][i[0]] = get_vi(p->v, fsplit[0]);
-		if (vindex[0][i[0]] == -1)
+		auto fsplit = strsplit(split[i], '/');
+		splitLen = fsplit.size();
+		slashCount = count_char(split[i], '/');
+		vindex[0][i] = -1;
+		vindex[1][i] = -1;
+		vindex[2][i] = -1;
+		vindex[0][i] = get_vi(p->v, fsplit[0]);
+		if (vindex[0][i] == -1)
 			return ;
-		if ((i[1] == 3 && i[2] == 2) || (i[1] == 2 && i[2] == 1))
-			vindex[2][i[0]] = get_vi(p->vt, fsplit[1]);
-		if (i[1] == 3 && i[2] == 2)
-			vindex[1][i[0]] = get_vi(p->vn, fsplit[2]);
-		else if (i[1] == 2 && i[2] == 2)
-			vindex[1][i[0]] = get_vi(p->vn, fsplit[1]);
-		i[0]++;
+		if ((splitLen == 3 && slashCount == 2) || (splitLen == 2 && slashCount == 1))
+			vindex[2][i] = get_vi(p->vt, fsplit[1]);
+		if (splitLen == 3 && slashCount == 2)
+			vindex[1][i] = get_vi(p->vn, fsplit[2]);
+		else if (splitLen == 2 && slashCount == 2)
+			vindex[1][i] = get_vi(p->vn, fsplit[1]);
+		i++;
 	}
 }
 
@@ -117,8 +117,8 @@ void		parse_v(t_obj_parser *p, std::vector<std::string> &split, VEC2 *in_vt)
 	short	i;
 
 	parse_indice(p, split, vindex);
-	i = -1;
-	while (++i < 3)
+	i = 0;
+	while (i < 3)
 	{
 		if (vindex[0][i] == -1)
 			return ;
@@ -130,6 +130,7 @@ void		parse_v(t_obj_parser *p, std::vector<std::string> &split, VEC2 *in_vt)
 		}
 		else
 			vt[i] = in_vt ? in_vt[i] : generate_vt(v[i], p->bbox.center);
+		i++;
 	}
 	parse_vn(p, vindex, v, vn);
 	if (!in_vt)

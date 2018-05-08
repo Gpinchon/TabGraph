@@ -18,7 +18,8 @@ static void	convert_bmp(t_bmp_parser *parser)
 	unsigned char	rgba[4];
 	int				i[3];
 
-	pixel_temp = new UCHAR [parser->header.size];
+	auto dataSize = parser->info.bpp / 8 * parser->info.width * parser->info.height;
+	pixel_temp = new UCHAR [dataSize];
 	i[0] = 0;
 	i[1] = -1;
 	while (++i[1] < parser->info.width)

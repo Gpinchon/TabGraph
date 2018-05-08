@@ -36,14 +36,13 @@ static void	vt_min_max(Mesh *vg)
 
 void		parse_vg(t_obj_parser *p)
 {
+	static int	childNbr = 0;
 	if (p->vg->v.size() > 0)
 	{
-		/*ezarray_shrink(&p->vg->v);
-		ezarray_shrink(&p->vg->vn);
-		ezarray_shrink(&p->vg->vt);*/
+		childNbr++;
 		vt_min_max(p->vg);
 		p->parent->add_child(*p->vg);
-		p->vg = Mesh::create(p->parent->name() + "_child");
+		p->vg = Mesh::create(p->parent->name() + "_child " + std::to_string(childNbr));
 		p->vg->material = Material::get_by_name("default");
 		std::cout << p->vg->material->name() << std::endl;
 	}

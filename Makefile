@@ -81,7 +81,7 @@ hyper: $(LIBFILES) $(HYPER_OBJ)
 
 %.o: %.hyper
 	@echo -n Compiling $@...
-	@($(CC) -x c $(CXXFLAGS) -o $@ -c $<)
+	@($(CC) -x c++ $(CXXFLAGS) -o $@ -c $<)
 	@echo "$(OK_STRING)"
 
 .INTERMEDIATE: final.hyper

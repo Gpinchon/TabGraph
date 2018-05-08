@@ -32,6 +32,13 @@ void		Window::swap()
 
 void		Window::init(const std::string &name, int width, int height)
 {
+	SDL_Init(SDL_INIT_VIDEO);
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MSAA);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+		SDL_GL_CONTEXT_PROFILE_CORE);
 	_get()._sdl_window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED, width, height,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |

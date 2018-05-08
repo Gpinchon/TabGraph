@@ -17,6 +17,7 @@
 
 typedef struct					s_obj_parser
 {
+	s_obj_parser() : fd(nullptr), parent(nullptr), vg(nullptr) {};
 	std::vector<std::string>	path_split;
 	FILE						*fd;
 	std::vector<VEC3>			v;

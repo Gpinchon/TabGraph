@@ -12,7 +12,15 @@
 
 #include "scop.hpp"
 
-Texture::Texture(const std::string &name) : _glid(0), _data(nullptr), _loaded(false)
+Texture::Texture(const std::string &name) :
+	_glid(0),
+	_size(new_vec2(0, 0)),
+	_bpp(0),
+	_target(0),
+	_format(0),
+	_internal_format(0),
+	_data(nullptr),
+	_loaded(false)
 {
 	set_name(name);
 }
@@ -65,11 +73,11 @@ UCHAR	*Texture::data() const
 
 void	Texture::assign(Texture &dest_texture, GLenum target)
 {
+	glBindTexture(_target, _glid);
 	glBindTexture(dest_texture._target, dest_texture._glid);
-	glBindTexture(target, dest_texture._glid);
-	glTexImage2D(target, 0, _internal_format, _size.x, _size.y, 0,
-		_format, GL_UNSIGNED_BYTE, _data);
-	glBindTexture(target, 0);
+	glTexImage2D(target, 0, dest_texture._internal_format, dest_texture._size.x, dest_texture._size.y, 0,
+		dest_texture._format, GL_UNSIGNED_BYTE, dest_texture._data);
+	glBindTexture(_target, 0);
 	glBindTexture(dest_texture._target, 0);
 }
 
@@ -90,8 +98,9 @@ void	Texture::load()
 	glBindTexture(_target, _glid);
 	if (_bpp < 32)
 		glTexParameteri(_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-	glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0,
-		_format, GL_UNSIGNED_BYTE, _data);
+	if (_size.x > 0 && _size.y > 0)
+		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0,
+			_format, GL_UNSIGNED_BYTE, _data);
 	glGenerateMipmap(_target);
 	glBindTexture(_target, 0);
 	_loaded = true;
@@ -249,7 +258,7 @@ void	Texture::resize(const VEC2 &ns)
 
 	if (_data)
 	{
-		d = new unsigned char[unsigned(ns.x * ns.y * (_bpp))];
+		d = new unsigned char[unsigned(ns.x * ns.y * (_bpp / 8))];
 		x = 0;
 		while (x < ns.x)
 		{
@@ -261,7 +270,7 @@ void	Texture::resize(const VEC2 &ns)
 				z = 0;
 				while (z < (_bpp / 8))
 				{
-					(&d[(int)(y * ns.x + x) * (_bpp / 8)])[z] =
+					(&d[int(y * ns.x + x) * (_bpp / 8)])[z] =
 					((float*)&v)[z];
 					z++;
 				}

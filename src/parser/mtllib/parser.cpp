@@ -110,13 +110,15 @@ bool			load_mtllib(const std::string &path)
 	char		line[4096];
 	t_obj_parser p;
 
-	memset(&p, 0, sizeof(t_obj_parser));
+	//memset(&p, 0, sizeof(t_obj_parser));
 	auto fullPath = Engine::execution_path() + path;
 	std::cout << "OPENING " << fullPath << std::endl;
 	if (access(fullPath.c_str(), F_OK | W_OK))
 		return (false);
 	p.path_split = split_path(fullPath);
 	p.fd = fopen(fullPath.c_str(), "r");
+	if (!p.fd)
+		return (false);
 	std::cout << "PARSING " << p.path_split[0] << std::endl;
 	while (fgets(line, 4096, p.fd))
 	{

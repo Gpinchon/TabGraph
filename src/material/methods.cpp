@@ -69,12 +69,16 @@ PBRMaterial::PBRMaterial(const std::string &name) : Material(name),
 	texture_height(nullptr),
 	texture_ao(nullptr)
 {
-	std::cout << "PBRMaterial::PBRMaterial " << name << std::endl;
+	//std::cout << "PBRMaterial::PBRMaterial " << name << std::endl;
 	if (!_texture_brdf)
+	{
 		_texture_brdf = BMP::parse("brdf", "./res/brdfLUT.bmp");
+		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
 	if (!(shader = Shader::get_by_name("defaultPBR")))
 		shader = Shader::load("defaultPBR", "./res/shaders/defaultPBR.vert", "./res/shaders/defaultPBR.frag");
-	std::cout << shader->name();
+	//std::cout << shader->name();
 }
 
 PBRMaterial	*PBRMaterial::create(const std::string &name)
@@ -112,10 +116,10 @@ void	PBRMaterial::bind_textures()
 	shader->set_uniform("in_Use_Texture_Height", texture_height ? true : false);
 	shader->bind_texture("in_Texture_AO", texture_ao, GL_TEXTURE8);
 	shader->set_uniform("in_Use_Texture_AO", texture_ao ? true : false);
-	/*shader->bind_texture("in_Texture_Env",
-		Engine::get().env, GL_TEXTURE11);
-	shader->bind_texture("in_Texture__env_brdf",
-		Engine::get()._env_brdf, GL_TEXTURE12);*/
+		shader->bind_texture("in_Texture_Env",
+		Engine::current_environment()->diffuse, GL_TEXTURE11);
+	shader->bind_texture("in_Texture_Env_Spec",
+		Engine::current_environment()->brdf, GL_TEXTURE12);
 	shader->bind_texture("in_Texture_BRDF", _texture_brdf, GL_TEXTURE13);
 }
 

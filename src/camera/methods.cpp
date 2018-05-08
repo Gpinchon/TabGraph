@@ -47,7 +47,6 @@ void	Camera::update()
 	VEC3		target_position;
 	VEC2		size;
 
-	target = target;
 	target_position = target ? target->position() : new_vec3(0, 0, 0);
 	view = mat4_lookat(position(), target_position, UP);
 	size = Window::size();

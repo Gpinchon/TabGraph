@@ -28,7 +28,7 @@
 		scale -= (0.005 * (s[SDL_SCANCODE_LSHIFT] + 1));
 	scale = CLAMP(scale, 0.0001, 1000);
 	mesh_scale(0, new_vec3(scale, scale, scale));
-}
+}*/
 
 void	callback_background(SDL_Event *event)
 {
@@ -36,12 +36,17 @@ void	callback_background(SDL_Event *event)
 
 	if (event && (event->type == SDL_KEYUP || event->key.repeat))
 		return ;
-	b = CYCLE(b + 1, 0, (int)engine_get()->textures_env.length / 2);
-	engine_get()->env = *((int*)ezarray_get_index(
-		engine_get()->textures_env, b * 2 + 0));
-	engine_get()->env_spec = *((int*)ezarray_get_index(
-		engine_get()->textures_env, b * 2 + 1));
-}*/
+	b++;
+	Environment	*env;
+	if ((env = Engine::environment(b)))
+		Engine::current_environment(env);
+	else
+	{
+		b = 0;
+		env = Engine::environment(b);
+		Engine::current_environment(env);
+	}
+}
 
 void	callback_quality(SDL_Event *event)
 {
@@ -53,6 +58,13 @@ void	callback_quality(SDL_Event *event)
 
 void	callback_refresh(SDL_Event *)
 {
+	static float	rotation = 0;
+	auto	mesh = Engine::mesh(0);
+	if (!mesh)
+		return;
+	rotation += 0.2 * Engine::delta_time();
+	rotation = CYCLE(rotation, 0, 2 * M_PI);
+	mesh->rotation() = new_vec3(0, rotation, 0);
 	//std::cout << "refresh\n";
 }
 

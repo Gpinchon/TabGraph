@@ -24,12 +24,10 @@ static void	render_bind_textures(Shader &shader)
 	&Window::render_buffer().attachement(3), GL_TEXTURE3);
 	shader.bind_texture("in_Texture_Depth",
 	&Window::render_buffer().depth(), GL_TEXTURE4);
-	/*shader_bind_texture(shader,
-		shader_get_uniform_index(shader, "in_Texture_Env"),
-		engine_get()->env, GL_TEXTURE5);
-	shader_bind_texture(shader,
-		shader_get_uniform_index(shader, "in_Texture_Env_Spec"),
-		engine_get()->env_spec, GL_TEXTURE6);*/
+	shader.bind_texture("in_Texture_Env",
+		Engine::current_environment()->diffuse, GL_TEXTURE5);
+	shader.bind_texture("in_Texture_Env_Spec",
+		Engine::current_environment()->brdf, GL_TEXTURE6);
 }
 
 void		render_present()

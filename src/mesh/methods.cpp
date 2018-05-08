@@ -118,11 +118,10 @@ void			Mesh::render()
 
 void			Mesh::center()
 {
-	unsigned	v_index;
-	v_index = 0;
-	while (v_index < v.size())
+	std::cout << "Mesh::center " << _name << std::endl;
+	std::cout << "parent " << parent << std::endl;
+	for (auto &vec : v)
 	{
-		VEC3	&vec = v[v_index];
 		if (parent)
 			vec = vec3_sub(vec, parent->bounding_element.center);
 		else
@@ -133,7 +132,15 @@ void			Mesh::center()
 		bounding_element.max.x = MAX(vec.x, bounding_element.max.x);
 		bounding_element.max.y = MAX(vec.y, bounding_element.max.y);
 		bounding_element.max.z = MAX(vec.z, bounding_element.max.z);
-		v_index++;
 	}
 	bounding_element.center = vec3_scale(vec3_add(bounding_element.min, bounding_element.max), 0.5f);
+	position() = bounding_element.center;
+	int i = 0;
+	for (auto child : children)
+	{
+		std::cout << "Updating child " << i << std::endl;
+		i++;
+		static_cast<Mesh *>(child)->center();
+	}
+		
 }

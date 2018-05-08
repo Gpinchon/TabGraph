@@ -39,7 +39,7 @@ void	setup_callbacks(void)
 {
 	//Events::set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
 	//Events::set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
-	//Events::set_key_callback(SDL_SCANCODE_SPACE, callback_background);
+	Events::set_key_callback(SDL_SCANCODE_SPACE, callback_background);
 	Events::set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
 	Events::set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
 	//Events::set_key_callback(SDL_SCANCODE_S, callback_stupidity);
@@ -52,9 +52,8 @@ int		main(int argc, char *argv[])
 	Mesh *obj;
 	auto argv0 = std::string(argv[0]);
 
-	Engine::init(argv0);
-	//sleep(10);
 	Window::init("Scop", WIDTH, HEIGHT);
+	Engine::init(argv0);
 	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
 	auto &camera = Camera::create("main_camera", 45);
 	Engine::set_current_camera(camera);

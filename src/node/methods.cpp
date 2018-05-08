@@ -12,9 +12,9 @@
 
 #include "scop.hpp"
 
-Node::Node(const std::string &name) : parent(nullptr), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))
+Node::Node(const std::string &name) : parent(nullptr), children(), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))
 {
-	std::cout << "Node::Node\n";
+	std::cout << "Node::Node " << name << std::endl;
 	set_name(name);
 	std::cout << name << std::endl;
 }
@@ -51,6 +51,9 @@ void	Node::physics_update()
 
 void	Node::add_child(Node &child)
 {
+	std::cout << "Node::add_child " << &child << " " << this << std::endl;
+	if (&child == this)
+		return ;
 	children.push_back(&child);
 	child.parent = this;
 }

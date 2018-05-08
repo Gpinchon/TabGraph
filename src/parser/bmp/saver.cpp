@@ -44,5 +44,6 @@ void		BMP::save(const Texture &t, const std::string &imagepath)
 	write(fd, t.data(), (t.size().x * t.size().y * t.bpp() / 8));
 	padding = new UCHAR[int(info.size - (t.size().x * t.size().y * t.bpp() / 8))]();
 	write(fd, padding, info.size - (t.size().x * t.size().y * t.bpp() / 8));
+	delete [] padding;
 	close(fd);
 }

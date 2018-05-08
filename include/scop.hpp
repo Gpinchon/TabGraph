@@ -376,12 +376,14 @@ private :
 class Cubemap : public Texture
 {
 public:
-	Texture	*sides[6];
+	static Cubemap *parse(const std::string &, const std::string &);
+	//Texture	*sides[6];
 };
 
-class Environment : public Cubemap
+class Environment
 {
 public:
+	static Environment *parse(const std::string &, const std::string &);
 	Environment();
 	~Environment();
 	Cubemap	*diffuse;
@@ -409,6 +411,7 @@ public :
 	static int8_t	&swap_interval();
 	static void		set_current_camera(Camera &camera);
 	static Camera	*current_camera();
+	static Environment	*current_environment(Environment *env = nullptr);
 	static Camera	*camera(const unsigned &);
 	static Light	*light(const unsigned &);
 	static Mesh		*mesh(const unsigned &);
@@ -416,7 +419,7 @@ public :
 	static Material	*material(const unsigned &);
 	static Shader	*shader(const unsigned &);
 	static Texture	*texture(const unsigned &);
-	static Texture	*texture_env(const unsigned &);
+	static Environment	*environment(const unsigned &);
 	static void		fixed_update();
 	static void		update();
 	static std::string	program_path();
@@ -425,17 +428,15 @@ private :
 	Engine();
 	static Engine				&_get();
 	void						_set_program_path(std::string &argv0);
-	void						_setup_sdl(void);
-	void						_load_env();
+	void						_load_res();
 	bool						_loop;
 	int8_t						_swap_interval;
-	short						_env;
-	short						_env_brdf;
 	float						_delta_time;
 	std::string					_program_path;
 	std::string					_exec_path;
 	float						_internal_quality;
 	Camera						*_current_camera;
+	Environment					*_environment;
 	std::vector<Node *>			_nodes;
 	std::vector<Mesh *>			_meshes;
 	std::vector<Camera *>		_cameras;
@@ -443,7 +444,7 @@ private :
 	std::vector<Material *>		_materials;
 	std::vector<Shader *>		_shaders;
 	std::vector<Texture *>		_textures;
-	std::vector<Cubemap *>		_textures_env;
+	std::vector<Environment *>	_environments;
 	std::vector<Framebuffer *>	_framebuffers;
 };
 
@@ -475,8 +476,7 @@ Mesh			*load_obj(const std::string &path);
 
 void			callback_refresh(SDL_Event *event);
 //void			callback_scale(SDL_Event *event);
-//void			callback_stupidity(SDL_Event *event);
-//void			callback_background(SDL_Event *event);
+void			callback_background(SDL_Event *event);
 void			callback_exit(SDL_Event *event);
 void			callback_fullscreen(SDL_Event *event);
 void			callback_camera(SDL_Event *event);

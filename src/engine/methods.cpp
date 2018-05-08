@@ -11,12 +11,28 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include <dirent.h>
 
 Engine	*g_engine = nullptr;
 
 /*
 ** engine is a singleton
 */
+
+Engine::Engine() :
+	_swap_interval(1),
+	_delta_time(0),
+	_internal_quality(1),
+	_current_camera(nullptr),
+	_environment(nullptr)
+{
+
+}
+
+Engine::~Engine()
+{
+
+}
 
 Engine	&Engine::_get(void)
 {
@@ -25,52 +41,48 @@ Engine	&Engine::_get(void)
 	return (*g_engine);
 }
 
-void		Engine::_set_program_path(std::string &argv0)
+Environment::Environment() : diffuse(nullptr), brdf(nullptr)
 {
-	_get()._program_path = convert_backslash(argv0);
-	_get()._program_path = _get()._program_path.substr(0, _get()._program_path.find_last_of('/'));
-	_get()._program_path += "/";
+
 }
 
-void		Engine::_setup_sdl(void)
+Environment		*Engine::current_environment(Environment *env)
 {
-	SDL_Init(SDL_INIT_VIDEO);
-	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MSAA);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-		SDL_GL_CONTEXT_PROFILE_CORE);
+	if (env)
+		_get()._environment = env;
+	return (_get()._environment);
 }
 
-/*void			load_env(void)
+void			Engine::_load_res(void)
 {
-	int				t;
 	DIR				*dir;
 	struct dirent	*e;
 	std::string		folder;
 
-	bmp_load((Engine::_get().program_path + "./res/stupid.bmp").c_str(), "stupid");
-	Engine::_get().brdf_lut = bmp_load((Engine::_get().program_path + "./res/brdfLUT.bmp").c_str(), "BrdfLUT");
-	texture_set_parameter(Engine::_get().brdf_lut, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	texture_set_parameter(Engine::_get().brdf_lut, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	texture_load(Engine::_get().brdf_lut);
-	folder = Engine::_get().program_path + "res/skybox/";
+	//Engine::_get().brdf_lut = bmp_load((Engine::_get().program_path + "./res/brdfLUT.bmp").c_str(), "BrdfLUT");
+	//texture_set_parameter(Engine::_get().brdf_lut, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//texture_set_parameter(Engine::_get().brdf_lut, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//texture_load(Engine::_get().brdf_lut);
+	folder = _get().program_path() + "res/skybox/";
 	dir = opendir(folder.c_str());
+	std::cout << folder << std::endl;
 	while ((e = readdir(dir)))
 	{
 		if (e->d_name[0] == '.')
 			continue;
-		t = cubemap_load(e->d_name, folder.c_str());
-		Engine::_get().textures_env.push_back(t);
-		std::string	b = e->d_name;
-		b += "/light";
-		t = cubemap_load(b.c_str(), folder.c_str());
-		Engine::_get().textures_env.push_back(t);
+		std::string	name = e->d_name;
+		std::cout << name << std::endl;
+		auto	newEnv = new Environment;
+		auto	t = Cubemap::parse(name, folder);
+		t->load();
+		newEnv->diffuse = t;
+		t = Cubemap::parse(name + "/light", folder);
+		t->load();
+		newEnv->brdf = t;
+		_get()._environments.push_back(newEnv);
 	}
-	Engine::_get().env = Engine::_get().textures_env[0];
-	Engine::_get()._env_brdf = Engine::_get().textures_env[1];
-}*/
+	_get()._environment = _get()._environments[0];
+}
 void		Engine::add(Node &v)
 {
 	std::cout << "Engine::add(Node &v)" << std::endl;
@@ -124,23 +136,15 @@ void		Engine::add(Framebuffer &v)
 
 void			Engine::init(std::string &program_path)
 {
-	_get()._setup_sdl();
 	_get()._loop = true;
 	_get()._swap_interval = 1;
 	_get()._internal_quality = 0.5;
-	_get()._exec_path = convert_backslash(_getcwd(NULL, 4096));
-	_get()._exec_path += "/";
-	_get()._set_program_path(program_path);	
-}
-
-Engine::Engine() : _internal_quality(1), _current_camera(nullptr)
-{
-
-}
-
-Engine::~Engine()
-{
-
+	_get()._exec_path = convert_backslash(_getcwd(nullptr, 4096)) + "/";
+	_get()._program_path = convert_backslash(program_path);
+	_get()._program_path = _get()._program_path.substr(0, _get()._program_path.find_last_of('/'));
+	_get()._program_path += "/";
+	_get()._load_res();
+	//_get()._set_program_path(program_path);
 }
 
 float	Engine::delta_time()
@@ -294,9 +298,9 @@ Texture		*Engine::texture(const unsigned &index)
 	return (_get()._textures[index]);
 }
 
-Texture		*Engine::texture_env(const unsigned &index)
+Environment	*Engine::environment(const unsigned &index)
 {
-	if (index >= _get()._textures_env.size())
+	if (index >= _get()._environments.size())
 		return (nullptr);
-	return (_get()._textures_env[index]);
+	return (_get()._environments[index]);
 }

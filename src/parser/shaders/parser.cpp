@@ -77,7 +77,7 @@ bool	Shader::check_shader(const GLuint &id)
 		log = new char[loglength]();
 		glGetShaderInfoLog(id, loglength, NULL, &log[0]);
 		std::cout << "Error compiling shader : \n" << log << std::endl;
-		delete log;
+		delete [] log;
 		return (true);
 	}
 	return (false);
@@ -97,7 +97,7 @@ bool	Shader::check_program(const GLuint &id)
 		log = new char[loglength]();
 		glGetProgramInfoLog(id, loglength, NULL, &log[0]);
 		std::cout << "Error compiling program : \n" << log << std::endl;
-		delete log;
+		delete [] log;
 		return (true);
 	}
 	return (false);
@@ -117,11 +117,15 @@ Shader			*Shader::load(const std::string &name,
 	if (!vertexid || !fragmentid)
 	{
 		std::cout << "Impossible to open file !" << std::endl;
+		delete shader;
 		return (nullptr);
 	}
 	if (Shader::check_shader(vertexid) || Shader::check_shader(fragmentid) ||
 		Shader::check_program(shader->link(vertexid, fragmentid)))
+	{
+		delete shader;
 		return (nullptr);
+	}
 	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
 	glDetachShader(shader->_program, vertexid);

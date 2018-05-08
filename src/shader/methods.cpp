@@ -12,7 +12,7 @@
 
 #include "scop.hpp"
 
-Shader::Shader(const std::string &name) : _in_use(false), _uniforms(), _attributes()
+Shader::Shader(const std::string &name) : _program(0), _in_use(false)
 {
 	std::cout << "Shader::Shader\n";
 	set_name(name);

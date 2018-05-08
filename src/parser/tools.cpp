@@ -93,7 +93,7 @@ unsigned		count_char(const std::string &str, char c)
 	return (std::count(str.begin(), str.end(), c));
 }
 
-unsigned long long	hash(unsigned char *str)
+/*unsigned long long	hash(unsigned char *str)
 {
 	unsigned long long	hash;
 	int					c;
@@ -102,4 +102,4 @@ unsigned long long	hash(unsigned char *str)
 	while ((c = *str++))
 		hash = ((hash << 5) + hash) + c;
 	return (hash);
-}
+}*/

@@ -71,7 +71,7 @@ static int	start_obj_parsing(t_obj_parser *p, const std::string path)
 	if (access(path.c_str(), F_OK | R_OK) || !(p->fd = fopen(path.c_str(), "r")))
 		return (-1);
 	p->parent = Mesh::create(path);
-	p->vg = Mesh::create(path + "_child");
+	p->vg = Mesh::create(path + "_child 0");
 	p->vg->material = Material::get_by_name("default");
 	while (fgets(line, 4096, p->fd))
 		parse_line(p, line);
@@ -86,7 +86,6 @@ Mesh	*load_obj(const std::string &path)
 {
 	t_obj_parser	p;
 
-	memset(&p, 0, sizeof(t_obj_parser));
 	p.bbox.min = new_vec3(100000, 100000, 100000);
 	p.bbox.max = new_vec3(-100000, -100000, -100000);
 	p.path_split = split_path(path);
@@ -95,6 +94,7 @@ Mesh	*load_obj(const std::string &path)
 	if (start_obj_parsing(&p, path))
 		return (nullptr);
 	p.parent->bounding_element = p.bbox;
-	Engine::add(*p.parent);
+	std::cout << "load_obj " << p.parent->parent << std::endl;
+	//Engine::add(*p.parent);
 	return (p.parent);
 }
