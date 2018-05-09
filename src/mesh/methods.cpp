@@ -6,14 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 23:40:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 23:58:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "scop.hpp"
 
 Mesh::Mesh(const std::string &name) : Node(name),
-material(nullptr),
+material(nullptr), uvmax(new_vec2(1, 1)), uvmin(new_vec2(0, 0)),
 v_arrayid(0), v_bufferid(0), vn_bufferid(0), vt_bufferid(0),
 _is_loaded(false)
 {
@@ -104,7 +104,7 @@ void		Mesh::bind()
 	MAT4		mvp;
 	MAT4		normal_matrix;
 
-	if (!material)
+	if (!material || !material->shader)
 		return ;
 	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
 	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));

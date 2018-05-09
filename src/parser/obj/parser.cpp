@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 22:30:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 00:08:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ static void	parse_line(t_obj_parser *p, const char *line)
 		p->vg->material = Material::get_by_name(split[1]);
 	}
 	else if (split[0] == "mtllib")
-		load_mtllib(p->path_split[0] + "/" + split[1]);
+		load_mtllib(p->path_split[0] + split[1]);
 }
 
 static int	start_obj_parsing(t_obj_parser *p, const std::string path)

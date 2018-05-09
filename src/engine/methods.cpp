@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 22:01:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 00:07:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,7 @@ void			Engine::_load_res(void)
 		newEnv->brdf = t;
 		_get()._environments.push_back(newEnv);
 	}
+	closedir(dir);
 	_get()._environment = _get()._environments[0];
 }
 void		Engine::add(Node &v)
