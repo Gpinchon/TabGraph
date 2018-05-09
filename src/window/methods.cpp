@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.c                                          :+:      :+:    :+:   */
+/*   methods.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/01 21:04:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 22:25:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@ void		Window::swap()
 	SDL_GL_SwapWindow(_get()._sdl_window);
 }
 
+#include <unistd.h>
+
 void		Window::init(const std::string &name, int width, int height)
 {
 	SDL_Init(SDL_INIT_VIDEO);
@@ -43,11 +45,16 @@ void		Window::init(const std::string &name, int width, int height)
 		SDL_WINDOWPOS_CENTERED, width, height,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
 		SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+	if (!_get()._sdl_window)
+		throw std::runtime_error(SDL_GetError());
 	_get()._gl_context = SDL_GL_CreateContext(_get()._sdl_window);
+	if (!_get()._gl_context)
+		throw std::runtime_error(SDL_GetError());
 	_get()._clear_mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
 	glewExperimental = GL_TRUE;
-	if (!_get()._sdl_window || glewInit() != GLEW_OK)
-		return ;
+	auto error = glewInit();
+	if (error != GLEW_OK)
+		throw std::runtime_error(reinterpret_cast<const char*>(glewGetErrorString(error)));
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	Shader::load("render",

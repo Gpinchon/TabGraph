@@ -1,14 +1,15 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   scop.h                                             :+:      :+:    :+:   */
+/*   scop.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/05 14:17:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 23:37:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #ifndef SCOP_H
 # define SCOP_H
 
@@ -194,8 +195,8 @@ private :
 class Node
 {
 public:
-	static Node &create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale);
-	static Node	&get_by_name(const std::string &);
+	static Node *create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale);
+	static Node	*get_by_name(const std::string &);
 	virtual void	physics_update();
 	virtual void	fixed_update() {};
 	virtual void	update() {};
@@ -313,6 +314,7 @@ typedef struct s_charvec4
 struct	Mesh : public Node
 {
 	static Mesh	*create(const std::string &);
+	static Mesh	*get_by_name(const std::string &);
 	Material	*material;
 	AABB		bounding_element;
 	std::vector<VEC3>	v;
@@ -328,7 +330,6 @@ struct	Mesh : public Node
 	void		bind();
 	void		render();
 	void		center();
-	Mesh		*parent;
 	bool		is_loaded();
 private :
 	bool		_is_loaded;
@@ -475,7 +476,7 @@ Mesh			*load_obj(const std::string &path);
 */
 
 void			callback_refresh(SDL_Event *event);
-//void			callback_scale(SDL_Event *event);
+void			callback_scale(SDL_Event *event);
 void			callback_background(SDL_Event *event);
 void			callback_exit(SDL_Event *event);
 void			callback_fullscreen(SDL_Event *event);

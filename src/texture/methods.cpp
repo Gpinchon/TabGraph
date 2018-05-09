@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.c                                          :+:      :+:    :+:   */
+/*   methods.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/05 14:13:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 23:16:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -258,7 +258,7 @@ void	Texture::resize(const VEC2 &ns)
 
 	if (_data)
 	{
-		d = new unsigned char[unsigned(ns.x * ns.y * (_bpp / 8))];
+		d = new unsigned char[unsigned(ns.x * ns.y * (_bpp))];
 		x = 0;
 		while (x < ns.x)
 		{

@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/05/01 10:25:54 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/05/09 23:23:55 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,7 +51,7 @@ LIBDIR		=	./libs/vml/
 LIBFILES	=	./libs/vml/libvml.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CXXFLAGS		=	-g -Wall -Wextra -Werror $(INCLUDE)
+CXXFLAGS	=	-Ofast -std=c++11 -Wall -Wextra -Werror $(INCLUDE)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -63,7 +63,7 @@ LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lmingw32 -lSDL2main -lSDL2 -lm -lglew
 else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CXXFLAGS		=	-Ofast -arch x86_64 -Wall -Wextra -Werror $(INCLUDE)
+CXXFLAGS	=	-Ofast -arch x86_64 -Wall -Wextra -Werror $(INCLUDE)
 else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW
 endif

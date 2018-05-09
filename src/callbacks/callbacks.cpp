@@ -1,24 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   callbacks.c                                        :+:      :+:    :+:   */
+/*   callbacks.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/13 16:36:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 23:35:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "scop.hpp"
 
-/*void	callback_scale(SDL_Event *event)
+void	callback_scale(SDL_Event *event)
 {
 	const Uint8		*s;
 	static float	scale = 1;
 
 	if (!event || (event && event->type == SDL_KEYUP))
 		return ;
+	auto	mesh = Mesh::get_by_name("main_mesh");
 	s = SDL_GetKeyboardState(NULL);
 	if (!s[SDL_SCANCODE_LCTRL])
 		return ;
@@ -27,8 +28,8 @@
 	else if (s[SDL_SCANCODE_KP_MINUS])
 		scale -= (0.005 * (s[SDL_SCANCODE_LSHIFT] + 1));
 	scale = CLAMP(scale, 0.0001, 1000);
-	mesh_scale(0, new_vec3(scale, scale, scale));
-}*/
+	mesh->scale() = new_vec3(scale, scale, scale);
+}
 
 void	callback_background(SDL_Event *event)
 {

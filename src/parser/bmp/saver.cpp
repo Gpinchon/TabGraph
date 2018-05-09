@@ -1,16 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   saver.c                                            :+:      :+:    :+:   */
+/*   saver.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/23 19:37:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/29 15:54:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 21:56:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <bmp_parser.h>
+#include <unistd.h>
 
 static void	prepare_header(t_bmp_header *header, t_bmp_info *info, const Texture &t)
 {

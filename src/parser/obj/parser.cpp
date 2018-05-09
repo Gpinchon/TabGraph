@@ -1,16 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parser.c                                           :+:      :+:    :+:   */
+/*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/01 09:58:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 22:30:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <parser.h>
+#include <unistd.h>
 
 static void	parse_f(t_obj_parser *p, std::vector<std::string> &split)
 {
@@ -73,6 +74,7 @@ static int	start_obj_parsing(t_obj_parser *p, const std::string path)
 	p->parent = Mesh::create(path);
 	p->vg = Mesh::create(path + "_child 0");
 	p->vg->material = Material::get_by_name("default");
+	p->vg->bounding_element = p->bbox;
 	while (fgets(line, 4096, p->fd))
 		parse_line(p, line);
 	if (p->vg->v.size())

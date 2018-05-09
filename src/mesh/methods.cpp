@@ -1,19 +1,40 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.c                                          :+:      :+:    :+:   */
+/*   methods.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/05 14:19:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 23:40:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "scop.hpp"
 
-Mesh::Mesh(const std::string &name) : Node(name), material(nullptr), v(std::vector<VEC3>(0)),  _is_loaded(false)
+Mesh::Mesh(const std::string &name) : Node(name),
+material(nullptr),
+v_arrayid(0), v_bufferid(0), vn_bufferid(0), vt_bufferid(0),
+_is_loaded(false)
 {
+}
+
+Mesh	*Mesh::get_by_name(const std::string &name)
+{
+	int		i;
+	ULL		h;
+	Mesh	*m;
+
+	i = 0;
+	std::hash<std::string>	hash_fn;
+	h = hash_fn(name);
+	while ((m = Engine::mesh(i)))
+	{
+		if (h == m->_id)
+			return (m);
+		i++;
+	}
+	return (nullptr);
 }
 
 Mesh	*Mesh::create(const std::string &name)
@@ -118,14 +139,9 @@ void			Mesh::render()
 
 void			Mesh::center()
 {
-	std::cout << "Mesh::center " << _name << std::endl;
-	std::cout << "parent " << parent << std::endl;
 	for (auto &vec : v)
 	{
-		if (parent)
-			vec = vec3_sub(vec, parent->bounding_element.center);
-		else
-			vec = vec3_sub(vec, bounding_element.center);
+		vec = vec3_sub(vec, bounding_element.center);
 		bounding_element.min.x = MIN(vec.x, bounding_element.min.x);
 		bounding_element.min.y = MIN(vec.y, bounding_element.min.y);
 		bounding_element.min.z = MIN(vec.z, bounding_element.min.z);
@@ -134,13 +150,13 @@ void			Mesh::center()
 		bounding_element.max.z = MAX(vec.z, bounding_element.max.z);
 	}
 	bounding_element.center = vec3_scale(vec3_add(bounding_element.min, bounding_element.max), 0.5f);
-	position() = bounding_element.center;
 	int i = 0;
 	for (auto child : children)
 	{
-		std::cout << "Updating child " << i << std::endl;
 		i++;
-		static_cast<Mesh *>(child)->center();
+		auto	m = static_cast<Mesh *>(child);
+		auto	mPos = m->bounding_element.center;
+		m->center();
+		m->position() = vec3_sub(mPos, bounding_element.center);
 	}
-		
 }

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/01 19:31:08 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 23:38:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,8 @@
 
 void	setup_callbacks(void)
 {
-	//Events::set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
-	//Events::set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
+	Events::set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
+	Events::set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
 	Events::set_key_callback(SDL_SCANCODE_SPACE, callback_background);
 	Events::set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
 	Events::set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
@@ -57,8 +57,8 @@ int		main(int argc, char *argv[])
 	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
 	auto &camera = Camera::create("main_camera", 45);
 	Engine::set_current_camera(camera);
-	camera.target = &(Node::create("main_camera_target",
-		new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
+	camera.target = Node::create("main_camera_target",
+		new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
 	camera.orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 	obj = nullptr;
 	if (argc >= 2)
@@ -70,6 +70,7 @@ int		main(int argc, char *argv[])
 		obj->center();
 		obj->load();
 	}
+	obj->set_name("main_mesh");
 	setup_callbacks();
 	Engine::run();
 	SDL_Quit();

@@ -1,17 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.c                                          :+:      :+:    :+:   */
+/*   methods.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/01 20:41:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 22:01:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "scop.hpp"
 #include <dirent.h>
+#include <unistd.h>
+
+#ifndef _getcwd
+#define _getcwd getcwd
+#endif //_getcwd
 
 Engine	*g_engine = nullptr;
 
@@ -65,13 +70,11 @@ void			Engine::_load_res(void)
 	//texture_load(Engine::_get().brdf_lut);
 	folder = _get().program_path() + "res/skybox/";
 	dir = opendir(folder.c_str());
-	std::cout << folder << std::endl;
 	while ((e = readdir(dir)))
 	{
 		if (e->d_name[0] == '.')
 			continue;
 		std::string	name = e->d_name;
-		std::cout << name << std::endl;
 		auto	newEnv = new Environment;
 		auto	t = Cubemap::parse(name, folder);
 		t->load();

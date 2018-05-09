@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/05 14:22:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/09 23:38:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ void	Node::set_name(const std::string &name)
 	_id = hash_fn(name);
 }
 
-Node	&Node::create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale)
+Node	*Node::create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale)
 {
 	Node	*t;
 
@@ -34,7 +34,7 @@ Node	&Node::create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 s
 	t->_transform = new_transform(position, rotation, scale, UP);
 	t->update();
 	Engine::add(*t);
-	return (*t);
+	return (t);
 }
 
 const std::string	&Node::name()
