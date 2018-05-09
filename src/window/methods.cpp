@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 22:25:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 01:04:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,6 @@ void		Window::init(const std::string &name, int width, int height)
 		"./res/shaders/shadow.vert", "./res/shaders/shadow.frag");
 	Shader::load("blur",
 		"./res/shaders/blur.vert", "./res/shaders/blur.frag");
-	std::cout << "Window::init " << Shader::get_by_name("render") << std::endl;
 	_get()._render_buffer = &Framebuffer::create(
 		"window_render_buffer", vec2_scale(_get().size(),
 		Engine::internal_quality()), *Shader::get_by_name("render"), 0, 0);

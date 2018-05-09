@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 21:57:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 01:03:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,16 +111,13 @@ bool			load_mtllib(const std::string &path)
 	char		line[4096];
 	t_obj_parser p;
 
-	//memset(&p, 0, sizeof(t_obj_parser));
 	auto fullPath = Engine::execution_path() + path;
-	std::cout << "OPENING " << fullPath << std::endl;
 	if (access(fullPath.c_str(), F_OK | W_OK))
 		return (false);
 	p.path_split = split_path(fullPath);
 	p.fd = fopen(fullPath.c_str(), "r");
 	if (!p.fd)
 		return (false);
-	std::cout << "PARSING " << p.path_split[0] << std::endl;
 	while (fgets(line, 4096, p.fd))
 	{
 		auto split = strsplitwspace(line);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/10 00:07:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 01:01:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,52 +89,44 @@ void			Engine::_load_res(void)
 }
 void		Engine::add(Node &v)
 {
-	std::cout << "Engine::add(Node &v)" << std::endl;
 	_get()._nodes.push_back(&v);
 }
 
 void		Engine::add(Mesh &v)
 {
-	std::cout << "Engine::add(Mesh &v)" << std::endl;
 	_get()._meshes.push_back(&v);
 	_get().add(static_cast<Node &>(v));
 
 }
 void		Engine::add(Camera &v)
 {
-	std::cout << "Engine::add(Camera &v)" << std::endl;
 	_get()._cameras.push_back(&v);	
 	_get().add(static_cast<Node &>(v));
 
 }
 void		Engine::add(Light &v)
 {
-	std::cout << "Engine::add(Light &v)" << std::endl;
 	_get()._lights.push_back(&v);
 	_get().add(static_cast<Node &>(v));
 
 }
 void		Engine::add(Material &v)
 {
-	std::cout << "Engine::add(Material &v)" << std::endl;
 	_get()._materials.push_back(&v);
 }
 
 void		Engine::add(Shader &v)
 {
-	std::cout << "Engine::add(Shader &v)" << std::endl;
 	_get()._shaders.push_back(&v);
 }
 
 void		Engine::add(Texture &v)
 {
-	std::cout << "Engine::add(Texture &v)" << std::endl;
 	_get()._textures.push_back(&v);
 }
 
 void		Engine::add(Framebuffer &v)
 {
-	std::cout << "Engine::add(Framebuffer &v)" << std::endl;
 	_get()._framebuffers.push_back(&v);
 }
 

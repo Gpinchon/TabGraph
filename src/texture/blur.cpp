@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   blur.c                                             :+:      :+:    :+:   */
+/*   blur.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/13 16:34:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/05 14:10:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 01:04:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 static Framebuffer	&generate_blur_fb(void)
 {
-	std::cout << Shader::get_by_name("blur") << std::endl;
 	Framebuffer	&blur = Framebuffer::create("blur", vec2_scale(Window::size(),
 	Engine::internal_quality()), *Shader::get_by_name("blur"), 0, 0);
 	blur.create_attachement(GL_RGB, GL_RGB16F_ARB);

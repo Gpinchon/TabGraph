@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/10 00:08:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 01:03:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,5 @@ Mesh	*load_obj(const std::string &path)
 	if (start_obj_parsing(&p, path))
 		return (nullptr);
 	p.parent->bounding_element = p.bbox;
-	std::cout << "load_obj " << p.parent->parent << std::endl;
-	//Engine::add(*p.parent);
 	return (p.parent);
 }

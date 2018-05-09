@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:45:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 22:57:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 01:03:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ void		parse_vg(t_obj_parser *p)
 		p->vg->material = Material::get_by_name("default");
 		p->vg->bounding_element.min = new_vec3(100000, 100000, 100000);
 		p->vg->bounding_element.max = new_vec3(-100000, -100000, -100000);
-		std::cout << p->vg->material->name() << std::endl;
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 23:38:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 00:59:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,7 @@
 
 Node::Node(const std::string &name) : parent(nullptr), children(), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))
 {
-	std::cout << "Node::Node " << name << std::endl;
 	set_name(name);
-	std::cout << name << std::endl;
 }
 
 void	Node::set_name(const std::string &name)
@@ -51,7 +49,6 @@ void	Node::physics_update()
 
 void	Node::add_child(Node &child)
 {
-	std::cout << "Node::add_child " << &child << " " << this << std::endl;
 	if (&child == this)
 		return ;
 	children.push_back(&child);

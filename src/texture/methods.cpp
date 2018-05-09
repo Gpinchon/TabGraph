@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 23:16:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 01:04:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,11 +85,6 @@ void	Texture::load()
 {
 	if (_loaded)
 		return ;
-	std::cout << "Texture::load() " << _name << " _internal_format " << _internal_format << "_format " << _format << std::endl;
-	std::cout << "_target " << _target << std::endl;
-	std::cout << "_size " << _size.x << " " << _size.y << std::endl;
-	std::cout << "data " << &_data << std::endl;
-	std::cout << "_glid " << _glid << std::endl;
 	if (_size.x > MAXTEXRES || _size.y > MAXTEXRES)
 		resize(new_vec2(MIN(_size.x, MAXTEXRES),
 			MIN(_size.y, MAXTEXRES)));
