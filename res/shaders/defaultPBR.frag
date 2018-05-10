@@ -151,8 +151,7 @@ void	main()
 	lowp float	roughness_sample = texture(in_Texture_Roughness, vt).r;
 	lowp float	metallic_sample = texture(in_Texture_Metallic, vt).r;
 	lowp float	ao = 1 - texture(in_Texture_AO, vt).r;
-	lowp vec3	light_Color = vec3(1);
-	//lowp vec3	light_Color = texture(in_Texture_Shadow, vec3(frag_ShadowPosition.xy, frag_ShadowPosition.z * 0.995)) * frag_Light_Color;
+	lowp vec3	light_Color = /*texture(in_Texture_Shadow, vec3(frag_ShadowPosition.xy, frag_ShadowPosition.z * 0.995)) * */frag_Light_Color;
 
 	if (in_Use_Texture_Albedo)
 	{

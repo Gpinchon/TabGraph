@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 23:37:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/10 22:31:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,9 @@
 # include <string>
 # include <functional>
 
+# ifndef M_PI
+const auto M_PI = 3.14159265359;
+# endif //M_PI
 # define WIDTH		1280
 # define HEIGHT		720
 # define SHADOWRES	2048
