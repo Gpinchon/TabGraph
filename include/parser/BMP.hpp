@@ -1,24 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   scene.c                                            :+:      :+:    :+:   */
+/*   BMP.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/04/13 16:57:36 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/16 18:27:55 by gpinchon         ###   ########.fr       */
+/*   Created: 2018/05/13 00:16:59 by gpinchon          #+#    #+#             */
+/*   Updated: 2018/05/13 00:16:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
-#include "Renderable.hpp"
+#pragma once
 
-void	render_scene()
+#include "Texture.hpp"
+
+/*
+** .BMP parsing interface
+*/
+class	BMP : public Texture
 {
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	Renderable *node;
-	for (auto index = 0;
-	(node = Engine::renderable(index)); index++)
-		node->render();
-}
+public:
+	static Texture	*parse(const std::string &texture_name, const std::string &imagepath);
+	static void		save(const Texture &, const std::string &);
+private:
+	virtual abstract() = 0;
+};

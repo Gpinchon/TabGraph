@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Texture.hpp"
 
 Shader::Shader(const std::string &name) : _program(0), _in_use(false)
 {

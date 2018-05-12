@@ -10,7 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <parser.h>
+#include "scop.hpp"
+#include "parser/OBJ.hpp"
+#include "parser/InternalTools.hpp"
 #include <unistd.h>
 
 static void	parse_f(t_obj_parser *p, std::vector<std::string> &split)
@@ -65,36 +67,34 @@ static void	parse_line(t_obj_parser *p, const char *line)
 		load_mtllib(p->path_split[0] + split[1]);
 }
 
-static int	start_obj_parsing(t_obj_parser *p, const std::string path)
+static bool	start_obj_parsing(t_obj_parser *p, const std::string &name, const std::string path)
 {
 	char	line[4096];
 
 	if (access(path.c_str(), F_OK | R_OK) || !(p->fd = fopen(path.c_str(), "r")))
-		return (-1);
-	p->parent = Mesh::create(path);
-	p->vg = Mesh::create(path + "_child 0");
+		return (false);
+	p->parent = Mesh::create(name);
+	p->vg = Mesh::create(name + "_child 0");
 	p->vg->material = Material::get_by_name("default");
-	p->vg->bounding_element = p->bbox;
+	p->vg->bounding_element = new AABB(p->bbox);
 	while (fgets(line, 4096, p->fd))
 		parse_line(p, line);
 	if (p->vg->v.size())
 		parse_vg(p);
 	else
-		return (-1);
-	return (0);
+		return (false);
+	return (true);
 }
 
-Mesh	*load_obj(const std::string &path)
+Mesh	*OBJ::parse(const std::string &name, const std::string &path)
 {
 	t_obj_parser	p;
 
-	p.bbox.min = new_vec3(100000, 100000, 100000);
-	p.bbox.max = new_vec3(-100000, -100000, -100000);
 	p.path_split = split_path(path);
 	if (!Material::get_by_name("default"))
 		PBRMaterial::create("default");
-	if (start_obj_parsing(&p, path))
+	if (!start_obj_parsing(&p, name, path))
 		return (nullptr);
-	p.parent->bounding_element = p.bbox;
+	p.parent->bounding_element = new AABB(p.bbox);
 	return (p.parent);
 }

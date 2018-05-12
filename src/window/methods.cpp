@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Framebuffer.hpp"
 
 Window *g_window = nullptr;
 

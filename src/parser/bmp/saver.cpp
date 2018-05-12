@@ -10,8 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <bmp_parser.h>
+#include "parser/BMP.hpp"
+#include "parser/InternalTools.hpp"
 #include <unistd.h>
+#include <sys/stat.h>
 
 static void	prepare_header(t_bmp_header *header, t_bmp_info *info, const Texture &t)
 {
@@ -43,7 +45,7 @@ void		BMP::save(const Texture &t, const std::string &imagepath)
 	write(fd, &header, sizeof(t_bmp_header));
 	write(fd, &info, sizeof(t_bmp_info));
 	write(fd, t.data(), (t.size().x * t.size().y * t.bpp() / 8));
-	padding = new UCHAR[int(info.size - (t.size().x * t.size().y * t.bpp() / 8))]();
+	padding = new unsigned char[int(info.size - (t.size().x * t.size().y * t.bpp() / 8))]();
 	write(fd, padding, info.size - (t.size().x * t.size().y * t.bpp() / 8));
 	delete [] padding;
 	close(fd);

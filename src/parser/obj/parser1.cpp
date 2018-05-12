@@ -10,7 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <parser.h>
+#include "scop.hpp"
+#include "parser/OBJ.hpp"
+#include "parser/InternalTools.hpp"
 
 VEC3		parse_vec3(std::vector<std::string> &split)
 {

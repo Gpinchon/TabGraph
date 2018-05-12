@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Camera.hpp"
 
 Camera::Camera(const std::string &name) : Node(name)
 {

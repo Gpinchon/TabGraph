@@ -11,8 +11,9 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Node.hpp"
 
-Node::Node(const std::string &name) : parent(nullptr), children(), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))
+Node::Node(const std::string &name) : parent(nullptr), children(), bounding_element(nullptr), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))
 {
 	set_name(name);
 }
@@ -22,6 +23,24 @@ void	Node::set_name(const std::string &name)
 	_name = name;
 	std::hash<std::string> hash_fn;
 	_id = hash_fn(name);
+}
+
+Node	*Node::get_by_name(const std::string &name)
+{
+	int		i;
+	ULL		h;
+	Node	*m;
+
+	i = 0;
+	std::hash<std::string>	hash_fn;
+	h = hash_fn(name);
+	while ((m = Engine::node(i)))
+	{
+		if (h == m->_id)
+			return (m);
+		i++;
+	}
+	return (nullptr);
 }
 
 Node	*Node::create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale)

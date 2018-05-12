@@ -10,7 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <bmp_parser.h>
+#include "scop.hpp"
+#include "parser/BMP.hpp"
+#include "parser/InternalTools.hpp"
 #include <unistd.h>
 
 static void	convert_bmp(t_bmp_parser *parser)

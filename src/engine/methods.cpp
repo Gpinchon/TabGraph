@@ -11,8 +11,14 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Renderable.hpp"
+#include "Camera.hpp"
+#include "Light.hpp"
+#include "Cubemap.hpp"
+#include "Framebuffer.hpp"
 #include <dirent.h>
 #include <unistd.h>
+#include <algorithm>
 
 #ifndef _getcwd
 #define _getcwd getcwd
@@ -25,6 +31,7 @@ Engine	*g_engine = nullptr;
 */
 
 Engine::Engine() :
+	_loop(),
 	_swap_interval(1),
 	_delta_time(0),
 	_internal_quality(1),
@@ -51,6 +58,11 @@ Environment::Environment() : diffuse(nullptr), brdf(nullptr)
 
 }
 
+void		Engine::sort(renderable_compare compare)
+{
+	std::sort(_get()._renderables.begin(), _get()._renderables.end(), compare);
+}
+
 Environment		*Engine::current_environment(Environment *env)
 {
 	if (env)
@@ -64,10 +76,6 @@ void			Engine::_load_res(void)
 	struct dirent	*e;
 	std::string		folder;
 
-	//Engine::_get().brdf_lut = bmp_load((Engine::_get().program_path + "./res/brdfLUT.bmp").c_str(), "BrdfLUT");
-	//texture_set_parameter(Engine::_get().brdf_lut, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//texture_set_parameter(Engine::_get().brdf_lut, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//texture_load(Engine::_get().brdf_lut);
 	folder = _get().program_path() + "res/skybox/";
 	dir = opendir(folder.c_str());
 	while ((e = readdir(dir)))
@@ -92,9 +100,9 @@ void		Engine::add(Node &v)
 	_get()._nodes.push_back(&v);
 }
 
-void		Engine::add(Mesh &v)
+void		Engine::add(Renderable &v)
 {
-	_get()._meshes.push_back(&v);
+	_get()._renderables.push_back(&v);
 	_get().add(static_cast<Node &>(v));
 
 }
@@ -259,11 +267,11 @@ Light		*Engine::light(const unsigned &index)
 	return (_get()._lights[index]);
 }
 
-Mesh			*Engine::mesh(const unsigned &index)
+Renderable	*Engine::renderable(const unsigned &index)
 {
-	if (index >= _get()._meshes.size())
+	if (index >= _get()._renderables.size())
 		return (nullptr);
-	return (_get()._meshes[index]);
+	return (_get()._renderables[index]);
 }
 
 Node			*Engine::node(const unsigned &index)

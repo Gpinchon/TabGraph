@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Framebuffer.hpp"
 
 static Framebuffer	&generate_blur_fb(void)
 {

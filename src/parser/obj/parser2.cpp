@@ -10,27 +10,34 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <parser.h>
+#include "scop.hpp"
+#include "parser/OBJ.hpp"
+#include "parser/InternalTools.hpp"
 
 static void	vt_min_max(Mesh *vg)
 {
-	unsigned	i;
-
 	vg->uvmin = new_vec2(100000, 100000);
 	vg->uvmax = new_vec2(-100000, -100000);
-	i = 0;
-	while (i < vg->vt.size())
+	for (auto &vt : vg->vt)
 	{
-		VEC2	&v = vg->vt[i];
-		if (v.x < vg->uvmin.x)
-			vg->uvmin.x = v.x;
-		if (v.y < vg->uvmin.y)
-			vg->uvmin.y = v.y;
-		if (v.x > vg->uvmax.x)
-			vg->uvmax.x = v.x;
-		if (v.y > vg->uvmax.y)
-			vg->uvmax.y = v.y;
-		i++;
+		if (vt.x < vg->uvmin.x)
+			vg->uvmin.x = vt.x;
+		if (vt.y < vg->uvmin.y)
+			vg->uvmin.y = vt.y;
+		if (vt.x > vg->uvmax.x)
+			vg->uvmax.x = vt.x;
+		if (vt.y > vg->uvmax.y)
+			vg->uvmax.y = vt.y;
+	}
+	if (vg->uvmin.x == vg->uvmax.x)
+	{
+		vg->uvmin.x = 0;
+		vg->uvmax.x = 1;
+	}
+	if (vg->uvmin.y == vg->uvmax.y)
+	{
+		vg->uvmin.y = 0;
+		vg->uvmax.y = 1;
 	}
 }
 
@@ -44,8 +51,6 @@ void		parse_vg(t_obj_parser *p)
 		p->parent->add_child(*p->vg);
 		p->vg = Mesh::create(p->parent->name() + "_child " + std::to_string(childNbr));
 		p->vg->material = Material::get_by_name("default");
-		p->vg->bounding_element.min = new_vec3(100000, 100000, 100000);
-		p->vg->bounding_element.max = new_vec3(-100000, -100000, -100000);
 	}
 }
 

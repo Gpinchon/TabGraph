@@ -11,6 +11,9 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Camera.hpp"
+//#include "Mesh.hpp"
+#include "parser/OBJ.hpp"
 #include <unistd.h>
 
 /*int		light_create(VEC3 position, VEC3 color, float power, bool cast_shadow = false)
@@ -62,15 +65,16 @@ int		main(int argc, char *argv[])
 	camera.orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 	obj = nullptr;
 	if (argc >= 2)
-		obj = load_obj(argv[1]);
+		obj = OBJ::parse("main_mesh", argv[1]);
 	if (argc > 2 || !obj)
-		obj = load_obj("./res/obj/chart.obj");
+		obj = OBJ::parse("main_mesh", "./res/obj/chart.obj");
 	if (obj)
 	{
 		obj->center();
 		obj->load();
 	}
-	obj->set_name("main_mesh");
+	//obj->set_name("main_mesh");
+	Mesh::alpha_sort();
 	setup_callbacks();
 	Engine::run();
 	SDL_Quit();

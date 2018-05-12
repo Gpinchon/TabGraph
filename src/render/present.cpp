@@ -11,6 +11,9 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Cubemap.hpp"
+#include "Framebuffer.hpp"
+#include "Camera.hpp"
 
 static void	render_bind_textures(Shader &shader)
 {

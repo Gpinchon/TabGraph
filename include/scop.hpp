@@ -10,12 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SCOP_H
-# define SCOP_H
+#pragma once
 
-# include <GL/glew.h>
-# include <SDL2/SDL.h>
-# include <SDL2/SDL_opengl.h>
+# include "GLIncludes.hpp" 
 # include <stdint.h>
 # include <vml.h>
 # include <iostream>
@@ -59,23 +56,16 @@ const auto M_PI = 3.14159265359;
 # define UCHAR		unsigned char
 
 class Texture;
+class Framebuffer;
+class Cubemap;
+class Renderable;
+class Node;
+class Camera;
+class Light;
 
 enum			e_rendertype
 {
 	render_all = 0, render_opaque = 1, render_transparent = 2
-};
-
-struct	BoundingElement
-{
-	bool collides(const BoundingElement &) { return (false); };
-	VEC3	min;
-	VEC3	max;
-	VEC3	center;
-};
-
-struct	AABB : public BoundingElement
-{
-	bool	collides(const AABB &) { return (false); };
 };
 
 typedef void	(*t_kcallback)(SDL_Event *event);
@@ -124,139 +114,21 @@ private :
 	Shader(const std::string &name);
 };
 
-class	Texture
-{
-public :
-	static Texture	*create(const std::string &name, VEC2 size, GLenum target, GLenum format, GLenum internal_format);
-	static Texture	*get_by_name(const std::string &);
-	void			resize(const VEC2 &new_size);
-	void			set_name(const std::string &);
-	void			set_parameter(GLenum p, GLenum v);
-	void			set_parameters(int parameter_nbr,
-						GLenum *parameters, GLenum *values);
-	void			assign(Texture &texture,
-						GLenum target);
-	void			load();
-	void			generate_mipmap();
-	void			set_pixel(const VEC2 &uv, const VEC4 &value);
-	void			blur(const int &pass, const float &radius);
-	GLenum			target() const;
-	void			format(GLenum *format,
-						GLenum *internal_format);
-	GLuint			glid() const;
-	UCHAR			*data() const;
-	UCHAR			bpp() const;
-	VEC2			size() const;
-	VEC4			texelfetch(const VEC2 &uv);
-	VEC4			sample(const VEC2 &uv);
-	const std::string	&name();
-	const std::string	&name() const;
-protected :
-	ULL			_id;
-	GLuint		_glid;
-	std::string	_name;
-	VEC2		_size;
-	char		_bpp;
-	GLenum		_target;
-	GLenum		_format;
-	GLenum		_internal_format;
-	UCHAR		*_data;
-	bool		_loaded;
-	Texture(const std::string &name);
-};
-
-struct	BMP : public Texture
-{
-	static Texture	*parse(const std::string &texture_name, const std::string &imagepath);
-	static void		save(const Texture &, const std::string &);
-};
-
-class	Framebuffer : public Texture
-{
-public :
-	static Framebuffer	&create(const std::string &name, VEC2 size, Shader &shader,
-				int color_attachements, int depth);
-	static void	bind_default();
-	void		bind(bool to_bind = true);
-	Texture		&attachement(int color_attachement);
-	Texture		&depth();
-	Shader		&shader();
-	void	setup_attachements();
-	Texture		&create_attachement(GLenum format, GLenum iformat);
-	void	destroy(void *buffer);
-	void	resize(const VEC2 &new_size);
-private :
-	Framebuffer(const std::string &name);
-	void		_resize_depth(const VEC2 &);
-	void		_resize_attachement(const int &, const VEC2 &);
-	void		resize_attachement(const int &, const VEC2 &);
-	std::vector<Texture*>	_color_attachements;
-	Texture		*_depth;
-	Shader		*_shader;
-};
-
-class Node
-{
-public:
-	static Node *create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale);
-	static Node	*get_by_name(const std::string &);
-	virtual void	physics_update();
-	virtual void	fixed_update() {};
-	virtual void	update() {};
-	virtual void	render() {};
-	MAT4		&mat4_transform();
-	MAT4		&mat4_translation();
-	MAT4		&mat4_rotation();
-	MAT4		&mat4_scale();
-	VEC3		&position();
-	VEC3		&rotation();
-	VEC3		&scale();
-	VEC3		&up();
-	void		add_child(Node &child);
-	void		set_parent(Node &parent);
-	void		set_name(const std::string &);
-	const std::string	&name();
-	Node		*parent;
-	std::vector<Node *> children;
-	BoundingElement		bounding_element;
-protected :
-	ULL			_id;
-	std::string	_name;
-	t_transform	_transform;
-	Node(const std::string &name);
-};
-
-struct	Light : public Node
-{
-	int8_t		type;
-	int8_t		cast_shadow;
-	Framebuffer		*render_buffer;
-};
-
-struct PointLight : public Light
-{
-	VEC3		color;
-	float		power;
-	float		attenuation;
-	float		falloff;
-};
-
-struct DirectionnalLight : public Light
-{
-	VEC3		color;
-	float		power;
-};
-
 struct	Material
 {
 	static Material *create(const std::string &);
 	static Material	*get_by_name(const std::string &);
-	virtual void	bind_values() {};
-	virtual void	bind_textures() {};
-	virtual void	load_textures() {};
+	virtual void	bind_values();
+	virtual void	bind_textures();
+	virtual void	load_textures();
 	void			set_name(const std::string &);
 	const std::string		&name();
 	Shader			*shader;
+	VEC3			albedo;
+	VEC3			emitting;
+	VEC2			uv_scale;
+	float			alpha;
+	Texture			*texture_albedo;
 protected :
 	std::string		_name;
 	ULL				_id;
@@ -269,15 +141,10 @@ struct	PBRMaterial : public Material
 	void	bind_values();
 	void	bind_textures();
 	void	load_textures();
-	VEC3		albedo;
 	VEC3		specular;
-	VEC3		emitting;
-	VEC2		uv_scale;
 	float		roughness;
 	float		metallic;
-	float		alpha;
 	float		parallax;
-	Texture		*texture_albedo;
 	Texture		*texture_specular;
 	Texture		*texture_roughness;
 	Texture		*texture_metallic;
@@ -288,55 +155,6 @@ struct	PBRMaterial : public Material
 private :
 	static Texture	*_texture_brdf;
 	PBRMaterial(const std::string &name);
-};
-
-struct	Camera : public Node
-{
-	static Camera	&create(const std::string &, float fov);
-	void			orbite(float phi, float theta, float radius);
-	void			update();
-	MAT4		view;
-	MAT4		projection;
-	FRUSTUM		frustum;
-	float		fov;
-	Node		*target;
-private :
-	Camera(const std::string &name);
-};
-
-# define CVEC4 struct s_charvec4
-
-typedef struct s_charvec4
-{
-	UCHAR		x;
-	UCHAR		y;
-	UCHAR		z;
-	UCHAR		w;
-}				t_charvec4;
-
-struct	Mesh : public Node
-{
-	static Mesh	*create(const std::string &);
-	static Mesh	*get_by_name(const std::string &);
-	Material	*material;
-	AABB		bounding_element;
-	std::vector<VEC3>	v;
-	std::vector<CVEC4>	vn;
-	std::vector<VEC2>	vt;
-	VEC2		uvmax;
-	VEC2		uvmin;
-	GLuint		v_arrayid;
-	GLuint		v_bufferid;
-	GLuint		vn_bufferid;
-	GLuint		vt_bufferid;
-	void		load();
-	void		bind();
-	void		render();
-	void		center();
-	bool		is_loaded();
-private :
-	bool		_is_loaded;
-	Mesh(const std::string &name);
 };
 
 class Events
@@ -377,13 +195,6 @@ private :
 	Window() {};
 };
 
-class Cubemap : public Texture
-{
-public:
-	static Cubemap *parse(const std::string &, const std::string &);
-	//Texture	*sides[6];
-};
-
 class Environment
 {
 public:
@@ -394,6 +205,8 @@ public:
 	Cubemap *brdf;
 };
 
+typedef bool (*renderable_compare)(Renderable *m, Renderable *m1);	
+
 class	Engine
 {
 public :
@@ -403,7 +216,7 @@ public :
 	static float	fixed_delta_time();
 	static void		run();
 	static void		stop() { _get()._loop = false; };
-	static void		add(Mesh &);
+	static void		add(Renderable &);
 	static void		add(Camera &);
 	static void		add(Light &);
 	static void		add(Node &);
@@ -418,7 +231,7 @@ public :
 	static Environment	*current_environment(Environment *env = nullptr);
 	static Camera	*camera(const unsigned &);
 	static Light	*light(const unsigned &);
-	static Mesh		*mesh(const unsigned &);
+	static Renderable	*renderable(const unsigned &);
 	static Node		*node(const unsigned &);
 	static Material	*material(const unsigned &);
 	static Shader	*shader(const unsigned &);
@@ -428,6 +241,7 @@ public :
 	static void		update();
 	static std::string	program_path();
 	static std::string	execution_path();
+	static void		sort(renderable_compare);
 private :
 	Engine();
 	static Engine				&_get();
@@ -442,7 +256,7 @@ private :
 	Camera						*_current_camera;
 	Environment					*_environment;
 	std::vector<Node *>			_nodes;
-	std::vector<Mesh *>			_meshes;
+	std::vector<Renderable *>			_renderables;
 	std::vector<Camera *>		_cameras;
 	std::vector<Light *>		_lights;
 	std::vector<Material *>		_materials;
@@ -469,12 +283,6 @@ std::string		convert_backslash(std::string str);
 bool			load_mtllib(const std::string &path);
 
 /*
-** .obj parser
-*/
-
-Mesh			*load_obj(const std::string &path);
-
-/*
 ** Callback functions
 */
 
@@ -494,5 +302,3 @@ void			callback_quality(SDL_Event *event);
 void			render_present();
 void			render_scene();
 GLuint			display_quad_get();
-
-#endif

@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Texture.hpp"
 
 Texture::Texture(const std::string &name) :
 	_glid(0),
@@ -51,7 +52,9 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum
 	glTexParameteri(t->_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(t->_target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 	glBindTexture(t->_target, 0);
+#ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, t->_glid, -1, name.c_str());
+#endif //GL_DEBUG
 	Engine::add(*t);
 	return (t);
 }

@@ -11,30 +11,48 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Mesh.hpp"
+#include "Camera.hpp"
+#include "Texture.hpp"
 
-Mesh::Mesh(const std::string &name) : Node(name),
-material(nullptr), uvmax(new_vec2(1, 1)), uvmin(new_vec2(0, 0)),
-v_arrayid(0), v_bufferid(0), vn_bufferid(0), vt_bufferid(0),
-_is_loaded(false)
+Mesh::Mesh(const std::string &name) : Renderable(name),
+uvmax(new_vec2(1, 1)), uvmin(new_vec2(0, 0)),
+v_arrayid(0), v_bufferid(0), vn_bufferid(0), vt_bufferid(0)
 {
+	bounding_element = new AABB;
+}
+
+Renderable	*Renderable::get_by_name(const std::string &name)
+{
+	return dynamic_cast<Renderable *>(Node::get_by_name(name));
 }
 
 Mesh	*Mesh::get_by_name(const std::string &name)
 {
-	int		i;
-	ULL		h;
-	Mesh	*m;
+	return dynamic_cast<Mesh *>(Renderable::get_by_name(name));
+}
 
-	i = 0;
-	std::hash<std::string>	hash_fn;
-	h = hash_fn(name);
-	while ((m = Engine::mesh(i)))
-	{
-		if (h == m->_id)
-			return (m);
-		i++;
-	}
-	return (nullptr);
+bool	alpha_compare(Renderable	*m, Renderable *m1)
+{
+	auto	mat = m->material;
+	auto	mat1 = m1->material;
+	if (m->parent == m1)
+		return (false);
+	else if (m1->parent == m)
+		return (true);
+	if (!mat && !mat1)
+		return (false);
+	if (!mat)
+		return (true);
+	if (!mat1)
+		return (false);
+	return mat->alpha > mat1->alpha || (mat->texture_albedo && mat1->texture_albedo &&
+		mat->texture_albedo->bpp() <= 24 && mat1->texture_albedo->bpp() >= 32);
+}
+
+void	Renderable::alpha_sort()
+{
+	Engine::sort(alpha_compare);
 }
 
 Mesh	*Mesh::create(const std::string &name)
@@ -60,11 +78,6 @@ static GLuint	vbuffer_load(GLuint attrib, int size, const std::vector<T> &a)
 		GL_FALSE, 0, (void*)0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	return (lbufferid);
-}
-
-bool			Mesh::is_loaded()
-{
-	return (_is_loaded);
 }
 
 void			Mesh::load()
@@ -141,22 +154,22 @@ void			Mesh::center()
 {
 	for (auto &vec : v)
 	{
-		vec = vec3_sub(vec, bounding_element.center);
-		bounding_element.min.x = MIN(vec.x, bounding_element.min.x);
-		bounding_element.min.y = MIN(vec.y, bounding_element.min.y);
-		bounding_element.min.z = MIN(vec.z, bounding_element.min.z);
-		bounding_element.max.x = MAX(vec.x, bounding_element.max.x);
-		bounding_element.max.y = MAX(vec.y, bounding_element.max.y);
-		bounding_element.max.z = MAX(vec.z, bounding_element.max.z);
+		vec = vec3_sub(vec, bounding_element->center);
+		bounding_element->min.x = MIN(vec.x, bounding_element->min.x);
+		bounding_element->min.y = MIN(vec.y, bounding_element->min.y);
+		bounding_element->min.z = MIN(vec.z, bounding_element->min.z);
+		bounding_element->max.x = MAX(vec.x, bounding_element->max.x);
+		bounding_element->max.y = MAX(vec.y, bounding_element->max.y);
+		bounding_element->max.z = MAX(vec.z, bounding_element->max.z);
 	}
-	bounding_element.center = vec3_scale(vec3_add(bounding_element.min, bounding_element.max), 0.5f);
+	bounding_element->center = vec3_scale(vec3_add(bounding_element->min, bounding_element->max), 0.5f);
 	int i = 0;
 	for (auto child : children)
 	{
 		i++;
 		auto	m = static_cast<Mesh *>(child);
-		auto	mPos = m->bounding_element.center;
+		auto	mPos = m->bounding_element->center;
 		m->center();
-		m->position() = vec3_sub(mPos, bounding_element.center);
+		m->position() = vec3_sub(mPos, bounding_element->center);
 	}
 }

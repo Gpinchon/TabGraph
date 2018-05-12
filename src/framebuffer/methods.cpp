@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Framebuffer.hpp"
 
 Framebuffer::Framebuffer(const std::string &name) : Texture(name), _depth(nullptr), _shader(nullptr)
 {

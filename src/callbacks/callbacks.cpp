@@ -11,6 +11,8 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Camera.hpp"
+#include "Mesh.hpp"
 
 static inline void	callback_get_v(VEC4 *v0, VEC4 *v1, const Uint8 *s)
 {
@@ -95,13 +97,13 @@ void	callback_quality(SDL_Event *event)
 	if (event && event->type != SDL_KEYDOWN)
 		return ;
 	Engine::internal_quality() += 0.25;
-	Engine::internal_quality() = CYCLE(Engine::internal_quality(), 0.25, 1.25);
+	Engine::internal_quality() = CYCLE(Engine::internal_quality(), 0.5, 1.5);
 }
 
 void	callback_refresh(SDL_Event *)
 {
 	static float	rotation = 0;
-	auto	mesh = Engine::mesh(0);
+	auto	mesh = Engine::renderable(0);
 	if (!mesh)
 		return;
 	rotation += 0.2 * Engine::delta_time();

@@ -10,7 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <parser.h>
+#include "scop.hpp"
+#include "parser/InternalTools.hpp"
 #include <unistd.h>
 
 GLuint	compile_shader(const std::string &path, GLenum type)
@@ -22,12 +23,18 @@ GLuint	compile_shader(const std::string &path, GLenum type)
 	fullPath = Engine::program_path() + path;
 	if (access(fullPath.c_str(), F_OK | W_OK)
 	|| !(stream = fopen(fullPath.c_str(), "rb")))
-		return (0);
-	auto bufstring = stream_to_str(stream);
-	const char *buf = bufstring.c_str();
+		throw std::runtime_error(std::string("Can't open ") + path);
+	auto	bufstring = stream_to_str(stream);
+	auto	buf = bufstring.c_str();
 	shaderid = glCreateShader(type);
-	glShaderSource(shaderid, 1, (const char **)&buf, NULL);
+	glShaderSource(shaderid, 1, &buf, NULL);
 	glCompileShader(shaderid);
+	try {
+		Shader::check_shader(shaderid);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error compiling : ") + path + " :\n" + e.what());
+	}
 	fclose(stream);
 	return (shaderid);
 }
@@ -61,12 +68,17 @@ GLuint	Shader::link(const GLuint &vertexid, const GLuint &fragmentid)
 	glAttachShader(_program, vertexid);
 	glAttachShader(_program, fragmentid);
 	glLinkProgram(_program);
+	try {
+		check_program(_program);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error linking  : ") + _name + " :\n" + e.what());
+	}
 	return (_program);
 }
 
 bool	Shader::check_shader(const GLuint &id)
 {
-	char	*log;
 	GLint	result;
 	GLint	loglength;
 
@@ -75,18 +87,15 @@ bool	Shader::check_shader(const GLuint &id)
 	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &loglength);
 	if (loglength > 1)
 	{
-		log = new char[loglength]();
+		char	log[loglength];
 		glGetShaderInfoLog(id, loglength, NULL, &log[0]);
-		std::cout << "Error compiling shader : \n" << log << std::endl;
-		delete [] log;
-		return (true);
+		throw std::runtime_error(log);
 	}
 	return (false);
 }
 
 bool	Shader::check_program(const GLuint &id)
 {
-	char	*log;
 	GLint	result;
 	GLint	loglength;
 
@@ -95,11 +104,9 @@ bool	Shader::check_program(const GLuint &id)
 	glGetProgramiv(id, GL_INFO_LOG_LENGTH, &loglength);
 	if (loglength > 1)
 	{
-		log = new char[loglength]();
+		char	log[loglength];
 		glGetProgramInfoLog(id, loglength, NULL, &log[0]);
-		std::cout << "Error compiling program : \n" << log << std::endl;
-		delete [] log;
-		return (true);
+		throw std::runtime_error(log);
 	}
 	return (false);
 }
@@ -115,18 +122,7 @@ Shader			*Shader::load(const std::string &name,
 	shader = new Shader(name);
 	vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
 	fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
-	if (!vertexid || !fragmentid)
-	{
-		std::cout << "Impossible to open file !" << std::endl;
-		delete shader;
-		return (nullptr);
-	}
-	if (Shader::check_shader(vertexid) || Shader::check_shader(fragmentid) ||
-		Shader::check_program(shader->link(vertexid, fragmentid)))
-	{
-		delete shader;
-		return (nullptr);
-	}
+	shader->link(vertexid, fragmentid);
 	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
 	glDetachShader(shader->_program, vertexid);

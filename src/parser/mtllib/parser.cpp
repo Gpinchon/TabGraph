@@ -10,7 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <parser.h>
+#include "scop.hpp"
+#include "parser/BMP.hpp"
+#include "parser/InternalTools.hpp"
 #include <unistd.h>
 
 void	parse_color(std::vector<std::string> &split, PBRMaterial *mtl)
