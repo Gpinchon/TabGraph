@@ -41,7 +41,7 @@ void	Texture::blur(const int &pass, const float &radius)
 	auto totalPass = pass * 4;
 	Texture *texture = this;
 	color0 = &blur->attachement(0);
-	while (totalPass)
+	while (totalPass >= 0)
 	{
 		VEC2			direction;
 		Texture			*temp;
