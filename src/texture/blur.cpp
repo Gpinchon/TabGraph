@@ -50,10 +50,8 @@ void	Texture::blur(const int &pass, const float &radius)
 		direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
 		direction = vec2_scale(direction, radius);
 		blur->shader().bind_texture("in_Texture_Color", texture, GL_TEXTURE0);
-		blur->shader().set_uniform("in_Direction",
-			direction);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-			color0->glid(), 0);
+		blur->shader().set_uniform("in_Direction", direction);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color0->glid(), 0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		angle = CYCLE(angle + 0.785398, 0, 2.356194);
 		temp = texture;
