@@ -18,6 +18,10 @@
 #include <string>
 # include <fcntl.h>
 
+# ifndef O_BINARY
+#  define O_BINARY 0x0004
+# endif
+
 typedef struct					s_obj_parser
 {
 	s_obj_parser() : fd(nullptr), parent(nullptr), vg(nullptr) {};
@@ -81,3 +85,4 @@ std::vector<std::string>	strsplit(const std::string &s, char c);
 std::vector<std::string>	strsplitwspace(const std::string &s);
 unsigned		count_char(const std::string &str, char c);
 std::string		stream_to_str(FILE *stream);
+std::string		convert_backslash(std::string str);

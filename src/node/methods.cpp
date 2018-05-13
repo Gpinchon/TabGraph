@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
+#include "Engine.hpp"
 #include "Node.hpp"
 
 Node::Node(const std::string &name) : parent(nullptr), children(), bounding_element(nullptr), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))

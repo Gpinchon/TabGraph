@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
+#include "Engine.hpp"
 
 /*static void		find_mesh_minmax(VEC3 *min, VEC3 *max)
 {

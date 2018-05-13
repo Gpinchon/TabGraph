@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
+#include "Engine.hpp"
 #include "Cubemap.hpp"
 #include "PBRMaterial.hpp"
 #include "parser/GLSL.hpp"

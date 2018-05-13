@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
+#include "Engine.hpp"
 #include "PBRMaterial.hpp"
 #include "parser/OBJ.hpp"
 #include "parser/InternalTools.hpp"

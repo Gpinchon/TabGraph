@@ -10,9 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
-#include "PBRMaterial.hpp"
+#include "Engine.hpp"
 #include "parser/OBJ.hpp"
+#include "parser/MTLLIB.hpp"
 #include "parser/InternalTools.hpp"
 #include <unistd.h>
 
@@ -65,7 +65,7 @@ static void	parse_line(t_obj_parser *p, const char *line)
 		p->vg->material = Material::get_by_name(split[1]);
 	}
 	else if (split[0] == "mtllib")
-		load_mtllib(p->path_split[0] + split[1]);
+		PBRMTLLIB::parse(p->path_split[0] + split[1]);
 }
 
 static bool	start_obj_parsing(t_obj_parser *p, const std::string &name, const std::string path)

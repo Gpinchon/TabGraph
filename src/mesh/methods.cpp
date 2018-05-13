@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
+#include "Engine.hpp"
 #include "Mesh.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
@@ -101,17 +101,6 @@ void			Mesh::load()
 	vt_bufferid = vbuffer_load(2, 2, vt);
 	glBindVertexArray(0);
 	_is_loaded = true;
-}
-
-void	display_mat4(MAT4 &m)
-{
-	for (unsigned i = 0; i < 4; i++)
-	{
-		for (unsigned j = 0; j < 4; j++)
-			std::cout << m.m[i + j * 4] << " ";
-		std::cout << "\n";
-	}
-	std::cout << std::endl;
 }
 
 void		Mesh::bind()

@@ -10,7 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
+#include "parser/InternalTools.hpp"
+#include "Engine.hpp"
 #include "Window.hpp"
 #include "Events.hpp"
 #include "Camera.hpp"

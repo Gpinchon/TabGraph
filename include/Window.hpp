@@ -28,10 +28,10 @@ public :
 	static Framebuffer	&render_buffer();
 private :
 	static Window	&_get();
-	SDL_Window	*_sdl_window;
-	GLCONTEXT	_gl_context;
-	VEC4		_clear_color;
-	GLbitfield	_clear_mask;
+	SDL_Window	    *_sdl_window;
+	SDL_GLContext	_gl_context;
+	VEC4		    _clear_color;
+	GLbitfield  	_clear_mask;
 	Framebuffer		*_render_buffer;
 	Window() {};
 };

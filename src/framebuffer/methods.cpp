@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
+#include "Engine.hpp"
 #include "Shader.hpp"
 #include "Window.hpp"
 #include "Framebuffer.hpp"

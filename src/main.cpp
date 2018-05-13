@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Engine.hpp"
 #include "Camera.hpp"
 #include "Events.hpp"
 #include "Window.hpp"

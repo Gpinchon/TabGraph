@@ -10,9 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "scop.hpp"
+#include "Engine.hpp"
 #include "PBRMaterial.hpp"
 #include "parser/BMP.hpp"
+#include "parser/MTLLIB.hpp"
 #include "parser/InternalTools.hpp"
 #include <unistd.h>
 
@@ -109,7 +110,7 @@ void	parse_mtl(t_obj_parser *p, std::string &name)
 	}
 }
 
-bool			load_mtllib(const std::string &path)
+bool			PBRMTLLIB::parse(const std::string &path)
 {
 	char		line[4096];
 	t_obj_parser p;
