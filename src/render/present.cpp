@@ -40,6 +40,8 @@ void		render_present()
 {
 	MAT4		matrix;
 
+	if (!Engine::current_camera())
+		return ;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	glViewport(0, 0, Window::size().x, Window::size().y);

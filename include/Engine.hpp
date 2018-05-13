@@ -68,7 +68,7 @@ public :
 	static void		add(Framebuffer &);
 	static float	&internal_quality();
 	static int8_t	&swap_interval();
-	static void		set_current_camera(Camera &camera);
+	static void		set_current_camera(Camera *camera);
 	static Camera	*current_camera();
 	static Environment	*current_environment(Environment *env = nullptr);
 	static Camera	*camera(const unsigned &);

@@ -246,9 +246,9 @@ float	&Engine::internal_quality()
 	return (_get()._internal_quality);
 }
 
-void	Engine::set_current_camera(Camera &camera)
+void	Engine::set_current_camera(Camera *camera)
 {
-	_get()._current_camera = &camera;
+	_get()._current_camera = camera;
 }
 
 Camera		*Engine::current_camera()

@@ -17,11 +17,11 @@
 
 static Framebuffer	&generate_blur_fb(void)
 {
-	Framebuffer	&blur = Framebuffer::create("blur", vec2_scale(Window::size(),
+	auto	blur = Framebuffer::create("blur", vec2_scale(Window::size(),
 	Engine::internal_quality()), *Shader::get_by_name("blur"), 0, 0);
-	blur.create_attachement(GL_RGB, GL_RGB16F_ARB);
-	blur.setup_attachements();
-	return (blur);
+	blur->create_attachement(GL_RGB, GL_RGB16F_ARB);
+	blur->setup_attachements();
+	return (*blur);
 }
 
 void	Texture::blur(const int &pass, const float &radius)

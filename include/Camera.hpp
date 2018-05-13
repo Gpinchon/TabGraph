@@ -5,7 +5,7 @@
 
 struct	Camera : public Node
 {
-	static Camera	&create(const std::string &, float fov);
+	static Camera	*create(const std::string &, float fov);
 	void			orbite(float phi, float theta, float radius);
 	void			update();
 	MAT4		view;

@@ -108,7 +108,7 @@ void		Mesh::bind()
 	MAT4		mvp;
 	MAT4		normal_matrix;
 
-	if (!material || !material->shader)
+	if (!material || !material->shader || !Engine::current_camera())
 		return ;
 	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
 	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));

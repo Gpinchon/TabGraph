@@ -36,6 +36,8 @@ static inline void	callback_get_v(VEC4 *v0, VEC4 *v1, const Uint8 *s)
 
 void				callback_camera(SDL_Event *)
 {
+	if (!Engine::current_camera())
+		return ;
 	static VEC3	val = (VEC3){M_PI / 2.f, M_PI / 2.f, 5.f};
 	static VEC4 v[] = {(VEC4){0, 0, 0, 0}, (VEC4){0, 0, 0, 0}};
 	float		mv;

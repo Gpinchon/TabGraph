@@ -20,7 +20,7 @@ Framebuffer::Framebuffer(const std::string &name) : Texture(name), _depth(nullpt
 
 }
 
-Framebuffer		&Framebuffer::create(const std::string &name, VEC2 size, Shader &shader,
+Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader &shader,
 	int color_attachements, int depth)
 {
 	Framebuffer	*f;
@@ -38,7 +38,7 @@ Framebuffer		&Framebuffer::create(const std::string &name, VEC2 size, Shader &sh
 		f->create_attachement(GL_DEPTH_COMPONENT,
 			GL_DEPTH_COMPONENT);
 	f->setup_attachements();
-	return (*f);
+	return (f);
 }
 
 void			Framebuffer::bind(bool tobind)
@@ -60,24 +60,24 @@ void			Framebuffer::bind_default()
 	glViewport(0, 0, Window::size().x, Window::size().y);
 }
 
-Texture			&Framebuffer::create_attachement(GLenum format, GLenum iformat)
+Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
 {
 	std::string tname(std::string("attachement") + std::to_string(_color_attachements.size()));
 	bind();
-	Texture &a = *Texture::create(tname, size(), GL_TEXTURE_2D, format, iformat); 
-	a.set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	a.set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	auto	a = Texture::create(tname, size(), GL_TEXTURE_2D, format, iformat); 
+	a->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	a->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	if (format == GL_DEPTH_COMPONENT)
 	{
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-			GL_TEXTURE_2D, a.glid(), 0);
-		_depth = &a;
+			GL_TEXTURE_2D, a->glid(), 0);
+		_depth = a;
 	}
 	else
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0
 			+ _color_attachements.size(), GL_TEXTURE_2D,
-			a.glid(), 0);
-	_color_attachements.push_back(&a);
+			a->glid(), 0);
+	_color_attachements.push_back(a);
 	bind(false);
 	return (a);
 }

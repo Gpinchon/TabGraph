@@ -65,7 +65,7 @@ void		Window::init(const std::string &name, int width, int height)
 		"./res/shaders/shadow.vert", "./res/shaders/shadow.frag");
 	GLSL::parse("blur",
 		"./res/shaders/blur.vert", "./res/shaders/blur.frag");
-	_get()._render_buffer = &Framebuffer::create(
+	_get()._render_buffer = Framebuffer::create(
 		"window_render_buffer", vec2_scale(_get().size(),
 		Engine::internal_quality()), *Shader::get_by_name("render"), 0, 0);
 	_get().render_buffer().create_attachement(GL_RGBA, GL_RGBA16F_ARB);

@@ -19,14 +19,14 @@ Camera::Camera(const std::string &name) : Node(name)
 
 }
 
-Camera		&Camera::create(const std::string &name, float fov)
+Camera		*Camera::create(const std::string &name, float fov)
 {
 	Camera	*camera;
 
 	camera = new Camera(name);
 	camera->fov = fov;
 	Engine::add(*camera);
-	return (*camera);
+	return (camera);
 }
 
 void	Camera::orbite(float phi, float theta, float radius)

@@ -60,11 +60,11 @@ int		main(int argc, char *argv[])
 	Window::init("Scop", WIDTH, HEIGHT);
 	Engine::init(argv0);
 	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
-	auto &camera = Camera::create("main_camera", 45);
+	auto camera = Camera::create("main_camera", 45);
 	Engine::set_current_camera(camera);
-	camera.target = Node::create("main_camera_target",
+	camera->target = Node::create("main_camera_target",
 		new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
-	camera.orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
+	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 	obj = nullptr;
 	if (argc >= 2)
 		obj = OBJ::parse("main_mesh", argv[1]);
