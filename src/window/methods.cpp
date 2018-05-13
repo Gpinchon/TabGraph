@@ -108,7 +108,6 @@ void		Window::fullscreen(const bool &fullscreen)
 {
 	SDL_SetWindowFullscreen(_get()._sdl_window,
 		fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-	Window::resize();
 }
 
 Framebuffer	&Window::render_buffer()

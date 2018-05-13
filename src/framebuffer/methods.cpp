@@ -142,7 +142,7 @@ void		Framebuffer::resize(const VEC2 &new_size)
 {
 	unsigned		i;
 
-	if (size().x == new_size.x && size().y == size().y)
+	if (size().x == new_size.x && size().y == new_size.y)
 		return ;
 	bind();
 	_size = new_size;
