@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "parser/GLSL.hpp"
 #include "parser/InternalTools.hpp"
 #include <unistd.h>
 
@@ -111,17 +112,13 @@ bool	Shader::check_program(const GLuint &id)
 	return (false);
 }
 
-Shader			*Shader::load(const std::string &name,
+Shader			*GLSL::parse(const std::string &name,
 	const std::string &vertex_file_path,
 	const std::string &fragment_file_path)
 {
-	GLuint	vertexid;
-	GLuint	fragmentid;
-	Shader	*shader;
-
-	shader = new Shader(name);
-	vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
-	fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
+	auto	shader = static_cast<GLSL*>(Shader::create(name));//new Shader(name);
+	auto	vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
+	auto	fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
 	shader->link(vertexid, fragmentid);
 	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
@@ -129,6 +126,5 @@ Shader			*Shader::load(const std::string &name,
 	glDetachShader(shader->_program, fragmentid);
 	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
-	Engine::add(*shader);
 	return (shader);
 }

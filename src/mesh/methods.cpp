@@ -12,8 +12,10 @@
 
 #include "scop.hpp"
 #include "Mesh.hpp"
+#include "Shader.hpp"
 #include "Camera.hpp"
 #include "Texture.hpp"
+#include "Material.hpp"
 
 Mesh::Mesh(const std::string &name) : Renderable(name),
 uvmax(new_vec2(1, 1)), uvmin(new_vec2(0, 0)),
@@ -155,12 +157,12 @@ void			Mesh::center()
 	for (auto &vec : v)
 	{
 		vec = vec3_sub(vec, bounding_element->center);
-		bounding_element->min.x = MIN(vec.x, bounding_element->min.x);
-		bounding_element->min.y = MIN(vec.y, bounding_element->min.y);
-		bounding_element->min.z = MIN(vec.z, bounding_element->min.z);
-		bounding_element->max.x = MAX(vec.x, bounding_element->max.x);
-		bounding_element->max.y = MAX(vec.y, bounding_element->max.y);
-		bounding_element->max.z = MAX(vec.z, bounding_element->max.z);
+		bounding_element->min.x = std::min(vec.x, bounding_element->min.x);
+		bounding_element->min.y = std::min(vec.y, bounding_element->min.y);
+		bounding_element->min.z = std::min(vec.z, bounding_element->min.z);
+		bounding_element->max.x = std::max(vec.x, bounding_element->max.x);
+		bounding_element->max.y = std::max(vec.y, bounding_element->max.y);
+		bounding_element->max.z = std::max(vec.z, bounding_element->max.z);
 	}
 	bounding_element->center = vec3_scale(vec3_add(bounding_element->min, bounding_element->max), 0.5f);
 	int i = 0;

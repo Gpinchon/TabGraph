@@ -11,7 +11,10 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Window.hpp"
+#include "parser/GLSL.hpp"
 #include "Framebuffer.hpp"
+#include <unistd.h>
 
 Window *g_window = nullptr;
 
@@ -30,8 +33,6 @@ void		Window::swap()
 {
 	SDL_GL_SwapWindow(_get()._sdl_window);
 }
-
-#include <unistd.h>
 
 void		Window::init(const std::string &name, int width, int height)
 {
@@ -58,11 +59,11 @@ void		Window::init(const std::string &name, int width, int height)
 		throw std::runtime_error(reinterpret_cast<const char*>(glewGetErrorString(error)));
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	Shader::load("render",
+	GLSL::parse("render",
 		"./res/shaders/render.vert", "./res/shaders/render.frag");
-	Shader::load("shadow",
+	GLSL::parse("shadow",
 		"./res/shaders/shadow.vert", "./res/shaders/shadow.frag");
-	Shader::load("blur",
+	GLSL::parse("blur",
 		"./res/shaders/blur.vert", "./res/shaders/blur.frag");
 	_get()._render_buffer = &Framebuffer::create(
 		"window_render_buffer", vec2_scale(_get().size(),
@@ -85,7 +86,7 @@ VEC2		Window::size(void)
 	int	w;
 	int	h;
 
-	SDL_GetWindowSize(_get()._sdl_window, &w, &h);
+	SDL_GL_GetDrawableSize(_get()._sdl_window, &w, &h);
 	return (new_vec2(w, h));
 }
 

@@ -6,7 +6,7 @@
 
 class	Texture
 {
-public :
+public:
 	static Texture	*create(const std::string &name, VEC2 size, GLenum target, GLenum format, GLenum internal_format);
 	static Texture	*get_by_name(const std::string &);
 	void			resize(const VEC2 &new_size);
@@ -31,7 +31,7 @@ public :
 	VEC4			sample(const VEC2 &uv);
 	const std::string	&name();
 	const std::string	&name() const;
-protected :
+protected:
 	size_t		_id;
 	GLuint		_glid;
 	std::string	_name;

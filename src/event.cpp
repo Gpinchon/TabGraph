@@ -11,6 +11,8 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Events.hpp"
+#include "Window.hpp"
 
 Events	*g_events = nullptr;
 

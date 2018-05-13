@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Shader.hpp"
 #include "Texture.hpp"
 
 Shader::Shader(const std::string &name) : _program(0), _in_use(false)
@@ -23,6 +24,13 @@ void	Shader::set_name(const std::string &name)
 	std::hash<std::string>	hash_fn;
 	_name = name;
 	_id = hash_fn(name);
+}
+
+Shader	*Shader::create(const std::string &name)
+{
+	auto	shader = new Shader(name);
+	Engine::add(*shader);
+	return (shader);
 }
 
 const std::string	&Shader::name(void)
@@ -51,7 +59,20 @@ void			Shader::set_uniform(const std::string &name, const Texture *, const int v
 		use(false);
 }
 
-void			Shader::set_uniform(const std::string &name, const int value)
+void			Shader::set_uniform(const std::string &name, const int &value)
+{
+	auto	v = get_uniform(name);
+	if (!v)
+		return ;
+	bool	bound = in_use();
+	if (!bound)
+		use();
+	glUniform1i(v->loc, value);
+	if (!bound)
+		use(false);
+}
+
+void			Shader::set_uniform(const std::string &name, const bool &value)
 {
 	auto	v = get_uniform(name);
 	if (!v)
@@ -148,7 +169,7 @@ void			Shader::use(const bool &use_program)
 Shader		*Shader::get_by_name(const std::string &name)
 {
 	int			i;
-	ULL			h;
+	size_t			h;
 	Shader	*s;
 
 	i = 0;

@@ -11,9 +11,12 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "Window.hpp"
+#include "Camera.hpp"
 #include "Cubemap.hpp"
 #include "Framebuffer.hpp"
-#include "Camera.hpp"
+#include "parser/GLSL.hpp"
+
 
 static void	render_bind_textures(Shader &shader)
 {

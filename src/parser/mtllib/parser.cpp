@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "PBRMaterial.hpp"
 #include "parser/BMP.hpp"
 #include "parser/InternalTools.hpp"
 #include <unistd.h>

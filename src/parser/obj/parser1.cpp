@@ -56,12 +56,12 @@ void		parse_vtn(t_obj_parser *p, std::vector<std::string> &split)
 	if (split[0] == "v")
 	{
 		v = parse_vec3(split);
-		p->bbox.min.x = MIN(v.x, p->bbox.min.x);
-		p->bbox.min.y = MIN(v.y, p->bbox.min.y);
-		p->bbox.min.z = MIN(v.z, p->bbox.min.z);
-		p->bbox.max.x = MAX(v.x, p->bbox.max.x);
-		p->bbox.max.y = MAX(v.y, p->bbox.max.y);
-		p->bbox.max.z = MAX(v.z, p->bbox.max.z);
+		p->bbox.min.x = std::min(v.x, p->bbox.min.x);
+		p->bbox.min.y = std::min(v.y, p->bbox.min.y);
+		p->bbox.min.z = std::min(v.z, p->bbox.min.z);
+		p->bbox.max.x = std::max(v.x, p->bbox.max.x);
+		p->bbox.max.y = std::max(v.y, p->bbox.max.y);
+		p->bbox.max.z = std::max(v.z, p->bbox.max.z);
 		p->bbox.center = vec3_fdiv(vec3_add(p->bbox.min, p->bbox.max), 2);
 		p->v.push_back(v);
 	}

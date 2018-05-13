@@ -11,10 +11,12 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
-#include "Renderable.hpp"
+#include "Window.hpp"
+#include "Events.hpp"
 #include "Camera.hpp"
 #include "Light.hpp"
 #include "Cubemap.hpp"
+#include "Renderable.hpp"
 #include "Framebuffer.hpp"
 #include <dirent.h>
 #include <unistd.h>

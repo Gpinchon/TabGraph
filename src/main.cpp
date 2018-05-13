@@ -12,7 +12,8 @@
 
 #include "scop.hpp"
 #include "Camera.hpp"
-//#include "Mesh.hpp"
+#include "Events.hpp"
+#include "Window.hpp"
 #include "parser/OBJ.hpp"
 #include <unistd.h>
 

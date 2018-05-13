@@ -44,7 +44,7 @@ static FRUSTUM	full_scene_frustum(void)
 	v[0] = new_vec3(1000, 1000, 1000);
 	v[1] = new_vec3(-1000, -1000, -1000);
 	find_mesh_minmax(&v[0], &v[1]);
-	value = MAX(1.5, vec3_distance(v[0], v[1]) / 2.f);
+	value = std::max(1.5, vec3_distance(v[0], v[1]) / 2.f);
 	return (new_frustum(-value, value, -value, value));
 }
 

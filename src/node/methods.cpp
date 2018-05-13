@@ -28,7 +28,7 @@ void	Node::set_name(const std::string &name)
 Node	*Node::get_by_name(const std::string &name)
 {
 	int		i;
-	ULL		h;
+	size_t		h;
 	Node	*m;
 
 	i = 0;

@@ -22,7 +22,7 @@ static void	convert_bmp(t_bmp_parser *parser)
 	int				i[3];
 
 	auto dataSize = parser->info.bpp / 8 * parser->info.width * parser->info.height;
-	pixel_temp = new UCHAR [dataSize];
+	pixel_temp = new unsigned char [dataSize];
 	i[0] = 0;
 	i[1] = -1;
 	while (++i[1] < parser->info.width)
@@ -60,7 +60,7 @@ static int	read_data(t_bmp_parser *p, const char *imagepath)
 	}
 	data_size = p->info.bpp / 8 * p->info.width * p->info.height;
 	lseek(p->fd, p->header.data_offset, SEEK_SET);
-	p->data = new UCHAR[data_size];
+	p->data = new unsigned char[data_size];
 	p->size_read = read(p->fd, p->data, data_size);
 	close(p->fd);
 	if (p->info.bpp == 32)
@@ -68,7 +68,7 @@ static int	read_data(t_bmp_parser *p, const char *imagepath)
 	return (0);
 }
 
-static void	get_format(UCHAR bpp, GLenum *format, GLenum *internal_format)
+static void	get_format(unsigned char bpp, GLenum *format, GLenum *internal_format)
 {
 	if (bpp == 8)
 	{

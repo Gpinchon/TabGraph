@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
+#include "PBRMaterial.hpp"
 #include "parser/OBJ.hpp"
 #include "parser/InternalTools.hpp"
 

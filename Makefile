@@ -20,6 +20,7 @@ SRC			=	./src/main.cpp			\
 				./src/camera/methods.cpp			\
 				./src/framebuffer/methods.cpp		\
 				./src/material/methods.cpp		\
+				./src/material/PBRmethods.cpp		\
 				./src/mesh/methods.cpp			\
 				./src/parser/tools.cpp			\
 				./src/parser/obj/parser.cpp		\

@@ -69,7 +69,7 @@ VEC2	Texture::size() const
 	return (_size);
 }
 
-UCHAR	*Texture::data() const
+unsigned char	*Texture::data() const
 {
 	return (_data);
 }
@@ -89,8 +89,8 @@ void	Texture::load()
 	if (_loaded)
 		return ;
 	if (_size.x > MAXTEXRES || _size.y > MAXTEXRES)
-		resize(new_vec2(MIN(_size.x, MAXTEXRES),
-			MIN(_size.y, MAXTEXRES)));
+		resize(new_vec2(std::min(int(_size.x), MAXTEXRES),
+			std::min(int(_size.y), MAXTEXRES)));
 	if (!_glid)
 		glGenTextures(1, &_glid);
 	glBindTexture(_target, _glid);
@@ -128,7 +128,7 @@ const std::string	&Texture::name() const
 	return (_name);
 }
 
-UCHAR		Texture::bpp() const
+unsigned char		Texture::bpp() const
 {
 	return (_bpp);
 }
@@ -141,7 +141,7 @@ GLuint		Texture::glid() const
 Texture		*Texture::get_by_name(const std::string &name)
 {
 	int			i;
-	ULL			h;
+	size_t			h;
 	Texture	*t;
 
 	i = 0;
@@ -232,8 +232,8 @@ VEC4	Texture::sample(const VEC2 &uv)
 		CLAMP(_size.y * uv.y, 0, _size.y - 1), 0);
 	auto nuv = new_vec2(fract(vt[0].x), fract(vt[0].y));
 	vt[0].z = ((1 - nuv.x) * (1 - nuv.y));
-	vt[1] = new_vec3(MIN(_size.x - 1, vt[0].x + 1),
-		MIN(_size.y - 1, vt[0].y + 1), (nuv.x * (1 - nuv.y)));
+	vt[1] = new_vec3(std::min(_size.x - 1, vt[0].x + 1),
+		std::min(_size.y - 1, vt[0].y + 1), (nuv.x * (1 - nuv.y)));
 	vt[2] = new_vec3(vt[0].x, vt[1].y, ((1 - nuv.x) * nuv.y));
 	vt[3] = new_vec3(vt[1].x, vt[0].y, (nuv.x * nuv.y));
 	s[0] = -1;

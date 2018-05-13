@@ -22,12 +22,12 @@ static void	push_values(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
 	i = 0;
 	while (i < 3)
 	{
-		p->vg->bounding_element->min.x = MIN(v[i].x, p->vg->bounding_element->min.x);
-		p->vg->bounding_element->min.y = MIN(v[i].y, p->vg->bounding_element->min.y);
-		p->vg->bounding_element->min.z = MIN(v[i].z, p->vg->bounding_element->min.z);
-		p->vg->bounding_element->max.x = MAX(v[i].x, p->vg->bounding_element->max.x);
-		p->vg->bounding_element->max.y = MAX(v[i].y, p->vg->bounding_element->max.y);
-		p->vg->bounding_element->max.z = MAX(v[i].z, p->vg->bounding_element->max.z);
+		p->vg->bounding_element->min.x = std::min(v[i].x, p->vg->bounding_element->min.x);
+		p->vg->bounding_element->min.y = std::min(v[i].y, p->vg->bounding_element->min.y);
+		p->vg->bounding_element->min.z = std::min(v[i].z, p->vg->bounding_element->min.z);
+		p->vg->bounding_element->max.x = std::max(v[i].x, p->vg->bounding_element->max.x);
+		p->vg->bounding_element->max.y = std::max(v[i].y, p->vg->bounding_element->max.y);
+		p->vg->bounding_element->max.z = std::max(v[i].z, p->vg->bounding_element->max.z);
 		p->vg->bounding_element->center = vec3_scale(vec3_add(p->vg->bounding_element->min,
 			p->vg->bounding_element->max), 0.5);
 		p->vg->v.push_back(v[i]);

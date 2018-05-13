@@ -11,8 +11,9 @@
 /* ************************************************************************** */
 
 #include "scop.hpp"
-#include "Camera.hpp"
 #include "Mesh.hpp"
+#include "Window.hpp"
+#include "Camera.hpp"
 
 static inline void	callback_get_v(VEC4 *v0, VEC4 *v1, const Uint8 *s)
 {
