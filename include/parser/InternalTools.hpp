@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:16:45 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/13 00:16:45 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/15 21:24:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ typedef struct	s_bmp_parser
 	int					fd;
 	t_bmp_info			info;
 	t_bmp_header		header;
-	unsigned char		*data;
+	GLubyte		*data;
 	unsigned			size_read;
 }				t_bmp_parser;
 

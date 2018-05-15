@@ -3,10 +3,6 @@
 
 uniform lowp vec3		in_CamPos;
 
-uniform lowp vec2		in_UVMax;
-uniform lowp vec2		in_UVMin;
-uniform lowp vec2		in_UVScale;
-
 uniform lowp vec3		in_Albedo;
 uniform lowp vec3		in_Specular;
 uniform lowp vec3		in_Emitting;
@@ -37,6 +33,8 @@ uniform sampler2D	in_Texture_BRDF;
 in vec3			frag_WorldPosition;
 in lowp vec3	frag_WorldNormal;
 in lowp vec2	frag_Texcoord;
+in lowp vec2	frag_UVMax;
+in lowp vec2	frag_UVMin;
 
 layout(location = 0) out lowp vec4	out_Color;
 layout(location = 1) out lowp vec4	out_Bright;
@@ -139,7 +137,6 @@ void	main()
 		Parallax_Mapping(tbn * normalize(in_CamPos - worldPosition), vt, ph);
 		worldPosition = worldPosition - (worldNormal * ph);
 	}
-	vt *= in_UVScale;
 	lowp vec4	albedo_sample = texture(in_Texture_Albedo, vt);
 	lowp vec3	emitting = texture(in_Texture_Emitting, vt).rgb + in_Emitting;
 	lowp vec3	normal_sample = texture(in_Texture_Normal, vt).xyz * 2 - 1;
@@ -160,8 +157,8 @@ void	main()
 			worldNormal = normalize(new_normal);
 	}
 	if (albedo.a <= 0.05
-	|| vt.x > (in_UVScale.x * in_UVMax.x) || vt.y > (in_UVScale.y * in_UVMax.y)
-	|| vt.x < (in_UVScale.x * in_UVMin.x) || vt.y < (in_UVScale.y * in_UVMin.y))
+	|| vt.x > (frag_UVMax.x) || vt.y > (frag_UVMax.y)
+	|| vt.x < (frag_UVMin.x) || vt.y < (frag_UVMin.y))
 		discard;
 	lowp float	roughness = clamp(in_Use_Texture_Roughness ? roughness_sample : in_Roughness, 0.05f, 1.f);
 	lowp float	metallic = clamp(in_Use_Texture_Metallic ? metallic_sample : in_Metallic, 0.f, 1.f);

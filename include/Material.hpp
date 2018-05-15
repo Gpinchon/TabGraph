@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:12:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/13 18:12:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/15 20:49:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ struct	Material
 	float			alpha;
 	Texture			*texture_albedo;
 protected :
+	static Texture	*_texture_brdf;
 	std::string		_name;
 	size_t			_id;
 	Material(const std::string &name);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:14:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/13 18:14:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/15 20:49:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,5 @@ struct	PBRMaterial : public Material
 	Texture		*texture_height;
 	Texture		*texture_ao;
 private :
-	static Texture	*_texture_brdf;
 	PBRMaterial(const std::string &name);
 };

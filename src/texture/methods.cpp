@@ -69,7 +69,7 @@ VEC2	Texture::size() const
 	return (_size);
 }
 
-unsigned char	*Texture::data() const
+GLubyte	*Texture::data() const
 {
 	return (_data);
 }
@@ -128,7 +128,7 @@ const std::string	&Texture::name() const
 	return (_name);
 }
 
-unsigned char		Texture::bpp() const
+GLubyte		Texture::bpp() const
 {
 	return (_bpp);
 }
@@ -160,7 +160,7 @@ VEC4	Texture::texelfetch(const VEC2 &uv)
 {
 	VEC4			value;
 	char			opp;
-	unsigned char	*p;
+	GLubyte	*p;
 	int				i;
 
 	value = new_vec4(0, 0, 0, 0);
@@ -183,7 +183,7 @@ VEC4	Texture::texelfetch(const VEC2 &uv)
 void	Texture::set_pixel(const VEC2 &uv, const VEC4 &value)
 {
 	char			opp;
-	unsigned char	*p;
+	GLubyte	*p;
 	int				i;
 
 	if (!_data)
@@ -249,14 +249,14 @@ VEC4	Texture::sample(const VEC2 &uv)
 
 void	Texture::resize(const VEC2 &ns)
 {
-	unsigned char	*d;
+	GLubyte	*d;
 	int				x, y, z;
 	VEC4			v;
 	VEC2			uv;
 
 	if (_data)
 	{
-		d = new unsigned char[unsigned(ns.x * ns.y * (_bpp))];
+		d = new GLubyte[unsigned(ns.x * ns.y * (_bpp))];
 		x = 0;
 		while (x < ns.x)
 		{

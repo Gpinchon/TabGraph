@@ -7,6 +7,7 @@ uniform mat4					in_Transform;
 uniform mat4					in_ModelMatrix;
 uniform mat4					in_NormalMatrix;
 uniform samplerCube				in_Texture_Env_Spec;
+uniform lowp vec2				in_UVScale;
 
 out vec3						frag_WorldPosition;
 out lowp vec3					frag_WorldNormal;
@@ -23,6 +24,6 @@ void main()
 {
 	frag_WorldPosition = vec3(in_ModelMatrix * vec4(in_Position, 1));
 	frag_WorldNormal = mat3(in_NormalMatrix) * ((in_Normal / 255.f) * 2 - 1);
-	frag_Texcoord = in_Texcoord;
+	frag_Texcoord = in_UVScale * in_Texcoord;
 	gl_Position = in_Transform * vec4(in_Position, 1);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 23:38:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/15 21:14:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,6 @@ void	setup_callbacks(void)
 	Events::set_key_callback(SDL_SCANCODE_SPACE, callback_background);
 	Events::set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
 	Events::set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
-	//Events::set_key_callback(SDL_SCANCODE_S, callback_stupidity);
 	Events::set_key_callback(SDL_SCANCODE_Q, callback_quality);
 	Events::set_refresh_callback(callback_refresh);
 }
@@ -75,7 +74,6 @@ int		main(int argc, char *argv[])
 		obj->center();
 		obj->load();
 	}
-	//obj->set_name("main_mesh");
 	Mesh::alpha_sort();
 	setup_callbacks();
 	Engine::run();

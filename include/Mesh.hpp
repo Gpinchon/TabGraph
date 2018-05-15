@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Mesh.hpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
+/*   Updated: 2018/05/15 21:24:50 by gpinchon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
 #include "GLIncludes.hpp"
@@ -6,10 +18,10 @@
 
 struct  CVEC4
 {
-	unsigned char	x;
-	unsigned char	y;
-	unsigned char	z;
-	unsigned char	w;
+	GLubyte	x;
+	GLubyte	y;
+	GLubyte	z;
+	GLubyte	w;
 };
 
 class	Mesh : public Renderable

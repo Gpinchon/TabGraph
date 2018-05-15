@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:17:13 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/13 18:17:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/15 20:53:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,6 @@
 #include "Cubemap.hpp"
 #include "PBRMaterial.hpp"
 #include "parser/GLSL.hpp"
-#include "parser/BMP.hpp"
-
-Texture	*PBRMaterial::_texture_brdf = nullptr;
 
 PBRMaterial::PBRMaterial(const std::string &name) : Material(name),
 	texture_specular(nullptr),
@@ -27,12 +24,6 @@ PBRMaterial::PBRMaterial(const std::string &name) : Material(name),
 	texture_height(nullptr),
 	texture_ao(nullptr)
 {
-	if (!_texture_brdf)
-	{
-		_texture_brdf = BMP::parse("brdf", "./res/brdfLUT.bmp");
-		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	}
 	if (!(shader = Shader::get_by_name("defaultPBR")))
 		shader = GLSL::parse("defaultPBR", "./res/shaders/defaultPBR.vert", "./res/shaders/defaultPBR.frag");
 }
@@ -67,11 +58,6 @@ void	PBRMaterial::bind_textures()
 	shader->set_uniform("in_Use_Texture_Height", texture_height ? true : false);
 	shader->bind_texture("in_Texture_AO", texture_ao, GL_TEXTURE8);
 	shader->set_uniform("in_Use_Texture_AO", texture_ao ? true : false);
-		shader->bind_texture("in_Texture_Env",
-		Engine::current_environment()->diffuse, GL_TEXTURE11);
-	shader->bind_texture("in_Texture_Env_Spec",
-		Engine::current_environment()->brdf, GL_TEXTURE12);
-	shader->bind_texture("in_Texture_BRDF", _texture_brdf, GL_TEXTURE13);
 }
 
 void	PBRMaterial::bind_values()
@@ -87,7 +73,6 @@ void	PBRMaterial::bind_values()
 void	PBRMaterial::load_textures()
 {
 	Material::load_textures();
-	_texture_brdf->load();
 	if (texture_specular)
 		texture_specular->load();
 	if (texture_roughness)

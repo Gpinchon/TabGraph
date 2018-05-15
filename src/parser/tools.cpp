@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   tools.c                                            :+:      :+:    :+:   */
+/*   tools.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/19 01:27:17 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/16 18:19:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/15 21:24:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ unsigned		count_char(const std::string &str, char c)
 	return (std::count(str.begin(), str.end(), c));
 }
 
-/*unsigned long long	hash(unsigned char *str)
+/*unsigned long long	hash(GLubyte *str)
 {
 	unsigned long long	hash;
 	int					c;

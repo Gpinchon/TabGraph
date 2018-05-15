@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Texture.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
+/*   Updated: 2018/05/15 21:07:36 by gpinchon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
 #include "GLIncludes.hpp"
@@ -24,8 +36,8 @@ public:
 	void			format(GLenum *format,
 						GLenum *internal_format);
 	GLuint			glid() const;
-	unsigned char	*data() const;
-	unsigned char	bpp() const;
+	GLubyte	*data() const;
+	GLubyte	bpp() const;
 	VEC2			size() const;
 	VEC4			texelfetch(const VEC2 &uv);
 	VEC4			sample(const VEC2 &uv);
@@ -40,7 +52,7 @@ protected:
 	GLenum		_target;
 	GLenum		_format;
 	GLenum		_internal_format;
-	unsigned char   *_data;
+	GLubyte   *_data;
 	bool		_loaded;
 	Texture(const std::string &name);
 };
