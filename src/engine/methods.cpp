@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/10 01:01:42 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/15 21:53:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void			Engine::_load_res(void)
 	struct dirent	*e;
 	std::string		folder;
 
-	folder = _get().program_path() + "res/skybox/";
+	folder = Engine::program_path() + "res/skybox/";
 	dir = opendir(folder.c_str());
 	while ((e = readdir(dir)))
 	{
@@ -87,16 +87,12 @@ void			Engine::_load_res(void)
 			continue;
 		std::string	name = e->d_name;
 		auto	newEnv = new Environment;
-		auto	t = Cubemap::parse(name, folder);
-		t->load();
-		newEnv->diffuse = t;
-		t = Cubemap::parse(name + "/light", folder);
-		t->load();
-		newEnv->brdf = t;
-		_get()._environments.push_back(newEnv);
+		newEnv->diffuse = Cubemap::parse(name, folder);
+		newEnv->brdf = Cubemap::parse(name + "/light", folder);
+		Engine::add(*newEnv);
 	}
 	closedir(dir);
-	_get()._environment = _get()._environments[0];
+	Engine::current_environment(Engine::environment(0));
 }
 void		Engine::add(Node &v)
 {
@@ -140,6 +136,12 @@ void		Engine::add(Framebuffer &v)
 {
 	_get()._framebuffers.push_back(&v);
 }
+
+void		Engine::add(Environment &v)
+{
+	_get()._environments.push_back(&v);
+}
+
 
 void			Engine::init(std::string &program_path)
 {

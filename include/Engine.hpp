@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/13 20:02:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/15 21:37:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ public :
 	static void		add(Shader &);
 	static void		add(Texture &);
 	static void		add(Framebuffer &);
+	static void		add(Environment &);
 	static float	&internal_quality();
 	static int8_t	&swap_interval();
 	static void		set_current_camera(Camera *camera);
