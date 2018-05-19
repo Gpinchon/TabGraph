@@ -1,19 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.c                                          :+:      :+:    :+:   */
+/*   methods.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/01 20:51:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/20 01:39:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
-#include "Shader.hpp"
 #include "Window.hpp"
 #include "Framebuffer.hpp"
+#include "Shader.hpp"
 
 Framebuffer::Framebuffer(const std::string &name) : Texture(name), _depth(nullptr), _shader(nullptr)
 {
@@ -32,18 +32,19 @@ Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader &sh
 	glGenFramebuffers(1, &f->_glid);
 	Engine::add(*f);
 	i = -1;
-	while (++i < color_attachements)
+	while (++i < color_attachements) {
 		f->create_attachement(GL_RGBA, GL_RGBA16F_ARB);
-	if (depth)
-		f->create_attachement(GL_DEPTH_COMPONENT,
-			GL_DEPTH_COMPONENT);
+	}
+	if (depth != 0) {
+		f->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+	}
 	f->setup_attachements();
 	return (f);
 }
 
-void			Framebuffer::bind(bool tobind)
+void			Framebuffer::bind(bool to_bind)
 {
-	if (!tobind)
+	if (!to_bind)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, Window::size().x, Window::size().y);
@@ -73,10 +74,11 @@ Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
 			GL_TEXTURE_2D, a->glid(), 0);
 		_depth = a;
 	}
-	else
+	else {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0
 			+ _color_attachements.size(), GL_TEXTURE_2D,
 			a->glid(), 0);
+	}
 	_color_attachements.push_back(a);
 	bind(false);
 	return (a);
@@ -95,8 +97,9 @@ void			Framebuffer::setup_attachements()
 		attachement(i).format(&format[0],
 			&format[1]);
 		a = GL_COLOR_ATTACHMENT0 + i;
-		if (format[0] != GL_DEPTH_ATTACHMENT)
+		if (format[0] != GL_DEPTH_ATTACHMENT) {
 			color_attachements.push_back(a);
+		}
 		i++;
 	}
 	bind();
@@ -119,14 +122,14 @@ void	Framebuffer::_resize_attachement(const int &attachement, const VEC2 &ns)
 
 void	Framebuffer::_resize_depth(const VEC2 &ns)
 {
-	if (!_depth)
+	if (_depth == nullptr)
 		return ;
 	Texture &t = *_depth;
 	/*glDeleteTextures(1, &t._glid);
 	glGenTextures(1, &t._glid);
 	glBindTexture(t._target, t._glid);
 	glTexImage2D(t._target, 0, t._internal_format, ns.x, ns.y, 0,
-		t._format, GL_FLOAT, NULL);
+		t._format, GL_FLOAT, nullptr);
 	glBindTexture(t._target, 0);*/
 	t.resize(ns);
 	t.set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/05 14:29:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/20 01:34:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,13 +31,15 @@ Camera		*Camera::create(const std::string &name, float fov)
 
 void	Camera::orbite(float phi, float theta, float radius)
 {
-	VEC3		target_position;
-	VEC3		new_position;
+	VEC3		target_position {new_vec3(0, 0, 0)};
+	VEC3		new_position {position()};
 
-	if (target)
+	if (target) {
 		target_position = target->position();
-	else
+	}
+	else {
 		target_position = new_vec3(0, 0, 0);
+	}
 	new_position.x = target_position.x + radius * sin(phi) * cos(theta);
 	new_position.z = target_position.z + radius * sin(phi) * sin(theta);
 	new_position.y = target_position.y + radius * cos(phi);
@@ -46,12 +48,10 @@ void	Camera::orbite(float phi, float theta, float radius)
 
 void	Camera::update()
 {
-	VEC3		target_position;
-	VEC2		size;
+	VEC3		target_position {target != nullptr ? target->position() : new_vec3(0, 0, 0)};
+	VEC2		size {Window::size()};
 
-	target_position = target ? target->position() : new_vec3(0, 0, 0);
 	view = mat4_lookat(position(), target_position, UP);
-	size = Window::size();
 	projection = mat4_perspective(fov,
 		size.x / size.y, 0.1, 1000);
 }

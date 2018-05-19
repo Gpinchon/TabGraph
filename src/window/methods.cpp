@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/10 01:04:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 22:58:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,12 @@
 #include "Framebuffer.hpp"
 #include <unistd.h>
 
-Window *g_window = nullptr;
+Window *Window::_instance = new Window();
+
+Window::Window()
+{
+	
+}
 
 /*
 ** window is a singleton
@@ -24,9 +29,7 @@ Window *g_window = nullptr;
 
 Window	&Window::_get(void)
 {
-	if (!g_window)
-		g_window = new Window();
-	return (*g_window);
+	return (*_instance);
 }
 
 void		Window::swap()

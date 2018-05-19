@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/10 01:01:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/20 00:35:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,15 +17,16 @@
 void	cubemap_load_side(Cubemap *texture, const std::string &path, GLenum side)
 {
 	auto	sideTexture = BMP::parse(path, path);
-	if (!sideTexture)
+	if (sideTexture == nullptr){
 		return ;
+	}
 	texture->assign(*sideTexture, side);
-	texture->sides[side - GL_TEXTURE_CUBE_MAP_POSITIVE_X] = sideTexture;
+	texture->sides.at(side - GL_TEXTURE_CUBE_MAP_POSITIVE_X) = sideTexture;
 }
 
 Cubemap::Cubemap(const std::string &name) : Texture(name)
 {
-	memset(sides, 0, sizeof(sides));
+	//memset(sides, 0, sizeof(sides));
 	_target = GL_TEXTURE_CUBE_MAP;
 	glGenTextures(1, &_glid);
 	glBindTexture(_target, _glid);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:20:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 20:19:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,9 @@
 #include "vml.h"
 #include <limits>
 
-struct	BoundingElement
+class	BoundingElement
 {
+public :
 	BoundingElement() : 
 	min(new_vec3(std::numeric_limits<float>::max(),
 		std::numeric_limits<float>::max(),

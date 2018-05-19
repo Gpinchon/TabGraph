@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/05/10 00:01:23 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/05/20 00:51:52 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -42,7 +42,7 @@ SRC			=	./src/main.cpp			\
 
 OBJ			=	$(SRC:.cpp=.o)
 HYPER_OBJ	=	final.o
-CC			=	g++
+CC			=	clang++
 
 INCLUDE_REP	=	./include				\
 				./libs/vml/include		\
@@ -52,7 +52,7 @@ LIBDIR		=	./libs/vml/
 LIBFILES	=	./libs/vml/libvml.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CXXFLAGS	=	-Ofast -std=c++11 -Wall -Wextra -Werror $(INCLUDE)
+CXXFLAGS	=	-Ofast -std=c++14 -Wall -Wextra -Werror $(INCLUDE)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -99,6 +99,9 @@ final.hyper: $(SRC)
 
 ./libs/libft/libft.a :
 	$(MAKE) -C ./libs/libft/
+
+tidy:
+	clang-tidy $(SRC) -checks=* -- $(CXXFLAGS) $(INCLUDE_REP)
 
 pull:
 	git pull

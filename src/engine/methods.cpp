@@ -6,15 +6,15 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:53:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/20 01:27:05 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser/InternalTools.hpp"
+#include "Camera.hpp"
 #include "Engine.hpp"
 #include "Window.hpp"
 #include "Events.hpp"
-#include "Camera.hpp"
 #include "Light.hpp"
 #include "Cubemap.hpp"
 #include "Renderable.hpp"
@@ -27,7 +27,7 @@
 #define _getcwd getcwd
 #endif //_getcwd
 
-Engine	*g_engine = nullptr;
+Engine	*Engine::_instance = new Engine();
 
 /*
 ** engine is a singleton
@@ -49,11 +49,9 @@ Engine::~Engine()
 
 }
 
-Engine	&Engine::_get(void)
+Engine	&Engine::_get()
 {
-	if (!g_engine)
-		g_engine = new Engine();
-	return (*g_engine);
+	return (*_instance);
 }
 
 Environment::Environment() : diffuse(nullptr), brdf(nullptr)
@@ -68,12 +66,13 @@ void		Engine::sort(renderable_compare compare)
 
 Environment		*Engine::current_environment(Environment *env)
 {
-	if (env)
+	if (env != nullptr) {
 		_get()._environment = env;
+	}
 	return (_get()._environment);
 }
 
-void			Engine::_load_res(void)
+void			Engine::_load_res()
 {
 	DIR				*dir;
 	struct dirent	*e;
@@ -83,8 +82,9 @@ void			Engine::_load_res(void)
 	dir = opendir(folder.c_str());
 	while ((e = readdir(dir)))
 	{
-		if (e->d_name[0] == '.')
-			continue;
+		if (e->d_name[0] == '.') {
+			continue ;
+		}
 		std::string	name = e->d_name;
 		auto	newEnv = new Environment;
 		newEnv->diffuse = Cubemap::parse(name, folder);
@@ -153,7 +153,6 @@ void			Engine::init(std::string &program_path)
 	_get()._program_path = _get()._program_path.substr(0, _get()._program_path.find_last_of('/'));
 	_get()._program_path += "/";
 	_get()._load_res();
-	//_get()._set_program_path(program_path);
 }
 
 float	Engine::delta_time()
@@ -181,7 +180,7 @@ int		event_filter(void *arg, SDL_Event *event)
 	return (Events::filter(arg, event));
 }
 
-void	Engine::update(void)
+void	Engine::update()
 {
 	unsigned	node_index = 0;
 	while (auto node = Engine::node(node_index))
@@ -191,7 +190,7 @@ void	Engine::update(void)
 	}
 }
 
-void	Engine::fixed_update(void)
+void	Engine::fixed_update()
 {
 	unsigned	node_index = 0;
 
@@ -209,7 +208,7 @@ void	Engine::fixed_update(void)
 	}
 }
 
-void	Engine::run(void)
+void	Engine::run()
 {
 	float	ticks;
 	float	last_ticks;
@@ -260,56 +259,64 @@ Camera		*Engine::current_camera()
 
 Camera		*Engine::camera(const unsigned &index)
 {
-	if (index >= _get()._cameras.size())
+	if (index >= _get()._cameras.size()) {
 		return (nullptr);
+	}
 	return (_get()._cameras[index]);
 }
 
 Light		*Engine::light(const unsigned &index)
 {
-	if (index >= _get()._lights.size())
+	if (index >= _get()._lights.size()) {
 		return (nullptr);
+	}
 	return (_get()._lights[index]);
 }
 
 Renderable	*Engine::renderable(const unsigned &index)
 {
-	if (index >= _get()._renderables.size())
+	if (index >= _get()._renderables.size()) {
 		return (nullptr);
+	}
 	return (_get()._renderables[index]);
 }
 
 Node			*Engine::node(const unsigned &index)
 {
-	if (index >= _get()._nodes.size())
+	if (index >= _get()._nodes.size()) {
 		return (nullptr);
+	}
 	return (_get()._nodes[index]);
 }
 
 Material		*Engine::material(const unsigned &index)
 {
-	if (index >= _get()._materials.size())
+	if (index >= _get()._materials.size()) {
 		return (nullptr);
+	}
 	return (_get()._materials[index]);
 }
 
 Shader		*Engine::shader(const unsigned &index)
 {
-	if (index >= _get()._shaders.size())
+	if (index >= _get()._shaders.size()) {
 		return (nullptr);
+	}
 	return (_get()._shaders[index]);
 }
 
 Texture		*Engine::texture(const unsigned &index)
 {
-	if (index >= _get()._textures.size())
+	if (index >= _get()._textures.size()) {
 		return (nullptr);
+	}
 	return (_get()._textures[index]);
 }
 
 Environment	*Engine::environment(const unsigned &index)
 {
-	if (index >= _get()._environments.size())
+	if (index >= _get()._environments.size()) {
 		return (nullptr);
+	}
 	return (_get()._environments[index]);
 }

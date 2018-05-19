@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:50:23 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/13 18:50:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 23:03:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,11 @@ public :
 	static Framebuffer	&render_buffer();
 private :
 	static Window	&_get();
-	SDL_Window	    *_sdl_window;
+	static Window	*_instance;
+	SDL_Window	    *_sdl_window{nullptr};
 	SDL_GLContext	_gl_context;
 	VEC4		    _clear_color;
 	GLbitfield  	_clear_mask;
-	Framebuffer		*_render_buffer;
-	Window() {};
+	Framebuffer		*_render_buffer{nullptr};
+	Window();
 };

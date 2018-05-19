@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:16:45 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:24:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 23:05:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,30 +22,29 @@
 #  define O_BINARY 0x0004
 # endif
 
-typedef struct					s_obj_parser
+struct	t_obj_parser
 {
-	s_obj_parser() : fd(nullptr), parent(nullptr), vg(nullptr) {};
 	std::vector<std::string>	path_split;
-	FILE						*fd;
+	FILE						*fd{nullptr};
 	std::vector<VEC3>			v;
 	std::vector<VEC3>			vn;
 	std::vector<VEC2>			vt;
-	Mesh						*parent;
-	Mesh						*vg;
+	Mesh						*parent{nullptr};
+	Mesh						*vg{nullptr};
 	AABB						bbox;
-}								t_obj_parser;
+};
 
 # pragma pack(1)
-typedef struct	s_bmp_header
+struct	t_bmp_header
 {
 	short		type;
 	unsigned	size;
 	short		reserved1;
 	short		reserved2;
 	unsigned	data_offset;
-}				t_bmp_header;
+};
 
-typedef struct	s_bmp_info
+struct	t_bmp_info
 {
 	unsigned	header_size;
 	int			width;
@@ -58,17 +57,17 @@ typedef struct	s_bmp_info
 	int			vertical_resolution;
 	int			colors;
 	int			important_colors;
-}				t_bmp_info;
+};
 # pragma pack()
 
-typedef struct	s_bmp_parser
+struct	t_bmp_parser
 {
 	int					fd;
 	t_bmp_info			info;
 	t_bmp_header		header;
-	GLubyte		*data;
+	GLubyte				*data{nullptr};
 	unsigned			size_read;
-}				t_bmp_parser;
+};
 
 
 VEC3			parse_vec3(std::vector<std::string> &split);

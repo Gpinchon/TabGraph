@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:07:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 23:00:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,23 +14,26 @@
 
 #include "Node.hpp"
 
-struct	Light : public Node
+class	Light : public Node
 {
-	int8_t		type;
-	int8_t		cast_shadow;
-	Framebuffer		*render_buffer;
+public :
+	int8_t			type;
+	int8_t			cast_shadow;
+	Framebuffer		*render_buffer{nullptr};
 };
 
-struct PointLight : public Light
+class PointLight : public Light
 {
+public :
 	VEC3		color;
 	float		power;
 	float		attenuation;
 	float		falloff;
 };
 
-struct DirectionnalLight : public Light
+class DirectionnalLight : public Light
 {
+public :
 	VEC3		color;
 	float		power;
 };

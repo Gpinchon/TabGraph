@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:12:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 20:49:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 23:03:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,9 @@
 class Texture;
 class Shader;
 
-struct	Material
+class	Material
 {
+public :
 	static Material *create(const std::string &);
 	static Material	*get_by_name(const std::string &);
 	virtual void	bind_values();

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:37:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 23:02:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,14 @@
 # include <string>
 
 # ifndef M_PI
-const auto M_PI         = 3.14159265359;
+const auto M_PI			= 3.14159265359f;
 # endif //M_PI
-const auto SHADOWRES    = 2048;
-const auto UP           = (VEC3){0, 1, 0};
-const auto ANISOTROPY   = 4.f;
-const auto MSAA         = 4;
-const auto BLOOMPASS    = 2;
-const auto MAXTEXRES    = 1024;
+const auto SHADOWRES	= 2048;
+const auto UP			= (VEC3){0, 1, 0};
+const auto ANISOTROPY	= 4.f;
+const auto MSAA			= 4;
+const auto BLOOMPASS	= 2;
+const auto MAXTEXRES	= 1024;
 
 class Material;
 class Shader;
@@ -88,6 +88,7 @@ public :
 private :
 	Engine();
 	static Engine				&_get();
+	static Engine				*_instance;
 	void						_set_program_path(std::string &argv0);
 	void						_load_res();
 	bool						_loop;
@@ -96,8 +97,8 @@ private :
 	std::string					_program_path;
 	std::string					_exec_path;
 	float						_internal_quality;
-	Camera						*_current_camera;
-	Environment					*_environment;
+	Camera						*_current_camera{nullptr};
+	Environment					*_environment{nullptr};
 	std::vector<Node *>			_nodes;
 	std::vector<Renderable *>	_renderables;
 	std::vector<Camera *>		_cameras;

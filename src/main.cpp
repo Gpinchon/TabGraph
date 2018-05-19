@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:14:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 22:46:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@
 	return (Engine::get().lights.size() - 1);
 }*/
 
-void	setup_callbacks(void)
+void	setup_callbacks()
 {
 	Events::set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
 	Events::set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
@@ -65,12 +65,13 @@ int		main(int argc, char *argv[])
 		new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 	obj = nullptr;
-	if (argc >= 2)
+	if (argc >= 2) {
 		obj = OBJ::parse("main_mesh", argv[1]);
-	if (argc > 2 || !obj)
+	}
+	if (argc > 2 || obj == nullptr) {
 		obj = OBJ::parse("main_mesh", "./res/obj/chart.obj");
-	if (obj)
-	{
+	}
+	if (obj != nullptr) {
 		obj->center();
 		obj->load();
 	}

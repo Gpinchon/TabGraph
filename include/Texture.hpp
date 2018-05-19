@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:07:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 23:02:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ protected:
 	GLenum		_target;
 	GLenum		_format;
 	GLenum		_internal_format;
-	GLubyte   *_data;
+	GLubyte		*_data{nullptr};
 	bool		_loaded;
 	Texture(const std::string &name);
 };

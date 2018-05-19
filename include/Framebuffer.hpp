@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:08:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/19 23:01:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,6 @@ private :
 	void		_resize_attachement(const int &, const VEC2 &);
 	void		resize_attachement(const int &, const VEC2 &);
 	std::vector<Texture*>	_color_attachements;
-	Texture		*_depth;
-	Shader		*_shader;
+	Texture		*_depth{nullptr};
+	Shader		*_shader{nullptr};
 };
