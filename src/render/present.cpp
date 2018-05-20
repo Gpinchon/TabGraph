@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   present.c                                          :+:      :+:    :+:   */
+/*   present.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/13 16:28:23 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/16 18:28:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/20 17:29:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
-#include "Window.hpp"
 #include "Camera.hpp"
+#include "Window.hpp"
 #include "Cubemap.hpp"
 #include "Framebuffer.hpp"
 #include "parser/GLSL.hpp"
@@ -40,8 +40,9 @@ void		render_present()
 {
 	MAT4		matrix;
 
-	if (!Engine::current_camera())
+	if (Engine::current_camera() == nullptr) {
 		return ;
+	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	glViewport(0, 0, Window::size().x, Window::size().y);
