@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/19 23:02:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/20 20:52:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ class Environment
 public:
 	static Environment *parse(const std::string &, const std::string &);
 	Environment();
-	~Environment();
+	~Environment() = default;
 	Cubemap	*diffuse;
 	Cubemap *brdf;
 };

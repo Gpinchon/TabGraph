@@ -12,8 +12,8 @@
 
 #include "Engine.hpp"
 #include "PBRMaterial.hpp"
-#include "parser/OBJ.hpp"
 #include "parser/InternalTools.hpp"
+#include "parser/OBJ.hpp"
 
 static void	vt_min_max(Mesh *vg)
 {
@@ -21,14 +21,18 @@ static void	vt_min_max(Mesh *vg)
 	vg->uvmax = new_vec2(-100000, -100000);
 	for (auto &vt : vg->vt)
 	{
-		if (vt.x < vg->uvmin.x)
+		if (vt.x < vg->uvmin.x) {
 			vg->uvmin.x = vt.x;
-		if (vt.y < vg->uvmin.y)
+}
+		if (vt.y < vg->uvmin.y) {
 			vg->uvmin.y = vt.y;
-		if (vt.x > vg->uvmax.x)
+}
+		if (vt.x > vg->uvmax.x) {
 			vg->uvmax.x = vt.x;
-		if (vt.y > vg->uvmax.y)
+}
+		if (vt.y > vg->uvmax.y) {
 			vg->uvmax.y = vt.y;
+}
 	}
 	if (vg->uvmin.x == vg->uvmax.x)
 	{
@@ -45,7 +49,7 @@ static void	vt_min_max(Mesh *vg)
 void		parse_vg(t_obj_parser *p)
 {
 	static int	childNbr = 0;
-	if (p->vg->v.size() > 0)
+	if (!p->vg->v.empty())
 	{
 		childNbr++;
 		vt_min_max(p->vg);
@@ -58,7 +62,7 @@ void		parse_vg(t_obj_parser *p)
 void		correct_vt(VEC2 *vt)
 {
 	VEC3		v[3];
-	VEC3		texnormal;
+	VEC3		texnormal{};
 
 	v[0] = vec2_to_vec3(vt[0], 0);
 	v[1] = vec2_to_vec3(vt[1], 0);
@@ -66,19 +70,22 @@ void		correct_vt(VEC2 *vt)
 	texnormal = vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0]));
 	if (texnormal.z > 0)
 	{
-		if (vt[0].x < 0.25f)
+		if (vt[0].x < 0.25f) {
 			vt[0].x += 1.f;
-		if (vt[1].x < 0.25f)
+}
+		if (vt[1].x < 0.25f) {
 			vt[1].x += 1.f;
-		if (vt[2].x < 0.25f)
+}
+		if (vt[2].x < 0.25f) {
 			vt[2].x += 1.f;
+}
 	}
 }
 
 VEC2		generate_vt(VEC3 v, VEC3 center)
 {
-	VEC2		vt;
-	VEC3		vec;
+	VEC2		vt{};
+	VEC3		vec{};
 
 	vec = vec3_normalize(vec3_sub(center, v));
 	vt.x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));

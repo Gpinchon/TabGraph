@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:24:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/21 01:02:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include "parser/BMP.hpp"
 #include "parser/InternalTools.hpp"
+#include <stdexcept>
 #include <unistd.h>
 
 static void	convert_bmp(t_bmp_parser *parser)
@@ -45,26 +46,34 @@ static void	convert_bmp(t_bmp_parser *parser)
 	parser->data = pixel_temp;
 }
 
-static int	read_data(t_bmp_parser *p, const char *imagepath)
+static int	read_data(t_bmp_parser *p, const std::string &path)
 {
 	unsigned	data_size;
 
-	if ((p->fd = open(imagepath, O_RDONLY | O_BINARY)) <= 0)
-		return (-1);
-	if (read(p->fd, &p->header, sizeof(p->header)) != sizeof(p->header)
-	|| read(p->fd, &p->info, sizeof(p->info)) != sizeof(p->info)
-	|| p->header.type != 0x4D42)
-	{
-		close(p->fd);
-		return (-1);
+	if (access(path.c_str(), R_OK) != 0) {
+		throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
+	}
+	if ((p->fd = fopen(path.c_str(), "rb")) == nullptr) {
+		throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
+	}
+	auto readReturn = fread(&p->header, 1, sizeof(p->header), p->fd);
+	if (readReturn != sizeof(p->header) || p->header.type != 0x4D42) {
+		fclose(p->fd);
+		throw std::runtime_error("Wrong Header");
+	}
+	readReturn = fread(&p->info, 1, sizeof(p->info), p->fd);
+	if (readReturn != sizeof(p->info)) {
+		fclose(p->fd);
+		throw std::runtime_error("Wrong Info");
 	}
 	data_size = p->info.bpp / 8 * p->info.width * p->info.height;
-	lseek(p->fd, p->header.data_offset, SEEK_SET);
+	fseek(p->fd, p->header.data_offset, SEEK_SET);
 	p->data = new GLubyte[data_size];
-	p->size_read = read(p->fd, p->data, data_size);
-	close(p->fd);
-	if (p->info.bpp == 32)
+	p->size_read = fread(p->data, sizeof(unsigned char), data_size, p->fd);
+	fclose(p->fd);
+	if (p->info.bpp == 32) {
 		convert_bmp(p);
+	}
 	return (0);
 }
 
@@ -92,16 +101,18 @@ static void	get_format(GLubyte bpp, GLenum *format, GLenum *internal_format)
 	}
 }
 
-Texture		*BMP::parse(const std::string &texture_name, const std::string &imagepath)
+Texture		*BMP::parse(const std::string &texture_name, const std::string &path)
 {
 	t_bmp_parser	parser;
 	BMP				*texture;
 	GLenum			format[2];
 
-	if (access(imagepath.c_str(), F_OK | R_OK))
-		return (nullptr);
-	if (read_data(&parser, imagepath.c_str()) == -1)
-		return (nullptr);
+	try {
+		read_data(&parser, path);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error reading ") + path + " :\n" + e.what());
+	}
 	get_format(parser.info.bpp, &format[0], &format[1]);
 	texture = static_cast<BMP*>(Texture::create(texture_name, new_vec2(parser.info.width, parser.info.height),
 			GL_TEXTURE_2D, format[0], format[1]));

@@ -54,7 +54,7 @@ public:
 	bool			in_use();
 protected:
 	std::map<std::string, ShaderVariable>	_get_variables(GLenum type);
-	size_t			_id;
+	size_t			_id{};
 	std::string	    _name;
 	GLuint		    _program;
 	bool		    _in_use;

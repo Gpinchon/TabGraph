@@ -11,11 +11,11 @@
 /* ************************************************************************** */
 
 #include "Engine.hpp"
-#include "Window.hpp"
-#include "Shader.hpp"
 #include "Framebuffer.hpp"
+#include "Shader.hpp"
+#include "Window.hpp"
 
-static Framebuffer	&generate_blur_fb(void)
+static Framebuffer	&generate_blur_fb()
 {
 	auto	blur = Framebuffer::create("blur", vec2_scale(Window::size(),
 	Engine::internal_quality()), *Shader::get_by_name("blur"), 0, 0);
@@ -29,8 +29,9 @@ void	Texture::blur(const int &pass, const float &radius)
 	static Framebuffer	*blur = nullptr;
 	Texture				*color0;
 
-	if (!blur)
+	if (blur == nullptr) {
 		blur = &generate_blur_fb();
+}
 	blur->resize(size());
 	blur->bind();
 	glDisable(GL_DEPTH_TEST);
@@ -43,7 +44,7 @@ void	Texture::blur(const int &pass, const float &radius)
 	color0 = &blur->attachement(0);
 	while (totalPass >= 0)
 	{
-		VEC2			direction;
+		VEC2			direction{};
 		Texture			*temp;
 		static float	angle = 0;
 

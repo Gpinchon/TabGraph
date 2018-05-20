@@ -20,10 +20,10 @@ struct	PBRMaterial : public Material
 	void	bind_values();
 	void	bind_textures();
 	void	load_textures();
-	VEC3		specular;
-	float		roughness;
-	float		metallic;
-	float		parallax;
+	VEC3		specular{};
+	float		roughness{};
+	float		metallic{};
+	float		parallax{};
 	Texture		*texture_specular;
 	Texture		*texture_roughness;
 	Texture		*texture_metallic;

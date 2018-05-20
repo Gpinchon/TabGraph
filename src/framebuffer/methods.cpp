@@ -11,9 +11,9 @@
 /* ************************************************************************** */
 
 #include "Engine.hpp"
-#include "Window.hpp"
 #include "Framebuffer.hpp"
 #include "Shader.hpp"
+#include "Window.hpp"
 
 Framebuffer::Framebuffer(const std::string &name) : Texture(name), _depth(nullptr), _shader(nullptr)
 {
@@ -122,8 +122,9 @@ void	Framebuffer::_resize_attachement(const int &attachement, const VEC2 &ns)
 
 void	Framebuffer::_resize_depth(const VEC2 &ns)
 {
-	if (_depth == nullptr)
+	if (_depth == nullptr) {
 		return ;
+}
 	Texture &t = *_depth;
 	/*glDeleteTextures(1, &t._glid);
 	glGenTextures(1, &t._glid);
@@ -145,8 +146,9 @@ void		Framebuffer::resize(const VEC2 &new_size)
 {
 	unsigned		i;
 
-	if (size().x == new_size.x && size().y == new_size.y)
+	if (size().x == new_size.x && size().y == new_size.y) {
 		return ;
+}
 	bind();
 	_size = new_size;
 	i = 0;

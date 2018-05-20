@@ -34,7 +34,7 @@ void	Camera::orbite(float phi, float theta, float radius)
 	VEC3		target_position {new_vec3(0, 0, 0)};
 	VEC3		new_position {position()};
 
-	if (target) {
+	if (target != nullptr) {
 		target_position = target->position();
 	}
 	else {

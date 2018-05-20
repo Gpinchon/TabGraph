@@ -11,8 +11,8 @@
 /* ************************************************************************** */
 
 #include "Engine.hpp"
-#include "parser/OBJ.hpp"
 #include "parser/InternalTools.hpp"
+#include "parser/OBJ.hpp"
 
 VEC3		parse_vec3(std::vector<std::string> &split)
 {
@@ -23,8 +23,9 @@ VEC3		parse_vec3(std::vector<std::string> &split)
 	memset(v, 0, sizeof(float) * 3);
 	while (i < 3)
 	{
-		if ((i + 1) >= split.size())
+		if ((i + 1) >= split.size()) {
 			break ;
+}
 		v[i] = std::stof(split[i + 1]);
 		i++;
 	}
@@ -40,8 +41,9 @@ VEC2		parse_vec2(std::vector<std::string> &split)
 	memset(v, 0, sizeof(float) * 2);
 	while (i < 2)
 	{
-		if ((i + 1) >= split.size())
+		if ((i + 1) >= split.size()) {
 			break ;
+}
 		v[i] = std::stof(split[i + 1]);
 		i++;
 	}
@@ -50,8 +52,8 @@ VEC2		parse_vec2(std::vector<std::string> &split)
 
 void		parse_vtn(t_obj_parser *p, std::vector<std::string> &split)
 {
-	VEC3	v;
-	VEC2	vn;
+	VEC3	v{};
+	VEC2	vn{};
 
 	if (split[0] == "v")
 	{

@@ -6,14 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/23 19:37:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:24:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/20 18:11:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser/BMP.hpp"
 #include "parser/InternalTools.hpp"
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 static void	prepare_header(t_bmp_header *header, t_bmp_info *info, const Texture &t)
 {
@@ -34,8 +34,8 @@ static void	prepare_header(t_bmp_header *header, t_bmp_info *info, const Texture
 
 void		BMP::save(const Texture &t, const std::string &imagepath)
 {
-	t_bmp_header	header;
-	t_bmp_info		info;
+	t_bmp_header	header{};
+	t_bmp_info		info{};
 	GLubyte	*padding;
 	int				fd;
 

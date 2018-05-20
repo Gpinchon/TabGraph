@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:16:45 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/19 23:05:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/21 00:45:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include "Texture.hpp"
 #include <vector>
 #include <string>
-# include <fcntl.h>
+#include <fcntl.h>
 
 # ifndef O_BINARY
 #  define O_BINARY 0x0004
@@ -62,14 +62,14 @@ struct	t_bmp_info
 
 struct	t_bmp_parser
 {
-	int					fd;
+	FILE				*fd;
 	t_bmp_info			info;
 	t_bmp_header		header;
 	GLubyte				*data{nullptr};
 	unsigned			size_read;
 };
 
-
+std::string		access_get_error(const int &access_result);
 VEC3			parse_vec3(std::vector<std::string> &split);
 VEC2			parse_vec2(std::vector<std::string> &split);
 void			parse_vg(t_obj_parser *p);

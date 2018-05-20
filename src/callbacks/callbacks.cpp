@@ -21,12 +21,12 @@ static inline void	callback_get_v(VEC4 *v0, VEC4 *v1, const std::vector<Uint8> &
 	*v0 = vec4_add(*v0, new_vec4(
 		s.at(DOWNK) != 0u ? 0.1 : -0.2,
 		s.at(LEFTK) != 0u ? 0.1 : -0.2,
-		(s.at(UNZOOMK) && !s.at(SDL_SCANCODE_LCTRL)) != 0u ? 0.1 : -0.2,
+		static_cast<unsigned int>((s.at(UNZOOMK) != 0u) && (s.at(SDL_SCANCODE_LCTRL) == 0u)) != 0u ? 0.1 : -0.2,
 		s.at(SDL_SCANCODE_PAGEUP) != 0u ? 0.1 : -0.2));
 	*v1 = vec4_add(*v1, new_vec4(
 		s.at(UPK) != 0u ? 0.1 : -0.2,
 		s.at(RIGHTK) != 0u ? 0.1 : -0.2,
-		(s.at(ZOOMK) && !s.at(SDL_SCANCODE_LCTRL)) != 0u ? 0.1 : -0.2,
+		static_cast<unsigned int>((s.at(ZOOMK) != 0u) && (s.at(SDL_SCANCODE_LCTRL) == 0u)) != 0u ? 0.1 : -0.2,
 		s.at(SDL_SCANCODE_PAGEDOWN) != 0u ? 0.1 : -0.2));
 	*v0 = new_vec4(CLAMP(v0->x, 0, 1), CLAMP(v0->y, 0, 1),
 		CLAMP(v0->z, 0, 1), CLAMP(v0->w, 0, 1));
@@ -57,8 +57,8 @@ void				callback_camera(SDL_Event */*unused*/)
 	callback_get_v(&v[0], &v[1], s);
 	val.x += (s.at(DOWNK) + v[0].x) * mv + (s.at(UPK) + v[1].x) * -mv;
 	val.y += (s.at(LEFTK) + v[0].y) * mv + (s.at(RIGHTK) + v[1].y) * -mv;
-	val.z += ((s.at(UNZOOMK) && !s.at(SDL_SCANCODE_LCTRL)) + v[0].z) * mv;
-	val.z += ((s.at(ZOOMK) && !s.at(SDL_SCANCODE_LCTRL)) + v[1].z) * -mv;
+	val.z += (static_cast<float>((s.at(UNZOOMK) != 0u) && (s.at(SDL_SCANCODE_LCTRL) == 0u)) + v[0].z) * mv;
+	val.z += (static_cast<float>((s.at(ZOOMK) != 0u) && (s.at(SDL_SCANCODE_LCTRL) == 0u)) + v[1].z) * -mv;
 	t->position().y += (s.at(SDL_SCANCODE_PAGEUP) + v[0].w) * mv;
 	t->position().y += (s.at(SDL_SCANCODE_PAGEDOWN) + v[1].w) * -mv;
 	val.x = CLAMP(val.x, 0.01, M_PI - 0.01);
@@ -76,13 +76,13 @@ void	callback_scale(SDL_Event *event)
 	}
 	auto	mesh = Mesh::get_by_name("main_mesh");
 	auto	s = keys();
-	if (!s.at(SDL_SCANCODE_LCTRL)) {
+	if (s.at(SDL_SCANCODE_LCTRL) == 0u) {
 		return ;
 	}
-	if (s.at(SDL_SCANCODE_KP_PLUS)) {
+	if (s.at(SDL_SCANCODE_KP_PLUS) != 0u) {
 		scale += (0.005 * (s.at(SDL_SCANCODE_LSHIFT) + 1));
 	}
-	else if (s.at(SDL_SCANCODE_KP_MINUS)) {
+	else if (s.at(SDL_SCANCODE_KP_MINUS) != 0u) {
 		scale -= (0.005 * (s.at(SDL_SCANCODE_LSHIFT) + 1));
 	}
 	scale = CLAMP(scale, 0.0001, 1000);
@@ -93,12 +93,12 @@ void	callback_background(SDL_Event *event)
 {
 	static int	b = 0;
 
-	if (event == nullptr || (event->type == SDL_KEYUP || event->key.repeat)) {
+	if (event == nullptr || (event->type == SDL_KEYUP || (event->key.repeat != 0u))) {
 		return ;
 	}
 	b++;
 	Environment	*env;
-	if ((env = Engine::environment(b))) {
+	if ((env = Engine::environment(b)) != nullptr) {
 		Engine::current_environment(env);
 	}
 	else {
@@ -140,7 +140,7 @@ void	callback_fullscreen(SDL_Event *event)
 	static bool	fullscreen = false;
 	auto		s = keys();
 
-	if (s.at(SDL_SCANCODE_RETURN) && s.at(SDL_SCANCODE_LALT)) {
+	if ((s.at(SDL_SCANCODE_RETURN) != 0u) && (s.at(SDL_SCANCODE_LALT) != 0u)) {
 		fullscreen = !fullscreen;
 		Window::fullscreen(fullscreen);
 	}

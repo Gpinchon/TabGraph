@@ -13,7 +13,7 @@
 #include "Engine.hpp"
 #include "Node.hpp"
 
-Node::Node(const std::string &name) : parent(nullptr), children(), bounding_element(nullptr), _id(0), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))
+Node::Node(const std::string &name) : parent(nullptr),  bounding_element(nullptr), _id(0), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))
 {
 	set_name(name);
 }
@@ -34,7 +34,7 @@ Node	*Node::get_by_name(const std::string &name)
 	i = 0;
 	std::hash<std::string>	hash_fn;
 	h = hash_fn(name);
-	while ((m = Engine::node(i)))
+	while ((m = Engine::node(i)) != nullptr)
 	{
 		if (h == m->_id) {
 			return (m);

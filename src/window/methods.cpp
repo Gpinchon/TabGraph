@@ -6,28 +6,26 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/19 22:58:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/21 01:05:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Framebuffer.hpp"
 #include "Window.hpp"
 #include "parser/GLSL.hpp"
-#include "Framebuffer.hpp"
 #include <unistd.h>
 
 Window *Window::_instance = new Window();
 
 Window::Window()
-{
-	
-}
+= default;
 
 /*
 ** window is a singleton
 */
 
-Window	&Window::_get(void)
+Window	&Window::_get()
 {
 	return (*_instance);
 }
@@ -50,24 +48,27 @@ void		Window::init(const std::string &name, int width, int height)
 		SDL_WINDOWPOS_CENTERED, width, height,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
 		SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
-	if (!_get()._sdl_window)
+	if (_get()._sdl_window == nullptr) {
 		throw std::runtime_error(SDL_GetError());
+}
 	_get()._gl_context = SDL_GL_CreateContext(_get()._sdl_window);
-	if (!_get()._gl_context)
+	if (_get()._gl_context == nullptr) {
 		throw std::runtime_error(SDL_GetError());
+}
 	_get()._clear_mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
 	glewExperimental = GL_TRUE;
 	auto error = glewInit();
-	if (error != GLEW_OK)
+	if (error != GLEW_OK) {
 		throw std::runtime_error(reinterpret_cast<const char*>(glewGetErrorString(error)));
+}
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	GLSL::parse("render",
-		"./res/shaders/render.vert", "./res/shaders/render.frag");
+		Engine::program_path() + "./res/shaders/render.vert", Engine::program_path() + "./res/shaders/render.frag");
 	GLSL::parse("shadow",
-		"./res/shaders/shadow.vert", "./res/shaders/shadow.frag");
+		Engine::program_path() + "./res/shaders/shadow.vert", Engine::program_path() + "./res/shaders/shadow.frag");
 	GLSL::parse("blur",
-		"./res/shaders/blur.vert", "./res/shaders/blur.frag");
+		Engine::program_path() + "./res/shaders/blur.vert", Engine::program_path() + "./res/shaders/blur.frag");
 	_get()._render_buffer = Framebuffer::create(
 		"window_render_buffer", vec2_scale(_get().size(),
 		Engine::internal_quality()), *Shader::get_by_name("render"), 0, 0);
@@ -84,7 +85,7 @@ GLbitfield	&Window::clear_mask()
 	return (_get()._clear_mask);
 }
 
-VEC2		Window::size(void)
+VEC2		Window::size()
 {
 	int	w;
 	int	h;
@@ -93,9 +94,9 @@ VEC2		Window::size(void)
 	return (new_vec2(w, h));
 }
 
-void		Window::resize(void)
+void		Window::resize()
 {
-	VEC2		size;
+	VEC2		size{};
 	static VEC2	lastSize = new_vec2(0, 0);
 
 	size = vec2_scale(Window::size(),

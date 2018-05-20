@@ -19,14 +19,14 @@
 class	Texture
 {
 public:
-	static Texture	*create(const std::string &name, VEC2 size, GLenum target, GLenum format, GLenum internal_format);
+	static Texture	*create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi);
 	static Texture	*get_by_name(const std::string &);
-	void			resize(const VEC2 &new_size);
+	void			resize(const VEC2 &ns);
 	void			set_name(const std::string &);
 	void			set_parameter(GLenum p, GLenum v);
-	void			set_parameters(int parameter_nbr,
-						GLenum *parameters, GLenum *values);
-	void			assign(Texture &texture,
+	void			set_parameters(int p_nbr,
+						GLenum *p, GLenum *v);
+	void			assign(Texture &dest_texture,
 						GLenum target);
 	void			load();
 	void			generate_mipmap();
@@ -44,7 +44,7 @@ public:
 	const std::string	&name();
 	const std::string	&name() const;
 protected:
-	size_t		_id;
+	size_t		_id{};
 	GLuint		_glid;
 	std::string	_name;
 	VEC2		_size;

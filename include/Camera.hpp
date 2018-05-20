@@ -21,10 +21,10 @@ public :
 	static Camera	*create(const std::string &, float fov);
 	void			orbite(float phi, float theta, float radius);
 	void			update();
-	MAT4			view;
-	MAT4			projection;
-	FRUSTUM			frustum;
-	float			fov;
+	MAT4			view{};
+	MAT4			projection{};
+	FRUSTUM			frustum{};
+	float			fov{};
 	Node			*target{nullptr};
 private :
 	Camera(const std::string &name);

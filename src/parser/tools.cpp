@@ -6,12 +6,43 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/19 01:27:17 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:24:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/21 00:32:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include <algorithm>
+#include <unistd.h>
+#include <stdexcept>
+#include <iostream>
+
+std::string	access_get_error(const int &access_result)
+{
+	std::string	errorMessage;
+
+	std::cout << ENOENT << " " << access_result << std::endl;
+	switch (access_result) {
+		case EACCES :
+			errorMessage = "Permission Denied";
+			break;
+		case ELOOP :
+			errorMessage = "Symbolic Loop";
+			break;
+		case ENAMETOOLONG :
+			errorMessage = "Name Too Long";
+			break;
+		case ENOENT :
+			errorMessage = "No Such File";
+			break;
+		case ENOTDIR :
+			errorMessage = "Wrong Path";
+			break;
+		case EROFS :
+			errorMessage = "File is Read Only";
+			break;
+	}
+	return (errorMessage);
+}
 
 std::string	stream_to_str(FILE *stream)
 {
@@ -39,7 +70,7 @@ std::vector<std::string>	split_path(const std::string &path)
 {
 	std::vector<std::string>	final_path(2);
 	auto	localPath = convert_backslash(path);
-	auto	slashpos = localPath.find_last_of("/");
+	auto	slashpos = localPath.find_last_of('/');
 
 	final_path[0] = std::string(localPath.substr(0, slashpos)) + "/";
 	final_path[1] = std::string(localPath.substr(slashpos));
@@ -51,17 +82,20 @@ std::vector<std::string>	strsplit(const std::string &s, char c)
 	size_t	pos = 0;
 	size_t	needle = 0;
 	std::vector<std::string>	ret;
-	while (s[needle] == c)
+	while (s[needle] == c) {
 		needle++;
+}
 	while ((pos = s.find(c, needle)) != std::string::npos)
 	{
 		ret.push_back(s.substr(needle, pos - needle));
-		while (s[pos] == c)
+		while (s[pos] == c) {
 			pos++;
+}
 		needle = pos;
 	}
-	if (needle < s.length())
+	if (needle < s.length()) {
 		ret.push_back(s.substr(needle));
+}
 	return (ret);
 }
 
@@ -74,16 +108,19 @@ std::vector<std::string>	strsplitwspace(const std::string &s)
 	{
 		if (s[pos] != ' ' && s[pos] != '\t' && s[pos] != '\n')
 		{
-			while (pos < s.length() && s[pos] != ' ' && s[pos] != '\t' && s[pos] != '\n')
+			while (pos < s.length() && s[pos] != ' ' && s[pos] != '\t' && s[pos] != '\n') {
 				pos++;
+}
 			ret.push_back(s.substr(needle, pos - needle));
 		}
-		while (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n')
+		while (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n') {
 			pos++;
+}
 		needle = pos;
 	}
-	if (needle < s.length())
+	if (needle < s.length()) {
 		ret.push_back(s.substr(needle));
+}
 	return (ret);
 }
 

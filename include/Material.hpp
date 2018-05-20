@@ -30,13 +30,13 @@ public :
 	const std::string		&name();
 	Shader			*shader;
 	VEC3			albedo;
-	VEC3			emitting;
+	VEC3			emitting{};
 	VEC2			uv_scale;
 	float			alpha;
 	Texture			*texture_albedo;
 protected :
 	static Texture	*_texture_brdf;
 	std::string		_name;
-	size_t			_id;
+	size_t			_id{};
 	Material(const std::string &name);
 };

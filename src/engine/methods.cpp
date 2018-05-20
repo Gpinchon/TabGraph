@@ -6,22 +6,22 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/20 01:27:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/20 21:32:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser/InternalTools.hpp"
 #include "Camera.hpp"
-#include "Engine.hpp"
-#include "Window.hpp"
-#include "Events.hpp"
-#include "Light.hpp"
 #include "Cubemap.hpp"
-#include "Renderable.hpp"
+#include "Engine.hpp"
+#include "Events.hpp"
 #include "Framebuffer.hpp"
+#include "Light.hpp"
+#include "Renderable.hpp"
+#include "Window.hpp"
+#include <algorithm>
 #include <dirent.h>
 #include <unistd.h>
-#include <algorithm>
 
 #ifndef _getcwd
 #define _getcwd getcwd
@@ -33,6 +33,8 @@ Engine	*Engine::_instance = new Engine();
 ** engine is a singleton
 */
 
+#include <iostream>
+
 Engine::Engine() :
 	_loop(),
 	_swap_interval(1),
@@ -41,13 +43,17 @@ Engine::Engine() :
 	_current_camera(nullptr),
 	_environment(nullptr)
 {
-
+	_loop = true;
+	_swap_interval = 1;
+	_internal_quality = 0.5;
+	_exec_path = convert_backslash(_getcwd(nullptr, 4096)) + "/";
+	_program_path = convert_backslash(SDL_GetBasePath());
+	_program_path = _program_path.substr(0, _program_path.find_last_of('/'));
+	_program_path += "/";
 }
 
 Engine::~Engine()
-{
-
-}
+= default;
 
 Engine	&Engine::_get()
 {
@@ -80,15 +86,27 @@ void			Engine::_load_res()
 
 	folder = Engine::program_path() + "res/skybox/";
 	dir = opendir(folder.c_str());
-	while ((e = readdir(dir)))
+	while ((e = readdir(dir)) != nullptr)
 	{
 		if (e->d_name[0] == '.') {
 			continue ;
 		}
 		std::string	name = e->d_name;
 		auto	newEnv = new Environment;
-		newEnv->diffuse = Cubemap::parse(name, folder);
-		newEnv->brdf = Cubemap::parse(name + "/light", folder);
+		try {
+			newEnv->diffuse = Cubemap::parse(name, folder);
+		}
+		catch (std::exception &e) {
+			std::cout << e.what() << std::endl;
+			delete newEnv;
+			continue;
+		}
+		try {
+			newEnv->brdf = Cubemap::parse(name + "/light", folder);
+		}
+		catch (std::exception &e) {
+			std::cout << e.what() << std::endl;
+		}
 		Engine::add(*newEnv);
 	}
 	closedir(dir);
@@ -142,16 +160,15 @@ void		Engine::add(Environment &v)
 	_get()._environments.push_back(&v);
 }
 
-
-void			Engine::init(std::string &program_path)
+void			Engine::init(std::string &/*unused*/)
 {
-	_get()._loop = true;
+	/*_get()._loop = true;
 	_get()._swap_interval = 1;
 	_get()._internal_quality = 0.5;
 	_get()._exec_path = convert_backslash(_getcwd(nullptr, 4096)) + "/";
 	_get()._program_path = convert_backslash(program_path);
 	_get()._program_path = _get()._program_path.substr(0, _get()._program_path.find_last_of('/'));
-	_get()._program_path += "/";
+	_get()._program_path += "/";*/
 	_get()._load_res();
 }
 

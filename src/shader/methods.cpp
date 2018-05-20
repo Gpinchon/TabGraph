@@ -33,7 +33,7 @@ Shader	*Shader::create(const std::string &name)
 	return (shader);
 }
 
-const std::string	&Shader::name(void)
+const std::string	&Shader::name()
 {
 	return (_name);
 }
@@ -41,113 +41,138 @@ const std::string	&Shader::name(void)
 ShaderVariable	*Shader::get_uniform(const std::string &name)
 {
 	auto	it = _uniforms.find(name);
-	if (it != _uniforms.end())
+	if (it != _uniforms.end()) {
 		return (&it->second);
+}
 	return (nullptr);
 }
 
-void			Shader::set_uniform(const std::string &name, const Texture *, const int value)
+void			Shader::set_uniform(const std::string &name, const Texture * /*unused*/, const int value)
 {
 	auto	v = get_uniform(name);
-	if (!v)
+	if (v == nullptr) {
 		return ;
+}
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
+}
 	glUniform1i(v->loc, value);
-	if (!bound)
+	if (!bound) {
 		use(false);
+}
 }
 
 void			Shader::set_uniform(const std::string &name, const int &value)
 {
 	auto	v = get_uniform(name);
-	if (!v)
+	if (v == nullptr) {
 		return ;
+}
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
+}
 	glUniform1i(v->loc, value);
-	if (!bound)
+	if (!bound) {
 		use(false);
+}
 }
 
 void			Shader::set_uniform(const std::string &name, const bool &value)
 {
 	auto	v = get_uniform(name);
-	if (!v)
+	if (v == nullptr) {
 		return ;
+}
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
-	glUniform1i(v->loc, value);
-	if (!bound)
+}
+	glUniform1i(v->loc, static_cast<GLint>(value));
+	if (!bound) {
 		use(false);
+}
 }
 
 void			Shader::set_uniform(const std::string &name, const unsigned &value)
 {
 	auto	v = get_uniform(name);
-	if (!v)
+	if (v == nullptr) {
 		return ;
+}
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
+}
 	glUniform1ui(v->loc, value);
-	if (!bound)
+	if (!bound) {
 		use(false);
+}
 }
 
 void			Shader::set_uniform(const std::string &name, const float &value)
 {
 	auto	v = get_uniform(name);
-	if (!v)
+	if (v == nullptr) {
 		return ;
+}
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
+}
 	glUniform1f(v->loc, value);
-	if (!bound)
+	if (!bound) {
 		use(false);
+}
 }
 
 void			Shader::set_uniform(const std::string &name, const VEC2 &value)
 {
 	auto	v = get_uniform(name);
-	if (!v)
+	if (v == nullptr) {
 		return ;
+}
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
+}
 	glUniform2f(v->loc, value.x, value.y);
-	if (!bound)
+	if (!bound) {
 		use(false);
+}
 }
 
 void			Shader::set_uniform(const std::string &name, const VEC3 &value)
 {
 	auto	v = get_uniform(name);
-	if (!v)
+	if (v == nullptr) {
 		return ;
+}
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
+}
 	glUniform3f(v->loc, value.x, value.y, value.z);
-	if (!bound)
+	if (!bound) {
 		use(false);
+}
 }
 
 void			Shader::set_uniform(const std::string &name, const MAT4 &value)
 {
 	auto	v = get_uniform(name);
-	if (!v)
+	if (v == nullptr) {
 		return ;
+}
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
+}
 	glUniformMatrix4fv(v->loc, 1, GL_FALSE, (float*)&value);
-	if (!bound)
+	if (!bound) {
 		use(false);
+}
 }
 
 bool			Shader::in_use()
@@ -175,10 +200,11 @@ Shader		*Shader::get_by_name(const std::string &name)
 	i = 0;
 	std::hash<std::string>	hash_fn;
 	h = hash_fn(name);
-	while ((s = Engine::shader(i)))
+	while ((s = Engine::shader(i)) != nullptr)
 	{
-		if (h == s->_id)
+		if (h == s->_id) {
 			return (s);
+}
 		i++;
 	}
 	return (nullptr);
@@ -187,31 +213,35 @@ Shader		*Shader::get_by_name(const std::string &name)
 void	Shader::unbind_texture(GLenum texture_unit)
 {
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
+}
 	glActiveTexture(texture_unit);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_TEXTURE_CUBE_MAP);
-	if (!bound)
+	if (!bound) {
 		use(false);
+}
 }
 
 void	Shader::bind_texture(const std::string &name,
 			const Texture *texture, const GLenum &texture_unit)
 {
 	bool	bound = in_use();
-	if (!bound)
+	if (!bound) {
 		use();
-	if (!texture)
+}
+	if (texture == nullptr) {
 		unbind_texture(texture_unit);
-	else
+	} else
 	{
 		glActiveTexture(texture_unit);
 		glBindTexture(texture->target(), texture->glid());
 	}
 	set_uniform(name, texture, texture_unit - GL_TEXTURE0);
-	if (!bound)
+	if (!bound) {
 		use(false);
+}
 }

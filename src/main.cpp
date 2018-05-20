@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/19 22:46:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/20 21:00:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "scop.hpp"
-#include "Engine.hpp"
 #include "Camera.hpp"
+#include "Engine.hpp"
 #include "Events.hpp"
 #include "Window.hpp"
 #include "parser/OBJ.hpp"
@@ -39,6 +39,8 @@
 	Engine::get().lights.push_back(l);
 	return (Engine::get().lights.size() - 1);
 }*/
+
+#include <iostream>
 
 void	setup_callbacks()
 {
@@ -69,7 +71,7 @@ int		main(int argc, char *argv[])
 		obj = OBJ::parse("main_mesh", argv[1]);
 	}
 	if (argc > 2 || obj == nullptr) {
-		obj = OBJ::parse("main_mesh", "./res/obj/chart.obj");
+		obj = OBJ::parse("main_mesh", Engine::program_path() + "./res/obj/chart.obj");
 	}
 	if (obj != nullptr) {
 		obj->center();

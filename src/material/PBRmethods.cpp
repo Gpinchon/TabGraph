@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:17:13 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 20:53:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/21 01:04:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,13 +24,14 @@ PBRMaterial::PBRMaterial(const std::string &name) : Material(name),
 	texture_height(nullptr),
 	texture_ao(nullptr)
 {
-	if (!(shader = Shader::get_by_name("defaultPBR")))
-		shader = GLSL::parse("defaultPBR", "./res/shaders/defaultPBR.vert", "./res/shaders/defaultPBR.frag");
+	if ((shader = Shader::get_by_name("defaultPBR")) == nullptr) {
+		shader = GLSL::parse("defaultPBR",  Engine::program_path() + "./res/shaders/defaultPBR.vert",  Engine::program_path() + "./res/shaders/defaultPBR.frag");
+}
 }
 
 PBRMaterial	*PBRMaterial::create(const std::string &name)
 {
-	PBRMaterial	*mtl = new PBRMaterial(name);
+	auto	*mtl = new PBRMaterial(name);
 
 	mtl->parallax = 0.01;
 	mtl->emitting = new_vec3(0, 0, 0);
@@ -45,19 +46,19 @@ void	PBRMaterial::bind_textures()
 {
 	Material::bind_textures();
 	shader->bind_texture("in_Texture_Specular", texture_specular, GL_TEXTURE2);
-	shader->set_uniform("in_Use_Texture_Specular", texture_specular ? true : false);
+	shader->set_uniform("in_Use_Texture_Specular", texture_specular != nullptr ? true : false);
 	shader->bind_texture("in_Texture_Roughness", texture_roughness, GL_TEXTURE3);
-	shader->set_uniform("in_Use_Texture_Roughness", texture_roughness ? true : false);
+	shader->set_uniform("in_Use_Texture_Roughness", texture_roughness != nullptr ? true : false);
 	shader->bind_texture("in_Texture_Metallic", texture_metallic, GL_TEXTURE4);
-	shader->set_uniform("in_Use_Texture_Metallic", texture_metallic ? true : false);
+	shader->set_uniform("in_Use_Texture_Metallic", texture_metallic != nullptr ? true : false);
 	shader->bind_texture("in_Texture_Emitting", texture_emitting, GL_TEXTURE5);
-	shader->set_uniform("in_Use_Texture_Emitting", texture_emitting ? true : false);
+	shader->set_uniform("in_Use_Texture_Emitting", texture_emitting != nullptr ? true : false);
 	shader->bind_texture("in_Texture_Normal", texture_normal, GL_TEXTURE6);
-	shader->set_uniform("in_Use_Texture_Normal", texture_normal ? true : false);
+	shader->set_uniform("in_Use_Texture_Normal", texture_normal != nullptr ? true : false);
 	shader->bind_texture("in_Texture_Height", texture_height, GL_TEXTURE7);
-	shader->set_uniform("in_Use_Texture_Height", texture_height ? true : false);
+	shader->set_uniform("in_Use_Texture_Height", texture_height != nullptr ? true : false);
 	shader->bind_texture("in_Texture_AO", texture_ao, GL_TEXTURE8);
-	shader->set_uniform("in_Use_Texture_AO", texture_ao ? true : false);
+	shader->set_uniform("in_Use_Texture_AO", texture_ao != nullptr ? true : false);
 }
 
 void	PBRMaterial::bind_values()
@@ -73,18 +74,25 @@ void	PBRMaterial::bind_values()
 void	PBRMaterial::load_textures()
 {
 	Material::load_textures();
-	if (texture_specular)
+	if (texture_specular != nullptr) {
 		texture_specular->load();
-	if (texture_roughness)
+}
+	if (texture_roughness != nullptr) {
 		texture_roughness->load();
-	if (texture_metallic)
+}
+	if (texture_metallic != nullptr) {
 		texture_metallic->load();
-	if (texture_emitting)
+}
+	if (texture_emitting != nullptr) {
 		texture_emitting->load();
-	if (texture_normal)
+}
+	if (texture_normal != nullptr) {
 		texture_normal->load();
-	if (texture_height)
+}
+	if (texture_height != nullptr) {
 		texture_height->load();
-	if (texture_ao)
+}
+	if (texture_ao != nullptr) {
 		texture_ao->load();
+}
 }

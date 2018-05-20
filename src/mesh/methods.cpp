@@ -11,11 +11,11 @@
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Camera.hpp"
+#include "Material.hpp"
 #include "Mesh.hpp"
 #include "Shader.hpp"
-#include "Camera.hpp"
 #include "Texture.hpp"
-#include "Material.hpp"
 
 Mesh::Mesh(const std::string &name) : Renderable(name),
 uvmax(new_vec2(1, 1)), uvmin(new_vec2(0, 0)),
@@ -38,17 +38,21 @@ bool	alpha_compare(Renderable	*m, Renderable *m1)
 {
 	auto	mat = m->material;
 	auto	mat1 = m1->material;
-	if (m->parent == m1)
+	if (m->parent == m1) {
 		return (false);
-	else if (m1->parent == m)
+	} if (m1->parent == m) {
 		return (true);
-	if (!mat && !mat1)
+}
+	if ((mat == nullptr) && (mat1 == nullptr)) {
 		return (false);
-	if (!mat)
+}
+	if (mat == nullptr) {
 		return (true);
-	if (!mat1)
+}
+	if (mat1 == nullptr) {
 		return (false);
-	return mat->alpha > mat1->alpha || (mat->texture_albedo && mat1->texture_albedo &&
+}
+	return mat->alpha > mat1->alpha || ((mat->texture_albedo != nullptr) && (mat1->texture_albedo != nullptr) &&
 		mat->texture_albedo->bpp() <= 24 && mat1->texture_albedo->bpp() >= 32);
 }
 
@@ -59,7 +63,7 @@ void	Renderable::alpha_sort()
 
 Mesh	*Mesh::create(const std::string &name)
 {
-	Mesh *m = new Mesh(name);
+	auto *m = new Mesh(name);
 	Engine::add(*m);
 	return (m);
 }
@@ -69,35 +73,41 @@ static GLuint	vbuffer_load(GLuint attrib, int size, const std::vector<T> &a)
 {
 	GLuint	lbufferid;
 
-	if (!size || !a.size())
+	if (!size || a.empty()) {
 		return (-1);
+}
 	glGenBuffers(1, &lbufferid);
 	glBindBuffer(GL_ARRAY_BUFFER, lbufferid);
 	glBufferData(GL_ARRAY_BUFFER, a.size() * sizeof(T), &a[0], GL_STATIC_DRAW);
 	glEnableVertexAttribArray(attrib);
 	glVertexAttribPointer(attrib, size,
 		sizeof(T) == 4 ? GL_UNSIGNED_BYTE : GL_FLOAT,
-		GL_FALSE, 0, (void*)0);
+		GL_FALSE, 0, (void*)nullptr);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	return (lbufferid);
 }
 
 void			Mesh::load()
 {
-	if (is_loaded())
+	if (is_loaded()) {
 		return ;
-	if (glIsVertexArray(v_arrayid))
+}
+	if (glIsVertexArray(v_arrayid)) {
 		glDeleteVertexArrays(1, &v_arrayid);
+}
 	glGenVertexArrays(1, &v_arrayid);
 	glBindVertexArray(v_arrayid);
-	if (glIsBuffer(v_bufferid))
+	if (glIsBuffer(v_bufferid)) {
 		glDeleteBuffers(1, &v_bufferid);
+}
 	v_bufferid = vbuffer_load(0, 3, v);
-	if (glIsBuffer(vn_bufferid))
+	if (glIsBuffer(vn_bufferid)) {
 		glDeleteBuffers(1, &v_bufferid);
+}
 	vn_bufferid = vbuffer_load(1, 4, vn);
-	if (glIsBuffer(vt_bufferid))
+	if (glIsBuffer(vt_bufferid)) {
 		glDeleteBuffers(1, &v_bufferid);
+}
 	vt_bufferid = vbuffer_load(2, 2, vt);
 	glBindVertexArray(0);
 	_is_loaded = true;
@@ -105,11 +115,12 @@ void			Mesh::load()
 
 void		Mesh::bind()
 {
-	MAT4		mvp;
-	MAT4		normal_matrix;
+	MAT4		mvp{};
+	MAT4		normal_matrix{};
 
-	if (!material || !material->shader || !Engine::current_camera())
+	if ((material == nullptr) || (material->shader == nullptr) || (Engine::current_camera() == nullptr)) {
 		return ;
+}
 	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
 	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
 	material->shader->set_uniform("in_UVMax", uvmax);
@@ -122,8 +133,9 @@ void		Mesh::bind()
 
 void			Mesh::render()
 {
-	if (!material || !material->shader)
+	if ((material == nullptr) || (material->shader == nullptr)) {
 		return ;
+}
 	material->shader->use();
 	material->load_textures();
 	material->bind_textures();
@@ -158,7 +170,7 @@ void			Mesh::center()
 	for (auto child : children)
 	{
 		i++;
-		auto	m = static_cast<Mesh *>(child);
+		auto	m = dynamic_cast<Mesh *>(child);
 		auto	mPos = m->bounding_element->center;
 		m->center();
 		m->position() = vec3_sub(mPos, bounding_element->center);

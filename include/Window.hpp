@@ -30,9 +30,9 @@ private :
 	static Window	&_get();
 	static Window	*_instance;
 	SDL_Window	    *_sdl_window{nullptr};
-	SDL_GLContext	_gl_context;
-	VEC4		    _clear_color;
-	GLbitfield  	_clear_mask;
+	SDL_GLContext	_gl_context{};
+	VEC4		    _clear_color{};
+	GLbitfield  	_clear_mask{};
 	Framebuffer		*_render_buffer{nullptr};
 	Window();
 };

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 21:57:03 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/21 01:03:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,16 +19,17 @@ GLuint	compile_shader(const std::string &path, GLenum type)
 {
 	GLuint	shaderid;
 	FILE	*stream;
-	std::string	fullPath;
 
-	fullPath = Engine::program_path() + path;
-	if (access(fullPath.c_str(), F_OK | W_OK)
-	|| !(stream = fopen(fullPath.c_str(), "rb")))
-		throw std::runtime_error(std::string("Can't open ") + path);
+	if (access(path.c_str(), R_OK) != 0) {
+		throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
+	}
+	if ((stream = fopen(path.c_str(), "r")) == nullptr) {
+		throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
+	}
 	auto	bufstring = stream_to_str(stream);
 	auto	buf = bufstring.c_str();
 	shaderid = glCreateShader(type);
-	glShaderSource(shaderid, 1, &buf, NULL);
+	glShaderSource(shaderid, 1, &buf, nullptr);
 	glCompileShader(shaderid);
 	try {
 		Shader::check_shader(shaderid);
@@ -52,7 +53,7 @@ std::map<std::string, ShaderVariable>		Shader::_get_variables(GLenum type)
 	{
 		ShaderVariable	v;
 		memset(name, 0, sizeof(char) * 4096);
-		glGetActiveUniform(_program, (GLuint)ivcount, 4096, &length,
+		glGetActiveUniform(_program, static_cast<GLuint>(ivcount), 4096, &length,
 			&v.size, &v.type, name);
 		v.name = name;
 		std::hash<std::string> hash_fn;
@@ -89,7 +90,7 @@ bool	Shader::check_shader(const GLuint &id)
 	if (loglength > 1)
 	{
 		char	log[loglength];
-		glGetShaderInfoLog(id, loglength, NULL, &log[0]);
+		glGetShaderInfoLog(id, loglength, nullptr, &log[0]);
 		throw std::runtime_error(log);
 	}
 	return (false);
@@ -106,7 +107,7 @@ bool	Shader::check_program(const GLuint &id)
 	if (loglength > 1)
 	{
 		char	log[loglength];
-		glGetProgramInfoLog(id, loglength, NULL, &log[0]);
+		glGetProgramInfoLog(id, loglength, nullptr, &log[0]);
 		throw std::runtime_error(log);
 	}
 	return (false);

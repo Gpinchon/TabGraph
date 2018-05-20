@@ -12,9 +12,9 @@
 
 #include "Engine.hpp"
 #include "Camera.hpp"
-#include "Window.hpp"
 #include "Cubemap.hpp"
 #include "Framebuffer.hpp"
+#include "Window.hpp"
 #include "parser/GLSL.hpp"
 
 
@@ -38,7 +38,7 @@ static void	render_bind_textures(Shader &shader)
 
 void		render_present()
 {
-	MAT4		matrix;
+	MAT4		matrix{};
 
 	if (Engine::current_camera() == nullptr) {
 		return ;

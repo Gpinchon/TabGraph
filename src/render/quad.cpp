@@ -21,7 +21,7 @@ GLuint	display_quad_get()
 {
 	static GLuint	render_quadid = 0;
 	GLuint			bufferid;
-	std::array<float, 8>	quad;
+	std::array<float, 8>	quad{};
 
 	if (render_quadid != 0u) {
 		return (render_quadid);
