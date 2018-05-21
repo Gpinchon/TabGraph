@@ -156,10 +156,6 @@ void	main()
 		if (dot(new_normal, new_normal) > 0)
 			worldNormal = normalize(new_normal);
 	}
-	if (albedo.a <= 0.05
-	|| vt.x > (frag_UVMax.x) || vt.y > (frag_UVMax.y)
-	|| vt.x < (frag_UVMin.x) || vt.y < (frag_UVMin.y))
-		discard;
 	lowp float	roughness = clamp(in_Use_Texture_Roughness ? roughness_sample : in_Roughness, 0.05f, 1.f);
 	lowp float	metallic = clamp(in_Use_Texture_Metallic ? metallic_sample : in_Metallic, 0.f, 1.f);
 	lowp vec3	F0 = mix(in_Use_Texture_Specular ? specular_sample : in_Specular, albedo.rgb, metallic);
@@ -176,6 +172,11 @@ void	main()
 	lowp vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 10.f).rgb;
 	lowp vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 10.f + 3.5).rgb, vec3(4));
 	
+	if (albedo.a <= 0.05
+	|| vt.x > (frag_UVMax.x) || vt.y > (frag_UVMax.y)
+	|| vt.x < (frag_UVMin.x) || vt.y < (frag_UVMin.y))
+		discard;
+
 	lowp float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
 	reflection_spec *= brightness * min(fresnel + 1, fresnel * Env_Specular(NdV, roughness));
 	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, metallic) * BRDF.y;
@@ -184,6 +185,7 @@ void	main()
 
 	albedo.a += dot(specular, specular);
 	albedo.a = min(1, albedo.a);
+
 	out_Color.rgb = emitting + specular + diffuse + reflection;
 	out_Color.a = albedo.a;
 	out_Bright = vec4(max(vec3(0), out_Color.rgb - 1) + emitting, albedo.a);
