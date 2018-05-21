@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 00:46:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/21 16:07:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ static void	parse_line(t_obj_parser *p, const char *line)
 }
 
 
-static bool	start_obj_parsing(t_obj_parser *p, const std::string &name, const std::string& path)
+static void	start_obj_parsing(t_obj_parser *p, const std::string &name, const std::string& path)
 {
 	char	line[4096];
 
@@ -80,6 +80,9 @@ static bool	start_obj_parsing(t_obj_parser *p, const std::string &name, const st
 	}
 	if ((p->fd = fopen(path.c_str(), "r")) == nullptr) {
 		throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
+	}
+	if (Material::get_by_name("default") == nullptr) {
+		PBRMaterial::create("default");
 	}
 	p->parent = Mesh::create(name);
 	p->vg = Mesh::create(name + "_child 0");
@@ -91,10 +94,10 @@ static bool	start_obj_parsing(t_obj_parser *p, const std::string &name, const st
 	fclose(p->fd);
 	if (!p->vg->v.empty() != 0u) {
 		parse_vg(p);
-	} else {
-		return (false);
 	}
-	return (true);
+	else {
+		throw std::runtime_error(std::string("Invalid OBJ"));
+	}
 }
 
 Mesh	*OBJ::parse(const std::string &name, const std::string &path)
@@ -102,10 +105,11 @@ Mesh	*OBJ::parse(const std::string &name, const std::string &path)
 	t_obj_parser	p;
 
 	p.path_split = split_path(path);
-	if (Material::get_by_name("default") == nullptr) {
-		PBRMaterial::create("default");
+	try {
+		start_obj_parsing(&p, name, path);
 	}
-	if (!start_obj_parsing(&p, name, path)) {
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error parsing ") + name + " :\n" + e.what());
 		return (nullptr);
 	}
 	p.parent->bounding_element = new AABB(p.bbox);

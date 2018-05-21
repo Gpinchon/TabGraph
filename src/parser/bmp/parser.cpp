@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 01:02:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/05/21 16:10:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,10 +51,10 @@ static int	read_data(t_bmp_parser *p, const std::string &path)
 	unsigned	data_size;
 
 	if (access(path.c_str(), R_OK) != 0) {
-		throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
+		throw std::runtime_error(strerror(errno));
 	}
 	if ((p->fd = fopen(path.c_str(), "rb")) == nullptr) {
-		throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
+		throw std::runtime_error(strerror(errno));
 	}
 	auto readReturn = fread(&p->header, 1, sizeof(p->header), p->fd);
 	if (readReturn != sizeof(p->header) || p->header.type != 0x4D42) {
@@ -111,7 +111,7 @@ Texture		*BMP::parse(const std::string &texture_name, const std::string &path)
 		read_data(&parser, path);
 	}
 	catch (std::exception &e) {
-		throw std::runtime_error(std::string("Error reading ") + path + " :\n" + e.what());
+		throw std::runtime_error(std::string("Error parsing ") + path + " : " + e.what());
 	}
 	get_format(parser.info.bpp, &format[0], &format[1]);
 	texture = static_cast<BMP*>(Texture::create(texture_name, new_vec2(parser.info.width, parser.info.height),
