@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/20 21:00:41 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/03 18:36:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,8 @@ void	setup_callbacks()
 	Events::set_refresh_callback(callback_refresh);
 }
 
+#include "parser/HDR.hpp"
+
 int		main(int argc, char *argv[])
 {
 	Mesh *obj;
@@ -61,6 +63,7 @@ int		main(int argc, char *argv[])
 	Window::init("Scop", WIDTH, HEIGHT);
 	Engine::init(argv0);
 	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
+	HDR::parse("test", "./res/hdr/uffizi.hdr");
 	auto camera = Camera::create("main_camera", 45);
 	Engine::set_current_camera(camera);
 	camera->target = Node::create("main_camera_target",

@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/05/20 23:55:11 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/06/03 18:30:02 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,6 +28,7 @@ SRC			=	./src/main.cpp			\
 				./src/parser/obj/parser1.cpp		\
 				./src/parser/obj/parser2.cpp		\
 				./src/parser/obj/parser3.cpp		\
+				./src/parser/hdr/parser.cpp		\
 				./src/parser/bmp/parser.cpp		\
 				./src/parser/bmp/saver.cpp		\
 				./src/parser/shaders/parser.cpp	\

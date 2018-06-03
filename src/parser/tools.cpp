@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/19 01:27:17 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 00:32:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/03 19:53:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,11 +53,31 @@ std::string	stream_to_str(FILE *stream)
 	fseek(stream, 0L, SEEK_END);
 	size = ftell(stream);
 	rewind(stream);
-	char ret[size + 1];
+	auto ret = new char[size + 1];
 	ret[size] = '\0';
 	fread(ret, sizeof(char), size, stream);
 	fseek(stream, cur, SEEK_SET);
-	return std::string(ret);
+	auto retString = std::string(ret);
+	delete [] ret;
+	return (retString);
+}
+
+std::string	stream_to_str(FILE *stream, size_t offset)
+{
+	size_t	size;
+	size_t	cur;
+
+	cur = ftell(stream);
+	fseek(stream, 0L, SEEK_END);
+	size = ftell(stream) - offset;
+	fseek(stream, offset, SEEK_SET);
+	auto ret = new char[size + 1];
+	ret[size] = '\0';
+	fread(ret, sizeof(ret[0]), size, stream);
+	fseek(stream, cur, SEEK_SET);
+	auto retString = std::string(ret);
+	delete [] ret;
+	return (retString);
 }
 
 std::string	convert_backslash(std::string str)

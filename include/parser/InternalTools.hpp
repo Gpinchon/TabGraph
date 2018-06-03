@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:16:45 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 00:45:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/03 19:56:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,4 +84,21 @@ std::vector<std::string>	strsplit(const std::string &s, char c);
 std::vector<std::string>	strsplitwspace(const std::string &s);
 unsigned		count_char(const std::string &str, char c);
 std::string		stream_to_str(FILE *stream);
+std::string		stream_to_str(FILE *stream, size_t offset);
 std::string		convert_backslash(std::string str);
+
+template <typename T>
+std::vector<T>	stream_to_vector(FILE *stream, size_t offset)
+{
+	size_t	size;
+	size_t	cur;
+
+	cur = ftell(stream);
+	fseek(stream, 0L, SEEK_END);
+	size = ftell(stream) - offset;
+	fseek(stream, offset, SEEK_SET);
+	auto ret = std::vector<T>(size);
+	fread(&ret[0], sizeof(ret[0]), size, stream);
+	fseek(stream, cur, SEEK_SET);
+	return (ret);
+}
