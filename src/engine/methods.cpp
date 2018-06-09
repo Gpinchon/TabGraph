@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/20 21:32:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/09 13:35:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,15 +160,8 @@ void		Engine::add(Environment &v)
 	_get()._environments.push_back(&v);
 }
 
-void			Engine::init(std::string &/*unused*/)
+void			Engine::init()
 {
-	/*_get()._loop = true;
-	_get()._swap_interval = 1;
-	_get()._internal_quality = 0.5;
-	_get()._exec_path = convert_backslash(_getcwd(nullptr, 4096)) + "/";
-	_get()._program_path = convert_backslash(program_path);
-	_get()._program_path = _get()._program_path.substr(0, _get()._program_path.find_last_of('/'));
-	_get()._program_path += "/";*/
 	_get()._load_res();
 }
 

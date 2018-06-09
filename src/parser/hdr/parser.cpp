@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/03 20:15:03 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/09 12:23:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,8 +156,9 @@ Cubemap	*HDR::parse(const std::string &texture_name, const std::string &path)
 
 	FILE * stream = fopen(path.c_str(), "rb");
 	fread(&parser.intro, sizeof(char), 11, stream);
-	if (strncmp(parser.intro, "#?RADIANCE\n", 11))
+	if (strncmp(parser.intro, "#?RADIANCE\n", 11)) {
 		throw std::runtime_error("Incorrect Header");
+	}
 	char		 line[4096];
 	std::string	lineString;
 	do {

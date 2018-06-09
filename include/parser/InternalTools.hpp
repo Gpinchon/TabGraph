@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:16:45 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/03 19:56:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/09 12:24:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 #include "Mesh.hpp"
 #include "Texture.hpp"
+#include <errno.h>
+#include <unistd.h>
 #include <vector>
 #include <string>
 #include <fcntl.h>

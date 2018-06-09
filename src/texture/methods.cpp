@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/10 01:04:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/09 12:53:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,7 @@ VEC4	Texture::sample(const VEC2 &uv)
 	value = new_vec4(0, 0, 0, 0);
 	if (_data == nullptr) {
 		return (value);
-}
+	}
 	vt[0] = new_vec3(CLAMP(_size.x * uv.x, 0, _size.x - 1),
 		CLAMP(_size.y * uv.y, 0, _size.y - 1), 0);
 	auto nuv = new_vec2(fract(vt[0].x), fract(vt[0].y));
@@ -254,7 +254,7 @@ VEC4	Texture::sample(const VEC2 &uv)
 		while (++s[1] < 4) {
 			(reinterpret_cast<float*>(&value))[s[0]] += (&_data[static_cast<int>(round(vt[s[1]].y) *
 			_size.x + round(vt[s[1]].x)) * (_bpp / 8)])[s[0]] * vt[s[1]].z;
-}
+		}
 	}
 	return (value);
 }

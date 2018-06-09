@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/09 23:58:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/09 13:56:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,16 +42,16 @@ bool	alpha_compare(Renderable	*m, Renderable *m1)
 		return (false);
 	} if (m1->parent == m) {
 		return (true);
-}
+	}
 	if ((mat == nullptr) && (mat1 == nullptr)) {
 		return (false);
-}
+	}
 	if (mat == nullptr) {
 		return (true);
-}
+	}
 	if (mat1 == nullptr) {
 		return (false);
-}
+	}
 	return mat->alpha > mat1->alpha || ((mat->texture_albedo != nullptr) && (mat1->texture_albedo != nullptr) &&
 		mat->texture_albedo->bpp() <= 24 && mat1->texture_albedo->bpp() >= 32);
 }
@@ -120,7 +120,7 @@ void		Mesh::bind()
 
 	if ((material == nullptr) || (material->shader == nullptr) || (Engine::current_camera() == nullptr)) {
 		return ;
-}
+	}
 	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
 	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
 	material->shader->set_uniform("in_UVMax", uvmax);

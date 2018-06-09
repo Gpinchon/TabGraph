@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/03 18:36:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/09 13:50:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,9 @@ int		main(int argc, char *argv[])
 	auto argv0 = std::string(argv[0]);
 
 	Window::init("Scop", WIDTH, HEIGHT);
-	Engine::init(argv0);
+	Engine::init();
 	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
-	HDR::parse("test", "./res/hdr/uffizi.hdr");
+	//HDR::parse("test", "./res/hdr/uffizi.hdr");
 	auto camera = Camera::create("main_camera", 45);
 	Engine::set_current_camera(camera);
 	camera->target = Node::create("main_camera_target",

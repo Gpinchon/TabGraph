@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/20 20:52:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/06/09 13:36:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ class	Engine
 {
 public :
 	~Engine();
-	static void		init(std::string &program_path);
+	static void		init();
 	static float	delta_time();
 	static float	fixed_delta_time();
 	static void		run();
