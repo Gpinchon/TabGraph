@@ -6,28 +6,25 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 01:04:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/08 21:13:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Window.hpp"
 #include "Cubemap.hpp"
 #include "Material.hpp"
-#include "parser/BMP.hpp"
 #include "parser/GLSL.hpp"
 
-Texture	*Material::_texture_brdf = nullptr;
-
 Material::Material(const std::string &name) : shader(nullptr),
-	albedo(new_vec3(0.5, 0.5, 0.5)), uv_scale(new_vec2(1, 1)), alpha(1), texture_albedo(nullptr)
+	albedo(new_vec3(0.5, 0.5, 0.5)), uv_scale(new_vec2(1, 1)), alpha(1),
+	texture_albedo(nullptr),
+	texture_specular(nullptr),
+	texture_emitting(nullptr),
+	texture_normal(nullptr),
+	texture_height(nullptr)
 {
 	set_name(name);
-	if (_texture_brdf == nullptr)
-	{
-		_texture_brdf = BMP::parse("brdf", Engine::program_path() + "./res/brdfLUT.bmp");
-		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	}
 	if ((shader = Shader::get_by_name("default")) == nullptr) {
 		shader = GLSL::parse("default", Engine::program_path() + "./res/shaders/default.vert", Engine::program_path() + "./res/shaders/default.frag");
 	}
@@ -77,12 +74,13 @@ void	Material::bind_textures()
 	shader->set_uniform("in_Use_Texture_Albedo", texture_albedo != nullptr);
 	shader->bind_texture("in_Texture_Env", Engine::current_environment()->diffuse, GL_TEXTURE11);
 	shader->bind_texture("in_Texture_Env_Spec", Engine::current_environment()->brdf, GL_TEXTURE12);
-	shader->bind_texture("in_Texture_BRDF", _texture_brdf, GL_TEXTURE13);
 
 }
 
 void	Material::bind_values()
 {
+	shader->set_uniform("in_Resolution", Window::internal_resolution());
+	shader->set_uniform("in_Time", SDL_GetTicks() / 1000.f);
 	shader->set_uniform("in_Albedo", albedo);
 	shader->set_uniform("in_UVScale", uv_scale);
 	shader->set_uniform("in_Alpha", alpha);
@@ -90,8 +88,7 @@ void	Material::bind_values()
 
 void	Material::load_textures()
 {
-	_texture_brdf->load();
-	if (texture_albedo != nullptr) {
+	/*if (texture_albedo != nullptr) {
 		texture_albedo->load();
-	}
+	}*/
 }

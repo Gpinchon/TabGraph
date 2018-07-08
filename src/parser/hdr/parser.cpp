@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/09 12:23:08 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/07 23:03:05 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,10 +149,10 @@ int RGBE_ReadPixels_RLE(FILE *fp, float *data, int scanline_width,
 }
 
 
-Cubemap	*HDR::parse(const std::string &texture_name, const std::string &path)
+Texture	*HDR::parse(const std::string &texture_name, const std::string &path)
 {
 	hdr_parser	parser;
-	auto		t = Cubemap::create(texture_name);
+	//auto		t = static_cast<HDR*>Texture::create(texture_name);
 
 	FILE * stream = fopen(path.c_str(), "rb");
 	fread(&parser.intro, sizeof(char), 11, stream);
@@ -180,6 +180,9 @@ Cubemap	*HDR::parse(const std::string &texture_name, const std::string &path)
 	parser.rawData = stream_to_vector<uint8_t>(stream, ftell(stream));
 	float	*data = new float [size_t(parser.size.x * parser.size.y) * 3];
 	RGBE_ReadPixels_RLE(stream, data, parser.size.x, parser.size.y);
+	auto		t = static_cast<HDR*>(Texture::create(texture_name, parser.size,
+				GL_TEXTURE_2D, GL_RGBA, GL_COMPRESSED_RGBA));
+	t->_data_format = GL_FLOAT;
 	//std::cout << "dataString "  << dataString.size() << std::endl;
 	//fread(&parser.rawData[0], sizeof(uint8_t), parser.size.x * parser.size.y * 4, stream);
 	Engine::add(*t);

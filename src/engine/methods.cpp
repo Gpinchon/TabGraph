@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/09 13:35:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/08 00:01:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ Engine	*Engine::_instance = new Engine();
 
 Engine::Engine() :
 	_loop(),
+	_frame_nbr(0),
 	_swap_interval(1),
 	_delta_time(0),
 	_internal_quality(1),
@@ -231,6 +232,7 @@ void	Engine::run()
 	while (_get()._loop)
 	{
 		ticks = SDL_GetTicks() / 1000.f;
+		_get()._frame_nbr++;
 		_get()._delta_time = ticks - last_ticks;
 		last_ticks = ticks;
 		SDL_PumpEvents();
@@ -329,4 +331,9 @@ Environment	*Engine::environment(const unsigned &index)
 		return (nullptr);
 	}
 	return (_get()._environments[index]);
+}
+
+int32_t		Engine::frame_nbr()
+{
+	return (_get()._frame_nbr);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/20 01:39:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/08 18:43:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,43 @@
 #include "Framebuffer.hpp"
 #include "Shader.hpp"
 #include "Window.hpp"
+
+Attachement::Attachement(const std::string &name) : Texture(name) {};
+
+Attachement		*Attachement::create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi)
+{
+	Attachement	*t;
+
+	t = new Attachement(name);
+	t->_target = target;
+	t->_format = f;
+	t->_internal_format = fi;
+	t->_size = s;
+	glGenTextures(1, &t->_glid);
+	glBindTexture(t->_target, t->_glid);
+	if (s.x > 0 && s.y > 0) {
+		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->_data_format, nullptr);
+	}
+	if (f == GL_RGB) {
+		glTexParameteri(t->_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	}
+	glTexParameteri(t->_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(t->_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(t->_target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
+	glBindTexture(t->_target, 0);
+#ifdef GL_DEBUG
+	glObjectLabel(GL_TEXTURE, t->_glid, -1, name.c_str());
+#endif //GL_DEBUG
+	Engine::add(*t);
+	return (t);
+}
+
+bool		Attachement::is_loaded() {
+	return (true);
+};
+
+void		Attachement::load() {
+};
 
 Framebuffer::Framebuffer(const std::string &name) : Texture(name), _depth(nullptr), _shader(nullptr)
 {
@@ -42,6 +79,16 @@ Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader &sh
 	return (f);
 }
 
+bool			Framebuffer::is_loaded()
+{
+	return (true);
+}
+
+void			Framebuffer::load()
+{
+	return;
+}
+
 void			Framebuffer::bind(bool to_bind)
 {
 	if (!to_bind)
@@ -53,6 +100,8 @@ void			Framebuffer::bind(bool to_bind)
 	glBindFramebuffer(GL_FRAMEBUFFER, _glid);
 	glViewport(0, 0, size().x, size().y);
 	shader().use();
+	shader().set_uniform("in_Resolution", Window::size());
+	shader().set_uniform("in_Time", SDL_GetTicks() / 1000.f);
 }
 
 void			Framebuffer::bind_default()
@@ -65,7 +114,7 @@ Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
 {
 	std::string tname(std::string("attachement") + std::to_string(_color_attachements.size()));
 	bind();
-	auto	a = Texture::create(tname, size(), GL_TEXTURE_2D, format, iformat); 
+	auto	a = Attachement::create(tname, size(), GL_TEXTURE_2D, format, iformat); 
 	a->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	a->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	if (format == GL_DEPTH_COMPONENT)
@@ -148,7 +197,7 @@ void		Framebuffer::resize(const VEC2 &new_size)
 
 	if (size().x == new_size.x && size().y == new_size.y) {
 		return ;
-}
+	}
 	bind();
 	_size = new_size;
 	i = 0;

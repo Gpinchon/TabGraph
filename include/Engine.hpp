@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/09 13:36:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/07 23:55:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ public :
 	static std::string	program_path();
 	static std::string	execution_path();
 	static void		sort(renderable_compare);
+	static int32_t				frame_nbr();
 private :
 	Engine();
 	static Engine				&_get();
@@ -92,6 +93,7 @@ private :
 	void						_set_program_path(std::string &argv0);
 	void						_load_res();
 	bool						_loop;
+	int32_t						_frame_nbr;
 	int8_t						_swap_interval;
 	float						_delta_time;
 	std::string					_program_path;

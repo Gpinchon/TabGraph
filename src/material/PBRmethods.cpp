@@ -6,24 +6,29 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:17:13 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 01:04:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/08 17:24:05 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include "Cubemap.hpp"
 #include "PBRMaterial.hpp"
+#include "parser/BMP.hpp"
 #include "parser/GLSL.hpp"
 
+Texture	*PBRMaterial::_texture_brdf = nullptr;
+
 PBRMaterial::PBRMaterial(const std::string &name) : Material(name),
-	texture_specular(nullptr),
 	texture_roughness(nullptr),
 	texture_metallic(nullptr),
-	texture_emitting(nullptr),
-	texture_normal(nullptr),
-	texture_height(nullptr),
 	texture_ao(nullptr)
 {
+	if (_texture_brdf == nullptr)
+	{
+		_texture_brdf = BMP::parse("brdf", Engine::program_path() + "./res/brdfLUT.bmp");
+		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
 	if ((shader = Shader::get_by_name("defaultPBR")) == nullptr) {
 		shader = GLSL::parse("defaultPBR",  Engine::program_path() + "./res/shaders/defaultPBR.vert",  Engine::program_path() + "./res/shaders/defaultPBR.frag");
 }
@@ -59,6 +64,7 @@ void	PBRMaterial::bind_textures()
 	shader->set_uniform("in_Use_Texture_Height", texture_height != nullptr ? true : false);
 	shader->bind_texture("in_Texture_AO", texture_ao, GL_TEXTURE8);
 	shader->set_uniform("in_Use_Texture_AO", texture_ao != nullptr ? true : false);
+	shader->bind_texture("in_Texture_BRDF", _texture_brdf, GL_TEXTURE13);
 }
 
 void	PBRMaterial::bind_values()
@@ -73,7 +79,8 @@ void	PBRMaterial::bind_values()
 
 void	PBRMaterial::load_textures()
 {
-	Material::load_textures();
+/*	Material::load_textures();
+	_texture_brdf->load();
 	if (texture_specular != nullptr) {
 		texture_specular->load();
 }
@@ -95,4 +102,5 @@ void	PBRMaterial::load_textures()
 	if (texture_ao != nullptr) {
 		texture_ao->load();
 }
+*/
 }

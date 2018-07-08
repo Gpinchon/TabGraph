@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:50:23 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/19 23:03:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/08 21:12:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ class	Window
 public :
 	static void		resize();
 	static VEC2		size();
+	static VEC2		internal_resolution();
 	static void		init(const std::string &name, int width, int height);
 	static void		fullscreen(const bool &fullscreen);
 	static void		swap();

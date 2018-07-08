@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/15 21:07:32 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/08 18:06:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,10 @@ public:
 	static bool		check_program(const GLuint &id);
 	GLuint			link(const GLuint &vertexid, const GLuint &fragmentid);
 	void			bind_texture(const std::string &,
-					const Texture *, const GLenum &texture_unit);
+					Texture *, const GLenum &texture_unit);
 	void			unbind_texture(GLenum texture_unit);
 	void			set_name(const std::string &);
-	void			set_uniform(const std::string &name, const Texture *, const int value);
+	void			set_uniform(const std::string &name, Texture *, const int value);
 	void            set_uniform(const std::string &, const bool &);
     void			set_uniform(const std::string &, const int &);
 	void			set_uniform(const std::string &, const unsigned &);

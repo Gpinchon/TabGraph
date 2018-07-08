@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/09 12:53:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/08 18:05:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,15 @@
 #include "Texture.hpp"
 
 Texture::Texture(const std::string &name) :
-	_glid(0),
-	_size(new_vec2(0, 0)),
-	_bpp(0),
-	_target(0),
-	_format(0),
-	_internal_format(0),
-	_data(nullptr),
-	_loaded(false)
+_glid(0),
+_size(new_vec2(0, 0)),
+_bpp(0),
+_data_format(GL_UNSIGNED_BYTE),
+_target(0),
+_format(0),
+_internal_format(0),
+_data(nullptr),
+_loaded(false)
 {
 	set_name(name);
 }
@@ -45,11 +46,11 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum
 	glGenTextures(1, &t->_glid);
 	glBindTexture(t->_target, t->_glid);
 	if (s.x > 0 && s.y > 0) {
-		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, GL_FLOAT, nullptr);
-}
+		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->_data_format, nullptr);
+	}
 	if (f == GL_RGB) {
 		glTexParameteri(t->_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-}
+	}
 	glTexParameteri(t->_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(t->_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(t->_target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
@@ -81,31 +82,32 @@ void	Texture::assign(Texture &dest_texture, GLenum target)
 	glBindTexture(_target, _glid);
 	glBindTexture(dest_texture._target, dest_texture._glid);
 	glTexImage2D(target, 0, dest_texture._internal_format, dest_texture._size.x, dest_texture._size.y, 0,
-		dest_texture._format, GL_UNSIGNED_BYTE, dest_texture._data);
+		dest_texture._format, dest_texture._data_format, dest_texture._data);
 	glBindTexture(_target, 0);
 	glBindTexture(dest_texture._target, 0);
 }
-
+#include <iostream>
 void	Texture::load()
 {
 	if (_loaded) {
 		return ;
-}
+	}
+	std::cout << _name << " Texture::load()" << std::endl;
 	if (_size.x > MAXTEXRES || _size.y > MAXTEXRES) {
 		resize(new_vec2(std::min(int(_size.x), MAXTEXRES),
 			std::min(int(_size.y), MAXTEXRES)));
-}
+	}
 	if (_glid == 0u) {
 		glGenTextures(1, &_glid);
-}
+	}
 	glBindTexture(_target, _glid);
 	if (_bpp < 32) {
 		glTexParameteri(_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-}
+	}
 	if (_size.x > 0 && _size.y > 0) {
 		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0,
-			_format, GL_UNSIGNED_BYTE, _data);
-}
+			_format, _data_format, _data);
+	}
 	glGenerateMipmap(_target);
 	glBindTexture(_target, 0);
 	_loaded = true;
@@ -158,7 +160,7 @@ Texture		*Texture::get_by_name(const std::string &name)
 	{
 		if (h == t->_id) {
 			return (t);
-}
+		}
 		i++;
 	}
 	return (nullptr);
@@ -174,7 +176,7 @@ VEC4	Texture::texelfetch(const VEC2 &uv)
 	value = new_vec4(0, 0, 0, 0);
 	if (_data == nullptr) {
 		return (value);
-}
+	}
 	i = 0;
 	auto nuv = new_vec2(
 		CLAMP(round(_size.x * uv.x), 0, _size.x - 1),
@@ -197,7 +199,7 @@ void	Texture::set_pixel(const VEC2 &uv, const VEC4 &value)
 
 	if (_data == nullptr) {
 		return ;
-}
+	}
 	i = 0;
 	auto nuv = new_vec2(
 		CLAMP(round(_size.x * uv.x), 0, _size.x - 1),
@@ -253,10 +255,15 @@ VEC4	Texture::sample(const VEC2 &uv)
 		s[1] = -1;
 		while (++s[1] < 4) {
 			(reinterpret_cast<float*>(&value))[s[0]] += (&_data[static_cast<int>(round(vt[s[1]].y) *
-			_size.x + round(vt[s[1]].x)) * (_bpp / 8)])[s[0]] * vt[s[1]].z;
+				_size.x + round(vt[s[1]].x)) * (_bpp / 8)])[s[0]] * vt[s[1]].z;
 		}
 	}
 	return (value);
+}
+
+bool	Texture::is_loaded()
+{
+	return (_loaded);
 }
 
 void	Texture::resize(const VEC2 &ns)

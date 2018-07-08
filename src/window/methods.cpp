@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 01:05:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/08 21:13:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,17 +50,17 @@ void		Window::init(const std::string &name, int width, int height)
 		SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
 	if (_get()._sdl_window == nullptr) {
 		throw std::runtime_error(SDL_GetError());
-}
+	}
 	_get()._gl_context = SDL_GL_CreateContext(_get()._sdl_window);
 	if (_get()._gl_context == nullptr) {
 		throw std::runtime_error(SDL_GetError());
-}
+	}
 	_get()._clear_mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
 	glewExperimental = GL_TRUE;
 	auto error = glewInit();
 	if (error != GLEW_OK) {
 		throw std::runtime_error(reinterpret_cast<const char*>(glewGetErrorString(error)));
-}
+	}
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	GLSL::parse("render",
@@ -83,6 +83,11 @@ void		Window::init(const std::string &name, int width, int height)
 GLbitfield	&Window::clear_mask()
 {
 	return (_get()._clear_mask);
+}
+
+VEC2		Window::internal_resolution()
+{
+	return (vec2_scale(Window::size(), Engine::internal_quality()));
 }
 
 VEC2		Window::size()
