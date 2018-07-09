@@ -79,7 +79,8 @@ void	Material::bind_textures()
 
 void	Material::bind_values()
 {
-	shader->set_uniform("in_Resolution", Window::internal_resolution());
+	auto	res = Window::internal_resolution();
+	shader->set_uniform("in_Resolution", new_vec3(res.x, res.y, res.x / res.y));
 	shader->set_uniform("in_Time", SDL_GetTicks() / 1000.f);
 	shader->set_uniform("in_Albedo", albedo);
 	shader->set_uniform("in_UVScale", uv_scale);

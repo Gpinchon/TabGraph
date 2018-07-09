@@ -170,6 +170,7 @@ void	main()
 			+ textureLod(in_Texture_Env_Spec, -worldNormal, roughness * 4.f).rgb);
 	lowp vec3	reflection = textureLod(in_Texture_Env, R, roughness * 12.f).rgb * fresnel;
 	lowp vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 10.f).rgb;
+	//lowp vec3	reflection_spec = textureLod(in_Texture_Env, R, roughness * 10.f + 3.5).rgb;
 	lowp vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 10.f + 3.5).rgb, vec3(4));
 	
 	if (albedo.a <= 0.05

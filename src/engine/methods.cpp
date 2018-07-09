@@ -79,12 +79,17 @@ Environment		*Engine::current_environment(Environment *env)
 	return (_get()._environment);
 }
 
+#include "parser/HDR.hpp"
+
 void			Engine::_load_res()
 {
 	DIR				*dir;
 	struct dirent	*e;
 	std::string		folder;
 
+	auto	newEnv = new Environment;
+	newEnv->diffuse = Cubemap::create("test", HDR::parse("test", "./res/hdr/uffizi.hdr"));
+	Engine::add(*newEnv);
 	folder = Engine::program_path() + "res/skybox/";
 	dir = opendir(folder.c_str());
 	while ((e = readdir(dir)) != nullptr)

@@ -19,6 +19,7 @@ class Cubemap : public Texture
 {
 public:
 	static Cubemap	*create(const std::string &);
+	static Cubemap	*create(const std::string &, Texture *);
 	static Cubemap	*parse(const std::string &, const std::string &);
 	std::array<Texture *, 6>	sides{};
 private:

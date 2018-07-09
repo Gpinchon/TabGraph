@@ -22,10 +22,10 @@ const auto M_PI			= 3.14159265359f;
 # endif //M_PI
 const auto SHADOWRES	= 2048;
 const auto UP			= (VEC3){0, 1, 0};
-const auto ANISOTROPY	= 4.f;
+const auto ANISOTROPY	= 16.f;
 const auto MSAA			= 4;
 const auto BLOOMPASS	= 2;
-const auto MAXTEXRES	= 1024;
+const auto MAXTEXRES	= 4096;
 
 class Material;
 class Shader;

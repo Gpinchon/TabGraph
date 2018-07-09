@@ -176,15 +176,14 @@ Texture	*HDR::parse(const std::string &texture_name, const std::string &path)
 	parser.size.x = std::stof(lineSplit.at(1));
 	parser.size.y = std::stof(lineSplit.at(3));
 	std::cout << parser.size.x << " " << parser.size.y << std::endl;
-	//parser.rawData.resize(parser.size.x * parser.size.y * 4);
 	parser.rawData = stream_to_vector<uint8_t>(stream, ftell(stream));
-	float	*data = new float [size_t(parser.size.x * parser.size.y) * 3];
-	RGBE_ReadPixels_RLE(stream, data, parser.size.x, parser.size.y);
+	void	*data = new float [size_t(parser.size.x * parser.size.y) * 3];
+	RGBE_ReadPixels_RLE(stream, static_cast<float*>(data), parser.size.x, parser.size.y);
 	auto		t = static_cast<HDR*>(Texture::create(texture_name, parser.size,
-				GL_TEXTURE_2D, GL_RGBA, GL_COMPRESSED_RGBA));
+				GL_TEXTURE_2D, GL_RGB, GL_COMPRESSED_RGB, GL_FLOAT));
 	t->_data_format = GL_FLOAT;
-	//std::cout << "dataString "  << dataString.size() << std::endl;
-	//fread(&parser.rawData[0], sizeof(uint8_t), parser.size.x * parser.size.y * 4, stream);
+	t->_data = static_cast<GLubyte*>(data);
+	t->_bpp = 96;
 	Engine::add(*t);
 	return (t);
 }

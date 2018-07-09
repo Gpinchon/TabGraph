@@ -14,7 +14,7 @@ uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
 uniform samplerCube	in_Texture_Env;
 uniform samplerCube	in_Texture_Env_Spec;
-uniform vec2		in_Resolution;
+uniform vec3		in_Resolution;
 uniform float		in_Time;
 
 in vec2				frag_UV;

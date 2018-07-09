@@ -15,11 +15,12 @@ uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
 void main()
 {
 	out_Color = vec4(0);
+	vec2	sampledist = textureSize(in_Texture_Color, 0) / 1024.f;
 	for (int i = 0; i < KERNEL_SIZE; i++)
 	{
 		float	weight = gaussian_kernel[i];
 		vec2	index = vec2(float(i - (KERNEL_SIZE - 1) / 2.f), float(i - (KERNEL_SIZE - 1) / 2.f)) * in_Direction;
-		vec2	sampleUV = frag_UV + (index / textureSize(in_Texture_Color, 0));
+		vec2	sampleUV = frag_UV + sampledist * (index / textureSize(in_Texture_Color, 0));
 		vec4	color = texture(in_Texture_Color, sampleUV);
 		out_Color += color * weight;
 	}

@@ -4,7 +4,7 @@
 uniform lowp vec3		in_CamPos;
 uniform lowp vec3		in_Albedo;
 uniform lowp vec3		in_Emitting;
-uniform lowp vec2		in_Resolution;
+uniform lowp vec3		in_Resolution;
 uniform lowp float		in_Time;
 uniform lowp float		in_Alpha;
 

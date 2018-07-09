@@ -82,9 +82,9 @@ vec2 poissonDisk[] = vec2[64](
 	vec2(-0.545396, 0.538133),
 	vec2(-0.178564, -0.596057));
 
-uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
+/* uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
 	0.06136, 0.24477, 0.38774, 0.24477, 0.06136
-);
+); */
 
 void main()
 {
@@ -94,28 +94,27 @@ void main()
 	float	dof = min(5, 10.f * abs(frag_CenterDepth - depth));
 	vec4	env = textureLod(in_Texture_Env, frag_Cube_UV, 10.f * abs(frag_CenterDepth - 1));
 	vec4	color = textureLod(in_Texture_Color, frag_UV, dof);
-	float	sampledist = (textureSize(in_Texture_Position, 0).x + textureSize(in_Texture_Position, 0).y) / 2.f / 50.f;
+	vec2	sampledist = textureSize(in_Texture_Position, 0) / 1024.f * 25.f;
 	vec3	finalColor = vec3(0);
 	float	occlusion = 0.f;
 	if (depth != 1)
 	{
 		for (int i = 0; i < 64; ++i)
 		{
-			vec2	index = poissonDisk[i];
-			vec2	sampleUV = frag_UV + index * sampledist / textureSize(in_Texture_Position, 0);
+			vec2	sampleUV = frag_UV + poissonDisk[i] * sampledist / textureSize(in_Texture_Position, 0);
 			vec3	samplePosition = texture(in_Texture_Position, sampleUV).xyz;
 			if (texture(in_Texture_Depth, sampleUV).r <= depth)
 			{
 				vec3	V = samplePosition - position;
 				float	D = length(V);
-				float	bias = 0.25;
+				float	bias = 0.025;
 				float	factor = max(0, dot(normal, normalize(V)));
 				float	angle = max(0, factor - bias);
 				occlusion += (angle * (1.f / (1.f + D)));
 			}
 		}
 		occlusion /= 64.f;
-		/* for (int i = 0; i < KERNEL_SIZE; i++) 
+/* 		for (int i = 0; i < KERNEL_SIZE; i++) 
 		{
 			for (int j = 0; j < KERNEL_SIZE; j++) 
 			{

@@ -22,7 +22,7 @@ class HDR : public Texture
 public :
 	static Texture	*parse(const std::string &texture_name, const std::string &imagepath);
 private :
-	HDR();
-	~HDR();
-	
+	virtual void abstract() = 0;
+/*	HDR();
+	~HDR();*/
 };
