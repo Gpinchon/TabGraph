@@ -25,7 +25,8 @@ const auto UP			= (VEC3){0, 1, 0};
 const auto ANISOTROPY	= 16.f;
 const auto MSAA			= 4;
 const auto BLOOMPASS	= 2;
-const auto MAXTEXRES	= 4096;
+const auto MAXTEXRES	= -1;
+#define GL_DEBUG
 
 class Material;
 class Shader;

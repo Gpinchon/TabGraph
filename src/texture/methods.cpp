@@ -44,12 +44,7 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target,GLenum 
 	t->_internal_format = fi;
 	t->_data_format = data_format;
 	t->_data_size = get_data_size(data_format);
-	if (f == GL_RED)
-		t->_bpp = t->_data_size * 8;
-	else if (f == GL_RGB || f == GL_BGR)
-		t->_bpp = 3 * t->_data_size * 8;
-	else if (f == GL_RGBA || f == GL_BGRA)
-		t->_bpp = 4 * t->_data_size * 8;
+	t->_bpp = get_bpp(f, data_format);
 	t->_size = s;
 	glGenTextures(1, &t->_glid);
 	glBindTexture(t->_target, t->_glid);
@@ -70,12 +65,41 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target,GLenum 
 	return (t);
 }
 
+size_t	Texture::get_bpp(GLenum texture_format, GLenum data_format)
+{
+	auto	data_size = Texture::get_data_size(data_format);
+	switch (texture_format)
+	{
+		case GL_RED :
+			return (1 * 8 * data_size);
+		case GL_RGB :
+		case GL_BGR :
+			return (3 * 8 * data_size);
+		case GL_RGBA :
+		case GL_BGRA :
+			return (4 * 8 * data_size);
+		default : return (0);
+	}
+}
+
 size_t	Texture::get_data_size(GLenum data_format)
 {
 	switch (data_format)
 	{
-		case GL_FLOAT : return (sizeof(GLfloat));
-		case GL_UNSIGNED_BYTE : return (sizeof(GLubyte));
+		case GL_FLOAT :
+		case GL_FIXED :
+		case GL_INT :
+		case GL_UNSIGNED_INT :
+			return (sizeof(GLfloat));
+		case GL_BYTE :
+		case GL_UNSIGNED_BYTE :
+			return (sizeof(GLubyte));
+		case GL_HALF_FLOAT :
+		case GL_SHORT :
+		case GL_UNSIGNED_SHORT :
+			return (sizeof(GLushort));
+		case GL_DOUBLE :
+			return (sizeof(GLdouble));
 		default : return (0);
 	}
 }
@@ -104,14 +128,16 @@ void	Texture::assign(Texture &dest_texture, GLenum target)
 	glBindTexture(_target, 0);
 	glBindTexture(dest_texture._target, 0);
 }
+
 #include <iostream>
+
 void	Texture::load()
 {
 	if (_loaded) {
 		return ;
 	}
 	std::cout << _name << " Texture::load()" << std::endl;
-	if (_data && (_size.x > MAXTEXRES || _size.y > MAXTEXRES)) {
+	if (MAXTEXRES != -1 && _data && (_size.x > MAXTEXRES || _size.y > MAXTEXRES)) {
 		resize(new_vec2(std::min(int(_size.x), MAXTEXRES),
 			std::min(int(_size.y), MAXTEXRES)));
 	}
@@ -119,7 +145,7 @@ void	Texture::load()
 		glGenTextures(1, &_glid);
 	}
 	glBindTexture(_target, _glid);
-	if (_bpp < 32) {
+	if (_bpp / 8 / _data_size < 4) {
 		glTexParameteri(_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	}
 	if (_size.x > 0 && _size.y > 0) {
@@ -196,33 +222,33 @@ size_t	Texture::data_size()
 
 GLubyte	*Texture::texelfetch(const VEC2 &uv)
 {
-	VEC4			value{};
 	int				opp;
 
-	value = new_vec4(0, 0, 0, 0);
 	if (_data == nullptr) {
 		return (nullptr);
 	}
-	auto nuv = new_vec2(
-		CLAMP(round(_size.x * uv.x), 0, _size.x - 1),
-		CLAMP(round(_size.y * uv.y), 0, _size.y - 1));
+	auto	nuv = uv;
+	nuv.x = CLAMP(nuv.x, 0, 1);
+	nuv.y = CLAMP(nuv.y, 0, 1);
+	nuv = new_vec2(
+		round((_size.x - 1) * nuv.x),
+		round((_size.y - 1) * nuv.y));
 	opp = _bpp / 8;
-	return (&_data[static_cast<int>(nuv.y * _size.x + nuv.x) * opp]);
+	return (&_data[int(_size.x * nuv.y  + nuv.x) * opp]);
 }
 
 void	Texture::set_pixel(const VEC2 &uv, const GLubyte *value)
 {
-	if (_data == nullptr)
-	{
-		std::cout << static_cast<int>(_size.x * _size.y) * (_bpp / 8) << std::endl;
-		_data = new GLubyte[static_cast<int>(_size.x * _size.y) * (_bpp / 8)];
+	int			opp;
+
+	opp = _bpp / 8;
+	if (_data == nullptr) {
+		_data = new GLubyte[int(_size.x * _size.y) * opp];
 	}
-	char			opp;
 	GLubyte			*p;
 	int				i;
 
 	p = texelfetch(uv);
-	opp = _bpp / 8;
 	i = 0;
 	while (i < opp)
 	{
@@ -272,7 +298,7 @@ VEC4	Texture::sample(const VEC2 &uv)
 	{
 		s[1] = -1;
 		while (++s[1] < 4) {
-			(reinterpret_cast<float*>(&value))[s[0]] += (&_data[static_cast<int>(round(vt[s[1]].y) *
+			(reinterpret_cast<float*>(&value))[s[0]] += (&_data[int(round(vt[s[1]].y) *
 				_size.x + round(vt[s[1]].x)) * (_bpp / 8)])[s[0]] * vt[s[1]].z;
 		}
 	}
@@ -287,31 +313,25 @@ bool	Texture::is_loaded()
 void	Texture::resize(const VEC2 &ns)
 {
 	GLubyte	*d;
-	int				x, y, z;
-	VEC4			v{};
-	VEC2			uv{};
 
 	if (_data != nullptr)
 	{
-		d = new GLubyte[unsigned(ns.x * ns.y * (_bpp))];
-		x = 0;
-		while (x < ns.x)
+		auto	opp = _bpp / 8;
+		d = new GLubyte[unsigned(ns.x * ns.y * opp)];
+		for (auto	y = 0; y < ns.y; ++y)
 		{
-			y = 0;
-			while (y < ns.y)
+			for (auto	x = 0; x < ns.x; ++x)
 			{
-				uv = new_vec2(x / ns.x, y / ns.y);
-				v = sample(uv);
-				z = 0;
-				while (z < (_bpp / 8))
-				{
-					(&d[int(y * ns.x + x) * (_bpp / 8)])[z] =
-					(reinterpret_cast<float*>(&v))[z];
-					z++;
+				auto	uv = new_vec2(x / ns.x, y / ns.y);
+				auto	value = texelfetch(uv);
+				auto	p = &d[int(ns.x * y + x) * opp];
+				for (auto z = 0; z < opp; ++z) {
+					p[z] = value[z];
 				}
-				y++;
+				/*auto v = sample(uv);
+				for (auto z = 0; z < opp; ++z)
+					(&d[int(y * ns.x + x) * opp])[z] = (reinterpret_cast<float*>(&v))[z];*/
 			}
-			x++;
 		}
 		delete [] _data;
 		_data = d;
@@ -322,8 +342,7 @@ void	Texture::resize(const VEC2 &ns)
 		glDeleteTextures(1, &_glid);
 		glGenTextures(1, &_glid);
 		glBindTexture(_target, _glid);
-		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0,
-			_format, GL_FLOAT, _data);
+		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format, _data_format, _data);
 		glBindTexture(_target, 0);
 	}
 }

@@ -22,6 +22,7 @@ public:
 	static Texture	*create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi,  GLenum data_format = GL_UNSIGNED_BYTE);
 	static Texture	*get_by_name(const std::string &);
 	static size_t	get_data_size(GLenum data_type);
+	static size_t	get_bpp(GLenum texture_format, GLenum data_type);
 	virtual bool	is_loaded();
 	virtual void	resize(const VEC2 &ns);
 	virtual void	set_name(const std::string &);
@@ -37,7 +38,6 @@ public:
 	virtual void	format(GLenum *format,
 						GLenum *internal_format);
 	virtual	GLenum	data_format();
-	//returns data size set on creation
 	virtual size_t		data_size();
 	virtual GLuint		glid() const;
 	virtual void		*data() const;

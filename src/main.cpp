@@ -81,10 +81,10 @@ int		main(int argc, char *argv[])
 	if (obj != nullptr) {
 		obj->center();
 		obj->load();
-		auto	m = Renderable::get_by_name("main_mesh_child 0");
+/*		auto	m = Renderable::get_by_name("main_mesh_child 0");
 		if (m != nullptr)
 			m->material->shader = GLSL::parse("shadertoy", Engine::program_path() + "./res/shaders/shadertoy.vert", Engine::program_path() + "./res/shaders/balls.frag");
-	}
+*/	}
 	Mesh::alpha_sort();
 	setup_callbacks();
 	Engine::run();

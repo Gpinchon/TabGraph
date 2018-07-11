@@ -170,8 +170,8 @@ void	main()
 			+ textureLod(in_Texture_Env_Spec, -worldNormal, roughness * 4.f).rgb);
 	lowp vec3	reflection = textureLod(in_Texture_Env, R, roughness * 12.f).rgb * fresnel;
 	lowp vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 10.f).rgb;
-	//lowp vec3	reflection_spec = textureLod(in_Texture_Env, R, roughness * 10.f + 3.5).rgb;
-	lowp vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 10.f + 3.5).rgb, vec3(4));
+	lowp vec3	reflection_spec = textureLod(in_Texture_Env, R, roughness * 10.f + 3.5).rgb;
+	//lowp vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 10.f + 3.5).rgb, vec3(1 / 3.2f));
 	
 	if (albedo.a <= 0.05
 	|| vt.x > (frag_UVMax.x) || vt.y > (frag_UVMax.y)
@@ -180,6 +180,7 @@ void	main()
 
 	lowp float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
 	reflection_spec *= brightness * min(fresnel + 1, fresnel * Env_Specular(NdV, roughness));
+	//reflection_spec *= min(fresnel + 1, fresnel * Env_Specular(NdV, roughness));
 	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, metallic) * BRDF.y;
 	specular += reflection_spec;
 	diffuse *= albedo.rgb * (1 - metallic);
