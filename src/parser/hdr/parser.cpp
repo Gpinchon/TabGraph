@@ -41,55 +41,42 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 	file = fopen(path.c_str(), "rb");
 	if (!file)
 		throw std::runtime_error("Invalid File");
-
 	fread(str, 10, 1, file);
 	if (memcmp(str, "#?RADIANCE", 10)) {
 		fclose(file);
 		throw std::runtime_error("Invalid Header");
 	}
-
 	fseek(file, 1, SEEK_CUR);
-
-	//char cmd[200];
 	i = 0;
 	char c = 0, oldc;
-	while(true) {
+	while (true) {
 		oldc = c;
 		c = fgetc(file);
 		if (c == 0xa && oldc == 0xa)
 			break;
-		//cmd[i++] = c;
 	}
-
 	char reso[200];
 	i = 0;
-	while(true) {
+	while (true) {
 		c = fgetc(file);
 		reso[i++] = c;
 		if (c == 0xa)
 			break;
 	}
-
 	long w, h;
 	if (!sscanf(reso, "-Y %ld +X %ld", &h, &w)) {
 		fclose(file);
-		throw std::runtime_error(nullptr);
+		throw std::runtime_error("Invalid Resolution");
 	}
-	std::cout << h << " " << w << " " << std::endl;
-
 	size.x = w;
 	size.y = h;
-
 	auto	cols = new float[w * h * 3];
 	void	*data = static_cast<void*>(cols);
-	//res.cols = cols;
-
 	RGBE *scanline = new RGBE[w];
 	if (!scanline) {
 		fclose(file);
-		throw std::runtime_error(nullptr);
+		throw std::runtime_error("Invalid Scanline");
 	}
-
 	// convert image 
 	for (int y = h - 1; y >= 0; y--) {
 		if (decrunch(scanline, w, file) == false)
@@ -132,13 +119,11 @@ bool decrunch(RGBE *scanline, int len, FILE *file)
 					
 	if (len < MINELEN || len > MAXELEN)
 		return oldDecrunch(scanline, len, file);
-
 	i = fgetc(file);
 	if (i != 2) {
 		fseek(file, -1, SEEK_CUR);
 		return oldDecrunch(scanline, len, file);
 	}
-
 	scanline[0][G] = fgetc(file);
 	scanline[0][B] = fgetc(file);
 	i = fgetc(file);
@@ -148,7 +133,6 @@ bool decrunch(RGBE *scanline, int len, FILE *file)
 		scanline[0][E] = i;
 		return oldDecrunch(scanline + 1, len - 1, file);
 	}
-
 	// read each component
 	for (i = 0; i < 4; i++) {
 	    for (j = 0; j < len; ) {
@@ -181,7 +165,6 @@ bool oldDecrunch(RGBE *scanline, int len, FILE *file)
 		scanline[0][E] = fgetc(file);
 		if (feof(file))
 			return false;
-
 		if (scanline[0][R] == 1 &&
 			scanline[0][G] == 1 &&
 			scanline[0][B] == 1) {

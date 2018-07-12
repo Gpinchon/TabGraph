@@ -34,7 +34,7 @@ void	Texture::set_name(const std::string &name)
 	_id = hash_fn(name);
 }
 
-Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target,GLenum f, GLenum fi, GLenum data_format)
+Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target,GLenum f, GLenum fi, GLenum data_format, void *data)
 {
 	Texture	*t;
 
@@ -44,6 +44,7 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target,GLenum 
 	t->_internal_format = fi;
 	t->_data_format = data_format;
 	t->_data_size = get_data_size(data_format);
+	t->_data = static_cast<GLubyte*>(data);
 	t->_bpp = get_bpp(f, data_format);
 	t->_size = s;
 	glGenTextures(1, &t->_glid);
@@ -137,6 +138,7 @@ void	Texture::load()
 		return ;
 	}
 	std::cout << _name << " Texture::load()" << std::endl;
+	if (_data != nullptr)
 	if (MAXTEXRES != -1 && _data && (_size.x > MAXTEXRES || _size.y > MAXTEXRES)) {
 		resize(new_vec2(std::min(int(_size.x), MAXTEXRES),
 			std::min(int(_size.y), MAXTEXRES)));
@@ -145,7 +147,7 @@ void	Texture::load()
 		glGenTextures(1, &_glid);
 	}
 	glBindTexture(_target, _glid);
-	if (_bpp / 8 / _data_size < 4) {
+	if (_bpp / _data_size / 8  < 4) { //if texture has no alpha (_bpp / _data_size / 8) equals values per texel
 		glTexParameteri(_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	}
 	if (_size.x > 0 && _size.y > 0) {
@@ -237,6 +239,28 @@ GLubyte	*Texture::texelfetch(const VEC2 &uv)
 	return (&_data[int(_size.x * nuv.y  + nuv.x) * opp]);
 }
 
+void	Texture::set_pixel(const VEC2 &uv, const VEC4 value)
+{
+	int			opp;
+	VEC4		val{};
+
+	opp = _bpp / 8;
+	val = value;
+	if (_data == nullptr) {
+		_data = new GLubyte[int(_size.x * _size.y) * opp];
+	}
+	GLubyte			*p;
+	p = texelfetch(uv);
+	auto	valuePtr = reinterpret_cast<float*>(&val);
+	for (auto i = 0, j = 0; i < int(opp / _data_size) && j < 4; ++i, ++j)
+	{
+		if (_data_size == 1)
+			p[i] = valuePtr[j] * 255.f;
+		else if (_data_size == sizeof(GLfloat))
+			static_cast<GLfloat*>((void*)p)[i] = valuePtr[j];
+	}
+}
+
 void	Texture::set_pixel(const VEC2 &uv, const GLubyte *value)
 {
 	int			opp;
@@ -246,14 +270,9 @@ void	Texture::set_pixel(const VEC2 &uv, const GLubyte *value)
 		_data = new GLubyte[int(_size.x * _size.y) * opp];
 	}
 	GLubyte			*p;
-	int				i;
-
 	p = texelfetch(uv);
-	i = 0;
-	while (i < opp)
-	{
+	for (auto i = 0; i < opp; ++i) {
 		p[i] = value[i];
-		i++;
 	}
 }
 
@@ -277,11 +296,10 @@ void	Texture::set_parameters(int p_nbr, GLenum *p, GLenum *v)
 
 VEC4	Texture::sample(const VEC2 &uv)
 {
-	int			s[2];
 	VEC3		vt[4];
 	VEC4		value{};
 
-	value = new_vec4(0, 0, 0, 0);
+	value = new_vec4(0, 0, 0, 1);
 	if (_data == nullptr) {
 		return (value);
 	}
@@ -293,15 +311,22 @@ VEC4	Texture::sample(const VEC2 &uv)
 		std::min(_size.y - 1, vt[0].y + 1), (nuv.x * (1 - nuv.y)));
 	vt[2] = new_vec3(vt[0].x, vt[1].y, ((1 - nuv.x) * nuv.y));
 	vt[3] = new_vec3(vt[1].x, vt[0].y, (nuv.x * nuv.y));
-	s[0] = -1;
-	while (++s[0] < (_bpp / 8))
+	auto	opp = _bpp / 8;
+	for (auto i = 0; i < 4; ++i)
 	{
-		s[1] = -1;
-		while (++s[1] < 4) {
-			(reinterpret_cast<float*>(&value))[s[0]] += (&_data[int(round(vt[s[1]].y) *
-				_size.x + round(vt[s[1]].x)) * (_bpp / 8)])[s[0]] * vt[s[1]].z;
+		auto	d = &_data[int(round(vt[i].y) * _size.x + round(vt[i].x)) * opp];
+		for (auto j = 0; j < int(opp / _data_size); ++j)
+		 {
+			if (_data_size == 1)
+				reinterpret_cast<float*>(&value)[j] += (d[j] * vt[i].z) / 255.f;
+			else if (_data_size == sizeof(GLfloat))
+				reinterpret_cast<float*>(&value)[j] += static_cast<float*>((void*)d)[j] * vt[i].z;
+			//(reinterpret_cast<float*>(&value))[i] += d[j] * vt[j].z;
+			/*(reinterpret_cast<float*>(&value))[i] += (&_data[int(round(vt[j].y) *
+				_size.x + round(vt[j].x)) * (opp)])[i] * vt[j].z;*/
 		}
 	}
+	//std::cout << value.x << " " << value.y << " " << value.z << std::endl;
 	return (value);
 }
 
@@ -323,10 +348,18 @@ void	Texture::resize(const VEC2 &ns)
 			for (auto	x = 0; x < ns.x; ++x)
 			{
 				auto	uv = new_vec2(x / ns.x, y / ns.y);
-				auto	value = texelfetch(uv);
-				auto	p = &d[int(ns.x * y + x) * opp];
+				//auto	value = texelfetch(uv);
+				/*auto	p = &d[int(ns.x * y + x) * opp];
 				for (auto z = 0; z < opp; ++z) {
 					p[z] = value[z];
+				}*/
+				auto	value = sample(uv);
+				auto	p = &d[int(ns.x * y + x) * opp];
+				for (auto z = 0; z < int(opp / _data_size); ++z) {
+					if (_data_size == 1)
+						p[z] = reinterpret_cast<float*>(&value)[z] * 255.f;
+					else if (_data_size == sizeof(GLfloat))
+						reinterpret_cast<float*>(p)[z] = reinterpret_cast<float*>(&value)[z];
 				}
 				/*auto v = sample(uv);
 				for (auto z = 0; z < opp; ++z)

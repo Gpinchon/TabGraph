@@ -95,23 +95,12 @@ void			Engine::_load_res()
 			continue ;
 		}
 		std::string	name = e->d_name;
-		//auto	newEnv = new Environment;
 		std::cout << name << std::endl;
 		auto	newEnv = new Environment;
 		newEnv->diffuse = Cubemap::create(name + "Cube", HDR::parse(name, folder + name + "/environment.hdr"));
 		newEnv->brdf = Cubemap::create(name + "CubeDiffuse", HDR::parse(name + "Diffuse", folder + name + "/diffuse.hdr"));
 		Engine::add(*newEnv);
 	}
-
-	
-	/*newEnv = new Environment;
-	newEnv->diffuse = Cubemap::create("ennisCube", HDR::parse("ennisHdr", "./res/hdr/ennis.hdr"));
-	newEnv->brdf = Cubemap::create("ennisCubeDiffuse", HDR::parse("ennisHdrDiffuse", "./res/hdr/ennis_diffuse.hdr"));
-	Engine::add(*newEnv);
-	newEnv = new Environment;
-	newEnv->diffuse = Cubemap::create("uffiziCube", HDR::parse("uffiziHdr", "./res/hdr/uffizi.hdr"));
-	newEnv->brdf = Cubemap::create("uffiziCubeDiffuse", HDR::parse("uffiziHdrDiffuse", "./res/hdr/uffizi_diffuse.hdr"));
-	Engine::add(*newEnv);*/
 	folder = Engine::program_path() + "res/skybox/";
 	dir = opendir(folder.c_str());
 	while ((e = readdir(dir)) != nullptr)

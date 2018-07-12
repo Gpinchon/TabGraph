@@ -19,7 +19,7 @@
 class	Texture
 {
 public:
-	static Texture	*create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi,  GLenum data_format = GL_UNSIGNED_BYTE);
+	static Texture	*create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
 	static Texture	*get_by_name(const std::string &);
 	static size_t	get_data_size(GLenum data_type);
 	static size_t	get_bpp(GLenum texture_format, GLenum data_type);
@@ -43,6 +43,7 @@ public:
 	virtual void		*data() const;
 	virtual GLubyte		bpp() const;
 	virtual VEC2		size() const;
+	virtual void	set_pixel(const VEC2 &uv, const VEC4 value);
 	virtual void	set_pixel(const VEC2 &uv, const GLubyte *value);
 	virtual GLubyte		*texelfetch(const VEC2 &uv);
 	virtual VEC4		sample(const VEC2 &uv);
