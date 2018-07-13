@@ -178,8 +178,8 @@ void	main()
 	|| vt.x < (frag_UVMin.x) || vt.y < (frag_UVMin.y))
 		discard;
 
-	lowp float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
-	//lowp float	brightness = max(reflection_spec.r, max(reflection_spec.g, reflection_spec.b));
+	//lowp float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
+	lowp float	brightness = max(0, max(reflection_spec.r, max(reflection_spec.g, reflection_spec.b)) - 1);
 	reflection_spec *= brightness * min(fresnel + 1, fresnel * Env_Specular(NdV, roughness));
 	//reflection_spec *= min(fresnel + 1, fresnel * Env_Specular(NdV, roughness));
 	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, metallic) * BRDF.y;

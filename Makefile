@@ -53,7 +53,7 @@ LIBDIR		=	./libs/vml/
 LIBFILES	=	./libs/vml/libvml.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CXXFLAGS	=	-g -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
+CXXFLAGS	=	-Ofast -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
 LINKFLAGS	=	""
 
 NO_COLOR=\033[0m
