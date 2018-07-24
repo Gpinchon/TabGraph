@@ -89,7 +89,7 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 	fclose(file);
 
 	auto	t = static_cast<HDR*>(Texture::create(texture_name, size,
-				GL_TEXTURE_2D, GL_RGB, GL_COMPRESSED_RGB, GL_FLOAT));
+				GL_TEXTURE_2D, GL_RGB, GL_RGB16F, GL_FLOAT));
 	t->_data = static_cast<GLubyte*>(data);
 	return (t);
 }
