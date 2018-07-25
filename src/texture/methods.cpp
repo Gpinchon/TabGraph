@@ -138,7 +138,6 @@ void	Texture::load()
 		return ;
 	}
 	std::cout << _name << " Texture::load()" << std::endl;
-	if (_data != nullptr)
 	if (MAXTEXRES != -1 && _data && (_size.x > MAXTEXRES || _size.y > MAXTEXRES)) {
 		resize(new_vec2(std::min(int(_size.x), MAXTEXRES),
 			std::min(int(_size.y), MAXTEXRES)));
