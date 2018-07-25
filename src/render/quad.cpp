@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/13 16:32:22 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/20 17:35:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:33:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ GLuint	display_quad_get()
 {
 	static GLuint	render_quadid = 0;
 	GLuint			bufferid;
-	std::array<float, 8>	quad{};
+	std::array<float, 8>	quad{{0}};
 
 	if (render_quadid != 0u) {
 		return (render_quadid);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:12:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 16:49:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:26:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,12 @@ public :
 	void			set_name(const std::string &);
 	const std::string		&name();
 	Shader			*shader;
-	VEC3			albedo{};
-	VEC3			specular{};
-	VEC3			emitting{};
-	VEC2			uv_scale{};
-	float			alpha{};
-	float			parallax{};
+	VEC3			albedo{0, 0, 0};
+	VEC3			specular{0, 0, 0};
+	VEC3			emitting{0, 0, 0};
+	VEC2			uv_scale{1, 1};
+	float			alpha{1};
+	float			parallax{0.05};
 	Texture			*texture_albedo;
 	Texture			*texture_specular;
 	Texture			*texture_emitting;

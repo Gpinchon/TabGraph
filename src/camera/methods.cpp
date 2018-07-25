@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/20 01:34:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:29:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,8 @@ Camera		*Camera::create(const std::string &name, float fov)
 
 void	Camera::orbite(float phi, float theta, float radius)
 {
-	VEC3		target_position {new_vec3(0, 0, 0)};
-	VEC3		new_position {position()};
+	VEC3		target_position {0, 0, 0};
+	VEC3		new_position  = position();
 
 	if (target != nullptr) {
 		target_position = target->position();
@@ -48,8 +48,8 @@ void	Camera::orbite(float phi, float theta, float radius)
 
 void	Camera::update()
 {
-	VEC3		target_position {target != nullptr ? target->position() : new_vec3(0, 0, 0)};
-	VEC2		size {Window::size()};
+	VEC3		target_position = target != nullptr ? target->position() : new_vec3(0, 0, 0);
+	VEC2		size = Window::size();
 
 	view = mat4_lookat(position(), target_position, UP);
 	projection = mat4_perspective(fov,

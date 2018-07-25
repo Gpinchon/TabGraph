@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/06/09 12:31:33 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/07/25 22:42:31 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,8 +53,8 @@ LIBDIR		=	./libs/vml/
 LIBFILES	=	./libs/vml/libvml.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CXXFLAGS	=	-Ofast -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
-LINKFLAGS	=	""
+CXXFLAGS	=	-Ofast -std=c++14 -Wall -Wextra -Werror $(INCLUDE)
+LINKFLAGS	=	
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -65,6 +65,7 @@ OK_STRING	=	[OK]
 NAME		=	Scop.exe
 LIBS		=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic $(addprefix -L , $(LIBDIR)) -lvml -lmingw32 -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 LINKFLAGS	=	-Wl,--allow-multiple-definition
+CXXFLAGS	=	-Ofast -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
 else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))

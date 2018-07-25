@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:45:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/10 01:03:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:31:12 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void		parse_vg(t_obj_parser *p)
 void		correct_vt(VEC2 *vt)
 {
 	VEC3		v[3];
-	VEC3		texnormal{};
+	VEC3		texnormal{0, 0, 0};
 
 	v[0] = vec2_to_vec3(vt[0], 0);
 	v[1] = vec2_to_vec3(vt[1], 0);
@@ -84,8 +84,8 @@ void		correct_vt(VEC2 *vt)
 
 VEC2		generate_vt(VEC3 v, VEC3 center)
 {
-	VEC2		vt{};
-	VEC3		vec{};
+	VEC2		vt{0, 0};
+	VEC3		vec{0, 0, 0};
 
 	vec = vec3_normalize(vec3_sub(center, v));
 	vt.x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));

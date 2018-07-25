@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 16:10:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 22:28:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,10 @@ static int	read_data(t_bmp_parser *p, const std::string &path)
 		fclose(p->fd);
 		throw std::runtime_error("Wrong Info");
 	}
-	data_size = p->info.bpp / 8 * p->info.width * p->info.height;
+	if (p->info.width * p->info.bpp / 8 % 2)
+		data_size = 4 * p->info.width * p->info.height;
+	else
+		data_size = p->info.bpp / 8 * p->info.width * p->info.height;
 	fseek(p->fd, p->header.data_offset, SEEK_SET);
 	p->data = new GLubyte[data_size];
 	p->size_read = fread(p->data, sizeof(unsigned char), data_size, p->fd);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/13 16:28:23 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 17:52:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:33:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ static void	render_bind_textures(Shader &shader)
 
 void		render_present()
 {
-	MAT4		matrix{};
+	MAT4		matrix{{0}};
 
 	if (Engine::current_camera() == nullptr) {
 		return ;

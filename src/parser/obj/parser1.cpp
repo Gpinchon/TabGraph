@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parser1.c                                          :+:      :+:    :+:   */
+/*   parser1.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:42:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/04/28 17:11:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:30:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,8 @@ VEC2		parse_vec2(std::vector<std::string> &split)
 
 void		parse_vtn(t_obj_parser *p, std::vector<std::string> &split)
 {
-	VEC3	v{};
-	VEC2	vn{};
+	VEC3	v{0, 0, 0};
+	VEC2	vn{0, 0};
 
 	if (split[0] == "v")
 	{

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/07 23:03:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 22:45:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 		if (c == 0xa && oldc == 0xa)
 			break;
 	}
-	char reso[200];
+	char reso[200]{0};
 	i = 0;
 	while (true) {
 		c = fgetc(file);

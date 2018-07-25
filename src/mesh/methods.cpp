@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/09 13:56:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:30:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,8 +115,8 @@ void			Mesh::load()
 
 void		Mesh::bind()
 {
-	MAT4		mvp{};
-	MAT4		normal_matrix{};
+	MAT4		mvp;
+	MAT4		normal_matrix;
 
 	if ((material == nullptr) || (material->shader == nullptr) || (Engine::current_camera() == nullptr)) {
 		return ;

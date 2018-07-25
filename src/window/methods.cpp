@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 21:13:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:27:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ VEC2		Window::size()
 
 void		Window::resize()
 {
-	VEC2		size{};
+	VEC2		size{0, 0};
 	static VEC2	lastSize = new_vec2(0, 0);
 
 	size = vec2_scale(Window::size(),

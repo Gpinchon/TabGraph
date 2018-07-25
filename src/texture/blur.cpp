@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/13 16:34:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/10 01:04:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:32:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void	Texture::blur(const int &pass, const float &radius)
 	color0 = &blur->attachement(0);
 	while (totalPass >= 0)
 	{
-		VEC2			direction{};
+		VEC2			direction;
 		Texture			*temp;
 		static float	angle = 0;
 

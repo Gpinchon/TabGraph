@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 00:01:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:45:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ void			Engine::_load_res()
 
 	folder = Engine::program_path() + "res/hdr/";
 	dir = opendir(folder.c_str());
-	while ((e = readdir(dir)) != nullptr)
+	while (dir != nullptr && (e = readdir(dir)) != nullptr)
 	{
 		if (e->d_name[0] == '.') {
 			continue ;

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:46:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/20 18:05:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 21:31:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 static void	push_values(t_obj_parser *p, VEC3 *v, VEC3 *vn, VEC2 *vt)
 {
 	unsigned		i;
-	CVEC4			ub{};
+	CVEC4			ub{0, 0, 0, 0};
 
 	i = 0;
 	while (i < 3)

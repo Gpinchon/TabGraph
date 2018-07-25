@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 18:05:31 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/25 23:01:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ Texture::Texture(const std::string &name) :
 _glid(0),
 _size(new_vec2(0, 0)),
 _bpp(0),
+_data_size(0),
 _data_format(GL_UNSIGNED_BYTE),
 _target(0),
 _format(0),
@@ -130,23 +131,21 @@ void	Texture::assign(Texture &dest_texture, GLenum target)
 	glBindTexture(dest_texture._target, 0);
 }
 
-#include <iostream>
-
 void	Texture::load()
 {
 	if (_loaded) {
 		return ;
 	}
-	std::cout << _name << " Texture::load()" << std::endl;
 	if (MAXTEXRES != -1 && _data && (_size.x > MAXTEXRES || _size.y > MAXTEXRES)) {
-		resize(new_vec2(std::min(int(_size.x), MAXTEXRES),
+		resize(new_vec2(
+			std::min(int(_size.x), MAXTEXRES),
 			std::min(int(_size.y), MAXTEXRES)));
 	}
 	if (_glid == 0u) {
 		glGenTextures(1, &_glid);
 	}
 	glBindTexture(_target, _glid);
-	if (_bpp / _data_size / 8  < 4) { //if texture has no alpha (_bpp / _data_size / 8) equals values per texel
+	if (_data_size && _bpp / _data_size / 8 < 4) { //if texture has no alpha (_bpp / _data_size / 8) equals values per texel
 		glTexParameteri(_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	}
 	if (_size.x > 0 && _size.y > 0) {
@@ -241,7 +240,7 @@ GLubyte	*Texture::texelfetch(const VEC2 &uv)
 void	Texture::set_pixel(const VEC2 &uv, const VEC4 value)
 {
 	int			opp;
-	VEC4		val{};
+	VEC4		val{0, 0, 0, 1};
 
 	opp = _bpp / 8;
 	val = value;
@@ -296,9 +295,8 @@ void	Texture::set_parameters(int p_nbr, GLenum *p, GLenum *v)
 VEC4	Texture::sample(const VEC2 &uv)
 {
 	VEC3		vt[4];
-	VEC4		value{};
+	VEC4		value{0, 0, 0, 1};
 
-	value = new_vec4(0, 0, 0, 1);
 	if (_data == nullptr) {
 		return (value);
 	}
