@@ -3,20 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   Texture.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 18:22:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/30 19:49:53 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "GLIncludes.hpp"
+#include "Object.hpp"
 #include "vml.h"
 #include <string>
 
-class	Texture
+class	Texture : public Object
 {
 public:
 	static Texture	*create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
@@ -25,7 +26,6 @@ public:
 	static size_t	get_bpp(GLenum texture_format, GLenum data_type);
 	virtual bool	is_loaded();
 	virtual void	resize(const VEC2 &ns);
-	virtual void	set_name(const std::string &);
 	virtual void	set_parameter(GLenum p, GLenum v);
 	virtual void	set_parameters(int p_nbr,
 						GLenum *p, GLenum *v);
@@ -47,14 +47,10 @@ public:
 	virtual void	set_pixel(const VEC2 &uv, const GLubyte *value);
 	virtual GLubyte		*texelfetch(const VEC2 &uv);
 	virtual VEC4		sample(const VEC2 &uv);
-	const std::string	&name();
-	const std::string	&name() const;
 	template <typename T>
 	T					*at(float u, float v);
 protected:
-	size_t		_id{};
 	GLuint		_glid;
-	std::string	_name;
 	VEC2		_size;
 	char		_bpp;
 	size_t		_data_size;

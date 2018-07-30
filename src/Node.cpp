@@ -1,28 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.cpp                                        :+:      :+:    :+:   */
+/*   Node.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/20 01:22:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/30 19:46:36 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include "Node.hpp"
 
-Node::Node(const std::string &name) : parent(nullptr),  bounding_element(nullptr), _id(0), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))
+Node::Node(const std::string &name) : parent(nullptr),  bounding_element(nullptr), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))
 {
 	set_name(name);
-}
-
-void	Node::set_name(const std::string &name)
-{
-	_name = name;
-	std::hash<std::string> hash_fn;
-	_id = hash_fn(name);
 }
 
 Node	*Node::get_by_name(const std::string &name)
@@ -36,7 +29,7 @@ Node	*Node::get_by_name(const std::string &name)
 	h = hash_fn(name);
 	while ((m = Engine::node(i)) != nullptr)
 	{
-		if (h == m->_id) {
+		if (h == m->id()) {
 			return (m);
 		}
 		i++;
@@ -53,11 +46,6 @@ Node	*Node::create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 s
 	t->update();
 	Engine::add(*t);
 	return (t);
-}
-
-const std::string	&Node::name()
-{
-	return (_name);
 }
 
 void	Node::physics_update()

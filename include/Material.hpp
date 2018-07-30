@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Material.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:12:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/25 21:26:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/30 19:48:19 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,12 @@
 
 #include "vml.h"
 #include <string>
+#include "Object.hpp"
 
 class Texture;
 class Shader;
 
-class	Material
+class	Material : public Object
 {
 public :
 	static Material *create(const std::string &);
@@ -26,8 +27,6 @@ public :
 	virtual void	bind_values();
 	virtual void	bind_textures();
 	virtual void	load_textures();
-	void			set_name(const std::string &);
-	const std::string		&name();
 	Shader			*shader;
 	VEC3			albedo{0, 0, 0};
 	VEC3			specular{0, 0, 0};
@@ -41,7 +40,5 @@ public :
 	Texture			*texture_normal;
 	Texture			*texture_height;
 protected :
-	std::string		_name;
-	size_t			_id{};
 	Material(const std::string &name);
 };

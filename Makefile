@@ -3,42 +3,42 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
+#    By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/07/25 22:42:31 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/07/30 19:33:46 by anonymous        ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scop
-SRC			=	./src/main.cpp			\
-				./src/event.cpp			\
-				./src/cubemap.cpp			\
-				./src/callbacks/callbacks.cpp		\
-				./src/node/methods.cpp		\
-				./src/window/methods.cpp			\
-				./src/engine/methods.cpp			\
-				./src/camera/methods.cpp			\
-				./src/framebuffer/methods.cpp		\
-				./src/material/methods.cpp		\
-				./src/material/PBRmethods.cpp		\
-				./src/mesh/methods.cpp			\
-				./src/parser/tools.cpp			\
-				./src/parser/obj/parser.cpp		\
+SRC			=	./src/Scop/main.cpp					\
+				./src/Scop/callbacks/callbacks.cpp	\
+				./src/Object.cpp					\
+				./src/Events.cpp					\
+				./src/Cubemap.cpp					\
+				./src/Node.cpp						\
+				./src/Window.cpp					\
+				./src/Engine.cpp					\
+				./src/Camera.cpp					\
+				./src/Framebuffer.cpp				\
+				./src/Mesh.cpp						\
+				./src/Shader.cpp					\
+				./src/Texture.cpp					\
+				./src/Material.cpp					\
+				./src/PBRMaterial.cpp				\
+				./src/parser/tools.cpp				\
+				./src/parser/obj/parser.cpp			\
 				./src/parser/obj/parser1.cpp		\
 				./src/parser/obj/parser2.cpp		\
 				./src/parser/obj/parser3.cpp		\
-				./src/parser/hdr/parser.cpp		\
-				./src/parser/bmp/parser.cpp		\
-				./src/parser/bmp/saver.cpp		\
-				./src/parser/shaders/parser.cpp	\
-				./src/parser/mtllib/parser.cpp	\
-				./src/shader/methods.cpp			\
-				./src/texture/blur.cpp		\
-				./src/texture/methods.cpp		\
-				./src/render/quad.cpp		\
-				./src/render/scene.cpp	\
-				./src/render/shadow.cpp	\
+				./src/parser/hdr/parser.cpp			\
+				./src/parser/bmp/parser.cpp			\
+				./src/parser/bmp/saver.cpp			\
+				./src/parser/shaders/parser.cpp		\
+				./src/parser/mtllib/parser.cpp		\
+				./src/render/quad.cpp				\
+				./src/render/scene.cpp				\
+				./src/render/shadow.cpp				\
 				./src/render/present.cpp
 
 OBJ			=	$(SRC:.cpp=.o)

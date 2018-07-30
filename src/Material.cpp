@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.cpp                                        :+:      :+:    :+:   */
+/*   Material.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 21:13:42 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/30 19:52:34 by anonymous        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,18 +30,6 @@ Material::Material(const std::string &name) : shader(nullptr),
 	}
 }
 
-void	Material::set_name(const std::string &name)
-{
-	_name = name;
-	std::hash<std::string> hash_fn;
-	_id = hash_fn(name);
-}
-
-const std::string	&Material::name()
-{
-	return (_name);
-}
-
 Material	*Material::create(const std::string &name)
 {
 	auto	mtl = new Material(name);
@@ -60,7 +48,7 @@ Material	*Material::get_by_name(const std::string &name)
 	h = hash_fn(name);
 	while ((m = Engine::material(i)) != nullptr)
 	{
-		if (h == m->_id) {
+		if (h == m->id()) {
 			return (m);
 		}
 		i++;
