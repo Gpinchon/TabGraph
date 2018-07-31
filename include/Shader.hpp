@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 18:06:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/31 11:47:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 #include "vml.h"
 #include "GLIncludes.hpp"
+#include "Object.hpp"
 #include <string>
 #include <map>
 
@@ -28,7 +29,7 @@ struct	ShaderVariable
 	GLuint		loc;
 };
 
-class Shader
+class Shader : public Object
 {
 public:
 	static Shader	*get_by_name(const std::string &);
@@ -39,7 +40,6 @@ public:
 	void			bind_texture(const std::string &,
 					Texture *, const GLenum &texture_unit);
 	void			unbind_texture(GLenum texture_unit);
-	void			set_name(const std::string &);
 	void			set_uniform(const std::string &name, Texture *, const int value);
 	void            set_uniform(const std::string &, const bool &);
     void			set_uniform(const std::string &, const int &);
@@ -50,12 +50,9 @@ public:
 	void			set_uniform(const std::string &, const MAT4 &);
 	void			use(const bool &use_program = true);
 	ShaderVariable	*get_uniform(const std::string &name);
-	const std::string &name();
 	bool			in_use();
 protected:
 	std::map<std::string, ShaderVariable>	_get_variables(GLenum type);
-	size_t			_id{};
-	std::string	    _name;
 	GLuint		    _program;
 	bool		    _in_use;
 	std::map<std::string, ShaderVariable> _uniforms;

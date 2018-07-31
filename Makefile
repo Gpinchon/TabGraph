@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+         #
+#    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/07/30 19:33:46 by anonymous        ###   ########.fr        #
+#    Updated: 2018/07/31 19:38:04 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,7 +53,7 @@ LIBDIR		=	./libs/vml/
 LIBFILES	=	./libs/vml/libvml.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CXXFLAGS	=	-Ofast -std=c++14 -Wall -Wextra -Werror $(INCLUDE)
+CXXFLAGS	=	-g -std=c++14 -Wall -Wextra -Werror $(INCLUDE)
 LINKFLAGS	=	
 
 NO_COLOR=\033[0m
@@ -65,7 +65,7 @@ OK_STRING	=	[OK]
 NAME		=	Scop.exe
 LIBS		=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic $(addprefix -L , $(LIBDIR)) -lvml -lmingw32 -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 LINKFLAGS	=	-Wl,--allow-multiple-definition
-CXXFLAGS	=	-Ofast -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
+CXXFLAGS	=	-g -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
 else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))

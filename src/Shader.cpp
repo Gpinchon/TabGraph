@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.cpp                                        :+:      :+:    :+:   */
+/*   Shader.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 18:24:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/31 11:48:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,23 +19,11 @@ Shader::Shader(const std::string &name) : _program(0), _in_use(false)
 	set_name(name);
 }
 
-void	Shader::set_name(const std::string &name)
-{
-	std::hash<std::string>	hash_fn;
-	_name = name;
-	_id = hash_fn(name);
-}
-
 Shader	*Shader::create(const std::string &name)
 {
 	auto	shader = new Shader(name);
 	Engine::add(*shader);
 	return (shader);
-}
-
-const std::string	&Shader::name()
-{
-	return (_name);
 }
 
 ShaderVariable	*Shader::get_uniform(const std::string &name)
@@ -203,7 +191,7 @@ Shader		*Shader::get_by_name(const std::string &name)
 	h = hash_fn(name);
 	while ((s = Engine::shader(i)) != nullptr)
 	{
-		if (h == s->_id) {
+		if (h == s->id()) {
 			return (s);
 		}
 		i++;

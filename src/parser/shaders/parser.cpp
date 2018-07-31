@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 01:03:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/31 11:50:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ GLuint	Shader::link(const GLuint &vertexid, const GLuint &fragmentid)
 		check_program(_program);
 	}
 	catch (std::exception &e) {
-		throw std::runtime_error(std::string("Error linking  : ") + _name + " :\n" + e.what());
+		throw std::runtime_error(std::string("Error linking  : ") + name() + " :\n" + e.what());
 	}
 	return (_program);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:45:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/25 21:31:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/31 19:37:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "parser/InternalTools.hpp"
 #include "parser/OBJ.hpp"
 
-static void	vt_min_max(Mesh *vg)
+static void	vt_min_max(Vgroup *vg)
 {
 	vg->uvmin = new_vec2(100000, 100000);
 	vg->uvmax = new_vec2(-100000, -100000);
@@ -54,7 +54,8 @@ void		parse_vg(t_obj_parser *p)
 		childNbr++;
 		vt_min_max(p->vg);
 		p->parent->add_child(*p->vg);
-		p->vg = Mesh::create(p->parent->name() + "_child " + std::to_string(childNbr));
+		p->parent->vgroups.push_back(p->vg);
+		p->vg = Vgroup::create(p->parent->name() + "_child " + std::to_string(childNbr));
 		p->vg->material = Material::get_by_name("default");
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 16:07:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/07/31 19:44:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ static void	start_obj_parsing(t_obj_parser *p, const std::string &name, const st
 		PBRMaterial::create("default");
 	}
 	p->parent = Mesh::create(name);
-	p->vg = Mesh::create(name + "_child 0");
+	p->vg = Vgroup::create(name + "_child 0");//new Vgroup(name + "_child 0");//Mesh::create(name + "_child 0");
 	p->vg->material = Material::get_by_name("default");
 	p->vg->bounding_element = new AABB(p->bbox);
 	while (fgets(line, 4096, p->fd) != nullptr) {
