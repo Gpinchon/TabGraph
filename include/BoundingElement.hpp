@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/19 20:19:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/01 15:38:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,16 +18,9 @@
 class	BoundingElement
 {
 public :
-	BoundingElement() : 
-	min(new_vec3(std::numeric_limits<float>::max(),
-		std::numeric_limits<float>::max(),
-		std::numeric_limits<float>::max())),
-	max(new_vec3(std::numeric_limits<float>::min(),
-		std::numeric_limits<float>::min(),
-		std::numeric_limits<float>::min())),
-	center(new_vec3(0, 0, 0)) {};
+	BoundingElement() = default;
 	virtual bool collides(const BoundingElement &) = 0;
-	VEC3	min;
-	VEC3	max;
-	VEC3	center;
+	VEC3	min{std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
+	VEC3	max{std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest()};
+	VEC3	center{0, 0, 0};
 };

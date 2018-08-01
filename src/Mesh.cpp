@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/31 19:57:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/01 15:43:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "Mesh.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
+#include <algorithm>
 
 Mesh::Mesh(const std::string &name) : Renderable(name)
 {
@@ -137,10 +138,8 @@ void			Vgroup::render()
 		return ;
 	}
 	material->shader->use();
-	material->load_textures();
 	material->bind_textures();
 	material->bind_values();
-	load();
 	bind();
 	if (_cull_mod == 0) {
 		glDisable(GL_CULL_FACE);
@@ -159,10 +158,10 @@ void			Vgroup::render()
 	material->shader->use(false);
 }
 
-#include <iostream>
-
 void			Mesh::load()
 {
+	if (_is_loaded)
+		return ;
 	for (auto vg : vgroups) {
 		vg->load();
 	}
@@ -175,42 +174,46 @@ void			Mesh::bind()
 
 	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
 	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
-	std::cout << name() << std::endl;
 	for (auto vg : vgroups) {
+		vg->material->shader->use();
 		vg->material->shader->set_uniform("in_Transform", mvp);
 		vg->material->shader->set_uniform("in_ModelMatrix", mat4_transform());
 		vg->material->shader->set_uniform("in_NormalMatrix", normal_matrix);
-		vg->bind();
+		vg->material->shader->use(false);
 	}
 }
 
 void			Mesh::render()
 {
+	load();
+	bind();
 	for (auto vg : vgroups) {
 		vg->render();
 	}
 }
 
-void			Mesh::center()
+void		Mesh::sort(renderable_compare compare)
 {
-	/*for (auto vg : vgroups)
-	{
-		vg->center();
-		vg->position() = vec3_sub(vg->bounding_element->center, bounding_element->center);
-	}*/
+	std::sort(vgroups.begin(), vgroups.end(), compare);
 }
 
-void			Vgroup::center()
+void			Mesh::center()
 {
-	for (auto &vec : v)
-	{
-		vec = vec3_sub(vec, bounding_element->center);
-		bounding_element->min.x = std::min(vec.x, bounding_element->min.x);
-		bounding_element->min.y = std::min(vec.y, bounding_element->min.y);
-		bounding_element->min.z = std::min(vec.z, bounding_element->min.z);
-		bounding_element->max.x = std::max(vec.x, bounding_element->max.x);
-		bounding_element->max.y = std::max(vec.y, bounding_element->max.y);
-		bounding_element->max.z = std::max(vec.z, bounding_element->max.z);
+	for (auto vg : vgroups) {
+		vg->center(bounding_element->center);
 	}
-	bounding_element->center = vec3_scale(vec3_add(bounding_element->min, bounding_element->max), 0.5f);
+	bounding_element->min = vec3_sub(bounding_element->min, bounding_element->center);
+	bounding_element->max = vec3_sub(bounding_element->max, bounding_element->center);
+	bounding_element->center = new_vec3(0, 0, 0);
+}
+
+void			Vgroup::center(VEC3 &center)
+{
+	for (auto &vec : v) {
+		vec = vec3_sub(vec, center);
+	}
+	bounding_element->min = vec3_sub(bounding_element->min, center);
+	bounding_element->max = vec3_sub(bounding_element->max, center);
+	bounding_element->center = vec3_sub(bounding_element->center, center);
+	position() = vec3_sub(bounding_element->center, center);
 }

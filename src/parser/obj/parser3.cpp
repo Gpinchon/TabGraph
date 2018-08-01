@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:46:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/25 21:31:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/01 10:12:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,10 +50,10 @@ static int	get_vi(const std::vector<VEC2> &v, const std::string &str)
 		vindex = v.size() + vindex;
 	} else {
 		vindex -= 1;
-}
+	}
 	if (vindex < 0 || static_cast<unsigned>(vindex) >= v.size()) {
 		return (-1);
-}
+	}
 	return (vindex);
 }
 
@@ -66,10 +66,10 @@ static int	get_vi(const std::vector<VEC3> &v, const std::string &str)
 		vindex = v.size() + vindex;
 	} else {
 		vindex -= 1;
-}
+	}
 	if (vindex < 0 || static_cast<unsigned>(vindex) >= v.size()) {
 		return (-1);
-}
+	}
 	return (vindex);
 }
 
@@ -94,15 +94,15 @@ static void	parse_indice(t_obj_parser *p, std::vector<std::string> &split, int v
 		vindex[0][i] = get_vi(p->v, fsplit[0]);
 		if (vindex[0][i] == -1) {
 			return ;
-}
+		}
 		if ((splitLen == 3 && slashCount == 2) || (splitLen == 2 && slashCount == 1)) {
 			vindex[2][i] = get_vi(p->vt, fsplit[1]);
-}
+		}
 		if (splitLen == 3 && slashCount == 2) {
 			vindex[1][i] = get_vi(p->vn, fsplit[2]);
 		} else if (splitLen == 2 && slashCount == 2) {
 			vindex[1][i] = get_vi(p->vn, fsplit[1]);
-}
+		}
 		i++;
 	}
 }
@@ -118,7 +118,7 @@ static void	parse_vn(t_obj_parser *p, int vindex[3][3], VEC3 v[3], VEC3 vn[3])
 			vn[i] = p->vn[vindex[1][i]];
 		} else {
 			vn[i] = generate_vn(v);
-}
+		}
 		i++;
 	}
 }
@@ -152,6 +152,6 @@ void		parse_v(t_obj_parser *p, std::vector<std::string> &split, VEC2 *in_vt)
 	parse_vn(p, vindex, v, vn);
 	if (in_vt == nullptr) {
 		correct_vt(vt);
-}
+	}
 	push_values(p, v, vn, vt);
 }

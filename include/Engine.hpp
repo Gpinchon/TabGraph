@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/07 23:55:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/01 12:03:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ public:
 	Cubemap *brdf;
 };
 
-typedef bool (*renderable_compare)(Renderable *m, Renderable *m1);	
+typedef bool (*renderable_compare)(Renderable *m, Renderable *m1);
 
 class	Engine
 {

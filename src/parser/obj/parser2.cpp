@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:45:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/31 19:37:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/01 10:06:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,16 +23,16 @@ static void	vt_min_max(Vgroup *vg)
 	{
 		if (vt.x < vg->uvmin.x) {
 			vg->uvmin.x = vt.x;
-}
+		}
 		if (vt.y < vg->uvmin.y) {
 			vg->uvmin.y = vt.y;
-}
+		}
 		if (vt.x > vg->uvmax.x) {
 			vg->uvmax.x = vt.x;
-}
+		}
 		if (vt.y > vg->uvmax.y) {
 			vg->uvmax.y = vt.y;
-}
+		}
 	}
 	if (vg->uvmin.x == vg->uvmax.x)
 	{
@@ -73,13 +73,13 @@ void		correct_vt(VEC2 *vt)
 	{
 		if (vt[0].x < 0.25f) {
 			vt[0].x += 1.f;
-}
+		}
 		if (vt[1].x < 0.25f) {
 			vt[1].x += 1.f;
-}
+		}
 		if (vt[2].x < 0.25f) {
 			vt[2].x += 1.f;
-}
+		}
 	}
 }
 
