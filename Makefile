@@ -6,13 +6,13 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/08/01 15:43:41 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/08/02 22:53:23 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scop
-SRC			=	./src/Scop/main.cpp					\
-				./src/Scop/callbacks/callbacks.cpp	\
+SRC			=	./src/scop42/main.cpp				\
+				./src/scop42/callbacks.cpp			\
 				./src/Object.cpp					\
 				./src/Events.cpp					\
 				./src/Cubemap.cpp					\
