@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/02 22:48:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/03 19:08:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,11 +81,11 @@ int		main(int argc, char *argv[])
 	if (obj != nullptr) {
 		obj->center();
 		obj->load();
+		obj->sort(alpha_compare);
 /*		auto	m = Renderable::get_by_name("main_mesh_child 0");
 		if (m != nullptr)
 			m->material->shader = GLSL::parse("shadertoy", Engine::program_path() + "./res/shaders/shadertoy.vert", Engine::program_path() + "./res/shaders/balls.frag");
 */	}
-	Mesh::alpha_sort();
 	setup_callbacks();
 	Engine::run();
 	SDL_Quit();
