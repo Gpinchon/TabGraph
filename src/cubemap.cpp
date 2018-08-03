@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   cubemap.cpp                                        :+:      :+:    :+:   */
+/*   Cubemap.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/03 18:28:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/03 19:51:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ Cubemap		*Cubemap::create(const std::string &name, Texture *fromTexture)
 			for (auto x = 0; x <= sideTexture->size().x; ++x)
 			{
 				float nx = (float)y / (float)sideTexture->size().x - 0.5f;
-				float ny = (float)x / (float)sideTexture->size().x - 0.5f;
+				float ny = 1 - (float)x / (float)sideTexture->size().x - 0.5f;
 				nx *= 2;
 				ny *= 2;
 				nx *= an;
@@ -138,7 +138,7 @@ Cubemap		*Cubemap::create(const std::string &name, Texture *fromTexture)
 				v = v / 2.0f + 0.5f;
 				auto	nuv = vec2_div(new_vec2(y, x), sideTexture->size());
 				auto	val = fromTexture->sample(new_vec2(u, v));
-				sideTexture->set_pixel(new_vec2(nuv.x, 1 - nuv.y), val);
+				sideTexture->set_pixel(new_vec2(nuv.x, nuv.y), val);
 			}
 		}
 		cubemap->assign(*sideTexture, GL_TEXTURE_CUBE_MAP_POSITIVE_X + side);
