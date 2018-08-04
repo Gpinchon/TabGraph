@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/01 12:03:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 00:09:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,6 +118,4 @@ private :
 */
 
 //void			render_shadow();
-void			render_present();
-void			render_scene();
 GLuint			display_quad_get();

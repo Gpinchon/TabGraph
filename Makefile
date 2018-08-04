@@ -6,40 +6,40 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/08/02 22:53:23 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/08/05 01:03:36 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		=	Scop
-SRC			=	./src/scop42/main.cpp				\
-				./src/scop42/callbacks.cpp			\
-				./src/Object.cpp					\
-				./src/Events.cpp					\
-				./src/Cubemap.cpp					\
-				./src/Node.cpp						\
-				./src/Window.cpp					\
-				./src/Engine.cpp					\
-				./src/Camera.cpp					\
-				./src/Framebuffer.cpp				\
-				./src/Mesh.cpp						\
-				./src/Shader.cpp					\
-				./src/Texture.cpp					\
-				./src/Material.cpp					\
-				./src/PBRMaterial.cpp				\
-				./src/parser/tools.cpp				\
-				./src/parser/obj/parser.cpp			\
-				./src/parser/obj/parser1.cpp		\
-				./src/parser/obj/parser2.cpp		\
-				./src/parser/obj/parser3.cpp		\
-				./src/parser/hdr/parser.cpp			\
-				./src/parser/bmp/parser.cpp			\
-				./src/parser/bmp/saver.cpp			\
-				./src/parser/shaders/parser.cpp		\
-				./src/parser/mtllib/parser.cpp		\
-				./src/render/quad.cpp				\
-				./src/render/scene.cpp				\
-				./src/render/shadow.cpp				\
-				./src/render/present.cpp
+SRC			=	./src/scop42/main.cpp			\
+				./src/scop42/callbacks.cpp		\
+				./src/Window.cpp				\
+				./src/Engine.cpp				\
+				./src/Object.cpp				\
+				./src/Events.cpp				\
+				./src/Cubemap.cpp				\
+				./src/Node.cpp					\
+				./src/Renderable.cpp			\
+				./src/Render.cpp				\
+				./src/Camera.cpp				\
+				./src/Framebuffer.cpp			\
+				./src/Mesh.cpp					\
+				./src/Vgroup.cpp				\
+				./src/VertexArray.cpp			\
+				./src/Shader.cpp				\
+				./src/Texture.cpp				\
+				./src/Material.cpp				\
+				./src/PBRMaterial.cpp			\
+				./src/parser/tools.cpp			\
+				./src/parser/obj/parser.cpp		\
+				./src/parser/obj/parser1.cpp	\
+				./src/parser/obj/parser2.cpp	\
+				./src/parser/obj/parser3.cpp	\
+				./src/parser/hdr/parser.cpp		\
+				./src/parser/bmp/parser.cpp		\
+				./src/parser/bmp/saver.cpp		\
+				./src/parser/shaders/parser.cpp	\
+				./src/parser/mtllib/parser.cpp
 
 OBJ			=	$(SRC:.cpp=.o)
 HYPER_OBJ	=	final.o

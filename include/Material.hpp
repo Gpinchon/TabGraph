@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Material.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:12:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/30 19:48:19 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/08/04 19:21:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "Object.hpp"
 
 class Texture;
+class Framebuffer;
 class Shader;
 
 class	Material : public Object

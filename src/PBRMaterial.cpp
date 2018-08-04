@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   PBRmethods.cpp                                     :+:      :+:    :+:   */
+/*   PBRMaterial.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:17:13 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 17:24:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/04 19:25:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,7 @@
 
 Texture	*PBRMaterial::_texture_brdf = nullptr;
 
-PBRMaterial::PBRMaterial(const std::string &name) : Material(name),
-	texture_roughness(nullptr),
-	texture_metallic(nullptr),
-	texture_ao(nullptr)
+PBRMaterial::PBRMaterial(const std::string &name) : Material(name)
 {
 	if (_texture_brdf == nullptr)
 	{
@@ -63,7 +60,7 @@ void	PBRMaterial::bind_textures()
 	shader->bind_texture("in_Texture_Height", texture_height, GL_TEXTURE7);
 	shader->set_uniform("in_Use_Texture_Height", texture_height != nullptr ? true : false);
 	shader->bind_texture("in_Texture_AO", texture_ao, GL_TEXTURE8);
-	shader->set_uniform("in_Use_Texture_AO", texture_ao != nullptr ? true : false);
+	//shader->bind_texture("in_Texture_SSS", texture_sss, GL_TEXTURE9);
 	shader->bind_texture("in_Texture_BRDF", _texture_brdf, GL_TEXTURE13);
 }
 

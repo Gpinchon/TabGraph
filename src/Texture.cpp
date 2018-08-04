@@ -3,18 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   Texture.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: anonymous <anonymous@student.42.fr>        +#+  +:+       +#+        */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/30 19:51:39 by anonymous        ###   ########.fr       */
+/*   Updated: 2018/08/05 00:51:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "VertexArray.hpp"
 #include "Texture.hpp"
 #include "Framebuffer.hpp"
 #include "Shader.hpp"
 #include "Window.hpp"
+#include "Render.hpp"
 
 Texture::Texture(const std::string &name) :
 _glid(0),
@@ -69,13 +71,13 @@ size_t	Texture::get_bpp(GLenum texture_format, GLenum data_format)
 	switch (texture_format)
 	{
 		case GL_RED :
-			return (1 * 8 * data_size);
+		return (1 * 8 * data_size);
 		case GL_RGB :
 		case GL_BGR :
-			return (3 * 8 * data_size);
+		return (3 * 8 * data_size);
 		case GL_RGBA :
 		case GL_BGRA :
-			return (4 * 8 * data_size);
+		return (4 * 8 * data_size);
 		default : return (0);
 	}
 }
@@ -88,16 +90,16 @@ size_t	Texture::get_data_size(GLenum data_format)
 		case GL_FIXED :
 		case GL_INT :
 		case GL_UNSIGNED_INT :
-			return (sizeof(GLfloat));
+		return (sizeof(GLfloat));
 		case GL_BYTE :
 		case GL_UNSIGNED_BYTE :
-			return (sizeof(GLubyte));
+		return (sizeof(GLubyte));
 		case GL_HALF_FLOAT :
 		case GL_SHORT :
 		case GL_UNSIGNED_SHORT :
-			return (sizeof(GLushort));
+		return (sizeof(GLushort));
 		case GL_DOUBLE :
-			return (sizeof(GLdouble));
+		return (sizeof(GLdouble));
 		default : return (0);
 	}
 }
@@ -299,17 +301,13 @@ VEC4	Texture::sample(const VEC2 &uv)
 	{
 		auto	d = &_data[int(round(vt[i].y) * _size.x + round(vt[i].x)) * opp];
 		for (auto j = 0; j < int(opp / _data_size); ++j)
-		 {
+		{
 			if (_data_size == 1)
 				reinterpret_cast<float*>(&value)[j] += (d[j] * vt[i].z) / 255.f;
 			else if (_data_size == sizeof(GLfloat))
 				reinterpret_cast<float*>(&value)[j] += static_cast<float*>((void*)d)[j] * vt[i].z;
-			//(reinterpret_cast<float*>(&value))[i] += d[j] * vt[j].z;
-			/*(reinterpret_cast<float*>(&value))[i] += (&_data[int(round(vt[j].y) *
-				_size.x + round(vt[j].x)) * (opp)])[i] * vt[j].z;*/
 		}
 	}
-	//std::cout << value.x << " " << value.y << " " << value.z << std::endl;
 	return (value);
 }
 
@@ -331,11 +329,6 @@ void	Texture::resize(const VEC2 &ns)
 			for (auto	x = 0; x < ns.x; ++x)
 			{
 				auto	uv = new_vec2(x / ns.x, y / ns.y);
-				//auto	value = texelfetch(uv);
-				/*auto	p = &d[int(ns.x * y + x) * opp];
-				for (auto z = 0; z < opp; ++z) {
-					p[z] = value[z];
-				}*/
 				auto	value = sample(uv);
 				auto	p = &d[int(ns.x * y + x) * opp];
 				for (auto z = 0; z < int(opp / _data_size); ++z) {
@@ -344,9 +337,6 @@ void	Texture::resize(const VEC2 &ns)
 					else if (_data_size == sizeof(GLfloat))
 						reinterpret_cast<float*>(p)[z] = reinterpret_cast<float*>(&value)[z];
 				}
-				/*auto v = sample(uv);
-				for (auto z = 0; z < opp; ++z)
-					(&d[int(y * ns.x + x) * opp])[z] = (reinterpret_cast<float*>(&v))[z];*/
 			}
 		}
 		delete [] _data;
@@ -367,7 +357,7 @@ void	Texture::resize(const VEC2 &ns)
 static Framebuffer	&generate_blur_fb()
 {
 	auto	blur = Framebuffer::create("blur", vec2_scale(Window::size(),
-	Engine::internal_quality()), *Shader::get_by_name("blur"), 0, 0);
+		Engine::internal_quality()), *Shader::get_by_name("blur"), 0, 0);
 	blur->create_attachement(GL_RGB, GL_RGB16F_ARB);
 	blur->setup_attachements();
 	return (*blur);
@@ -380,37 +370,37 @@ void	Texture::blur(const int &pass, const float &radius)
 
 	if (blur == nullptr) {
 		blur = &generate_blur_fb();
-}
+	}
 	blur->resize(size());
 	blur->bind();
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	blur->shader().use();
-	glBindVertexArray(display_quad_get());
+	//glBindVertexArray(Render::display_quad()->glid());
 	auto totalPass = pass * 4;
 	Texture *texture = this;
 	color0 = &blur->attachement(0);
-	while (totalPass >= 0)
+	float	angle = 0;
+	while (totalPass > 0)
 	{
 		VEC2			direction;
 		Texture			*temp;
-		static float	angle = 0;
-
 		direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
 		direction = vec2_scale(direction, radius);
 		blur->shader().bind_texture("in_Texture_Color", texture, GL_TEXTURE0);
 		blur->shader().set_uniform("in_Direction", direction);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color0->glid(), 0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		angle = CYCLE(angle + 0.785398, 0, 2.356194);
+		Render::display_quad()->draw();
+		angle = CYCLE(angle + (M_PI / 4.f), 0, M_PI);
 		temp = texture;
 		texture = color0;
 		color0 = temp;
 		totalPass--;
 	}
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-			blur->attachement(0).glid(), 0);
+		blur->attachement(0).glid(), 0);
 	blur->shader().use(false);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

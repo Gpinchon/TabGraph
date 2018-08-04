@@ -6,15 +6,15 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/03 19:08:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 00:27:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "scop.hpp"
-#include "Camera.hpp"
-#include "Engine.hpp"
-#include "Events.hpp"
 #include "Window.hpp"
+#include "Engine.hpp"
+#include "Camera.hpp"
+#include "Events.hpp"
 #include "parser/OBJ.hpp"
 #include <unistd.h>
 
@@ -65,7 +65,6 @@ int		main(int argc, char *argv[])
 	Window::init("Scop", WIDTH, HEIGHT);
 	Engine::init();
 	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
-	//HDR::parse("test", "./res/hdr/uffizi.hdr");
 	auto camera = Camera::create("main_camera", 45);
 	Engine::set_current_camera(camera);
 	camera->target = Node::create("main_camera_target",

@@ -6,11 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/01 15:21:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 01:27:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Vgroup.hpp"
 #include "parser/InternalTools.hpp"
 #include "parser/MTLLIB.hpp"
 #include "parser/OBJ.hpp"
@@ -100,8 +101,6 @@ static void	start_obj_parsing(t_obj_parser *p, const std::string &name, const st
 	}
 }
 
-#include <iostream>
-
 Mesh	*OBJ::parse(const std::string &name, const std::string &path)
 {
 	t_obj_parser	p;
@@ -114,7 +113,6 @@ Mesh	*OBJ::parse(const std::string &name, const std::string &path)
 		throw std::runtime_error(std::string("Error parsing ") + name + " :\n" + e.what());
 		return (nullptr);
 	}
-	std::cout << "bbox x " << p.bbox.max.x << " y " << p.bbox.max.y << " z " << p.bbox.max.z << std::endl;
 	p.parent->bounding_element = new AABB(p.bbox);
 	return (p.parent);
 }

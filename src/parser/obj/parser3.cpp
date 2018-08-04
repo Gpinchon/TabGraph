@@ -6,11 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:46:43 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/01 10:12:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 00:14:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Vgroup.hpp"
 #include "parser/InternalTools.hpp"
 #include "parser/OBJ.hpp"
 

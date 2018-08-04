@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/21 00:38:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/04 19:22:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,9 @@ void	parse_texture(t_obj_parser *p, std::vector<std::string> &split, PBRMaterial
 		mtl->texture_height = BMP::parse(path, path);
 	} else if (split[0] == "map_No") {
 		mtl->texture_ao = BMP::parse(path, path);
-	} else if (split[0] == "map_Nr") {
+	} /*else if (split[0] == "map_Ns") {
+		mtl->texture_sss = BMP::parse(path, path);
+	}*/ else if (split[0] == "map_Nr") {
 		mtl->texture_roughness = BMP::parse(path, path);
 	} else if (split[0] == "map_Nm") {
 		mtl->texture_metallic = BMP::parse(path, path);

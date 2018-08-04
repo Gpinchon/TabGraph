@@ -1,16 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.cpp                                        :+:      :+:    :+:   */
+/*   Engine.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/25 21:45:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/04 19:56:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser/InternalTools.hpp"
+#include "Render.hpp"
 #include "Camera.hpp"
 #include "Cubemap.hpp"
 #include "Engine.hpp"
@@ -262,10 +263,10 @@ void	Engine::run()
 		glClear(Window::clear_mask());
 		//render_shadow();
 		Window::render_buffer().bind();
-		render_scene();
+		Render::scene();
 		Window::render_buffer().attachement(1).blur(BLOOMPASS, 2.5);
-		//Window::render_buffer().attachement(2).blur(1, 2.5);
-		render_present();
+		Window::render_buffer().attachement(2).blur(1, 2.5);
+		Render::present();
 		Window::swap();
 	}
 }
