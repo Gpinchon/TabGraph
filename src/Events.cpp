@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 17:24:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 21:36:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/06 00:16:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,7 +233,7 @@ Events	&Events::_get()
 
 void	Events::add(InputDevice *device, SDL_EventType event_type)
 {
-	_get()._input_devices[event_type] = device;
+	_get()._input_devices[event_type].push_back(device);
 }
 
 void	Events::set_refresh_callback(t_callback callback)
@@ -260,26 +260,10 @@ int		Events::filter(void */*unused*/, SDL_Event *event)
 		Events::window(event);
 	}
 	auto	inputdevice = _get()._input_devices.find(event->type);
-	if (inputdevice != _get()._input_devices.end() && inputdevice->second != nullptr) {
-		inputdevice->second->process_event(event);
+	if (inputdevice != _get()._input_devices.end()) {
+		for (auto device : inputdevice->second)
+			device->process_event(event);
 	}
-	/*
-	else if (event->type == SDL_KEYUP || event->type == SDL_KEYDOWN) {
-		Keyboard::process_event(event);
-	}
-	else if (
-		event->type == SDL_CONTROLLERAXISMOTION ||
-		event->type == SDL_JOYAXISMOTION ||
-		event->type == SDL_CONTROLLERBUTTONDOWN ||
-		event->type == SDL_CONTROLLERBUTTONUP ||
-		event->type == SDL_JOYBUTTONDOWN ||
-		event->type == SDL_JOYBUTTONUP ||
-		event->type == SDL_CONTROLLERDEVICEADDED ||
-		event->type == SDL_JOYDEVICEADDED ||
-		event->type == SDL_CONTROLLERDEVICEREMOVED ||
-		event->type == SDL_JOYDEVICEREMOVED) {
-		GameController::process_event(event);
-	}*/
 	return (0);
 }
 
@@ -287,6 +271,13 @@ int		Events::refresh()
 {
 	if (_get()._rcallback != nullptr) {
 		_get()._rcallback(nullptr);
+	}
+	SDL_Event	event;
+	event.type = 0;
+	auto	inputdevice = _get()._input_devices.find(0);
+	if (inputdevice != _get()._input_devices.end()) {
+		for (auto device : inputdevice->second)
+			device->process_event(&event);
 	}
 	return (0);
 }

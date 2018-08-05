@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/05 20:13:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 23:19:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/06 00:34:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,15 @@ class	Controller : InputDevice
 public:
 	Controller(SDL_JoystickID id);
 	~Controller();
+	void			open(SDL_JoystickID device);
+	void			close();
 	SDL_JoystickID	id();
 	float			axis(SDL_GameControllerAxis);
 	Uint8			button(SDL_GameControllerButton);
 	void			process_event(SDL_Event *event);
 	void			set_axis_callback(Uint8 type, t_callback callback);
 	void			set_button_callback(Uint8 type, t_callback callback);
+	bool			is_connected();
 private:
 	SDL_GameController				*_gamepad{nullptr};
 	SDL_Haptic						*_haptic{nullptr};
@@ -42,7 +45,7 @@ private:
 class	GameController : InputDevice
 {
 public:
-	static Controller	*open(SDL_JoystickID device);
+	//static Controller	*open(SDL_JoystickID device);
 	static Controller	*get(SDL_JoystickID device);
 	static void			remove(SDL_JoystickID device);
 	virtual void		process_event(SDL_Event *event);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 23:16:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/06 00:36:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void				callback_camera(SDL_Event *)
 	VEC2	laxis = new_vec2(0, 0);
 	float	ltrigger = 0;
 	float	rtrigger = 0;
-	if (controller != nullptr) {
+	if (controller->is_connected()) {
 		raxis.x = -controller->axis(SDL_CONTROLLER_AXIS_RIGHTX);
 		raxis.y = -controller->axis(SDL_CONTROLLER_AXIS_RIGHTY);
 		laxis.x = -controller->axis(SDL_CONTROLLER_AXIS_LEFTX);
@@ -63,7 +63,6 @@ void	callback_scale(SDL_Event *event)
 		return ;
 	}
 	auto	mesh = Mesh::get_by_name("main_mesh");
-	//auto	s = keys();
 	if (Keyboard::key(SDL_SCANCODE_LCTRL) == 0u) {
 		return ;
 	}
@@ -160,7 +159,6 @@ void	callback_exit(SDL_Event */*unused*/)
 void	callback_fullscreen(SDL_Event *event)
 {
 	static bool	fullscreen = false;
-	//auto		s = keys();
 
 	if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u)) {
 		fullscreen = !fullscreen;

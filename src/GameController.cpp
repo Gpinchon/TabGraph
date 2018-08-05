@@ -6,15 +6,27 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/05 20:12:19 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 22:54:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/06 00:49:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "GameController.hpp"
-//#include "Events.hpp"
 
 Controller::Controller(SDL_JoystickID device)
 {
+	open(device);
+}
+
+Controller::~Controller()
+{
+	close();
+}
+#include <iostream>
+void	Controller::open(SDL_JoystickID device)
+{
+	if (!SDL_IsGameController(device)) {
+		return ;
+	}
 	_gamepad = SDL_GameControllerOpen(device);
 	auto	j = SDL_GameControllerGetJoystick(_gamepad);
 	_instance_id = SDL_JoystickInstanceID(j);
@@ -27,7 +39,12 @@ Controller::Controller(SDL_JoystickID device)
 	}
 }
 
-Controller::~Controller()
+bool	Controller::is_connected()
+{
+	return (_is_connected);
+}
+
+void	Controller::close()
 {
 	if (_is_connected)
 	{
@@ -63,7 +80,15 @@ void	Controller::process_event(SDL_Event *event)
 		}
 		case SDL_CONTROLLERDEVICEREMOVED:
 		case SDL_JOYDEVICEREMOVED: {
-			GameController::remove(id());
+			std::cout << "Joystick Removed " << event->cdevice.which << std::endl;
+			close();
+			break;
+		}
+		case SDL_CONTROLLERDEVICEADDED:
+		case SDL_JOYDEVICEADDED: {
+			std::cout << "Joystick Added " << event->cdevice.which << std::endl;
+			open(event->cdevice.which);
+			break;
 		}
 	}
 }
@@ -95,11 +120,15 @@ void	Controller::set_button_callback(Uint8 type, t_callback callback)
 	_button_callbacks[type] = callback;
 }
 
-Controller	*GameController::get(SDL_JoystickID i)
+Controller	*GameController::get(SDL_JoystickID device)
 {
-	auto	controller = _get()->_controllers.find(i);
+	auto	controller = _get()->_controllers.find(device);
 	if (controller == _get()->_controllers.end())
-		return (GameController::open(i));
+	{
+		auto	newcontroller = new Controller(device);
+		_get()->_controllers[device] = newcontroller;
+		return (newcontroller);
+	}
 	return (controller->second);
 }
 
@@ -132,16 +161,6 @@ GameController::GameController()
 GameController	*GameController::_get()
 {
 	return (_instance);
-}
-
-Controller	*GameController::open(SDL_JoystickID device)
-{
-	if (!SDL_IsGameController(device)) {
-		return (nullptr);
-	}
-	auto	controller = new Controller(device);
-	_get()->_controllers[controller->id()] = controller;
-	return (controller);
 }
 
 void	GameController::process_event(SDL_Event *event)
