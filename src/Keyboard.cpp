@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/05 21:15:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 21:25:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 22:10:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,11 @@ Keyboard::Keyboard()
 Keyboard	&Keyboard::_get()
 {
 	return (*_instance);
+}
+
+Uint8		Keyboard::key(SDL_Scancode key)
+{
+	return (SDL_GetKeyboardState(nullptr)[key]);
 }
 
 void	Keyboard::set_callback(SDL_Scancode key, t_callback callback)

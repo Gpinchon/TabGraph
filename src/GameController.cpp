@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/05 20:12:19 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 20:21:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 22:54:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,23 @@ void	Controller::process_event(SDL_Event *event)
 			GameController::remove(id());
 		}
 	}
+}
+
+float			Controller::axis(SDL_GameControllerAxis axis)
+{
+	auto	value = SDL_GameControllerGetAxis(_gamepad, axis) / 32767.f;
+	if (value < 0 && value > -0.1) {
+		value = 0;
+	}
+	else if (value > 0 && value < 0.1) {
+		value = 0;
+	}
+	return (value);
+}
+
+Uint8			Controller::button(SDL_GameControllerButton button)
+{
+	return (SDL_GameControllerGetButton(_gamepad, button));
 }
 
 void	Controller::set_axis_callback(Uint8 type, t_callback callback)

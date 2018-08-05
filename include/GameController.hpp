@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/05 20:13:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 20:22:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 23:19:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,16 @@
 #include "Events.hpp"
 #include <map>
 
+//TODO : add default button mapping and button repeat for gamepad and other InputDevice
+
 class	Controller : InputDevice
 {
 public:
 	Controller(SDL_JoystickID id);
 	~Controller();
 	SDL_JoystickID	id();
+	float			axis(SDL_GameControllerAxis);
+	Uint8			button(SDL_GameControllerButton);
 	void			process_event(SDL_Event *event);
 	void			set_axis_callback(Uint8 type, t_callback callback);
 	void			set_button_callback(Uint8 type, t_callback callback);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 21:22:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 23:16:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,18 +42,6 @@
 	return (Engine::get().lights.size() - 1);
 }*/
 
-#include <iostream>
-
-/*void	calback_joystick(SDL_Event *event)
-{
-
-}
-*/
-
-void	print_coucou(SDL_Event *)
-{
-	std::cout << "Coucou" << std::endl;
-}
 
 void	setup_callbacks()
 {
@@ -63,9 +51,14 @@ void	setup_callbacks()
 	Keyboard::set_callback(SDL_SCANCODE_ESCAPE, callback_exit);
 	Keyboard::set_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
 	Keyboard::set_callback(SDL_SCANCODE_Q, callback_quality);
-	GameController::get(0)->set_button_callback(SDL_CONTROLLER_BUTTON_A, callback_quality);
-	GameController::get(0)->set_axis_callback(SDL_CONTROLLER_AXIS_LEFTX, print_coucou);
 	Events::set_refresh_callback(callback_refresh);
+	auto controller = GameController::get(0);
+	if (controller == nullptr)
+		return ;
+	controller->set_button_callback(SDL_CONTROLLER_BUTTON_A, controller_callback_quality);
+	controller->set_button_callback(SDL_CONTROLLER_BUTTON_B, controller_callback_rotation);
+	controller->set_button_callback(SDL_CONTROLLER_BUTTON_Y, controller_callback_background);
+	
 }
 
 #include "parser/HDR.hpp"

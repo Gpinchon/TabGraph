@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/05 21:13:24 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 21:25:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 22:10:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,9 @@
 class Keyboard : InputDevice
 {
 public:
-	static void	set_callback(SDL_Scancode key, t_callback callback);
-	void		process_event(SDL_Event *);
+	static Uint8	key(SDL_Scancode);
+	static void		set_callback(SDL_Scancode key, t_callback callback);
+	void			process_event(SDL_Event *);
 private:
 	static Keyboard	&_get();
 	static Keyboard	*_instance;
