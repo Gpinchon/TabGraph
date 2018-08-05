@@ -6,14 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/25 21:26:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 13:14:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "Node.hpp"
-#include "vml.h"
 
 class	Camera : public Node
 {

@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/01 15:38:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 13:20:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "vml.h"
+#include "GLIncludes.hpp"
 #include <limits>
 
 class	BoundingElement

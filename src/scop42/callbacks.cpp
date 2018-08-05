@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/02 22:48:42 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 21:28:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,7 @@ void	callback_background(SDL_Event *event)
 
 void	callback_quality(SDL_Event *event)
 {
-	if (event == nullptr || event->type != SDL_KEYDOWN) {
+	if (event == nullptr || (event->type == SDL_KEYUP || (event->key.repeat != 0u))) {
 		return ;
 	}
 	Engine::internal_quality() += 0.25;

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 00:27:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 21:22:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include "Engine.hpp"
 #include "Camera.hpp"
 #include "Events.hpp"
+#include "GameController.hpp"
+#include "Keyboard.hpp"
 #include "parser/OBJ.hpp"
 #include <unistd.h>
 
@@ -42,14 +44,27 @@
 
 #include <iostream>
 
+/*void	calback_joystick(SDL_Event *event)
+{
+
+}
+*/
+
+void	print_coucou(SDL_Event *)
+{
+	std::cout << "Coucou" << std::endl;
+}
+
 void	setup_callbacks()
 {
-	Events::set_key_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
-	Events::set_key_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
-	Events::set_key_callback(SDL_SCANCODE_SPACE, callback_background);
-	Events::set_key_callback(SDL_SCANCODE_ESCAPE, callback_exit);
-	Events::set_key_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
-	Events::set_key_callback(SDL_SCANCODE_Q, callback_quality);
+	Keyboard::set_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
+	Keyboard::set_callback(SDL_SCANCODE_KP_MINUS, callback_scale);
+	Keyboard::set_callback(SDL_SCANCODE_SPACE, callback_background);
+	Keyboard::set_callback(SDL_SCANCODE_ESCAPE, callback_exit);
+	Keyboard::set_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
+	Keyboard::set_callback(SDL_SCANCODE_Q, callback_quality);
+	GameController::get(0)->set_button_callback(SDL_CONTROLLER_BUTTON_A, callback_quality);
+	GameController::get(0)->set_axis_callback(SDL_CONTROLLER_AXIS_LEFTX, print_coucou);
 	Events::set_refresh_callback(callback_refresh);
 }
 

@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/08/05 01:03:36 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/08/05 21:29:57 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,8 @@ SRC			=	./src/scop42/main.cpp			\
 				./src/Engine.cpp				\
 				./src/Object.cpp				\
 				./src/Events.cpp				\
+				./src/Keyboard.cpp				\
+				./src/GameController.cpp		\
 				./src/Cubemap.cpp				\
 				./src/Node.cpp					\
 				./src/Renderable.cpp			\

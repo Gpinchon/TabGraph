@@ -6,13 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:43:25 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/04 21:50:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 13:15:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "GLIncludes.hpp"
 #include "Renderable.hpp"
 
 struct  CVEC4

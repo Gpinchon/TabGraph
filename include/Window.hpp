@@ -6,14 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:50:23 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 00:12:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 13:21:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "GLIncludes.hpp"
-#include "vml.h"
 
 class	Window
 {

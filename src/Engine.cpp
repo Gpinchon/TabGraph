@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/04 19:56:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 21:37:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@
 #define _getcwd getcwd
 #endif //_getcwd
 
-Engine	*Engine::_instance = new Engine();
+Engine	*Engine::_instance = nullptr;
 
 /*
 ** engine is a singleton
@@ -59,6 +59,8 @@ Engine::~Engine()
 
 Engine	&Engine::_get()
 {
+	if (_instance == nullptr)
+		_instance = new Engine();
 	return (*_instance);
 }
 

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 00:12:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 13:20:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 #include "GLIncludes.hpp"
 #include "Object.hpp"
-#include "vml.h"
 #include <string>
 
 class	Texture : public Object

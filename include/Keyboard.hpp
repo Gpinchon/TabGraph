@@ -1,29 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Object.hpp                                         :+:      :+:    :+:   */
+/*   Keyboard.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/07/30 19:13:58 by anonymous         #+#    #+#             */
-/*   Updated: 2018/08/05 13:08:48 by gpinchon         ###   ########.fr       */
+/*   Created: 2018/08/05 21:13:24 by gpinchon          #+#    #+#             */
+/*   Updated: 2018/08/05 21:25:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "GLIncludes.hpp"
-#include <string>
+#include "InputDevice.hpp"
+#include "Events.hpp"
 
-class Object
+class Keyboard : InputDevice
 {
 public:
-	Object() = default;
-	Object(const std::string &name);
-	const std::string	&name();
-	size_t				id();
-	void				set_name(const std::string &name);
+	static void	set_callback(SDL_Scancode key, t_callback callback);
+	void		process_event(SDL_Event *);
 private:
-	size_t		_id{0};
-	std::string	_name;
+	static Keyboard	&_get();
+	static Keyboard	*_instance;
+	std::map<SDL_Scancode, t_callback>	_callbacks;
+	Keyboard();
 };

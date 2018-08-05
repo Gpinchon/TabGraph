@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.cpp                                        :+:      :+:    :+:   */
+/*   Window.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/25 21:27:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 21:40:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include "parser/GLSL.hpp"
 #include <unistd.h>
 
-Window *Window::_instance = new Window();
+Window *Window::_instance = nullptr;
 
 Window::Window()
 = default;
@@ -27,6 +27,8 @@ Window::Window()
 
 Window	&Window::_get()
 {
+	if (_instance == nullptr)
+		_instance = new Window();
 	return (*_instance);
 }
 
@@ -37,7 +39,9 @@ void		Window::swap()
 
 void		Window::init(const std::string &name, int width, int height)
 {
-	SDL_Init(SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_JoystickEventState(SDL_ENABLE);
+	SDL_GameControllerEventState(SDL_ENABLE);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);

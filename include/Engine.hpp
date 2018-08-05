@@ -6,14 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 00:09:31 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 13:23:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 # include "GLIncludes.hpp" 
-# include "vml.h"
 # include <vector>
 # include <string>
 

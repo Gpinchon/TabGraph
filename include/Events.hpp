@@ -6,31 +6,31 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 17:50:25 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/19 23:24:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/05 21:13:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "GLIncludes.hpp"
-#include <array>
+#include <map>
 
-typedef void	(*t_kcallback)(SDL_Event *event);
+class InputDevice;
+
+typedef void	(*t_callback)(SDL_Event *event);
 
 class Events
 {
 public:
+	static void	add(InputDevice *device, SDL_EventType event_type);
 	static int	filter(void *e, SDL_Event *event);
 	static int	refresh(void);
-	static void	window(SDL_Event *event);
-	static void	keyboard(SDL_Event *event);
-	static void	check_events();
-	static void	set_key_callback(SDL_Scancode key, t_kcallback callback);
-	static void	set_refresh_callback(t_kcallback callback);
+	static void	set_refresh_callback(t_callback callback);
 private :
+	static void	window(SDL_Event *event);
 	static Events	&_get();
 	static Events	*_instance;
-	std::array<t_kcallback, 285>	_kcallbacks;
-	t_kcallback						_rcallback{nullptr};
-	Events() = default;
+	t_callback		_rcallback{nullptr};
+	std::map<Uint32, InputDevice*> _input_devices;
+	Events();
 };
