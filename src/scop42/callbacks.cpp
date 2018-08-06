@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/06 00:36:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/06 16:59:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,6 +112,7 @@ void	controller_callback_quality(SDL_Event *event)
 	if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN)) {
 		return ;
 	}
+	GameController::get(0)->rumble(0.5, 100);
 	Engine::internal_quality() += 0.25;
 	Engine::internal_quality() = CYCLE(Engine::internal_quality(), 0.5, 1.5);
 }

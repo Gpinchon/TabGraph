@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/05 20:12:19 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/06 15:58:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/06 17:06:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,17 @@ Controller::~Controller()
 	close();
 }
 #include <iostream>
+
+bool	Controller::is(SDL_JoystickID device)
+{
+	return (id() == device);
+}
+
+bool	Controller::is_connected()
+{
+	return (_is_connected);
+}
+
 void	Controller::open(SDL_JoystickID device)
 {
 	if (_is_connected || !SDL_IsGameController(device)) {
@@ -38,11 +49,6 @@ void	Controller::open(SDL_JoystickID device)
 		}
 	}
 	std::cout << "Joystick Instance " << _instance_id << std::endl;
-}
-
-bool	Controller::is_connected()
-{
-	return (_is_connected);
 }
 
 void	Controller::close()
@@ -79,19 +85,48 @@ void	Controller::process_event(SDL_Event *event)
 				callback->second(event);
 			break;
 		}
-		case SDL_CONTROLLERDEVICEREMOVED:
-		case SDL_JOYDEVICEREMOVED: {
-			std::cout << "Joystick Removed " << event->cdevice.which << std::endl;
-			close();
-			break;
-		}
 		case SDL_CONTROLLERDEVICEADDED:
 		case SDL_JOYDEVICEADDED: {
 			std::cout << "Joystick Added " << event->cdevice.which << std::endl;
 			open(event->cdevice.which);
+			if (_connection_callback != nullptr)
+				_connection_callback(event);
+			break;
+		}
+		case SDL_CONTROLLERDEVICEREMOVED:
+		case SDL_JOYDEVICEREMOVED: {
+			std::cout << "Joystick Removed " << event->cdevice.which << std::endl;
+			close();
+			if (_disconnect_callback != nullptr)
+				_disconnect_callback(event);
 			break;
 		}
 	}
+}
+
+void	Controller::set_axis_callback(Uint8 type, t_callback callback)
+{
+	_axis_callbacks[type] = callback;
+}
+
+void	Controller::set_button_callback(Uint8 type, t_callback callback)
+{
+	_button_callbacks[type] = callback;
+}
+
+void			Controller::set_connection_callback(t_callback callback)
+{
+	_connection_callback = callback;
+}
+
+void			Controller::set_disconnect_callback(t_callback callback)
+{
+	_disconnect_callback = callback;
+}
+
+void	Controller::rumble(float strength, int duration)
+{
+	SDL_HapticRumblePlay(_haptic, strength, duration);
 }
 
 float			Controller::axis(SDL_GameControllerAxis axis)
@@ -111,24 +146,9 @@ Uint8			Controller::button(SDL_GameControllerButton button)
 	return (SDL_GameControllerGetButton(_gamepad, button));
 }
 
-void	Controller::set_axis_callback(Uint8 type, t_callback callback)
-{
-	_axis_callbacks[type] = callback;
-}
-
-void	Controller::set_button_callback(Uint8 type, t_callback callback)
-{
-	_button_callbacks[type] = callback;
-}
-
 SDL_JoystickID	Controller::id()
 {
 	return (_instance_id);
-}
-
-bool			Controller::is(SDL_JoystickID device)
-{
-	return (id() == device);
 }
 
 GameController	*GameController::_instance = new GameController();
