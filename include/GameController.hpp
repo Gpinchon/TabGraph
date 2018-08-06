@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/05 20:13:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/06 00:34:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/06 15:37:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ public:
 	void			open(SDL_JoystickID device);
 	void			close();
 	SDL_JoystickID	id();
+	bool			is(SDL_JoystickID device);
 	float			axis(SDL_GameControllerAxis);
 	Uint8			button(SDL_GameControllerButton);
 	void			process_event(SDL_Event *event);
@@ -46,8 +47,9 @@ class	GameController : InputDevice
 {
 public:
 	//static Controller	*open(SDL_JoystickID device);
-	static Controller	*get(SDL_JoystickID device);
-	static void			remove(SDL_JoystickID device);
+	static Controller	*get(int index);
+	static void			remove(int index);
+	static int			get_controller_index(SDL_JoystickID device);
 	virtual void		process_event(SDL_Event *event);
 private:
 	std::map<SDL_JoystickID, Controller*>	_controllers;
