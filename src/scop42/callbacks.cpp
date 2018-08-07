@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/06 16:59:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/07 19:38:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ void				callback_camera(SDL_Event *)
 	Engine::current_camera()->orbite(val.x, val.y, val.z);
 }
 
-void	callback_scale(SDL_Event *event)
+void	callback_scale(SDL_KeyboardEvent *event)
 {
 	static float	scale = 1;
 
@@ -91,15 +91,15 @@ void	switch_background()
 	}
 }
 
-void	callback_background(SDL_Event *event)
+void	callback_background(SDL_KeyboardEvent *event)
 {
-	if (event == nullptr || (event->type == SDL_KEYUP || (event->key.repeat != 0u))) {
+	if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u))) {
 		return ;
 	}
 	switch_background();
 }
 
-void	controller_callback_background(SDL_Event *event)
+void	controller_callback_background(SDL_ControllerButtonEvent *event)
 {
 	if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN)) {
 		return ;
@@ -107,7 +107,7 @@ void	controller_callback_background(SDL_Event *event)
 	switch_background();
 }
 
-void	controller_callback_quality(SDL_Event *event)
+void	controller_callback_quality(SDL_ControllerButtonEvent *event)
 {
 	if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN)) {
 		return ;
@@ -117,9 +117,9 @@ void	controller_callback_quality(SDL_Event *event)
 	Engine::internal_quality() = CYCLE(Engine::internal_quality(), 0.5, 1.5);
 }
 
-void	callback_quality(SDL_Event *event)
+void	callback_quality(SDL_KeyboardEvent *event)
 {
-	if (event == nullptr || (event->type == SDL_KEYUP || (event->key.repeat != 0u))) {
+	if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u))) {
 		return ;
 	}
 	Engine::internal_quality() += 0.25;
@@ -128,7 +128,7 @@ void	callback_quality(SDL_Event *event)
 
 bool	rotate_model = true;
 
-void	controller_callback_rotation(SDL_Event *event)
+void	controller_callback_rotation(SDL_ControllerButtonEvent *event)
 {
 	if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN)) {
 		return ;
@@ -152,12 +152,12 @@ void	callback_refresh(SDL_Event */*unused*/)
 	callback_camera(nullptr);
 }
 
-void	callback_exit(SDL_Event */*unused*/)
+void	callback_exit(SDL_KeyboardEvent */*unused*/)
 {
 	Engine::stop();
 }
 
-void	callback_fullscreen(SDL_Event *event)
+void	callback_fullscreen(SDL_KeyboardEvent *event)
 {
 	static bool	fullscreen = false;
 

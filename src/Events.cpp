@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 17:24:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/06 00:16:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/07 18:19:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,7 +233,14 @@ Events	&Events::_get()
 
 void	Events::add(InputDevice *device, SDL_EventType event_type)
 {
-	_get()._input_devices[event_type].push_back(device);
+	_get()._input_devices[event_type].insert(device);
+}
+
+void	Events::remove(InputDevice *device, SDL_EventType event_type)
+{
+	auto	inputDevices = _get()._input_devices.find(event_type);
+	if (inputDevices != _get()._input_devices.end())
+		inputDevices->second.erase(device);
 }
 
 void	Events::set_refresh_callback(t_callback callback)
@@ -241,23 +248,10 @@ void	Events::set_refresh_callback(t_callback callback)
 	_get()._rcallback = callback;
 }
 
-void	Events::window(SDL_Event *event)
-{
-	if (event->window.event == SDL_WINDOWEVENT_CLOSE) {
-		Engine::stop();
-	}
-	else if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
-		Window::resize();
-	}
-}
-
 int		Events::filter(void */*unused*/, SDL_Event *event)
 {
 	if (event->type == SDL_QUIT) {
 		Engine::stop();
-	}
-	else if (event->type == SDL_WINDOWEVENT) {
-		Events::window(event);
 	}
 	auto	inputdevice = _get()._input_devices.find(event->type);
 	if (inputdevice != _get()._input_devices.end()) {
@@ -273,11 +267,7 @@ int		Events::refresh()
 		_get()._rcallback(nullptr);
 	}
 	SDL_Event	event;
-	event.type = 0;
-	auto	inputdevice = _get()._input_devices.find(0);
-	if (inputdevice != _get()._input_devices.end()) {
-		for (auto device : inputdevice->second)
-			device->process_event(&event);
-	}
+	event.type = EVENT_REFRESH;
+	filter(nullptr, &event);
 	return (0);
 }

@@ -6,12 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 21:40:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/07 17:26:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include "Framebuffer.hpp"
+#include "Events.hpp"
 #include "Window.hpp"
 #include "parser/GLSL.hpp"
 #include <unistd.h>
@@ -19,7 +20,19 @@
 Window *Window::_instance = nullptr;
 
 Window::Window()
-= default;
+{
+	Events::add(this, SDL_WINDOWEVENT);
+}
+
+void	Window::process_event(SDL_Event *event)
+{
+	if (event->window.event == SDL_WINDOWEVENT_CLOSE) {
+		Engine::stop();
+	}
+	else if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
+		Window::resize();
+	}
+}
 
 /*
 ** window is a singleton

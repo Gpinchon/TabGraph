@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 23:17:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/07 19:35:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,12 @@ const auto HEIGHT =		720;
 */
 
 void			callback_refresh(SDL_Event *event);
-void			callback_scale(SDL_Event *event);
-void			callback_background(SDL_Event *event);
-void			callback_exit(SDL_Event *event);
-void			callback_fullscreen(SDL_Event *event);
 void			callback_camera(SDL_Event *event);
-void			callback_quality(SDL_Event *event);
-void			controller_callback_quality(SDL_Event *event);
-void			controller_callback_background(SDL_Event *event);
-void			controller_callback_rotation(SDL_Event *event);
+void			callback_scale(SDL_KeyboardEvent *event);
+void			callback_background(SDL_KeyboardEvent *event);
+void			callback_exit(SDL_KeyboardEvent *event);
+void			callback_fullscreen(SDL_KeyboardEvent *event);
+void			callback_quality(SDL_KeyboardEvent *event);
+void			controller_callback_background(SDL_ControllerButtonEvent *event);
+void			controller_callback_quality(SDL_ControllerButtonEvent *event);
+void			controller_callback_rotation(SDL_ControllerButtonEvent *event);
