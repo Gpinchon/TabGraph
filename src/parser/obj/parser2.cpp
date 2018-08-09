@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/10 18:45:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 00:14:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/09 19:02:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include "Vgroup.hpp"
-#include "PBRMaterial.hpp"
+#include "Material.hpp"
 #include "parser/InternalTools.hpp"
 #include "parser/OBJ.hpp"
 

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 01:27:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/09 18:55:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ static void	start_obj_parsing(t_obj_parser *p, const std::string &name, const st
 		throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
 	}
 	if (Material::get_by_name("default") == nullptr) {
-		PBRMaterial::create("default");
+		Material::create("default");
 	}
 	p->parent = Mesh::create(name);
 	p->vg = Vgroup::create(name + "_child 0");//new Vgroup(name + "_child 0");//Mesh::create(name + "_child 0");

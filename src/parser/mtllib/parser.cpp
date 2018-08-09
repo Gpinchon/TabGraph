@@ -6,19 +6,19 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/04 19:22:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/09 18:55:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
-#include "PBRMaterial.hpp"
+#include "Material.hpp"
 #include "parser/BMP.hpp"
 #include "parser/InternalTools.hpp"
 #include "parser/MTLLIB.hpp"
 #include <stdexcept>
 #include <unistd.h>
 
-void	parse_color(std::vector<std::string> &split, PBRMaterial *mtl)
+void	parse_color(std::vector<std::string> &split, Material *mtl)
 {
 	if (split[0] == "Kd") {
 		mtl->albedo = parse_vec3(split);
@@ -33,7 +33,7 @@ void	parse_color(std::vector<std::string> &split, PBRMaterial *mtl)
 		
 }
 
-void	parse_texture(t_obj_parser *p, std::vector<std::string> &split, PBRMaterial *mtl)
+void	parse_texture(t_obj_parser *p, std::vector<std::string> &split, Material *mtl)
 {
 	std::string path(p->path_split[0]);
 
@@ -59,7 +59,7 @@ void	parse_texture(t_obj_parser *p, std::vector<std::string> &split, PBRMaterial
 	}
 }
 
-void	parse_number(std::vector<std::string> &split, PBRMaterial *mtl)
+void	parse_number(std::vector<std::string> &split, Material *mtl)
 {
 	float ior;
 
@@ -85,13 +85,13 @@ void	parse_number(std::vector<std::string> &split, PBRMaterial *mtl)
 
 void	parse_mtl(t_obj_parser *p, std::string &name)
 {
-	PBRMaterial	*mtl;
+	Material	*mtl;
 	char		line[4096];
 
 	if (Material::get_by_name(name) != nullptr) {
 		return ;
 	}
-	mtl = PBRMaterial::create(name);
+	mtl = Material::create(name);
 	while (fgets(line, 4096, p->fd) != nullptr)
 	{
 		auto msplit = strsplitwspace(line);
