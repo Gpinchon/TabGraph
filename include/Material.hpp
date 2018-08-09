@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:12:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/09 18:51:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/09 19:26:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ public :
 	static Material	*get_by_name(const std::string &);
 	virtual void	bind_values();
 	virtual void	bind_textures();
-	virtual void	load_textures();
 	Shader			*shader{nullptr};
 	VEC3			albedo{0.5, 0.5, 0.5};
 	VEC3			specular{0.04, 0.04, 0.04};

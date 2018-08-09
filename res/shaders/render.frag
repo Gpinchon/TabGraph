@@ -2,13 +2,17 @@
 #pragma optionNV (unroll all)
 #define	KERNEL_SIZE 5
 
+struct t_Environment {
+	samplerCube	Diffuse;
+	samplerCube	Irradiance;
+};
+
 uniform sampler2D	in_Texture_Color;
 uniform sampler2D	in_Texture_Bright;
 uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
-uniform samplerCube	in_Texture_Env;
-uniform samplerCube	in_Texture_Env_Spec;
+uniform t_Environment	Environment;
 
 in vec2				frag_UV;
 in vec3				frag_Cube_UV;
@@ -92,7 +96,7 @@ void main()
 	vec3	position = texture(in_Texture_Position, frag_UV).xyz;
 	float	depth = texture(in_Texture_Depth, frag_UV).r;
 	float	dof = min(5, 10.f * abs(frag_CenterDepth - depth));
-	vec4	env = textureLod(in_Texture_Env, frag_Cube_UV, 10.f * abs(frag_CenterDepth - 1));
+	vec4	env = textureLod(Environment.Diffuse, frag_Cube_UV, 10.f * abs(frag_CenterDepth - 1));
 	vec4	color = textureLod(in_Texture_Color, frag_UV, dof);
 	vec2	sampledist = textureSize(in_Texture_Position, 0) / 1024.f * 25.f;
 	vec2	sampleOffset = sampledist / textureSize(in_Texture_Position, 0);

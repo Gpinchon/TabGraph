@@ -6,35 +6,44 @@ precision lowp int;
 precision lowp sampler2D;
 precision lowp samplerCube;
 
-uniform vec3		in_CamPos;
+struct t_Textures {
+	vec2		Scale;
+	sampler2D	Albedo;
+	bool		Use_Albedo;
+	sampler2D	Specular;
+	bool		Use_Specular;
+	sampler2D	Roughness;
+	bool		Use_Roughness;
+	sampler2D	Metallic;
+	bool		Use_Metallic;
+	sampler2D	Emitting;
+	bool		Use_Normal;
+	sampler2D	Normal;
+	bool		Use_Height;
+	sampler2D	Height;
+	sampler2D	AO;
+	sampler2D	BRDF;
+};
 
-uniform vec3		in_Albedo;
-uniform vec3		in_Specular;
-uniform vec3		in_Emitting;
-uniform float		in_Roughness;
-uniform float		in_Metallic;
-uniform float		in_Alpha;
-uniform float		in_Parallax;
+struct t_Material {
+	vec3		Albedo;
+	vec3		Specular;
+	vec3		Emitting;
+	float		Roughness;
+	float		Metallic;
+	float		Alpha;
+	float		Parallax;
+	t_Textures	Texture;
+};
 
-uniform sampler2D	in_Texture_Albedo;
-uniform bool		in_Use_Texture_Albedo = false;
-uniform sampler2D	in_Texture_Specular;
-uniform bool		in_Use_Texture_Specular = false;
-uniform sampler2D	in_Texture_Roughness;
-uniform bool		in_Use_Texture_Roughness = false;
-uniform sampler2D	in_Texture_Metallic;
-uniform bool		in_Use_Texture_Metallic = false;
-uniform sampler2D	in_Texture_Emitting;
-uniform bool		in_Use_Texture_Normal = false;
-uniform sampler2D	in_Texture_Normal;
-uniform bool		in_Use_Texture_Height = false;
-uniform sampler2D	in_Texture_Height;
-uniform sampler2D	in_Texture_AO;
-//uniform sampler2D	in_Texture_SSS;
+struct t_Environment {
+	samplerCube	Diffuse;
+	samplerCube	Irradiance;
+};
 
-uniform samplerCube	in_Texture_Env;
-uniform samplerCube	in_Texture_Env_Spec;
-uniform sampler2D	in_Texture_BRDF;
+uniform t_Material		Material;
+uniform t_Environment	Environment;
+uniform vec3			in_CamPos;
 
 in vec3	frag_WorldPosition;
 in vec3	frag_WorldNormal;
@@ -80,24 +89,24 @@ void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out float parallaxHeight)
 	int	tries = int(numLayers);
 	float layerHeight = 1.0 / numLayers;
 	float curLayerHeight = 0;
-	vec2 dtex = in_Parallax * tbnV.xy / tbnV.z / numLayers;
+	vec2 dtex = Material.Parallax * tbnV.xy / tbnV.z / numLayers;
 	vec2 currentTextureCoords = T;
-	float heightFromTexture = 1 - texture(in_Texture_Height, currentTextureCoords).r;
+	float heightFromTexture = 1 - texture(Material.Texture.Height, currentTextureCoords).r;
 	while(tries > 0 && heightFromTexture > curLayerHeight) 
 	{
 		tries--;
 		curLayerHeight += layerHeight; 
 		currentTextureCoords -= dtex;
-		heightFromTexture = 1 - texture(in_Texture_Height, currentTextureCoords).r;
+		heightFromTexture = 1 - texture(Material.Texture.Height, currentTextureCoords).r;
 	}
 	vec2 prevTCoords = currentTextureCoords + dtex;
 	float nextH	= heightFromTexture - curLayerHeight;
-	float prevH	= 1 - texture(in_Texture_Height, prevTCoords).r
+	float prevH	= 1 - texture(Material.Texture.Height, prevTCoords).r
 	- curLayerHeight + layerHeight;
 	float weight = nextH / (nextH - prevH);
 	vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0 - weight);
 	parallaxHeight = (curLayerHeight + prevH * weight + nextH * (1.0 - weight));
-	parallaxHeight *= in_Parallax;
+	parallaxHeight *= Material.Parallax;
 	parallaxHeight = isnan(parallaxHeight) ? 0 : parallaxHeight;
 	T = finalTexCoords;
 }
@@ -138,51 +147,51 @@ void	main()
 	vec3	worldNormal = normalize(frag_WorldNormal);
 	mat3x3	tbn;
 	vec2	vt = frag_Texcoord;
-	vec4	albedo = vec4(in_Albedo, in_Alpha);
+	vec4	albedo = vec4(Material.Albedo, Material.Alpha);
 
 	tbn = tbn_matrix(frag_WorldPosition, frag_WorldNormal, frag_Texcoord);
-	if (in_Use_Texture_Height)
+	if (Material.Texture.Use_Height)
 	{
 		float ph;
 		Parallax_Mapping(tbn * normalize(in_CamPos - worldPosition), vt, ph);
 		worldPosition = worldPosition - (worldNormal * ph);
 	}
-	vec4	albedo_sample = texture(in_Texture_Albedo, vt);
-	vec3	emitting = texture(in_Texture_Emitting, vt).rgb + in_Emitting;
-	vec3	normal_sample = texture(in_Texture_Normal, vt).xyz * 2 - 1;
-	vec3	specular_sample = texture(in_Texture_Specular, vt).xyz;
-	float	roughness_sample = texture(in_Texture_Roughness, vt).r;
-	float	metallic_sample = texture(in_Texture_Metallic, vt).r;
-	float	ao = 1 - texture(in_Texture_AO, vt).r;
+	vec4	albedo_sample = texture(Material.Texture.Albedo, vt);
+	vec3	emitting = texture(Material.Texture.Emitting, vt).rgb + Material.Emitting;
+	vec3	normal_sample = texture(Material.Texture.Normal, vt).xyz * 2 - 1;
+	vec3	specular_sample = texture(Material.Texture.Specular, vt).xyz;
+	float	roughness_sample = texture(Material.Texture.Roughness, vt).r;
+	float	metallic_sample = texture(Material.Texture.Metallic, vt).r;
+	float	ao = 1 - texture(Material.Texture.AO, vt).r;
 	//float	sss = texture(in_Texture_SSS, vt).r;
 	
-	if (in_Use_Texture_Albedo)
+	if (Material.Texture.Use_Albedo)
 	{
 		albedo.rgb = albedo_sample.rgb;
 		albedo.a *= albedo_sample.a;
 	}
-	if (in_Use_Texture_Normal)
+	if (Material.Texture.Use_Normal)
 	{
 		vec3	new_normal = normal_sample * tbn;
 		if (dot(new_normal, new_normal) > 0)
 			worldNormal = normalize(new_normal);
 	}
-	float	roughness = clamp(in_Use_Texture_Roughness ? roughness_sample : in_Roughness, 0.05f, 1.f);
-	float	metallic = clamp(in_Use_Texture_Metallic ? metallic_sample : in_Metallic, 0.f, 1.f);
-	vec3	F0 = mix(in_Use_Texture_Specular ? specular_sample : in_Specular, albedo.rgb, metallic);
+	float	roughness = clamp(Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness, 0.05f, 1.f);
+	float	metallic = clamp(Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic, 0.f, 1.f);
+	vec3	F0 = mix(Material.Texture.Use_Specular ? specular_sample : Material.Specular, albedo.rgb, metallic);
 	vec3	V = normalize(in_CamPos - worldPosition);
 	vec3	R = reflect(V, worldNormal);
 	float	NdV = max(0, dot(worldNormal, V));
 
 	vec3	fresnel = Fresnel(NdV, F0, roughness);
-	vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, roughness)).rg;
+	vec2	BRDF = texture(Material.Texture.BRDF, vec2(NdV, roughness)).rg;
 
-	vec3	diffuse = ao * (textureLod(in_Texture_Env, -worldNormal, roughness + 9).rgb
-			+ textureLod(in_Texture_Env_Spec, -worldNormal, roughness * 4.f).rgb);
-	vec3	reflection = textureLod(in_Texture_Env, R, roughness * 12.f).rgb * fresnel;
-	vec3	specular = textureLod(in_Texture_Env_Spec, R, roughness * 10.f).rgb;
-	//vec3	reflection_spec = textureLod(in_Texture_Env, R, roughness * 10.f + 2.5).rgb;
-	vec3	reflection_spec = pow(textureLod(in_Texture_Env, R, roughness * 10.f + 3.5).rgb, vec3(2.2));
+	vec3	diffuse = ao * (textureLod(Environment.Diffuse, -worldNormal, roughness + 9).rgb
+			+ textureLod(Environment.Irradiance, -worldNormal, roughness * 4.f).rgb);
+	vec3	reflection = textureLod(Environment.Diffuse, R, roughness * 12.f).rgb * fresnel;
+	vec3	specular = textureLod(Environment.Irradiance, R, roughness * 10.f).rgb;
+	//vec3	reflection_spec = textureLod(Environment.Diffuse, R, roughness * 10.f + 2.5).rgb;
+	vec3	reflection_spec = pow(textureLod(Environment.Diffuse, R, roughness * 10.f + 3.5).rgb, vec3(2.2));
 
 	
 	
@@ -196,9 +205,6 @@ void	main()
 	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, metallic) * BRDF.y;
 	specular += reflection_spec;
 	diffuse *= albedo.rgb * (1 - metallic);
-/* 	if (sss > 0)
-		out_Color.rgb = (albedo.rgb) * sss * textureLod(in_Texture_Env_Spec, refract(V, -worldNormal, 1.f / 1.3f), 10).rgb;
- */
 	albedo.a += dot(specular, specular);
 	albedo.a = min(1, albedo.a);
 

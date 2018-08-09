@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 00:55:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/09 19:31:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,9 +68,9 @@ void	Render::bind_textures()
 	&Window::render_buffer().attachement(3), GL_TEXTURE3);
 	shader.bind_texture("in_Texture_Depth",
 	&Window::render_buffer().depth(), GL_TEXTURE4);
-	shader.bind_texture("in_Texture_Env",
+	shader.bind_texture("Environment.Diffuse",
 		Engine::current_environment()->diffuse, GL_TEXTURE5);
-	shader.bind_texture("in_Texture_Env_Spec",
+	shader.bind_texture("Environment.Irradiance",
 		Engine::current_environment()->brdf, GL_TEXTURE6);
 }
 

@@ -14,8 +14,8 @@ uniform sampler2D	in_Texture_Emitting;
 uniform bool		in_Use_Texture_Normal = false;
 uniform sampler2D	in_Texture_Normal;
 
-uniform samplerCube	in_Texture_Env;
-uniform samplerCube	in_Texture_Env_Spec;
+uniform samplerCube	Environment.Diffuse;
+uniform samplerCube	Environment.Irradiance;
 uniform sampler2D	in_Texture_BRDF;
 
 in vec3			frag_WorldPosition;
