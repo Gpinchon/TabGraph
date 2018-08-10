@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 13:23:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/10 11:15:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ const auto SHADOWRES	= 2048;
 const auto UP			= (VEC3){0, 1, 0};
 const auto ANISOTROPY	= 16.f;
 const auto MSAA			= 4;
-const auto BLOOMPASS	= 2;
+const auto BLOOMPASS	= 1;
 const auto MAXTEXRES	= -1;
 #define GL_DEBUG
 

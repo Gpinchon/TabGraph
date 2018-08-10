@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.cpp                                        :+:      :+:    :+:   */
+/*   Framebuffer.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 18:43:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/10 10:53:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,8 +143,7 @@ void			Framebuffer::setup_attachements()
 	i = 0;
 	while (i < _color_attachements.size())
 	{
-		attachement(i).format(&format[0],
-			&format[1]);
+		attachement(i).format(&format[0], &format[1]);
 		a = GL_COLOR_ATTACHMENT0 + i;
 		if (format[0] != GL_DEPTH_ATTACHMENT) {
 			color_attachements.push_back(a);

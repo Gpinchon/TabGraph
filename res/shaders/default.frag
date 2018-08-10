@@ -51,10 +51,18 @@ in vec2	frag_Texcoord;
 in vec2	frag_UVMax;
 in vec2	frag_UVMin;
 
-layout(location = 0) out vec4	out_Color;
+layout(location = 0) out vec4	out_Albedo;
+layout(location = 1) out vec4	out_Fresnel;
+layout(location = 2) out vec4	out_Emitting;
+layout(location = 3) out vec4	out_Material_Values; //Roughness, Metallic, AO
+layout(location = 4) out vec4	out_BRDF; //Roughness, Metallic
+layout(location = 5) out vec4	out_Normal;
+layout(location = 6) out vec4	out_Position;
+
+/* layout(location = 0) out vec4	out_Color;
 layout(location = 1) out vec4	out_Bright;
 layout(location = 2) out vec4	out_Normal;
-layout(location = 3) out vec4	out_Position;
+layout(location = 3) out vec4	out_Position; */
 
 float	GGX_Geometry(in float NdV, in float alpha)
 {
@@ -139,10 +147,6 @@ float	Env_Specular(in float NdV, in float roughness)
 
 void	main()
 {
-	out_Color = vec4(0);
-	out_Bright = vec4(0);
-	out_Normal = vec4(0);
-	out_Position = vec4(0);
 	vec3	worldPosition = frag_WorldPosition;
 	vec3	worldNormal = normalize(frag_WorldNormal);
 	mat3x3	tbn;
@@ -163,13 +167,16 @@ void	main()
 	float	roughness_sample = texture(Material.Texture.Roughness, vt).r;
 	float	metallic_sample = texture(Material.Texture.Metallic, vt).r;
 	float	ao = 1 - texture(Material.Texture.AO, vt).r;
-	//float	sss = texture(in_Texture_SSS, vt).r;
 	
 	if (Material.Texture.Use_Albedo)
 	{
 		albedo.rgb = albedo_sample.rgb;
 		albedo.a *= albedo_sample.a;
 	}
+	if (albedo.a <= 0.05
+	|| vt.x > (frag_UVMax.x) || vt.y > (frag_UVMax.y)
+	|| vt.x < (frag_UVMin.x) || vt.y < (frag_UVMin.y))
+		discard;
 	if (Material.Texture.Use_Normal)
 	{
 		vec3	new_normal = normal_sample * tbn;
@@ -180,37 +187,26 @@ void	main()
 	float	metallic = clamp(Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic, 0.f, 1.f);
 	vec3	F0 = mix(Material.Texture.Use_Specular ? specular_sample : Material.Specular, albedo.rgb, metallic);
 	vec3	V = normalize(in_CamPos - worldPosition);
-	vec3	R = reflect(V, worldNormal);
 	float	NdV = max(0, dot(worldNormal, V));
 
 	vec3	fresnel = Fresnel(NdV, F0, roughness);
 	vec2	BRDF = texture(Material.Texture.BRDF, vec2(NdV, roughness)).rg;
 
-	vec3	diffuse = ao * (textureLod(Environment.Diffuse, -worldNormal, roughness + 9).rgb
-			+ textureLod(Environment.Irradiance, -worldNormal, roughness * 4.f).rgb);
-	vec3	reflection = textureLod(Environment.Diffuse, R, roughness * 12.f).rgb * fresnel;
-	vec3	specular = textureLod(Environment.Irradiance, R, roughness * 10.f).rgb;
-	//vec3	reflection_spec = textureLod(Environment.Diffuse, R, roughness * 10.f + 2.5).rgb;
-	vec3	reflection_spec = pow(textureLod(Environment.Diffuse, R, roughness * 10.f + 3.5).rgb, vec3(2.2));
+	out_BRDF.a = albedo.a;
+	out_Normal.a = albedo.a;
+	out_Position.a = albedo.a;
+	out_Fresnel.a = albedo.a;
+	out_Emitting.a = albedo.a;
 
-	
-	
-	if (albedo.a <= 0.05
-	|| vt.x > (frag_UVMax.x) || vt.y > (frag_UVMax.y)
-	|| vt.x < (frag_UVMin.x) || vt.y < (frag_UVMin.y))
-		discard;
-
-	float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
-	reflection_spec *= brightness * min(fresnel + 1, fresnel * Env_Specular(NdV, roughness));
-	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, metallic) * BRDF.y;
-	specular += reflection_spec;
-	diffuse *= albedo.rgb * (1 - metallic);
-	albedo.a += dot(specular, specular);
-	albedo.a = min(1, albedo.a);
-
-	out_Color.rgb += emitting + specular + diffuse + reflection;
-	out_Color.a = albedo.a;
-	out_Bright = vec4(max(vec3(0), out_Color.rgb - 1) + emitting, albedo.a);
-	out_Normal = vec4(worldNormal, 1);
-	out_Position = vec4(worldPosition, 1);
+	out_Albedo.rgb = albedo.rgb + emitting;
+	out_Albedo.a = albedo.a;
+	out_Fresnel.rgb = fresnel;
+	out_Emitting.rgb = max(vec3(0), albedo.rgb - 1) + emitting;
+	out_Material_Values.x = roughness;
+	out_Material_Values.y = metallic;
+	out_Material_Values.z = ao;
+	out_Material_Values.a = albedo.a;
+	out_BRDF.xy = BRDF;
+	out_Normal.xyz = worldNormal;
+	out_Position.xyz = worldPosition;
 }

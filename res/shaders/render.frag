@@ -1,17 +1,28 @@
 #version 410
 #pragma optionNV (unroll all)
-#define	KERNEL_SIZE 5
+#define	KERNEL_SIZE 64
+#define M_PI 3.1415926535897932384626433832795
 
 struct t_Environment {
 	samplerCube	Diffuse;
 	samplerCube	Irradiance;
 };
 
-uniform sampler2D	in_Texture_Color;
+/* uniform sampler2D	in_Texture_Color;
 uniform sampler2D	in_Texture_Bright;
+uniform sampler2D	in_Texture_Normal;
+uniform sampler2D	in_Texture_Position; */
+
+uniform sampler2D	in_Texture_Albedo;
+uniform sampler2D	in_Texture_Fresnel;
+uniform sampler2D	in_Texture_Emitting;
+uniform sampler2D	in_Texture_Material_Values;
+uniform sampler2D	in_Texture_BRDF;
 uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
+uniform vec3		in_CamPos;
+
 uniform t_Environment	Environment;
 
 in vec2				frag_UV;
@@ -20,7 +31,7 @@ in float			frag_CenterDepth;
 
 out vec4			out_Color;
 
-uniform vec2 poissonDisk[] = vec2[64](
+uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(-0.613392, 0.617481),
 	vec2(0.170019, -0.040254),
 	vec2(-0.299417, 0.791925),
@@ -86,71 +97,75 @@ uniform vec2 poissonDisk[] = vec2[64](
 	vec2(-0.545396, 0.538133),
 	vec2(-0.178564, -0.596057));
 
-/* uniform float		gaussian_kernel[] = float[KERNEL_SIZE](
-	0.06136, 0.24477, 0.38774, 0.24477, 0.06136
-); */
+float	Env_Specular(in float NdV, in float roughness)
+{
+	float	alpha = roughness * roughness;
+	float	den = (alpha - 1) + 1;
+	float	D = (alpha / (M_PI * den * den));
+	float	alpha2 = alpha * alpha;
+	float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
+	return (max(D * G, 0));
+}
 
 void main()
 {
-	vec3	normal = normalize(texture(in_Texture_Normal, frag_UV).xyz);
-	vec3	position = texture(in_Texture_Position, frag_UV).xyz;
-	float	depth = texture(in_Texture_Depth, frag_UV).r;
-	float	dof = min(5, 10.f * abs(frag_CenterDepth - depth));
-	vec4	env = textureLod(Environment.Diffuse, frag_Cube_UV, 10.f * abs(frag_CenterDepth - 1));
-	vec4	color = textureLod(in_Texture_Color, frag_UV, dof);
+	out_Color.a = 1;
+	float	Depth = texture(in_Texture_Depth, frag_UV).r;
+	vec3	EnvDiffuse = texture(Environment.Diffuse, frag_Cube_UV).rgb;
+	if (Depth == 1) {
+		out_Color.rgb = EnvDiffuse;
+		return ;
+	}
+	vec3	EnvIrradiance = texture(Environment.Diffuse, frag_Cube_UV).rgb;
+	vec4	Albedo = texture(in_Texture_Albedo, frag_UV);
+	vec3	Fresnel = texture(in_Texture_Fresnel, frag_UV).rgb;
+	vec4	Emitting = texture(in_Texture_Emitting, frag_UV);
+	vec4	Material_Values = texture(in_Texture_Material_Values, frag_UV);
+	float	Roughness = Material_Values.x;
+	float	Metallic = Material_Values.y;
+	float	AO = Material_Values.z;
+	vec4	BRDF = texture(in_Texture_BRDF, frag_UV);
+	vec3	Normal = normalize(texture(in_Texture_Normal, frag_UV).xyz);
+	vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
+
 	vec2	sampledist = textureSize(in_Texture_Position, 0) / 1024.f * 25.f;
 	vec2	sampleOffset = sampledist / textureSize(in_Texture_Position, 0);
-	vec3	finalColor = vec3(0);
 	float	occlusion = 0.f;
-	if (depth != 1)
+	for (int i = 0; i < KERNEL_SIZE; ++i)
 	{
-		for (int i = 0; i < 64; ++i)
+		vec2	sampleUV = frag_UV + poissonDisk[i] * sampleOffset;
+		vec3	samplePosition = texture(in_Texture_Position, sampleUV).xyz;
+		if (texture(in_Texture_Depth, sampleUV).r < Depth)
 		{
-			vec2	sampleUV = frag_UV + poissonDisk[i] * sampleOffset;
-			vec3	samplePosition = texture(in_Texture_Position, sampleUV).xyz;
-			if (texture(in_Texture_Depth, sampleUV).r < depth)
-			{
-				/* vec3	V = samplePosition - position;
-				vec3	Vn = normalize(V);
-				float	a = max(dot(Vn, normal) + 0.1, 0);
-				float	b = dot(Vn, Vn) + 0.0001;
-				occlusion += a / b; */
-				vec3	V = samplePosition - position;
-				float	D = length(V);
-				float	bias = 0.0025;
-				float	factor = max(0, dot(normal, normalize(V)));
-				float	angle = max(0, factor - bias);
-				occlusion += (angle * (1.f / (1.f + D)));
-			}
+			vec3	V = samplePosition - Position;
+			float	D = length(V);
+			float	bias = 0.0025;
+			float	factor = max(0, dot(Normal, normalize(V)));
+			float	angle = max(0, factor - bias);
+			occlusion += (angle * (1.f / (1.f + D)));
 		}
-		occlusion /= 64.f;
-/* 		for (int i = 0; i < KERNEL_SIZE; i++) 
-		{
-			for (int j = 0; j < KERNEL_SIZE; j++) 
-			{
-				float	weight = gaussian_kernel[i] * gaussian_kernel[j];
-				vec2	index = vec2(float(i - KERNEL_SIZE / 2.f), float(j - KERNEL_SIZE / 2.f));
-				vec2	sampleUV = frag_UV + index * sampledist / textureSize(in_Texture_Position, 0);
-				vec3	samplePosition = texture(in_Texture_Position, sampleUV).xyz;
-				if (texture(in_Texture_Depth, sampleUV).r <= depth)
-				{
-					vec3	V = samplePosition - position;
-					float	D = length(V);
-					float	bias = 0.25;
-					float	factor = max(0, dot(normal, normalize(V)));
-					float	angle = max(0, factor - bias);
-					occlusion += (angle * (1.f / (1.f + D))) * weight;
-				}
-			}
-		} */
 	}
+	occlusion /= float(KERNEL_SIZE);
 	occlusion = 1 - occlusion;
-	//occlusion *= (1 - dof / 5.f);
-	//occlusion *= 1.2f;
-	finalColor = texture(in_Texture_Bright, frag_UV).rgb + color.rgb * color.a * occlusion;
-	out_Color = (env) * max(0, 1 - color.a);
-	out_Color += vec4(finalColor, 1);
-	//out_Color = vec4(vec3(occlusion), 1);
-	//out_Color.rgb = pow(out_Color.rgb, vec3(1 / 2.2));
-	//out_Color = vec4(vec3(1 - occlusion), 1);
+	AO += occlusion;
+
+	vec3	diffuse = AO * (textureLod(Environment.Diffuse, -Normal, Roughness + 9).rgb
+			+ textureLod(Environment.Irradiance, -Normal, Roughness * 4.f).rgb);
+	vec3	V = normalize(in_CamPos - Position);
+	float	NdV = max(0, dot(Normal, V));
+	vec3	R = reflect(V, Normal);
+	vec3	reflection = textureLod(Environment.Diffuse, R, Roughness * 12.f).rgb * Fresnel;
+	vec3	specular = textureLod(Environment.Irradiance, R, Roughness * 10.f).rgb;
+	vec3	reflection_spec = pow(textureLod(Environment.Diffuse, R, Roughness * 10.f + 3.5).rgb, vec3(2.2));
+
+	float	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
+	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
+	specular *= Fresnel * BRDF.x + mix(vec3(1), Fresnel, Metallic) * BRDF.y;
+	specular += reflection_spec;
+	diffuse *= Albedo.rgb * (1 - Metallic);
+	Albedo.a += dot(specular, specular);
+	Albedo.a = min(1, Albedo.a);
+
+	out_Color.rgb = Emitting.rgb + specular + diffuse + reflection;
+	//out_Color.rgb = vec3(diffuse);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/09 19:31:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/10 11:19:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,20 +58,16 @@ void	Render::scene()
 void	Render::bind_textures()
 {
 	auto	&shader = Window::render_buffer().shader();
-	shader.bind_texture("in_Texture_Color",
-	&Window::render_buffer().attachement(0), GL_TEXTURE0);
-	shader.bind_texture("in_Texture_Bright",
-	&Window::render_buffer().attachement(1), GL_TEXTURE1);
-	shader.bind_texture("in_Texture_Normal",
-	&Window::render_buffer().attachement(2), GL_TEXTURE2);
-	shader.bind_texture("in_Texture_Position",
-	&Window::render_buffer().attachement(3), GL_TEXTURE3);
-	shader.bind_texture("in_Texture_Depth",
-	&Window::render_buffer().depth(), GL_TEXTURE4);
-	shader.bind_texture("Environment.Diffuse",
-		Engine::current_environment()->diffuse, GL_TEXTURE5);
-	shader.bind_texture("Environment.Irradiance",
-		Engine::current_environment()->brdf, GL_TEXTURE6);
+	shader.bind_texture("in_Texture_Albedo", &Window::render_buffer().attachement(0), GL_TEXTURE0); // Albedo;
+	shader.bind_texture("in_Texture_Fresnel", &Window::render_buffer().attachement(1), GL_TEXTURE1); // Fresnel;
+	shader.bind_texture("in_Texture_Emitting", &Window::render_buffer().attachement(2), GL_TEXTURE2); // Emitting;
+	shader.bind_texture("in_Texture_Material_Values", &Window::render_buffer().attachement(3), GL_TEXTURE3); // Material_Values -> Roughness, Metallic
+	shader.bind_texture("in_Texture_BRDF", &Window::render_buffer().attachement(4), GL_TEXTURE4); // BRDF
+	shader.bind_texture("in_Texture_Normal", &Window::render_buffer().attachement(5), GL_TEXTURE5); // Normal;
+	shader.bind_texture("in_Texture_Position", &Window::render_buffer().attachement(6), GL_TEXTURE6); // Position;
+	shader.bind_texture("in_Texture_Depth", &Window::render_buffer().depth(), GL_TEXTURE7);
+	shader.bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
+	shader.bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE9);
 }
 
 void		Render::present()
@@ -81,12 +77,15 @@ void		Render::present()
 	if (Engine::current_camera() == nullptr) {
 		return ;
 	}
+	Window::render_buffer().attachement(2).blur(BLOOMPASS, 2.5);
+	//Window::render_buffer().attachement(6).blur(1, 2.5);
 	Framebuffer::bind_default();
 	glDisable(GL_DEPTH_TEST);
 	auto	&shader = Window::render_buffer().shader();
-	Window::render_buffer().attachement(0).generate_mipmap();
+	//Window::render_buffer().attachement(0).generate_mipmap();
 	shader.use();
 	Render::bind_textures();
+	shader.set_uniform("in_CamPos", Engine::current_camera()->position());
 	matrix = mat4_inverse(Engine::current_camera()->view);
 	shader.set_uniform("in_InvViewMatrix", matrix);
 	matrix = mat4_inverse(Engine::current_camera()->projection);

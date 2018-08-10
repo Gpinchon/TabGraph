@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 21:37:45 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/10 10:48:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,8 +266,6 @@ void	Engine::run()
 		//render_shadow();
 		Window::render_buffer().bind();
 		Render::scene();
-		Window::render_buffer().attachement(1).blur(BLOOMPASS, 2.5);
-		Window::render_buffer().attachement(2).blur(1, 2.5);
 		Render::present();
 		Window::swap();
 	}
