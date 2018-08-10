@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/19 01:27:17 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/06/03 19:53:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/10 15:25:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,12 +53,10 @@ std::string	stream_to_str(FILE *stream)
 	fseek(stream, 0L, SEEK_END);
 	size = ftell(stream);
 	rewind(stream);
-	auto ret = new char[size + 1];
-	ret[size] = '\0';
-	fread(ret, sizeof(char), size, stream);
+	auto ret = std::vector<char>(size + 1, 0);
+	fread(&ret[0], sizeof(char), size, stream);
 	fseek(stream, cur, SEEK_SET);
-	auto retString = std::string(ret);
-	delete [] ret;
+	auto retString = std::string(&ret[0]);
 	return (retString);
 }
 

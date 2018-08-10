@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/10 10:45:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/10 14:11:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,9 +86,7 @@ void		Window::init(const std::string &name, int width, int height)
 		Engine::program_path() + "./res/shaders/shadow.vert", Engine::program_path() + "./res/shaders/shadow.frag");
 	GLSL::parse("blur",
 		Engine::program_path() + "./res/shaders/blur.vert", Engine::program_path() + "./res/shaders/blur.frag");
-	_get()._render_buffer = Framebuffer::create(
-		"window_render_buffer", vec2_scale(_get().size(),
-		Engine::internal_quality()), *Shader::get_by_name("render"), 7, 1);
+	_get()._render_buffer = Framebuffer::create("window_render_buffer", Window::internal_resolution(), Shader::get_by_name("render"), 7, 1);
 /*	_get().render_buffer().create_attachement(GL_RGBA, GL_RGBA16F_ARB);
 	_get().render_buffer().create_attachement(GL_RGB, GL_RGB16F_ARB);
 	_get().render_buffer().create_attachement(GL_RGB, GL_RGB16F_ARB);

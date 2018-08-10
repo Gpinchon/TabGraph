@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 23:16:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/10 15:33:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,8 @@ void	setup_callbacks()
 #include "parser/HDR.hpp"
 #include "parser/GLSL.hpp"
 #include "Material.hpp"
+#include "Render.hpp"
+#include <iostream>
 
 int		main(int argc, char *argv[])
 {
@@ -93,6 +95,8 @@ int		main(int argc, char *argv[])
 		if (m != nullptr)
 			m->material->shader = GLSL::parse("shadertoy", Engine::program_path() + "./res/shaders/shadertoy.vert", Engine::program_path() + "./res/shaders/balls.frag");
 */	}
+	auto shader = GLSL::parse("SSAO", Engine::program_path() + "./res/shaders/render.vert", Engine::program_path() + "./res/shaders/ssao.frag");
+	Render::add_post_treatment(shader);
 	setup_callbacks();
 	Engine::run();
 	SDL_Quit();

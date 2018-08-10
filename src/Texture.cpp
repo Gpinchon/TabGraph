@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 00:51:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/10 14:19:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -354,33 +354,32 @@ void	Texture::resize(const VEC2 &ns)
 }
 
 
-static Framebuffer	&generate_blur_fb()
+static Framebuffer	*generate_blur_fb()
 {
 	auto	blur = Framebuffer::create("blur", vec2_scale(Window::size(),
-		Engine::internal_quality()), *Shader::get_by_name("blur"), 0, 0);
+		Engine::internal_quality()), Shader::get_by_name("blur"), 0, 0);
 	blur->create_attachement(GL_RGB, GL_RGB16F_ARB);
 	blur->setup_attachements();
-	return (*blur);
+	return (blur);
 }
 
 void	Texture::blur(const int &pass, const float &radius)
 {
 	static Framebuffer	*blur = nullptr;
-	Texture				*color0;
 
 	if (blur == nullptr) {
-		blur = &generate_blur_fb();
+		blur = generate_blur_fb();
 	}
 	blur->resize(size());
 	blur->bind();
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	blur->shader().use();
+	blur->shader()->use();
 	//glBindVertexArray(Render::display_quad()->glid());
 	auto totalPass = pass * 4;
-	Texture *texture = this;
-	color0 = &blur->attachement(0);
+	auto	texture = this;
+	auto	color0 = blur->attachement(0);
 	float	angle = 0;
 	while (totalPass > 0)
 	{
@@ -388,8 +387,8 @@ void	Texture::blur(const int &pass, const float &radius)
 		Texture			*temp;
 		direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
 		direction = vec2_scale(direction, radius);
-		blur->shader().bind_texture("in_Texture_Color", texture, GL_TEXTURE0);
-		blur->shader().set_uniform("in_Direction", direction);
+		blur->shader()->bind_texture("in_Texture_Color", texture, GL_TEXTURE0);
+		blur->shader()->set_uniform("in_Direction", direction);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color0->glid(), 0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		Render::display_quad()->draw();
@@ -399,8 +398,7 @@ void	Texture::blur(const int &pass, const float &radius)
 		color0 = temp;
 		totalPass--;
 	}
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-		blur->attachement(0).glid(), 0);
-	blur->shader().use(false);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blur->attachement(0)->glid(), 0);
+	blur->shader()->use(false);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

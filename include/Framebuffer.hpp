@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/08 18:45:08 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/10 14:53:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,19 +17,20 @@
 class	Framebuffer : public Texture
 {
 public :
-	static Framebuffer	*create(const std::string &name, VEC2 size, Shader &shader,
-				int color_attachements, int depth);
+	static Framebuffer	*create(const std::string &name, VEC2 size, Shader *, int color_attachements, int depth);
 	static void	bind_default();
 	bool		is_loaded();
 	void		load();
 	void		bind(bool to_bind = true);
-	Texture		&attachement(int color_attachement);
-	Texture		&depth();
-	Shader		&shader();
-	void	setup_attachements();
+	Texture		*attachement(int color_attachement);
+	Texture		*depth();
+	Shader		*shader();
+	void		setup_attachements();
 	Texture		*create_attachement(GLenum format, GLenum iformat);
-	void	destroy(void *buffer);
-	void	resize(const VEC2 &new_size);
+	void		destroy(void *buffer);
+	void		resize(const VEC2 &new_size);
+	void		set_shader(Shader *shader);
+	//void		set_attachement(unsigned attachement, Texture *);
 private :
 	Framebuffer(const std::string &name);
 	void		_resize_depth(const VEC2 &);

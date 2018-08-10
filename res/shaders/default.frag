@@ -55,7 +55,7 @@ layout(location = 0) out vec4	out_Albedo;
 layout(location = 1) out vec4	out_Fresnel;
 layout(location = 2) out vec4	out_Emitting;
 layout(location = 3) out vec4	out_Material_Values; //Roughness, Metallic, AO
-layout(location = 4) out vec4	out_BRDF; //Roughness, Metallic
+layout(location = 4) out vec4	out_BRDF;
 layout(location = 5) out vec4	out_Normal;
 layout(location = 6) out vec4	out_Position;
 
@@ -166,7 +166,7 @@ void	main()
 	vec3	specular_sample = texture(Material.Texture.Specular, vt).xyz;
 	float	roughness_sample = texture(Material.Texture.Roughness, vt).r;
 	float	metallic_sample = texture(Material.Texture.Metallic, vt).r;
-	float	ao = 1 - texture(Material.Texture.AO, vt).r;
+	float	ao = texture(Material.Texture.AO, vt).r;
 	
 	if (Material.Texture.Use_Albedo)
 	{
