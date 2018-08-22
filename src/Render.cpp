@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/10 15:47:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/22 22:03:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,14 +72,44 @@ void	Render::scene()
 		Render::bind_textures(temp_buffer->shader());
 		Render::display_quad()->draw();
 		temp_buffer->shader()->use(false);
-		Framebuffer::bind_default();
+		/*
+		** TODO : USE PASSTHROUGH SHADER INSTEAD OF BLITTING
+		*/
+		//Framebuffer::bind_default();
 		/*glBindFramebuffer(temp_buffer->glid(), GL_READ_FRAMEBUFFER);
 		glBindFramebuffer(Window::render_buffer().glid(), GL_DRAW_FRAMEBUFFER);*/
-		glBlitNamedFramebuffer(temp_buffer->glid(), Window::render_buffer().glid(), 0, 0, temp_buffer->size().x, temp_buffer->size().y, 0, 0, Window::render_buffer().size().x, Window::render_buffer().size().y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		//glBlitFramebuffer(0, 0, temp_buffer->size().x, temp_buffer->size().y, 0, 0, Window::render_buffer().size().x, Window::render_buffer().size().y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		Framebuffer::bind_default();
+		/*glBlitNamedFramebuffer(
+			temp_buffer->glid(), Window::render_buffer().glid(),
+			0, 0, temp_buffer->size().x, temp_buffer->size().y,
+			0, 0, Window::render_buffer().size().x, Window::render_buffer().size().y,
+			GL_COLOR_BUFFER_BIT, GL_NEAREST);*/
+		//glBindFramebuffer(GL_READ_FRAMEBUFFER, temp_buffer->glid());
+		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Window::render_buffer().glid());
+		//auto	i = 0;
+		//Texture	*t, *t1 = nullptr;
+		//while (temp_buffer->attachement(i) != nullptr
+		//&& Window::render_buffer().attachement(i) != nullptr)
+		//{
+		//	glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+		//	glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
+		//	//glNamedFramebufferReadBuffer(temp_buffer->glid(), GL_COLOR_ATTACHMENT0 + i);
+		//	
+		//	//glNamedFramebufferDrawBuffer(Window::render_buffer().glid(), GL_COLOR_ATTACHMENT0 + i);
+		//	glBlitFramebuffer(
+		//		0, 0, temp_buffer->size().x, temp_buffer->size().y,
+		//		0, 0,Window::render_buffer().size().x, Window::render_buffer().size().y,
+		//		GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		//	i++;
+		//}
+		//glBlitNamedFramebuffer(temp_buffer->glid(), Window::render_buffer().glid(),
+		//	0, 0, temp_buffer->size().x, temp_buffer->size().y,
+		//	0, 0, Window::render_buffer().size().x, Window::render_buffer().size().y,
+		//	GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		//Framebuffer::bind_default();
+		//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
-	
+	Framebuffer::bind_default();
 }
 
 void	Render::add_post_treatment(Shader *shader)
