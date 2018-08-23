@@ -95,7 +95,7 @@ int		main(int argc, char *argv[])
 		if (m != nullptr)
 			m->material->shader = GLSL::parse("shadertoy", Engine::program_path() + "./res/shaders/shadertoy.vert", Engine::program_path() + "./res/shaders/balls.frag");
 */	}
-	auto shader = GLSL::parse("SSAO", Engine::program_path() + "./res/shaders/render.vert", Engine::program_path() + "./res/shaders/ssao.frag");
+	auto shader = GLSL::parse("SSAO", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/ssao.frag");
 	Render::add_post_treatment(shader);
 	setup_callbacks();
 	Engine::run();

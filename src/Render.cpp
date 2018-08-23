@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/22 22:03:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/23 19:57:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,8 @@ const VertexArray	*Render::display_quad()
 	return (vao);
 }
 
+#include "parser/GLSL.hpp"
+
 void	Render::scene()
 {
 	Window::render_buffer().bind();
@@ -58,9 +60,8 @@ void	Render::scene()
 		Framebuffer::bind_default();
 		return ;
 	}
-	static Framebuffer *temp_buffer = nullptr;
-	if (temp_buffer == nullptr)
-		temp_buffer = Framebuffer::create("temp_buffer", Window::internal_resolution(), nullptr, 7, 1);
+	static Framebuffer	*temp_buffer = Framebuffer::create("temp_buffer", Window::internal_resolution(), nullptr, 7, 1);
+	static Shader		*passthrough_shader = GLSL::parse("passthrough", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/passthrough.frag");
 	temp_buffer->resize(Window::internal_resolution());
 	for (Shader *shader : post_treatments)
 	{
@@ -73,41 +74,22 @@ void	Render::scene()
 		Render::display_quad()->draw();
 		temp_buffer->shader()->use(false);
 		/*
-		** TODO : USE PASSTHROUGH SHADER INSTEAD OF BLITTING
+		** TODO : CLEANUP CODE
 		*/
-		//Framebuffer::bind_default();
-		/*glBindFramebuffer(temp_buffer->glid(), GL_READ_FRAMEBUFFER);
-		glBindFramebuffer(Window::render_buffer().glid(), GL_DRAW_FRAMEBUFFER);*/
-		/*glBlitNamedFramebuffer(
-			temp_buffer->glid(), Window::render_buffer().glid(),
-			0, 0, temp_buffer->size().x, temp_buffer->size().y,
-			0, 0, Window::render_buffer().size().x, Window::render_buffer().size().y,
-			GL_COLOR_BUFFER_BIT, GL_NEAREST);*/
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, temp_buffer->glid());
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Window::render_buffer().glid());
-		//auto	i = 0;
-		//Texture	*t, *t1 = nullptr;
-		//while (temp_buffer->attachement(i) != nullptr
-		//&& Window::render_buffer().attachement(i) != nullptr)
-		//{
-		//	glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
-		//	glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
-		//	//glNamedFramebufferReadBuffer(temp_buffer->glid(), GL_COLOR_ATTACHMENT0 + i);
-		//	
-		//	//glNamedFramebufferDrawBuffer(Window::render_buffer().glid(), GL_COLOR_ATTACHMENT0 + i);
-		//	glBlitFramebuffer(
-		//		0, 0, temp_buffer->size().x, temp_buffer->size().y,
-		//		0, 0,Window::render_buffer().size().x, Window::render_buffer().size().y,
-		//		GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		//	i++;
-		//}
-		//glBlitNamedFramebuffer(temp_buffer->glid(), Window::render_buffer().glid(),
-		//	0, 0, temp_buffer->size().x, temp_buffer->size().y,
-		//	0, 0, Window::render_buffer().size().x, Window::render_buffer().size().y,
-		//	GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		//Framebuffer::bind_default();
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		Window::render_buffer().bind();
+		passthrough_shader->use();
+		passthrough_shader->bind_texture("in_Texture_Albedo", temp_buffer->attachement(0), GL_TEXTURE0);
+		passthrough_shader->bind_texture("in_Texture_Fresnel", temp_buffer->attachement(1), GL_TEXTURE1);
+		passthrough_shader->bind_texture("in_Texture_Emitting", temp_buffer->attachement(2), GL_TEXTURE2);
+		passthrough_shader->bind_texture("in_Texture_Material_Values", temp_buffer->attachement(3), GL_TEXTURE3);
+		passthrough_shader->bind_texture("in_Texture_BRDF", temp_buffer->attachement(4), GL_TEXTURE4);
+		passthrough_shader->bind_texture("in_Texture_Normal", temp_buffer->attachement(5), GL_TEXTURE5);
+		passthrough_shader->bind_texture("in_Texture_Position", temp_buffer->attachement(6), GL_TEXTURE6);
+		passthrough_shader->bind_texture("in_Texture_Depth", temp_buffer->depth(), GL_TEXTURE7);
+		passthrough_shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
+		passthrough_shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE9);
+		Render::display_quad()->draw();
+		passthrough_shader->use(false);
 	}
 	Framebuffer::bind_default();
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 13:21:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/23 17:19:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "GLIncludes.hpp"
 #include "Object.hpp"
 #include <string>
-#include <map>
+#include <unordered_map>
 
 class Texture;
 
@@ -51,11 +51,11 @@ public:
 	ShaderVariable	*get_uniform(const std::string &name);
 	bool			in_use();
 protected:
-	std::map<std::string, ShaderVariable>	_get_variables(GLenum type);
+	std::unordered_map<std::string, ShaderVariable>	_get_variables(GLenum type);
 	GLuint		    _program;
 	bool		    _in_use;
-	std::map<std::string, ShaderVariable> _uniforms;
-	std::map<std::string, ShaderVariable> _attributes;
+	std::unordered_map<std::string, ShaderVariable> _uniforms;
+	std::unordered_map<std::string, ShaderVariable> _attributes;
 private:
 	Shader(const std::string &name);
 };

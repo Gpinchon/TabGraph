@@ -8,11 +8,6 @@ struct t_Environment {
 	samplerCube	Irradiance;
 };
 
-/* uniform sampler2D	in_Texture_Color;
-uniform sampler2D	in_Texture_Bright;
-uniform sampler2D	in_Texture_Normal;
-uniform sampler2D	in_Texture_Position; */
-
 uniform sampler2D	in_Texture_Albedo;
 uniform sampler2D	in_Texture_Fresnel;
 uniform sampler2D	in_Texture_Emitting;
@@ -27,7 +22,6 @@ uniform t_Environment	Environment;
 
 in vec2				frag_UV;
 in vec3				frag_Cube_UV;
-in float			frag_CenterDepth;
 
 out vec4			out_Color;
 
@@ -61,30 +55,6 @@ void main()
 	vec4	BRDF = texture(in_Texture_BRDF, frag_UV);
 	vec3	Normal = normalize(texture(in_Texture_Normal, frag_UV).xyz);
 	vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
-
-	/* ivec2	tSize = textureSize(in_Texture_Position, 0);
-	vec2	sampledist = tSize / 1024.f * 10.f;
-	vec2	sampleOffset = sampledist / tSize;
-	float	occlusion = 0.f;
-	for (int i = 0; i < KERNEL_SIZE; ++i)
-	{
-		vec2	sampleUV = frag_UV + poissonDisk[i] * sampleOffset;
-		vec3	samplePosition = texelFetch(in_Texture_Position, ivec2(tSize * sampleUV), 0).xyz;
-		vec3	sampleNormal = normalize(texelFetch(in_Texture_Normal, ivec2(tSize * sampleUV), 0).xyz);
-		if (texelFetch(in_Texture_Depth, ivec2(tSize * sampleUV), 0).r < Depth)
-		{
-			vec3	V = samplePosition - Position;
-			float	D = length(V);
-			float	bias = D + 0.0025;
-			float	factor = max(0, dot(Normal, normalize(V)));
-			if (factor <= 0.5 && dot(sampleNormal, Normal) >= 0.8f)
-				continue ;
-			float	angle = max(0, factor - bias);
-			occlusion += (angle * (1.f / (1.f + D)));
-		}
-	}
-	occlusion /= float(KERNEL_SIZE);
-	AO += occlusion;*/
 	AO = clamp(1 - AO, 0, 1);
 
 	vec3	diffuse = AO * (textureLod(Environment.Diffuse, -Normal, Roughness + 9).rgb
@@ -106,5 +76,4 @@ void main()
 
 	out_Color.rgb = Emitting.rgb + specular + diffuse + reflection;
 	out_Color.rgb = mix(EnvDiffuse, out_Color.rgb, Albedo.a);
-	//out_Color.rgb = vec3(AO);
 }

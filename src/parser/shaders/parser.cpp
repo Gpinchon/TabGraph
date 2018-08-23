@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/31 11:50:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/23 17:19:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,14 +41,14 @@ GLuint	compile_shader(const std::string &path, GLenum type)
 	return (shaderid);
 }
 
-std::map<std::string, ShaderVariable>		Shader::_get_variables(GLenum type)
+std::unordered_map<std::string, ShaderVariable>		Shader::_get_variables(GLenum type)
 {
 	char				name[4096];
 	GLint				ivcount;
 	GLsizei				length;
 
 	glGetProgramiv(_program, type, &ivcount);
-	std::map<std::string, ShaderVariable> variables;
+	std::unordered_map<std::string, ShaderVariable> variables;
 	while (--ivcount >= 0)
 	{
 		ShaderVariable	v;

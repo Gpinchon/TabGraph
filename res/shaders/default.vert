@@ -46,13 +46,6 @@ out lowp vec2					frag_Texcoord;
 out lowp vec2					frag_UVMax;
 out lowp vec2					frag_UVMin;
 
-mat4 biasMatrix = mat4( 
-0.5, 0.0, 0.0, 0.0, 
-0.0, 0.5, 0.0, 0.0, 
-0.0, 0.0, 0.5, 0.0, 
-0.5, 0.5, 0.5, 1.0 
-);
-
 void main()
 {
 	frag_WorldPosition = vec3(in_ModelMatrix * vec4(in_Position, 1));
