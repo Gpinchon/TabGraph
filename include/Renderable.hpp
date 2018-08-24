@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/04 21:56:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/24 19:26:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,17 @@
 
 #include "Node.hpp"
 
+enum RenderMod
+{
+	RenderAll, RenderOpaque, RenderTransparent
+};
+
 class Material;
 
 class	Renderable : public Node
 {
 public:
-	virtual void	render() = 0;
+	virtual void	render(RenderMod mod = RenderAll) = 0;
 	virtual void	load() = 0;
 	virtual void	bind() = 0;
 	static void		alpha_sort();

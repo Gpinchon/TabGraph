@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/23 19:57:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/24 19:38:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,14 +47,11 @@ const VertexArray	*Render::display_quad()
 
 #include "parser/GLSL.hpp"
 
-void	Render::scene()
+void	Render::scene(RenderMod mod)
 {
-	Window::render_buffer().bind();
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	Renderable *node;
 	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
-		node->render();
+		node->render(mod);
 	}
 	if (post_treatments.size() == 0) {
 		Framebuffer::bind_default();

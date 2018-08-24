@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/04 22:40:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/24 19:36:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,11 +70,15 @@ void			Vgroup::bind()
 	material->shader->set_uniform("in_CamPos", Engine::current_camera()->position());
 }
 
-void			Vgroup::render()
+void			Vgroup::render(RenderMod mod)
 {
 	if ((material == nullptr) || (material->shader == nullptr)) {
 		return ;
 	}
+	if (mod == RenderOpaque && (material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4)))
+		return ;
+	else if (mod == RenderTransparent && (material->alpha == 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() < 4)))
+		return ;
 	material->shader->use();
 	material->bind_textures();
 	material->bind_values();

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/04 21:57:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/24 19:29:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,13 +62,13 @@ void	Mesh::bind()
 	}
 }
 
-void	Mesh::render()
+void	Mesh::render(RenderMod mod)
 {
 	load();
 	bind();
 	for (auto vg : vgroups) {
-		vg->render();
-	}
+		vg->render(mod);
+	}	
 }
 
 void	Mesh::sort(renderable_compare compare)

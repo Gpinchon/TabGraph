@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/10 15:34:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/24 19:37:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,6 +264,9 @@ void	Engine::run()
 		update();
 		glClear(Window::clear_mask());
 		//render_shadow();
+		Window::render_buffer().bind();
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		Render::scene();
 		Render::present();
 		Window::swap();

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 13:20:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/24 19:35:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,15 +37,16 @@ public:
 	virtual void	format(GLenum *format,
 						GLenum *internal_format);
 	virtual	GLenum	data_format();
-	virtual size_t		data_size();
-	virtual GLuint		glid() const;
-	virtual void		*data() const;
-	virtual GLubyte		bpp() const;
-	virtual VEC2		size() const;
+	virtual size_t	data_size();
+	virtual GLuint	glid() const;
+	virtual void	*data() const;
+	virtual GLubyte	bpp() const;
+	virtual VEC2	size() const;
 	virtual void	set_pixel(const VEC2 &uv, const VEC4 value);
 	virtual void	set_pixel(const VEC2 &uv, const GLubyte *value);
-	virtual GLubyte		*texelfetch(const VEC2 &uv);
-	virtual VEC4		sample(const VEC2 &uv);
+	virtual GLubyte	*texelfetch(const VEC2 &uv);
+	virtual VEC4	sample(const VEC2 &uv);
+	virtual	size_t	values_per_pixel();
 	template <typename T>
 	T					*at(float u, float v);
 protected:

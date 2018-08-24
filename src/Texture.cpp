@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/10 14:19:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/24 19:35:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,6 +206,11 @@ GLenum	Texture::data_format()
 size_t	Texture::data_size()
 {
 	return (_data_size);
+}
+
+size_t	Texture::values_per_pixel()
+{
+	return (_bpp / _data_size / 8);
 }
 
 GLubyte	*Texture::texelfetch(const VEC2 &uv)
