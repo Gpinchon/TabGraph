@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/22 21:43:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/26 22:06:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader *sh
 	Engine::add(*f);
 	i = 0;
 	while (i < color_attachements) {
-		f->create_attachement(GL_RGBA, GL_RGBA16F_ARB);
+		f->create_attachement(GL_RGBA, GL_RGBA16F);
 		i++;
 	}
 	if (depth != 0) {

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/31 11:48:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/26 20:51:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ ShaderVariable	*Shader::get_uniform(const std::string &name)
 	return (nullptr);
 }
 
-void			Shader::set_uniform(const std::string &name, Texture * texture/*unused*/, const int value)
+void			Shader::set_uniform(const std::string &name, Texture * texture, const int value)
 {
 	auto	v = get_uniform(name);
 	if (v == nullptr) {

@@ -207,6 +207,7 @@ void	main()
 	out_Material_Values.z = ao;
 	out_Material_Values.a = albedo.a;
 	out_BRDF.xy = BRDF;
+	out_BRDF.z = 0;
 	out_Normal.xyz = worldNormal;
 	out_Position.xyz = worldPosition;
 }

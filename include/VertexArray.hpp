@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 20:09:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 00:59:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/26 19:10:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ public:
 	void				draw() const;
 	GLuint				glid() const;
 	template <typename T>
-	VertexBuffer		*add_buffer(GLuint attrib, GLenum data_type, int size, const std::vector<T> &a);
+	VertexBuffer		*add_buffer(GLenum data_type, int size, const std::vector<T> &a);
 private:
 	VertexArray() = default;
 	std::vector<VertexBuffer*>	_buffers;
@@ -56,13 +56,13 @@ VertexBuffer::VertexBuffer(GLuint attrib, GLenum data_type, int size, const std:
 }
 
 template <typename T>
-VertexBuffer	*VertexArray::add_buffer(GLuint attrib, GLenum data_type, int size, const std::vector<T> &a)
+VertexBuffer	*VertexArray::add_buffer(GLenum data_type, int size, const std::vector<T> &a)
 {
 	if (!size || a.empty()) {
 		return (nullptr);
 	}
 	bind();
-	auto	buffer = new VertexBuffer(attrib, data_type, size, a);
+	auto	buffer = new VertexBuffer(_buffers.size(), data_type, size, a);
 	_buffers.push_back(buffer);
 	bind(false);
 	return (buffer);

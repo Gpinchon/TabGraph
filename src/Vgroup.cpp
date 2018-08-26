@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/24 19:36:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/26 19:10:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "Material.hpp"
 #include "Shader.hpp"
 #include "AABB.hpp"
+#include "Texture.hpp"
 
 Vgroup::Vgroup(const std::string &name) : Renderable(name)
 {
@@ -34,30 +35,10 @@ void			Vgroup::load()
 		return ;
 	}
 	_vao = VertexArray::create(v.size());
-	_vao->add_buffer(0, GL_FLOAT, 3, v);
-	_vao->add_buffer(1, GL_UNSIGNED_BYTE, 4, vn);
-	_vao->add_buffer(2, GL_FLOAT, 2, vt);
+	_vao->add_buffer(GL_FLOAT, 3, v);
+	_vao->add_buffer(GL_UNSIGNED_BYTE, 4, vn);
+	_vao->add_buffer(GL_FLOAT, 2, vt);
 	_is_loaded = true;
-
-	/*if (glIsVertexArray(v_arrayid)) {
-		glDeleteVertexArrays(1, &v_arrayid);
-	}
-	glGenVertexArrays(1, &v_arrayid);
-	glBindVertexArray(v_arrayid);
-	if (glIsBuffer(v_bufferid)) {
-		glDeleteBuffers(1, &v_bufferid);
-	}
-	v_bufferid = vbuffer_load(0, 3, v);
-	if (glIsBuffer(vn_bufferid)) {
-		glDeleteBuffers(1, &v_bufferid);
-	}
-	vn_bufferid = vbuffer_load(1, 4, vn);
-	if (glIsBuffer(vt_bufferid)) {
-		glDeleteBuffers(1, &v_bufferid);
-	}
-	vt_bufferid = vbuffer_load(2, 2, vt);
-	glBindVertexArray(0);*/
-	
 }
 
 void			Vgroup::bind()

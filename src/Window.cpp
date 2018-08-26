@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/23 19:55:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/26 22:52:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #include "Framebuffer.hpp"
 #include "Events.hpp"
 #include "Window.hpp"
-#include "parser/GLSL.hpp"
 #include <unistd.h>
 
 Window *Window::_instance = nullptr;
@@ -80,13 +79,14 @@ void		Window::init(const std::string &name, int width, int height)
 	}
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	GLSL::parse("lighting",
-		Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting.frag");
-	GLSL::parse("shadow",
-		Engine::program_path() + "./res/shaders/shadow.vert", Engine::program_path() + "./res/shaders/shadow.frag");
-	GLSL::parse("blur",
-		Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
-	_get()._render_buffer = Framebuffer::create("window_render_buffer", Window::internal_resolution(), Shader::get_by_name("lighting"), 7, 1);
+	//GLSL::parse("lighting",
+	//	Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting.frag");
+	//GLSL::parse("shadow",
+	//	Engine::program_path() + "./res/shaders/shadow.vert", Engine::program_path() + "./res/shaders/shadow.frag");
+	//GLSL::parse("blur",
+	//	Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
+	_get()._render_buffer = Framebuffer::create("window_render_buffer", Window::internal_resolution(), nullptr, 7, 1);
+	//_get()._render_buffer = Framebuffer::create("window_render_buffer", Window::internal_resolution(), Shader::get_by_name("lighting"), 7, 1);
 /*	_get().render_buffer().create_attachement(GL_RGBA, GL_RGBA16F_ARB);
 	_get().render_buffer().create_attachement(GL_RGB, GL_RGB16F_ARB);
 	_get().render_buffer().create_attachement(GL_RGB, GL_RGB16F_ARB);

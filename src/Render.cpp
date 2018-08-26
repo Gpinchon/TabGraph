@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/24 19:38:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/26 23:18:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,37 +41,58 @@ const VertexArray	*Render::display_quad()
 	quad.at(5) = 1.0f;
 	quad.at(6) = 1.0f;
 	quad.at(7) = 1.0f;
-	vao->add_buffer(0, GL_FLOAT, 2, quad);
+	vao->add_buffer(GL_FLOAT, 2, quad);
 	return (vao);
 }
 
 #include "parser/GLSL.hpp"
 
-void	Render::scene(RenderMod mod)
+void	Render::scene()
 {
+	/*
+	** TODO :
+	** 	- CLEANUP CODE
+	** 	- MANAGE TRANSPARENT OBJECTS
+	*/
 	Renderable *node;
 	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
-		node->render(mod);
+		node->render();
 	}
 	if (post_treatments.size() == 0) {
 		Framebuffer::bind_default();
 		return ;
 	}
-	static Framebuffer	*temp_buffer = Framebuffer::create("temp_buffer", Window::internal_resolution(), nullptr, 7, 1);
-	static Shader		*passthrough_shader = GLSL::parse("passthrough", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/passthrough.frag");
+	
+	static auto	temp_buffer = Framebuffer::create("temp_buffer", Window::internal_resolution(), nullptr, 7, 1);
+	static auto	passthrough_shader = GLSL::parse("passthrough", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/passthrough.frag");
+	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting.frag");
+	static auto	presentShader = GLSL::parse("present", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/present.frag");
 	temp_buffer->resize(Window::internal_resolution());
+	glDisable(GL_DEPTH_TEST);
 	for (Shader *shader : post_treatments)
 	{
-		temp_buffer->set_shader(shader);
+		/*
+		** APPLY POST-TREATMENT
+		*/
 		temp_buffer->bind();
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		temp_buffer->shader()->use();
-		Render::bind_textures(temp_buffer->shader());
+		shader->use();
+		shader->bind_texture("in_Texture_Albedo", Window::render_buffer().attachement(0), GL_TEXTURE0); // Albedo;
+		shader->bind_texture("in_Texture_Fresnel", Window::render_buffer().attachement(1), GL_TEXTURE1); // Fresnel;
+		shader->bind_texture("in_Texture_Emitting", Window::render_buffer().attachement(2), GL_TEXTURE2); // Emitting;
+		shader->bind_texture("in_Texture_Material_Values", Window::render_buffer().attachement(3), GL_TEXTURE3); // Material_Values -> Roughness, Metallic
+		shader->bind_texture("in_Texture_BRDF", Window::render_buffer().attachement(4), GL_TEXTURE4); // BRDF
+		shader->bind_texture("in_Texture_Normal", Window::render_buffer().attachement(5), GL_TEXTURE5); // Normal;
+		shader->bind_texture("in_Texture_Position", Window::render_buffer().attachement(6), GL_TEXTURE6); // Position;
+		shader->bind_texture("in_Texture_Depth", Window::render_buffer().depth(), GL_TEXTURE7);
+		shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
+		shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE9);
 		Render::display_quad()->draw();
-		temp_buffer->shader()->use(false);
+		shader->use(false);
+
 		/*
-		** TODO : CLEANUP CODE
+		** COPY RESULT TO MAIN FRAMEBUFFER
 		*/
 		Window::render_buffer().bind();
 		passthrough_shader->use();
@@ -88,7 +109,47 @@ void	Render::scene(RenderMod mod)
 		Render::display_quad()->draw();
 		passthrough_shader->use(false);
 	}
+
+	/*
+	** APPLY LIGHTING SHADER
+	** OUTPUT : out_Color, out_Brightness
+	*/
+	temp_buffer->bind();
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
+	lighting_shader->use();
+	lighting_shader->set_uniform("in_CamPos", Engine::current_camera()->position());
+	auto	matrix = mat4_inverse(Engine::current_camera()->view);
+	lighting_shader->set_uniform("in_InvViewMatrix", matrix);
+	matrix = mat4_inverse(Engine::current_camera()->projection);
+	lighting_shader->set_uniform("in_InvProjMatrix", matrix);
+	lighting_shader->bind_texture("in_Texture_Albedo", Window::render_buffer().attachement(0), GL_TEXTURE0); // Albedo;
+	lighting_shader->bind_texture("in_Texture_Fresnel", Window::render_buffer().attachement(1), GL_TEXTURE1); // Fresnel;
+	lighting_shader->bind_texture("in_Texture_Emitting", Window::render_buffer().attachement(2), GL_TEXTURE2); // Emitting;
+	lighting_shader->bind_texture("in_Texture_Material_Values", Window::render_buffer().attachement(3), GL_TEXTURE3); // Material_Values -> Roughness, Metallic
+	lighting_shader->bind_texture("in_Texture_BRDF", Window::render_buffer().attachement(4), GL_TEXTURE4); // BRDF
+	lighting_shader->bind_texture("in_Texture_Normal", Window::render_buffer().attachement(5), GL_TEXTURE5); // Normal;
+	lighting_shader->bind_texture("in_Texture_Position", Window::render_buffer().attachement(6), GL_TEXTURE6); // Position;
+	lighting_shader->bind_texture("in_Texture_Depth", Window::render_buffer().depth(), GL_TEXTURE7);
+	lighting_shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
+	lighting_shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE9);
+	Render::display_quad()->draw();
+	lighting_shader->use(false);
+	
+	/*
+	** GENERATE BLOOM FROM out_Brightness
+	*/
+	temp_buffer->attachement(1)->blur(BLOOMPASS, 2.5);
+
+	/*
+	** PRESENT RESULT (out_Color + out_Brightness)
+	*/
 	Framebuffer::bind_default();
+	presentShader->use();
+	presentShader->bind_texture("in_Texture_Color", temp_buffer->attachement(0), GL_TEXTURE0);
+	presentShader->bind_texture("in_Texture_Emitting", temp_buffer->attachement(1), GL_TEXTURE1);
+	Render::display_quad()->draw();
+	presentShader->use(false);
 }
 
 void	Render::add_post_treatment(Shader *shader)

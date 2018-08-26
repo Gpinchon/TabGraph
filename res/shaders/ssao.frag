@@ -142,4 +142,5 @@ void main()
 	out_BRDF = BRDF;
 	out_Normal = Normal;
 	out_Position = Position;
+	gl_FragDepth = Depth;
 }

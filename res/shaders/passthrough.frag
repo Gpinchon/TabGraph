@@ -27,4 +27,5 @@ void main()
 	out_BRDF = texture(in_Texture_BRDF, frag_UV);
 	out_Normal = texture(in_Texture_Normal, frag_UV);
 	out_Position = texture(in_Texture_Position, frag_UV);
+	gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 }
