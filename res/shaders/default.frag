@@ -130,21 +130,6 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 	return(transpose(mat3(T, B, normal)));
 }
 
-float	CustomLambertianDiffuse(float NdL, float roughness)
-{
-	return pow(NdL, 0.5 * (1 - roughness) + 0.5);
-}
-
-float	Env_Specular(in float NdV, in float roughness)
-{
-	float	alpha = roughness * roughness;
-	float	den = (alpha - 1) + 1;
-	float	D = (alpha / (M_PI * den * den));
-	float	alpha2 = alpha * alpha;
-	float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
-	return (max(D * G, 0));
-}
-
 void	main()
 {
 	vec3	worldPosition = frag_WorldPosition;
