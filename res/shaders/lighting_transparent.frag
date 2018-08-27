@@ -17,6 +17,8 @@ uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
 uniform vec3		in_CamPos;
+uniform sampler2D	in_Back_Color;
+uniform sampler2D	in_Back_Bright;
 
 uniform t_Environment	Environment;
 
@@ -50,15 +52,14 @@ void main()
 	vec4	BRDF = texture(in_Texture_BRDF, frag_UV);
 	vec3	Normal = normalize(texture(in_Texture_Normal, frag_UV).xyz);
 	vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
+	vec3	Back_Color = texture(in_Back_Color, frag_UV).xyz;
+	vec3	Back_Bright = texture(in_Back_Bright, frag_UV).xyz;
 	float	brightness = 0;
 	if (Albedo.a == 0) {
-		out_Color.rgb = EnvDiffuse;
-		brightness = dot(pow(out_Color.rgb, vec3(2.2)), vec3(0.299, 0.587, 0.114));
-		out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness);
+		out_Color.rgb = Back_Color;
+		out_Emitting.rgb = Back_Bright;
 		return ;
 	}
-	out_Color.a = Albedo.a;
-	out_Emitting.a = Albedo.a;
 	float	Roughness = Material_Values.x;
 	float	Metallic = Material_Values.y;
 	float	AO = Material_Values.z;
@@ -73,6 +74,9 @@ void main()
 	vec3	specular = textureLod(Environment.Irradiance, R, Roughness * 10.f).rgb;
 	vec3	reflection_spec = pow(textureLod(Environment.Diffuse, R, Roughness * 10.f + 3.5).rgb, vec3(2.2));
 
+	Back_Color = texture(in_Back_Color, frag_UV + (NdV * 0.01)).xyz;
+	Back_Bright = texture(in_Back_Bright, frag_UV + (NdV * 0.01)).xyz;
+
 	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
 	specular *= Fresnel * BRDF.x + mix(vec3(1), Fresnel, Metallic) * BRDF.y;
@@ -82,7 +86,7 @@ void main()
 	Albedo.a = min(1, Albedo.a);
 
 	out_Color.rgb = Emitting.rgb + specular + diffuse + reflection;
-	out_Color.rgb = mix(EnvDiffuse, out_Color.rgb, Albedo.a);
+	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
 	brightness = dot(pow(out_Color.rgb, vec3(2.2)), vec3(0.299, 0.587, 0.114));
-	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;
+	out_Emitting.rgb = Back_Bright + max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;
 }

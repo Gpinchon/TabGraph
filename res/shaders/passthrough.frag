@@ -1,31 +1,31 @@
 #version 410
-layout(location = 0) out vec4	out_Albedo;
-layout(location = 1) out vec4	out_Fresnel;
-layout(location = 2) out vec4	out_Emitting;
-layout(location = 3) out vec4	out_Material_Values;
-layout(location = 4) out vec4	out_BRDF;
-layout(location = 5) out vec4	out_Normal;
-layout(location = 6) out vec4	out_Position;
+layout(location = 0) out vec4	out_Buffer0;
+layout(location = 1) out vec4	out_Buffer1;
+layout(location = 2) out vec4	out_Buffer2;
+layout(location = 3) out vec4	out_Buffer3;
+layout(location = 4) out vec4	out_Buffer4;
+layout(location = 5) out vec4	out_Buffer5;
+layout(location = 6) out vec4	out_Buffer6;
 
-uniform sampler2D	in_Texture_Albedo;
-uniform sampler2D	in_Texture_Fresnel;
-uniform sampler2D	in_Texture_Emitting;
-uniform sampler2D	in_Texture_Material_Values;
-uniform sampler2D	in_Texture_BRDF;
-uniform sampler2D	in_Texture_Normal;
-uniform sampler2D	in_Texture_Position;
+uniform sampler2D	in_Buffer0;
+uniform sampler2D	in_Buffer1;
+uniform sampler2D	in_Buffer2;
+uniform sampler2D	in_Buffer3;
+uniform sampler2D	in_Buffer4;
+uniform sampler2D	in_Buffer5;
+uniform sampler2D	in_Buffer6;
 uniform sampler2D	in_Texture_Depth;
 
 in vec2	frag_UV;
 
 void main()
 {
-	out_Albedo = texture(in_Texture_Albedo, frag_UV);
-	out_Fresnel = texture(in_Texture_Fresnel, frag_UV);
-	out_Emitting = texture(in_Texture_Emitting, frag_UV);
-	out_Material_Values = texture(in_Texture_Material_Values, frag_UV);
-	out_BRDF = texture(in_Texture_BRDF, frag_UV);
-	out_Normal = texture(in_Texture_Normal, frag_UV);
-	out_Position = texture(in_Texture_Position, frag_UV);
+	out_Buffer0 = texture(in_Buffer0, frag_UV);
+	out_Buffer1 = texture(in_Buffer1, frag_UV);
+	out_Buffer2 = texture(in_Buffer2, frag_UV);
+	out_Buffer3 = texture(in_Buffer3, frag_UV);
+	out_Buffer4 = texture(in_Buffer4, frag_UV);
+	out_Buffer5 = texture(in_Buffer5, frag_UV);
+	out_Buffer6 = texture(in_Buffer6, frag_UV);
 	gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 }
