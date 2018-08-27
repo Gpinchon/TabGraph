@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/27 17:14:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/27 23:58:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,8 @@ void			Vgroup::bind()
 	material->shader->set_uniform("in_CamPos", Engine::current_camera()->position());
 }
 
+#include <iostream>
+
 void			Vgroup::render(RenderMod mod)
 {
 	if ((material == nullptr) || (material->shader == nullptr)) {
@@ -58,7 +60,7 @@ void			Vgroup::render(RenderMod mod)
 	}
 	if (mod == RenderOpaque && (material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4)))
 		return ;
-	else if (mod == RenderTransparent && (material->alpha == 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() < 4)))
+	else if (mod == RenderTransparent && (material->alpha == 1 && (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() < 4)))
 		return ;
 	material->shader->use();
 	material->bind_textures();

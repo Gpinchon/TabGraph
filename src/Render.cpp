@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/27 20:21:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 00:04:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,6 +142,8 @@ void	Render::scene()
 	passthrough_shader->bind_texture("in_Texture_Depth", temp_buffer->depth(), GL_TEXTURE2);
 	Render::display_quad()->draw();
 	passthrough_shader->use(false);
+	back_buffer->attachement(0)->generate_mipmap();
+	back_buffer->attachement(1)->generate_mipmap();
 
 	Window::render_buffer().bind();
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -154,6 +156,7 @@ void	Render::scene()
 	temp_buffer->bind();
 	tlighting_shader->use();
 	tlighting_shader->set_uniform("in_CamPos", Engine::current_camera()->position());
+	tlighting_shader->set_uniform("in_ViewMatrix", Engine::current_camera()->view);
 	tlighting_shader->set_uniform("in_InvViewMatrix", InvViewMatrix);
 	tlighting_shader->set_uniform("in_InvProjMatrix", InvProjMatrix);
 	tlighting_shader->bind_texture("in_Texture_Albedo", Window::render_buffer().attachement(0), GL_TEXTURE0); // Albedo;
