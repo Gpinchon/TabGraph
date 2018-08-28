@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/24 19:26:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 19:14:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class Material;
 class	Renderable : public Node
 {
 public:
-	virtual void	render(RenderMod mod = RenderAll) = 0;
+	virtual bool	render(RenderMod mod = RenderAll) = 0;
 	virtual void	load() = 0;
 	virtual void	bind() = 0;
 	static void		alpha_sort();

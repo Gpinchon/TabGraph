@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 18:41:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 19:17:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,9 @@ void	Mesh::bind()
 	}
 }
 
-void	Mesh::render(RenderMod mod)
+bool	Mesh::render(RenderMod mod)
 {
+	bool	ret = false;
 	load();
 	bind();
 	if (mod == RenderTransparent) {
@@ -78,8 +79,10 @@ void	Mesh::render(RenderMod mod)
 		glCullFace(_cull_mod);
 	}
 	for (auto vg : vgroups) {
-		vg->render(mod);
-	}	
+		if (vg->render(mod))
+			ret = true;
+	}
+	return (ret);
 }
 
 void	Mesh::set_cull_mod(GLenum mod)

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 17:48:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 19:14:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ public:
 	void		sort(renderable_compare);
     void		load();
 	void		bind();
-	void		render(RenderMod mod = RenderAll);
+	bool		render(RenderMod mod = RenderAll);
 	void		center();
 	std::vector<Vgroup*>	vgroups;
 	void		set_cull_mod(GLenum);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 17:47:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 19:16:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,17 +51,15 @@ void			Vgroup::bind()
 	material->shader->set_uniform("in_CamPos", Engine::current_camera()->position());
 }
 
-#include <iostream>
-
-void			Vgroup::render(RenderMod mod)
+bool			Vgroup::render(RenderMod mod)
 {
 	if ((material == nullptr) || (material->shader == nullptr)) {
-		return ;
+		return (false);
 	}
 	if (mod == RenderOpaque && (material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4)))
-		return ;
+		return (false);
 	else if (mod == RenderTransparent && (material->alpha == 1 && (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() < 4)))
-		return ;
+		return (false);
 	material->shader->use();
 	material->bind_textures();
 	material->bind_values();
@@ -73,6 +71,7 @@ void			Vgroup::render(RenderMod mod)
 	//glDrawArrays(GL_TRIANGLES, 0, v.size());
 	glBindVertexArray(0);
 	material->shader->use(false);
+	return (true);
 }
 
 void			Vgroup::center(VEC3 &center)

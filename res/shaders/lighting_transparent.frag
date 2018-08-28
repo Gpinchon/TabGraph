@@ -83,16 +83,16 @@ void main()
 
 	vec3	V = normalize(in_CamPos - Position);
 	float	NdV = dot(Normal, V);
-	vec2	refract_UV = frag_UV;
-	vec3	viewNormal = (in_ViewMatrix * vec4(Normal, 1)).xyz;
 	float	refractionValue = (Fresnel.x + Fresnel.y + Fresnel.z) / 3.f;
-	refractionValue *= 0.2f;
 	if (NdV < 0) {
-		//refractionValue *= 0.1f;
+		refractionValue *= 0.5f;
 		Normal = -Normal;
 		NdV = dot(Normal, V);
 	}
 	NdV = max(0, NdV);
+	vec2	refract_UV = frag_UV;
+	vec3	viewNormal = (mat3(in_ViewMatrix) * Normal).xyz;
+	refractionValue *= 0.1f;
 	refract_UV -= (viewNormal.xy * refractionValue);
 	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
 	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Roughness).rgb;
@@ -117,6 +117,7 @@ void main()
 
 	out_Color.rgb = specular + diffuse + reflection;
 	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
+	//out_Color.rgb = viewNormal;
 	brightness = dot(pow(out_Color.rgb, vec3(2.2)), vec3(0.299, 0.587, 0.114));
 	out_Emitting.rgb = Back_Bright + max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;
 }
