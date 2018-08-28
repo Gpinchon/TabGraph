@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/24 19:26:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 17:48:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,10 @@ public:
 	void		render(RenderMod mod = RenderAll);
 	void		center();
 	std::vector<Vgroup*>	vgroups;
+	void		set_cull_mod(GLenum);
 private:
 	Mesh(const std::string &name);
+	GLenum		_cull_mod{GL_BACK};
 };
 
 bool	alpha_compare(Renderable	*m, Renderable *m1);

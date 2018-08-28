@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/27 23:58:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 17:47:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,16 +66,7 @@ void			Vgroup::render(RenderMod mod)
 	material->bind_textures();
 	material->bind_values();
 	bind();
-	if (_cull_mod == 0) {
-		glDisable(GL_CULL_FACE);
-	}
-	else {
-		glEnable(GL_CULL_FACE);
-		glCullFace(_cull_mod);
-	}
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	
 	//glBindVertexArray(v_arrayid);
 	//_vao->bind();
 	_vao->draw();

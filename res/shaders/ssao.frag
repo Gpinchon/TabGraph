@@ -135,6 +135,7 @@ void main()
 	}
 	occlusion /= float(KERNEL_SIZE);
 	Material_Values.z += occlusion;
+	Material_Values.z = clamp(Material_Values.z, 0, 1);
 	out_Albedo = Albedo;
 	out_Fresnel = Fresnel;
 	out_Emitting = Emitting;

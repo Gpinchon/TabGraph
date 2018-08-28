@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:43:25 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/24 19:28:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 17:47:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,5 +40,4 @@ public:
 private:
 	Vgroup(const std::string &);
 	VertexArray			*_vao{nullptr};
-	GLenum				_cull_mod{GL_BACK};
 };

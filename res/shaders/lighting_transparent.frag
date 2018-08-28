@@ -81,22 +81,30 @@ void main()
 	float	AO = Material_Values.z;
 	AO = clamp(1 - AO, 0, 1);
 
+	vec3	V = normalize(in_CamPos - Position);
+	float	NdV = dot(Normal, V);
+	vec2	refract_UV = frag_UV;
+	vec3	viewNormal = (in_ViewMatrix * vec4(Normal, 1)).xyz;
+	float	refractionValue = (Fresnel.x + Fresnel.y + Fresnel.z) / 3.f;
+	refractionValue *= 0.2f;
+	if (NdV < 0) {
+		//refractionValue *= 0.1f;
+		Normal = -Normal;
+		NdV = dot(Normal, V);
+	}
+	NdV = max(0, NdV);
+	refract_UV -= (viewNormal.xy * refractionValue);
+	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
+	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Roughness).rgb;
+
 	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.1).rgb
 			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
-	vec3	V = normalize(in_CamPos - Position);
-	float	NdV = max(0, dot(Normal, V));
 	vec3	R = reflect(V, Normal);
 	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
 	vec3	specular = sampleLod(Environment.Irradiance, R, Roughness).rgb;
 	vec3	reflection_spec = pow(sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb, vec3(2.2));
 
-	vec3	viewNormal = (in_ViewMatrix * vec4(Normal, 1)).xyz;
-	float	refractionValue = (Fresnel.x + Fresnel.y + Fresnel.z) / 3.f;
-	refractionValue *= 0.2f;
-	vec2	refract_UV = frag_UV - (viewNormal.xy * refractionValue);
 
-	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
-	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Roughness).rgb;
 
 	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));

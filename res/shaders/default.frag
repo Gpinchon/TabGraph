@@ -139,10 +139,11 @@ void	main()
 	vec4	albedo = vec4(Material.Albedo, Material.Alpha);
 
 	tbn = tbn_matrix(frag_WorldPosition, frag_WorldNormal, frag_Texcoord);
+	vec3	V = normalize(in_CamPos - worldPosition);
 	if (Material.Texture.Use_Height)
 	{
 		float ph;
-		Parallax_Mapping(tbn * normalize(in_CamPos - worldPosition), vt, ph);
+		Parallax_Mapping(tbn * V, vt, ph);
 		worldPosition = worldPosition - (worldNormal * ph);
 	}
 	vec4	albedo_sample = texture(Material.Texture.Albedo, vt);
@@ -171,7 +172,6 @@ void	main()
 	float	roughness = clamp(Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness, 0.01f, 1.f);
 	float	metallic = clamp(Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic, 0.f, 1.f);
 	vec3	F0 = mix(Material.Texture.Use_Specular ? specular_sample : Material.Specular, albedo.rgb, metallic);
-	vec3	V = normalize(in_CamPos - worldPosition);
 	float	NdV = max(0, dot(worldNormal, V));
 
 	vec3	fresnel = Fresnel(NdV, F0, roughness);

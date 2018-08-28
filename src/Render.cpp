@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 14:31:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 18:41:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ void	Render::scene()
 	glClearColor(0, 0, 0, 0);
 	Window::render_buffer().bind();
 	glClear(Window::clear_mask());
+	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	Renderable *node;
 	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
@@ -145,9 +146,16 @@ void	Render::scene()
 	back_buffer->attachement(0)->generate_mipmap();
 	back_buffer->attachement(1)->generate_mipmap();
 
+//	static auto depthBuffer = Framebuffer::create("depth_buffer", Window::internal_resolution(), nullptr, 0, 1);
+
 	Window::render_buffer().bind();
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDepthFunc(GL_LESS);
+	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
+		node->render(RenderTransparent);
+	}
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDepthFunc(GL_EQUAL);
 	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
 		node->render(RenderTransparent);
 	}
