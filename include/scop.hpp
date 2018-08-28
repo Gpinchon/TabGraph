@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/07 19:35:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 10:03:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,3 +44,4 @@ void			callback_quality(SDL_KeyboardEvent *event);
 void			controller_callback_background(SDL_ControllerButtonEvent *event);
 void			controller_callback_quality(SDL_ControllerButtonEvent *event);
 void			controller_callback_rotation(SDL_ControllerButtonEvent *event);
+void			keyboard_callback_rotation(SDL_KeyboardEvent *event);

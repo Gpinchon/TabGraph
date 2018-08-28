@@ -18,6 +18,7 @@ uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
 uniform sampler2D	in_Back_Color;
 uniform sampler2D	in_Back_Bright;
+
 uniform vec3		in_CamPos;
 uniform mat4		in_ViewMatrix;
 
@@ -29,6 +30,20 @@ in vec3				frag_Cube_UV;
 layout(location = 0) out vec4	out_Color;
 layout(location = 1) out vec4	out_Emitting;
 
+vec4	sampleLod(samplerCube texture, vec3 uv, float value)
+{
+	value = clamp(value, 0, 1);
+	float factor = floor(log2(float(textureSize(texture, 0).x)));
+	return textureLod(texture, uv, value * factor);
+}
+
+vec4	sampleLod(sampler2D texture, vec2 uv, float value)
+{
+	value = clamp(value, 0, 1);
+	float factor = floor(log2(float(textureSize(texture, 0).x)));
+	return textureLod(texture, uv, value * factor);
+}
+
 float	Env_Specular(in float NdV, in float roughness)
 {
 	float	alpha = roughness * roughness;
@@ -37,12 +52,6 @@ float	Env_Specular(in float NdV, in float roughness)
 	float	alpha2 = alpha * alpha;
 	float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
 	return (max(D * G, 0));
-}
-
-vec4	sampleLod(sampler2D texture, vec2 uv, float value)
-{
-	float factor = textureSize(texture, 0).x / 512.f;
-	return textureLod(in_Back_Color, uv, value * factor);
 }
 
 void main()
@@ -72,22 +81,22 @@ void main()
 	float	AO = Material_Values.z;
 	AO = clamp(1 - AO, 0, 1);
 
-	vec3	diffuse = AO * (textureLod(Environment.Diffuse, -Normal, Roughness + 9).rgb
-			+ textureLod(Environment.Irradiance, -Normal, Roughness * 4.f).rgb);
+	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.1).rgb
+			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
 	vec3	V = normalize(in_CamPos - Position);
 	float	NdV = max(0, dot(Normal, V));
 	vec3	R = reflect(V, Normal);
-	vec3	reflection = textureLod(Environment.Diffuse, R, Roughness * 12.f).rgb * Fresnel;
-	vec3	specular = textureLod(Environment.Irradiance, R, Roughness * 10.f).rgb;
-	vec3	reflection_spec = pow(textureLod(Environment.Diffuse, R, Roughness * 10.f + 3.5).rgb, vec3(2.2));
+	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
+	vec3	specular = sampleLod(Environment.Irradiance, R, Roughness).rgb;
+	vec3	reflection_spec = pow(sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb, vec3(2.2));
 
-	//vec3	viewNormal = refract(V, -Normal, 1.f / BRDF.z);
 	vec3	viewNormal = (in_ViewMatrix * vec4(Normal, 1)).xyz;
 	float	refractionValue = (Fresnel.x + Fresnel.y + Fresnel.z) / 3.f;
-	Back_Color = sampleLod(in_Back_Color, frag_UV - (viewNormal.xy * refractionValue), 0.5).xyz;
-	//Back_Color = textureLod(in_Back_Color, frag_UV - (viewNormal.xy * refractionValue), Roughness * 10.f).xyz;
-	Back_Bright = sampleLod(in_Back_Bright, frag_UV - (viewNormal.xy * refractionValue), Roughness).xyz;
-	//Back_Bright = textureLod(in_Back_Bright, frag_UV - (viewNormal.xy * refractionValue), Roughness * 10.f).xyz;
+	refractionValue *= 0.2f;
+	vec2	refract_UV = frag_UV - (viewNormal.xy * refractionValue);
+
+	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
+	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Roughness).rgb;
 
 	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
@@ -95,10 +104,11 @@ void main()
 	specular += reflection_spec;
 	diffuse *= Albedo.rgb * (1 - Metallic);
 	Albedo.a += dot(specular, specular);
+	//Albedo.a += Roughness;
 	Albedo.a = min(1, Albedo.a);
 
-	out_Color.rgb = Emitting.rgb + specular + diffuse + reflection;
+	out_Color.rgb = specular + diffuse + reflection;
 	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
 	brightness = dot(pow(out_Color.rgb, vec3(2.2)), vec3(0.299, 0.587, 0.114));
-	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;
+	out_Emitting.rgb = Back_Bright + max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;
 }

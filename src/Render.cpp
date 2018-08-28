@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 00:04:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 14:31:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,6 @@ void	Render::scene()
 	lighting_shader->use(false);
 
 	// PRESENT RESULT (out_Color + out_Brightness)	
-	//Framebuffer::bind_default();
 	back_buffer->bind();
 	passthrough_shader->use();
 	passthrough_shader->bind_texture("in_Buffer0", temp_buffer->attachement(0), GL_TEXTURE0);
@@ -142,6 +141,7 @@ void	Render::scene()
 	passthrough_shader->bind_texture("in_Texture_Depth", temp_buffer->depth(), GL_TEXTURE2);
 	Render::display_quad()->draw();
 	passthrough_shader->use(false);
+
 	back_buffer->attachement(0)->generate_mipmap();
 	back_buffer->attachement(1)->generate_mipmap();
 

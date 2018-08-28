@@ -168,7 +168,7 @@ void	main()
 		if (dot(new_normal, new_normal) > 0)
 			worldNormal = normalize(new_normal);
 	}
-	float	roughness = clamp(Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness, 0.05f, 1.f);
+	float	roughness = clamp(Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness, 0.01f, 1.f);
 	float	metallic = clamp(Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic, 0.f, 1.f);
 	vec3	F0 = mix(Material.Texture.Use_Specular ? specular_sample : Material.Specular, albedo.rgb, metallic);
 	vec3	V = normalize(in_CamPos - worldPosition);
@@ -177,11 +177,16 @@ void	main()
 	vec3	fresnel = Fresnel(NdV, F0, roughness);
 	vec2	BRDF = texture(Material.Texture.BRDF, vec2(NdV, roughness)).rg;
 
-	out_BRDF.a = albedo.a;
+	/* out_BRDF.a = albedo.a;
 	out_Normal.a = albedo.a;
 	out_Position.a = albedo.a;
 	out_Fresnel.a = albedo.a;
-	out_Emitting.a = albedo.a;
+	out_Emitting.a = albedo.a; */
+	out_BRDF.a = 1;
+	out_Normal.a = 1;
+	out_Position.a = 1;
+	out_Fresnel.a = 1;
+	out_Emitting.a = 1;
 
 	out_Albedo.rgb = albedo.rgb + emitting;
 	out_Albedo.a = albedo.a;
@@ -190,7 +195,7 @@ void	main()
 	out_Material_Values.x = roughness;
 	out_Material_Values.y = metallic;
 	out_Material_Values.z = ao;
-	out_Material_Values.a = albedo.a;
+	out_Material_Values.a = 1;
 	out_BRDF.xy = BRDF;
 	out_BRDF.z = 0;
 	out_Normal.xyz = worldNormal;

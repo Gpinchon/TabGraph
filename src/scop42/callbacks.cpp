@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/07 19:38:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 10:02:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,6 +131,14 @@ bool	rotate_model = true;
 void	controller_callback_rotation(SDL_ControllerButtonEvent *event)
 {
 	if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN)) {
+		return ;
+	}
+	rotate_model = !rotate_model;
+}
+
+void	keyboard_callback_rotation(SDL_KeyboardEvent *event)
+{
+	if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u))) {
 		return ;
 	}
 	rotate_model = !rotate_model;

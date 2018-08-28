@@ -26,6 +26,20 @@ in vec3				frag_Cube_UV;
 layout(location = 0) out vec4	out_Color;
 layout(location = 1) out vec4	out_Emitting;
 
+vec4	sampleLod(samplerCube texture, vec3 uv, float value)
+{
+	value = clamp(value, 0, 1);
+	float factor = floor(log2(float(textureSize(texture, 0).x)));
+	return textureLod(texture, uv, value * factor);
+}
+
+vec4	sampleLod(sampler2D texture, vec2 uv, float value)
+{
+	value = clamp(value, 0, 1);
+	float factor = floor(log2(float(textureSize(texture, 0).x)));
+	return textureLod(texture, uv, value * factor);
+}
+
 float	Env_Specular(in float NdV, in float roughness)
 {
 	float	alpha = roughness * roughness;
@@ -64,14 +78,14 @@ void main()
 	float	AO = Material_Values.z;
 	AO = clamp(1 - AO, 0, 1);
 
-	vec3	diffuse = AO * (textureLod(Environment.Diffuse, -Normal, Roughness + 9).rgb
-			+ textureLod(Environment.Irradiance, -Normal, Roughness * 4.f).rgb);
+	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.8).rgb
+			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
 	vec3	V = normalize(in_CamPos - Position);
 	float	NdV = max(0, dot(Normal, V));
 	vec3	R = reflect(V, Normal);
-	vec3	reflection = textureLod(Environment.Diffuse, R, Roughness * 12.f).rgb * Fresnel;
-	vec3	specular = textureLod(Environment.Irradiance, R, Roughness * 10.f).rgb;
-	vec3	reflection_spec = pow(textureLod(Environment.Diffuse, R, Roughness * 10.f + 3.5).rgb, vec3(2.2));
+	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
+	vec3	specular = sampleLod(Environment.Irradiance, R, Roughness).rgb;
+	vec3	reflection_spec = pow(sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb, vec3(2.2));
 
 	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
@@ -81,7 +95,7 @@ void main()
 	Albedo.a += dot(specular, specular);
 	Albedo.a = min(1, Albedo.a);
 
-	out_Color.rgb = Emitting.rgb + specular + diffuse + reflection;
+	out_Color.rgb = specular + diffuse + reflection;
 	out_Color.rgb = mix(EnvDiffuse, out_Color.rgb, Albedo.a);
 	brightness = dot(pow(out_Color.rgb, vec3(2.2)), vec3(0.299, 0.587, 0.114));
 	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;

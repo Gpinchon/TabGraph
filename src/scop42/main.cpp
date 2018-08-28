@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/22 21:50:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 10:02:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ void	setup_callbacks()
 	Keyboard::set_callback(SDL_SCANCODE_ESCAPE, callback_exit);
 	Keyboard::set_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
 	Keyboard::set_callback(SDL_SCANCODE_Q, callback_quality);
+	Keyboard::set_callback(SDL_SCANCODE_R, keyboard_callback_rotation);
 	Events::set_refresh_callback(callback_refresh);
 	auto controller = GameController::get(0);
 	if (controller == nullptr)
