@@ -27,6 +27,7 @@ struct t_Material {
 	float		Metallic;
 	float		Alpha;
 	float		Parallax;
+	float		Ior;
 	t_Textures	Texture;
 };
 

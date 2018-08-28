@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 19:16:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 22:54:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,12 +64,7 @@ bool			Vgroup::render(RenderMod mod)
 	material->bind_textures();
 	material->bind_values();
 	bind();
-	
-	//glBindVertexArray(v_arrayid);
-	//_vao->bind();
 	_vao->draw();
-	//glDrawArrays(GL_TRIANGLES, 0, v.size());
-	glBindVertexArray(0);
 	material->shader->use(false);
 	return (true);
 }

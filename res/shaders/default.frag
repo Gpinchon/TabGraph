@@ -33,6 +33,7 @@ struct t_Material {
 	float		Metallic;
 	float		Alpha;
 	float		Parallax;
+	float		Ior;
 	t_Textures	Texture;
 };
 
@@ -197,7 +198,7 @@ void	main()
 	out_Material_Values.z = ao;
 	out_Material_Values.a = 1;
 	out_BRDF.xy = BRDF;
-	out_BRDF.z = 0;
+	out_BRDF.z = Material.Ior;
 	out_Normal.xyz = worldNormal;
 	out_Position.xyz = worldPosition;
 }

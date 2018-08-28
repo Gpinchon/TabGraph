@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/27 23:40:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 22:30:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,7 @@ void	parse_number(std::vector<std::string> &split, Material *mtl)
 	} else if (split[0] == "Ni")
 	{
 		ior = std::stof(split[1]);
+		mtl->ior = ior;
 		ior = (ior - 1) / (ior + 1);
 		ior *= ior;
 		mtl->specular = new_vec3(ior, ior, ior);

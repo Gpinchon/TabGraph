@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:12:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/27 23:39:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 22:28:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ public :
 	float			metallic{0};
 	float			alpha{1};
 	float			parallax{0.01};
+	float			ior{1};
 	Texture			*texture_albedo{nullptr};
 	Texture			*texture_specular{nullptr};
 	Texture			*texture_emitting{nullptr};

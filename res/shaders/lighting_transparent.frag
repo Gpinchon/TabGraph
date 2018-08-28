@@ -85,15 +85,16 @@ void main()
 	float	NdV = dot(Normal, V);
 	float	refractionValue = (Fresnel.x + Fresnel.y + Fresnel.z) / 3.f;
 	if (NdV < 0) {
-		refractionValue *= 0.5f;
+		//refractionValue *= 0.25f;
 		Normal = -Normal;
 		NdV = dot(Normal, V);
 	}
 	NdV = max(0, NdV);
 	vec2	refract_UV = frag_UV;
-	vec3	viewNormal = (mat3(in_ViewMatrix) * Normal).xyz;
+	//vec3	viewNormal = (mat3(in_ViewMatrix) * Normal).xyz;
 	refractionValue *= 0.1f;
-	refract_UV -= (viewNormal.xy * refractionValue);
+	//refract_UV -= (viewNormal.xy * refractionValue);
+	refract_UV += (mat3(in_ViewMatrix) * normalize(refract(V, Normal, 1.0 / BRDF.z)) * refractionValue).xy;
 	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
 	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Roughness).rgb;
 
@@ -103,8 +104,6 @@ void main()
 	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
 	vec3	specular = sampleLod(Environment.Irradiance, R, Roughness).rgb;
 	vec3	reflection_spec = pow(sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb, vec3(2.2));
-
-
 
 	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
@@ -117,7 +116,7 @@ void main()
 
 	out_Color.rgb = specular + diffuse + reflection;
 	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
-	//out_Color.rgb = viewNormal;
 	brightness = dot(pow(out_Color.rgb, vec3(2.2)), vec3(0.299, 0.587, 0.114));
-	out_Emitting.rgb = Back_Bright + max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;
+	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;
+	out_Emitting.rgb = mix(Back_Bright, out_Emitting.rgb, Albedo.a);
 }

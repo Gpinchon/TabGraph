@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/27 23:40:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/28 22:32:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,8 @@ void	Material::bind_values()
 	shader->set_uniform("Material.Emitting", emitting);
 	shader->set_uniform("Material.Roughness", roughness);
 	shader->set_uniform("Material.Metallic", metallic);
-	shader->set_uniform("Material.Parallax", parallax);
 	shader->set_uniform("Material.Alpha", alpha);
+	shader->set_uniform("Material.Parallax", parallax);
+	shader->set_uniform("Material.Ior", ior);
 	shader->set_uniform("Material.Texture.Scale", uv_scale);
 }
