@@ -68,35 +68,63 @@ void main()
 	vec4	BRDF = texture(in_Texture_BRDF, frag_UV);
 	vec3	Normal = normalize(texture(in_Texture_Normal, frag_UV).xyz);
 	vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
-	vec3	Back_Color = texture(in_Back_Color, frag_UV).xyz;
-	vec3	Back_Bright = texture(in_Back_Bright, frag_UV).xyz;
-	float	brightness = 0;
-	if (Albedo.a == 0) {
-		out_Color.rgb = Back_Color;
-		out_Emitting.rgb = Back_Bright;
-		return ;
-	}
 	float	Roughness = Material_Values.x;
 	float	Metallic = Material_Values.y;
 	float	AO = Material_Values.z;
-	AO = clamp(1 - AO, 0, 1);
+	float	Ior = BRDF.z;
+	float	brightness = 0;
 
 	vec3	V = normalize(in_CamPos - Position);
 	float	NdV = dot(Normal, V);
-	float	refractionValue = (Fresnel.x + Fresnel.y + Fresnel.z) / 3.f;
 	if (NdV < 0) {
-		//refractionValue *= 0.25f;
 		Normal = -Normal;
 		NdV = dot(Normal, V);
 	}
 	NdV = max(0, NdV);
 	vec2	refract_UV = frag_UV;
-	//vec3	viewNormal = (mat3(in_ViewMatrix) * Normal).xyz;
-	refractionValue *= 0.1f;
-	//refract_UV -= (viewNormal.xy * refractionValue);
-	refract_UV += (mat3(in_ViewMatrix) * normalize(refract(V, Normal, 1.0 / BRDF.z)) * refractionValue).xy;
-	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
-	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Roughness).rgb;
+	if (Ior > 1)
+	{
+		vec2	refractFactor = vec2(0.0125f);
+		vec2	refractDir = (mat3(in_ViewMatrix) * normalize(refract(V, Normal, 1.0 / Ior))).xy;
+		refract_UV = frag_UV + refractDir * refractFactor;
+		if (refract_UV.x > 1) {
+			float refractOffset = (refract_UV.x - 1);
+			refractDir.x = mix(refractDir.x, -refractDir.x, refractOffset * refractOffset * 10.f * textureSize(in_Back_Color, 0).x);
+		}
+		else if (refract_UV.x < 0) {
+			float refractOffset = abs(refract_UV.x);
+			refractDir.x = mix(refractDir.x, -refractDir.x, refractOffset * refractOffset * 10.f * textureSize(in_Back_Color, 0).x);
+		}
+		if (refract_UV.y > 1) {
+			float refractOffset = (refract_UV.y - 1);
+			refractDir.y = mix(refractDir.y, -refractDir.y, refractOffset * refractOffset * 10.f * textureSize(in_Back_Color, 0).y);
+		}
+		else if (refract_UV.y < 0) {
+			float refractOffset = abs(refract_UV.y);
+			refractDir.y = mix(refractDir.y, -refractDir.y, refractOffset * refractOffset * 10.f * textureSize(in_Back_Color, 0).y);
+		}
+		refract_UV = frag_UV + refractDir * refractFactor;
+		/* if (refract_UV.x > 1)
+			refract_UV.x = 1 - (refract_UV.x - 1);
+		else if (refract_UV.x < 0)
+			refract_UV.x = 0 + abs(refract_UV.x);
+		if (refract_UV.y > 1)
+			refract_UV.y = 1 - (refract_UV.y - 1);
+		else if (refract_UV.y < 0)
+			refract_UV.y = 0 + abs(refract_UV.y); */
+		//if (refract_UV.y > 1 || refract_UV.y < 0)
+		//	refract_UV.y = frag_UV.y - refractDir.y * 0.01;
+	}
+	vec3	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
+	vec3	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Roughness).rgb;
+
+	if (Albedo.a == 0) {
+		out_Color.rgb = Back_Color;
+		out_Emitting.rgb = Back_Bright;
+		return ;
+	}
+
+	AO = clamp(1 - AO, 0, 1);
 
 	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.1).rgb
 			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
