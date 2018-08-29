@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 19:17:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/29 22:38:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,11 +70,11 @@ bool	Mesh::render(RenderMod mod)
 	if (mod == RenderTransparent) {
 		glDisable(GL_CULL_FACE);
 		//glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE_ARB);
-		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		//glEnable(GL_BLEND);
+		//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else {
-		glDisable(GL_BLEND);
+		//glDisable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
 		glCullFace(_cull_mod);
 	}

@@ -173,7 +173,10 @@ void	main()
 	float	roughness = clamp(Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness, 0.01f, 1.f);
 	float	metallic = clamp(Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic, 0.f, 1.f);
 	vec3	F0 = mix(Material.Texture.Use_Specular ? specular_sample : Material.Specular, albedo.rgb, metallic);
-	float	NdV = max(0, dot(worldNormal, V));
+	float	NdV = dot(worldNormal, V);
+	if (NdV < 0)
+		NdV = -NdV;
+	NdV = max(0, NdV);
 
 	vec3	fresnel = Fresnel(NdV, F0, roughness);
 	vec2	BRDF = texture(Material.Texture.BRDF, vec2(NdV, roughness)).rg;
