@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/29 19:25:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/29 19:34:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ void	Render::scene()
 
 	// APPLY LIGHTING SHADER
 	// OUTPUT : out_Color, out_Brightness
-	temp_buffer->bind();
+	back_buffer->bind();
 	lighting_shader->use();
 	lighting_shader->set_uniform("in_CamPos", Engine::current_camera()->position());
 	lighting_shader->set_uniform("in_InvViewMatrix", InvViewMatrix);
@@ -134,6 +134,10 @@ void	Render::scene()
 	Render::display_quad()->draw();
 	lighting_shader->use(false);
 
+	/*
+	** ATTEMPT RENDERING TRANSPARENT OBJECTS
+	** WRITE DEPTH FOR FUTUR USE
+	*/
 	Window::render_buffer().bind();
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDepthFunc(GL_LESS);
@@ -144,31 +148,31 @@ void	Render::scene()
 	}
 	if (!rendered_stuff)
 	{
+		/*
+		** NO OBJECTS WERE RENDERED PRESENT IMEDIATLY
+		*/
 		glDepthFunc(GL_ALWAYS);
-		temp_buffer->attachement(1)->blur(BLOOMPASS, 2.5);
+		back_buffer->attachement(1)->blur(BLOOMPASS, 2.5);
 		Framebuffer::bind_default();
 		presentShader->use();
-		presentShader->bind_texture("in_Texture_Color", temp_buffer->attachement(0), GL_TEXTURE0);
-		presentShader->bind_texture("in_Texture_Emitting", temp_buffer->attachement(1), GL_TEXTURE1);
-		presentShader->bind_texture("in_Texture_Depth", temp_buffer->depth(), GL_TEXTURE2);
+		presentShader->bind_texture("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
+		presentShader->bind_texture("in_Texture_Emitting", back_buffer->attachement(1), GL_TEXTURE1);
+		presentShader->bind_texture("in_Texture_Depth", back_buffer->depth(), GL_TEXTURE2);
 		Render::display_quad()->draw();
 		presentShader->use(false);
 		return ;
 	}
+
+	/*
+	** REWRITE TRANSPARENT OBJECTS
+	** WRITE ONLY CLOSEST OBJECTS
+	*/
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDepthFunc(GL_EQUAL);
 	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
 		node->render(RenderTransparent);
 	}
 	glDepthFunc(GL_ALWAYS);
-
-	back_buffer->bind();
-	passthrough_shader->use();
-	passthrough_shader->bind_texture("in_Buffer0", temp_buffer->attachement(0), GL_TEXTURE0);
-	passthrough_shader->bind_texture("in_Buffer1", temp_buffer->attachement(1), GL_TEXTURE1);
-	passthrough_shader->bind_texture("in_Texture_Depth", temp_buffer->depth(), GL_TEXTURE2);
-	Render::display_quad()->draw();
-	passthrough_shader->use(false);
 
 	back_buffer->attachement(0)->generate_mipmap();
 	back_buffer->attachement(1)->generate_mipmap();
