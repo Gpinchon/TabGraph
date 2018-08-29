@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 22:54:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/29 18:59:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,9 @@ bool			Vgroup::render(RenderMod mod)
 	}
 	if (mod == RenderOpaque && (material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4)))
 		return (false);
-	else if (mod == RenderTransparent && (material->alpha == 1 && (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() < 4)))
+	else if (mod == RenderTransparent && (material->alpha == 1 || (material->alpha == 1 && (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() < 4)))) {
 		return (false);
+	}
 	material->shader->use();
 	material->bind_textures();
 	material->bind_values();

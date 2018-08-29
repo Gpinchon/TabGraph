@@ -56,7 +56,6 @@ void main()
 	out_Emitting.a = 1;
 	gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 	vec3	EnvDiffuse = texture(Environment.Diffuse, frag_Cube_UV).rgb;
-	vec3	EnvIrradiance = texture(Environment.Diffuse, frag_Cube_UV).rgb;
 	vec4	Albedo = texture(in_Texture_Albedo, frag_UV);
 	vec3	Fresnel = texture(in_Texture_Fresnel, frag_UV).rgb;
 	vec4	Emitting = texture(in_Texture_Emitting, frag_UV);
@@ -78,7 +77,7 @@ void main()
 	float	AO = Material_Values.z;
 	AO = clamp(1 - AO, 0, 1);
 
-	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.8).rgb
+	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
 			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
 	vec3	V = normalize(in_CamPos - Position);
 	float	NdV = max(0, dot(Normal, V));

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 18:41:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/29 19:25:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,34 @@ void	Render::scene()
 	Render::display_quad()->draw();
 	lighting_shader->use(false);
 
-	// PRESENT RESULT (out_Color + out_Brightness)	
+	Window::render_buffer().bind();
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDepthFunc(GL_LESS);
+	bool	rendered_stuff = false;
+	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
+		if (node->render(RenderTransparent))
+			rendered_stuff = true;
+	}
+	if (!rendered_stuff)
+	{
+		glDepthFunc(GL_ALWAYS);
+		temp_buffer->attachement(1)->blur(BLOOMPASS, 2.5);
+		Framebuffer::bind_default();
+		presentShader->use();
+		presentShader->bind_texture("in_Texture_Color", temp_buffer->attachement(0), GL_TEXTURE0);
+		presentShader->bind_texture("in_Texture_Emitting", temp_buffer->attachement(1), GL_TEXTURE1);
+		presentShader->bind_texture("in_Texture_Depth", temp_buffer->depth(), GL_TEXTURE2);
+		Render::display_quad()->draw();
+		presentShader->use(false);
+		return ;
+	}
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDepthFunc(GL_EQUAL);
+	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
+		node->render(RenderTransparent);
+	}
+	glDepthFunc(GL_ALWAYS);
+
 	back_buffer->bind();
 	passthrough_shader->use();
 	passthrough_shader->bind_texture("in_Buffer0", temp_buffer->attachement(0), GL_TEXTURE0);
@@ -145,21 +172,6 @@ void	Render::scene()
 
 	back_buffer->attachement(0)->generate_mipmap();
 	back_buffer->attachement(1)->generate_mipmap();
-
-//	static auto depthBuffer = Framebuffer::create("depth_buffer", Window::internal_resolution(), nullptr, 0, 1);
-
-	Window::render_buffer().bind();
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDepthFunc(GL_LESS);
-	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
-		node->render(RenderTransparent);
-	}
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDepthFunc(GL_EQUAL);
-	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
-		node->render(RenderTransparent);
-	}
-	glDepthFunc(GL_ALWAYS);
 
 	temp_buffer->bind();
 	tlighting_shader->use();
@@ -192,40 +204,6 @@ void	Render::scene()
 	presentShader->bind_texture("in_Texture_Depth", temp_buffer->depth(), GL_TEXTURE2);
 	Render::display_quad()->draw();
 	presentShader->use(false);
-	/*for (Shader *shader : post_treatments)
-	{
-		temp_buffer->bind();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		shader->use();
-		shader->bind_texture("in_Texture_Albedo", Window::render_buffer().attachement(0), GL_TEXTURE0); // Albedo;
-		shader->bind_texture("in_Texture_Fresnel", Window::render_buffer().attachement(1), GL_TEXTURE1); // Fresnel;
-		shader->bind_texture("in_Texture_Emitting", Window::render_buffer().attachement(2), GL_TEXTURE2); // Emitting;
-		shader->bind_texture("in_Texture_Material_Values", Window::render_buffer().attachement(3), GL_TEXTURE3); // Material_Values -> Roughness, Metallic
-		shader->bind_texture("in_Texture_BRDF", Window::render_buffer().attachement(4), GL_TEXTURE4); // BRDF
-		shader->bind_texture("in_Texture_Normal", Window::render_buffer().attachement(5), GL_TEXTURE5); // Normal;
-		shader->bind_texture("in_Texture_Position", Window::render_buffer().attachement(6), GL_TEXTURE6); // Position;
-		shader->bind_texture("in_Texture_Depth", Window::render_buffer().depth(), GL_TEXTURE7);
-		shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
-		shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE9);
-		Render::display_quad()->draw();
-		shader->use(false);
-
-		Window::render_buffer().bind();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		passthrough_shader->use();
-		passthrough_shader->bind_texture("in_Texture_Albedo", temp_buffer->attachement(0), GL_TEXTURE0);
-		passthrough_shader->bind_texture("in_Texture_Fresnel", temp_buffer->attachement(1), GL_TEXTURE1);
-		passthrough_shader->bind_texture("in_Texture_Emitting", temp_buffer->attachement(2), GL_TEXTURE2);
-		passthrough_shader->bind_texture("in_Texture_Material_Values", temp_buffer->attachement(3), GL_TEXTURE3);
-		passthrough_shader->bind_texture("in_Texture_BRDF", temp_buffer->attachement(4), GL_TEXTURE4);
-		passthrough_shader->bind_texture("in_Texture_Normal", temp_buffer->attachement(5), GL_TEXTURE5);
-		passthrough_shader->bind_texture("in_Texture_Position", temp_buffer->attachement(6), GL_TEXTURE6);
-		passthrough_shader->bind_texture("in_Texture_Depth", temp_buffer->depth(), GL_TEXTURE7);
-		passthrough_shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
-		passthrough_shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE9);
-		Render::display_quad()->draw();
-		passthrough_shader->use(false);
-	}*/
 }
 
 void	Render::add_post_treatment(Shader *shader)

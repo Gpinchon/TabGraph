@@ -60,7 +60,6 @@ void main()
 	out_Emitting.a = 1;
 	float	Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 	vec3	EnvDiffuse = texture(Environment.Diffuse, frag_Cube_UV).rgb;
-	vec3	EnvIrradiance = texture(Environment.Diffuse, frag_Cube_UV).rgb;
 	vec4	Albedo = texture(in_Texture_Albedo, frag_UV);
 	vec3	Fresnel = texture(in_Texture_Fresnel, frag_UV).rgb;
 	vec4	Emitting = texture(in_Texture_Emitting, frag_UV);
@@ -104,16 +103,6 @@ void main()
 			refractDir.y = mix(refractDir.y, -refractDir.y, refractOffset * refractFactor.y * textureSize(in_Back_Color, 0).y);
 		}
 		refract_UV = frag_UV + refractDir * refractFactor;
-		/* if (refract_UV.x > 1)
-			refract_UV.x = 1 - (refract_UV.x - 1);
-		else if (refract_UV.x < 0)
-			refract_UV.x = 0 + abs(refract_UV.x);
-		if (refract_UV.y > 1)
-			refract_UV.y = 1 - (refract_UV.y - 1);
-		else if (refract_UV.y < 0)
-			refract_UV.y = 0 + abs(refract_UV.y); */
-		//if (refract_UV.y > 1 || refract_UV.y < 0)
-		//	refract_UV.y = frag_UV.y - refractDir.y * 0.01;
 	}
 	vec3	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
 	vec3	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Roughness).rgb;
@@ -126,7 +115,7 @@ void main()
 
 	AO = clamp(1 - AO, 0, 1);
 
-	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.1).rgb
+	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
 			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
 	vec3	R = reflect(V, Normal);
 	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
@@ -139,7 +128,6 @@ void main()
 	specular += reflection_spec;
 	diffuse *= Albedo.rgb * (1 - Metallic);
 	Albedo.a += dot(specular, specular);
-	//Albedo.a += Roughness;
 	Albedo.a = min(1, Albedo.a);
 
 	out_Color.rgb = specular + diffuse + reflection;
