@@ -84,24 +84,24 @@ void main()
 	vec2	refract_UV = frag_UV;
 	if (Ior > 1)
 	{
-		vec2	refractFactor = vec2(0.0125f);
+		vec2	refractFactor = vec2(0.0125f) + (Fresnel.x + Fresnel.y + Fresnel.z) / 3.f * 0.0125f;
 		vec2	refractDir = (mat3(in_ViewMatrix) * normalize(refract(V, Normal, 1.0 / Ior))).xy;
 		refract_UV = frag_UV + refractDir * refractFactor;
 		if (refract_UV.x > 1) {
 			float refractOffset = (refract_UV.x - 1);
-			refractDir.x = mix(refractDir.x, -refractDir.x, refractOffset * refractOffset * 10.f * textureSize(in_Back_Color, 0).x);
+			refractDir.x = mix(refractDir.x, -refractDir.x, refractOffset * refractFactor.x * textureSize(in_Back_Color, 0).x);
 		}
 		else if (refract_UV.x < 0) {
 			float refractOffset = abs(refract_UV.x);
-			refractDir.x = mix(refractDir.x, -refractDir.x, refractOffset * refractOffset * 10.f * textureSize(in_Back_Color, 0).x);
+			refractDir.x = mix(refractDir.x, -refractDir.x, refractOffset * refractFactor.x * textureSize(in_Back_Color, 0).x);
 		}
 		if (refract_UV.y > 1) {
 			float refractOffset = (refract_UV.y - 1);
-			refractDir.y = mix(refractDir.y, -refractDir.y, refractOffset * refractOffset * 10.f * textureSize(in_Back_Color, 0).y);
+			refractDir.y = mix(refractDir.y, -refractDir.y, refractOffset * refractFactor.y * textureSize(in_Back_Color, 0).y);
 		}
 		else if (refract_UV.y < 0) {
 			float refractOffset = abs(refract_UV.y);
-			refractDir.y = mix(refractDir.y, -refractDir.y, refractOffset * refractOffset * 10.f * textureSize(in_Back_Color, 0).y);
+			refractDir.y = mix(refractDir.y, -refractDir.y, refractOffset * refractFactor.y * textureSize(in_Back_Color, 0).y);
 		}
 		refract_UV = frag_UV + refractDir * refractFactor;
 		/* if (refract_UV.x > 1)
