@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/29 22:16:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/30 23:16:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "Shader.hpp"
 #include "AABB.hpp"
 #include "Texture.hpp"
+#include "parser/GLSL.hpp"
 
 Vgroup::Vgroup(const std::string &name) : Renderable(name)
 {

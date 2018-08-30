@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/29 19:34:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/30 23:34:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,13 +139,15 @@ void	Render::scene()
 	** WRITE DEPTH FOR FUTUR USE
 	*/
 	Window::render_buffer().bind();
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthFunc(GL_LESS);
 	bool	rendered_stuff = false;
 	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
 		if (node->render(RenderTransparent))
 			rendered_stuff = true;
 	}
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	if (!rendered_stuff)
 	{
 		/*

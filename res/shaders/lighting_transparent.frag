@@ -97,19 +97,18 @@ void main()
 {
 	out_Color.a = 1;
 	out_Emitting.a = 1;
-	float	Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
-	vec3	EnvDiffuse = texture(Environment.Diffuse, frag_Cube_UV).rgb;
+	const float	Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 	vec4	Albedo = texture(in_Texture_Albedo, frag_UV);
-	vec3	Fresnel = texture(in_Texture_Fresnel, frag_UV).rgb;
-	vec4	Emitting = texture(in_Texture_Emitting, frag_UV);
-	vec4	Material_Values = texture(in_Texture_Material_Values, frag_UV);
-	vec4	BRDF = texture(in_Texture_BRDF, frag_UV);
-	vec3	Normal = normalize(texture(in_Texture_Normal, frag_UV).xyz);
-	vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
-	float	Roughness = Material_Values.x;
-	float	Metallic = Material_Values.y;
+	const vec3	Fresnel = texture(in_Texture_Fresnel, frag_UV).rgb;
+	const vec3	Emitting = texture(in_Texture_Emitting, frag_UV).rgb;
+	const vec3	Material_Values = texture(in_Texture_Material_Values, frag_UV).rgb;
+	const vec3	BRDF = texture(in_Texture_BRDF, frag_UV).rgb;
+	vec3	Normal = texture(in_Texture_Normal, frag_UV).xyz;
+	const vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
+	const float	Roughness = Material_Values.x;
+	const float	Metallic = Material_Values.y;
 	float	AO = Material_Values.z;
-	float	Ior = BRDF.z;
+	const float	Ior = BRDF.z;
 
 	vec3	V = normalize(in_CamPos - Position);
 	float	NdV = dot(Normal, V);
@@ -124,15 +123,17 @@ void main()
 	vec3	R = reflect(V, Normal);
 	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
 	vec3	specular = sampleLod(Environment.Irradiance, R, Roughness).rgb;
-	vec3	reflection_spec = pow(sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb, vec3(2.2));
+	vec3	reflection_spec = sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb;
 
+	const vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114);
+	const vec3	gammaCorrection = vec3(2.2);
 	
 	vec2	refract_UV = frag_UV;
 	if (Ior > 1)
 	{
 		vec2	refractFactor = vec2(1 - Depth) * vec2(0.25f) + (Fresnel.x + Fresnel.y + Fresnel.z) / 3.f * 0.0125f;
 		vec2	refractDir = (mat3(in_ViewMatrix) * normalize(refract(V, Normal, 1.0 / Ior))).xy;
-		refract_UV = frag_UV + refractDir * refractFactor;
+		refract_UV = refractDir * refractFactor + frag_UV;
 		refract_UV = warpUV(vec2(0), vec2(1), refract_UV);
 	}
 	vec3	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
@@ -145,7 +146,7 @@ void main()
 	}
 
 	float	brightness = 0;
-	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
+	brightness = dot(pow(reflection_spec, gammaCorrection), brightnessDotValue);
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
 	specular *= Fresnel * BRDF.x + mix(vec3(1), Fresnel, Metallic) * BRDF.y;
 	specular += reflection_spec;
@@ -158,7 +159,7 @@ void main()
 
 	out_Color.rgb = specular + diffuse + reflection;
 	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
-	brightness = dot(pow(out_Color.rgb, vec3(2.2)), vec3(0.299, 0.587, 0.114));
+	brightness = dot(pow(out_Color.rgb, gammaCorrection), brightnessDotValue);
 	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;
 	out_Emitting.rgb = mix(Back_Bright, out_Emitting.rgb, Albedo.a);
 }
