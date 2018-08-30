@@ -1,7 +1,12 @@
-#version 410
+#version 430
 #pragma optionNV (unroll all)
 #define	KERNEL_SIZE 64
 #define M_PI 3.1415926535897932384626433832795
+
+precision lowp float;
+precision lowp int;
+precision lowp sampler2D;
+precision lowp samplerCube;
 
 struct t_Environment {
 	samplerCube	Diffuse;
@@ -29,26 +34,43 @@ layout(location = 1) out vec4	out_Emitting;
 vec4	sampleLod(samplerCube texture, vec3 uv, float value)
 {
 	value = clamp(value, 0, 1);
-	float factor = floor(log2(float(textureSize(texture, 0).x)));
+	float factor = textureQueryLevels(texture);//floor(log2(float(textureSize(texture, 0).x)));
 	return textureLod(texture, uv, value * factor);
 }
 
 vec4	sampleLod(sampler2D texture, vec2 uv, float value)
 {
 	value = clamp(value, 0, 1);
-	float factor = floor(log2(float(textureSize(texture, 0).x)));
+	float factor = textureQueryLevels(texture);//floor(log2(float(textureSize(texture, 0).x)));
 	return textureLod(texture, uv, value * factor);
 }
 
+float	Env_Specular(in float NdV, in float NdL, in float roughness)
+{
+	float a2 = roughness * roughness;
+	float G_V = NdV + sqrt( (NdV - NdV * a2) * NdV + a2 );
+	float G_L = NdL + sqrt( (NdL - NdL * a2) * NdL + a2 );
+	return (1 / (G_V * G_L));
+}
+
 float	Env_Specular(in float NdV, in float roughness)
+{
+	float a2 = roughness * roughness;
+	float NdVa2 = NdV * a2;
+	float G_V = NdV + sqrt((NdV - NdVa2) * NdV + a2 );
+	float G_L = -NdV + sqrt((-NdV + NdVa2) * -NdV + a2 );
+	return (1 / (G_V * G_L));
+}
+
+/* float	Env_Specular(in float NdV, in float roughness)
 {
 	float	alpha = roughness * roughness;
 	float	den = (alpha - 1) + 1;
 	float	D = (alpha / (M_PI * den * den));
 	float	alpha2 = alpha * alpha;
 	float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
-	return (max(D * G, 0));
-}
+	return (D * G);
+} */
 
 void main()
 {
@@ -63,6 +85,20 @@ void main()
 	vec4	BRDF = texture(in_Texture_BRDF, frag_UV);
 	vec3	Normal = normalize(texture(in_Texture_Normal, frag_UV).xyz);
 	vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
+	
+	vec3	V = normalize(in_CamPos - Position);
+	vec3	R = reflect(V, Normal);
+	float	Roughness = Material_Values.x;
+	float	Metallic = Material_Values.y;
+	float	AO = Material_Values.z;
+	AO = clamp(1 - AO, 0, 1);
+
+	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
+			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
+	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
+	vec3	specular = sampleLod(Environment.Irradiance, R, Roughness).rgb;
+	vec3	reflection_spec = pow(sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb, vec3(2.2));
+
 	float	brightness = 0;
 	if (Albedo.a == 0) {
 		out_Color.rgb = EnvDiffuse;
@@ -72,20 +108,8 @@ void main()
 	}
 	out_Color.a = Albedo.a;
 	out_Emitting.a = Albedo.a;
-	float	Roughness = Material_Values.x;
-	float	Metallic = Material_Values.y;
-	float	AO = Material_Values.z;
-	AO = clamp(1 - AO, 0, 1);
 
-	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
-			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
-	vec3	V = normalize(in_CamPos - Position);
 	float	NdV = max(0, dot(Normal, V));
-	vec3	R = reflect(V, Normal);
-	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
-	vec3	specular = sampleLod(Environment.Irradiance, R, Roughness).rgb;
-	vec3	reflection_spec = pow(sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb, vec3(2.2));
-
 	brightness = dot(reflection_spec, vec3(0.299, 0.587, 0.114));
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
 	specular *= Fresnel * BRDF.x + mix(vec3(1), Fresnel, Metallic) * BRDF.y;

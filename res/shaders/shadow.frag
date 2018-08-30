@@ -1,4 +1,4 @@
-#version 410
+#version 430
 uniform sampler2D	in_Texture_Albedo;
 uniform bool		in_Use_Texture_Albedo;
 in vec2				frag_Texcoord;

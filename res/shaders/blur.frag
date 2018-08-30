@@ -1,4 +1,4 @@
-#version 410
+#version 430
 #define	KERNEL_SIZE 9
 
 uniform sampler2D	in_Texture_Color;

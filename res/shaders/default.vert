@@ -1,4 +1,9 @@
-#version 410
+#version 430
+
+precision lowp float;
+precision lowp int;
+precision lowp sampler2D;
+precision lowp samplerCube;
 
 struct t_Textures {
 	vec2		Scale;

@@ -1,6 +1,11 @@
-#version 410
+#version 430
 #pragma optionNV (unroll all)
 #define	KERNEL_SIZE 12
+
+precision lowp float;
+precision lowp int;
+precision lowp sampler2D;
+precision lowp samplerCube;
 
 uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(-.326,-.406),
@@ -110,7 +115,7 @@ void main()
 	vec4	BRDF = texture(in_Texture_BRDF, frag_UV);
 	vec4	Normal = texture(in_Texture_Normal, frag_UV);
 	vec4	Position = texture(in_Texture_Position, frag_UV);
-	float	Depth = texture(in_Texture_Depth, frag_UV).r;
+	gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 
 	ivec2	tSize = textureSize(in_Texture_Position, 0);
 	vec2	sampledist = tSize / 1024.f * 10.f;
@@ -120,18 +125,15 @@ void main()
 	{
 		vec2	sampleUV = frag_UV + poissonDisk[i] * sampleOffset;
 		vec3	samplePosition = texelFetch(in_Texture_Position, ivec2(tSize * sampleUV), 0).xyz;
-		vec3	sampleNormal = normalize(texelFetch(in_Texture_Normal, ivec2(tSize * sampleUV), 0).xyz);
-		if (texelFetch(in_Texture_Depth, ivec2(tSize * sampleUV), 0).r < Depth)
-		{
-			vec3	V = samplePosition - Position.xyz;
-			float	D = length(V);
-			float	bias = D + 0.0025;
-			float	factor = max(0, dot(Normal.xyz, normalize(V)));
-			if (factor <= 0.5 && dot(sampleNormal, Normal.xyz) >= 0.8f)
-				continue ;
-			float	angle = max(0, factor - bias);
-			occlusion += (angle * (1.f / (1.f + D)));
-		}
+		vec3	sampleNormal = texelFetch(in_Texture_Normal, ivec2(tSize * sampleUV), 0).xyz;
+		vec3	V = samplePosition - Position.xyz;
+		float	D = length(V);
+		float	bias = D + 0.0025;
+		float	factor = max(0, dot(Normal.xyz, normalize(V)));
+		if (factor <= 0.5 && dot(sampleNormal, Normal.xyz) >= 0.8f)
+			continue ;
+		float	angle = max(0, factor - bias);
+		occlusion += (angle * (1.f / (1.f + D)));
 	}
 	occlusion /= float(KERNEL_SIZE);
 	Material_Values.z += occlusion;
@@ -143,5 +145,4 @@ void main()
 	out_BRDF = BRDF;
 	out_Normal = Normal;
 	out_Position = Position;
-	gl_FragDepth = Depth;
 }

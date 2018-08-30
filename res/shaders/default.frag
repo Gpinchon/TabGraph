@@ -1,4 +1,4 @@
-#version 410
+#version 430
 #define M_PI 3.1415926535897932384626433832795
 
 precision lowp float;
@@ -59,11 +59,6 @@ layout(location = 3) out vec4	out_Material_Values; //Roughness, Metallic, AO
 layout(location = 4) out vec4	out_BRDF;
 layout(location = 5) out vec4	out_Normal;
 layout(location = 6) out vec4	out_Position;
-
-/* layout(location = 0) out vec4	out_Color;
-layout(location = 1) out vec4	out_Bright;
-layout(location = 2) out vec4	out_Normal;
-layout(location = 3) out vec4	out_Position; */
 
 float	GGX_Geometry(in float NdV, in float alpha)
 {
@@ -174,18 +169,14 @@ void	main()
 	float	metallic = clamp(Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic, 0.f, 1.f);
 	vec3	F0 = mix(Material.Texture.Use_Specular ? specular_sample : Material.Specular, albedo.rgb, metallic);
 	float	NdV = dot(worldNormal, V);
-	if (NdV < 0)
+	if (albedo.a < 1 && NdV < 0)
 		NdV = -NdV;
-	NdV = max(0, NdV);
+	else if (NdV < 0)
+		NdV = 0;
 
 	vec3	fresnel = Fresnel(NdV, F0, roughness);
 	vec2	BRDF = texture(Material.Texture.BRDF, vec2(NdV, roughness)).rg;
 
-	/* out_BRDF.a = albedo.a;
-	out_Normal.a = albedo.a;
-	out_Position.a = albedo.a;
-	out_Fresnel.a = albedo.a;
-	out_Emitting.a = albedo.a; */
 	out_BRDF.a = 1;
 	out_Normal.a = 1;
 	out_Position.a = 1;
