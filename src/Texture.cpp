@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/26 23:05:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/31 18:38:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -363,9 +363,8 @@ void	Texture::resize(const VEC2 &ns)
 static Framebuffer	*generate_blur_fb()
 {
 	auto	blurShader = GLSL::parse("blur", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
-	auto	blur = Framebuffer::create("blur", vec2_scale(Window::size(),
-		Engine::internal_quality()), blurShader, 0, 0);
-	blur->create_attachement(GL_RGB, GL_RGB16F_ARB);
+	auto	blur = Framebuffer::create("blur", vec2_scale(Window::size(), Engine::internal_quality()), blurShader, 0, 0);
+	blur->create_attachement(GL_RGBA, GL_RGBA16F);
 	blur->setup_attachements();
 	return (blur);
 }

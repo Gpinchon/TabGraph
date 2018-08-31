@@ -1,4 +1,4 @@
-#version 430
+#version 450
 #define M_PI 3.1415926535897932384626433832795
 
 precision lowp float;
@@ -117,10 +117,10 @@ void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out float parallaxHeight)
 
 mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 {
-	vec3 Q1 = dFdx(position);
-	vec3 Q2 = dFdy(position);
-	vec2 st1 = dFdx(texcoord);
-	vec2 st2 = dFdy(texcoord);
+	vec3 Q1 = dFdxCoarse(position);
+	vec3 Q2 = dFdyCoarse(position);
+	vec2 st1 = dFdxCoarse(texcoord);
+	vec2 st2 = dFdyCoarse(texcoord);
 	vec3 T = normalize(Q1*st2.t - Q2*st1.t);
 	vec3 B = normalize(-Q1*st2.s + Q2*st1.s);
 	return(transpose(mat3(T, B, normal)));
@@ -150,10 +150,8 @@ void	main()
 	float	metallic_sample = texture(Material.Texture.Metallic, vt).r;
 	float	ao = texture(Material.Texture.AO, vt).r;
 	
-	if (Material.Texture.Use_Albedo)
-	{
-		albedo.rgb = albedo_sample.rgb;
-		albedo.a *= albedo_sample.a;
+	if (Material.Texture.Use_Albedo) {
+		albedo *= albedo_sample;
 	}
 	if (albedo.a <= 0.05
 	|| vt.x > (frag_UVMax.x) || vt.y > (frag_UVMax.y)
@@ -165,8 +163,8 @@ void	main()
 		if (dot(new_normal, new_normal) > 0)
 			worldNormal = normalize(new_normal);
 	}
-	float	roughness = clamp(Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness, 0.01f, 1.f);
-	float	metallic = clamp(Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic, 0.f, 1.f);
+	float	roughness = Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness;
+	float	metallic = Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic;
 	vec3	F0 = mix(Material.Texture.Use_Specular ? specular_sample : Material.Specular, albedo.rgb, metallic);
 	float	NdV = dot(worldNormal, V);
 	if (albedo.a < 1 && NdV < 0)
@@ -182,6 +180,7 @@ void	main()
 	out_Position.a = 1;
 	out_Fresnel.a = 1;
 	out_Emitting.a = 1;
+	out_Material_Values.a = 1;
 
 	out_Albedo.rgb = albedo.rgb + emitting;
 	out_Albedo.a = albedo.a;
@@ -190,7 +189,6 @@ void	main()
 	out_Material_Values.x = roughness;
 	out_Material_Values.y = metallic;
 	out_Material_Values.z = ao;
-	out_Material_Values.a = 1;
 	out_BRDF.xy = BRDF;
 	out_BRDF.z = Material.Ior;
 	out_Normal.xyz = worldNormal;

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/30 23:34:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/31 17:32:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ void	Render::scene()
 		** NO OBJECTS WERE RENDERED PRESENT IMEDIATLY
 		*/
 		glDepthFunc(GL_ALWAYS);
-		back_buffer->attachement(1)->blur(BLOOMPASS, 2.5);
+		back_buffer->attachement(1)->blur(BLOOMPASS, 3.5);
 		Framebuffer::bind_default();
 		presentShader->use();
 		presentShader->bind_texture("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);

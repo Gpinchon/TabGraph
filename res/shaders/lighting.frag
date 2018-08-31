@@ -31,18 +31,14 @@ in vec3				frag_Cube_UV;
 layout(location = 0) out vec4	out_Color;
 layout(location = 1) out vec4	out_Emitting;
 
-vec4	sampleLod(samplerCube texture, vec3 uv, float value)
+vec4	sampleLod(in samplerCube texture, in vec3 uv, in float value)
 {
-	value = clamp(value, 0, 1);
-	float factor = textureQueryLevels(texture);//floor(log2(float(textureSize(texture, 0).x)));
-	return textureLod(texture, uv, value * factor);
+	return textureLod(texture, uv, value * textureQueryLevels(texture));
 }
 
-vec4	sampleLod(sampler2D texture, vec2 uv, float value)
+vec4	sampleLod(in sampler2D texture, in vec2 uv, in float value)
 {
-	value = clamp(value, 0, 1);
-	float factor = textureQueryLevels(texture);//floor(log2(float(textureSize(texture, 0).x)));
-	return textureLod(texture, uv, value * factor);
+	return textureLod(texture, uv, value * textureQueryLevels(texture));
 }
 
 float	Env_Specular(in float NdV, in float NdL, in float roughness)
@@ -53,16 +49,16 @@ float	Env_Specular(in float NdV, in float NdL, in float roughness)
 	return (1 / (G_V * G_L));
 }
 
-float	Env_Specular(in float NdV, in float roughness)
+/* float	Env_Specular(in float NdV, in float roughness)
 {
 	float a2 = roughness * roughness;
 	float NdVa2 = NdV * a2;
 	float G_V = NdV + sqrt((NdV - NdVa2) * NdV + a2 );
 	float G_L = -NdV + sqrt((-NdV + NdVa2) * -NdV + a2 );
 	return (1 / (G_V * G_L));
-}
+} */
 
-/* float	Env_Specular(in float NdV, in float roughness)
+float	Env_Specular(in float NdV, in float roughness)
 {
 	float	alpha = roughness * roughness;
 	float	den = (alpha - 1) + 1;
@@ -70,10 +66,12 @@ float	Env_Specular(in float NdV, in float roughness)
 	float	alpha2 = alpha * alpha;
 	float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
 	return (D * G);
-} */
+}
 
 void main()
 {
+	const vec3		brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
+	const vec3		envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
 	out_Color.a = 1;
 	out_Emitting.a = 1;
 	gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
@@ -94,18 +92,18 @@ void main()
 	AO = clamp(1 - AO, 0, 1);
 
 	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
-			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
-	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
-	vec3	specular = sampleLod(Environment.Irradiance, R, Roughness).rgb;
-	vec3	reflection_spec = sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb;
+			+ texture(Environment.Irradiance, -Normal).rgb);
+	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 2.f).rgb;
+	vec3	specular = texture(Environment.Irradiance, R).rgb;
+	vec3	reflection_spec = reflection;//sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb;
+
+	reflection *= Fresnel;
 
 	float	brightness = 0;
-	const vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114);
-	const vec3	gammaCorrection = vec3(2.2);
 
 	if (Albedo.a == 0) {
 		out_Color.rgb = EnvDiffuse;
-		brightness = dot(pow(out_Color.rgb, gammaCorrection), brightnessDotValue);
+		brightness = dot(pow(out_Color.rgb, envGammaCorrection), brightnessDotValue);
 		out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness);
 		return ;
 	}
@@ -113,16 +111,13 @@ void main()
 	out_Emitting.a = Albedo.a;
 
 	float	NdV = max(0, dot(Normal, V));
-	brightness = dot(pow(reflection_spec, gammaCorrection), brightnessDotValue);
+	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
 	specular *= Fresnel * BRDF.x + mix(vec3(1), Fresnel, Metallic) * BRDF.y;
 	specular += reflection_spec;
 	diffuse *= Albedo.rgb * (1 - Metallic);
-	//Albedo.a += dot(specular, specular);
-	//Albedo.a = min(1, Albedo.a);
 
 	out_Color.rgb = specular + diffuse + reflection;
 	out_Color.rgb = mix(EnvDiffuse, out_Color.rgb, Albedo.a);
-	brightness = dot(pow(out_Color.rgb, gammaCorrection), brightnessDotValue);
-	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting;
+	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Emitting;
 }

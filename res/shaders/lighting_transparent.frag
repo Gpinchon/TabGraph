@@ -13,6 +13,9 @@ struct t_Environment {
 	samplerCube	Irradiance;
 };
 
+uniform vec3		brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
+uniform vec3		envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
+
 uniform sampler2D	in_Texture_Albedo;
 uniform sampler2D	in_Texture_Fresnel;
 uniform sampler2D	in_Texture_Emitting;
@@ -49,7 +52,7 @@ vec4	sampleLod(sampler2D texture, vec2 uv, float value)
 	return textureLod(texture, uv, value * factor);
 }
 
-/* float	Env_Specular(in float NdV, in float roughness)
+float	Env_Specular(in float NdV, in float roughness)
 {
 	float	alpha = roughness * roughness;
 	float	den = (alpha - 1) + 1;
@@ -58,16 +61,16 @@ vec4	sampleLod(sampler2D texture, vec2 uv, float value)
 	float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
 	return (max(D * G, 0));
 }
- */
 
-float	Env_Specular(in float NdV, in float roughness)
+
+/* float	Env_Specular(in float NdV, in float roughness)
 {
 	float a2 = roughness * roughness;
 	float NdVa2 = NdV * a2;
 	float G_V = NdV + sqrt((NdV - NdVa2) * NdV + a2 );
 	float G_L = -NdV + sqrt((-NdV + NdVa2) * -NdV + a2 );
 	return (1 / (G_V * G_L));
-}
+} */
 
 float	cmix(float min, float max, float percent)
 {
@@ -119,15 +122,13 @@ void main()
 	AO = clamp(1 - AO, 0, 1);
 
 	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
-			+ sampleLod(Environment.Irradiance, -Normal, Roughness).rgb);
+			+ texture(Environment.Irradiance, -Normal).rgb);
 	vec3	R = reflect(V, Normal);
-	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb * Fresnel;
-	vec3	specular = sampleLod(Environment.Irradiance, R, Roughness).rgb;
-	vec3	reflection_spec = sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb;
+	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb;
+	vec3	specular = texture(Environment.Irradiance, R).rgb;
+	vec3	reflection_spec = reflection;//sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb;
+	reflection *= Fresnel;
 
-	const vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114);
-	const vec3	gammaCorrection = vec3(2.2);
-	
 	vec2	refract_UV = frag_UV;
 	if (Ior > 1)
 	{
@@ -146,7 +147,7 @@ void main()
 	}
 
 	float	brightness = 0;
-	brightness = dot(pow(reflection_spec, gammaCorrection), brightnessDotValue);
+	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
 	specular *= Fresnel * BRDF.x + mix(vec3(1), Fresnel, Metallic) * BRDF.y;
 	specular += reflection_spec;
@@ -154,12 +155,8 @@ void main()
 	Albedo.a += dot(specular, specular);
 	Albedo.a = min(1, Albedo.a);
 
-	Back_Color *= Albedo.rgb;
-	Back_Bright *= Albedo.rgb;
-
 	out_Color.rgb = specular + diffuse + reflection;
-	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
-	brightness = dot(pow(out_Color.rgb, gammaCorrection), brightnessDotValue);
-	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness) + Emitting.rgb;
-	out_Emitting.rgb = mix(Back_Bright, out_Emitting.rgb, Albedo.a);
+	out_Color.rgb = mix(Back_Color * Albedo.rgb, out_Color.rgb, Albedo.a);
+	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Emitting.rgb;
+	out_Emitting.rgb = mix(Back_Bright * Albedo.rgb, out_Emitting.rgb, Albedo.a);
 }

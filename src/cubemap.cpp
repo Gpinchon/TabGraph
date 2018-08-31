@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/03 19:51:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/08/31 16:16:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,15 +91,16 @@ Cubemap		*Cubemap::create(const std::string &name, Texture *fromTexture)
 	{
 		GLenum formats[2];
 		fromTexture->format(&formats[0], &formats[1]);
-		auto	sideTexture = Texture::create(fromTexture->name() + "side", new_vec2(512, 512), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
+		auto	side_res = fromTexture->size().x / 4.f;
+		auto	sideTexture = Texture::create(fromTexture->name() + "side", new_vec2(side_res, side_res), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
 		const float ftu = faceTransform[side][1];
 		const float ftv = faceTransform[side][0];
-		for (auto y = 0; y <= sideTexture->size().x; ++y)
+		for (auto y = 0; y <= side_res; ++y)
 		{
-			for (auto x = 0; x <= sideTexture->size().x; ++x)
+			for (auto x = 0; x <= side_res; ++x)
 			{
-				float nx = (float)y / (float)sideTexture->size().x - 0.5f;
-				float ny = 1 - (float)x / (float)sideTexture->size().x - 0.5f;
+				float nx = (float)y / (float)side_res - 0.5f;
+				float ny = 1 - (float)x / (float)side_res - 0.5f;
 				nx *= 2;
 				ny *= 2;
 				nx *= an;
