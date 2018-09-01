@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/31 18:38:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/01 21:19:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target,GLenum 
 	if (s.x > 0 && s.y > 0) {
 		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->_data_format, nullptr);
 	}
-	if (f == GL_RGB) {
+	if (f != GL_RGBA && f != GL_BGRA) {
 		glTexParameteri(t->_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	}
 	glTexParameteri(t->_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -396,7 +396,6 @@ void	Texture::blur(const int &pass, const float &radius)
 		blur->shader()->bind_texture("in_Texture_Color", texture, GL_TEXTURE0);
 		blur->shader()->set_uniform("in_Direction", direction);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color0->glid(), 0);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		Render::display_quad()->draw();
 		angle = CYCLE(angle + (M_PI / 4.f), 0, M_PI);
 		temp = texture;

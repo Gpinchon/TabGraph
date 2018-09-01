@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/27 17:20:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/01 20:25:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,7 +224,6 @@ void	Engine::fixed_update()
 {
 	unsigned	node_index = 0;
 
-	Window::resize();
 	while (auto node = Engine::node(node_index))
 	{
 		node->physics_update();

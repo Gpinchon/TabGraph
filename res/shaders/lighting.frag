@@ -18,9 +18,11 @@ uniform sampler2D	in_Texture_Fresnel;
 uniform sampler2D	in_Texture_Emitting;
 uniform sampler2D	in_Texture_Material_Values;
 uniform sampler2D	in_Texture_BRDF;
+uniform sampler2D	in_Texture_AO;
 uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
+
 uniform vec3		in_CamPos;
 
 uniform t_Environment	Environment;
@@ -83,19 +85,18 @@ void main()
 	const vec2	BRDF = texture(in_Texture_BRDF, frag_UV).xy;
 	const vec3	Normal = texture(in_Texture_Normal, frag_UV).xyz;
 	const vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
+	float		AO = 1 - texture(in_Texture_AO, frag_UV).r;
 	
 	vec3	V = normalize(in_CamPos - Position);
 	vec3	R = reflect(V, Normal);
 	float	Roughness = Material_Values.x;
 	float	Metallic = Material_Values.y;
-	float	AO = Material_Values.z;
-	AO = clamp(1 - AO, 0, 1);
 
 	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
 			+ texture(Environment.Irradiance, -Normal).rgb);
 	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 2.f).rgb;
 	vec3	specular = texture(Environment.Irradiance, R).rgb;
-	vec3	reflection_spec = reflection;//sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb;
+	vec3	reflection_spec = reflection;
 
 	reflection *= Fresnel;
 

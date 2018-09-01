@@ -52,13 +52,14 @@ in vec2	frag_Texcoord;
 in vec2	frag_UVMax;
 in vec2	frag_UVMin;
 
-layout(location = 0) out vec4	out_Albedo;
-layout(location = 1) out vec4	out_Fresnel;
-layout(location = 2) out vec4	out_Emitting;
-layout(location = 3) out vec4	out_Material_Values; //Roughness, Metallic, AO
-layout(location = 4) out vec4	out_BRDF;
-layout(location = 5) out vec4	out_Normal;
-layout(location = 6) out vec4	out_Position;
+layout(location = 0) out vec4	out_Albedo; // Albedo;
+layout(location = 1) out vec4	out_Emitting; // Emitting;
+layout(location = 2) out vec4	out_Fresnel; // Fresnel;
+layout(location = 3) out vec4	out_Material_Values; // Material_Values -> Roughness, Metallic, Ior
+layout(location = 4) out vec4	out_BRDF;// BRDF
+layout(location = 5) out vec4	out_AO;//AO
+layout(location = 6) out vec4	out_Normal;// Normal;
+layout(location = 7) out vec4	out_Position;// Position;
 
 float	GGX_Geometry(in float NdV, in float alpha)
 {
@@ -161,9 +162,9 @@ void	main()
 	{
 		vec3	new_normal = normal_sample * tbn;
 		if (dot(new_normal, new_normal) > 0)
-			worldNormal = normalize(new_normal);
+			worldNormal = new_normal;
 	}
-	float	roughness = Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness;
+	float	roughness = max(0.01, Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness);
 	float	metallic = Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic;
 	vec3	F0 = mix(Material.Texture.Use_Specular ? specular_sample : Material.Specular, albedo.rgb, metallic);
 	float	NdV = dot(worldNormal, V);
@@ -175,22 +176,23 @@ void	main()
 	vec3	fresnel = Fresnel(NdV, F0, roughness);
 	vec2	BRDF = texture(Material.Texture.BRDF, vec2(NdV, roughness)).rg;
 
-	out_BRDF.a = 1;
-	out_Normal.a = 1;
-	out_Position.a = 1;
+	out_Albedo.a = 1;
 	out_Fresnel.a = 1;
 	out_Emitting.a = 1;
 	out_Material_Values.a = 1;
+	out_BRDF.a = 1;
+	out_AO.a = 1;
+	out_Normal.a = 1;
+	out_Position.a = 1;
 
-	out_Albedo.rgb = albedo.rgb + emitting;
-	out_Albedo.a = albedo.a;
+	out_Albedo = vec4(albedo.rgb + emitting.rgb, albedo.a);
 	out_Fresnel.rgb = fresnel;
 	out_Emitting.rgb = max(vec3(0), albedo.rgb - 1) + emitting;
 	out_Material_Values.x = roughness;
 	out_Material_Values.y = metallic;
-	out_Material_Values.z = ao;
+	out_Material_Values.z = Material.Ior;
 	out_BRDF.xy = BRDF;
-	out_BRDF.z = Material.Ior;
-	out_Normal.xyz = worldNormal;
+	out_AO.r = ao;
+	out_Normal.xyz = normalize(worldNormal);
 	out_Position.xyz = worldPosition;
 }

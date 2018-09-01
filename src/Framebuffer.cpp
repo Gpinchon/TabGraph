@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/26 22:06:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/01 21:36:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,11 @@ void			Framebuffer::bind_default()
 
 Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
 {
-	std::string tname(std::string("attachement") + std::to_string(_color_attachements.size()));
+	std::string tname;
+	if (format == GL_DEPTH_COMPONENT)
+		tname = (name() + "_depth");
+	else
+		tname = (name() + "_attachement_" + std::to_string(_color_attachements.size()));
 	bind();
 	auto	a = Attachement::create(tname, size(), GL_TEXTURE_2D, format, iformat); 
 	a->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -132,8 +136,8 @@ Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0
 			+ _color_attachements.size(), GL_TEXTURE_2D,
 			a->glid(), 0);
+		_color_attachements.push_back(a);
 	}
-	_color_attachements.push_back(a);
 	bind(false);
 	return (a);
 }
@@ -141,7 +145,6 @@ Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
 void			Framebuffer::setup_attachements()
 {
 	unsigned		i;
-	GLenum			a;
 	GLenum			format[2];
 	std::vector<GLenum>			color_attachements;
 
@@ -149,9 +152,8 @@ void			Framebuffer::setup_attachements()
 	while (i < _color_attachements.size())
 	{
 		attachement(i)->format(&format[0], &format[1]);
-		a = GL_COLOR_ATTACHMENT0 + i;
-		if (format[0] != GL_DEPTH_ATTACHMENT) {
-			color_attachements.push_back(a);
+		if (format[0] != GL_DEPTH_COMPONENT) {
+			color_attachements.push_back(GL_COLOR_ATTACHMENT0 + i);
 		}
 		i++;
 	}

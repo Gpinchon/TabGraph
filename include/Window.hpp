@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:50:23 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/07 17:22:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/01 19:17:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 class	Window : InputDevice
 {
 public :
-	static void		resize();
+	static void		resize(const VEC2 &);
 	static VEC2		size();
 	static VEC2		internal_resolution();
 	static void		init(const std::string &name, int width, int height);
@@ -26,7 +26,7 @@ public :
 	static void		swap();
 	static GLbitfield	&clear_mask();
 	static VEC4			&clear_color();
-	static Framebuffer	&render_buffer();
+	//static Framebuffer	&render_buffer();
 	void				process_event(SDL_Event *);
 private :
 	static Window	&_get();
@@ -35,6 +35,6 @@ private :
 	SDL_GLContext	_gl_context{};
 	VEC4		    _clear_color{0, 0, 0, 0};
 	GLbitfield  	_clear_mask{};
-	Framebuffer		*_render_buffer{nullptr};
+	//Framebuffer		*_render_buffer{nullptr};
 	Window();
 };

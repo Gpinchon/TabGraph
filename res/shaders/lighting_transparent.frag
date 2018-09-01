@@ -21,9 +21,11 @@ uniform sampler2D	in_Texture_Fresnel;
 uniform sampler2D	in_Texture_Emitting;
 uniform sampler2D	in_Texture_Material_Values;
 uniform sampler2D	in_Texture_BRDF;
+uniform sampler2D	in_Texture_AO;
 uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
+
 uniform sampler2D	in_Back_Color;
 uniform sampler2D	in_Back_Bright;
 
@@ -108,9 +110,11 @@ void main()
 	const vec3	BRDF = texture(in_Texture_BRDF, frag_UV).rgb;
 	vec3	Normal = texture(in_Texture_Normal, frag_UV).xyz;
 	const vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
+	const float	AO = 1 - texture(in_Texture_AO, frag_UV).r;
+
+
 	const float	Roughness = Material_Values.x;
 	const float	Metallic = Material_Values.y;
-	float	AO = Material_Values.z;
 	const float	Ior = BRDF.z;
 
 	vec3	V = normalize(in_CamPos - Position);
@@ -119,14 +123,15 @@ void main()
 		Normal = -Normal;
 		NdV = -NdV;
 	}
-	AO = clamp(1 - AO, 0, 1);
 
 	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
 			+ texture(Environment.Irradiance, -Normal).rgb);
+	diffuse *= Albedo.a;
 	vec3	R = reflect(V, Normal);
-	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 1.5f).rgb;
+	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 2.f).rgb;
 	vec3	specular = texture(Environment.Irradiance, R).rgb;
 	vec3	reflection_spec = reflection;//sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb;
+
 	reflection *= Fresnel;
 
 	vec2	refract_UV = frag_UV;
@@ -155,8 +160,11 @@ void main()
 	Albedo.a += dot(specular, specular);
 	Albedo.a = min(1, Albedo.a);
 
+	Back_Color = mix(Back_Color, Back_Color * Albedo.rgb, Albedo.a);
+	Back_Bright = mix(Back_Bright, Back_Bright * Albedo.rgb, Albedo.a);
+
 	out_Color.rgb = specular + diffuse + reflection;
-	out_Color.rgb = mix(Back_Color * Albedo.rgb, out_Color.rgb, Albedo.a);
+	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
 	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Emitting.rgb;
-	out_Emitting.rgb = mix(Back_Bright * Albedo.rgb, out_Emitting.rgb, Albedo.a);
+	out_Emitting.rgb = mix(Back_Bright, out_Emitting.rgb, Albedo.a);
 }

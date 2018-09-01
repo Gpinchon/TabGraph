@@ -1,6 +1,6 @@
 #version 430
 #pragma optionNV (unroll all)
-#define	KERNEL_SIZE 12
+#define	KERNEL_SIZE 9
 
 precision lowp float;
 precision lowp int;
@@ -8,18 +8,9 @@ precision lowp sampler2D;
 precision lowp samplerCube;
 
 uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
-	vec2(-.326,-.406),
-	vec2(-.840,-.074),
-	vec2(-.696, .457),
-	vec2(-.203, .621),
-	vec2( .962,-.195),
-	vec2( .473,-.480),
-	vec2( .519, .767),
-	vec2( .185,-.893),
-	vec2( .507, .064),
-	vec2( .896, .412),
-	vec2(-.322,-.933),
-	vec2(-.792,-.598));
+	vec2(0.95581, -0.18159), vec2(0.50147, -0.35807), vec2(0.69607, 0.35559),
+	vec2(-0.0036825, -0.59150),	vec2(0.15930, 0.089750), vec2(-0.65031, 0.058189),
+	vec2(0.11915, 0.78449),	vec2(-0.34296, 0.51575), vec2(-0.60380, -0.41527));
 
 /* uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(-0.613392, 0.617481),
@@ -87,62 +78,69 @@ uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(-0.545396, 0.538133),
 	vec2(-0.178564, -0.596057)); */
 
-layout(location = 0) out vec4	out_Albedo;
-layout(location = 1) out vec4	out_Fresnel;
-layout(location = 2) out vec4	out_Emitting;
-layout(location = 3) out vec4	out_Material_Values; //Roughness, Metallic, AO
-layout(location = 4) out vec4	out_BRDF;
-layout(location = 5) out vec4	out_Normal;
-layout(location = 6) out vec4	out_Position;
+layout(location = 0) out vec4	out_Albedo; // Albedo;
+layout(location = 1) out vec4	out_Emitting; // Emitting;
+layout(location = 2) out vec4	out_Fresnel; // Fresnel;
+layout(location = 3) out vec4	out_Material_Values; // Material_Values -> Roughness, Metallic, Ior
+layout(location = 4) out vec4	out_BRDF;// BRDF
+layout(location = 5) out vec4	out_AO;//AO
+layout(location = 6) out vec4	out_Normal;// Normal;
+layout(location = 7) out vec4	out_Position;// Position;
 
 uniform sampler2D	in_Texture_Albedo;
 uniform sampler2D	in_Texture_Fresnel;
 uniform sampler2D	in_Texture_Emitting;
 uniform sampler2D	in_Texture_Material_Values;
+uniform sampler2D	in_Texture_Ior;
 uniform sampler2D	in_Texture_BRDF;
+uniform sampler2D	in_Texture_AO;
 uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
 
 in vec2	frag_UV;
 
+float random(in vec3 seed, in float freq)
+{
+   float dt = dot(floor(seed * freq), vec3(53.1215, 21.1352, 9.1322));
+   return fract(sin(dt) * 2105.2354);
+}
+
+float randomAngle(in vec3 seed, in float freq)
+{
+   return random(seed, freq) * 6.283285;
+}
+
 void main()
 {
-	vec4	Albedo = texture(in_Texture_Albedo, frag_UV);
-	vec4	Fresnel = texture(in_Texture_Fresnel, frag_UV);
-	vec4	Emitting = texture(in_Texture_Emitting, frag_UV);
-	vec4	Material_Values = texture(in_Texture_Material_Values, frag_UV);
-	vec4	BRDF = texture(in_Texture_BRDF, frag_UV);
-	vec4	Normal = texture(in_Texture_Normal, frag_UV);
-	vec4	Position = texture(in_Texture_Position, frag_UV);
-	gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
+	out_Normal = texture(in_Texture_Normal, frag_UV);
+	out_Position = texture(in_Texture_Position, frag_UV);
+	const float	Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 
-	ivec2	tSize = textureSize(in_Texture_Position, 0);
-	vec2	sampledist = tSize / 1024.f * 10.f;
-	vec2	sampleOffset = sampledist / tSize;
+	float	sampleOffset = 0.5f * (1 - Depth);
+	float	sampleAngle = randomAngle(out_Position.xyz, 1024);
+	float	s = sin(sampleAngle);
+	float	c = cos(sampleAngle);
+	vec2	sampleRotation = vec2(c, -s);
 	float	occlusion = 0.f;
-	for (int i = 0; i < KERNEL_SIZE; ++i)
+	for (int i = 0; i < KERNEL_SIZE; i++)
 	{
-		vec2	sampleUV = frag_UV + poissonDisk[i] * sampleOffset;
-		vec3	samplePosition = texelFetch(in_Texture_Position, ivec2(tSize * sampleUV), 0).xyz;
-		vec3	sampleNormal = texelFetch(in_Texture_Normal, ivec2(tSize * sampleUV), 0).xyz;
-		vec3	V = samplePosition - Position.xyz;
+		vec2	sampleUV = frag_UV + poissonDisk[i] * sampleRotation * sampleOffset;
+		vec3	samplePosition = texture(in_Texture_Position, sampleUV).xyz;
+		vec3	V = samplePosition - out_Position.xyz;
 		float	D = length(V);
-		float	bias = D + 0.0025;
-		float	factor = max(0, dot(Normal.xyz, normalize(V)));
-		if (factor <= 0.5 && dot(sampleNormal, Normal.xyz) >= 0.8f)
-			continue ;
+		float	bias = D + 0.025;
+		float	factor = max(0, dot(out_Normal.xyz, normalize(V)));
 		float	angle = max(0, factor - bias);
 		occlusion += (angle * (1.f / (1.f + D)));
 	}
 	occlusion /= float(KERNEL_SIZE);
-	Material_Values.z += occlusion;
-	Material_Values.z = clamp(Material_Values.z, 0, 1);
-	out_Albedo = Albedo;
-	out_Fresnel = Fresnel;
-	out_Emitting = Emitting;
-	out_Material_Values = Material_Values;
-	out_BRDF = BRDF;
-	out_Normal = Normal;
-	out_Position = Position;
+
+	out_Albedo = texture(in_Texture_Albedo, frag_UV);
+	out_Fresnel = texture(in_Texture_Fresnel, frag_UV);
+	out_Emitting = texture(in_Texture_Emitting, frag_UV);
+	out_Material_Values = texture(in_Texture_Material_Values, frag_UV);
+	out_BRDF = texture(in_Texture_BRDF, frag_UV);
+	out_AO = texture(in_Texture_AO, frag_UV);
+	out_AO.r += occlusion;
 }

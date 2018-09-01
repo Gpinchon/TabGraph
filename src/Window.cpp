@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/26 22:52:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/01 19:18:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ void	Window::process_event(SDL_Event *event)
 		Engine::stop();
 	}
 	else if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
-		Window::resize();
+		//Window::resize();
 	}
 }
 
@@ -85,7 +85,7 @@ void		Window::init(const std::string &name, int width, int height)
 	//	Engine::program_path() + "./res/shaders/shadow.vert", Engine::program_path() + "./res/shaders/shadow.frag");
 	//GLSL::parse("blur",
 	//	Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
-	_get()._render_buffer = Framebuffer::create("window_render_buffer", Window::internal_resolution(), nullptr, 7, 1);
+	//_get()._render_buffer = create_render_buffer("window_render_buffer", Window::internal_resolution(), nullptr);//Framebuffer::create("window_render_buffer", Window::internal_resolution(), nullptr, 7, 1);
 	//_get()._render_buffer = Framebuffer::create("window_render_buffer", Window::internal_resolution(), Shader::get_by_name("lighting"), 7, 1);
 /*	_get().render_buffer().create_attachement(GL_RGBA, GL_RGBA16F_ARB);
 	_get().render_buffer().create_attachement(GL_RGB, GL_RGB16F_ARB);
@@ -114,27 +114,23 @@ VEC2		Window::size()
 	return (new_vec2(w, h));
 }
 
-void		Window::resize()
+void		Window::resize(const VEC2 &size)
 {
-	VEC2		size{0, 0};
-	static VEC2	lastSize = new_vec2(0, 0);
+	SDL_SetWindowSize(_get()._sdl_window, size.x, size.y);
+	/*VEC2		size{0, 0};
+	//static VEC2	lastSize = new_vec2(0, 0);
 
 	size = vec2_scale(Window::size(),
-		Engine::internal_quality());
-	if (lastSize.x != size.x || lastSize.y != size.y)
+		Engine::internal_quality());*/
+	/*if (lastSize.x != size.x || lastSize.y != size.y)
 	{
 		Window::render_buffer().resize(size);
 		lastSize = size;
-	}
+	}*/
 }
 
 void		Window::fullscreen(const bool &fullscreen)
 {
 	SDL_SetWindowFullscreen(_get()._sdl_window,
 		fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-}
-
-Framebuffer	&Window::render_buffer()
-{
-	return (*_get()._render_buffer);
 }
