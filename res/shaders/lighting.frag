@@ -118,7 +118,7 @@ void main()
 	specular += reflection_spec;
 	diffuse *= Albedo.rgb * (1 - Metallic);
 
-	out_Color.rgb = specular + diffuse + reflection;
+	out_Color.rgb = specular + diffuse + reflection + Emitting;
 	out_Color.rgb = mix(EnvDiffuse, out_Color.rgb, Albedo.a);
 	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Emitting;
 }

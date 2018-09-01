@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/01 22:15:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/01 23:58:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,9 +56,17 @@ Framebuffer	*create_render_buffer(const std::string &name, const VEC2 &size, Sha
 	buffer->create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Material_Values -> Roughness, Metallic, Ior
 	buffer->create_attachement(GL_RG, GL_RG8); // BRDF
 	buffer->create_attachement(GL_RED, GL_R8); //AO
-	buffer->create_attachement(GL_RGB, GL_RGB16F); // Normal;
+	buffer->create_attachement(GL_RGB, GL_RGBA8_SNORM); // Normal;
 	buffer->create_attachement(GL_RGB, GL_RGB16F); // Position;
-	//buffer->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
+	buffer->setup_attachements();
+	return (buffer);
+}
+
+Framebuffer	*create_back_buffer(const std::string &name, const VEC2 &size, Shader *shader)
+{
+	auto	buffer = Framebuffer::create(name, size, shader, 0, 1);
+	buffer->create_attachement(GL_RGBA, GL_RGBA8); // Color;
+	buffer->create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
 	buffer->setup_attachements();
 	return (buffer);
 }
@@ -67,7 +75,7 @@ void	Render::scene()
 {
 	static auto	temp_buffer = create_render_buffer("temp_buffer", Window::internal_resolution(), nullptr);
 	static auto	temp_buffer1 = create_render_buffer("temp_buffer1", Window::internal_resolution(), nullptr);
-	static auto	back_buffer = Framebuffer::create("back_buffer", Window::internal_resolution(), nullptr, 2, 1);
+	static auto	back_buffer = create_back_buffer("back_buffer", Window::internal_resolution(), nullptr);
 	static auto	passthrough_shader = GLSL::parse("passthrough", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/passthrough.frag");
 	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting.frag");
 	static auto	tlighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting_transparent.frag");

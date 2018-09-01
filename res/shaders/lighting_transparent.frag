@@ -163,7 +163,7 @@ void main()
 	Back_Color = mix(Back_Color, Back_Color * Albedo.rgb, Albedo.a);
 	Back_Bright = mix(Back_Bright, Back_Bright * Albedo.rgb, Albedo.a);
 
-	out_Color.rgb = specular + diffuse + reflection;
+	out_Color.rgb = specular + diffuse + reflection + Emitting;
 	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
 	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Emitting.rgb;
 	out_Emitting.rgb = mix(Back_Bright, out_Emitting.rgb, Albedo.a);
