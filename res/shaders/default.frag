@@ -185,7 +185,7 @@ void	main()
 	out_Normal.a = 1;
 	out_Position.a = 1;
 
-	out_Albedo = vec4(albedo.rgb, albedo.a);
+	out_Albedo = vec4(albedo.rgb + emitting, albedo.a);
 	out_Fresnel.rgb = fresnel;
 	out_Emitting.rgb = max(vec3(0), albedo.rgb - 1) + emitting;
 	out_Material_Values.x = roughness;

@@ -160,11 +160,16 @@ void main()
 	Albedo.a += dot(specular, specular);
 	Albedo.a = min(1, Albedo.a);
 
-	Back_Color = mix(Back_Color, Back_Color * Albedo.rgb, Albedo.a);
-	Back_Bright = mix(Back_Bright, Back_Bright * Albedo.rgb, Albedo.a);
+	//Back_Color += Back_Bright;
+	Back_Color *= Albedo.rgb;//mix(Back_Color, Back_Color * Albedo.rgb, Albedo.a);
+	Back_Bright *= Albedo.rgb;//mix(Back_Bright, Back_Bright * Albedo.rgb, Albedo.a);
 
 	out_Color.rgb = specular + diffuse + reflection + Emitting;
-	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
+	out_Color.rgb = Albedo.a * (out_Color.rgb - Back_Color) + Back_Color;
+	//out_Color.rgb = Albedo.a * out_Color.rgb + (1 - Albedo.a) * Back_Color;
+	//out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
 	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Emitting.rgb;
-	out_Emitting.rgb = mix(Back_Bright, out_Emitting.rgb, Albedo.a);
+	out_Emitting.rgb = Albedo.a * (out_Emitting.rgb - Back_Bright) + Back_Bright;
+	//out_Emitting.rgb = Albedo.a * out_Emitting.rgb + (1 - Albedo.a) * Back_Bright;
+	//out_Emitting.rgb = mix(Back_Bright + out_Emitting.rgb, out_Emitting.rgb, Albedo.a);
 }

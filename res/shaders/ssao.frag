@@ -115,7 +115,16 @@ void main()
 {
 	out_Normal = texture(in_Texture_Normal, frag_UV);
 	out_Position = texture(in_Texture_Position, frag_UV);
+	out_Albedo = texture(in_Texture_Albedo, frag_UV);
+	out_Fresnel = texture(in_Texture_Fresnel, frag_UV);
+	out_Emitting = texture(in_Texture_Emitting, frag_UV);
+	out_Material_Values = texture(in_Texture_Material_Values, frag_UV);
+	out_BRDF = texture(in_Texture_BRDF, frag_UV);
+	out_AO = texture(in_Texture_AO, frag_UV);
 	const float	Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
+
+	if (Depth == 1)
+		return ;
 
 	float	sampleOffset = 0.5f * (1 - Depth);
 	float	sampleAngle = randomAngle(out_Position.xyz, 1024);
@@ -135,12 +144,5 @@ void main()
 		occlusion += (angle * (1.f / (1.f + D)));
 	}
 	occlusion /= float(KERNEL_SIZE);
-
-	out_Albedo = texture(in_Texture_Albedo, frag_UV);
-	out_Fresnel = texture(in_Texture_Fresnel, frag_UV);
-	out_Emitting = texture(in_Texture_Emitting, frag_UV);
-	out_Material_Values = texture(in_Texture_Material_Values, frag_UV);
-	out_BRDF = texture(in_Texture_BRDF, frag_UV);
-	out_AO = texture(in_Texture_AO, frag_UV);
 	out_AO.r += max(0, occlusion);
 }

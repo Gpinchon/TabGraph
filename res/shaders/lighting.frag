@@ -105,11 +105,11 @@ void main()
 	if (Albedo.a == 0) {
 		out_Color.rgb = EnvDiffuse;
 		brightness = dot(pow(out_Color.rgb, envGammaCorrection), brightnessDotValue);
-		out_Emitting.rgb = max(vec3(0), out_Color.rgb - 0.6) * min(1, brightness);
+		out_Emitting.rgb = max(vec3(0), (out_Color.rgb - 0.8) * min(1, brightness));
 		return ;
 	}
-	out_Color.a = Albedo.a;
-	out_Emitting.a = Albedo.a;
+	out_Color.a = 1;
+	out_Emitting.a = 1;
 
 	float	NdV = max(0, dot(Normal, V));
 	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
@@ -118,7 +118,7 @@ void main()
 	specular += reflection_spec;
 	diffuse *= Albedo.rgb * (1 - Metallic);
 
-	out_Color.rgb = specular + diffuse + reflection + Emitting;
+	out_Color.rgb = specular + diffuse + reflection;
 	out_Color.rgb = mix(EnvDiffuse, out_Color.rgb, Albedo.a);
 	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Emitting;
 }
