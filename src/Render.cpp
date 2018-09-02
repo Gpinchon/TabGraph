@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/01 23:58:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/02 15:43:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ void	Render::scene()
 	static auto	temp_buffer = create_render_buffer("temp_buffer", Window::internal_resolution(), nullptr);
 	static auto	temp_buffer1 = create_render_buffer("temp_buffer1", Window::internal_resolution(), nullptr);
 	static auto	back_buffer = create_back_buffer("back_buffer", Window::internal_resolution(), nullptr);
+	static auto	back_buffer1 = create_back_buffer("back_buffer1", Window::internal_resolution(), nullptr);
 	static auto	passthrough_shader = GLSL::parse("passthrough", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/passthrough.frag");
 	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting.frag");
 	static auto	tlighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting_transparent.frag");
@@ -84,6 +85,7 @@ void	Render::scene()
 	temp_buffer->resize(Window::internal_resolution());
 	temp_buffer1->resize(Window::internal_resolution());
 	back_buffer->resize(Window::internal_resolution());
+	back_buffer1->resize(Window::internal_resolution());
 
 	/*
 	** TODO :
@@ -212,7 +214,7 @@ void	Render::scene()
 	back_buffer->attachement(0)->generate_mipmap();
 	back_buffer->attachement(1)->generate_mipmap();
 
-	temp_buffer->bind();
+	back_buffer1->bind();
 	tlighting_shader->use();
 	tlighting_shader->set_uniform("in_CamPos", Engine::current_camera()->position());
 	tlighting_shader->set_uniform("in_ViewMatrix", Engine::current_camera()->view);
@@ -235,13 +237,14 @@ void	Render::scene()
 	tlighting_shader->use(false);
 
 	// GENERATE BLOOM FROM out_Brightness
-	temp_buffer->attachement(1)->blur(BLOOMPASS, 2.5);
+	back_buffer1->attachement(1)->blur(BLOOMPASS, 2.5);
 
+	glEnable(GL_DEPTH_TEST);
 	Framebuffer::bind_default();
 	presentShader->use();
-	presentShader->bind_texture("in_Texture_Color", temp_buffer->attachement(0), GL_TEXTURE0);
-	presentShader->bind_texture("in_Texture_Emitting", temp_buffer->attachement(1), GL_TEXTURE1);
-	presentShader->bind_texture("in_Texture_Depth", temp_buffer->depth(), GL_TEXTURE2);
+	presentShader->bind_texture("in_Texture_Color", back_buffer1->attachement(0), GL_TEXTURE0);
+	presentShader->bind_texture("in_Texture_Emitting", back_buffer1->attachement(1), GL_TEXTURE1);
+	presentShader->bind_texture("in_Texture_Depth", back_buffer1->depth(), GL_TEXTURE2);
 	Render::display_quad()->draw();
 	presentShader->use(false);
 }

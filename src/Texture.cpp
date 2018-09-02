@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/01 21:19:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/02 14:58:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -364,7 +364,7 @@ static Framebuffer	*generate_blur_fb()
 {
 	auto	blurShader = GLSL::parse("blur", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
 	auto	blur = Framebuffer::create("blur", vec2_scale(Window::size(), Engine::internal_quality()), blurShader, 0, 0);
-	blur->create_attachement(GL_RGBA, GL_RGBA16F);
+	blur->create_attachement(GL_RGBA, GL_RGBA8);
 	blur->setup_attachements();
 	return (blur);
 }

@@ -154,7 +154,7 @@ void	main()
 	if (Material.Texture.Use_Albedo) {
 		albedo *= albedo_sample;
 	}
-	if (albedo.a <= 0.05
+	if (albedo.a <= 0.01
 	|| vt.x > (frag_UVMax.x) || vt.y > (frag_UVMax.y)
 	|| vt.x < (frag_UVMin.x) || vt.y < (frag_UVMin.y))
 		discard;
@@ -185,7 +185,7 @@ void	main()
 	out_Normal.a = 1;
 	out_Position.a = 1;
 
-	out_Albedo = vec4(albedo.rgb + emitting.rgb, albedo.a);
+	out_Albedo = vec4(albedo.rgb, albedo.a);
 	out_Fresnel.rgb = fresnel;
 	out_Emitting.rgb = max(vec3(0), albedo.rgb - 1) + emitting;
 	out_Material_Values.x = roughness;
