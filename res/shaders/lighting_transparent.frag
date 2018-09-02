@@ -115,7 +115,7 @@ void main()
 
 	const float	Roughness = Material_Values.x;
 	const float	Metallic = Material_Values.y;
-	const float	Ior = BRDF.z;
+	const float	Ior = Material_Values.z;
 
 	vec3	V = normalize(in_CamPos - Position);
 	float	NdV = dot(Normal, V);

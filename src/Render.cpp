@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/02 15:43:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/02 18:20:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,7 @@ void	Render::scene()
 	glClearColor(0, 0, 0, 0);
 	temp_buffer1->bind();
 	glClear(Window::clear_mask());
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	Renderable *node;
@@ -109,7 +110,6 @@ void	Render::scene()
 		** APPLY POST-TREATMENT
 		*/
 		temp_buffer->bind();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shader->use();
 		shader->bind_texture("in_Texture_Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
 		shader->bind_texture("in_Texture_Emitting",			temp_buffer1->attachement(1), GL_TEXTURE1);
@@ -141,7 +141,6 @@ void	Render::scene()
 		passthrough_shader->use(false);
 	}
 
-	//temp_buffer1->attachement(3)->blur(1, 1.5);
 	auto	InvViewMatrix = mat4_inverse(Engine::current_camera()->view);
 	auto	InvProjMatrix = mat4_inverse(Engine::current_camera()->projection);
 
@@ -173,7 +172,7 @@ void	Render::scene()
 	** WRITE DEPTH FOR FUTUR USE
 	*/
 	temp_buffer1->bind();
-	//glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_CULL_FACE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);

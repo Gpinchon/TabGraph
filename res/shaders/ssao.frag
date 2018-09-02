@@ -142,5 +142,5 @@ void main()
 	out_Material_Values = texture(in_Texture_Material_Values, frag_UV);
 	out_BRDF = texture(in_Texture_BRDF, frag_UV);
 	out_AO = texture(in_Texture_AO, frag_UV);
-	out_AO.r += min(0, occlusion);
+	out_AO.r += max(0, occlusion);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/02 14:58:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/02 17:57:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -360,50 +360,59 @@ void	Texture::resize(const VEC2 &ns)
 }
 
 
-static Framebuffer	*generate_blur_fb()
+Framebuffer	*Texture::_generate_blur_buffer(const std::string &bname)
 {
-	auto	blurShader = GLSL::parse("blur", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
-	auto	blur = Framebuffer::create("blur", vec2_scale(Window::size(), Engine::internal_quality()), blurShader, 0, 0);
-	blur->create_attachement(GL_RGBA, GL_RGBA8);
-	blur->setup_attachements();
-	return (blur);
+	static auto	blurShader = GLSL::parse("blur", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
+	auto	buffer = Framebuffer::create(bname, size(), blurShader, 0, 0);
+	buffer->create_attachement(_format, _internal_format);
+	buffer->setup_attachements();
+	return (buffer);
 }
 
 void	Texture::blur(const int &pass, const float &radius)
 {
-	static Framebuffer	*blur = nullptr;
-
-	if (blur == nullptr) {
-		blur = generate_blur_fb();
-	}
-	blur->resize(size());
-	blur->bind();
-	glDisable(GL_DEPTH_TEST);
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	blur->shader()->use();
-	//glBindVertexArray(Render::display_quad()->glid());
-	auto totalPass = pass * 4;
-	auto	texture = this;
-	auto	color0 = blur->attachement(0);
+	if (pass == 0)
+		return ;
+	if (_blur_buffer0 == nullptr)
+		_blur_buffer0 = _generate_blur_buffer("blur0");
+	if (_blur_buffer1 == nullptr)
+		_blur_buffer1 = _generate_blur_buffer("blur1");
+	_blur_buffer0->resize(size());
+	_blur_buffer1->resize(size());
+	
+	auto	totalPass = pass * 4;
+	auto	cbuffer = _blur_buffer0;
+	auto	ctexture = this;
 	float	angle = 0;
+	Texture	*attachement = nullptr;
+	cbuffer->shader()->use();
 	while (totalPass > 0)
 	{
 		VEC2			direction;
-		Texture			*temp;
 		direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
 		direction = vec2_scale(direction, radius);
-		blur->shader()->bind_texture("in_Texture_Color", texture, GL_TEXTURE0);
-		blur->shader()->set_uniform("in_Direction", direction);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color0->glid(), 0);
+		cbuffer->bind();
+		if (totalPass == 1) {
+			attachement = cbuffer->attachement(0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glid(), 0);
+		}
+		cbuffer->shader()->set_uniform("in_Direction", direction);
+		cbuffer->shader()->bind_texture("in_Texture_Color", ctexture, GL_TEXTURE0);
 		Render::display_quad()->draw();
 		angle = CYCLE(angle + (M_PI / 4.f), 0, M_PI);
-		temp = texture;
-		texture = color0;
-		color0 = temp;
+		if (totalPass == 1)
+			break ;
+		if (totalPass % 2 == 0) {
+			cbuffer = _blur_buffer1;
+			ctexture = _blur_buffer0->attachement(0);
+		}
+		else {
+			cbuffer = _blur_buffer0;
+			ctexture = _blur_buffer1->attachement(0);
+		}
 		totalPass--;
 	}
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blur->attachement(0)->glid(), 0);
-	blur->shader()->use(false);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, attachement->glid(), 0);
+	cbuffer->shader()->use(false);
+	Framebuffer::bind_default();
 }

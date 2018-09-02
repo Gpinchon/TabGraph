@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/24 19:35:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/02 18:03:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include "GLIncludes.hpp"
 #include "Object.hpp"
 #include <string>
+class	Framebuffer;
 
 class	Texture : public Object
 {
@@ -60,6 +61,9 @@ protected:
 	GLenum		_internal_format;
 	GLubyte		*_data{nullptr};
 	bool		_loaded;
+	Framebuffer	*_blur_buffer0{nullptr};
+	Framebuffer	*_blur_buffer1{nullptr};
+	Framebuffer	*_generate_blur_buffer(const std::string &);
 	Texture(const std::string &name);
 };
 
