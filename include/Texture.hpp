@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/02 18:03:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 19:27:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include "GLIncludes.hpp"
 #include "Object.hpp"
 #include <string>
+#include <unordered_map>
+
 class	Framebuffer;
 
 class	Texture : public Object
@@ -26,12 +28,14 @@ public:
 	static size_t	get_bpp(GLenum texture_format, GLenum data_type);
 	virtual bool	is_loaded();
 	virtual void	resize(const VEC2 &ns);
-	virtual void	set_parameter(GLenum p, GLenum v);
+	virtual void	set_parameteri(GLenum p, GLenum v);
+	virtual void	set_parameterf(GLenum p, float v);
 	virtual void	set_parameters(int p_nbr,
 						GLenum *p, GLenum *v);
 	virtual void	assign(Texture &dest_texture,
 						GLenum target);
 	virtual void	load();
+	virtual void	unload();
 	virtual void	generate_mipmap();
 	virtual void	blur(const int &pass, const float &radius);
 	virtual GLenum	target() const;
@@ -51,6 +55,8 @@ public:
 	template <typename T>
 	T					*at(float u, float v);
 protected:
+	Texture(const std::string &name);
+	Texture(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
 	GLuint		_glid;
 	VEC2		_size;
 	char		_bpp;
@@ -60,11 +66,12 @@ protected:
 	GLenum		_format;
 	GLenum		_internal_format;
 	GLubyte		*_data{nullptr};
-	bool		_loaded;
+	bool		_loaded{false};
 	Framebuffer	*_blur_buffer0{nullptr};
 	Framebuffer	*_blur_buffer1{nullptr};
 	Framebuffer	*_generate_blur_buffer(const std::string &);
-	Texture(const std::string &name);
+	std::unordered_map<GLenum, GLenum>	_parametersi;
+	std::unordered_map<GLenum, float>	_parametersf;
 };
 
 template <typename T>

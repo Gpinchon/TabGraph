@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/30 18:45:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 17:40:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,9 @@ public:
 	static Environment *parse(const std::string &, const std::string &);
 	Environment();
 	~Environment() = default;
+	void	unload();
 	Cubemap	*diffuse;
-	Cubemap *brdf;
+	Cubemap *irradiance;
 };
 
 typedef bool (*renderable_compare)(Renderable *m, Renderable *m1);

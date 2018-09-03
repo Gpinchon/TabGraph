@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/02 17:57:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 20:01:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,37 +31,38 @@ _internal_format(0),
 _data(nullptr),
 _loaded(false)
 {
+	glGenTextures(1, &_glid);
 	set_name(name);
 }
 
-Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target,GLenum f, GLenum fi, GLenum data_format, void *data)
+Texture::Texture(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data) : Texture(name)
+{
+	_target = target;
+	_format = f;
+	_internal_format = fi;
+	_data_format = data_format;
+	_data_size = get_data_size(data_format);
+	_data = static_cast<GLubyte*>(data);
+	_bpp = get_bpp(f, data_format);
+	_size = s;
+	if (values_per_pixel() < 4) {
+		set_parameteri(GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	}
+	set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
+#ifdef GL_DEBUG
+	glBindTexture(_target, _glid);
+	glObjectLabel(GL_TEXTURE, _glid, -1, name.c_str());
+	glBindTexture(_target, 0);
+#endif //GL_DEBUG
+}
+
+Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data)
 {
 	Texture	*t;
 
-	t = new Texture(name);
-	t->_target = target;
-	t->_format = f;
-	t->_internal_format = fi;
-	t->_data_format = data_format;
-	t->_data_size = get_data_size(data_format);
-	t->_data = static_cast<GLubyte*>(data);
-	t->_bpp = get_bpp(f, data_format);
-	t->_size = s;
-	glGenTextures(1, &t->_glid);
-	glBindTexture(t->_target, t->_glid);
-	if (s.x > 0 && s.y > 0) {
-		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->_data_format, nullptr);
-	}
-	if (f != GL_RGBA && f != GL_BGRA) {
-		glTexParameteri(t->_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-	}
-	glTexParameteri(t->_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(t->_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(t->_target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
-	glBindTexture(t->_target, 0);
-#ifdef GL_DEBUG
-	glObjectLabel(GL_TEXTURE, t->_glid, -1, name.c_str());
-#endif //GL_DEBUG
+	t = new Texture(name, s, target, f, fi, data_format, data);
 	Engine::add(*t);
 	return (t);
 }
@@ -122,12 +123,25 @@ void	*Texture::data() const
 
 void	Texture::assign(Texture &dest_texture, GLenum target)
 {
+	//if (!_loaded)
+	//	load();
 	glBindTexture(_target, _glid);
 	glBindTexture(dest_texture._target, dest_texture._glid);
 	glTexImage2D(target, 0, dest_texture._internal_format, dest_texture._size.x, dest_texture._size.y, 0,
 		dest_texture._format, dest_texture._data_format, dest_texture._data);
 	glBindTexture(_target, 0);
 	glBindTexture(dest_texture._target, 0);
+}
+
+
+void	Texture::unload()
+{
+	if (!_loaded) {
+		return ;
+	}
+	glDeleteTextures(1, &_glid);
+	_loaded = false;
+	_glid = 0u;
 }
 
 void	Texture::load()
@@ -144,21 +158,27 @@ void	Texture::load()
 		glGenTextures(1, &_glid);
 	}
 	glBindTexture(_target, _glid);
-	if (_data_size && _bpp / _data_size / 8 < 4) { //if texture has no alpha (_bpp / _data_size / 8) equals values per texel
-		glTexParameteri(_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-	}
 	if (_size.x > 0 && _size.y > 0) {
-		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0,
-			_format, _data_format, _data);
+		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format, _data_format, _data);
 	}
-	glGenerateMipmap(_target);
+	for (auto p : _parametersi) {
+		glTexParameteri(_target, p.first, p.second);
+	}
+	for (auto p : _parametersf) {
+		glTexParameterf(_target, p.first, p.second);
+	}
+	//glGenerateMipmap(_target);
+	generate_mipmap();
 	glBindTexture(_target, 0);
 	_loaded = true;
+#ifdef GL_DEBUG
+	glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
+#endif //GL_DEBUG
 }
 
 void	Texture::generate_mipmap()
 {
-	set_parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glBindTexture(_target, _glid);
 	glGenerateMipmap(_target);
 	glBindTexture(_target, 0);
@@ -211,7 +231,7 @@ size_t	Texture::data_size()
 
 size_t	Texture::values_per_pixel()
 {
-	return (_bpp / _data_size / 8);
+	return (_data_size ? _bpp / _data_size / 8 : 0);
 }
 
 GLubyte	*Texture::texelfetch(const VEC2 &uv)
@@ -268,8 +288,17 @@ void	Texture::set_pixel(const VEC2 &uv, const GLubyte *value)
 	}
 }
 
-void	Texture::set_parameter(GLenum p, GLenum v)
+void	Texture::set_parameterf(GLenum p, float v)
 {
+	_parametersf[p] = v;
+	glBindTexture(_target, _glid);
+	glTexParameterf(_target, p, v);
+	glBindTexture(_target, 0);
+}
+
+void	Texture::set_parameteri(GLenum p, GLenum v)
+{
+	_parametersi[p] = v;
 	glBindTexture(_target, _glid);
 	glTexParameteri(_target, p, v);
 	glBindTexture(_target, 0);
@@ -362,8 +391,7 @@ void	Texture::resize(const VEC2 &ns)
 
 Framebuffer	*Texture::_generate_blur_buffer(const std::string &bname)
 {
-	static auto	blurShader = GLSL::parse("blur", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
-	auto	buffer = Framebuffer::create(bname, size(), blurShader, 0, 0);
+	auto	buffer = Framebuffer::create(bname, size(), nullptr, 0, 0);
 	buffer->create_attachement(_format, _internal_format);
 	buffer->setup_attachements();
 	return (buffer);
@@ -379,29 +407,31 @@ void	Texture::blur(const int &pass, const float &radius)
 		_blur_buffer1 = _generate_blur_buffer("blur1");
 	_blur_buffer0->resize(size());
 	_blur_buffer1->resize(size());
+
+	static auto	blurShader = GLSL::parse("blur", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
 	
 	auto	totalPass = pass * 4;
 	auto	cbuffer = _blur_buffer0;
 	auto	ctexture = this;
 	float	angle = 0;
 	Texture	*attachement = nullptr;
-	cbuffer->shader()->use();
+	blurShader->use();
 	while (totalPass > 0)
 	{
 		VEC2			direction;
 		direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
 		direction = vec2_scale(direction, radius);
-		cbuffer->bind();
 		if (totalPass == 1) {
 			attachement = cbuffer->attachement(0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glid(), 0);
+			cbuffer->set_attachement(0, this);
 		}
-		cbuffer->shader()->set_uniform("in_Direction", direction);
-		cbuffer->shader()->bind_texture("in_Texture_Color", ctexture, GL_TEXTURE0);
+		cbuffer->bind();
+		blurShader->set_uniform("in_Direction", direction);
+		blurShader->bind_texture("in_Texture_Color", ctexture, GL_TEXTURE0);
 		Render::display_quad()->draw();
 		angle = CYCLE(angle + (M_PI / 4.f), 0, M_PI);
 		if (totalPass == 1)
-			break ;
+			cbuffer->set_attachement(0, attachement);
 		if (totalPass % 2 == 0) {
 			cbuffer = _blur_buffer1;
 			ctexture = _blur_buffer0->attachement(0);
@@ -412,7 +442,6 @@ void	Texture::blur(const int &pass, const float &radius)
 		}
 		totalPass--;
 	}
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, attachement->glid(), 0);
-	cbuffer->shader()->use(false);
+	blurShader->use(false);
 	Framebuffer::bind_default();
 }

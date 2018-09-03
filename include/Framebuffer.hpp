@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/01 20:21:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 19:44:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ public :
 	bool		is_loaded();
 	void		load();
 	void		bind(bool to_bind = true);
-	Texture		*attachement(int color_attachement);
+	Texture		*attachement(unsigned color_attachement);
 	Texture		*depth();
 	Shader		*shader();
 	void		setup_attachements();
@@ -30,7 +30,7 @@ public :
 	void		destroy(void *buffer);
 	void		resize(const VEC2 &new_size);
 	void		set_shader(Shader *shader);
-	//void		set_attachement(unsigned attachement, Texture *);
+	void		set_attachement(unsigned color_attachement, Texture *);
 private :
 	Framebuffer(const std::string &name);
 	void		_resize_depth(const VEC2 &);
@@ -50,6 +50,8 @@ public :
 	static Attachement	*create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi);
 	bool		is_loaded();
 	void		load();
+	void		unload();
 private :
 	Attachement(const std::string &name);
+	Attachement(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format);
 };

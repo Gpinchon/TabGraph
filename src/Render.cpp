@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/02 18:20:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 17:38:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ Framebuffer	*create_render_buffer(const std::string &name, const VEC2 &size, Sha
 	buffer->create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
 	buffer->create_attachement(GL_RGB, GL_RGB8); // Fresnel;
 	buffer->create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Material_Values -> Roughness, Metallic, Ior
-	buffer->create_attachement(GL_RG, GL_RG8); // BRDF
+	buffer->create_attachement(GL_RG, GL_RG8); // irradiance
 	buffer->create_attachement(GL_RED, GL_R8); //AO
 	buffer->create_attachement(GL_RGB, GL_RGBA8_SNORM); // Normal;
 	buffer->create_attachement(GL_RGB, GL_RGB16F); // Position;
@@ -121,7 +121,7 @@ void	Render::scene()
 		shader->bind_texture("in_Texture_Position",			temp_buffer1->attachement(7), GL_TEXTURE7);
 		shader->bind_texture("in_Texture_Depth",			temp_buffer1->depth(), GL_TEXTURE8);
 		shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE9);
-		shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE10);
+		shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE10);
 		Render::display_quad()->draw();
 		shader->use(false);
 
@@ -163,7 +163,7 @@ void	Render::scene()
 	lighting_shader->bind_texture("in_Texture_Position",		temp_buffer1->attachement(7), GL_TEXTURE7);
 	lighting_shader->bind_texture("in_Texture_Depth",			temp_buffer1->depth(), GL_TEXTURE8);
 	lighting_shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE9);
-	lighting_shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE10);
+	lighting_shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE10);
 	Render::display_quad()->draw();
 	lighting_shader->use(false);
 
@@ -188,7 +188,7 @@ void	Render::scene()
 		** NO OBJECTS WERE RENDERED PRESENT IMEDIATLY
 		*/
 		glDepthFunc(GL_ALWAYS);
-		back_buffer->attachement(1)->blur(BLOOMPASS, 2.5);
+		back_buffer->attachement(1)->blur(BLOOMPASS, 3.5);
 		Framebuffer::bind_default();
 		presentShader->use();
 		presentShader->bind_texture("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
@@ -229,14 +229,14 @@ void	Render::scene()
 	tlighting_shader->bind_texture("in_Texture_Position",			temp_buffer1->attachement(7), GL_TEXTURE7);
 	tlighting_shader->bind_texture("in_Texture_Depth",				temp_buffer1->depth(), GL_TEXTURE8);
 	tlighting_shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE9);
-	tlighting_shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE10);
+	tlighting_shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE10);
 	tlighting_shader->bind_texture("in_Back_Color", back_buffer->attachement(0), GL_TEXTURE11);
 	tlighting_shader->bind_texture("in_Back_Bright", back_buffer->attachement(1), GL_TEXTURE12);
 	Render::display_quad()->draw();
 	tlighting_shader->use(false);
 
 	// GENERATE BLOOM FROM out_Brightness
-	back_buffer1->attachement(1)->blur(BLOOMPASS, 2.5);
+	back_buffer1->attachement(1)->blur(BLOOMPASS, 3.5);
 
 	glEnable(GL_DEPTH_TEST);
 	Framebuffer::bind_default();
@@ -266,12 +266,12 @@ void	Render::bind_textures(Shader *)
 	shader->bind_texture("in_Texture_Fresnel", temp_buffer1->attachement(1), GL_TEXTURE1); // Fresnel;
 	shader->bind_texture("in_Texture_Emitting", temp_buffer1->attachement(2), GL_TEXTURE2); // Emitting;
 	shader->bind_texture("in_Texture_Material_Values", temp_buffer1->attachement(3), GL_TEXTURE3); // Material_Values -> Roughness, Metallic
-	shader->bind_texture("in_Texture_BRDF", temp_buffer1->attachement(4), GL_TEXTURE4); // BRDF
+	shader->bind_texture("in_Texture_BRDF", temp_buffer1->attachement(4), GL_TEXTURE4); // irradiance
 	shader->bind_texture("in_Texture_Normal", temp_buffer1->attachement(5), GL_TEXTURE5); // Normal;
 	shader->bind_texture("in_Texture_Position", temp_buffer1->attachement(6), GL_TEXTURE6); // Position;
 	shader->bind_texture("in_Texture_Depth", temp_buffer1->depth(), GL_TEXTURE7);
 	shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
-	shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE9);*/
+	shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE9);*/
 }
 
 void		Render::present()

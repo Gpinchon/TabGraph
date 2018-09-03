@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/01 20:25:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 18:01:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,9 +64,15 @@ Engine	&Engine::_get()
 	return (*_instance);
 }
 
-Environment::Environment() : diffuse(nullptr), brdf(nullptr)
+Environment::Environment() : diffuse(nullptr), irradiance(nullptr)
 {
 
+}
+
+void	Environment::unload()
+{
+	diffuse->unload();
+	irradiance->unload();
 }
 
 void		Engine::sort(renderable_compare compare)
@@ -77,6 +83,8 @@ void		Engine::sort(renderable_compare compare)
 Environment		*Engine::current_environment(Environment *env)
 {
 	if (env != nullptr) {
+		if (_get()._environment != nullptr)
+			_get()._environment->unload();
 		_get()._environment = env;
 	}
 	return (_get()._environment);
@@ -101,7 +109,7 @@ void			Engine::_load_res()
 		std::cout << name << std::endl;
 		auto	newEnv = new Environment;
 		newEnv->diffuse = Cubemap::create(name + "Cube", HDR::parse(name, folder + name + "/environment.hdr"));
-		newEnv->brdf = Cubemap::create(name + "CubeDiffuse", HDR::parse(name + "Diffuse", folder + name + "/diffuse.hdr"));
+		newEnv->irradiance = Cubemap::create(name + "CubeDiffuse", HDR::parse(name + "Diffuse", folder + name + "/diffuse.hdr"));
 		Engine::add(*newEnv);
 	}
 	folder = Engine::program_path() + "res/skybox/";
@@ -122,7 +130,7 @@ void			Engine::_load_res()
 			continue;
 		}
 		try {
-			newEnv->brdf = Cubemap::parse(name + "/light", folder);
+			newEnv->irradiance = Cubemap::parse(name + "/light", folder);
 		}
 		catch (std::exception &e) {
 			std::cout << e.what() << std::endl;

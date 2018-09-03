@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/31 16:16:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 18:55:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,15 +20,40 @@ void	cubemap_load_side(Cubemap *texture, const std::string &path, GLenum side)
 	if (sideTexture == nullptr){
 		return ;
 	}
-	texture->assign(*sideTexture, side);
+	//texture->assign(*sideTexture, side);
 	texture->sides.at(side - GL_TEXTURE_CUBE_MAP_POSITIVE_X) = sideTexture;
 }
 
+void	Cubemap::load()
+{
+	if (_loaded) {
+		return ;
+	}
+	Texture::load();
+	for (auto side = 0u; side < sides.size(); side++) {
+		auto t = sides.at(side);
+		t->load();
+		assign(*t, GL_TEXTURE_CUBE_MAP_POSITIVE_X + side);
+	}
+	generate_mipmap();
+}
+
+void	Cubemap::unload()
+{
+	if (!_loaded) {
+		return ;
+	}
+	for (auto t : sides) {
+		t->unload();
+	}
+	Texture::unload();
+}
+
+
 Cubemap::Cubemap(const std::string &name) : Texture(name)
 {
-	//memset(sides, 0, sizeof(sides));
 	_target = GL_TEXTURE_CUBE_MAP;
-	glGenTextures(1, &_glid);
+	/*glGenTextures(1, &_glid);
 	glBindTexture(_target, _glid);
 	glTexParameteri(_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -36,7 +61,7 @@ Cubemap::Cubemap(const std::string &name) : Texture(name)
 	glBindTexture(_target, 0);
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, _glid, -1, name.c_str());
-#endif //GL_DEBUG
+#endif //GL_DEBUG*/
 }
 
 Cubemap		*Cubemap::create(const std::string &name)

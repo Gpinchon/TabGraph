@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/01 21:36:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 20:01:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,41 +16,54 @@
 #include "Window.hpp"
 
 Attachement::Attachement(const std::string &name) : Texture(name) {};
+Attachement::Attachement(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format) : Texture(name, s, target, f, fi, data_format) {};
+
+GLenum	get_data_format(GLenum internal_format)
+{
+	switch (internal_format) {
+		case GL_R8_SNORM :
+		case GL_RG8_SNORM :
+		case GL_RGB8_SNORM :
+		case GL_RGBA8_SNORM :
+		case GL_SRGB8 :
+			return (GL_BYTE);
+		case GL_R16F :
+		case GL_RG16F :
+		case GL_RGB16F :
+		case GL_RGBA16F :
+		case GL_R32F :
+		case GL_RG32F :
+		case GL_RGB32F :
+		case GL_RGBA32F :
+		case GL_R11F_G11F_B10F :
+			return (GL_FLOAT);
+		default : return (GL_UNSIGNED_BYTE);
+	}
+}
 
 Attachement		*Attachement::create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi)
 {
 	Attachement	*t;
 
-	t = new Attachement(name);
-	t->_target = target;
-	t->_format = f;
-	t->_internal_format = fi;
-	t->_size = s;
-	glGenTextures(1, &t->_glid);
+	t = new Attachement(name, s, target, f, fi, get_data_format(fi));
 	glBindTexture(t->_target, t->_glid);
 	if (s.x > 0 && s.y > 0) {
-		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->_data_format, nullptr);
+		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, GL_FLOAT, nullptr);
 	}
-	if (f == GL_RGB) {
-		glTexParameteri(t->_target, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-	}
-	glTexParameteri(t->_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(t->_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(t->_target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 	glBindTexture(t->_target, 0);
-#ifdef GL_DEBUG
-	glObjectLabel(GL_TEXTURE, t->_glid, -1, name.c_str());
-#endif //GL_DEBUG
 	Engine::add(*t);
 	return (t);
 }
 
 bool		Attachement::is_loaded() {
 	return (true);
-};
+}
 
 void		Attachement::load() {
-};
+}
+
+void		Attachement::unload() {
+}
 
 Framebuffer::Framebuffer(const std::string &name) : Texture(name), _depth(nullptr), _shader(nullptr)
 {
@@ -94,8 +107,7 @@ void			Framebuffer::bind(bool to_bind)
 {
 	if (!to_bind)
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, Window::size().x, Window::size().y);
+		bind_default();
 		if (shader() != nullptr)
 			shader()->use(false);
 		return ;
@@ -124,8 +136,8 @@ Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
 		tname = (name() + "_attachement_" + std::to_string(_color_attachements.size()));
 	bind();
 	auto	a = Attachement::create(tname, size(), GL_TEXTURE_2D, format, iformat); 
-	a->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	a->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	a->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	a->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	if (format == GL_DEPTH_COMPONENT)
 	{
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
@@ -168,11 +180,11 @@ void	Framebuffer::_resize_attachement(const int &attachement, const VEC2 &ns)
 	t->resize(ns);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachement,
 		GL_TEXTURE_2D, t->glid(), 0);
-	t->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	t->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	t->set_parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	t->set_parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	t->set_parameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
+	t->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 }
 
 void	Framebuffer::_resize_depth(const VEC2 &ns)
@@ -181,11 +193,11 @@ void	Framebuffer::_resize_depth(const VEC2 &ns)
 		return ;
 	}
 	_depth->resize(ns);
-	_depth->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	_depth->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	_depth->set_parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	_depth->set_parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	_depth->set_parameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
+	_depth->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	_depth->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	_depth->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	_depth->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	_depth->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
 			GL_TEXTURE_2D, _depth->glid(), 0);
 }
@@ -214,9 +226,19 @@ void		Framebuffer::set_shader(Shader *shader)
 	_shader = shader;
 }
 
-Texture			*Framebuffer::attachement(int color_attachement)
+void		Framebuffer::set_attachement(unsigned color_attachement, Texture *texture)
 {
-	if (color_attachement < 0 || unsigned(color_attachement) >= _color_attachements.size())
+	if (color_attachement >= _color_attachements.size())
+		throw std::runtime_error(name() + " : Color attachement index is out of bound");
+	_color_attachements[color_attachement] = texture;
+	bind();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture->target(), texture->glid(), 0);
+	bind(false);
+}
+
+Texture			*Framebuffer::attachement(unsigned color_attachement)
+{
+	if (unsigned(color_attachement) >= _color_attachements.size())
 		return (nullptr);
 	return (_color_attachements[color_attachement]);
 }

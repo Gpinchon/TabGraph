@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 22:32:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 19:05:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,8 @@ Material::Material(const std::string &name)
 	if (_texture_brdf == nullptr)
 	{
 		_texture_brdf = BMP::parse("brdf", Engine::program_path() + "./res/brdfLUT.bmp");
-		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		_texture_brdf->set_parameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		_texture_brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		_texture_brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 }
 
@@ -78,7 +78,7 @@ void	Material::bind_textures()
 	shader->bind_texture("Material.Texture.AO", texture_ao, GL_TEXTURE8);
 	shader->bind_texture("Material.Texture.BRDF", _texture_brdf, GL_TEXTURE9);
 	shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE11);
-	shader->bind_texture("Environment.Irradiance", Engine::current_environment()->brdf, GL_TEXTURE12);
+	shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE12);
 }
 
 void	Material::bind_values()
