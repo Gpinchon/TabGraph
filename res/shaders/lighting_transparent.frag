@@ -98,6 +98,11 @@ vec2	warpUV(vec2 min, vec2 max, vec2 percent)
 	return (vec2(warpUV(min.x, max.x, percent.x), warpUV(min.y, max.y, percent.y)));
 }
 
+float	map(in float value, in float low1, in float high1, in float low2, in float high2)
+{
+	return (low2 + (value - low1) * (high2 - low2) / (high1 - low1));
+}
+
 void main()
 {
 	out_Color.a = 1;
@@ -160,16 +165,12 @@ void main()
 	Albedo.a += dot(specular, specular);
 	Albedo.a = min(1, Albedo.a);
 
-	//Back_Color += Back_Bright;
-	Back_Color *= Albedo.rgb;//mix(Back_Color, Back_Color * Albedo.rgb, Albedo.a);
-	Back_Bright *= Albedo.rgb;//mix(Back_Bright, Back_Bright * Albedo.rgb, Albedo.a);
+	float	mappedAlpha = map(Albedo.a, 0, 1, 0.5, 1);
+	Back_Color = mix(Back_Color, Back_Color * Albedo.rgb, mappedAlpha);
+	Back_Bright = mix(Back_Bright, Back_Bright * Albedo.rgb, mappedAlpha);
 
 	out_Color.rgb = specular + diffuse + reflection + Emitting;
-	out_Color.rgb = Albedo.a * (out_Color.rgb - Back_Color) + Back_Color;
-	//out_Color.rgb = Albedo.a * out_Color.rgb + (1 - Albedo.a) * Back_Color;
-	//out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
+	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
 	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Emitting.rgb;
-	out_Emitting.rgb = Albedo.a * (out_Emitting.rgb - Back_Bright) + Back_Bright;
-	//out_Emitting.rgb = Albedo.a * out_Emitting.rgb + (1 - Albedo.a) * Back_Bright;
-	//out_Emitting.rgb = mix(Back_Bright + out_Emitting.rgb, out_Emitting.rgb, Albedo.a);
+	out_Emitting.rgb = mix(Back_Bright, out_Emitting.rgb, Albedo.a);
 }
