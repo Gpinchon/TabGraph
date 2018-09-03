@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/30 23:16:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 23:53:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@ public:
 	static Mesh	*get_by_name(const std::string &);
 	void		sort(renderable_compare);
     void		load();
-	void		bind();
 	bool		render(RenderMod mod = RenderAll);
+	bool		render_depth(RenderMod mod = RenderAll);
 	void		center();
 	std::vector<Vgroup*>	vgroups;
 	void		set_cull_mod(GLenum);

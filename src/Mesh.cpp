@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 16:59:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 23:54:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,28 +46,43 @@ void	Mesh::load()
 	}
 }
 
-void	Mesh::bind()
+bool	Mesh::render_depth(RenderMod mod)
 {
-	MAT4		mvp;
-	MAT4		normal_matrix;
-
-	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
-	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
+	bool	ret = false;
+	auto	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
+	auto	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
+	
+	load();
 	for (auto vg : vgroups) {
+		if (vg->material == nullptr)
+			continue ;
+		vg->material->depth_shader->use();
+		vg->material->depth_shader->set_uniform("in_Transform", mvp);
+		vg->material->depth_shader->set_uniform("in_ModelMatrix", mat4_transform());
+		vg->material->depth_shader->set_uniform("in_NormalMatrix", normal_matrix);
+		vg->material->depth_shader->use(false);
+		if (vg->render_depth(mod))
+			ret = true;
+	}
+	return (ret);
+}
+
+
+bool	Mesh::render(RenderMod mod)
+{
+	bool	ret = false;
+	auto	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
+	auto	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
+
+	load();
+	for (auto vg : vgroups) {
+		if (vg->material == nullptr)
+			continue ;
 		vg->material->shader->use();
 		vg->material->shader->set_uniform("in_Transform", mvp);
 		vg->material->shader->set_uniform("in_ModelMatrix", mat4_transform());
 		vg->material->shader->set_uniform("in_NormalMatrix", normal_matrix);
 		vg->material->shader->use(false);
-	}
-}
-
-bool	Mesh::render(RenderMod mod)
-{
-	bool	ret = false;
-	load();
-	bind();
-	for (auto vg : vgroups) {
 		if (vg->render(mod))
 			ret = true;
 	}

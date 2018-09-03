@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/30 23:16:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 23:47:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,29 @@ void			Vgroup::bind()
 	material->shader->set_uniform("in_UVMax", uvmax);
 	material->shader->set_uniform("in_UVMin", uvmin);
 	material->shader->set_uniform("in_CamPos", Engine::current_camera()->position());
+}
+
+bool			Vgroup::render_depth(RenderMod mod)
+{
+	if ((material == nullptr) || (material->depth_shader == nullptr)) {
+		return (false);
+	}
+	if (mod == RenderOpaque
+		&& (material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4)))
+		return (false);
+	else if (mod == RenderTransparent
+		&&	!(material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4))) {
+		return (false);
+	}
+	material->depth_shader->use();
+	material->depth_shader->bind_texture("Material.Texture.Albedo", material->texture_albedo, GL_TEXTURE0);
+	material->depth_shader->set_uniform("Material.Texture.Use_Albedo", material->texture_albedo != nullptr);
+	/*material->bind_textures();
+	material->bind_values();*/
+	//bind();
+	_vao->draw();
+	material->depth_shader->use(false);
+	return (true);
 }
 
 bool			Vgroup::render(RenderMod mod)

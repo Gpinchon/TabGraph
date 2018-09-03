@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/09 18:55:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 23:57:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,9 @@ static void	parse_line(t_obj_parser *p, const char *line)
 		|| split[0] == "usemtl")
 	{
 		parse_vg(p);
-		p->vg->material = Material::get_by_name(split[1]);
+		auto	mtl = Material::get_by_name(split[1]);
+		if (mtl != nullptr)
+			p->vg->material = mtl;
 	}
 	else if (split[0] == "mtllib") {
 		PBRMTLLIB::parse(p->path_split[0] + split[1]);

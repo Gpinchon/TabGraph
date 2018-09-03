@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:12:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 22:28:17 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/03 23:08:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ public :
 	virtual void	bind_values();
 	virtual void	bind_textures();
 	Shader			*shader{nullptr};
+	Shader			*depth_shader{nullptr};
 	VEC3			albedo{0, 0, 0};
 	VEC3			specular{0.04, 0.04, 0.04};
 	VEC3			emitting{0, 0, 0};
