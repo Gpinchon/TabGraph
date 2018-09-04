@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 15:02:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 17:23:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,63 @@ float faceTransform[6][2] =
 };
 
 #include <iostream>
+#include <thread>
+
+void	generate_side(Texture *fromTexture, Texture *t, int side)
+{
+	const float ftu = faceTransform[side][1];
+	const float ftv = faceTransform[side][0];
+	static const float an = sin(M_PI / 4.f);
+	static const float ak = cos(M_PI / 4.f);
+	for (auto y = 0; y <= t->size().y; ++y)
+	{
+		for (auto x = 0; x <= t->size().x; ++x)
+		{
+			float nx = (float)y / (float)t->size().x - 0.5f;
+			float ny = 1 - (float)x / (float)t->size().y - 0.5f;
+			nx *= 2;
+			ny *= 2;
+			nx *= an;
+			ny *= an;
+			float u, v;
+			if(ftv == 0) {
+				u = atan2(nx, ak);
+				v = atan2(ny * cos(u), ak);
+				u += ftu; 
+			} else if(ftv > 0) { 
+				float d = sqrt(nx * nx + ny * ny);
+				v = M_PI / 2.f - atan2(d, ak);
+				u = atan2(ny, nx);
+			} else {
+				float d = sqrt(nx * nx + ny * ny);
+				v = -M_PI / 2.f + atan2(d, ak);
+				u = atan2(-ny, nx);
+			}
+			u = u / (M_PI);
+			v = v / (M_PI / 2.f);
+			while (v < -1) {
+				v += 2;
+				u += 1;
+			} 
+			while (v > 1) {
+				v -= 2;
+				u += 1;
+			}
+			while(u < -1) {
+				u += 2;
+			}
+			while(u > 1) {
+				u -= 2;
+			}
+			u = u / 2.0f + 0.5f;
+			v = v / 2.0f + 0.5f;
+			auto	nuv = vec2_div(new_vec2(y, x), t->size());
+			auto	val = fromTexture->sample(new_vec2(u, v));
+			t->set_pixel(new_vec2(nuv.x, nuv.y), val);
+		}
+	}
+	std::cout << "." << std::flush;
+}
 
 Cubemap		*Cubemap::create(const std::string &name, Texture *fromTexture)
 {
@@ -112,65 +169,16 @@ Cubemap		*Cubemap::create(const std::string &name, Texture *fromTexture)
 	auto	cubemap = new Cubemap(name);
 	GLenum formats[2];
 	fromTexture->format(&formats[0], &formats[1]);
-	const float an = sin(M_PI / 4.f);
-	const float ak = cos(M_PI / 4.f);
+	std::vector<std::thread> threads;
 	for (auto side = 0; side < 6; ++side)
 	{
-		std::cout << "." << std::flush;
 		auto	side_res = fromTexture->size().x / 4.f;
-		auto	sideTexture = Texture::create(fromTexture->name() + "side", new_vec2(side_res, side_res), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
-		const float ftu = faceTransform[side][1];
-		const float ftv = faceTransform[side][0];
-		for (auto y = 0; y <= side_res; ++y)
-		{
-			for (auto x = 0; x <= side_res; ++x)
-			{
-				float nx = (float)y / (float)side_res - 0.5f;
-				float ny = 1 - (float)x / (float)side_res - 0.5f;
-				nx *= 2;
-				ny *= 2;
-				nx *= an;
-				ny *= an;
-				float u, v;
-				if(ftv == 0) {
-					u = atan2(nx, ak);
-					v = atan2(ny * cos(u), ak);
-					u += ftu; 
-				} else if(ftv > 0) { 
-					float d = sqrt(nx * nx + ny * ny);
-					v = M_PI / 2.f - atan2(d, ak);
-					u = atan2(ny, nx);
-				} else {
-					float d = sqrt(nx * nx + ny * ny);
-					v = -M_PI / 2.f + atan2(d, ak);
-					u = atan2(-ny, nx);
-				}
-				u = u / (M_PI);
-				v = v / (M_PI / 2.f);
-				while (v < -1) {
-					v += 2;
-					u += 1;
-				} 
-				while (v > 1) {
-					v -= 2;
-					u += 1;
-				}
-				while(u < -1) {
-					u += 2;
-				}
-				while(u > 1) {
-					u -= 2;
-				}
-				u = u / 2.0f + 0.5f;
-				v = v / 2.0f + 0.5f;
-				auto	nuv = vec2_div(new_vec2(y, x), sideTexture->size());
-				auto	val = fromTexture->sample(new_vec2(u, v));
-				sideTexture->set_pixel(new_vec2(nuv.x, nuv.y), val);
-			}
-		}
-		cubemap->assign(*sideTexture, GL_TEXTURE_CUBE_MAP_POSITIVE_X + side);
+		auto	sideTexture = Texture::create(fromTexture->name() + "_side_" + std::to_string(side), new_vec2(side_res, side_res), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
+		threads.push_back(std::thread(generate_side, fromTexture, sideTexture, side));
 		cubemap->sides.at(side) = sideTexture;
 	}
+	for (auto i = 0u; i < threads.size(); i++)
+		threads.at(i).join();
 	cubemap->generate_mipmap();
 	Engine::add(*cubemap);
 	std::cout << " Done." << std::endl;

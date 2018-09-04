@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 15:00:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 19:26:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 	char c = 0, oldc;
 	while (true) {
 		oldc = c;
-		c = fgetc(file);
+		c = getc(file);
 		if (c == 0xa && oldc == 0xa)
 			break;
 	}
@@ -60,7 +60,7 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 	char reso[200]{0};
 	i = 0;
 	while (true) {
-		c = fgetc(file);
+		c = getc(file);
 		reso[i++] = c;
 		if (c == 0xa)
 			break;
@@ -82,7 +82,7 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 	}
 	std::cout << "." << std::flush;
 	// convert image 
-	for (int y = h - 1; y >= 0; y--) {
+	for (int y = 0; y < h; y++) {
 		if (decrunch(scanline, w, file) == false)
 			break;
 		workOnRGBE(scanline, w, cols);
@@ -94,7 +94,8 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 	fclose(file);
 
 	auto	t = static_cast<HDR*>(Texture::create(texture_name, size,
-				GL_TEXTURE_2D, GL_RGB, GL_RGB16F, GL_FLOAT, static_cast<void*>(data)));
+				GL_TEXTURE_2D, GL_RGB, GL_RGB32F, GL_FLOAT, nullptr));
+	t->_data = static_cast<GLubyte*>(data);
 	std::cout << " Done." << std::endl;
 	return (t);
 }
@@ -102,7 +103,7 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 float convertComponent(int expo, int val)
 {
 	float v = val / 256.0f;
-	float d = (float) pow(2, expo);
+	float d = (float)pow(2, expo);
 	return v * d;
 }
 
@@ -124,33 +125,34 @@ bool decrunch(RGBE *scanline, int len, FILE *file)
 					
 	if (len < MINELEN || len > MAXELEN)
 		return oldDecrunch(scanline, len, file);
-	i = fgetc(file);
+	i = getc(file);
 	if (i != 2) {
 		fseek(file, -1, SEEK_CUR);
 		return oldDecrunch(scanline, len, file);
 	}
-	scanline[0][G] = fgetc(file);
-	scanline[0][B] = fgetc(file);
-	i = fgetc(file);
-
+	fread(&scanline[0][G], sizeof(GLubyte), 2, file);
+	i = getc(file);
 	if (scanline[0][G] != 2 || scanline[0][B] & 128) {
 		scanline[0][R] = 2;
 		scanline[0][E] = i;
 		return oldDecrunch(scanline + 1, len - 1, file);
 	}
-	// read each component
 	for (i = 0; i < 4; i++) {
 	    for (j = 0; j < len; ) {
-			unsigned char code = fgetc(file);
-			if (code > 128) { // run
+			GLubyte	code = getc(file);
+			if (code > 128) {
 			    code &= 127;
-			    unsigned char val = fgetc(file);
+			    GLubyte	val = getc(file);
 			    while (code--)
 					scanline[j++][i] = val;
 			}
-			else  {	// non-run
-			    while(code--)
-					scanline[j++][i] = fgetc(file);
+			else {
+				GLubyte	vals[code];
+				fread(vals, sizeof(GLubyte), code, file);
+				auto	k = 0;
+			    while(code--) {
+					scanline[j++][i] = vals[k++];
+			    }
 			}
 		}
     }
@@ -164,10 +166,7 @@ bool oldDecrunch(RGBE *scanline, int len, FILE *file)
 	int rshift = 0;
 	
 	while (len > 0) {
-		scanline[0][R] = fgetc(file);
-		scanline[0][G] = fgetc(file);
-		scanline[0][B] = fgetc(file);
-		scanline[0][E] = fgetc(file);
+		fread(&scanline[0][R], sizeof(unsigned char), 4, file);
 		if (feof(file))
 			return false;
 		if (scanline[0][R] == 1 &&

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 11:19:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 17:31:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,6 @@ void	Texture::assign(Texture &dest_texture, GLenum target)
 	glBindTexture(_target, 0);
 	glBindTexture(dest_texture._target, 0);
 }
-
 
 void	Texture::unload()
 {
