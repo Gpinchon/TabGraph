@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 19:35:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 19:47:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,8 +100,8 @@ float faceTransform[6][2] =
 	{0, M_PI},
 	{M_PI, 0},
 	{-M_PI / 2.f, 0},
-	{0, M_PI / 2.f},
-	{0, -M_PI / 2.f}
+	{0, -M_PI / 2.f},
+	{0, M_PI / 2.f}
 };
 
 #include <iostream>
@@ -118,7 +118,7 @@ void	generate_side(Texture *fromTexture, Texture *t, int side)
 	{
 		for (auto y = 0; y <= t->size().y; ++y)
 		{
-			float nx = 1 - (float)y / (float)t->size().x - 0.5f;
+			float nx = (float)y / (float)t->size().x - 0.5f;
 			float ny = 1 - (float)x / (float)t->size().y - 0.5f;
 			nx *= 2;
 			ny *= 2;
