@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 23:45:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 11:30:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,6 @@ void	Render::scene()
 	** REWRITE TRANSPARENT OBJECTS
 	** WRITE ONLY CLOSEST OBJECTS
 	*/
-	glClear(GL_COLOR_BUFFER_BIT);
 	glDepthFunc(GL_EQUAL);
 	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
 		node->render(RenderTransparent);
@@ -228,10 +227,10 @@ void	Render::scene()
 	tlighting_shader->bind_texture("in_Texture_Normal",				temp_buffer1->attachement(6), GL_TEXTURE6);
 	tlighting_shader->bind_texture("in_Texture_Position",			temp_buffer1->attachement(7), GL_TEXTURE7);
 	tlighting_shader->bind_texture("in_Texture_Depth",				temp_buffer1->depth(), GL_TEXTURE8);
-	tlighting_shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE9);
-	tlighting_shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE10);
-	tlighting_shader->bind_texture("in_Back_Color", back_buffer->attachement(0), GL_TEXTURE11);
-	tlighting_shader->bind_texture("in_Back_Bright", back_buffer->attachement(1), GL_TEXTURE12);
+	tlighting_shader->bind_texture("Environment.Diffuse",			Engine::current_environment()->diffuse, GL_TEXTURE9);
+	tlighting_shader->bind_texture("Environment.Irradiance",		Engine::current_environment()->irradiance, GL_TEXTURE10);
+	tlighting_shader->bind_texture("in_Back_Color",					back_buffer->attachement(0), GL_TEXTURE11);
+	tlighting_shader->bind_texture("in_Back_Bright",				back_buffer->attachement(1), GL_TEXTURE12);
 	Render::display_quad()->draw();
 	tlighting_shader->use(false);
 

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 20:01:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 11:33:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "Shader.hpp"
 #include "Window.hpp"
 
-Attachement::Attachement(const std::string &name) : Texture(name) {};
+Attachement::Attachement(const std::string &name) : Texture(name){}
 Attachement::Attachement(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format) : Texture(name, s, target, f, fi, data_format) {};
 
 GLenum	get_data_format(GLenum internal_format)
@@ -52,6 +52,9 @@ Attachement		*Attachement::create(const std::string &name, VEC2 s, GLenum target
 	}
 	glBindTexture(t->_target, 0);
 	Engine::add(*t);
+#ifdef GL_DEBUG
+	glObjectLabel(GL_RENDERBUFFER, t->_glid, -1, name.c_str());
+#endif //GL_DEBUG
 	return (t);
 }
 
@@ -65,10 +68,7 @@ void		Attachement::load() {
 void		Attachement::unload() {
 }
 
-Framebuffer::Framebuffer(const std::string &name) : Texture(name), _depth(nullptr), _shader(nullptr)
-{
-
-}
+Framebuffer::Framebuffer(const std::string &name) : Texture(name) {}
 
 Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader *shader,
 	int color_attachements, int depth)
@@ -90,6 +90,9 @@ Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader *sh
 		f->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
 	}
 	f->setup_attachements();
+#ifdef GL_DEBUG
+	glObjectLabel(GL_FRAMEBUFFER, f->_glid, -1, name.c_str());
+#endif //GL_DEBUG
 	return (f);
 }
 

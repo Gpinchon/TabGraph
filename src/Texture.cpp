@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 20:01:17 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 11:19:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@ _internal_format(0),
 _data(nullptr),
 _loaded(false)
 {
-	glGenTextures(1, &_glid);
 	set_name(name);
 }
 
@@ -45,6 +44,7 @@ Texture::Texture(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenu
 	_data = static_cast<GLubyte*>(data);
 	_bpp = get_bpp(f, data_format);
 	_size = s;
+	glGenTextures(1, &_glid);
 	if (values_per_pixel() < 4) {
 		set_parameteri(GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	}
@@ -52,9 +52,7 @@ Texture::Texture(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenu
 	set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
 #ifdef GL_DEBUG
-	glBindTexture(_target, _glid);
 	glObjectLabel(GL_TEXTURE, _glid, -1, name.c_str());
-	glBindTexture(_target, 0);
 #endif //GL_DEBUG
 }
 
