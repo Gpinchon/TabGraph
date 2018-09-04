@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 18:01:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 14:51:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <dirent.h>
 #include <unistd.h>
+#include "parser/HDR.hpp"
 
 #ifndef _getcwd
 #define _getcwd getcwd
@@ -90,8 +91,6 @@ Environment		*Engine::current_environment(Environment *env)
 	return (_get()._environment);
 }
 
-#include "parser/HDR.hpp"
-
 void			Engine::_load_res()
 {
 	DIR				*dir;
@@ -106,7 +105,6 @@ void			Engine::_load_res()
 			continue ;
 		}
 		std::string	name = e->d_name;
-		std::cout << name << std::endl;
 		auto	newEnv = new Environment;
 		newEnv->diffuse = Cubemap::create(name + "Cube", HDR::parse(name, folder + name + "/environment.hdr"));
 		newEnv->irradiance = Cubemap::create(name + "CubeDiffuse", HDR::parse(name + "Diffuse", folder + name + "/diffuse.hdr"));

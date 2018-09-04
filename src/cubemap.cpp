@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 18:55:32 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 15:02:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,18 +104,19 @@ float faceTransform[6][2] =
 	{0, M_PI / 2.f}
 };
 
+#include <iostream>
+
 Cubemap		*Cubemap::create(const std::string &name, Texture *fromTexture)
 {
+	std::cout << "Converting " << fromTexture->name() << " into Cubemap";
 	auto	cubemap = new Cubemap(name);
 	GLenum formats[2];
 	fromTexture->format(&formats[0], &formats[1]);
-	//fromTexture->resize(new_vec2(2048, 2048));
 	const float an = sin(M_PI / 4.f);
 	const float ak = cos(M_PI / 4.f);
 	for (auto side = 0; side < 6; ++side)
 	{
-		GLenum formats[2];
-		fromTexture->format(&formats[0], &formats[1]);
+		std::cout << "." << std::flush;
 		auto	side_res = fromTexture->size().x / 4.f;
 		auto	sideTexture = Texture::create(fromTexture->name() + "side", new_vec2(side_res, side_res), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
 		const float ftu = faceTransform[side][1];
@@ -172,6 +173,7 @@ Cubemap		*Cubemap::create(const std::string &name, Texture *fromTexture)
 	}
 	cubemap->generate_mipmap();
 	Engine::add(*cubemap);
+	std::cout << " Done." << std::endl;
 	return (cubemap);
 }
 

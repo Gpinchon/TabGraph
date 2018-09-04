@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 11:33:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 14:32:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,12 +31,22 @@ GLenum	get_data_format(GLenum internal_format)
 		case GL_RG16F :
 		case GL_RGB16F :
 		case GL_RGBA16F :
+			return (GL_HALF_FLOAT);
 		case GL_R32F :
 		case GL_RG32F :
 		case GL_RGB32F :
 		case GL_RGBA32F :
-		case GL_R11F_G11F_B10F :
 			return (GL_FLOAT);
+		case GL_R11F_G11F_B10F :
+			return (GL_UNSIGNED_INT_10F_11F_11F_REV);
+		case GL_R16 :
+		case GL_RG16 :
+		case GL_RGB16 :
+			return (GL_UNSIGNED_SHORT);
+		case GL_R16_SNORM :
+		case GL_RG16_SNORM :
+		case GL_RGB16_SNORM :
+			return (GL_SHORT);
 		default : return (GL_UNSIGNED_BYTE);
 	}
 }
