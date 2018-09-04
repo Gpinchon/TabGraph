@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 19:26:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/04 22:00:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 	fclose(file);
 
 	auto	t = static_cast<HDR*>(Texture::create(texture_name, size,
-				GL_TEXTURE_2D, GL_RGB, GL_RGB32F, GL_FLOAT, nullptr));
+				GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, nullptr));
 	t->_data = static_cast<GLubyte*>(data);
 	std::cout << " Done." << std::endl;
 	return (t);
