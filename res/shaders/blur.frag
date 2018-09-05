@@ -1,5 +1,3 @@
-#version 430
-
 uniform sampler2D	in_Texture_Color;
 uniform vec2		in_Direction;
 

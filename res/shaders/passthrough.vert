@@ -1,5 +1,3 @@
-#version 430
-
 layout(location = 0) in vec2	in_Position;
 
 uniform mat4					in_InvProjMatrix;

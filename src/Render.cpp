@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/05 17:32:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/05 23:55:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,12 +104,13 @@ void	Render::scene()
 	static auto	back_buffer = create_back_buffer("back_buffer", Window::internal_resolution(), nullptr);
 	static auto	back_buffer1 = create_back_buffer("back_buffer1", Window::internal_resolution(), nullptr);
 	static auto	passthrough_shader = GLSL::parse("passthrough", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/passthrough.frag");
-	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting.frag");
-	static auto	tlighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting_transparent.frag");
+	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader);
+	static auto	tlighting_shader = GLSL::parse("lighting_transparent", Engine::program_path() + "./res/shaders/lighting_transparent.frag", LightingShader);
 
 	auto	InvViewMatrix = mat4_inverse(Engine::current_camera()->view);
 	auto	InvProjMatrix = mat4_inverse(Engine::current_camera()->projection);
 	auto	InvProjViewMatrix = mat4_mult_mat4(InvViewMatrix, InvProjMatrix);
+	auto	ProjViewMatrix = mat4_mult_mat4(Engine::current_camera()->view, Engine::current_camera()->projection);
 
 	temp_buffer->resize(Window::internal_resolution());
 	temp_buffer1->resize(Window::internal_resolution());
@@ -138,7 +139,12 @@ void	Render::scene()
 		// APPLY POST-TREATMENT
 		temp_buffer->bind();
 		shader->use();
+		shader->set_uniform("in_CamPos", Engine::current_camera()->position());
+		shader->set_uniform("in_ViewMatrix", Engine::current_camera()->view);
+		shader->set_uniform("in_ProjViewMatrix", ProjViewMatrix);
 		shader->set_uniform("in_InvProjViewMatrix", InvProjViewMatrix);
+		shader->set_uniform("in_InvViewMatrix", InvViewMatrix);
+		shader->set_uniform("in_InvProjMatrix", InvProjMatrix);
 		shader->bind_texture("in_Texture_Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
 		shader->bind_texture("in_Texture_Emitting",			temp_buffer1->attachement(1), GL_TEXTURE1);
 		shader->bind_texture("in_Texture_Fresnel",			temp_buffer1->attachement(2), GL_TEXTURE2);
@@ -173,6 +179,8 @@ void	Render::scene()
 	back_buffer->bind();
 	lighting_shader->use();
 	lighting_shader->set_uniform("in_CamPos", Engine::current_camera()->position());
+	lighting_shader->set_uniform("in_ViewMatrix", Engine::current_camera()->view);
+	lighting_shader->set_uniform("in_ProjViewMatrix", ProjViewMatrix);
 	lighting_shader->set_uniform("in_InvProjViewMatrix", InvProjViewMatrix);
 	lighting_shader->set_uniform("in_InvViewMatrix", InvViewMatrix);
 	lighting_shader->set_uniform("in_InvProjMatrix", InvProjMatrix);
@@ -230,6 +238,7 @@ void	Render::scene()
 	tlighting_shader->use();
 	tlighting_shader->set_uniform("in_CamPos", Engine::current_camera()->position());
 	tlighting_shader->set_uniform("in_ViewMatrix", Engine::current_camera()->view);
+	tlighting_shader->set_uniform("in_ProjViewMatrix", ProjViewMatrix);
 	tlighting_shader->set_uniform("in_InvProjViewMatrix", InvProjViewMatrix);
 	tlighting_shader->set_uniform("in_InvViewMatrix", InvViewMatrix);
 	tlighting_shader->set_uniform("in_InvProjMatrix", InvProjMatrix);
@@ -259,12 +268,8 @@ void	Render::add_post_treatment(Shader *shader)
 
 void	Render::add_post_treatment(const std::string &name, const std::string &path)
 {
-	Shader *shader;
-	auto	fileBuffer = file_to_str(Engine::program_path() + "./res/shaders/post.frag") + file_to_str(path);
-	auto	out = fopen((Engine::program_path() + "res/temp/output.frag").c_str(), "w");
-	fwrite(fileBuffer.c_str(), 1, fileBuffer.length(), out);
-	fclose(out);
-	shader = GLSL::parse(name, Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "res/temp/output.frag");
+	auto shader = GLSL::parse(name, path, PostShader);
+
 	if (shader != nullptr)
 		post_treatments.insert(shader);
 }

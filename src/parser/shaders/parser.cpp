@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/05 17:15:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/05 23:23:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,23 +16,34 @@
 #include <unistd.h>
 #include <iostream>
 
+static std::string glslVersion = std::string("#version 450\n");
+
+GLuint	compile_shader_code(const std::string &code, GLenum type)
+{
+	GLuint	shaderid;
+
+	auto	fullCode = glslVersion + code;
+	auto	buf = fullCode.c_str();
+	shaderid = glCreateShader(type);
+	glShaderSource(shaderid, 1, &buf, nullptr);
+	glCompileShader(shaderid);
+	try {
+		Shader::check_shader(shaderid);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error compiling Shader : ") + " :\n" + e.what());
+	}
+	return (shaderid);
+}
+
 GLuint	compile_shader(const std::string &path, GLenum type)
 {
 	GLuint	shaderid;
-	FILE	*stream;
 
 	if (access(path.c_str(), R_OK) != 0) {
 		throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
 	}
-	if ((stream = fopen(path.c_str(), "r")) == nullptr) {
-		throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
-	}
-	fclose(stream);
-	auto	bufstring = file_to_str(path);
-	auto	buf = bufstring.c_str();
-	shaderid = glCreateShader(type);
-	glShaderSource(shaderid, 1, &buf, nullptr);
-	glCompileShader(shaderid);
+	shaderid = compile_shader_code(file_to_str(path), type);
 	try {
 		Shader::check_shader(shaderid);
 	}
@@ -114,11 +125,39 @@ bool	Shader::check_program(const GLuint &id)
 	return (false);
 }
 
-Shader			*GLSL::parse(const std::string &name,
+Shader	*GLSL::parse(const std::string &name,
+	const std::string &fragment_file_path, ShaderType type)
+{
+	auto	shader = static_cast<GLSL*>(Shader::create(name));
+	GLuint	vertexid = 0;
+	GLuint	fragmentid = 0;
+	static auto	passthroughVertex = compile_shader(Engine::program_path() + "./res/shaders/passthrough.vert", GL_VERTEX_SHADER);
+	static auto	deferredFragCode = file_to_str(Engine::program_path() + "./res/shaders/deferred.frag");
+	if (PostShader == type)
+	{
+		vertexid = passthroughVertex;
+		fragmentid = compile_shader_code("#define POSTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+	}
+	else if (LightingShader == type)
+	{
+		vertexid = passthroughVertex;
+		fragmentid = compile_shader_code("#define LIGHTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+	}
+	shader->link(vertexid, fragmentid);
+	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
+	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
+	glDetachShader(shader->_program, vertexid);
+	glDetachShader(shader->_program, fragmentid);
+	//glDeleteShader(vertexid);
+	glDeleteShader(fragmentid);
+	return (shader);
+}
+
+Shader	*GLSL::parse(const std::string &name,
 	const std::string &vertex_file_path,
 	const std::string &fragment_file_path)
 {
-	auto	shader = static_cast<GLSL*>(Shader::create(name));//new Shader(name);
+	auto	shader = static_cast<GLSL*>(Shader::create(name));
 	auto	vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
 	auto	fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
 	shader->link(vertexid, fragmentid);

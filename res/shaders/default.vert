@@ -1,5 +1,3 @@
-#version 450
-
 precision lowp float;
 precision lowp int;
 precision lowp sampler2D;

@@ -1,4 +1,3 @@
-#version 430
 layout(location = 0) out vec4	out_Buffer0;
 layout(location = 1) out vec4	out_Buffer1;
 layout(location = 2) out vec4	out_Buffer2;

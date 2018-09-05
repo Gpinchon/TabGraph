@@ -1,5 +1,3 @@
-#version 430
-
 struct t_Textures {
 	sampler2D	Albedo;
 	bool		Use_Albedo;

@@ -1,103 +1,5 @@
-#version 430
-#pragma optionNV (unroll all)
-#define M_PI 3.1415926535897932384626433832795
-
-precision lowp float;
-precision lowp int;
-precision lowp sampler2D;
-precision lowp samplerCube;
-
-struct t_Environment {
-	samplerCube	Diffuse;
-	samplerCube	Irradiance;
-};
-
-uniform sampler2D	in_Texture_Albedo;
-uniform sampler2D	in_Texture_Fresnel;
-uniform sampler2D	in_Texture_Emitting;
-uniform sampler2D	in_Texture_Material_Values;
-uniform sampler2D	in_Texture_AO;
-uniform sampler2D	in_Texture_Normal;
-uniform sampler2D	in_Texture_Position;
-uniform sampler2D	in_Texture_Depth;
-uniform sampler2D	in_Texture_BRDF;
-
-uniform vec3		in_CamPos;
-uniform mat4		in_InvProjViewMatrix;
-
-uniform t_Environment	Environment;
-
-in vec2				frag_UV;
-in vec3				frag_Cube_UV;
-
-layout(location = 0) out vec4	out_Color;
-layout(location = 1) out vec4	out_Emitting;
-
-struct t_Material {
-	vec4		Albedo;
-	vec3		Specular;
-	vec3		Emitting;
-	float		Roughness;
-	float		Metallic;
-	float		Ior;
-	float		AO;
-};
-
-struct t_Frag {
-	float		Depth;
-	vec2		UV;
-	vec3		CubeUV;
-	vec3		Position;
-	vec3		Normal;
-	t_Material	Material;
-};
-
-t_Frag	Frag;
-
-vec3	WorldPosition(vec2 UV)
-{
-	float	linearDepth = texture(in_Texture_Depth, UV).r * 2.0 - 1.0;
-	vec2	coord = UV * 2.0 - 1.0;
-	vec4	projectedCoord = vec4(coord, linearDepth, 1.0);
-	projectedCoord = in_InvProjViewMatrix * projectedCoord;
-	return (projectedCoord.xyz / projectedCoord.w);
-}
-
-vec3	WorldPosition()
-{
-	float	linearDepth = Frag.Depth * 2.0 - 1.0;
-	vec2	coord = frag_UV * 2.0 - 1.0;
-	vec4	projectedCoord = vec4(coord, linearDepth, 1.0);
-	projectedCoord = in_InvProjViewMatrix * projectedCoord;
-	return (projectedCoord.xyz / projectedCoord.w);
-}
-
-void	FillFrag()
-{
-	Frag.UV = frag_UV;
-	Frag.CubeUV = frag_Cube_UV;
-	Frag.Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
-	Frag.Position = WorldPosition();
-	Frag.Normal = texture(in_Texture_Normal, frag_UV).xyz;
-	Frag.Material.Albedo = texture(in_Texture_Albedo, frag_UV);
-	Frag.Material.Specular = texture(in_Texture_Fresnel, frag_UV).xyz;
-	Frag.Material.Emitting = texture(in_Texture_Emitting, frag_UV).xyz;
-	vec3	Material_Values = texture(in_Texture_Material_Values, frag_UV).xyz;
-	Frag.Material.Roughness = Material_Values.x;
-	Frag.Material.Metallic = Material_Values.y;
-	Frag.Material.Ior = Material_Values.z;
-	Frag.Material.AO = texture(in_Texture_AO, frag_UV).r;
-}
-
-vec4	sampleLod(in samplerCube texture, in vec3 uv, in float value)
-{
-	return textureLod(texture, uv, value * textureQueryLevels(texture));
-}
-
-vec4	sampleLod(in sampler2D texture, in vec2 uv, in float value)
-{
-	return textureLod(texture, uv, value * textureQueryLevels(texture));
-}
+const vec3		brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
+const vec3		envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
 
 float	Env_Specular(in float NdV, in float roughness)
 {
@@ -109,11 +11,8 @@ float	Env_Specular(in float NdV, in float roughness)
 	return (D * G);
 }
 
-void main()
+void	ApplyTechnique()
 {
-	const vec3		brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
-	const vec3		envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
-	FillFrag();
 	const vec3	EnvDiffuse = texture(Environment.Diffuse, Frag.CubeUV).rgb;
 
 	Frag.Material.AO = 1 - Frag.Material.AO;
@@ -122,7 +21,7 @@ void main()
 	float	NdV = max(0, dot(Frag.Normal, V));
 	vec3	R = reflect(V, Frag.Normal);
 
-	const vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, Frag.Material.Roughness)).xy;
+	const vec2	BRDF = BRDF(NdV, Frag.Material.Roughness);
 
 	vec3	diffuse = Frag.Material.AO * (sampleLod(Environment.Diffuse, -Frag.Normal, Frag.Material.Roughness + 0.9).rgb
 			+ texture(Environment.Irradiance, -Frag.Normal).rgb);
@@ -135,9 +34,9 @@ void main()
 	float	brightness = 0;
 
 	if (Frag.Material.Albedo.a == 0) {
-		out_Color = vec4(EnvDiffuse, 1);
-		brightness = dot(pow(out_Color.rgb, envGammaCorrection), brightnessDotValue);
-		out_Emitting = vec4(max(vec3(0), (out_Color.rgb - 0.8) * min(1, brightness)), 1);
+		Out.Color = EnvDiffuse;
+		brightness = dot(pow(Out.Color.rgb, envGammaCorrection), brightnessDotValue);
+		Out.Emitting = max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness));
 		return ;
 	}
 
@@ -147,7 +46,7 @@ void main()
 	specular += reflection_spec;
 	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 
-	out_Color.rgb = specular + diffuse + reflection;
-	out_Color = vec4(mix(EnvDiffuse, out_Color.rgb, Frag.Material.Albedo.a), 1);
-	out_Emitting = vec4(max(vec3(0), out_Color.rgb - 1) + Frag.Material.Emitting, 1);
+	Out.Color = specular + diffuse + reflection;
+	Out.Color = mix(EnvDiffuse, Out.Color.rgb, Frag.Material.Albedo.a);
+	Out.Emitting = max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 }

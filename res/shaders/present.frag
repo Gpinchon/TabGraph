@@ -1,5 +1,3 @@
-#version 430
-
 out vec4			out_Color;
 
 uniform sampler2D	in_Texture_Color;

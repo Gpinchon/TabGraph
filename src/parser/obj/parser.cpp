@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 23:57:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/06 00:03:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,12 +84,10 @@ static void	start_obj_parsing(t_obj_parser *p, const std::string &name, const st
 	if ((p->fd = fopen(path.c_str(), "r")) == nullptr) {
 		throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
 	}
-	if (Material::get_by_name("default") == nullptr) {
-		Material::create("default");
-	}
+	static auto	defaultMat = Material::get_by_name("default");
 	p->parent = Mesh::create(name);
 	p->vg = Vgroup::create(name + "_child 0");//new Vgroup(name + "_child 0");//Mesh::create(name + "_child 0");
-	p->vg->material = Material::get_by_name("default");
+	p->vg->material = defaultMat;
 	p->vg->bounding_element = new AABB(p->bbox);
 	while (fgets(line, 4096, p->fd) != nullptr) {
 		parse_line(p, line);
