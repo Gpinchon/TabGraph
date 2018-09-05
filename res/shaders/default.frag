@@ -57,7 +57,6 @@ layout(location = 2) out vec4	out_Fresnel;
 layout(location = 3) out vec4	out_Material_Values; // Roughness, Metallic, Ior
 layout(location = 4) out vec4	out_AO;
 layout(location = 5) out vec4	out_Normal;
-layout(location = 6) out vec4	out_Position;
 
 float	GGX_Geometry(in float NdV, in float alpha)
 {
@@ -185,7 +184,6 @@ void	main()
 	out_Material_Values.a = 1;
 	out_AO.a = 1;
 	out_Normal.a = 1;
-	out_Position.a = 1;
 
 	out_Albedo = vec4(albedo.rgb + emitting, albedo.a);
 	out_Fresnel.rgb = fresnel;
@@ -195,5 +193,4 @@ void	main()
 	out_Material_Values.z = Material.Ior;
 	out_AO.r = ao;
 	out_Normal.xyz = normalize(worldNormal);
-	out_Position.xyz = worldPosition;
 }

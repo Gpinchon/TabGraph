@@ -21,7 +21,6 @@ uniform sampler2D	in_Texture_Emitting;
 uniform sampler2D	in_Texture_Material_Values;
 uniform sampler2D	in_Texture_AO;
 uniform sampler2D	in_Texture_Normal;
-uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
 uniform sampler2D	in_Texture_BRDF;
 
@@ -30,6 +29,7 @@ uniform sampler2D	in_Back_Bright;
 
 uniform vec3		in_CamPos;
 uniform mat4		in_ViewMatrix;
+uniform mat4		in_InvProjViewMatrix;
 
 uniform t_Environment	Environment;
 
@@ -38,6 +38,58 @@ in vec3				frag_Cube_UV;
 
 layout(location = 0) out vec4	out_Color;
 layout(location = 1) out vec4	out_Emitting;
+
+struct t_Material {
+	vec4		Albedo;
+	vec3		Specular;
+	vec3		Emitting;
+	float		Roughness;
+	float		Metallic;
+	float		Ior;
+	float		AO;
+};
+
+struct t_Frag {
+	float		Depth;
+	vec3		Position;
+	vec3		Normal;
+	t_Material	Material;
+};
+
+t_Frag	Frag;
+
+vec3	WorldPosition(vec2 UV)
+{
+	float	linearDepth = texture(in_Texture_Depth, UV).r * 2.0 - 1.0;
+	vec2	coord = UV * 2.0 - 1.0;
+	vec4	projectedCoord = vec4(coord, linearDepth, 1.0);
+	projectedCoord = in_InvProjViewMatrix * projectedCoord;
+	return (projectedCoord.xyz / projectedCoord.w);
+}
+
+vec3	WorldPosition()
+{
+	float	linearDepth = Frag.Depth * 2.0 - 1.0;
+	vec2	coord = frag_UV * 2.0 - 1.0;
+	vec4	projectedCoord = vec4(coord, linearDepth, 1.0);
+	projectedCoord = in_InvProjViewMatrix * projectedCoord;
+	return (projectedCoord.xyz / projectedCoord.w);
+}
+
+void	FillFrag()
+{
+	Frag.Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
+	Frag.Position = WorldPosition();
+	Frag.Normal = texture(in_Texture_Normal, frag_UV).xyz;
+	Frag.Material.Albedo = texture(in_Texture_Albedo, frag_UV);
+	Frag.Material.Specular = texture(in_Texture_Fresnel, frag_UV).xyz;
+	Frag.Material.Emitting = texture(in_Texture_Emitting, frag_UV).xyz;
+	vec3	Material_Values = texture(in_Texture_Material_Values, frag_UV).xyz;
+	Frag.Material.Roughness = Material_Values.x;
+	Frag.Material.Metallic = Material_Values.y;
+	Frag.Material.Ior = Material_Values.z;
+	Frag.Material.AO = texture(in_Texture_AO, frag_UV).r;
+}
 
 vec4	sampleLod(samplerCube texture, vec3 uv, float value)
 {
@@ -106,51 +158,41 @@ void main()
 {
 	out_Color.a = 1;
 	out_Emitting.a = 1;
-	const float	Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
-	vec4	Albedo = texture(in_Texture_Albedo, frag_UV);
-	const vec3	Fresnel = texture(in_Texture_Fresnel, frag_UV).rgb;
-	const vec3	Emitting = texture(in_Texture_Emitting, frag_UV).rgb;
-	const vec3	Material_Values = texture(in_Texture_Material_Values, frag_UV).rgb;
+	FillFrag();
 	vec3	Normal = texture(in_Texture_Normal, frag_UV).xyz;
-	const vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
-	const float	AO = 1 - texture(in_Texture_AO, frag_UV).r;
+	Frag.Material.AO = 1 - Frag.Material.AO;
 
-
-	const float	Roughness = Material_Values.x;
-	const float	Metallic = Material_Values.y;
-	const float	Ior = Material_Values.z;
-
-	vec3	V = normalize(in_CamPos - Position);
+	vec3	V = normalize(in_CamPos - Frag.Position);
 	float	NdV = dot(Normal, V);
 	if (NdV < 0) {
 		Normal = -Normal;
 		NdV = -NdV;
 	}
 
-	const vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, Roughness)).xy;
+	const vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, Frag.Material.Roughness)).xy;
 
-	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
+	vec3	diffuse = Frag.Material.AO * (sampleLod(Environment.Diffuse, -Normal, Frag.Material.Roughness + 0.9).rgb
 			+ texture(Environment.Irradiance, -Normal).rgb);
-	diffuse *= Albedo.a;
+	diffuse *= Frag.Material.Albedo.a;
 	vec3	R = reflect(V, Normal);
-	vec3	reflection = sampleLod(Environment.Diffuse, R, Roughness * 2.f).rgb;
+	vec3	reflection = sampleLod(Environment.Diffuse, R, Frag.Material.Roughness * 2.f).rgb;
 	vec3	specular = texture(Environment.Irradiance, R).rgb;
-	vec3	reflection_spec = reflection;//sampleLod(Environment.Diffuse, R, Roughness + 0.1).rgb;
+	vec3	reflection_spec = reflection;
 
-	reflection *= Fresnel;
+	reflection *= Frag.Material.Specular;
 
 	vec2	refract_UV = frag_UV;
-	if (Ior > 1)
+	if (Frag.Material.Ior > 1)
 	{
-		vec2	refractFactor = vec2(1 - Depth) * vec2(0.25f) + (Fresnel.x + Fresnel.y + Fresnel.z) / 3.f * 0.0125f;
-		vec2	refractDir = (mat3(in_ViewMatrix) * normalize(refract(V, Normal, 1.0 / Ior))).xy;
+		vec2	refractFactor = vec2(1 - Frag.Depth) * vec2(0.25f) + (Frag.Material.Specular.x + Frag.Material.Specular.y + Frag.Material.Specular.z) / 3.f * 0.0125f;
+		vec2	refractDir = (mat3(in_ViewMatrix) * normalize(refract(V, Normal, 1.0 / Frag.Material.Ior))).xy;
 		refract_UV = refractDir * refractFactor + frag_UV;
 		refract_UV = warpUV(vec2(0), vec2(1), refract_UV);
 	}
-	vec3	Back_Color = sampleLod(in_Back_Color, refract_UV, Roughness).rgb;
-	vec3	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Roughness).rgb;
+	vec3	Back_Color = sampleLod(in_Back_Color, refract_UV, Frag.Material.Roughness).rgb;
+	vec3	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Frag.Material.Roughness).rgb;
 
-	if (Albedo.a == 0) {
+	if (Frag.Material.Albedo.a == 0) {
 		out_Color.rgb = Back_Color;
 		out_Emitting.rgb = Back_Bright;
 		return ;
@@ -158,19 +200,19 @@ void main()
 
 	float	brightness = 0;
 	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
-	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
-	specular *= Fresnel * BRDF.x + mix(vec3(1), Fresnel, Metallic) * BRDF.y;
+	reflection_spec *= brightness * min(Frag.Material.Specular + 1, Frag.Material.Specular * Env_Specular(NdV, Frag.Material.Roughness));
+	specular *= Frag.Material.Specular * BRDF.x + mix(vec3(1), Frag.Material.Specular, Frag.Material.Metallic) * BRDF.y;
 	specular += reflection_spec;
-	diffuse *= Albedo.rgb * (1 - Metallic);
-	Albedo.a += dot(specular, specular);
-	Albedo.a = min(1, Albedo.a);
+	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
+	Frag.Material.Albedo.a += dot(specular, specular);
+	Frag.Material.Albedo.a = min(1, Frag.Material.Albedo.a);
 
-	float	mappedAlpha = map(Albedo.a, 0, 1, 0.5, 1);
-	Back_Color = mix(Back_Color, Back_Color * Albedo.rgb, mappedAlpha);
-	Back_Bright = mix(Back_Bright, Back_Bright * Albedo.rgb, mappedAlpha);
+	float	mappedAlpha = map(Frag.Material.Albedo.a, 0, 1, 0.5, 1);
+	Back_Color = mix(Back_Color, Back_Color * Frag.Material.Albedo.rgb, mappedAlpha);
+	Back_Bright = mix(Back_Bright, Back_Bright * Frag.Material.Albedo.rgb, mappedAlpha);
 
-	out_Color.rgb = specular + diffuse + reflection + Emitting;
-	out_Color.rgb = mix(Back_Color, out_Color.rgb, Albedo.a);
-	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Emitting.rgb;
-	out_Emitting.rgb = mix(Back_Bright, out_Emitting.rgb, Albedo.a);
+	out_Color.rgb = specular + diffuse + reflection + Frag.Material.Emitting;
+	out_Color.rgb = mix(Back_Color, out_Color.rgb, Frag.Material.Albedo.a);
+	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Frag.Material.Emitting;
+	out_Emitting.rgb = mix(Back_Bright, out_Emitting.rgb, Frag.Material.Albedo.a);
 }
