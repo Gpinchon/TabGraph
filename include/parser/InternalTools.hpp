@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:16:45 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/04 21:54:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/05 17:15:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ std::vector<std::string>	split_path(const std::string &path);
 std::vector<std::string>	strsplit(const std::string &s, char c);
 std::vector<std::string>	strsplitwspace(const std::string &s);
 unsigned		count_char(const std::string &str, char c);
+std::string		file_to_str(const std::string &path);
 std::string		stream_to_str(FILE *stream);
 std::string		stream_to_str(FILE *stream, size_t offset);
 std::string		convert_backslash(std::string str);

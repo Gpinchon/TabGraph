@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/19 01:27:17 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/10 15:25:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/05 17:15:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
 
 std::string	access_get_error(const int &access_result)
 {
@@ -42,6 +43,13 @@ std::string	access_get_error(const int &access_result)
 			break;
 	}
 	return (errorMessage);
+}
+
+std::string	file_to_str(const std::string &path)
+{
+	std::ifstream	ifs(path.c_str());
+ 	std::string		fileBuffer((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+ 	return (fileBuffer);
 }
 
 std::string	stream_to_str(FILE *stream)

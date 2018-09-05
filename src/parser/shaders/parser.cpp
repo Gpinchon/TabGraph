@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/23 17:19:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/05 17:15:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "parser/GLSL.hpp"
 #include "parser/InternalTools.hpp"
 #include <unistd.h>
+#include <iostream>
 
 GLuint	compile_shader(const std::string &path, GLenum type)
 {
@@ -26,7 +27,8 @@ GLuint	compile_shader(const std::string &path, GLenum type)
 	if ((stream = fopen(path.c_str(), "r")) == nullptr) {
 		throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
 	}
-	auto	bufstring = stream_to_str(stream);
+	fclose(stream);
+	auto	bufstring = file_to_str(path);
 	auto	buf = bufstring.c_str();
 	shaderid = glCreateShader(type);
 	glShaderSource(shaderid, 1, &buf, nullptr);
@@ -37,7 +39,6 @@ GLuint	compile_shader(const std::string &path, GLenum type)
 	catch (std::exception &e) {
 		throw std::runtime_error(std::string("Error compiling : ") + path + " :\n" + e.what());
 	}
-	fclose(stream);
 	return (shaderid);
 }
 

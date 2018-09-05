@@ -45,6 +45,8 @@ struct t_Material {
 
 struct t_Frag {
 	float		Depth;
+	vec2		UV;
+	vec3		CubeUV;
 	vec3		Position;
 	vec3		Normal;
 	t_Material	Material;
@@ -72,6 +74,8 @@ vec3	WorldPosition()
 
 void	FillFrag()
 {
+	Frag.UV = frag_UV;
+	Frag.CubeUV = frag_Cube_UV;
 	Frag.Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 	Frag.Position = WorldPosition();
 	Frag.Normal = texture(in_Texture_Normal, frag_UV).xyz;
@@ -95,23 +99,6 @@ vec4	sampleLod(in sampler2D texture, in vec2 uv, in float value)
 	return textureLod(texture, uv, value * textureQueryLevels(texture));
 }
 
-float	Env_Specular(in float NdV, in float NdL, in float roughness)
-{
-	float a2 = roughness * roughness;
-	float G_V = NdV + sqrt( (NdV - NdV * a2) * NdV + a2 );
-	float G_L = NdL + sqrt( (NdL - NdL * a2) * NdL + a2 );
-	return (1 / (G_V * G_L));
-}
-
-/* float	Env_Specular(in float NdV, in float roughness)
-{
-	float a2 = roughness * roughness;
-	float NdVa2 = NdV * a2;
-	float G_V = NdV + sqrt((NdV - NdVa2) * NdV + a2 );
-	float G_L = -NdV + sqrt((-NdV + NdVa2) * -NdV + a2 );
-	return (1 / (G_V * G_L));
-} */
-
 float	Env_Specular(in float NdV, in float roughness)
 {
 	float	alpha = roughness * roughness;
@@ -126,16 +113,9 @@ void main()
 {
 	const vec3		brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
 	const vec3		envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
-	out_Color.a = 1;
-	out_Emitting.a = 1;
 	FillFrag();
-	const vec3	EnvDiffuse = texture(Environment.Diffuse, frag_Cube_UV).rgb;
-	/* const vec3	Position = WorldPosition();
-	const vec4	Albedo = texture(in_Texture_Albedo, frag_UV);
-	const vec3	Fresnel = texture(in_Texture_Fresnel, frag_UV).rgb;
-	const vec3	Emitting = texture(in_Texture_Emitting, frag_UV).rgb;
-	const vec3	Material_Values = texture(in_Texture_Material_Values, frag_UV).xyz;
-	const vec3	Normal = texture(in_Texture_Normal, frag_UV).xyz; */
+	const vec3	EnvDiffuse = texture(Environment.Diffuse, Frag.CubeUV).rgb;
+
 	Frag.Material.AO = 1 - Frag.Material.AO;
 	
 	vec3	V = normalize(in_CamPos - Frag.Position);
@@ -155,13 +135,11 @@ void main()
 	float	brightness = 0;
 
 	if (Frag.Material.Albedo.a == 0) {
-		out_Color.rgb = EnvDiffuse;
+		out_Color = vec4(EnvDiffuse, 1);
 		brightness = dot(pow(out_Color.rgb, envGammaCorrection), brightnessDotValue);
-		out_Emitting.rgb = max(vec3(0), (out_Color.rgb - 0.8) * min(1, brightness));
+		out_Emitting = vec4(max(vec3(0), (out_Color.rgb - 0.8) * min(1, brightness)), 1);
 		return ;
 	}
-	out_Color.a = 1;
-	out_Emitting.a = 1;
 
 	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
 	reflection_spec *= brightness * min(Frag.Material.Specular + 1, Frag.Material.Specular * Env_Specular(NdV, Frag.Material.Roughness));
@@ -170,6 +148,6 @@ void main()
 	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 
 	out_Color.rgb = specular + diffuse + reflection;
-	out_Color.rgb = mix(EnvDiffuse, out_Color.rgb, Frag.Material.Albedo.a);
-	out_Emitting.rgb = max(vec3(0), out_Color.rgb - 1) + Frag.Material.Emitting;
+	out_Color = vec4(mix(EnvDiffuse, out_Color.rgb, Frag.Material.Albedo.a), 1);
+	out_Emitting = vec4(max(vec3(0), out_Color.rgb - 1) + Frag.Material.Emitting, 1);
 }

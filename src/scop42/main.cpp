@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 10:02:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/05 17:17:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,8 +96,7 @@ int		main(int argc, char *argv[])
 		if (m != nullptr)
 			m->material->shader = GLSL::parse("shadertoy", Engine::program_path() + "./res/shaders/shadertoy.vert", Engine::program_path() + "./res/shaders/balls.frag");
 */	}
-	auto shader = GLSL::parse("SSAO", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/ssao.frag");
-	Render::add_post_treatment(shader);
+	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	setup_callbacks();
 	Engine::run();
 	SDL_Quit();

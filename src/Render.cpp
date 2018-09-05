@@ -6,10 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/05 15:47:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/05 17:32:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "parser/InternalTools.hpp"
 #include "Render.hpp"
 #include "Engine.hpp"
 #include "Renderable.hpp"
@@ -71,6 +72,24 @@ Framebuffer	*create_back_buffer(const std::string &name, const VEC2 &size, Shade
 
 #include <parser/BMP.hpp>
 
+void	present(Framebuffer *back_buffer)
+{
+	static auto	presentShader = GLSL::parse("present",
+		Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/present.frag");
+
+	// GENERATE BLOOM FROM out_Brightness
+	back_buffer->attachement(1)->blur(BLOOMPASS, 3.5);
+	glDepthFunc(GL_ALWAYS);
+	Framebuffer::bind_default();
+	presentShader->use();
+	presentShader->bind_texture("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
+	presentShader->bind_texture("in_Texture_Emitting", back_buffer->attachement(1), GL_TEXTURE1);
+	presentShader->bind_texture("in_Texture_Depth", back_buffer->depth(), GL_TEXTURE2);
+	Render::display_quad()->draw();
+	presentShader->use(false);
+}
+
+
 void	Render::scene()
 {
 	static Texture	*brdf = nullptr;
@@ -87,7 +106,6 @@ void	Render::scene()
 	static auto	passthrough_shader = GLSL::parse("passthrough", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/passthrough.frag");
 	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting.frag");
 	static auto	tlighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting_transparent.frag");
-	static auto	presentShader = GLSL::parse("present", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/present.frag");
 
 	auto	InvViewMatrix = mat4_inverse(Engine::current_camera()->view);
 	auto	InvProjMatrix = mat4_inverse(Engine::current_camera()->projection);
@@ -191,15 +209,7 @@ void	Render::scene()
 		/*
 		** NO OBJECTS WERE RENDERED PRESENT IMEDIATLY
 		*/
-		glDepthFunc(GL_ALWAYS);
-		back_buffer->attachement(1)->blur(BLOOMPASS, 3.5);
-		Framebuffer::bind_default();
-		presentShader->use();
-		presentShader->bind_texture("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
-		presentShader->bind_texture("in_Texture_Emitting", back_buffer->attachement(1), GL_TEXTURE1);
-		presentShader->bind_texture("in_Texture_Depth", back_buffer->depth(), GL_TEXTURE2);
-		Render::display_quad()->draw();
-		presentShader->use(false);
+		present(back_buffer);
 		return ;
 	}
 
@@ -238,17 +248,7 @@ void	Render::scene()
 	Render::display_quad()->draw();
 	tlighting_shader->use(false);
 
-	// GENERATE BLOOM FROM out_Brightness
-	back_buffer1->attachement(1)->blur(BLOOMPASS, 3.5);
-
-	glEnable(GL_DEPTH_TEST);
-	Framebuffer::bind_default();
-	presentShader->use();
-	presentShader->bind_texture("in_Texture_Color", back_buffer1->attachement(0), GL_TEXTURE0);
-	presentShader->bind_texture("in_Texture_Emitting", back_buffer1->attachement(1), GL_TEXTURE1);
-	presentShader->bind_texture("in_Texture_Depth", back_buffer1->depth(), GL_TEXTURE2);
-	Render::display_quad()->draw();
-	presentShader->use(false);
+	present(back_buffer1);
 }
 
 void	Render::add_post_treatment(Shader *shader)
@@ -257,46 +257,20 @@ void	Render::add_post_treatment(Shader *shader)
 		post_treatments.insert(shader);
 }
 
+void	Render::add_post_treatment(const std::string &name, const std::string &path)
+{
+	Shader *shader;
+	auto	fileBuffer = file_to_str(Engine::program_path() + "./res/shaders/post.frag") + file_to_str(path);
+	auto	out = fopen((Engine::program_path() + "res/temp/output.frag").c_str(), "w");
+	fwrite(fileBuffer.c_str(), 1, fileBuffer.length(), out);
+	fclose(out);
+	shader = GLSL::parse(name, Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "res/temp/output.frag");
+	if (shader != nullptr)
+		post_treatments.insert(shader);
+}
+
 void	Render::remove_post_treatment(Shader *shader)
 {
 	if (shader != nullptr)
 		post_treatments.erase(shader);
-}
-
-void	Render::bind_textures(Shader *)
-{
-	/*shader->bind_texture("in_Texture_Albedo", temp_buffer1->attachement(0), GL_TEXTURE0); // Albedo;
-	shader->bind_texture("in_Texture_Fresnel", temp_buffer1->attachement(1), GL_TEXTURE1); // Fresnel;
-	shader->bind_texture("in_Texture_Emitting", temp_buffer1->attachement(2), GL_TEXTURE2); // Emitting;
-	shader->bind_texture("in_Texture_Material_Values", temp_buffer1->attachement(3), GL_TEXTURE3); // Material_Values -> Roughness, Metallic
-	shader->bind_texture("in_Texture_BRDF", temp_buffer1->attachement(4), GL_TEXTURE4); // irradiance
-	shader->bind_texture("in_Texture_Normal", temp_buffer1->attachement(5), GL_TEXTURE5); // Normal;
-	shader->bind_texture("in_Texture_Position", temp_buffer1->attachement(6), GL_TEXTURE6); // Position;
-	shader->bind_texture("in_Texture_Depth", temp_buffer1->depth(), GL_TEXTURE7);
-	shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
-	shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE9);*/
-}
-
-void		Render::present()
-{
-	/*MAT4		matrix{{0}};
-
-	if (Engine::current_camera() == nullptr) {
-		return ;
-	}
-	Window::render_buffer().attachement(2)->blur(BLOOMPASS, 2.5);
-	//Window::render_buffer().attachement(6).blur(1, 2.5);
-	Framebuffer::bind_default();
-	glDisable(GL_DEPTH_TEST);
-	auto	shader = Window::render_buffer().shader();
-	//Window::render_buffer().attachement(0).generate_mipmap();
-	shader->use();
-	Render::bind_textures(shader);
-	shader->set_uniform("in_CamPos", Engine::current_camera()->position());
-	matrix = mat4_inverse(Engine::current_camera()->view);
-	shader->set_uniform("in_InvViewMatrix", matrix);
-	matrix = mat4_inverse(Engine::current_camera()->projection);
-	shader->set_uniform("in_InvProjMatrix", matrix);
-	Render::display_quad()->draw();
-	shader->use(false);*/
 }
