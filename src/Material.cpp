@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 23:13:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/05 11:13:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,6 @@
 #include "parser/BMP.hpp"
 #include "parser/GLSL.hpp"
 
-Texture	*Material::_texture_brdf = nullptr;
-
 Material::Material(const std::string &name)
 {
 	set_name(name);
@@ -27,12 +25,6 @@ Material::Material(const std::string &name)
 	}
 	if ((depth_shader = Shader::get_by_name("default_depth")) == nullptr) {
 		depth_shader = GLSL::parse("default_depth", Engine::program_path() + "./res/shaders/depth.vert", Engine::program_path() + "./res/shaders/depth.frag");
-	}
-	if (_texture_brdf == nullptr)
-	{
-		_texture_brdf = BMP::parse("brdf", Engine::program_path() + "./res/brdfLUT.bmp");
-		_texture_brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		_texture_brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 }
 
@@ -79,9 +71,8 @@ void	Material::bind_textures()
 	shader->bind_texture("Material.Texture.Height", texture_height, GL_TEXTURE7);
 	shader->set_uniform("Material.Texture.Use_Height", texture_height != nullptr ? true : false);
 	shader->bind_texture("Material.Texture.AO", texture_ao, GL_TEXTURE8);
-	shader->bind_texture("Material.Texture.BRDF", _texture_brdf, GL_TEXTURE9);
-	shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE11);
-	shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE12);
+	shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE9);
+	shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE10);
 }
 
 void	Material::bind_values()

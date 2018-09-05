@@ -6,7 +6,6 @@ layout(location = 3) out vec4	out_Buffer3;
 layout(location = 4) out vec4	out_Buffer4;
 layout(location = 5) out vec4	out_Buffer5;
 layout(location = 6) out vec4	out_Buffer6;
-layout(location = 7) out vec4	out_Buffer7;
 
 uniform sampler2D	in_Buffer0;
 uniform sampler2D	in_Buffer1;
@@ -15,7 +14,6 @@ uniform sampler2D	in_Buffer3;
 uniform sampler2D	in_Buffer4;
 uniform sampler2D	in_Buffer5;
 uniform sampler2D	in_Buffer6;
-uniform sampler2D	in_Buffer7;
 uniform sampler2D	in_Texture_Depth;
 
 in vec2	frag_UV;
@@ -29,6 +27,5 @@ void main()
 	out_Buffer4 = texture(in_Buffer4, frag_UV);
 	out_Buffer5 = texture(in_Buffer5, frag_UV);
 	out_Buffer6 = texture(in_Buffer6, frag_UV);
-	out_Buffer7 = texture(in_Buffer7, frag_UV);
 	gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 }

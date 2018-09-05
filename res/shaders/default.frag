@@ -22,7 +22,6 @@ struct t_Textures {
 	bool		Use_Height;
 	sampler2D	Height;
 	sampler2D	AO;
-	sampler2D	BRDF;
 };
 
 struct t_Material {
@@ -52,14 +51,13 @@ in vec2	frag_Texcoord;
 in vec2	frag_UVMax;
 in vec2	frag_UVMin;
 
-layout(location = 0) out vec4	out_Albedo; // Albedo;
-layout(location = 1) out vec4	out_Emitting; // Emitting;
-layout(location = 2) out vec4	out_Fresnel; // Fresnel;
-layout(location = 3) out vec4	out_Material_Values; // Material_Values -> Roughness, Metallic, Ior
-layout(location = 4) out vec4	out_BRDF;// BRDF
-layout(location = 5) out vec4	out_AO;//AO
-layout(location = 6) out vec4	out_Normal;// Normal;
-layout(location = 7) out vec4	out_Position;// Position;
+layout(location = 0) out vec4	out_Albedo;
+layout(location = 1) out vec4	out_Emitting;
+layout(location = 2) out vec4	out_Fresnel;
+layout(location = 3) out vec4	out_Material_Values; // Roughness, Metallic, Ior
+layout(location = 4) out vec4	out_AO;
+layout(location = 5) out vec4	out_Normal;
+layout(location = 6) out vec4	out_Position;
 
 float	GGX_Geometry(in float NdV, in float alpha)
 {
@@ -127,6 +125,11 @@ mat3x3	tbn_matrix(in vec3 position, in vec3 normal, in vec2 texcoord)
 	return(transpose(mat3(T, B, normal)));
 }
 
+float	map(in float value, in float low1, in float high1, in float low2, in float high2)
+{
+	return (low2 + (value - low1) * (high2 - low2) / (high1 - low1));
+}
+
 void	main()
 {
 	vec3	worldPosition = frag_WorldPosition;
@@ -164,7 +167,8 @@ void	main()
 		if (dot(new_normal, new_normal) > 0)
 			worldNormal = new_normal;
 	}
-	float	roughness = max(0.01, Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness);
+	float	roughness = Material.Texture.Use_Roughness ? roughness_sample : Material.Roughness;
+	roughness = map(roughness, 0, 1, 0.1, 1);
 	float	metallic = Material.Texture.Use_Metallic ? metallic_sample : Material.Metallic;
 	vec3	F0 = mix(Material.Texture.Use_Specular ? specular_sample : Material.Specular, albedo.rgb, metallic);
 	float	NdV = dot(worldNormal, V);
@@ -174,13 +178,11 @@ void	main()
 		NdV = 0;
 
 	vec3	fresnel = Fresnel(NdV, F0, roughness);
-	vec2	BRDF = texture(Material.Texture.BRDF, vec2(NdV, roughness)).rg;
 
 	out_Albedo.a = 1;
 	out_Fresnel.a = 1;
 	out_Emitting.a = 1;
 	out_Material_Values.a = 1;
-	out_BRDF.a = 1;
 	out_AO.a = 1;
 	out_Normal.a = 1;
 	out_Position.a = 1;
@@ -191,7 +193,6 @@ void	main()
 	out_Material_Values.x = roughness;
 	out_Material_Values.y = metallic;
 	out_Material_Values.z = Material.Ior;
-	out_BRDF.xy = BRDF;
 	out_AO.r = ao;
 	out_Normal.xyz = normalize(worldNormal);
 	out_Position.xyz = worldPosition;

@@ -21,7 +21,6 @@ struct t_Textures {
 	bool		Use_Height;
 	sampler2D	Height;
 	sampler2D	AO;
-	sampler2D	BRDF;
 };
 
 struct t_Material {

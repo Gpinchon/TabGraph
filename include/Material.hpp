@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:12:58 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 23:08:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/05 11:13:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,5 @@ public :
 	Texture			*texture_metallic{nullptr};
 	Texture			*texture_ao{nullptr};
 protected :
-	static Texture	*_texture_brdf;
 	Material(const std::string &name);
 };

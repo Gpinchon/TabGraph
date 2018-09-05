@@ -1,6 +1,5 @@
 #version 430
 #pragma optionNV (unroll all)
-#define	KERNEL_SIZE 64
 #define M_PI 3.1415926535897932384626433832795
 
 precision lowp float;
@@ -20,11 +19,11 @@ uniform sampler2D	in_Texture_Albedo;
 uniform sampler2D	in_Texture_Fresnel;
 uniform sampler2D	in_Texture_Emitting;
 uniform sampler2D	in_Texture_Material_Values;
-uniform sampler2D	in_Texture_BRDF;
 uniform sampler2D	in_Texture_AO;
 uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
+uniform sampler2D	in_Texture_BRDF;
 
 uniform sampler2D	in_Back_Color;
 uniform sampler2D	in_Back_Bright;
@@ -112,7 +111,6 @@ void main()
 	const vec3	Fresnel = texture(in_Texture_Fresnel, frag_UV).rgb;
 	const vec3	Emitting = texture(in_Texture_Emitting, frag_UV).rgb;
 	const vec3	Material_Values = texture(in_Texture_Material_Values, frag_UV).rgb;
-	const vec3	BRDF = texture(in_Texture_BRDF, frag_UV).rgb;
 	vec3	Normal = texture(in_Texture_Normal, frag_UV).xyz;
 	const vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
 	const float	AO = 1 - texture(in_Texture_AO, frag_UV).r;
@@ -128,6 +126,8 @@ void main()
 		Normal = -Normal;
 		NdV = -NdV;
 	}
+
+	const vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, Roughness)).xy;
 
 	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
 			+ texture(Environment.Irradiance, -Normal).rgb);

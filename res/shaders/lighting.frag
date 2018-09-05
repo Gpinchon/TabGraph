@@ -1,6 +1,5 @@
 #version 430
 #pragma optionNV (unroll all)
-#define	KERNEL_SIZE 64
 #define M_PI 3.1415926535897932384626433832795
 
 precision lowp float;
@@ -17,11 +16,11 @@ uniform sampler2D	in_Texture_Albedo;
 uniform sampler2D	in_Texture_Fresnel;
 uniform sampler2D	in_Texture_Emitting;
 uniform sampler2D	in_Texture_Material_Values;
-uniform sampler2D	in_Texture_BRDF;
 uniform sampler2D	in_Texture_AO;
 uniform sampler2D	in_Texture_Normal;
 uniform sampler2D	in_Texture_Position;
 uniform sampler2D	in_Texture_Depth;
+uniform sampler2D	in_Texture_BRDF;
 
 uniform vec3		in_CamPos;
 
@@ -82,15 +81,17 @@ void main()
 	const vec3	Fresnel = texture(in_Texture_Fresnel, frag_UV).rgb;
 	const vec3	Emitting = texture(in_Texture_Emitting, frag_UV).rgb;
 	const vec3	Material_Values = texture(in_Texture_Material_Values, frag_UV).xyz;
-	const vec2	BRDF = texture(in_Texture_BRDF, frag_UV).xy;
 	const vec3	Normal = texture(in_Texture_Normal, frag_UV).xyz;
 	const vec3	Position = texture(in_Texture_Position, frag_UV).xyz;
 	float		AO = 1 - texture(in_Texture_AO, frag_UV).r;
 	
 	vec3	V = normalize(in_CamPos - Position);
+	float	NdV = max(0, dot(Normal, V));
 	vec3	R = reflect(V, Normal);
 	float	Roughness = Material_Values.x;
 	float	Metallic = Material_Values.y;
+
+	const vec2	BRDF = texture(in_Texture_BRDF, vec2(NdV, Roughness)).xy;
 
 	vec3	diffuse = AO * (sampleLod(Environment.Diffuse, -Normal, Roughness + 0.9).rgb
 			+ texture(Environment.Irradiance, -Normal).rgb);
@@ -111,7 +112,6 @@ void main()
 	out_Color.a = 1;
 	out_Emitting.a = 1;
 
-	float	NdV = max(0, dot(Normal, V));
 	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
 	reflection_spec *= brightness * min(Fresnel + 1, Fresnel * Env_Specular(NdV, Roughness));
 	specular *= Fresnel * BRDF.x + mix(vec3(1), Fresnel, Metallic) * BRDF.y;
