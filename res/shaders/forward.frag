@@ -32,7 +32,7 @@ struct t_Material {
 	float		Alpha;
 	float		Parallax;
 	float		Ior;
-	t_Textures	Texture;
+	float		AO;
 };
 
 struct t_Environment {
@@ -40,25 +40,15 @@ struct t_Environment {
 	samplerCube	Irradiance;
 };
 
-struct t_FragMaterial {
-	vec4		Albedo;
-	vec3		Specular;
-	vec3		Emitting;
-	float		Roughness;
-	float		Metallic;
-	float		Parallax;
-	float		Ior;
-	float		AO;
-};
-
 struct t_Frag {
 	float		Depth;
 	vec2		UV;
 	vec3		Position;
 	vec3		Normal;
-	t_FragMaterial	Material;
+	t_Material	Material;
 };
 
+uniform t_Textures		Texture;
 uniform t_Material		Material;
 uniform t_Environment	Environment;
 uniform vec3			in_CamPos;
@@ -88,17 +78,17 @@ void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out float parallaxHeight)
 	float curLayerHeight = 0;
 	vec2 dtex = Material.Parallax * tbnV.xy / tbnV.z / numLayers;
 	vec2 currentTextureCoords = T;
-	float heightFromTexture = 1 - texture(Material.Texture.Height, currentTextureCoords).r;
+	float heightFromTexture = 1 - texture(Texture.Height, currentTextureCoords).r;
 	while(tries > 0 && heightFromTexture > curLayerHeight) 
 	{
 		tries--;
 		curLayerHeight += layerHeight; 
 		currentTextureCoords -= dtex;
-		heightFromTexture = 1 - texture(Material.Texture.Height, currentTextureCoords).r;
+		heightFromTexture = 1 - texture(Texture.Height, currentTextureCoords).r;
 	}
 	vec2 prevTCoords = currentTextureCoords + dtex;
 	float nextH	= heightFromTexture - curLayerHeight;
-	float prevH	= 1 - texture(Material.Texture.Height, prevTCoords).r
+	float prevH	= 1 - texture(Texture.Height, prevTCoords).r
 	- curLayerHeight + layerHeight;
 	float weight = nextH / (nextH - prevH);
 	vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0 - weight);
@@ -134,63 +124,68 @@ void	FillIn()
 	mat3	tbn = tbn_matrix();
 	float	ph = 0;
 
-	if (Material.Texture.Use_Height)
+	if (Texture.Use_Height)
 		Parallax_Mapping(tbn * normalize(in_CamPos - Frag.Position), Frag.UV, ph);
 
-	Frag.Material.Albedo = vec4(Material.Albedo, Material.Alpha);
-	Frag.Material.Emitting = texture(Material.Texture.Emitting, Frag.UV).rgb + Material.Emitting;
-	Frag.Material.AO = texture(Material.Texture.AO, Frag.UV).r;
+	Frag.Material = Material;
+	Frag.Material.Emitting = texture(Texture.Emitting, Frag.UV).rgb + Material.Emitting;
+	Frag.Material.AO = texture(Texture.AO, Frag.UV).r;
 	Frag.Material.Specular = Material.Specular;
 	Frag.Material.Roughness = Material.Roughness;
 	Frag.Material.Metallic = Material.Metallic;
+	Frag.Material.Ior = Material.Ior;
 
-	vec4	albedo_sample = texture(Material.Texture.Albedo, Frag.UV);
-	vec3	normal_sample = texture(Material.Texture.Normal, Frag.UV).xyz * 2 - 1;
-	vec3	specular_sample = texture(Material.Texture.Specular, Frag.UV).xyz;
-	float	roughness_sample = texture(Material.Texture.Roughness, Frag.UV).r;
-	float	metallic_sample = texture(Material.Texture.Metallic, Frag.UV).r;
+	vec4	albedo_sample = texture(Texture.Albedo, Frag.UV);
+	vec3	normal_sample = texture(Texture.Normal, Frag.UV).xyz * 2 - 1;
+	vec3	specular_sample = texture(Texture.Specular, Frag.UV).xyz;
+	float	roughness_sample = texture(Texture.Roughness, Frag.UV).r;
+	float	metallic_sample = texture(Texture.Metallic, Frag.UV).r;
 
-	if (Material.Texture.Use_Albedo)
-		Frag.Material.Albedo *= albedo_sample;
-	if (Material.Texture.Use_Specular)
+	if (Texture.Use_Albedo)
+	{
+		Frag.Material.Albedo *= albedo_sample.rgb;
+		Frag.Material.Alpha *= albedo_sample.a;
+	}
+	if (Texture.Use_Specular)
 		Frag.Material.Specular = specular_sample;
-	if (Material.Texture.Use_Roughness)
+	if (Texture.Use_Roughness)
 		Frag.Material.Roughness = roughness_sample;
-	if (Material.Texture.Use_Metallic)
+	if (Texture.Use_Metallic)
 		Frag.Material.Metallic = metallic_sample;
-	if (Material.Texture.Use_Normal) {
+	if (Texture.Use_Normal) {
 		vec3	new_normal = normal_sample * tbn;
 		if (dot(new_normal, new_normal) > 0)
 			Frag.Normal = new_normal;
 	}
-	if (Material.Texture.Use_Height)
+	if (Texture.Use_Height)
 		Frag.Position = Frag.Position - (Frag.Normal * ph);
 
 	Frag.Material.Roughness = map(Frag.Material.Roughness, 0, 1, 0.1, 1);
 	Frag.Material.Specular = mix(Frag.Material.Specular, Frag.Material.Albedo.rgb, Frag.Material.Metallic);
 }
 
-vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
+/* vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
 {
 	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
-}
+} */
 
 void	FillOut()
 {
-	float	NdV = dot(Frag.Normal, normalize(in_CamPos - Frag.Position));
+	//float	NdV = dot(Frag.Normal, normalize(in_CamPos - Frag.Position));
 
-	if (Frag.Material.Albedo.a < 1 && NdV < 0)
+	/* if (Frag.Material.Alpha < 1 && NdV < 0)
 		NdV = -NdV;
 	else if (NdV < 0)
-		NdV = 0;
+		NdV = 0; */
 	out_Fresnel.a = 1;
 	out_Emitting.a = 1;
 	out_Material_Values.a = 1;
 	out_AO.a = 1;
 	out_Normal.a = 1;
 
-	out_Albedo = vec4(Frag.Material.Albedo.rgb + Frag.Material.Emitting, Frag.Material.Albedo.a);
-	out_Fresnel.rgb = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
+	out_Albedo = vec4(Frag.Material.Albedo.rgb + Frag.Material.Emitting, Frag.Material.Alpha);
+	//out_Fresnel.rgb = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
+	out_Fresnel.rgb = Frag.Material.Specular;
 	out_Emitting.rgb = max(vec3(0), Frag.Material.Albedo.rgb - 1) + Frag.Material.Emitting;
 	out_Material_Values.x = Frag.Material.Roughness;
 	out_Material_Values.y = Frag.Material.Metallic;

@@ -4,16 +4,20 @@ struct t_Textures {
 };
 
 struct t_Material {
-	t_Textures	Texture;
+	float		Alpha;
 };
 
 uniform t_Material		Material;
+uniform t_Textures		Texture;
 
 in vec2				frag_Texcoord;
 
 void main()
 {
-	float a = texture(Material.Texture.Albedo, frag_Texcoord).a;
-	if (Material.Texture.Use_Albedo && a <= 0.05f)
+	float a = texture(Texture.Albedo, frag_Texcoord).a;
+	float alpha = Material.Alpha;
+	if (Texture.Use_Albedo)
+		alpha *= a;
+	if (alpha <= 0.05f)
 		discard;
 }

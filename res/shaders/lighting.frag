@@ -11,6 +11,11 @@ float	Env_Specular(in float NdV, in float roughness)
 	return (D * G);
 }
 
+vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
+{
+	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
+}
+
 void	ApplyTechnique()
 {
 	const vec3	EnvDiffuse = texture(Environment.Diffuse, Frag.CubeUV).rgb;
@@ -29,7 +34,6 @@ void	ApplyTechnique()
 	vec3	specular = texture(Environment.Irradiance, R).rgb;
 	vec3	reflection_spec = reflection;
 
-	reflection *= Frag.Material.Specular;
 
 	float	brightness = 0;
 
@@ -39,10 +43,11 @@ void	ApplyTechnique()
 		Out.Emitting = max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness));
 		return ;
 	}
-
+	vec3	fresnel = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
+	reflection *= fresnel;
 	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
-	reflection_spec *= brightness * min(Frag.Material.Specular + 1, Frag.Material.Specular * Env_Specular(NdV, Frag.Material.Roughness));
-	specular *= Frag.Material.Specular * BRDF.x + mix(vec3(1), Frag.Material.Specular, Frag.Material.Metallic) * BRDF.y;
+	reflection_spec *= brightness * min(fresnel + 1, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
+	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, Frag.Material.Metallic) * BRDF.y;
 	specular += reflection_spec;
 	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 

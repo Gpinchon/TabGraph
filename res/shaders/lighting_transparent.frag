@@ -35,6 +35,11 @@ float	Env_Specular(in float NdV, in float roughness)
 	return (D * G);
 }
 
+vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
+{
+	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
+}
+
 void	ApplyTechnique()
 {
 	Frag.Material.AO = 1 - Frag.Material.AO;
@@ -56,16 +61,18 @@ void	ApplyTechnique()
 	vec3	specular = texture(Environment.Irradiance, R).rgb;
 	vec3	reflection_spec = reflection;
 
-	reflection *= Frag.Material.Specular;
+	vec3	fresnel = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
 
-	vec2	refract_UV = frag_UV;
+	vec2	refract_UV = Frag.UV;
+
 	if (Frag.Material.Ior > 1)
 	{
-		vec2	refractFactor = vec2(1 - Frag.Depth) * vec2(0.25f) + (Frag.Material.Specular.x + Frag.Material.Specular.y + Frag.Material.Specular.z) / 3.f * 0.0125f;
+		vec2	refractFactor = vec2(1 - Frag.Depth) * vec2(0.25f) + (fresnel.x + fresnel.y + fresnel.z) / 3.f * 0.0125f;
 		vec2	refractDir = (mat3(in_ViewMatrix) * normalize(refract(V, Frag.Normal, 1.0 / Frag.Material.Ior))).xy;
-		refract_UV = refractDir * refractFactor + frag_UV;
+		refract_UV = refractDir * refractFactor + Frag.UV;
 		refract_UV = warpUV(vec2(0), vec2(1), refract_UV);
 	}
+
 	vec3	Back_Color = sampleLod(in_Back_Color, refract_UV, Frag.Material.Roughness).rgb;
 	vec3	Back_Bright = sampleLod(in_Back_Bright, refract_UV, Frag.Material.Roughness).rgb;
 
@@ -76,9 +83,11 @@ void	ApplyTechnique()
 	}
 
 	float	brightness = 0;
+
+	reflection *= fresnel;
 	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
-	reflection_spec *= brightness * min(Frag.Material.Specular + 1, Frag.Material.Specular * Env_Specular(NdV, Frag.Material.Roughness));
-	specular *= Frag.Material.Specular * BRDF.x + mix(vec3(1), Frag.Material.Specular, Frag.Material.Metallic) * BRDF.y;
+	reflection_spec *= brightness * min(fresnel + 1, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
+	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, Frag.Material.Metallic) * BRDF.y;
 	specular += reflection_spec;
 	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 	Frag.Material.Albedo.a += dot(specular, specular);

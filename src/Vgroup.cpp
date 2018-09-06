@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 23:47:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/06 21:32:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,8 +65,9 @@ bool			Vgroup::render_depth(RenderMod mod)
 		return (false);
 	}
 	material->depth_shader->use();
-	material->depth_shader->bind_texture("Material.Texture.Albedo", material->texture_albedo, GL_TEXTURE0);
-	material->depth_shader->set_uniform("Material.Texture.Use_Albedo", material->texture_albedo != nullptr);
+	material->depth_shader->bind_texture("Texture.Albedo", material->texture_albedo, GL_TEXTURE0);
+	material->depth_shader->set_uniform("Texture.Use_Albedo", material->texture_albedo != nullptr);
+	material->depth_shader->set_uniform("Material.Alpha", material->alpha);
 	/*material->bind_textures();
 	material->bind_values();*/
 	//bind();

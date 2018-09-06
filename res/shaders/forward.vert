@@ -30,7 +30,7 @@ struct t_Material {
 	float		Alpha;
 	float		Parallax;
 	float		Ior;
-	t_Textures	Texture;
+	float		AO;
 };
 
 struct	t_Vert {
@@ -45,6 +45,7 @@ layout(location = 2) in vec2	in_Texcoord;
 uniform mat4					in_Transform;
 uniform mat4					in_ModelMatrix;
 uniform mat4					in_NormalMatrix;
+uniform t_Textures				Texture;
 uniform t_Material				Material;
 
 out vec3						frag_WorldPosition;
@@ -57,7 +58,7 @@ void	FillIn()
 {
 	Vert.Position = vec3(in_ModelMatrix * vec4(in_Position, 1));
 	Vert.Normal = mat3(in_NormalMatrix) * ((in_Normal / 255.f) * 2 - 1);
-	Vert.UV = in_Texcoord * Material.Texture.Scale;
+	Vert.UV = in_Texcoord * Texture.Scale;
 }
 
 void	FillOut()
