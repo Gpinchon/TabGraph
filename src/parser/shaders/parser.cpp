@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/05 23:23:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/06 11:29:12 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,16 +131,15 @@ Shader	*GLSL::parse(const std::string &name,
 	auto	shader = static_cast<GLSL*>(Shader::create(name));
 	GLuint	vertexid = 0;
 	GLuint	fragmentid = 0;
-	static auto	passthroughVertex = compile_shader(Engine::program_path() + "./res/shaders/passthrough.vert", GL_VERTEX_SHADER);
 	static auto	deferredFragCode = file_to_str(Engine::program_path() + "./res/shaders/deferred.frag");
 	if (PostShader == type)
 	{
-		vertexid = passthroughVertex;
+		vertexid = compile_shader(Engine::program_path() + "./res/shaders/passthrough.vert", GL_VERTEX_SHADER);
 		fragmentid = compile_shader_code("#define POSTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
 	}
 	else if (LightingShader == type)
 	{
-		vertexid = passthroughVertex;
+		vertexid = compile_shader(Engine::program_path() + "./res/shaders/passthrough.vert", GL_VERTEX_SHADER);
 		fragmentid = compile_shader_code("#define LIGHTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
 	}
 	shader->link(vertexid, fragmentid);
@@ -148,7 +147,7 @@ Shader	*GLSL::parse(const std::string &name,
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
 	glDetachShader(shader->_program, vertexid);
 	glDetachShader(shader->_program, fragmentid);
-	//glDeleteShader(vertexid);
+	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
 	return (shader);
 }

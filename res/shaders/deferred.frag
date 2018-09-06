@@ -132,11 +132,10 @@ void	FillFrag()
 #ifdef POSTSHADER
 void	FillOut()
 {
+	gl_FragDepth = Frag.Depth;
 	bvec3	positionsEqual = notEqual(Frag.Position, OriginalPosition);
 	if (positionsEqual.x || positionsEqual.y || positionsEqual.z)
 		gl_FragDepth = ((in_ProjViewMatrix * vec4(Frag.Position, 1.0)).z + 1.0) / 2.0;
-	else
-		gl_FragDepth = Frag.Depth;
 	out_Albedo = Frag.Material.Albedo;
 	out_Fresnel = vec4(Frag.Material.Specular, 1);
 	out_Emitting = vec4(Frag.Material.Emitting, 1);
