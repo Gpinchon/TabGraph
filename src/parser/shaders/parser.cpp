@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/06 11:29:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/06 19:15:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,7 @@ GLuint	compile_shader_code(const std::string &code, GLenum type)
 	shaderid = glCreateShader(type);
 	glShaderSource(shaderid, 1, &buf, nullptr);
 	glCompileShader(shaderid);
-	try {
-		Shader::check_shader(shaderid);
-	}
-	catch (std::exception &e) {
-		throw std::runtime_error(std::string("Error compiling Shader : ") + " :\n" + e.what());
-	}
+	Shader::check_shader(shaderid);
 	return (shaderid);
 }
 
@@ -44,12 +39,7 @@ GLuint	compile_shader(const std::string &path, GLenum type)
 		throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
 	}
 	shaderid = compile_shader_code(file_to_str(path), type);
-	try {
-		Shader::check_shader(shaderid);
-	}
-	catch (std::exception &e) {
-		throw std::runtime_error(std::string("Error compiling : ") + path + " :\n" + e.what());
-	}
+	Shader::check_shader(shaderid);
 	return (shaderid);
 }
 
@@ -86,7 +76,7 @@ GLuint	Shader::link(const GLuint &vertexid, const GLuint &fragmentid)
 		check_program(_program);
 	}
 	catch (std::exception &e) {
-		throw std::runtime_error(std::string("Error linking  : ") + name() + " :\n" + e.what());
+		throw std::runtime_error(std::string("Linking Error :\n") + e.what());
 	}
 	return (_program);
 }
@@ -126,23 +116,63 @@ bool	Shader::check_program(const GLuint &id)
 }
 
 Shader	*GLSL::parse(const std::string &name,
+	const std::string &fragment_file_path,
+	const std::string &vertex_file_path, ShaderType type)
+{
+	auto	shader = static_cast<GLSL*>(Shader::create(name));
+	GLuint	vertexid = 0;
+	GLuint	fragmentid = 0;
+	static auto	deferredFragCode = file_to_str(Engine::program_path() + "./res/shaders/deferred.frag");
+	static auto	forwardVertCode = file_to_str(Engine::program_path() + "./res/shaders/forward.vert");
+	static auto	forwardFragCode = file_to_str(Engine::program_path() + "./res/shaders/forward.frag");
+	try {
+		if (ForwardShader == type)
+		{
+			vertexid = compile_shader_code("#define FORWARDSHADER\n" + forwardVertCode + file_to_str(vertex_file_path), GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define FORWARDSHADER\n" + forwardFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+		}
+		/*else if (LightingShader == type)
+		{
+			vertexid = compile_shader(Engine::program_path() + "./res/shaders/passthrough.vert", GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define LIGHTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+		}*/
+		shader->link(vertexid, fragmentid);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error parsing ") + name + " :\n" + e.what());
+	}
+	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
+	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
+	glDetachShader(shader->_program, vertexid);
+	glDetachShader(shader->_program, fragmentid);
+	glDeleteShader(vertexid);
+	glDeleteShader(fragmentid);
+	return (shader);
+}
+
+Shader	*GLSL::parse(const std::string &name,
 	const std::string &fragment_file_path, ShaderType type)
 {
 	auto	shader = static_cast<GLSL*>(Shader::create(name));
 	GLuint	vertexid = 0;
 	GLuint	fragmentid = 0;
 	static auto	deferredFragCode = file_to_str(Engine::program_path() + "./res/shaders/deferred.frag");
-	if (PostShader == type)
-	{
-		vertexid = compile_shader(Engine::program_path() + "./res/shaders/passthrough.vert", GL_VERTEX_SHADER);
-		fragmentid = compile_shader_code("#define POSTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+	try {
+		if (PostShader == type)
+		{
+			vertexid = compile_shader(Engine::program_path() + "./res/shaders/passthrough.vert", GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define POSTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+		}
+		else if (LightingShader == type)
+		{
+			vertexid = compile_shader(Engine::program_path() + "./res/shaders/passthrough.vert", GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define LIGHTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+		}
+		shader->link(vertexid, fragmentid);
 	}
-	else if (LightingShader == type)
-	{
-		vertexid = compile_shader(Engine::program_path() + "./res/shaders/passthrough.vert", GL_VERTEX_SHADER);
-		fragmentid = compile_shader_code("#define LIGHTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error parsing ") + name + " :\n" + e.what());
 	}
-	shader->link(vertexid, fragmentid);
 	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
 	glDetachShader(shader->_program, vertexid);
@@ -157,9 +187,26 @@ Shader	*GLSL::parse(const std::string &name,
 	const std::string &fragment_file_path)
 {
 	auto	shader = static_cast<GLSL*>(Shader::create(name));
-	auto	vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
-	auto	fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
-	shader->link(vertexid, fragmentid);
+	GLuint	vertexid = 0;
+	GLuint	fragmentid = 0;
+	try {
+		vertexid = compile_shader(vertex_file_path, GL_VERTEX_SHADER);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error compiling ") + vertex_file_path + " :\n" + e.what());
+	}
+	try {
+		fragmentid = compile_shader(fragment_file_path, GL_FRAGMENT_SHADER);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error compiling ") + fragment_file_path + " :\n" + e.what());
+	}
+	try {
+		shader->link(vertexid, fragmentid);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Error linking ") + name + " :\n" + e.what());
+	}
 	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
 	glDetachShader(shader->_program, vertexid);

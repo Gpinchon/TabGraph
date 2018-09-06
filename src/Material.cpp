@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/05 11:13:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/06 19:18:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,12 @@
 Material::Material(const std::string &name)
 {
 	set_name(name);
-	if ((shader = Shader::get_by_name("default")) == nullptr) {
+	/*if ((shader = Shader::get_by_name("default")) == nullptr) {
 		shader = GLSL::parse("default", Engine::program_path() + "./res/shaders/default.vert", Engine::program_path() + "./res/shaders/default.frag");
+	}*/
+	if ((shader = Shader::get_by_name("default")) == nullptr) {
+		//shader = GLSL::parse("default", Engine::program_path() + "./res/shaders/forward.vert", Engine::program_path() + "./res/shaders/forward.frag");
+		shader = GLSL::parse("default", Engine::program_path() + "./res/shaders/empty.glsl", Engine::program_path() + "./res/shaders/empty.glsl", ForwardShader);
 	}
 	if ((depth_shader = Shader::get_by_name("default_depth")) == nullptr) {
 		depth_shader = GLSL::parse("default_depth", Engine::program_path() + "./res/shaders/depth.vert", Engine::program_path() + "./res/shaders/depth.frag");

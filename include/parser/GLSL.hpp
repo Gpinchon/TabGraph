@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 17:12:33 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/05 21:44:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/06 15:56:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ enum ShaderType
 class	GLSL : public Shader
 {
 public:
+	static Shader	*parse(const std::string &name, const std::string &vertex_file_path,
+						const std::string &fragment_file_path, ShaderType type);
 	static Shader	*parse(const std::string &name, const std::string &vertex_file_path,
 						const std::string &fragment_file_path);
 	static Shader	*parse(const std::string &name, const std::string &fragment_file_path, ShaderType type);
