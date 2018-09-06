@@ -160,7 +160,7 @@ void	FillIn()
 	if (Texture.Use_Height)
 		Frag.Position = Frag.Position - (Frag.Normal * ph);
 
-	Frag.Material.Roughness = map(Frag.Material.Roughness, 0, 1, 0.1, 1);
+	Frag.Material.Roughness = map(Frag.Material.Roughness, 0, 1, 0.05, 1);
 	Frag.Material.Specular = mix(Frag.Material.Specular, Frag.Material.Albedo.rgb, Frag.Material.Metallic);
 }
 
