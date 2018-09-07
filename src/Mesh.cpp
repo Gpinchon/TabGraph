@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 23:54:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/07 20:02:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,9 +57,11 @@ bool	Mesh::render_depth(RenderMod mod)
 		if (vg->material == nullptr)
 			continue ;
 		vg->material->depth_shader->use();
-		vg->material->depth_shader->set_uniform("in_Transform", mvp);
-		vg->material->depth_shader->set_uniform("in_ModelMatrix", mat4_transform());
-		vg->material->depth_shader->set_uniform("in_NormalMatrix", normal_matrix);
+		vg->material->depth_shader->set_uniform("Matrix.Model", mat4_transform());
+		vg->material->depth_shader->set_uniform("Matrix.View", Engine::current_camera()->view);
+		vg->material->depth_shader->set_uniform("Matrix.Projection", Engine::current_camera()->projection);
+		vg->material->depth_shader->set_uniform("Matrix.ModelViewProjection", mvp);
+		vg->material->depth_shader->set_uniform("Matrix.Normal", normal_matrix);
 		vg->material->depth_shader->use(false);
 		if (vg->render_depth(mod))
 			ret = true;
@@ -79,9 +81,11 @@ bool	Mesh::render(RenderMod mod)
 		if (vg->material == nullptr)
 			continue ;
 		vg->material->shader->use();
-		vg->material->shader->set_uniform("in_Transform", mvp);
-		vg->material->shader->set_uniform("in_ModelMatrix", mat4_transform());
-		vg->material->shader->set_uniform("in_NormalMatrix", normal_matrix);
+		vg->material->shader->set_uniform("Matrix.Model", mat4_transform());
+		vg->material->shader->set_uniform("Matrix.View", Engine::current_camera()->view);
+		vg->material->shader->set_uniform("Matrix.Projection", Engine::current_camera()->projection);
+		vg->material->shader->set_uniform("Matrix.ModelViewProjection", mvp);
+		vg->material->shader->set_uniform("Matrix.Normal", normal_matrix);
 		vg->material->shader->use(false);
 		if (vg->render(mod))
 			ret = true;

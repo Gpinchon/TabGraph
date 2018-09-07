@@ -1,6 +1,6 @@
 #define M_PI 3.1415926535897932384626433832795
 
-precision lowp float;
+precision highp float;
 precision lowp int;
 precision lowp sampler2D;
 precision lowp samplerCube;
@@ -35,6 +35,14 @@ struct t_Material {
 	float		AO;
 };
 
+struct t_Matrix {
+	mat4	Model;
+	mat4	View;
+	mat4	Projection;
+	mat4	Normal;
+	mat4	ModelViewProjection;
+};
+
 struct t_Environment {
 	samplerCube	Diffuse;
 	samplerCube	Irradiance;
@@ -50,6 +58,7 @@ struct t_Frag {
 
 uniform t_Textures		Texture;
 uniform t_Material		Material;
+uniform t_Matrix		Matrix;
 uniform t_Environment	Environment;
 uniform vec3			in_CamPos;
 
@@ -61,7 +70,7 @@ in vec2	frag_UVMin;
 
 layout(location = 0) out vec4	out_Albedo;
 layout(location = 1) out vec4	out_Emitting;
-layout(location = 2) out vec4	out_Fresnel;
+layout(location = 2) out vec4	out_Specular;
 layout(location = 3) out vec4	out_Material_Values; // Roughness, Metallic, Ior
 layout(location = 4) out vec4	out_AO;
 layout(location = 5) out vec4	out_Normal;
@@ -157,41 +166,34 @@ void	FillIn()
 		if (dot(new_normal, new_normal) > 0)
 			Frag.Normal = new_normal;
 	}
-	if (Texture.Use_Height)
-		Frag.Position = Frag.Position - (Frag.Normal * ph);
-
+	Frag.Position = Frag.Position - (Frag.Normal * ph);
 	Frag.Material.Roughness = map(Frag.Material.Roughness, 0, 1, 0.05, 1);
 	Frag.Material.Specular = mix(Frag.Material.Specular, Frag.Material.Albedo.rgb, Frag.Material.Metallic);
 }
 
-/* vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
-{
-	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
-} */
-
 void	FillOut()
 {
-	//float	NdV = dot(Frag.Normal, normalize(in_CamPos - Frag.Position));
-
-	/* if (Frag.Material.Alpha < 1 && NdV < 0)
-		NdV = -NdV;
-	else if (NdV < 0)
-		NdV = 0; */
-	out_Fresnel.a = 1;
+	out_Specular.a = 1;
 	out_Emitting.a = 1;
 	out_Material_Values.a = 1;
 	out_AO.a = 1;
 	out_Normal.a = 1;
 
 	out_Albedo = vec4(Frag.Material.Albedo.rgb + Frag.Material.Emitting, Frag.Material.Alpha);
-	//out_Fresnel.rgb = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
-	out_Fresnel.rgb = Frag.Material.Specular;
+	out_Specular.rgb = Frag.Material.Specular;
 	out_Emitting.rgb = max(vec3(0), Frag.Material.Albedo.rgb - 1) + Frag.Material.Emitting;
 	out_Material_Values.x = Frag.Material.Roughness;
 	out_Material_Values.y = Frag.Material.Metallic;
 	out_Material_Values.z = Frag.Material.Ior;
 	out_AO.r = Frag.Material.AO;
 	out_Normal.xyz = normalize(Frag.Normal);
+	gl_FragDepth = Frag.Depth;
+	bvec3	positionsEqual = notEqual(Frag.Position, frag_WorldPosition);
+	if (positionsEqual.x || positionsEqual.y || positionsEqual.z)
+	{
+		vec4	NDC = Matrix.Projection * Matrix.View * vec4(Frag.Position, 1.0);
+		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
+	}
 }
 
 void	ApplyTechnique();

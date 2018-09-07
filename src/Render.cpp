@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/06 11:19:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/07 19:34:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,6 +231,7 @@ void	Render::scene()
 		node->render(RenderTransparent);
 	}
 	glDepthFunc(GL_ALWAYS);
+	glEnable(GL_CULL_FACE);
 
 	back_buffer->attachement(0)->generate_mipmap();
 	back_buffer->attachement(1)->generate_mipmap();

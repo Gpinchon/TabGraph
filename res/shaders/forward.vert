@@ -33,6 +33,14 @@ struct t_Material {
 	float		AO;
 };
 
+struct t_Matrix {
+	mat4	Model;
+	mat4	View;
+	mat4	Projection;
+	mat4	Normal;
+	mat4	ModelViewProjection;
+};
+
 struct	t_Vert {
 	vec3	Position;
 	vec3	Normal;
@@ -42,11 +50,9 @@ struct	t_Vert {
 layout(location = 0) in vec3	in_Position;
 layout(location = 1) in vec3	in_Normal;
 layout(location = 2) in vec2	in_Texcoord;
-uniform mat4					in_Transform;
-uniform mat4					in_ModelMatrix;
-uniform mat4					in_NormalMatrix;
 uniform t_Textures				Texture;
 uniform t_Material				Material;
+uniform t_Matrix				Matrix;
 
 out vec3						frag_WorldPosition;
 out lowp vec3					frag_WorldNormal;
@@ -56,8 +62,8 @@ t_Vert	Vert;
 
 void	FillIn()
 {
-	Vert.Position = vec3(in_ModelMatrix * vec4(in_Position, 1));
-	Vert.Normal = mat3(in_NormalMatrix) * ((in_Normal / 255.f) * 2 - 1);
+	Vert.Position = vec3(Matrix.Model * vec4(in_Position, 1));
+	Vert.Normal = mat3(Matrix.Normal) * ((in_Normal / 255.f) * 2 - 1);
 	Vert.UV = in_Texcoord * Texture.Scale;
 }
 
@@ -66,7 +72,7 @@ void	FillOut()
 	frag_WorldPosition = Vert.Position;
 	frag_WorldNormal = Vert.Normal;
 	frag_Texcoord = Vert.UV;
-	gl_Position = in_Transform * vec4(in_Position, 1);
+	gl_Position = Matrix.ModelViewProjection * vec4(in_Position, 1);
 }
 
 void	ApplyTechnique();
