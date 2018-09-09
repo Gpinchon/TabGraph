@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/26 20:51:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/09 23:16:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,25 +35,23 @@ ShaderVariable	*Shader::get_uniform(const std::string &name)
 	return (nullptr);
 }
 
-void			Shader::set_uniform(const std::string &name, Texture * texture, const int value)
+void			Shader::set_uniform(const std::string &name, const int &value, unsigned nbr)
 {
 	auto	v = get_uniform(name);
 	if (v == nullptr) {
 		return ;
 	}
-	if (texture != nullptr)// && texture->name().find("attachement") == std::string::npos)
-			texture->load();
 	bool	bound = in_use();
 	if (!bound) {
 		use();
 	}
-	glUniform1i(v->loc, value);
+	glUniform1iv(v->loc, nbr, &value);
 	if (!bound) {
 		use(false);
 	}
 }
 
-void			Shader::set_uniform(const std::string &name, const int &value)
+void			Shader::set_uniform(const std::string &name, const bool &value, unsigned nbr)
 {
 	auto	v = get_uniform(name);
 	if (v == nullptr) {
@@ -63,13 +61,14 @@ void			Shader::set_uniform(const std::string &name, const int &value)
 	if (!bound) {
 		use();
 	}
-	glUniform1i(v->loc, value);
+	int	val = value;
+	glUniform1iv(v->loc, nbr, &val);
 	if (!bound) {
 		use(false);
 	}
 }
 
-void			Shader::set_uniform(const std::string &name, const bool &value)
+void			Shader::set_uniform(const std::string &name, const unsigned &value, unsigned nbr)
 {
 	auto	v = get_uniform(name);
 	if (v == nullptr) {
@@ -79,13 +78,13 @@ void			Shader::set_uniform(const std::string &name, const bool &value)
 	if (!bound) {
 		use();
 	}
-	glUniform1i(v->loc, static_cast<GLint>(value));
+	glUniform1uiv(v->loc, nbr, &value);
 	if (!bound) {
 		use(false);
 	}
 }
 
-void			Shader::set_uniform(const std::string &name, const unsigned &value)
+void			Shader::set_uniform(const std::string &name, const float &value, unsigned nbr)
 {
 	auto	v = get_uniform(name);
 	if (v == nullptr) {
@@ -95,13 +94,13 @@ void			Shader::set_uniform(const std::string &name, const unsigned &value)
 	if (!bound) {
 		use();
 	}
-	glUniform1ui(v->loc, value);
+	glUniform1fv(v->loc, nbr, &value);
 	if (!bound) {
 		use(false);
 	}
 }
 
-void			Shader::set_uniform(const std::string &name, const float &value)
+void			Shader::set_uniform(const std::string &name, const VEC2 &value, unsigned nbr)
 {
 	auto	v = get_uniform(name);
 	if (v == nullptr) {
@@ -111,13 +110,13 @@ void			Shader::set_uniform(const std::string &name, const float &value)
 	if (!bound) {
 		use();
 	}
-	glUniform1f(v->loc, value);
+	glUniform2fv(v->loc, nbr, &value.x);
 	if (!bound) {
 		use(false);
 	}
 }
 
-void			Shader::set_uniform(const std::string &name, const VEC2 &value)
+void			Shader::set_uniform(const std::string &name, const VEC3 &value, unsigned nbr)
 {
 	auto	v = get_uniform(name);
 	if (v == nullptr) {
@@ -127,13 +126,13 @@ void			Shader::set_uniform(const std::string &name, const VEC2 &value)
 	if (!bound) {
 		use();
 	}
-	glUniform2f(v->loc, value.x, value.y);
+	glUniform3fv(v->loc, nbr, &value.x);
 	if (!bound) {
 		use(false);
 	}
 }
 
-void			Shader::set_uniform(const std::string &name, const VEC3 &value)
+void			Shader::set_uniform(const std::string &name, const MAT4 &value, unsigned nbr)
 {
 	auto	v = get_uniform(name);
 	if (v == nullptr) {
@@ -143,23 +142,7 @@ void			Shader::set_uniform(const std::string &name, const VEC3 &value)
 	if (!bound) {
 		use();
 	}
-	glUniform3f(v->loc, value.x, value.y, value.z);
-	if (!bound) {
-		use(false);
-	}
-}
-
-void			Shader::set_uniform(const std::string &name, const MAT4 &value)
-{
-	auto	v = get_uniform(name);
-	if (v == nullptr) {
-		return ;
-	}
-	bool	bound = in_use();
-	if (!bound) {
-		use();
-	}
-	glUniformMatrix4fv(v->loc, 1, GL_FALSE, (float*)&value);
+	glUniformMatrix4fv(v->loc, nbr, GL_FALSE, (float*)&value);
 	if (!bound) {
 		use(false);
 	}
@@ -226,10 +209,11 @@ void	Shader::bind_texture(const std::string &name,
 		unbind_texture(texture_unit);
 	}
 	else {
+		texture->load();
 		glActiveTexture(texture_unit);
 		glBindTexture(texture->target(), texture->glid());
 	}
-	set_uniform(name, texture, texture_unit - GL_TEXTURE0);
+	set_uniform(name, int(texture_unit - GL_TEXTURE0));
 	if (!bound) {
 		use(false);
 	}

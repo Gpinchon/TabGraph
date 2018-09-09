@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/08 13:12:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/09 20:13:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,9 +77,6 @@ void	Material::bind_textures()
 
 void	Material::bind_values()
 {
-	auto	res = Window::internal_resolution();
-	shader->set_uniform("in_Resolution", new_vec3(res.x, res.y, res.x / res.y));
-	shader->set_uniform("in_Time", SDL_GetTicks() / 1000.f);
 	shader->set_uniform("Material.Albedo", albedo);
 	shader->set_uniform("Material.Specular", specular);
 	shader->set_uniform("Material.Emitting", emitting);

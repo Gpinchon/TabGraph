@@ -189,7 +189,7 @@ void	FillOut()
 	out_AO.a = 1;
 	out_Normal.a = 1;
 
-	out_Albedo = vec4(Frag.Material.Albedo.rgb + Frag.Material.Emitting, Frag.Material.Alpha);
+	out_Albedo = vec4(Frag.Material.Albedo.rgb, Frag.Material.Alpha);
 	out_Specular.rgb = Frag.Material.Specular;
 	out_Emitting.rgb = max(vec3(0), Frag.Material.Albedo.rgb - 1) + Frag.Material.Emitting;
 	out_Material_Values.x = Frag.Material.Roughness;

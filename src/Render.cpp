@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/09 10:55:42 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/09 23:21:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ Framebuffer	*create_render_buffer(const std::string &name, const VEC2 &size, Sha
 	buffer->create_attachement(GL_RGB, GL_RGB8); // Fresnel;
 	buffer->create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Material_Values -> Roughness, Metallic, Ior
 	buffer->create_attachement(GL_RED, GL_R8); //AO
-	buffer->create_attachement(GL_RGB, GL_RGBA8_SNORM); // Normal;
+	buffer->create_attachement(GL_RGB, GL_RGB16_SNORM); // Normal;
 	buffer->setup_attachements();
 	return (buffer);
 }
@@ -113,6 +113,33 @@ void	Render::update()
 	}
 }
 
+struct t_Light
+{
+	VEC3	Position;
+	VEC3	Color;
+};
+
+std::vector<t_Light> create_random_lights(unsigned i)
+{
+	std::vector<t_Light> v;
+	for (auto index = 0u; index < i; index++)
+	{
+		t_Light light;
+		light.Position = new_vec3(
+			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * 10.0,
+			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * 10.0,
+			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * 10.0);
+		light.Color = new_vec3(
+			std::rand() / float(RAND_MAX) / float(i * 0.25),
+			std::rand() / float(RAND_MAX) / float(i * 0.25),
+			std::rand() / float(RAND_MAX) / float(i * 0.25));
+		v.push_back(light);
+	}
+	return (v);
+}
+
+#include <iostream>
+
 void	Render::scene()
 {
 	static Texture	*brdf = nullptr;
@@ -128,6 +155,7 @@ void	Render::scene()
 	static auto	back_buffer1 = create_back_buffer("back_buffer1", Window::internal_resolution(), nullptr);
 	static auto	passthrough_shader = GLSL::parse("passthrough", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/passthrough.frag");
 	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader);
+	static auto	elighting_shader = GLSL::parse("lighting_env", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader);
 	static auto	tlighting_shader = GLSL::parse("lighting_transparent", Engine::program_path() + "./res/shaders/lighting_transparent.frag", LightingShader);
 
 	temp_buffer->resize(Window::internal_resolution());
@@ -188,25 +216,73 @@ void	Render::scene()
 
 	temp_buffer1->attachement(4)->blur(1, 0.75);
 
+	back_buffer1->bind();
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	static auto	Lights = create_random_lights(64);
+
+	auto	current_buffer = back_buffer;
+	auto	current_back = back_buffer1;
+
+	for (auto i = 0u; i < Lights.size();)
+	{
+		current_buffer->bind();
+		lighting_shader->use();
+
+		for (auto shaderIndex = 0; shaderIndex < 32 && i < Lights.size(); shaderIndex++) {
+			/*lighting_shader->set_uniform("LightPositions[" + std::to_string(shaderIndex) + "]", Lights.at(i).Position);
+			lighting_shader->set_uniform("LightColors[" + std::to_string(shaderIndex) + "]", Lights.at(i).Color);*/
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Position", Lights.at(i).Position);
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", Lights.at(i).Color);
+			i++;
+		}
+
+		lighting_shader->bind_texture("Texture.Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
+		lighting_shader->bind_texture("Texture.Emitting",		temp_buffer1->attachement(1), GL_TEXTURE1);
+		lighting_shader->bind_texture("Texture.Specular",		temp_buffer1->attachement(2), GL_TEXTURE2);
+		lighting_shader->bind_texture("Texture.MaterialValues",	temp_buffer1->attachement(3), GL_TEXTURE3);
+		lighting_shader->bind_texture("Texture.AO",				temp_buffer1->attachement(4), GL_TEXTURE4);
+		lighting_shader->bind_texture("Texture.Normal",			temp_buffer1->attachement(5), GL_TEXTURE5);
+		lighting_shader->bind_texture("Texture.Depth",			temp_buffer1->depth(), GL_TEXTURE6);
+		lighting_shader->bind_texture("Texture.BRDF",			brdf, GL_TEXTURE7);
+		lighting_shader->bind_texture("Texture.Environment.Diffuse",	Engine::current_environment()->diffuse, GL_TEXTURE8);
+		lighting_shader->bind_texture("Texture.Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE9);
+		lighting_shader->bind_texture("Texture.Back.Color",				current_back->attachement(0), GL_TEXTURE10);
+		lighting_shader->bind_texture("Texture.Back.Emitting",			current_back->attachement(1), GL_TEXTURE11);
+		lighting_shader->bind_texture("Texture.Back.Depth",				current_back->depth(), GL_TEXTURE12);
+		Render::display_quad()->draw();
+		lighting_shader->use(false);
+		auto	buf = current_back;
+		current_back = current_buffer;
+		current_buffer = buf;
+	}
+
 	// APPLY LIGHTING SHADER
 	// OUTPUT : out_Color, out_Brightness
-	back_buffer->bind();
-	lighting_shader->use();
-	lighting_shader->bind_texture("Texture.Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
-	lighting_shader->bind_texture("Texture.Emitting",		temp_buffer1->attachement(1), GL_TEXTURE1);
-	lighting_shader->bind_texture("Texture.Specular",		temp_buffer1->attachement(2), GL_TEXTURE2);
-	lighting_shader->bind_texture("Texture.MaterialValues",	temp_buffer1->attachement(3), GL_TEXTURE3);
-	lighting_shader->bind_texture("Texture.AO",				temp_buffer1->attachement(4), GL_TEXTURE4);
-	lighting_shader->bind_texture("Texture.Normal",			temp_buffer1->attachement(5), GL_TEXTURE5);
-	lighting_shader->bind_texture("Texture.Depth",			temp_buffer1->depth(), GL_TEXTURE6);
-	lighting_shader->bind_texture("Texture.BRDF",			brdf, GL_TEXTURE7);
-	lighting_shader->bind_texture("Texture.Environment.Diffuse",	Engine::current_environment()->diffuse, GL_TEXTURE8);
-	lighting_shader->bind_texture("Texture.Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE9);
-	lighting_shader->bind_texture("Texture.Back.Color",				back_buffer1->attachement(0), GL_TEXTURE10);
-	lighting_shader->bind_texture("Texture.Back.Bright",			back_buffer1->attachement(1), GL_TEXTURE11);
-	lighting_shader->bind_texture("Texture.Back.Depth",				back_buffer1->depth(), GL_TEXTURE12);
+	current_buffer->bind();
+	elighting_shader->use();
+
+	elighting_shader->bind_texture("Texture.Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
+	elighting_shader->bind_texture("Texture.Emitting",			temp_buffer1->attachement(1), GL_TEXTURE1);
+	elighting_shader->bind_texture("Texture.Specular",			temp_buffer1->attachement(2), GL_TEXTURE2);
+	elighting_shader->bind_texture("Texture.MaterialValues",	temp_buffer1->attachement(3), GL_TEXTURE3);
+	elighting_shader->bind_texture("Texture.AO",				temp_buffer1->attachement(4), GL_TEXTURE4);
+	elighting_shader->bind_texture("Texture.Normal",			temp_buffer1->attachement(5), GL_TEXTURE5);
+	elighting_shader->bind_texture("Texture.Depth",				temp_buffer1->depth(), GL_TEXTURE6);
+	elighting_shader->bind_texture("Texture.BRDF",				brdf, GL_TEXTURE7);
+	elighting_shader->bind_texture("Texture.Environment.Diffuse",		Engine::current_environment()->diffuse, GL_TEXTURE8);
+	elighting_shader->bind_texture("Texture.Environment.Irradiance",	Engine::current_environment()->irradiance, GL_TEXTURE9);
+	elighting_shader->bind_texture("Texture.Back.Color",				current_back->attachement(0), GL_TEXTURE10);
+	elighting_shader->bind_texture("Texture.Back.Emitting",				current_back->attachement(1), GL_TEXTURE11);
+	elighting_shader->bind_texture("Texture.Back.Depth",				current_back->depth(), GL_TEXTURE12);
 	Render::display_quad()->draw();
-	lighting_shader->use(false);
+	elighting_shader->use(false);
+
+{
+	auto	buf = current_back;
+	current_back = current_buffer;
+	current_buffer = buf;
+}
 
 	/*
 	** ATTEMPT RENDERING TRANSPARENT OBJECTS
@@ -224,7 +300,7 @@ void	Render::scene()
 	
 	if (!rendered_stuff) {
 		// NO OBJECTS WERE RENDERED PRESENT IMEDIATLY
-		present(back_buffer);
+		present(current_back);
 		return ;
 	}
 
@@ -246,6 +322,14 @@ void	Render::scene()
 	glDisable(GL_CULL_FACE);
 	back_buffer1->bind();
 	tlighting_shader->use();
+
+	tlighting_shader->set_uniform("Light[0].Position", new_vec3(1, 0, 0));
+	tlighting_shader->set_uniform("Light[0].Color", new_vec3(1, 0, 0));
+	tlighting_shader->set_uniform("Light[1].Position", new_vec3(0, 1, 0));
+	tlighting_shader->set_uniform("Light[1].Color", new_vec3(0, 1, 0));
+	tlighting_shader->set_uniform("Light[2].Position", new_vec3(0, 0, 1));
+	tlighting_shader->set_uniform("Light[2].Color", new_vec3(0, 0, 1));
+
 	tlighting_shader->bind_texture("Texture.Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
 	tlighting_shader->bind_texture("Texture.Emitting",			temp_buffer1->attachement(1), GL_TEXTURE1);
 	tlighting_shader->bind_texture("Texture.Specular",			temp_buffer1->attachement(2), GL_TEXTURE2);
@@ -257,7 +341,7 @@ void	Render::scene()
 	tlighting_shader->bind_texture("Texture.Environment.Diffuse",		Engine::current_environment()->diffuse, GL_TEXTURE8);
 	tlighting_shader->bind_texture("Texture.Environment.Irradiance",	Engine::current_environment()->irradiance, GL_TEXTURE9);
 	tlighting_shader->bind_texture("Texture.Back.Color",				back_buffer->attachement(0), GL_TEXTURE10);
-	tlighting_shader->bind_texture("Texture.Back.Bright",				back_buffer->attachement(1), GL_TEXTURE11);
+	tlighting_shader->bind_texture("Texture.Back.Emitting",				back_buffer->attachement(1), GL_TEXTURE11);
 	tlighting_shader->bind_texture("Texture.Back.Depth",				back_buffer->depth(), GL_TEXTURE12);
 	Render::display_quad()->draw();
 	tlighting_shader->use(false);

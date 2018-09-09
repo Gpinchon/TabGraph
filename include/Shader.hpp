@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/23 17:19:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/09 22:50:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,14 +39,13 @@ public:
 	void			bind_texture(const std::string &,
 					Texture *, const GLenum &texture_unit);
 	void			unbind_texture(GLenum texture_unit);
-	void			set_uniform(const std::string &name, Texture *, const int value);
-	void            set_uniform(const std::string &, const bool &);
-    void			set_uniform(const std::string &, const int &);
-	void			set_uniform(const std::string &, const unsigned &);
-	void			set_uniform(const std::string &, const float &);
-	void			set_uniform(const std::string &, const VEC2 &);
-	void			set_uniform(const std::string &, const VEC3 &);
-	void			set_uniform(const std::string &, const MAT4 &);
+	void            set_uniform(const std::string &, const bool &, unsigned nbr = 1);
+    void			set_uniform(const std::string &, const int &, unsigned nbr = 1);
+	void			set_uniform(const std::string &, const unsigned &, unsigned nbr = 1);
+	void			set_uniform(const std::string &, const float &, unsigned nbr = 1);
+	void			set_uniform(const std::string &, const VEC2 &, unsigned nbr = 1);
+	void			set_uniform(const std::string &, const VEC3 &, unsigned nbr = 1);
+	void			set_uniform(const std::string &, const MAT4 &, unsigned nbr = 1);
 	void			use(const bool &use_program = true);
 	ShaderVariable	*get_uniform(const std::string &name);
 	bool			in_use();

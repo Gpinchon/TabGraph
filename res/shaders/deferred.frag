@@ -12,9 +12,9 @@ struct t_Environment {
 };
 
 #ifdef LIGHTSHADER
-struct t_Back {
+struct t_BackTextures {
 	sampler2D	Color;
-	sampler2D	Bright;
+	sampler2D	Emitting;
 	sampler2D	Depth;
 };
 #endif //LIGHTSHADER
@@ -28,10 +28,10 @@ struct t_Textures {
 	sampler2D		Normal;
 	sampler2D		Depth;
 	sampler2D		BRDF;
-#ifdef LIGHTSHADER
-	t_Back			Back;
-#endif //LIGHTSHADER
 	t_Environment	Environment;
+#ifdef LIGHTSHADER
+	t_BackTextures	Back;
+#endif //LIGHTSHADER
 };
 
 struct t_Material {
@@ -137,10 +137,10 @@ void	FillFrag()
 	Frag.Material.Metallic = MaterialValues.y;
 	Frag.Material.Ior = MaterialValues.z;
 	Frag.Material.AO = texture(Texture.AO, frag_UV).r;
-	#ifdef LIGHTSHADER
-	Out.Color = vec3(0);
-	Out.Emitting = vec3(0);
-	#endif
+#ifdef LIGHTSHADER
+	Out.Color = texture(Texture.Back.Color, frag_UV).rgb;
+	Out.Emitting = texture(Texture.Back.Emitting, frag_UV).rgb;
+#endif
 }
 
 #ifdef POSTSHADER
@@ -165,8 +165,8 @@ void	FillOut()
 #ifdef LIGHTSHADER
 void	FillOut()
 {
-	out_Color = vec4(Out.Color, 1);
-	out_Emitting = vec4(Out.Emitting, 1);
+	out_Color = vec4(Out.Color, Frag.Material.Alpha);
+	out_Emitting = vec4(Out.Emitting, Frag.Material.Alpha);
 	gl_FragDepth = Frag.Depth;
 }
 #endif
