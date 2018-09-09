@@ -11,21 +11,41 @@ struct t_Environment {
 	samplerCube	Irradiance;
 };
 
+#ifdef LIGHTSHADER
+struct t_Back {
+	sampler2D	Color;
+	sampler2D	Bright;
+	sampler2D	Depth;
+};
+#endif //LIGHTSHADER
+
+struct t_Textures {
+	sampler2D		Albedo;
+	sampler2D		Emitting;
+	sampler2D		Specular;
+	sampler2D		MaterialValues;
+	sampler2D		AO;
+	sampler2D		Normal;
+	sampler2D		Depth;
+	sampler2D		BRDF;
+#ifdef LIGHTSHADER
+	t_Back			Back;
+#endif //LIGHTSHADER
+	t_Environment	Environment;
+};
+
 struct t_Material {
-	vec4		Albedo;
-	vec3		Specular;
+	vec3		Albedo;
 	vec3		Emitting;
+	vec3		Specular;
 	float		Roughness;
 	float		Metallic;
 	float		Ior;
+	float		Alpha;
 	float		AO;
 };
 
 struct t_Frag {
-#ifdef LIGHTSHADER
-	vec3		BackColor;
-	vec3		BackEmitting;
-#endif
 	float		Depth;
 	vec2		UV;
 	vec3		CubeUV;
@@ -34,35 +54,28 @@ struct t_Frag {
 	t_Material	Material;
 };
 
+struct t_CameraMatrix {
+	mat4	View;
+	mat4	Projection;
+};
+
+struct t_Camera {
+	vec3			Position;
+	t_CameraMatrix	Matrix;
+	t_CameraMatrix	InvMatrix;
+};
+
 #ifdef LIGHTSHADER
 struct t_Out {
 	vec3		Color;
 	vec3		Emitting;
 };
-#endif
+#endif //LIGHTSHADER
 
-uniform sampler2D	in_Texture_Albedo;
-uniform sampler2D	in_Texture_Fresnel;
-uniform sampler2D	in_Texture_Emitting;
-uniform sampler2D	in_Texture_Material_Values;
-uniform sampler2D	in_Texture_AO;
-uniform sampler2D	in_Texture_Normal;
-uniform sampler2D	in_Texture_Depth;
-uniform sampler2D	in_Texture_BRDF;
-
-#ifdef LIGHTSHADER
-uniform sampler2D	in_Back_Color;
-uniform sampler2D	in_Back_Bright;
-#endif
-
-uniform vec3		in_CamPos;
-uniform mat4		in_ViewMatrix;
-uniform mat4		in_ProjViewMatrix;
-uniform mat4		in_InvProjViewMatrix;
-uniform mat4		in_InvViewMatrix;
-uniform mat4		in_InvProjMatrix;
-
-uniform t_Environment	Environment;
+uniform t_Textures		Texture;
+uniform t_Camera		Camera;
+uniform vec3			Resolution;
+uniform float			Time;
 
 in vec2				frag_UV;
 in vec3				frag_Cube_UV;
@@ -74,25 +87,25 @@ layout(location = 2) out vec4	out_Fresnel;
 layout(location = 3) out vec4	out_Material_Values; //Roughness, Metallic, Ior
 layout(location = 4) out vec4	out_AO;
 layout(location = 5) out vec4	out_Normal;
-#endif
+#endif //POSTSHADER
 
 #ifdef LIGHTSHADER
 layout(location = 0) out vec4	out_Color;
 layout(location = 1) out vec4	out_Emitting;
-#endif
+#endif //LIGHTSHADER
 
 t_Frag	Frag;
 
 #ifdef LIGHTSHADER
 t_Out	Out;
-#endif
+#endif //LIGHTSHADER
 
 vec3	Position(vec2 UV)
 {
-	float	linearDepth = texture(in_Texture_Depth, UV).r * 2.0 - 1.0;
+	float	linearDepth = texture(Texture.Depth, UV).r * 2.0 - 1.0;
 	vec2	coord = UV * 2.0 - 1.0;
 	vec4	projectedCoord = vec4(coord, linearDepth, 1.0);
-	projectedCoord = in_InvProjViewMatrix * projectedCoord;
+	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
 	return (projectedCoord.xyz / projectedCoord.w);
 }
 
@@ -101,7 +114,7 @@ vec3	Position()
 	float	linearDepth = Frag.Depth * 2.0 - 1.0;
 	vec2	coord = frag_UV * 2.0 - 1.0;
 	vec4	projectedCoord = vec4(coord, linearDepth, 1.0);
-	projectedCoord = in_InvProjViewMatrix * projectedCoord;
+	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
 	return (projectedCoord.xyz / projectedCoord.w);
 }
 
@@ -111,19 +124,20 @@ void	FillFrag()
 {
 	Frag.UV = frag_UV;
 	Frag.CubeUV = frag_Cube_UV;
-	Frag.Depth = gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
+	Frag.Depth = gl_FragDepth = texture(Texture.Depth, frag_UV).r;
 	OriginalPosition = Frag.Position = Position();
-	Frag.Normal = texture(in_Texture_Normal, frag_UV).xyz;
-	Frag.Material.Albedo = texture(in_Texture_Albedo, frag_UV);
-	Frag.Material.Specular = texture(in_Texture_Fresnel, frag_UV).xyz;
-	Frag.Material.Emitting = texture(in_Texture_Emitting, frag_UV).xyz;
-	vec3	Material_Values = texture(in_Texture_Material_Values, frag_UV).xyz;
-	Frag.Material.Roughness = Material_Values.x;
-	Frag.Material.Metallic = Material_Values.y;
-	Frag.Material.Ior = Material_Values.z;
-	Frag.Material.AO = texture(in_Texture_AO, frag_UV).r;
+	Frag.Normal = texture(Texture.Normal, frag_UV).xyz;
+	vec4	albedo_sample = texture(Texture.Albedo, frag_UV);
+	Frag.Material.Albedo = albedo_sample.rgb;
+	Frag.Material.Alpha = albedo_sample.a;
+	Frag.Material.Specular = texture(Texture.Specular, frag_UV).xyz;
+	Frag.Material.Emitting = texture(Texture.Emitting, frag_UV).xyz;
+	vec3	MaterialValues = texture(Texture.MaterialValues, frag_UV).xyz;
+	Frag.Material.Roughness = MaterialValues.x;
+	Frag.Material.Metallic = MaterialValues.y;
+	Frag.Material.Ior = MaterialValues.z;
+	Frag.Material.AO = texture(Texture.AO, frag_UV).r;
 	#ifdef LIGHTSHADER
-	Frag.BackColor = 
 	Out.Color = vec3(0);
 	Out.Emitting = vec3(0);
 	#endif
@@ -136,10 +150,10 @@ void	FillOut()
 	bvec3	positionsEqual = notEqual(Frag.Position, OriginalPosition);
 	if (positionsEqual.x || positionsEqual.y || positionsEqual.z)
 	{
-		vec4	NDC = in_ProjViewMatrix * vec4(Frag.Position, 1.0);
+		vec4	NDC = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Frag.Position, 1.0);
 		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
 	}
-	out_Albedo = Frag.Material.Albedo;
+	out_Albedo = vec4(Frag.Material.Albedo, Frag.Material.Alpha);
 	out_Fresnel = vec4(Frag.Material.Specular, 1);
 	out_Emitting = vec4(Frag.Material.Emitting, 1);
 	out_Material_Values = vec4(Frag.Material.Roughness, Frag.Material.Metallic, Frag.Material.Ior, 1);
@@ -159,7 +173,7 @@ void	FillOut()
 
 vec2	BRDF(in float NdV, in float Roughness)
 {
-	return (texture(in_Texture_BRDF, vec2(NdV, Frag.Material.Roughness)).xy);
+	return (texture(Texture.BRDF, vec2(NdV, Frag.Material.Roughness)).xy);
 }
 
 vec4	sampleLod(in samplerCube texture, in vec3 uv, in float value)

@@ -1,7 +1,5 @@
 struct t_Matrix {
 	mat4	Model;
-	mat4	View;
-	mat4	Projection;
 	mat4	Normal;
 	mat4	ModelViewProjection;
 };

@@ -18,26 +18,26 @@ vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
 
 void	ApplyTechnique()
 {
-	const vec3	EnvDiffuse = texture(Environment.Diffuse, Frag.CubeUV).rgb;
+	const vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, Frag.CubeUV).rgb;
 
 	Frag.Material.AO = 1 - Frag.Material.AO;
 	
-	vec3	V = normalize(in_CamPos - Frag.Position);
+	vec3	V = normalize(Camera.Position - Frag.Position);
 	float	NdV = max(0, dot(Frag.Normal, V));
 	vec3	R = reflect(V, Frag.Normal);
 
 	const vec2	BRDF = BRDF(NdV, Frag.Material.Roughness);
 
-	vec3	diffuse = Frag.Material.AO * (sampleLod(Environment.Diffuse, -Frag.Normal, Frag.Material.Roughness + 0.9).rgb
-			+ texture(Environment.Irradiance, -Frag.Normal).rgb);
-	vec3	reflection = sampleLod(Environment.Diffuse, R, Frag.Material.Roughness * 2.f).rgb;
-	vec3	specular = texture(Environment.Irradiance, R).rgb;
+	vec3	diffuse = Frag.Material.AO * (sampleLod(Texture.Environment.Diffuse, -Frag.Normal, Frag.Material.Roughness + 0.9).rgb
+			+ texture(Texture.Environment.Irradiance, -Frag.Normal).rgb);
+	vec3	reflection = sampleLod(Texture.Environment.Diffuse, R, Frag.Material.Roughness * 2.f).rgb;
+	vec3	specular = texture(Texture.Environment.Irradiance, R).rgb;
 	vec3	reflection_spec = reflection;
 
 
 	float	brightness = 0;
 
-	if (Frag.Material.Albedo.a == 0) {
+	if (Frag.Material.Alpha == 0) {
 		Out.Color = EnvDiffuse;
 		brightness = dot(pow(Out.Color.rgb, envGammaCorrection), brightnessDotValue);
 		Out.Emitting = max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness));
@@ -52,6 +52,6 @@ void	ApplyTechnique()
 	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 
 	Out.Color = specular + diffuse + reflection;
-	Out.Color = mix(EnvDiffuse, Out.Color.rgb, Frag.Material.Albedo.a);
+	Out.Color = mix(EnvDiffuse, Out.Color.rgb, Frag.Material.Alpha);
 	Out.Emitting = max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 }

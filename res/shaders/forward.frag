@@ -37,8 +37,6 @@ struct t_Material {
 
 struct t_Matrix {
 	mat4	Model;
-	mat4	View;
-	mat4	Projection;
 	mat4	Normal;
 	mat4	ModelViewProjection;
 };
@@ -56,17 +54,28 @@ struct t_Frag {
 	t_Material	Material;
 };
 
+struct t_CameraMatrix {
+	mat4	View;
+	mat4	Projection;
+};
+
+struct t_Camera {
+	vec3			Position;
+	t_CameraMatrix	Matrix;
+	t_CameraMatrix	InvMatrix;
+};
+
+uniform t_Camera		Camera;
 uniform t_Textures		Texture;
 uniform t_Material		Material;
 uniform t_Matrix		Matrix;
 uniform t_Environment	Environment;
-uniform vec3			in_CamPos;
+uniform vec3			Resolution;
+uniform float			Time;
 
 in vec3	frag_WorldPosition;
 in vec3	frag_WorldNormal;
 in vec2	frag_Texcoord;
-in vec2	frag_UVMax;
-in vec2	frag_UVMin;
 
 layout(location = 0) out vec4	out_Albedo;
 layout(location = 1) out vec4	out_Emitting;
@@ -134,7 +143,7 @@ void	FillIn()
 	float	ph = 0;
 
 	if (Texture.Use_Height)
-		Parallax_Mapping(tbn * normalize(in_CamPos - Frag.Position), Frag.UV, ph);
+		Parallax_Mapping(tbn * normalize(Camera.Position - Frag.Position), Frag.UV, ph);
 
 	Frag.Material = Material;
 	Frag.Material.Emitting = texture(Texture.Emitting, Frag.UV).rgb + Material.Emitting;
@@ -166,7 +175,8 @@ void	FillIn()
 		if (dot(new_normal, new_normal) > 0)
 			Frag.Normal = new_normal;
 	}
-	Frag.Position = Frag.Position - (Frag.Normal * ph);
+	if (Frag.Material.Alpha == 1)
+		Frag.Position = Frag.Position - (Frag.Normal * ph);
 	Frag.Material.Roughness = map(Frag.Material.Roughness, 0, 1, 0.05, 1);
 	Frag.Material.Specular = mix(Frag.Material.Specular, Frag.Material.Albedo.rgb, Frag.Material.Metallic);
 }
@@ -187,13 +197,15 @@ void	FillOut()
 	out_Material_Values.z = Frag.Material.Ior;
 	out_AO.r = Frag.Material.AO;
 	out_Normal.xyz = normalize(Frag.Normal);
+#ifdef FORCEDEPTHWRITE
 	gl_FragDepth = Frag.Depth;
 	bvec3	positionsEqual = notEqual(Frag.Position, frag_WorldPosition);
 	if (positionsEqual.x || positionsEqual.y || positionsEqual.z)
 	{
-		vec4	NDC = Matrix.Projection * Matrix.View * vec4(Frag.Position, 1.0);
+		vec4	NDC = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Frag.Position, 1.0);
 		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
 	}
+#endif //FORCEDEPTHWRITE
 }
 
 void	ApplyTechnique();

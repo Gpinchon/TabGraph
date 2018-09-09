@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/06 21:32:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/08 20:55:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,9 +47,6 @@ void			Vgroup::bind()
 	if ((material == nullptr) || (material->shader == nullptr) || (Engine::current_camera() == nullptr)) {
 		return ;
 	}
-	material->shader->set_uniform("in_UVMax", uvmax);
-	material->shader->set_uniform("in_UVMin", uvmin);
-	material->shader->set_uniform("in_CamPos", Engine::current_camera()->position());
 }
 
 bool			Vgroup::render_depth(RenderMod mod)

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/07 19:34:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/09 10:55:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ void	present(Framebuffer *back_buffer)
 	// GENERATE BLOOM FROM out_Brightness
 	back_buffer->attachement(1)->blur(BLOOMPASS, 3.5);
 	glDepthFunc(GL_ALWAYS);
+	glDisable(GL_CULL_FACE);
 	Framebuffer::bind_default();
 	presentShader->use();
 	presentShader->bind_texture("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
@@ -87,8 +88,30 @@ void	present(Framebuffer *back_buffer)
 	presentShader->bind_texture("in_Texture_Depth", back_buffer->depth(), GL_TEXTURE2);
 	Render::display_quad()->draw();
 	presentShader->use(false);
+	Window::swap();
 }
 
+void	Render::update()
+{
+	auto	InvViewMatrix = mat4_inverse(Engine::current_camera()->view);
+	auto	InvProjMatrix = mat4_inverse(Engine::current_camera()->projection);
+	auto	res = Window::internal_resolution();
+	auto	node_index = 0;
+
+	while (auto shader = Engine::shader(node_index))
+	{
+		shader->use();
+		shader->set_uniform("Camera.Position", Engine::current_camera()->position());
+		shader->set_uniform("Camera.Matrix.View", Engine::current_camera()->view);
+		shader->set_uniform("Camera.Matrix.Projection", Engine::current_camera()->projection);
+		shader->set_uniform("Camera.InvMatrix.View", InvViewMatrix);
+		shader->set_uniform("Camera.InvMatrix.Projection", InvProjMatrix);
+		shader->set_uniform("Resolution", new_vec3(res.x, res.y, res.x / res.y));
+		shader->set_uniform("Time", SDL_GetTicks() / 1000.f);
+		shader->use(false);
+		node_index++;
+	}
+}
 
 void	Render::scene()
 {
@@ -107,11 +130,6 @@ void	Render::scene()
 	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader);
 	static auto	tlighting_shader = GLSL::parse("lighting_transparent", Engine::program_path() + "./res/shaders/lighting_transparent.frag", LightingShader);
 
-	auto	InvViewMatrix = mat4_inverse(Engine::current_camera()->view);
-	auto	InvProjMatrix = mat4_inverse(Engine::current_camera()->projection);
-	auto	InvProjViewMatrix = mat4_mult_mat4(InvViewMatrix, InvProjMatrix);
-	auto	ProjViewMatrix = mat4_mult_mat4(Engine::current_camera()->view, Engine::current_camera()->projection);
-
 	temp_buffer->resize(Window::internal_resolution());
 	temp_buffer1->resize(Window::internal_resolution());
 	back_buffer->resize(Window::internal_resolution());
@@ -126,35 +144,31 @@ void	Render::scene()
 	temp_buffer1->bind();
 	glClear(Window::clear_mask());
 	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	Renderable *node;
 	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
 		node->render(RenderOpaque);
 	}
-	glDepthFunc(GL_ALWAYS);
 	
+	glDepthFunc(GL_ALWAYS);
+	glDisable(GL_CULL_FACE);
 	for (Shader *shader : post_treatments)
 	{
 		// APPLY POST-TREATMENT
 		temp_buffer->bind();
 		shader->use();
-		shader->set_uniform("in_CamPos", Engine::current_camera()->position());
-		shader->set_uniform("in_ViewMatrix", Engine::current_camera()->view);
-		shader->set_uniform("in_ProjViewMatrix", ProjViewMatrix);
-		shader->set_uniform("in_InvProjViewMatrix", InvProjViewMatrix);
-		shader->set_uniform("in_InvViewMatrix", InvViewMatrix);
-		shader->set_uniform("in_InvProjMatrix", InvProjMatrix);
-		shader->bind_texture("in_Texture_Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
-		shader->bind_texture("in_Texture_Emitting",			temp_buffer1->attachement(1), GL_TEXTURE1);
-		shader->bind_texture("in_Texture_Fresnel",			temp_buffer1->attachement(2), GL_TEXTURE2);
-		shader->bind_texture("in_Texture_Material_Values",	temp_buffer1->attachement(3), GL_TEXTURE3);
-		shader->bind_texture("in_Texture_AO",				temp_buffer1->attachement(4), GL_TEXTURE4);
-		shader->bind_texture("in_Texture_Normal",			temp_buffer1->attachement(5), GL_TEXTURE5);
-		shader->bind_texture("in_Texture_Depth",			temp_buffer1->depth(), GL_TEXTURE6);
-		shader->bind_texture("in_Texture_BRDF",				brdf, GL_TEXTURE7);
-		shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
-		shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE9);
+		shader->bind_texture("Texture.Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
+		shader->bind_texture("Texture.Emitting",		temp_buffer1->attachement(1), GL_TEXTURE1);
+		shader->bind_texture("Texture.Specular",		temp_buffer1->attachement(2), GL_TEXTURE2);
+		shader->bind_texture("Texture.MaterialValues",	temp_buffer1->attachement(3), GL_TEXTURE3);
+		shader->bind_texture("Texture.AO",				temp_buffer1->attachement(4), GL_TEXTURE4);
+		shader->bind_texture("Texture.Normal",			temp_buffer1->attachement(5), GL_TEXTURE5);
+		shader->bind_texture("Texture.Depth",			temp_buffer1->depth(), GL_TEXTURE6);
+		shader->bind_texture("Texture.BRDF",				brdf, GL_TEXTURE7);
+		shader->bind_texture("Texture.Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
+		shader->bind_texture("Texture.Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE9);
 		Render::display_quad()->draw();
 		shader->use(false);
 
@@ -178,22 +192,19 @@ void	Render::scene()
 	// OUTPUT : out_Color, out_Brightness
 	back_buffer->bind();
 	lighting_shader->use();
-	lighting_shader->set_uniform("in_CamPos", Engine::current_camera()->position());
-	lighting_shader->set_uniform("in_ViewMatrix", Engine::current_camera()->view);
-	lighting_shader->set_uniform("in_ProjViewMatrix", ProjViewMatrix);
-	lighting_shader->set_uniform("in_InvProjViewMatrix", InvProjViewMatrix);
-	lighting_shader->set_uniform("in_InvViewMatrix", InvViewMatrix);
-	lighting_shader->set_uniform("in_InvProjMatrix", InvProjMatrix);
-	lighting_shader->bind_texture("in_Texture_Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
-	lighting_shader->bind_texture("in_Texture_Emitting",		temp_buffer1->attachement(1), GL_TEXTURE1);
-	lighting_shader->bind_texture("in_Texture_Fresnel",			temp_buffer1->attachement(2), GL_TEXTURE2);
-	lighting_shader->bind_texture("in_Texture_Material_Values",	temp_buffer1->attachement(3), GL_TEXTURE3);
-	lighting_shader->bind_texture("in_Texture_AO",				temp_buffer1->attachement(4), GL_TEXTURE4);
-	lighting_shader->bind_texture("in_Texture_Normal",			temp_buffer1->attachement(5), GL_TEXTURE5);
-	lighting_shader->bind_texture("in_Texture_Depth",			temp_buffer1->depth(), GL_TEXTURE6);
-	lighting_shader->bind_texture("in_Texture_BRDF",			brdf, GL_TEXTURE7);
-	lighting_shader->bind_texture("Environment.Diffuse", Engine::current_environment()->diffuse, GL_TEXTURE8);
-	lighting_shader->bind_texture("Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE9);
+	lighting_shader->bind_texture("Texture.Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
+	lighting_shader->bind_texture("Texture.Emitting",		temp_buffer1->attachement(1), GL_TEXTURE1);
+	lighting_shader->bind_texture("Texture.Specular",		temp_buffer1->attachement(2), GL_TEXTURE2);
+	lighting_shader->bind_texture("Texture.MaterialValues",	temp_buffer1->attachement(3), GL_TEXTURE3);
+	lighting_shader->bind_texture("Texture.AO",				temp_buffer1->attachement(4), GL_TEXTURE4);
+	lighting_shader->bind_texture("Texture.Normal",			temp_buffer1->attachement(5), GL_TEXTURE5);
+	lighting_shader->bind_texture("Texture.Depth",			temp_buffer1->depth(), GL_TEXTURE6);
+	lighting_shader->bind_texture("Texture.BRDF",			brdf, GL_TEXTURE7);
+	lighting_shader->bind_texture("Texture.Environment.Diffuse",	Engine::current_environment()->diffuse, GL_TEXTURE8);
+	lighting_shader->bind_texture("Texture.Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE9);
+	lighting_shader->bind_texture("Texture.Back.Color",				back_buffer1->attachement(0), GL_TEXTURE10);
+	lighting_shader->bind_texture("Texture.Back.Bright",			back_buffer1->attachement(1), GL_TEXTURE11);
+	lighting_shader->bind_texture("Texture.Back.Depth",				back_buffer1->depth(), GL_TEXTURE12);
 	Render::display_quad()->draw();
 	lighting_shader->use(false);
 
@@ -202,9 +213,7 @@ void	Render::scene()
 	** WRITE DEPTH FOR FUTUR USE
 	*/
 	temp_buffer1->bind();
-	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_CULL_FACE);
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	bool	rendered_stuff = false;
@@ -212,12 +221,9 @@ void	Render::scene()
 		if (node->render_depth(RenderTransparent))
 			rendered_stuff = true;
 	}
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	if (!rendered_stuff)
-	{
-		/*
-		** NO OBJECTS WERE RENDERED PRESENT IMEDIATLY
-		*/
+	
+	if (!rendered_stuff) {
+		// NO OBJECTS WERE RENDERED PRESENT IMEDIATLY
 		present(back_buffer);
 		return ;
 	}
@@ -226,36 +232,33 @@ void	Render::scene()
 	** REWRITE TRANSPARENT OBJECTS
 	** WRITE ONLY CLOSEST OBJECTS
 	*/
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_CULL_FACE);
 	glDepthFunc(GL_EQUAL);
 	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
 		node->render(RenderTransparent);
 	}
-	glDepthFunc(GL_ALWAYS);
-	glEnable(GL_CULL_FACE);
 
 	back_buffer->attachement(0)->generate_mipmap();
 	back_buffer->attachement(1)->generate_mipmap();
 
+	glDepthFunc(GL_ALWAYS);
+	glDisable(GL_CULL_FACE);
 	back_buffer1->bind();
 	tlighting_shader->use();
-	tlighting_shader->set_uniform("in_CamPos", Engine::current_camera()->position());
-	tlighting_shader->set_uniform("in_ViewMatrix", Engine::current_camera()->view);
-	tlighting_shader->set_uniform("in_ProjViewMatrix", ProjViewMatrix);
-	tlighting_shader->set_uniform("in_InvProjViewMatrix", InvProjViewMatrix);
-	tlighting_shader->set_uniform("in_InvViewMatrix", InvViewMatrix);
-	tlighting_shader->set_uniform("in_InvProjMatrix", InvProjMatrix);
-	tlighting_shader->bind_texture("in_Texture_Albedo",				temp_buffer1->attachement(0), GL_TEXTURE0);
-	tlighting_shader->bind_texture("in_Texture_Emitting",			temp_buffer1->attachement(1), GL_TEXTURE1);
-	tlighting_shader->bind_texture("in_Texture_Fresnel",			temp_buffer1->attachement(2), GL_TEXTURE2);
-	tlighting_shader->bind_texture("in_Texture_Material_Values",	temp_buffer1->attachement(3), GL_TEXTURE3);
-	tlighting_shader->bind_texture("in_Texture_AO",					temp_buffer1->attachement(4), GL_TEXTURE4);
-	tlighting_shader->bind_texture("in_Texture_Normal",				temp_buffer1->attachement(5), GL_TEXTURE5);
-	tlighting_shader->bind_texture("in_Texture_Depth",				temp_buffer1->depth(), GL_TEXTURE6);
-	tlighting_shader->bind_texture("in_Texture_BRDF",				brdf, GL_TEXTURE7);
-	tlighting_shader->bind_texture("Environment.Diffuse",			Engine::current_environment()->diffuse, GL_TEXTURE8);
-	tlighting_shader->bind_texture("Environment.Irradiance",		Engine::current_environment()->irradiance, GL_TEXTURE9);
-	tlighting_shader->bind_texture("in_Back_Color",					back_buffer->attachement(0), GL_TEXTURE10);
-	tlighting_shader->bind_texture("in_Back_Bright",				back_buffer->attachement(1), GL_TEXTURE11);
+	tlighting_shader->bind_texture("Texture.Albedo",			temp_buffer1->attachement(0), GL_TEXTURE0);
+	tlighting_shader->bind_texture("Texture.Emitting",			temp_buffer1->attachement(1), GL_TEXTURE1);
+	tlighting_shader->bind_texture("Texture.Specular",			temp_buffer1->attachement(2), GL_TEXTURE2);
+	tlighting_shader->bind_texture("Texture.MaterialValues",	temp_buffer1->attachement(3), GL_TEXTURE3);
+	tlighting_shader->bind_texture("Texture.AO",				temp_buffer1->attachement(4), GL_TEXTURE4);
+	tlighting_shader->bind_texture("Texture.Normal",			temp_buffer1->attachement(5), GL_TEXTURE5);
+	tlighting_shader->bind_texture("Texture.Depth",				temp_buffer1->depth(), GL_TEXTURE6);
+	tlighting_shader->bind_texture("Texture.BRDF",				brdf, GL_TEXTURE7);
+	tlighting_shader->bind_texture("Texture.Environment.Diffuse",		Engine::current_environment()->diffuse, GL_TEXTURE8);
+	tlighting_shader->bind_texture("Texture.Environment.Irradiance",	Engine::current_environment()->irradiance, GL_TEXTURE9);
+	tlighting_shader->bind_texture("Texture.Back.Color",				back_buffer->attachement(0), GL_TEXTURE10);
+	tlighting_shader->bind_texture("Texture.Back.Bright",				back_buffer->attachement(1), GL_TEXTURE11);
+	tlighting_shader->bind_texture("Texture.Back.Depth",				back_buffer->depth(), GL_TEXTURE12);
 	Render::display_quad()->draw();
 	tlighting_shader->use(false);
 

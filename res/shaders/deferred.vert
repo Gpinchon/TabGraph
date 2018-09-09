@@ -6,8 +6,21 @@ struct t_Vert {
 	vec3	Position;
 };
 
-uniform mat4	in_InvProjMatrix;
-uniform mat4	in_InvViewMatrix;
+struct t_CameraMatrix {
+	mat4	View;
+	mat4	Projection;
+};
+
+struct t_Camera {
+	vec3			Position;
+	t_CameraMatrix	Matrix;
+	t_CameraMatrix	InvMatrix;
+};
+
+
+/* uniform mat4	in_InvProjMatrix;
+uniform mat4	in_InvViewMatrix; */
+uniform t_Camera	Camera;
 
 out vec2		frag_UV;
 out vec3		frag_Cube_UV;
@@ -18,7 +31,7 @@ void	FillIn()
 {
 	Vert.Position = vec3(in_Position, 0);
 	Vert.UV = vec2(in_Position.x == -1 ? 0 : 1, in_Position.y == -1 ? 0 : 1);
-	Vert.CubeUV = -mat3(in_InvViewMatrix) * (in_InvProjMatrix * vec4(Vert.Position, 1)).xyz;
+	Vert.CubeUV = -mat3(Camera.InvMatrix.View) * (Camera.InvMatrix.Projection * vec4(Vert.Position, 1)).xyz;
 }
 
 void	FillOut()

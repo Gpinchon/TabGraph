@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/06 22:31:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/08 18:47:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ bool	Shader::check_program(const GLuint &id)
 
 Shader	*GLSL::parse(const std::string &name,
 	const std::string &fragment_file_path,
-	const std::string &vertex_file_path, ShaderType type)
+	const std::string &vertex_file_path, ShaderType type, const std::string &defines)
 {
 	auto	shader = static_cast<GLSL*>(Shader::create(name));
 	GLuint	vertexid = 0;
@@ -130,18 +130,18 @@ Shader	*GLSL::parse(const std::string &name,
 	try {
 		if (ForwardShader == type)
 		{
-			vertexid = compile_shader_code("#define FORWARDSHADER\n" + forwardVertCode + file_to_str(vertex_file_path), GL_VERTEX_SHADER);
-			fragmentid = compile_shader_code("#define FORWARDSHADER\n" + forwardFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+			vertexid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardVertCode + file_to_str(vertex_file_path), GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
 		}
 		else if (LightingShader == type)
 		{
-			vertexid = compile_shader_code("#define LIGHTSHADER\n" + deferredVertCode + file_to_str(vertex_file_path), GL_VERTEX_SHADER);
-			fragmentid = compile_shader_code("#define LIGHTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+			vertexid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredVertCode + file_to_str(vertex_file_path), GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
 		}
 		else if (PostShader == type)
 		{
-			vertexid = compile_shader_code("#define POSTSHADER\n" + deferredVertCode + file_to_str(vertex_file_path), GL_VERTEX_SHADER);
-			fragmentid = compile_shader_code("#define POSTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+			vertexid = compile_shader_code("#define POSTSHADER\n" + defines + deferredVertCode + file_to_str(vertex_file_path), GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define POSTSHADER\n" + defines + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
 		}
 		shader->link(vertexid, fragmentid);
 	}
@@ -158,7 +158,7 @@ Shader	*GLSL::parse(const std::string &name,
 }
 
 Shader	*GLSL::parse(const std::string &name,
-	const std::string &fragment_file_path, ShaderType type)
+	const std::string &fragment_file_path, ShaderType type, const std::string &defines)
 {
 	auto	shader = static_cast<GLSL*>(Shader::create(name));
 	GLuint	vertexid = 0;
@@ -166,18 +166,18 @@ Shader	*GLSL::parse(const std::string &name,
 	try {
 		if (ForwardShader == type)
 		{
-			vertexid = compile_shader_code("#define FORWARDSHADER\n" + forwardVertCode + emptyShaderCode, GL_VERTEX_SHADER);
-			fragmentid = compile_shader_code("#define FORWARDSHADER\n" + forwardFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+			vertexid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardVertCode + emptyShaderCode, GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
 		}
 		else if (LightingShader == type)
 		{
-			vertexid = compile_shader_code("#define LIGHTSHADER\n" + deferredVertCode + emptyShaderCode, GL_VERTEX_SHADER);
-			fragmentid = compile_shader_code("#define LIGHTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+			vertexid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredVertCode + emptyShaderCode, GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
 		}
 		else if (PostShader == type)
 		{
-			vertexid = compile_shader_code("#define POSTSHADER\n" + deferredVertCode + emptyShaderCode, GL_VERTEX_SHADER);
-			fragmentid = compile_shader_code("#define POSTSHADER\n" + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
+			vertexid = compile_shader_code("#define POSTSHADER\n" + defines + deferredVertCode + emptyShaderCode, GL_VERTEX_SHADER);
+			fragmentid = compile_shader_code("#define POSTSHADER\n" + defines + deferredFragCode + file_to_str(fragment_file_path), GL_FRAGMENT_SHADER);
 		}
 		shader->link(vertexid, fragmentid);
 	}

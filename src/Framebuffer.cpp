@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/05 00:02:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/09 10:09:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,8 +130,6 @@ void			Framebuffer::bind(bool to_bind)
 	if (shader() == nullptr)
 		return ;
 	shader()->use();
-	shader()->set_uniform("in_Resolution", Window::size());
-	shader()->set_uniform("in_Time", SDL_GetTicks() / 1000.f);
 }
 
 void			Framebuffer::bind_default()

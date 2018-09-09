@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 14:51:31 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/09 10:55:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,6 +219,7 @@ int		event_filter(void *arg, SDL_Event *event)
 void	Engine::update()
 {
 	unsigned	node_index = 0;
+
 	while (auto node = Engine::node(node_index))
 	{
 		node->update();
@@ -230,6 +231,7 @@ void	Engine::fixed_update()
 {
 	unsigned	node_index = 0;
 
+	node_index = 0;
 	while (auto node = Engine::node(node_index))
 	{
 		node->physics_update();
@@ -261,16 +263,14 @@ void	Engine::run()
 		last_ticks = ticks;
 		SDL_PumpEvents();
 		Events::refresh();
-		if (ticks - fixed_timing >= 0.016)
+		if (ticks - fixed_timing >= 0.015)
 		{
 			fixed_timing = ticks;
 			fixed_update();
 		}
-		update();
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		Engine::update();
+		Render::update();
 		Render::scene();
-		//Render::present();
-		Window::swap();
 	}
 }
 

@@ -35,10 +35,19 @@ struct t_Material {
 
 struct t_Matrix {
 	mat4	Model;
-	mat4	View;
-	mat4	Projection;
 	mat4	Normal;
 	mat4	ModelViewProjection;
+};
+
+struct t_CameraMatrix {
+	mat4	View;
+	mat4	Projection;
+};
+
+struct t_Camera {
+	vec3			Position;
+	t_CameraMatrix	Matrix;
+	t_CameraMatrix	InvMatrix;
 };
 
 struct	t_Vert {
@@ -50,6 +59,7 @@ struct	t_Vert {
 layout(location = 0) in vec3	in_Position;
 layout(location = 1) in vec3	in_Normal;
 layout(location = 2) in vec2	in_Texcoord;
+uniform t_Camera				Camera;
 uniform t_Textures				Texture;
 uniform t_Material				Material;
 uniform t_Matrix				Matrix;
