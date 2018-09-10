@@ -67,8 +67,8 @@ struct t_Camera {
 
 #ifdef LIGHTSHADER
 struct t_Out {
-	vec3		Color;
-	vec3		Emitting;
+	vec4		Color;
+	vec4		Emitting;
 };
 #endif //LIGHTSHADER
 
@@ -138,8 +138,8 @@ void	FillFrag()
 	Frag.Material.Ior = MaterialValues.z;
 	Frag.Material.AO = texture(Texture.AO, frag_UV).r;
 #ifdef LIGHTSHADER
-	Out.Color = texture(Texture.Back.Color, frag_UV).rgb;
-	Out.Emitting = texture(Texture.Back.Emitting, frag_UV).rgb;
+	Out.Color = texture(Texture.Back.Color, frag_UV);
+	Out.Emitting = texture(Texture.Back.Emitting, frag_UV);
 #endif
 }
 
@@ -165,8 +165,8 @@ void	FillOut()
 #ifdef LIGHTSHADER
 void	FillOut()
 {
-	out_Color = vec4(Out.Color, Frag.Material.Alpha);
-	out_Emitting = vec4(Out.Emitting, Frag.Material.Alpha);
+	out_Color = Out.Color;
+	out_Emitting = Out.Emitting;
 	gl_FragDepth = Frag.Depth;
 }
 #endif

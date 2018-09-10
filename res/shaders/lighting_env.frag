@@ -23,13 +23,23 @@ void	ApplyTechnique()
 	Frag.Material.AO = 1 - Frag.Material.AO;
 	
 	vec3	V = normalize(Camera.Position - Frag.Position);
-	float	NdV = max(0, dot(Frag.Normal, V));
-	vec3	R = reflect(V, Frag.Normal);
+	vec3	N = Frag.Normal;
+#ifdef TRANSPARENT
+	float	NdV = dot(N, V);
+	if (NdV < 0)
+	{
+		N = -N;
+		NdV = -NdV;
+	}
+#else
+	float	NdV = max(0, dot(N, V));
+#endif //TRANSPARENT
+	vec3	R = reflect(V, N);
 
 	const vec2	BRDF = BRDF(NdV, Frag.Material.Roughness);
 
-	vec3	diffuse = Frag.Material.AO * (sampleLod(Texture.Environment.Diffuse, -Frag.Normal, Frag.Material.Roughness + 0.9).rgb
-			+ texture(Texture.Environment.Irradiance, -Frag.Normal).rgb);
+	vec3	diffuse = Frag.Material.AO * (sampleLod(Texture.Environment.Diffuse, -N, Frag.Material.Roughness + 0.9).rgb
+			+ texture(Texture.Environment.Irradiance, -N).rgb);
 	vec3	reflection = sampleLod(Texture.Environment.Diffuse, R, Frag.Material.Roughness * 2.f).rgb;
 	vec3	specular = texture(Texture.Environment.Irradiance, R).rgb;
 	vec3	reflection_spec = reflection;
@@ -38,9 +48,12 @@ void	ApplyTechnique()
 	float	brightness = 0;
 
 	if (Frag.Material.Alpha == 0) {
-		Out.Color = EnvDiffuse;
+	#ifdef TRANSPARENT
+		return ;
+	#endif //TRANSPARENT
+		Out.Color = vec4(EnvDiffuse, 1);
 		brightness = dot(pow(Out.Color.rgb, envGammaCorrection), brightnessDotValue);
-		Out.Emitting = max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness));
+		Out.Emitting = vec4(max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness)), 1);
 		return ;
 	}
 	vec3	fresnel = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
@@ -51,27 +64,14 @@ void	ApplyTechnique()
 	specular += reflection_spec;
 	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 
-	/* vec3	diffuse = vec3(0);
-	vec3	specular = vec3(0);
-	vec3	reflection = vec3(0);
+	float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));
+	alpha = min(1, alpha);
 
-	for (int i = 0; i < LIGHTNBR; i++)
-	{
-		bvec3	isZero = equal(Light[i].Color, vec3(0));
-		if (isZero.r && isZero.g && isZero.b)
-			continue ;
-		vec3	L = (Light[i].Position) + vec3(cos(Time * 1.1), cos(Time * 0.1), cos(Time * 1.7)) - Frag.Position;
-		float	Attenuation = 1.0 / length(L);
-		L = normalize(L);
-		vec3	H = normalize(L + V);
-		float	NdH = max(0, dot(Frag.Normal, H));
-		float	NdL = max(0, dot(Frag.Normal, L));
-		float	LdH = max(0, dot(L, H));
-		diffuse += Light[i].Color * NdL * Frag.Material.Albedo * (1 - Frag.Material.Metallic);
-		specular += Light[i].Color * min(fresnel + 1, fresnel * Specular(LdH, NdH, Frag.Material.Roughness));
-	} */
-
-	Out.Color += specular + diffuse + reflection;
-	//Out.Color += mix(EnvDiffuse, Out.Color.rgb, Frag.Material.Alpha);
-	Out.Emitting += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
+	Out.Color.rgb += (specular + diffuse + reflection) * alpha;
+	Out.Color.a = 1;
+	//Out.Color.a = max(Out.Color.a, alpha);
+	//Out.Color += mix(EnvDiffuse, Out.Color.rgb, alpha);
+	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
+	Out.Emitting.a = 1;
+	//Out.Emitting.a = Out.Color.a;
 }
