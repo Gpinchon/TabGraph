@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/05 17:17:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/10 23:13:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,28 @@ void	setup_callbacks()
 #include "parser/GLSL.hpp"
 #include "Material.hpp"
 #include "Render.hpp"
+#include "Light.hpp"
 #include <iostream>
+
+std::vector<Light *> create_random_lights(unsigned i)
+{
+	std::vector<Light *> v;
+	for (auto index = 0u; index < i; index++)
+	{
+		Light *light;
+		VEC3	Position = new_vec3(
+			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
+			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
+			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i);
+		VEC3	Color = new_vec3(
+			std::rand() / float(RAND_MAX),
+			std::rand() / float(RAND_MAX),
+			std::rand() / float(RAND_MAX));
+		light = Light::create("Light" + std::to_string(i), Color, Position, 200);
+		v.push_back(light);
+	}
+	return (v);
+}
 
 int		main(int argc, char *argv[])
 {
@@ -98,6 +119,8 @@ int		main(int argc, char *argv[])
 */	}
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	setup_callbacks();
+	//create_random_lights(100);
+	DirectionnalLight::create("MainLight", new_vec3(1, 1, 1), new_vec3(5, 5, 0), 1);
 	Engine::run();
 	SDL_Quit();
 	return (0);

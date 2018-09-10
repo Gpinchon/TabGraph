@@ -2,7 +2,12 @@
 struct t_Light {
 	vec3	Position;
 	vec3	Color;
+	float	Power;
+	int		Type;
 };
+
+#define PointLight			0
+#define DirectionnalLight	1
 
 #define LIGHTNBR 32
 
@@ -50,7 +55,7 @@ float	Specular(in float NdV, in float NdH, in float roughness)
 void	ApplyTechnique()
 {
 	if (Frag.Material.Alpha == 0) {
-		discard;
+		return ;
 	}
 	const vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, Frag.CubeUV).rgb;
 
@@ -77,25 +82,26 @@ void	ApplyTechnique()
 	for (int i = 0; i < LIGHTNBR; i++)
 	{
 		bvec3	isZero = equal(Light[i].Color, vec3(0));
-		if (isZero.r && isZero.g && isZero.b) {
+		if (Light[i].Power == 0 || isZero.r && isZero.g && isZero.b) {
 			continue ;
 		}
-		vec3	L = (Light[i].Position) /* + vec3(cos(Time * 1.1), cos(Time * 0.1), cos(Time * 1.7)) */ - Frag.Position;
-		float	Attenuation = 1.0 / length(L);
+		vec3	L = Light[i].Position;
+		float	Attenuation = 1;
+		if (Light[i].Type == PointLight) {
+			L -= Frag.Position;
+			Attenuation = length(L);
+			Attenuation = Light[i].Power * 1.0 / (Attenuation * Attenuation);
+		}
 		L = normalize(L);
 		N = Frag.Normal;
 		float	NdL = dot(N, L);
-		/* if (Frag.Material.Alpha < 1 && NdL < 0)
-		{
-			N = -N;
-			NdL = -NdL;
-		} */
 		NdL = max(0, NdL);
 		vec3	H = normalize(L + V);
 		float	NdH = max(0, dot(N, H));
 		float	LdH = max(0, dot(L, H));
-		diffuse += Light[i].Color * NdL * Frag.Material.Albedo * (1 - Frag.Material.Metallic);
-		specular += Light[i].Color * min(fresnel + 1, fresnel * Specular(LdH, NdH, Frag.Material.Roughness));
+		vec3	lightColor = Light[i].Color * Attenuation;
+		diffuse += lightColor * NdL * Frag.Material.Albedo * (1 - Frag.Material.Metallic);
+		specular += lightColor * min(fresnel + 1, fresnel * Specular(LdH, NdH, Frag.Material.Roughness));
 	}
 
 	float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));//length(specular);

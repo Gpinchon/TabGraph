@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/10 19:42:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/10 23:09:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,31 +114,6 @@ void	Render::update()
 	}
 }
 
-struct t_Light
-{
-	VEC3	Position;
-	VEC3	Color;
-};
-
-std::vector<t_Light> create_random_lights(unsigned i)
-{
-	std::vector<t_Light> v;
-	for (auto index = 0u; index < i; index++)
-	{
-		t_Light light;
-		light.Position = new_vec3(
-			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * 10.0,
-			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * 10.0,
-			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * 10.0);
-		light.Color = new_vec3(
-			std::rand() / float(RAND_MAX) / float(i * 0.25),
-			std::rand() / float(RAND_MAX) / float(i * 0.25),
-			std::rand() / float(RAND_MAX) / float(i * 0.25));
-		v.push_back(light);
-	}
-	return (v);
-}
-
 void	Render::scene()
 {
 	static Texture	*brdf = nullptr;
@@ -225,7 +200,9 @@ void	Render::scene()
 		for (auto shaderIndex = 0; shaderIndex < 32 && Engine::light(i) != nullptr; shaderIndex++) {
 			auto	light = Engine::light(i);
 			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Position", light->position());
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", light->color);
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", light->color());
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Power", light->power());
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Type", light->type());
 			i++;
 		}
 		lighting_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
@@ -327,7 +304,9 @@ void	Render::scene()
 		for (auto shaderIndex = 0; shaderIndex < 32 && Engine::light(i) != nullptr; shaderIndex++) {
 			auto	light = Engine::light(i);
 			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Position", light->position());
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", light->color);
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", light->color());
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Power", light->power());
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Type", light->type());
 			i++;
 		}
 		lighting_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);

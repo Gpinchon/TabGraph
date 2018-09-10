@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/09/03 20:02:51 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/09/10 21:53:42 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,6 +26,7 @@ SRC			=	./src/scop42/main.cpp			\
 				./src/Render.cpp				\
 				./src/Camera.cpp				\
 				./src/Framebuffer.cpp			\
+				./src/Light.cpp					\
 				./src/Mesh.cpp					\
 				./src/Vgroup.cpp				\
 				./src/VertexArray.cpp			\
