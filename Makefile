@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/09/10 21:53:42 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/09/11 18:00:42 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,15 +34,12 @@ SRC			=	./src/scop42/main.cpp			\
 				./src/Texture.cpp				\
 				./src/Material.cpp				\
 				./src/parser/tools.cpp			\
-				./src/parser/obj/parser.cpp		\
-				./src/parser/obj/parser1.cpp	\
-				./src/parser/obj/parser2.cpp	\
-				./src/parser/obj/parser3.cpp	\
-				./src/parser/hdr/parser.cpp		\
-				./src/parser/bmp/parser.cpp		\
-				./src/parser/bmp/saver.cpp		\
-				./src/parser/shaders/parser.cpp	\
-				./src/parser/mtllib/parser.cpp
+				./src/parser/OBJ.cpp			\
+				./src/parser/FBX.cpp			\
+				./src/parser/HDR.cpp			\
+				./src/parser/BMP.cpp			\
+				./src/parser/GLSL.cpp			\
+				./src/parser/MTLLIB.cpp
 
 OBJ			=	$(SRC:.cpp=.o)
 HYPER_OBJ	=	final.o

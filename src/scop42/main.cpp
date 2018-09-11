@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/10 23:13:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/11 18:06:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ void	setup_callbacks()
 }
 
 #include "parser/HDR.hpp"
+#include "parser/FBX.hpp"
 #include "parser/GLSL.hpp"
 #include "Material.hpp"
 #include "Render.hpp"
@@ -117,6 +118,7 @@ int		main(int argc, char *argv[])
 		if (m != nullptr)
 			m->material->shader = GLSL::parse("shadertoy", Engine::program_path() + "./res/shaders/shadertoy.vert", Engine::program_path() + "./res/shaders/balls.frag");
 */	}
+	FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	setup_callbacks();
 	//create_random_lights(100);
