@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/11 17:34:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/11 20:18:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/11 23:25:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,9 @@
 #pragma pack(1)
 struct FBXArray
 {
-	unsigned		arrayLength;
+	unsigned		length;
 	unsigned		encoding;
-	unsigned		compressedEncoding;
+	unsigned		compressedLength;
 	void			*data;
 };
 
@@ -59,28 +59,39 @@ FBXArray		*parseArray(unsigned char typeCode, FILE *fd)
 	auto	array = new FBXArray;
 
 	fread(array, 12, 1, fd);
-	switch (typeCode) {
-		case ('f') :
-			array->data = new float[array->arrayLength];
-			fread(array, array->arrayLength, sizeof(float), fd);
-			break ;
-		case ('d') :
-			array->data = new double[array->arrayLength];
-			fread(array, array->arrayLength, sizeof(double), fd);
-			break ;
-		case ('l') :
-			array->data = new long long[array->arrayLength];
-			fread(array, array->arrayLength, sizeof(long long), fd);
-			break ;
-		case ('i') :
-			array->data = new int[array->arrayLength];
-			fread(array, array->arrayLength, sizeof(int), fd);
-			break ;
-		case ('b') :
-			array->data = new char[array->arrayLength];
-			fread(array, array->arrayLength, sizeof(char), fd);
-			break ;
+	std::cout << "			ArrayLength : " << array->length << "\n";
+	std::cout << "			ArrayEncoding : " << array->encoding << "\n";
+	std::cout << "			CompressedLength : " << array->compressedLength << "\n";
+	if (array->encoding == 0)
+	{
+		switch (typeCode) {
+			case ('f') :
+				array->data = new float[array->length];
+				fread(array->data, array->length, sizeof(float), fd);
+				break ;
+			case ('d') :
+				array->data = new double[array->length];
+				fread(array->data, array->length, sizeof(double), fd);
+				break ;
+			case ('l') :
+				array->data = new long long[array->length];
+				fread(array->data, array->length, sizeof(long long), fd);
+				break ;
+			case ('i') :
+				array->data = new int[array->length];
+				fread(array->data, array->length, sizeof(int), fd);
+				break ;
+			case ('b') :
+				array->data = new char[array->length];
+				fread(array->data, array->length, sizeof(char), fd);
+				break ;
+		}
 	}
+	else {
+		array->data = new unsigned char[array->compressedLength];
+		fread(array->data, array->compressedLength, 1, fd);
+	}
+	
 	return (array);
 }
 
@@ -93,42 +104,60 @@ FBXRawData	*parseRawData(FILE *fd)
 	return (rawData);
 }
 
+FBXRawData	*parseString(FILE *fd)
+{
+	auto	rawString = new FBXRawData;
+	fread(&rawString->length, sizeof(unsigned), 1, fd);
+	rawString->data = new unsigned char[rawString->length + 1];
+	memset(rawString->data, 0, rawString->length + 1);
+	fread(rawString->data, rawString->length, 1, fd);
+	return (rawString);
+}
+
 FBXProperty	*parseProperty(FILE *fd)
 {
 	auto	property = new FBXProperty;
 
 	fread(property, 1, 1, fd);
 	std::cout <<
-		"		Property :\n" <<
-		"				typeCode : " << property->typeCode << std::endl;
+		"	Property :\n" <<
+		"			typeCode : " << property->typeCode << std::endl;
 	switch (property->typeCode) {
 		case ('Y') :
 			property->data = new short;
 			fread(property->data, sizeof(short), 1, fd);
+			std::cout << "			value : " << *(short*)(property->data) << std::endl;
 			break ;
 		case ('C') :
 			property->data = new char;
 			fread(property->data, sizeof(char), 1, fd);
+			std::cout << "			value : " << *(char*)(property->data) << std::endl;
 			break ;
 		case ('I') :
 			property->data = new int;
 			fread(property->data, sizeof(int), 1, fd);
+			std::cout << "			value : " << *(int*)(property->data) << std::endl;
 			break ;
 		case ('F') :
 			property->data = new float;
 			fread(property->data, sizeof(float), 1, fd);
+			std::cout << "			value : " << *(float*)(property->data) << std::endl;
 			break ;
 		case ('D') :
 			property->data = new double;
 			fread(property->data, sizeof(double), 1, fd);
+			std::cout << "			value : " << *(double*)(property->data) << std::endl;
 			break ;
 		case ('L') :
 			property->data = new long long;
 			fread(property->data, sizeof(long long), 1, fd);
+			std::cout << "			value : " << *(long long*)(property->data) << std::endl;
 			break ;
 		case ('R') :
-		case ('S') :
 			property->data = parseRawData(fd);
+			break ;
+		case ('S') :
+			property->data = parseString(fd);
 			break ;
 		case ('f') :
 		case ('d') :
@@ -137,6 +166,10 @@ FBXProperty	*parseProperty(FILE *fd)
 		case ('b') :
 			property->data = parseArray(property->typeCode, fd);
 			break ;
+	}
+	if (property->typeCode == 'S') {
+		auto	rawData = static_cast<FBXRawData*>(property->data);
+		std::cout << "			string : " << (char*)(rawData->data) << std::endl;
 	}
 	return (property);
 }
@@ -147,7 +180,6 @@ FBXNode	*parseNode(FILE *fd)
 
 	fread(&n, 1, 13, fd);
 	if (n.endOffset == 0) {
-		std::cout << ftell(fd) << " " << n.endOffset << std::endl;
 		return (nullptr);
 	}
 	auto	*node = new FBXNode(n);
@@ -156,22 +188,23 @@ FBXNode	*parseNode(FILE *fd)
 	fread(node->name, 1, node->nameLen, fd);
 
 	std::cout <<
-		"	Node :\n" <<
-		"		endOffset : " << node->endOffset << "\n" <<
-		"		numProperties : " << node->numProperties << "\n" <<
-		"		propertyListLen : " << node->propertyListLen << "\n" <<
-		"		nameLen : " << int(node->nameLen) << "\n" <<
-		"		name : " << node->name << std::endl;
+		"Node :\n" <<
+		"	endOffset : " << node->endOffset << "\n" <<
+		"	numProperties : " << node->numProperties << "\n" <<
+		"	propertyListLen : " << node->propertyListLen << "\n" <<
+		"	nameLen : " << int(node->nameLen) << "\n" <<
+		"	name : " << node->name << "\n{" << std::endl;
 	
 	for (unsigned i = 0; i < node->numProperties; i++) {
 		node->properties.push_back(parseProperty(fd));
 	}
 	while (ftell(fd) != long(n.endOffset)) {
 		FBXNode *subNode = parseNode(fd);
-		if (subNode != nullptr)
-			node->nodes.push_back(subNode);
+		if (subNode == nullptr)
+			break ;
+		node->nodes.push_back(subNode);
 	}
-	std::cout << ftell(fd) << " " << n.endOffset << std::endl;
+	std::cout << "} " << node->name << std::endl;
 	//fseek(fd, node->endOffset, SEEK_SET);
 	return (node);
 }
