@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/11 17:34:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/11 23:25:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/12 10:59:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,22 +179,29 @@ FBXNode	*parseNode(FILE *fd)
 	FBXNode	n;
 
 	fread(&n, 1, 13, fd);
-	if (n.endOffset == 0) {
+	if (n.endOffset == 0 &&
+		n.numProperties == 0 &&
+		n.propertyListLen == 0 &&
+		n.nameLen == 0) {
 		return (nullptr);
+	}
+	std::cout <<
+		"Node :\n" <<
+		"	endOffset : " << n.endOffset << "\n" <<
+		"	numProperties : " << n.numProperties << "\n" <<
+		"	propertyListLen : " << n.propertyListLen << "\n" <<
+		"	nameLen : " << int(n.nameLen) << std::endl;
+	if (n.nameLen == 0) //this is top node, ignore it
+	{
+		fseek(fd, n.endOffset, SEEK_SET);
+		return (parseNode(fd));
 	}
 	auto	*node = new FBXNode(n);
 	node->name = new unsigned char[int(node->nameLen + 1)];
 	memset(node->name, 0, node->nameLen + 1);
 	fread(node->name, 1, node->nameLen, fd);
-
 	std::cout <<
-		"Node :\n" <<
-		"	endOffset : " << node->endOffset << "\n" <<
-		"	numProperties : " << node->numProperties << "\n" <<
-		"	propertyListLen : " << node->propertyListLen << "\n" <<
-		"	nameLen : " << int(node->nameLen) << "\n" <<
 		"	name : " << node->name << "\n{" << std::endl;
-	
 	for (unsigned i = 0; i < node->numProperties; i++) {
 		node->properties.push_back(parseProperty(fd));
 	}
