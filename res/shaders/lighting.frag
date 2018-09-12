@@ -2,8 +2,11 @@
 struct t_Light {
 	vec3	Position;
 	vec3	Color;
-	float	Power;
 	int		Type;
+#ifdef SHADOW
+	sampler2DShadow	Shadow;
+	mat4			Projection;
+#endif //SHADOW
 };
 
 #define PointLight			0
@@ -82,7 +85,7 @@ void	ApplyTechnique()
 	for (int i = 0; i < LIGHTNBR; i++)
 	{
 		bvec3	isZero = equal(Light[i].Color, vec3(0));
-		if (Light[i].Power == 0 || isZero.r && isZero.g && isZero.b) {
+		if (isZero.r && isZero.g && isZero.b) {
 			continue ;
 		}
 		vec3	L = Light[i].Position;
@@ -90,7 +93,7 @@ void	ApplyTechnique()
 		if (Light[i].Type == PointLight) {
 			L -= Frag.Position;
 			Attenuation = length(L);
-			Attenuation = Light[i].Power * 1.0 / (Attenuation * Attenuation);
+			Attenuation = 1.0 / (Attenuation * Attenuation);
 		}
 		L = normalize(L);
 		N = Frag.Normal;
@@ -109,9 +112,6 @@ void	ApplyTechnique()
 
 	Out.Color.rgb += (specular + diffuse + reflection) * alpha;
 	Out.Color.a = 1;
-	//Out.Color.a = max(Out.Color.a, alpha);
-	//Out.Color = mix(EnvDiffuse, Out.Color.rgb, alpha);
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 	Out.Emitting.a = 1;
-	//Out.Emitting.a = Out.Color.a;
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/09 10:55:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/12 22:50:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,7 +266,8 @@ void	Engine::run()
 		if (ticks - fixed_timing >= 0.015)
 		{
 			fixed_timing = ticks;
-			fixed_update();
+			Engine::fixed_update();
+			Render::fixed_update();
 		}
 		Engine::update();
 		Render::update();

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:30:14 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/09 10:54:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/12 22:48:03 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ class Shader;
 namespace Render
 {
 	void		update();
+	void		fixed_update();
 	void		scene();
 	void		add_post_treatment(Shader *);
 	void		add_post_treatment(const std::string &name, const std::string &path);

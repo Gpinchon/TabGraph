@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/10 23:09:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/12 23:00:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,15 @@ void	present(Framebuffer *back_buffer)
 	Window::swap();
 }
 
-void	Render::update()
+/*void	render_shadows()
+{
+	Camera	tempCamera;
+	for (auto i = 0u; Engine::light(i) != nullptr;)
+	{
+	}
+}*/
+
+void	Render::fixed_update()
 {
 	auto	InvViewMatrix = mat4_inverse(Engine::current_camera()->view);
 	auto	InvProjMatrix = mat4_inverse(Engine::current_camera()->projection);
@@ -112,6 +120,11 @@ void	Render::update()
 		shader->use(false);
 		node_index++;
 	}
+}
+
+void	Render::update()
+{
+	
 }
 
 void	Render::scene()
@@ -200,8 +213,7 @@ void	Render::scene()
 		for (auto shaderIndex = 0; shaderIndex < 32 && Engine::light(i) != nullptr; shaderIndex++) {
 			auto	light = Engine::light(i);
 			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Position", light->position());
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", light->color());
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Power", light->power());
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", vec3_scale(light->color(), light->power()));
 			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Type", light->type());
 			i++;
 		}
@@ -304,8 +316,7 @@ void	Render::scene()
 		for (auto shaderIndex = 0; shaderIndex < 32 && Engine::light(i) != nullptr; shaderIndex++) {
 			auto	light = Engine::light(i);
 			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Position", light->position());
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", light->color());
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Power", light->power());
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", vec3_scale(light->color(), light->power()));
 			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Type", light->type());
 			i++;
 		}
