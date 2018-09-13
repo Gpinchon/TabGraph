@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/09 10:18:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/13 19:07:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ void	Mesh::load()
 bool	Mesh::render_depth(RenderMod mod)
 {
 	bool	ret = false;
-	auto	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
+	auto	mvp = mat4_combine(Engine::current_camera()->projection(), Engine::current_camera()->view(), mat4_transform());
 	auto	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
 	
 	load();
@@ -75,7 +75,7 @@ bool	Mesh::render_depth(RenderMod mod)
 bool	Mesh::render(RenderMod mod)
 {
 	bool	ret = false;
-	auto	mvp = mat4_combine(Engine::current_camera()->projection, Engine::current_camera()->view, mat4_transform());
+	auto	mvp = mat4_combine(Engine::current_camera()->projection(), Engine::current_camera()->view(), mat4_transform());
 	auto	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
 
 	load();

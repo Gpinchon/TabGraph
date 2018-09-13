@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/12 23:00:08 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/13 19:42:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include "Shader.hpp"
 #include "VertexArray.hpp"
 #include <vector>
+#include <algorithm>
 
 /*
 ** quad is a singleton
@@ -92,33 +93,37 @@ void	present(Framebuffer *back_buffer)
 	Window::swap();
 }
 
-/*void	render_shadows()
+//TODO Implement
+void	render_shadows()
 {
-	Camera	tempCamera;
-	for (auto i = 0u; Engine::light(i) != nullptr;)
+	Light	*light;
+	for (auto i = 0u; (light = Engine::light(i)) != nullptr;)
 	{
+		if (!light->cast_shadow())
+			continue ;
 	}
-}*/
+}
 
 void	Render::fixed_update()
 {
-	auto	InvViewMatrix = mat4_inverse(Engine::current_camera()->view);
-	auto	InvProjMatrix = mat4_inverse(Engine::current_camera()->projection);
+	auto	InvViewMatrix = mat4_inverse(Engine::current_camera()->view());
+	auto	InvProjMatrix = mat4_inverse(Engine::current_camera()->projection());
 	auto	res = Window::internal_resolution();
-	auto	node_index = 0;
+	auto	index = 0;
 
-	while (auto shader = Engine::shader(node_index))
+	//render_shadows();
+	while (auto shader = Engine::shader(index))
 	{
 		shader->use();
 		shader->set_uniform("Camera.Position", Engine::current_camera()->position());
-		shader->set_uniform("Camera.Matrix.View", Engine::current_camera()->view);
-		shader->set_uniform("Camera.Matrix.Projection", Engine::current_camera()->projection);
+		shader->set_uniform("Camera.Matrix.View", Engine::current_camera()->view());
+		shader->set_uniform("Camera.Matrix.Projection", Engine::current_camera()->projection());
 		shader->set_uniform("Camera.InvMatrix.View", InvViewMatrix);
 		shader->set_uniform("Camera.InvMatrix.Projection", InvProjMatrix);
 		shader->set_uniform("Resolution", new_vec3(res.x, res.y, res.x / res.y));
 		shader->set_uniform("Time", SDL_GetTicks() / 1000.f);
 		shader->use(false);
-		node_index++;
+		index++;
 	}
 }
 
@@ -192,9 +197,7 @@ void	Render::scene()
 		Render::display_quad()->draw();
 		shader->use(false);
 
-		auto	temp = current_tbuffer;
-		current_tbuffer = current_tbuffertex;
-		current_tbuffertex = temp;
+		std::swap(current_tbuffer, current_tbuffertex);
 	}
 
 	current_tbuffertex->attachement(4)->blur(1, 0.75);
@@ -231,9 +234,7 @@ void	Render::scene()
 		lighting_shader->bind_texture("Texture.Back.Emitting",			current_backTexture->attachement(1), GL_TEXTURE11);
 		lighting_shader->bind_texture("Texture.Back.Depth",				current_backTexture->depth(), GL_TEXTURE12);
 		Render::display_quad()->draw();
-		auto	buf = current_backTexture;
-		current_backTexture = current_backBuffer;
-		current_backBuffer = buf;
+		std::swap(current_backTexture, current_backBuffer);
 	}
 	lighting_shader->use(false);
 
@@ -258,11 +259,7 @@ void	Render::scene()
 	Render::display_quad()->draw();
 	elighting_shader->use(false);
 
-{
-	auto	buf = current_backTexture;
-	current_backTexture = current_backBuffer;
-	current_backBuffer = buf;
-}
+	std::swap(current_backTexture, current_backBuffer);
 
 	//present(current_backTexture);
 
@@ -301,11 +298,7 @@ void	Render::scene()
 	back_buffer2->bind();
 	glClear(GL_COLOR_BUFFER_BIT);
 
-{
-	auto	temp = current_tbuffer;
-	current_tbuffer = current_tbuffertex;
-	current_tbuffertex = temp;
-}
+	std::swap(current_tbuffer, current_tbuffertex);
 
 	glDepthFunc(GL_ALWAYS);
 	glDisable(GL_CULL_FACE);
@@ -360,11 +353,7 @@ void	Render::scene()
 	Render::display_quad()->draw();
 	telighting_shader->use(false);
 
-{
-	auto	buf = current_backTexture;
-	current_backTexture = current_backBuffer;
-	current_backBuffer = buf;
-}
+	std::swap(current_backTexture, current_backBuffer);
 
 	refraction_shader->use();
 	current_backBuffer->bind();

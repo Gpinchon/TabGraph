@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 10:02:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/13 18:07:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,13 +46,14 @@ void				callback_camera(SDL_Event *)
 	val.x += raxis.y * Engine::delta_time();
 	val.y += raxis.x * Engine::delta_time();
 	val.z -= laxis.y * Engine::delta_time();
-	auto t = Engine::current_camera()->target;
+	auto	camera = dynamic_cast<OrbitCamera*>(Engine::current_camera());
+	auto t = camera->target;
 	t->position().y += rtrigger * Engine::delta_time();
 	t->position().y -= ltrigger * Engine::delta_time();
 	val.x = CLAMP(val.x, 0.01, M_PI - 0.01);
 	val.y = CYCLE(val.y, 0, 2 * M_PI);
 	val.z = CLAMP(val.z, 0.1f, 1000.f);
-	Engine::current_camera()->orbite(val.x, val.y, val.z);
+	camera->orbite(val.x, val.y, val.z);
 }
 
 void	callback_scale(SDL_KeyboardEvent *event)

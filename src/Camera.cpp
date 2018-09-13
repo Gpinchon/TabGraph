@@ -1,57 +1,97 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   methods.cpp                                        :+:      :+:    :+:   */
+/*   Camera.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/07/25 21:29:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/13 18:16:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include "Camera.hpp"
 #include "Window.hpp"
+#include <iostream>
 
-Camera::Camera(const std::string &name) : Node(name)
+Camera::Camera(const std::string &name, float ifov, CameraProjection proj) : Node(name)
 {
-
+	_fov = ifov;
+	_projection_type = proj;
 }
 
-Camera		*Camera::create(const std::string &name, float fov)
+Camera		*Camera::create(const std::string &name, float ifov, CameraProjection proj)
 {
-	Camera	*camera;
-
-	camera = new Camera(name);
-	camera->fov = fov;
+	auto	camera = new Camera(name, ifov, proj);
 	Engine::add(*camera);
 	return (camera);
 }
 
-void	Camera::orbite(float phi, float theta, float radius)
+void	Camera::fixed_update()
+{
+	//Node::update();
+	if (nullptr != target)
+		mat4_transform() = mat4_lookat(position(), target->position(), UP);
+	if (_projection_type == PerspectiveCamera)
+	{
+		VEC2	size = Window::size();
+		_projection = mat4_perspective(_fov, size.x / size.y, _znear, _zfar);
+	}
+	else
+		_projection = mat4_orthographic(_frustum, _znear, _zfar);
+}
+
+MAT4	Camera::view()
+{
+	return (mat4_transform());
+}
+
+MAT4	Camera::projection()
+{
+	return (_projection);
+}
+
+FRUSTUM	&Camera::frustum()
+{
+	return (_frustum);
+}
+
+float	&Camera::fov()
+{
+	return (_fov);
+}
+
+OrbitCamera::OrbitCamera(const std::string &iname, float ifov, float phi, float theta, float radius) : Camera(iname, ifov)
+{
+	_phi = phi;
+	_theta = theta;
+	_radius = radius;
+}
+
+OrbitCamera	*OrbitCamera::create(const std::string &iname, float ifov, float phi, float theta, float radius)
+{
+	auto	camera = new OrbitCamera(iname, ifov, phi, theta, radius);
+	Engine::add(*camera);
+	return (camera);
+}
+
+void	OrbitCamera::orbite(float phi, float theta, float radius)
 {
 	VEC3		target_position {0, 0, 0};
 	VEC3		new_position  = position();
 
+	_phi = phi;
+	_theta = theta;
+	_radius = radius;
 	if (target != nullptr) {
 		target_position = target->position();
 	}
 	else {
 		target_position = new_vec3(0, 0, 0);
 	}
-	new_position.x = target_position.x + radius * sin(phi) * cos(theta);
-	new_position.z = target_position.z + radius * sin(phi) * sin(theta);
-	new_position.y = target_position.y + radius * cos(phi);
+	new_position.x = target_position.x + _radius * sin(_phi) * cos(_theta);
+	new_position.z = target_position.z + _radius * sin(_phi) * sin(_theta);
+	new_position.y = target_position.y + _radius * cos(_phi);
 	position() = new_position;
-}
-
-void	Camera::update()
-{
-	VEC3		target_position = target != nullptr ? target->position() : new_vec3(0, 0, 0);
-	VEC2		size = Window::size();
-
-	view = mat4_lookat(position(), target_position, UP);
-	projection = mat4_perspective(fov,
-		size.x / size.y, 0.1, 1000);
 }

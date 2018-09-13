@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/11 18:06:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/13 18:06:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ int		main(int argc, char *argv[])
 	Window::init("Scop", WIDTH, HEIGHT);
 	Engine::init();
 	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
-	auto camera = Camera::create("main_camera", 45);
+	auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
 	Engine::set_current_camera(camera);
 	camera->target = Node::create("main_camera_target",
 		new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
@@ -114,11 +114,8 @@ int		main(int argc, char *argv[])
 		obj->center();
 		obj->load();
 		obj->sort(alpha_compare);
-/*		auto	m = Renderable::get_by_name("main_mesh_child 0");
-		if (m != nullptr)
-			m->material->shader = GLSL::parse("shadertoy", Engine::program_path() + "./res/shaders/shadertoy.vert", Engine::program_path() + "./res/shaders/balls.frag");
-*/	}
-	FBX::parseBin(Engine::program_path() + "./mug.fbx");
+	}
+	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	setup_callbacks();
 	//create_random_lights(100);
