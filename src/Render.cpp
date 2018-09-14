@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/13 19:42:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/14 11:21:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,7 +146,8 @@ void	Render::scene()
 	static auto	back_buffer = create_back_buffer("back_buffer", Window::internal_resolution(), nullptr);
 	static auto	back_buffer1 = create_back_buffer("back_buffer1", Window::internal_resolution(), nullptr);
 	static auto	back_buffer2 = create_back_buffer("back_buffer1", Window::internal_resolution(), nullptr);
-	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader);
+	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
+		std::string("#define LIGHTNBR 32\n") + "#define PointLight " + std::to_string(Point) + "\n#define DirectionnalLight " + std::to_string(Directionnal) + "\n");
 	static auto	elighting_shader = GLSL::parse("lighting_env", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader);
 	static auto	telighting_shader = GLSL::parse("lighting_env_transparent", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader, "#define TRANSPARENT\n");
 	static auto	refraction_shader = GLSL::parse("refraction", Engine::program_path() + "./res/shaders/refraction.frag", LightingShader);
@@ -306,13 +307,21 @@ void	Render::scene()
 	for (auto i = 0u; Engine::light(i) != nullptr;)
 	{
 		current_backBuffer->bind();
-		for (auto shaderIndex = 0; shaderIndex < 32 && Engine::light(i) != nullptr; shaderIndex++) {
+		auto shaderIndex = 0;
+		while (shaderIndex < 32 && Engine::light(i) != nullptr) {
 			auto	light = Engine::light(i);
+			if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z)) {
+				i++;
+				continue;
+			}
 			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Position", light->position());
 			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", vec3_scale(light->color(), light->power()));
 			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Type", light->type());
 			i++;
+			shaderIndex++;
 		}
+		if (shaderIndex == 0)
+			continue ;
 		lighting_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
 		lighting_shader->bind_texture("Texture.Emitting",		current_tbuffertex->attachement(1), GL_TEXTURE1);
 		lighting_shader->bind_texture("Texture.Specular",		current_tbuffertex->attachement(2), GL_TEXTURE2);

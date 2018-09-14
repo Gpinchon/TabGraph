@@ -12,11 +12,7 @@ struct t_Light {
 #define PointLight			0
 #define DirectionnalLight	1
 
-#define LIGHTNBR 32
-
 uniform t_Light	Light[LIGHTNBR];
-/* uniform vec3	LightPositions[LIGHTNBR];
-uniform vec3	LightColors[LIGHTNBR]; */
 uniform vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
 uniform vec3	envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
 
