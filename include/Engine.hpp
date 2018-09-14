@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 11:26:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/14 17:25:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,7 @@
 # ifndef M_PI
 const auto M_PI				= 3.14159265359f;
 # endif //M_PI
-const auto SHADOWRES		= 2048;
-const auto UP				= (VEC3){0, 1, 0};
-const auto ANISOTROPY		= 4.f;
-const auto MSAA				= 0;
-const auto BLOOMPASS		= 1;
-const auto MAXTEXRES		= -1;
-const auto LIGHTSPERPASS	= 32;
+auto UP						= (VEC3){0, 1, 0};
 #define GL_DEBUG
 
 class Material;
@@ -94,6 +88,7 @@ private :
 	static Engine				*_instance;
 	void						_set_program_path(std::string &argv0);
 	void						_load_res();
+	void						_load_cfg();
 	bool						_loop;
 	int32_t						_frame_nbr;
 	int8_t						_swap_interval;
@@ -112,6 +107,33 @@ private :
 	std::vector<Texture *>		_textures;
 	std::vector<Environment *>	_environments;
 	std::vector<Framebuffer *>	_framebuffers;
+};
+
+class CFG
+{
+public :
+	static VEC2			&WindowSize();
+	static std::string	&WindowName();
+	static float		&Anisotropy();
+	static int32_t		&ShadowRes();
+	static int32_t		&MaxTexRes();
+	static int16_t		&Msaa();
+	static int16_t		&BloomPass();
+	static int16_t		&LightsPerPass();
+private :
+	static CFG	*_get();
+	static CFG	*_instance;
+	VEC2		_windowSize{1280, 720};
+	std::string	_windowName{""};
+	float		_anisotropy{16.f};
+	int32_t		_shadowRes{2048};
+	int32_t		_maxTexRes{-1};
+	int16_t		_msaa{0};
+	int16_t		_bloomPass{1};
+	int16_t		_lightsPerPass{32};
+	CFG() = default;
+	~CFG() = default;
+	
 };
 
 /*

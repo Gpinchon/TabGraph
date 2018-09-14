@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/13 18:06:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/14 16:56:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ int		main(int argc, char *argv[])
 	Mesh *obj;
 	auto argv0 = std::string(argv[0]);
 
-	Window::init("Scop", WIDTH, HEIGHT);
+	//Window::init("Scop", WIDTH, HEIGHT);
 	Engine::init();
 	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
 	auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);

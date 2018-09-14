@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/09 17:33:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/14 17:26:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,7 +195,7 @@ void	Framebuffer::_resize_attachement(const int &attachement, const VEC2 &ns)
 	t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
+	t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, CFG::Anisotropy());
 }
 
 void	Framebuffer::_resize_depth(const VEC2 &ns)
@@ -208,7 +208,7 @@ void	Framebuffer::_resize_depth(const VEC2 &ns)
 	_depth->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	_depth->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	_depth->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	_depth->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
+	_depth->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, CFG::Anisotropy());
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
 			GL_TEXTURE_2D, _depth->glid(), 0);
 }

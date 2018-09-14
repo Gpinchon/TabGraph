@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 17:31:17 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/14 17:28:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ Texture::Texture(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenu
 	}
 	set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
+	set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, CFG::Anisotropy());
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, _glid, -1, name.c_str());
 #endif //GL_DEBUG
@@ -146,10 +146,10 @@ void	Texture::load()
 	if (_loaded) {
 		return ;
 	}
-	if (MAXTEXRES != -1 && _data && (_size.x > MAXTEXRES || _size.y > MAXTEXRES)) {
+	if (CFG::MaxTexRes() != -1 && _data && (_size.x > CFG::MaxTexRes() || _size.y > CFG::MaxTexRes())) {
 		resize(new_vec2(
-			std::min(int(_size.x), MAXTEXRES),
-			std::min(int(_size.y), MAXTEXRES)));
+			std::min(int(_size.x), CFG::MaxTexRes()),
+			std::min(int(_size.y), CFG::MaxTexRes())));
 	}
 	if (_glid == 0u) {
 		glGenTextures(1, &_glid);

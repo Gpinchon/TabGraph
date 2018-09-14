@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 11:41:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/14 17:28:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ void	present(Framebuffer *back_buffer)
 		Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/present.frag");
 
 	// GENERATE BLOOM FROM out_Brightness
-	back_buffer->attachement(1)->blur(BLOOMPASS, 3.5);
+	back_buffer->attachement(1)->blur(CFG::BloomPass(), 3.5);
 	glDepthFunc(GL_ALWAYS);
 	glDisable(GL_CULL_FACE);
 	Framebuffer::bind_default();
@@ -135,13 +135,13 @@ void	Render::update()
 void	light_pass(Framebuffer *&current_backBuffer, Framebuffer *&current_backTexture, Framebuffer *&current_tbuffertex)
 {
 	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
-		std::string("#define LIGHTNBR ") + std::to_string(LIGHTSPERPASS) + "\n#define PointLight " + std::to_string(Point) + "\n#define DirectionnalLight " + std::to_string(Directionnal) + "\n");
+		std::string("#define LIGHTNBR ") + std::to_string(CFG::LightsPerPass()) + "\n#define PointLight " + std::to_string(Point) + "\n#define DirectionnalLight " + std::to_string(Directionnal) + "\n");
 	lighting_shader->use();
 	for (auto i = 0u; Engine::light(i) != nullptr;)
 	{
 		current_backBuffer->bind();
 		auto shaderIndex = 0;
-		while (shaderIndex < LIGHTSPERPASS && Engine::light(i) != nullptr) {
+		while (shaderIndex < CFG::LightsPerPass() && Engine::light(i) != nullptr) {
 			auto	light = Engine::light(i);
 			if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z)) {
 				i++;

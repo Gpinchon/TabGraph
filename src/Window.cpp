@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/01 19:18:08 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/14 17:26:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,13 +57,13 @@ void		Window::init(const std::string &name, int width, int height)
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, MSAA);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-		SDL_GL_CONTEXT_PROFILE_CORE);
-	_get()._sdl_window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED, width, height,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
-		SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, CFG::Msaa());
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	if (nullptr == _get()._sdl_window)
+		_get()._sdl_window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED,
+			SDL_WINDOWPOS_CENTERED, width, height,
+			SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
+			SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
 	if (_get()._sdl_window == nullptr) {
 		throw std::runtime_error(SDL_GetError());
 	}
@@ -79,20 +79,6 @@ void		Window::init(const std::string &name, int width, int height)
 	}
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	//GLSL::parse("lighting",
-	//	Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/lighting.frag");
-	//GLSL::parse("shadow",
-	//	Engine::program_path() + "./res/shaders/shadow.vert", Engine::program_path() + "./res/shaders/shadow.frag");
-	//GLSL::parse("blur",
-	//	Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
-	//_get()._render_buffer = create_render_buffer("window_render_buffer", Window::internal_resolution(), nullptr);//Framebuffer::create("window_render_buffer", Window::internal_resolution(), nullptr, 7, 1);
-	//_get()._render_buffer = Framebuffer::create("window_render_buffer", Window::internal_resolution(), Shader::get_by_name("lighting"), 7, 1);
-/*	_get().render_buffer().create_attachement(GL_RGBA, GL_RGBA16F_ARB);
-	_get().render_buffer().create_attachement(GL_RGB, GL_RGB16F_ARB);
-	_get().render_buffer().create_attachement(GL_RGB, GL_RGB16F_ARB);
-	_get().render_buffer().create_attachement(GL_RGB, GL_RGB32F_ARB);
-	_get().render_buffer().create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
-	_get().render_buffer().setup_attachements();*/
 }
 
 GLbitfield	&Window::clear_mask()
@@ -117,16 +103,6 @@ VEC2		Window::size()
 void		Window::resize(const VEC2 &size)
 {
 	SDL_SetWindowSize(_get()._sdl_window, size.x, size.y);
-	/*VEC2		size{0, 0};
-	//static VEC2	lastSize = new_vec2(0, 0);
-
-	size = vec2_scale(Window::size(),
-		Engine::internal_quality());*/
-	/*if (lastSize.x != size.x || lastSize.y != size.y)
-	{
-		Window::render_buffer().resize(size);
-		lastSize = size;
-	}*/
 }
 
 void		Window::fullscreen(const bool &fullscreen)

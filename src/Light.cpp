@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/10 21:42:11 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/12 22:20:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/14 17:27:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ DirectionnalLight	*DirectionnalLight::create(const std::string &name, VEC3 color
 	light->power() = power;
 	light->cast_shadow() = cast_shadow;
 	if (cast_shadow)
-		light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", new_vec2(SHADOWRES, SHADOWRES), nullptr, 0, 1);
+		light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", new_vec2(CFG::ShadowRes(), CFG::ShadowRes()), nullptr, 0, 1);
 	Engine::add(*light);
 	return (light);
 }

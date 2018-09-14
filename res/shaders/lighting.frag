@@ -100,7 +100,7 @@ void	ApplyTechnique()
 		specular += lightColor * min(fresnel + 1, fresnel * Specular(LdH, NdH, Frag.Material.Roughness));
 	}
 
-	float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));//length(specular);
+	float	alpha = Frag.Material.Alpha + dot(specular, brightnessDotValue);//length(specular);
 	alpha = min(1, alpha);
 
 	Out.Color.rgb += (specular + diffuse + reflection) * alpha;
