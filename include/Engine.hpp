@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 17:40:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/14 11:26:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,15 @@
 # include <string>
 
 # ifndef M_PI
-const auto M_PI			= 3.14159265359f;
+const auto M_PI				= 3.14159265359f;
 # endif //M_PI
-const auto SHADOWRES	= 2048;
-const auto UP			= (VEC3){0, 1, 0};
-const auto ANISOTROPY	= 4.f;
-const auto MSAA			= 0;
-const auto BLOOMPASS	= 1;
-const auto MAXTEXRES	= -1;
+const auto SHADOWRES		= 2048;
+const auto UP				= (VEC3){0, 1, 0};
+const auto ANISOTROPY		= 4.f;
+const auto MSAA				= 0;
+const auto BLOOMPASS		= 1;
+const auto MAXTEXRES		= -1;
+const auto LIGHTSPERPASS	= 32;
 #define GL_DEBUG
 
 class Material;

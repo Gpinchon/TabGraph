@@ -70,9 +70,6 @@ void	ApplyTechnique()
 	}
 	NdV = max(0, NdV);
 	vec3	R = reflect(V, N);
-
-	const vec2	BRDF = BRDF(NdV, Frag.Material.Roughness);
-
 	vec3	fresnel = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
 	vec3	diffuse = vec3(0);
 	vec3	specular = vec3(0);
