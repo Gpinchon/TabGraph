@@ -164,9 +164,9 @@ void	FillOut()
 #ifdef LIGHTSHADER
 void	FillOut()
 {
+	gl_FragDepth = Frag.Depth;
 	out_Color = Out.Color;
 	out_Emitting = Out.Emitting;
-	gl_FragDepth = Frag.Depth;
 }
 #endif
 

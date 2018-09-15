@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/13 18:16:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 17:26:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,12 +42,12 @@ void	Camera::fixed_update()
 		_projection = mat4_orthographic(_frustum, _znear, _zfar);
 }
 
-MAT4	Camera::view()
+MAT4	&Camera::view()
 {
 	return (mat4_transform());
 }
 
-MAT4	Camera::projection()
+MAT4	&Camera::projection()
 {
 	return (_projection);
 }

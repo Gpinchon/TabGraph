@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 16:56:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 20:12:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,8 +118,9 @@ int		main(int argc, char *argv[])
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	setup_callbacks();
-	//create_random_lights(100);
-	DirectionnalLight::create("MainLight", new_vec3(1, 1, 1), new_vec3(5, 5, 0), 1);
+	//create_random_lights(10);
+	DirectionnalLight::create("MainLight", new_vec3(1, 1, 1), new_vec3(10, 10, 0), 1, true);
+	DirectionnalLight::create("BackLight", new_vec3(0.3, 0.3, 0.3), new_vec3(-10, 10, 0), 1, true);
 	Engine::run();
 	SDL_Quit();
 	return (0);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/11 17:55:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 15:23:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,7 +198,7 @@ void		parse_vg(t_obj_parser *p)
 		childNbr++;
 		vt_min_max(p->vg);
 		p->parent->add_child(*p->vg);
-		p->parent->vgroups.push_back(p->vg);
+		p->parent->add(p->vg);
 		p->vg = Vgroup::create(p->parent->name() + "_child " + std::to_string(childNbr));
 		p->vg->material = Material::get_by_name("default");
 	}

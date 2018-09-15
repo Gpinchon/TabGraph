@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/13 19:14:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 17:26:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,8 @@ class	Camera : public Node
 public :
 	static Camera	*create(const std::string &, float fov, CameraProjection proj = PerspectiveCamera);
 	virtual void	fixed_update();
-	virtual MAT4	view();
-	virtual MAT4	projection();
+	virtual MAT4	&view();
+	virtual MAT4	&projection();
 	virtual FRUSTUM	&frustum();
 	virtual float	&fov();
 	Node			*target{nullptr};

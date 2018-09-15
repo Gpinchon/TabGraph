@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 17:25:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 19:57:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,6 @@ private :
 	static Engine				*_instance;
 	void						_set_program_path(std::string &argv0);
 	void						_load_res();
-	void						_load_cfg();
 	bool						_loop;
 	int32_t						_frame_nbr;
 	int8_t						_swap_interval;
@@ -112,6 +111,7 @@ private :
 class CFG
 {
 public :
+	static void			Load();
 	static VEC2			&WindowSize();
 	static std::string	&WindowName();
 	static float		&Anisotropy();
@@ -120,6 +120,7 @@ public :
 	static int16_t		&Msaa();
 	static int16_t		&BloomPass();
 	static int16_t		&LightsPerPass();
+	static int16_t		&ShadowsPerPass();
 private :
 	static CFG	*_get();
 	static CFG	*_instance;
@@ -131,6 +132,7 @@ private :
 	int16_t		_msaa{0};
 	int16_t		_bloomPass{1};
 	int16_t		_lightsPerPass{32};
+	int16_t		_shadowsPerPass{16};
 	CFG() = default;
 	~CFG() = default;
 	

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/13 19:07:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 16:36:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include "Vgroup.hpp"
 #include <algorithm>
 
-Mesh::Mesh(const std::string &name) : Renderable(name)
+Mesh::Mesh(const std::string &name) : RenderableMultiDraw(name)
 {
 	bounding_element = new AABB;
 }
@@ -37,14 +37,24 @@ Mesh	*Mesh::create(const std::string &name)
 	return (m);
 }
 
+void	Mesh::add(Vgroup *group)
+{
+	if (nullptr == group)
+		return ;
+	_vgroups.push_back(group);
+	materials.insert(group->material);
+}
+
 void	Mesh::load()
 {
 	if (_is_loaded)
 		return ;
-	for (auto vg : vgroups) {
+	for (auto vg : _vgroups) {
 		vg->load();
 	}
 }
+
+#include <iostream>
 
 bool	Mesh::render_depth(RenderMod mod)
 {
@@ -54,7 +64,7 @@ bool	Mesh::render_depth(RenderMod mod)
 	
 	load();
 	Shader	*last_shader = nullptr;
-	for (auto vg : vgroups) {
+	for (auto vg : _vgroups) {
 		if (vg->material == nullptr)
 			continue ;
 		vg->material->depth_shader->use();
@@ -71,7 +81,6 @@ bool	Mesh::render_depth(RenderMod mod)
 	return (ret);
 }
 
-
 bool	Mesh::render(RenderMod mod)
 {
 	bool	ret = false;
@@ -80,7 +89,7 @@ bool	Mesh::render(RenderMod mod)
 
 	load();
 	Shader	*last_shader = nullptr;
-	for (auto vg : vgroups) {
+	for (auto vg : _vgroups) {
 		if (vg->material == nullptr)
 			continue ;
 		vg->material->shader->use();
@@ -104,12 +113,12 @@ void	Mesh::set_cull_mod(GLenum mod)
 
 void	Mesh::sort(renderable_compare compare)
 {
-	std::sort(vgroups.begin(), vgroups.end(), compare);
+	std::sort(_vgroups.begin(), _vgroups.end(), compare);
 }
 
 void	Mesh::center()
 {
-	for (auto vg : vgroups) {
+	for (auto vg : _vgroups) {
 		vg->center(bounding_element->center);
 	}
 	bounding_element->min = vec3_sub(bounding_element->min, bounding_element->center);

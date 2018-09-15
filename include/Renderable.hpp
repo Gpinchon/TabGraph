@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 23:12:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 15:11:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "Node.hpp"
+#include <unordered_set>
 
 enum RenderMod
 {
@@ -35,4 +36,12 @@ public:
 protected:
 	bool		_is_loaded;
 	Renderable(const std::string &name) : Node(name), material(nullptr), _is_loaded(false) {};
+};
+
+class RenderableMultiDraw : public Renderable
+{
+public :
+	std::unordered_set<Material*>	materials{0};
+protected :
+	RenderableMultiDraw(const std::string &name) : Renderable(name) {};	
 };

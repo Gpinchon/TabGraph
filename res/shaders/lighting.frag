@@ -51,14 +51,20 @@ float	Specular(in float NdV, in float NdH, in float roughness)
 	return (max(D * G, 0));
 }
 
+#ifdef SHADOW
+float	SampleShadowMap(in t_Light light)
+{
+	vec4	shadowPos = light.Projection * vec4(Frag.Position, 1.0);
+	vec3	projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
+	return (texture(light.Shadow, vec3(projCoord.xy, projCoord.z - 0.001)));
+}
+#endif //SHADOW
+
 void	ApplyTechnique()
 {
-	if (Frag.Material.Alpha == 0) {
-		return ;
-	}
-	const vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, Frag.CubeUV).rgb;
-
-	Frag.Material.AO = 1 - Frag.Material.AO;
+	//if (Frag.Material.Alpha == 0) {
+	//	return ;
+	//}
 	
 	vec3	V = normalize(Camera.Position - Frag.Position);
 	vec3	N = Frag.Normal;
@@ -78,11 +84,15 @@ void	ApplyTechnique()
 	for (int i = 0; i < LIGHTNBR; i++)
 	{
 		bvec3	isZero = equal(Light[i].Color, vec3(0));
-		if (isZero.r && isZero.g && isZero.b) {
+		float	Attenuation = 1;
+		#ifdef SHADOW
+			Attenuation *= SampleShadowMap(Light[i]);
+		#endif //SHADOW
+		if (Attenuation == 0 || isZero.r && isZero.g && isZero.b) {
 			continue ;
 		}
 		vec3	L = Light[i].Position;
-		float	Attenuation = 1;
+		
 		if (Light[i].Type == PointLight) {
 			L -= Frag.Position;
 			Attenuation = length(L);
@@ -100,11 +110,14 @@ void	ApplyTechnique()
 		specular += lightColor * min(fresnel + 1, fresnel * Specular(LdH, NdH, Frag.Material.Roughness));
 	}
 
-	float	alpha = Frag.Material.Alpha + dot(specular, brightnessDotValue);//length(specular);
+	float	alpha = Frag.Material.Alpha + dot(specular, brightnessDotValue);
 	alpha = min(1, alpha);
 
 	Out.Color.rgb += (specular + diffuse + reflection) * alpha;
 	Out.Color.a = 1;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 	Out.Emitting.a = 1;
+/* #ifdef SHADOW
+	Out.Color.rgb += vec3(SampleShadowMap(Light[0]));
+#endif //SHADOW */
 }

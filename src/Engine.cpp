@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 17:30:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 20:02:05 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,45 @@ CFG			*CFG::_get()
 	return (_instance);
 }
 
+void			CFG::Load()
+{
+	auto	fd = fopen((Engine::program_path() + "config.ini").c_str(), "r");
+	char	buffer[4096];
+	while (fgets(buffer, 4096, fd))
+	{
+		int		val0, val1;
+		char	vals[4096];
+		if (sscanf(buffer, "WindowSize = %i %i", &val0, &val1)) {
+			CFG::WindowSize().x = val0;
+			CFG::WindowSize().y = val1;
+		}
+		else if (sscanf(buffer, "WindowName = %s", vals)) {
+			CFG::WindowName() = vals;
+		}
+		else if (sscanf(buffer, "ShadowRes = %i", &val0)) {
+			CFG::ShadowRes() = val0;
+		}
+		else if (sscanf(buffer, "Anisotropy = %i", &val0)) {
+			CFG::Anisotropy() = val0;
+		}
+		else if (sscanf(buffer, "MSAA = %i", &val0)) {
+			CFG::Msaa() = val0;
+		}
+		else if (sscanf(buffer, "BloomPass = %i", &val0)) {
+			CFG::BloomPass() = val0;
+		}
+		else if (sscanf(buffer, "MaxTexRes = %i", &val0)) {
+			CFG::MaxTexRes() = val0;
+		}
+		else if (sscanf(buffer, "LightsPerPass = %i", &val0)) {
+			CFG::LightsPerPass() = val0;
+		}
+		else if (sscanf(buffer, "ShadowsPerPass = %i", &val0)) {
+			CFG::ShadowsPerPass() = val0;
+		}
+	}
+}
+
 VEC2		&CFG::WindowSize() {
 	return (_get()->_windowSize);
 }
@@ -75,6 +114,10 @@ int16_t		&CFG::BloomPass() {
 
 int16_t		&CFG::LightsPerPass() {
 	return (_get()->_lightsPerPass);
+}
+
+int16_t		&CFG::ShadowsPerPass() {
+	return (_get()->_shadowsPerPass);
 }
 
 Engine::Engine() :
@@ -129,42 +172,6 @@ Environment		*Engine::current_environment(Environment *env)
 		_get()._environment = env;
 	}
 	return (_get()._environment);
-}
-
-void			Engine::_load_cfg()
-{
-	auto	fd = fopen((Engine::program_path() + "config.ini").c_str(), "r");
-	char	buffer[4096];
-	while (fgets(buffer, 4096, fd))
-	{
-		int		val0, val1;
-		char	vals[4096];
-		if (sscanf(buffer, "WindowSize = %i %i", &val0, &val1)) {
-			CFG::WindowSize().x = val0;
-			CFG::WindowSize().y = val1;
-		}
-		else if (sscanf(buffer, "WindowName = %s", vals)) {
-			CFG::WindowName() = vals;
-		}
-		else if (sscanf(buffer, "ShadowRes = %i", &val0)) {
-			CFG::ShadowRes() = val0;
-		}
-		else if (sscanf(buffer, "Anisotropy = %i", &val0)) {
-			CFG::Anisotropy() = val0;
-		}
-		else if (sscanf(buffer, "MSAA = %i", &val0)) {
-			CFG::Msaa() = val0;
-		}
-		else if (sscanf(buffer, "BloomPass = %i", &val0)) {
-			CFG::BloomPass() = val0;
-		}
-		else if (sscanf(buffer, "MaxTexRes = %i", &val0)) {
-			CFG::MaxTexRes() = val0;
-		}
-		else if (sscanf(buffer, "LightsPerPass = %i", &val0)) {
-			CFG::LightsPerPass() = val0;
-		}
-	}
 }
 
 void			Engine::_load_res()
@@ -264,7 +271,7 @@ void		Engine::add(Environment &v)
 
 void			Engine::init()
 {
-	_get()._load_cfg();
+	CFG::Load();
 	Window::init(CFG::WindowName(), CFG::WindowSize().x, CFG::WindowSize().y);
 	_get()._load_res();
 }

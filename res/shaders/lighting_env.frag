@@ -26,10 +26,12 @@ void	ApplyTechnique()
 	vec3	N = Frag.Normal;
 #ifdef TRANSPARENT
 	float	NdV = dot(N, V);
-	if (NdV < 0)
-	{
+	if (Frag.Material.Alpha < 1 && NdV < 0) {
 		N = -N;
 		NdV = -NdV;
+	}
+	else {
+		NdV = max(0, dot(N, V));
 	}
 #else
 	float	NdV = max(0, dot(N, V));
@@ -67,11 +69,8 @@ void	ApplyTechnique()
 	float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));
 	alpha = min(1, alpha);
 
-	Out.Color.rgb += (specular + diffuse + reflection) * alpha;
+	Out.Color.rgb += (specular + diffuse + reflection + Frag.Material.Emitting) * alpha;
 	Out.Color.a = 1;
-	//Out.Color.a = max(Out.Color.a, alpha);
-	//Out.Color += mix(EnvDiffuse, Out.Color.rgb, alpha);
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 	Out.Emitting.a = 1;
-	//Out.Emitting.a = Out.Color.a;
 }

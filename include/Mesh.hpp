@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 23:53:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 15:21:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ class Vgroup;
 
 typedef bool (*renderable_compare)(Renderable *m, Renderable *m1);
 
-class	Mesh : public Renderable
+class	Mesh : public RenderableMultiDraw
 {
 public:
 	static Mesh	*create(const std::string &);
@@ -28,11 +28,12 @@ public:
 	bool		render(RenderMod mod = RenderAll);
 	bool		render_depth(RenderMod mod = RenderAll);
 	void		center();
-	std::vector<Vgroup*>	vgroups;
 	void		set_cull_mod(GLenum);
+	void		add(Vgroup *);
 private:
 	Mesh(const std::string &name);
-	GLenum		_cull_mod{GL_BACK};
+	std::vector<Vgroup*>	_vgroups;
+	GLenum					_cull_mod{GL_BACK};
 };
 
 bool	alpha_compare(Renderable	*m, Renderable *m1);

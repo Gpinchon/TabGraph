@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/12 22:19:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 17:28:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class DirectionnalLight : public Light
 public :
 	static DirectionnalLight	*create(const std::string &name, VEC3 color, VEC3 position, float power, bool cast_shadow = false);
 	virtual void				render_shadow();
+	virtual void				fixed_update();
 	virtual LightType			type();
 protected :
 	DirectionnalLight(const std::string &name);

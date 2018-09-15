@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 17:28:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 20:06:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,15 +93,51 @@ void	present(Framebuffer *back_buffer)
 	Window::swap();
 }
 
+#include <iostream>
+#include "Material.hpp"
+
+void	print_mat4(MAT4 mat)
+{
+	std::cout << std::endl;
+	for (auto x = 0; x < 4; x++) {
+		for (auto y = 0; y < 4; y++) {
+			std::cout << mat.m[x * 4 + y] << "\t";
+		}
+		std::cout << std::endl;
+	}
+}
+
 //TODO Implement
 void	render_shadows()
 {
 	Light	*light;
+	static auto	tempCamera = Camera::create("light_camera", 45);
+	auto	*camera = Engine::current_camera();	
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	Engine::set_current_camera(tempCamera);
+	tempCamera->projection() = mat4_identity();
 	for (auto i = 0u; (light = Engine::light(i)) != nullptr;)
 	{
-		if (!light->cast_shadow())
+		if (!light->cast_shadow()) {
+			i++;
 			continue ;
+		}
+		light->render_buffer()->bind();
+		glClear(GL_DEPTH_BUFFER_BIT);
+		tempCamera->position() = light->position();
+		tempCamera->view() = light->mat4_transform();
+		for (auto index = 0; Engine::renderable(index) != nullptr; index++) {
+			auto	node = Engine::renderable(index);
+			node->render_depth(RenderOpaque);
+		}
+		light->render_buffer()->bind(false);
+		i++;
 	}
+	Engine::set_current_camera(camera);
 }
 
 void	Render::fixed_update()
@@ -111,7 +147,7 @@ void	Render::fixed_update()
 	auto	res = Window::internal_resolution();
 	auto	index = 0;
 
-	//render_shadows();
+	render_shadows();
 	while (auto shader = Engine::shader(index))
 	{
 		shader->use();
@@ -135,7 +171,10 @@ void	Render::update()
 void	light_pass(Framebuffer *&current_backBuffer, Framebuffer *&current_backTexture, Framebuffer *&current_tbuffertex)
 {
 	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
-		std::string("#define LIGHTNBR ") + std::to_string(CFG::LightsPerPass()) + "\n#define PointLight " + std::to_string(Point) + "\n#define DirectionnalLight " + std::to_string(Directionnal) + "\n");
+		std::string("#define LIGHTNBR ") + std::to_string(CFG::LightsPerPass()) +
+		"\n#define PointLight " + std::to_string(Point) +
+		"\n#define DirectionnalLight " + std::to_string(Directionnal) +
+		"\n");
 	lighting_shader->use();
 	for (auto i = 0u; Engine::light(i) != nullptr;)
 	{
@@ -143,7 +182,7 @@ void	light_pass(Framebuffer *&current_backBuffer, Framebuffer *&current_backText
 		auto shaderIndex = 0;
 		while (shaderIndex < CFG::LightsPerPass() && Engine::light(i) != nullptr) {
 			auto	light = Engine::light(i);
-			if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z)) {
+			if (light->cast_shadow() || light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z)) {
 				i++;
 				continue;
 			}
@@ -159,14 +198,55 @@ void	light_pass(Framebuffer *&current_backBuffer, Framebuffer *&current_backText
 		lighting_shader->bind_texture("Texture.Emitting",		current_tbuffertex->attachement(1), GL_TEXTURE1);
 		lighting_shader->bind_texture("Texture.Specular",		current_tbuffertex->attachement(2), GL_TEXTURE2);
 		lighting_shader->bind_texture("Texture.MaterialValues",	current_tbuffertex->attachement(3), GL_TEXTURE3);
-		lighting_shader->bind_texture("Texture.AO",				current_tbuffertex->attachement(4), GL_TEXTURE4);
 		lighting_shader->bind_texture("Texture.Normal",			current_tbuffertex->attachement(5), GL_TEXTURE5);
 		lighting_shader->bind_texture("Texture.Depth",			current_tbuffertex->depth(), GL_TEXTURE6);
-		lighting_shader->bind_texture("Texture.Environment.Diffuse",	Engine::current_environment()->diffuse, GL_TEXTURE7);
-		lighting_shader->bind_texture("Texture.Environment.Irradiance", Engine::current_environment()->irradiance, GL_TEXTURE8);
-		lighting_shader->bind_texture("Texture.Back.Color",				current_backTexture->attachement(0), GL_TEXTURE9);
-		lighting_shader->bind_texture("Texture.Back.Emitting",			current_backTexture->attachement(1), GL_TEXTURE10);
-		lighting_shader->bind_texture("Texture.Back.Depth",				current_backTexture->depth(), GL_TEXTURE11);
+		lighting_shader->bind_texture("Texture.Back.Color",		current_backTexture->attachement(0), GL_TEXTURE7);
+		lighting_shader->bind_texture("Texture.Back.Emitting",	current_backTexture->attachement(1), GL_TEXTURE8);
+		lighting_shader->bind_texture("Texture.Back.Depth",		current_backTexture->depth(), GL_TEXTURE9);
+		Render::display_quad()->draw();
+		std::swap(current_backTexture, current_backBuffer);
+	}
+	lighting_shader->use(false);
+}
+
+void	light_shadow_pass(Framebuffer *&current_backBuffer, Framebuffer *&current_backTexture, Framebuffer *&current_tbuffertex)
+{
+	static auto	lighting_shader = GLSL::parse("lighting_shadow", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
+		std::string("#define LIGHTNBR ") + std::to_string(CFG::ShadowsPerPass()) +
+		"\n#define PointLight " + std::to_string(Point) +
+		"\n#define DirectionnalLight " + std::to_string(Directionnal) +
+		"\n#define SHADOW" +
+		"\n");
+	lighting_shader->use();
+	for (auto i = 0u; Engine::light(i) != nullptr;)
+	{
+		current_backBuffer->bind();
+		auto shaderIndex = 0;
+		while (shaderIndex < CFG::ShadowsPerPass() && Engine::light(i) != nullptr) {
+			auto	light = Engine::light(i);
+			if (!light->cast_shadow() || light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z)) {
+				i++;
+				continue;
+			}
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Position", light->position());
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", vec3_scale(light->color(), light->power()));
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Type", light->type());
+			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Projection", light->mat4_transform());
+			lighting_shader->bind_texture("Light[" + std::to_string(shaderIndex) + "].Shadow", light->render_buffer()->depth(), GL_TEXTURE10 + shaderIndex);
+			i++;
+			shaderIndex++;
+		}
+		if (shaderIndex == 0)
+			continue ;
+		lighting_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
+		lighting_shader->bind_texture("Texture.Emitting",		current_tbuffertex->attachement(1), GL_TEXTURE1);
+		lighting_shader->bind_texture("Texture.Specular",		current_tbuffertex->attachement(2), GL_TEXTURE2);
+		lighting_shader->bind_texture("Texture.MaterialValues",	current_tbuffertex->attachement(3), GL_TEXTURE3);
+		lighting_shader->bind_texture("Texture.Normal",			current_tbuffertex->attachement(5), GL_TEXTURE5);
+		lighting_shader->bind_texture("Texture.Depth",			current_tbuffertex->depth(), GL_TEXTURE6);
+		lighting_shader->bind_texture("Texture.Back.Color",		current_backTexture->attachement(0), GL_TEXTURE7);
+		lighting_shader->bind_texture("Texture.Back.Emitting",	current_backTexture->attachement(1), GL_TEXTURE8);
+		lighting_shader->bind_texture("Texture.Back.Depth",		current_backTexture->depth(), GL_TEXTURE9);
 		Render::display_quad()->draw();
 		std::swap(current_backTexture, current_backBuffer);
 	}
@@ -250,6 +330,7 @@ void	Render::scene()
 	auto	current_backBuffer = back_buffer;
 	auto	current_backTexture = back_buffer1;
 	light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
+	light_shadow_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
 	// APPLY LIGHTING SHADER
 	// OUTPUT : out_Color, out_Brightness
@@ -326,6 +407,7 @@ void	Render::scene()
 	telighting_shader->bind_texture("Texture.AO",				current_tbuffertex->attachement(4), GL_TEXTURE4);
 	telighting_shader->bind_texture("Texture.Normal",			current_tbuffertex->attachement(5), GL_TEXTURE5);
 	telighting_shader->bind_texture("Texture.Depth",			current_tbuffertex->depth(), GL_TEXTURE6);
+	telighting_shader->bind_texture("Texture.BRDF",				brdf, GL_TEXTURE7);
 	telighting_shader->bind_texture("Texture.Environment.Diffuse",		Engine::current_environment()->diffuse, GL_TEXTURE8);
 	telighting_shader->bind_texture("Texture.Environment.Irradiance",	Engine::current_environment()->irradiance, GL_TEXTURE9);
 	telighting_shader->bind_texture("Texture.Back.Color",				current_backTexture->attachement(0), GL_TEXTURE10);
@@ -346,8 +428,8 @@ void	Render::scene()
 	refraction_shader->bind_texture("Texture.Depth",			current_tbuffertex->depth(), GL_TEXTURE4);
 	refraction_shader->bind_texture("Texture.Back.Color",		current_backTexture->attachement(0), GL_TEXTURE5);
 	refraction_shader->bind_texture("Texture.Back.Emitting",	current_backTexture->attachement(1), GL_TEXTURE6);
-	refraction_shader->bind_texture("opaqueBackColor",		opaqueBackBuffer->attachement(0), GL_TEXTURE7);
-	refraction_shader->bind_texture("opaqueBackEmitting",	opaqueBackBuffer->attachement(1), GL_TEXTURE8);
+	refraction_shader->bind_texture("opaqueBackColor",			opaqueBackBuffer->attachement(0), GL_TEXTURE7);
+	refraction_shader->bind_texture("opaqueBackEmitting",		opaqueBackBuffer->attachement(1), GL_TEXTURE8);
 	Render::display_quad()->draw();
 	refraction_shader->use(false);
 
