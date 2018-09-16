@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 15:21:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 23:06:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ class	Mesh : public RenderableMultiDraw
 public:
 	static Mesh	*create(const std::string &);
 	static Mesh	*get_by_name(const std::string &);
-	void		sort(renderable_compare);
+	//void		sort(renderable_compare);
     void		load();
 	bool		render(RenderMod mod = RenderAll);
 	bool		render_depth(RenderMod mod = RenderAll);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 16:36:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 23:05:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,10 +111,10 @@ void	Mesh::set_cull_mod(GLenum mod)
 	_cull_mod = mod;
 }
 
-void	Mesh::sort(renderable_compare compare)
+/*void	Mesh::sort(renderable_compare compare)
 {
 	std::sort(_vgroups.begin(), _vgroups.end(), compare);
-}
+}*/
 
 void	Mesh::center()
 {

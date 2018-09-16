@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 20:02:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/16 14:46:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,35 +51,36 @@ void			CFG::Load()
 	char	buffer[4096];
 	while (fgets(buffer, 4096, fd))
 	{
-		int		val0, val1;
-		char	vals[4096];
-		if (sscanf(buffer, "WindowSize = %i %i", &val0, &val1)) {
-			CFG::WindowSize().x = val0;
-			CFG::WindowSize().y = val1;
-		}
-		else if (sscanf(buffer, "WindowName = %s", vals)) {
+		unsigned	valu, valu1;
+		int			vali;
+		char		vals[4096];
+		if (sscanf(buffer, "WindowName = %s", vals)) {
 			CFG::WindowName() = vals;
 		}
-		else if (sscanf(buffer, "ShadowRes = %i", &val0)) {
-			CFG::ShadowRes() = val0;
+		else if (sscanf(buffer, "WindowSize = %u %u", &valu, &valu1)) {
+			CFG::WindowSize().x = valu;
+			CFG::WindowSize().y = valu1;
 		}
-		else if (sscanf(buffer, "Anisotropy = %i", &val0)) {
-			CFG::Anisotropy() = val0;
+		else if (sscanf(buffer, "MaxTexRes = %u", &vali)) {
+			CFG::MaxTexRes() = vali;
 		}
-		else if (sscanf(buffer, "MSAA = %i", &val0)) {
-			CFG::Msaa() = val0;
+		else if (sscanf(buffer, "ShadowRes = %u", &valu)) {
+			CFG::ShadowRes() = valu;
 		}
-		else if (sscanf(buffer, "BloomPass = %i", &val0)) {
-			CFG::BloomPass() = val0;
+		else if (sscanf(buffer, "Anisotropy = %u", &valu)) {
+			CFG::Anisotropy() = valu;
 		}
-		else if (sscanf(buffer, "MaxTexRes = %i", &val0)) {
-			CFG::MaxTexRes() = val0;
+		else if (sscanf(buffer, "MSAA = %u", &valu)) {
+			CFG::Msaa() = valu;
 		}
-		else if (sscanf(buffer, "LightsPerPass = %i", &val0)) {
-			CFG::LightsPerPass() = val0;
+		else if (sscanf(buffer, "BloomPass = %u", &valu)) {
+			CFG::BloomPass() = valu;
 		}
-		else if (sscanf(buffer, "ShadowsPerPass = %i", &val0)) {
-			CFG::ShadowsPerPass() = val0;
+		else if (sscanf(buffer, "LightsPerPass = %u", &valu)) {
+			CFG::LightsPerPass() = valu;
+		}
+		else if (sscanf(buffer, "ShadowsPerPass = %u", &valu)) {
+			CFG::ShadowsPerPass() = valu;
 		}
 	}
 }
@@ -96,27 +97,27 @@ float		&CFG::Anisotropy() {
 	return (_get()->_anisotropy);
 }
 
-int32_t		&CFG::ShadowRes() {
-	return (_get()->_shadowRes);
-}
-
-int32_t		&CFG::MaxTexRes() {
+int16_t		&CFG::MaxTexRes() {
 	return (_get()->_maxTexRes);
 }
 
-int16_t		&CFG::Msaa() {
+uint16_t		&CFG::ShadowRes() {
+	return (_get()->_shadowRes);
+}
+
+uint16_t		&CFG::Msaa() {
 	return (_get()->_msaa);
 }
 
-int16_t		&CFG::BloomPass() {
+uint16_t		&CFG::BloomPass() {
 	return (_get()->_bloomPass);
 }
 
-int16_t		&CFG::LightsPerPass() {
+uint16_t		&CFG::LightsPerPass() {
 	return (_get()->_lightsPerPass);
 }
 
-int16_t		&CFG::ShadowsPerPass() {
+uint16_t		&CFG::ShadowsPerPass() {
 	return (_get()->_shadowsPerPass);
 }
 
@@ -159,10 +160,10 @@ void	Environment::unload()
 	irradiance->unload();
 }
 
-void		Engine::sort(renderable_compare compare)
+/*void		Engine::sort(renderable_compare compare)
 {
 	std::sort(_get()._renderables.begin(), _get()._renderables.end(), compare);
-}
+}*/
 
 Environment		*Engine::current_environment(Environment *env)
 {

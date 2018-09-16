@@ -4,15 +4,18 @@ struct t_Light {
 	vec3	Color;
 	int		Type;
 #ifdef SHADOW
-	sampler2DShadow	Shadow;
-	mat4			Projection;
+	int		ShadowIndex;
+	mat4	Projection;
 #endif //SHADOW
 };
 
 #define PointLight			0
 #define DirectionnalLight	1
 
-uniform t_Light	Light[LIGHTNBR];
+uniform t_Light			Light[LIGHTNBR];
+#ifdef SHADOW
+uniform sampler2DShadow	Shadow[SHADOWNBR];
+#endif //SHADOW
 uniform vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
 uniform vec3	envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
 
@@ -54,18 +57,19 @@ float	Specular(in float NdV, in float NdH, in float roughness)
 #ifdef SHADOW
 float	SampleShadowMap(in t_Light light)
 {
+	if (light.ShadowIndex < 0)
+		return (1);
 	vec4	shadowPos = light.Projection * vec4(Frag.Position, 1.0);
 	vec3	projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
-	return (texture(light.Shadow, vec3(projCoord.xy, projCoord.z - 0.001)));
+	return (texture(Shadow[light.ShadowIndex], vec3(projCoord.xy, projCoord.z - 0.001)));
 }
 #endif //SHADOW
 
 void	ApplyTechnique()
 {
-	//if (Frag.Material.Alpha == 0) {
-	//	return ;
-	//}
-	
+	if (Frag.Material.Alpha == 0) {
+		return ;
+	}
 	vec3	V = normalize(Camera.Position - Frag.Position);
 	vec3	N = Frag.Normal;
 	float	NdV = dot(N, V);
@@ -83,12 +87,14 @@ void	ApplyTechnique()
 
 	for (int i = 0; i < LIGHTNBR; i++)
 	{
-		bvec3	isZero = equal(Light[i].Color, vec3(0));
 		float	Attenuation = 1;
 		#ifdef SHADOW
 			Attenuation *= SampleShadowMap(Light[i]);
+			if (Attenuation == 0)
+				continue ;
 		#endif //SHADOW
-		if (Attenuation == 0 || isZero.r && isZero.g && isZero.b) {
+		bvec3	isZero = equal(Light[i].Color, vec3(0));
+		if (isZero.r && isZero.g && isZero.b) {
 			continue ;
 		}
 		vec3	L = Light[i].Position;
@@ -117,7 +123,4 @@ void	ApplyTechnique()
 	Out.Color.a = 1;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 	Out.Emitting.a = 1;
-/* #ifdef SHADOW
-	Out.Color.rgb += vec3(SampleShadowMap(Light[0]));
-#endif //SHADOW */
 }

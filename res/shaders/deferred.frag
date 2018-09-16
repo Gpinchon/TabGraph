@@ -14,7 +14,6 @@ struct t_Environment {
 struct t_BackTextures {
 	sampler2D	Color;
 	sampler2D	Emitting;
-	sampler2D	Depth;
 };
 #endif //LIGHTSHADER
 

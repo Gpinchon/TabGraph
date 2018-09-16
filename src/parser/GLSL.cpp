@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 11:18:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/16 00:16:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <iostream>
 
-static std::string glslVersion = std::string("#version 450\n");
+static std::string glslVersion = std::string("#version 440\n");
 static auto	deferredVertCode = file_to_str(Engine::program_path() + "./res/shaders/deferred.vert");
 static auto	deferredFragCode = file_to_str(Engine::program_path() + "./res/shaders/deferred.frag");
 static auto	forwardVertCode = file_to_str(Engine::program_path() + "./res/shaders/forward.vert");

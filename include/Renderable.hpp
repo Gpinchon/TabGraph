@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 15:11:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/15 23:06:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ public:
 	virtual bool	render_depth(RenderMod mod = RenderAll) = 0;
 	virtual void	load() = 0;
 	//virtual void	bind() = 0;
-	static void		alpha_sort();
+	//static void		alpha_sort();
 	bool			is_loaded() { return (_is_loaded); };
 	static Renderable	*get_by_name(const std::string &);
     Material		*material{nullptr};

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 19:57:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/16 14:44:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ public:
 	Cubemap *irradiance;
 };
 
-typedef bool (*renderable_compare)(Renderable *m, Renderable *m1);
+//typedef bool (*renderable_compare)(Renderable *m, Renderable *m1);
 
 class	Engine
 {
@@ -80,7 +80,7 @@ public :
 	static void		update();
 	static std::string	program_path();
 	static std::string	execution_path();
-	static void		sort(renderable_compare);
+	//static void		sort(renderable_compare);
 	static int32_t				frame_nbr();
 private :
 	Engine();
@@ -115,24 +115,24 @@ public :
 	static VEC2			&WindowSize();
 	static std::string	&WindowName();
 	static float		&Anisotropy();
-	static int32_t		&ShadowRes();
-	static int32_t		&MaxTexRes();
-	static int16_t		&Msaa();
-	static int16_t		&BloomPass();
-	static int16_t		&LightsPerPass();
-	static int16_t		&ShadowsPerPass();
+	static int16_t		&MaxTexRes();
+	static uint16_t		&ShadowRes();
+	static uint16_t		&Msaa();
+	static uint16_t		&BloomPass();
+	static uint16_t		&LightsPerPass();
+	static uint16_t		&ShadowsPerPass();
 private :
 	static CFG	*_get();
 	static CFG	*_instance;
 	VEC2		_windowSize{1280, 720};
 	std::string	_windowName{""};
 	float		_anisotropy{16.f};
-	int32_t		_shadowRes{2048};
-	int32_t		_maxTexRes{-1};
-	int16_t		_msaa{0};
-	int16_t		_bloomPass{1};
-	int16_t		_lightsPerPass{32};
-	int16_t		_shadowsPerPass{16};
+	int16_t		_maxTexRes{0};
+	uint16_t	_shadowRes{2048};
+	uint16_t	_msaa{0};
+	uint16_t	_bloomPass{1};
+	uint16_t	_lightsPerPass{32};
+	uint16_t	_shadowsPerPass{16};
 	CFG() = default;
 	~CFG() = default;
 	

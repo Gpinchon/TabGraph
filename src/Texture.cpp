@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 17:28:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/16 14:47:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,10 +146,10 @@ void	Texture::load()
 	if (_loaded) {
 		return ;
 	}
-	if (CFG::MaxTexRes() != -1 && _data && (_size.x > CFG::MaxTexRes() || _size.y > CFG::MaxTexRes())) {
+	if (CFG::MaxTexRes() > 0 && _data && (_size.x > CFG::MaxTexRes() || _size.y > CFG::MaxTexRes())) {
 		resize(new_vec2(
-			std::min(int(_size.x), CFG::MaxTexRes()),
-			std::min(int(_size.y), CFG::MaxTexRes())));
+			std::min(int16_t(_size.x), CFG::MaxTexRes()),
+			std::min(int16_t(_size.y), CFG::MaxTexRes())));
 	}
 	if (_glid == 0u) {
 		glGenTextures(1, &_glid);
