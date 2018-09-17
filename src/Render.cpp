@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/16 16:40:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/17 10:58:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,12 +107,14 @@ void	print_mat4(MAT4 mat)
 	}
 }
 
-//TODO Implement
+std::vector<Light *> normalLights;
+std::vector<Light *> shadowLights;
+
+//TODO Cleanup
 void	render_shadows()
 {
-	Light	*light;
 	static auto	tempCamera = Camera::create("light_camera", 45);
-	auto	*camera = Engine::current_camera();	
+	auto		*camera = Engine::current_camera();	
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -120,12 +122,8 @@ void	render_shadows()
 	glDepthFunc(GL_LESS);
 	Engine::set_current_camera(tempCamera);
 	tempCamera->projection() = mat4_identity();
-	for (auto i = 0u; (light = Engine::light(i)) != nullptr;)
+	for (auto light : shadowLights)
 	{
-		if (!light->cast_shadow()) {
-			i++;
-			continue ;
-		}
 		light->render_buffer()->bind();
 		glClear(GL_DEPTH_BUFFER_BIT);
 		tempCamera->position() = light->position();
@@ -135,13 +133,9 @@ void	render_shadows()
 			node->render_depth(RenderOpaque);
 		}
 		light->render_buffer()->bind(false);
-		i++;
 	}
 	Engine::set_current_camera(camera);
 }
-
-std::vector<Light *> normalLights;
-std::vector<Light *> shadowLights;
 
 void	Render::fixed_update()
 {
@@ -150,7 +144,22 @@ void	Render::fixed_update()
 	auto	res = Window::internal_resolution();
 	auto	index = 0;
 
+shadowLights.reserve(1000);
+normalLights.reserve(1000);
+	shadowLights.clear();
+	normalLights.clear();
+	while (auto light = Engine::light(index))
+	{
+		if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z))
+			continue ;
+		if (light->cast_shadow())
+			shadowLights.push_back(light);
+		else
+			normalLights.push_back(light);
+		index++;
+	}
 	render_shadows();
+	index = 0;
 	while (auto shader = Engine::shader(index))
 	{
 		shader->use();
@@ -164,19 +173,7 @@ void	Render::fixed_update()
 		shader->use(false);
 		index++;
 	}
-	shadowLights.clear();
-	normalLights.clear();
-	index = 0;
-	while (auto light = Engine::light(index))
-	{
-		if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z))
-			continue ;
-		if (light->cast_shadow())
-			shadowLights.push_back(light);
-		else
-			normalLights.push_back(light);
-		index++;
-	}
+	
 }
 
 void	Render::update()

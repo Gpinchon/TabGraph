@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 23:06:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/17 10:49:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,5 +43,5 @@ class RenderableMultiDraw : public Renderable
 public :
 	std::unordered_set<Material*>	materials{0};
 protected :
-	RenderableMultiDraw(const std::string &name) : Renderable(name) {};	
+	RenderableMultiDraw(const std::string &name) : Renderable(name) {};
 };
