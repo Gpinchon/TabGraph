@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 11:09:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/17 19:05:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,8 @@ std::vector<Light *> create_random_lights(unsigned i)
 	return (v);
 }
 
+#include "Errors.hpp"
+
 int		main(int argc, char *argv[])
 {
 	Mesh *obj;
@@ -117,10 +119,15 @@ int		main(int argc, char *argv[])
 	}
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
+	
+	
 	setup_callbacks();
 	//create_random_lights(250);
 	DirectionnalLight::create("MainLight", new_vec3(1, 1, 1), new_vec3(10, 10, 0), 1, true);
 	DirectionnalLight::create("BackLight", new_vec3(0.3, 0.3, 0.3), new_vec3(-10, -10, 0), 1, false);
+	auto	error = GLError::CheckForError();
+	if (error != GL_NO_ERROR)
+		throw std::runtime_error(std::string("OpenGL Error : ") + GLError::GetErrorString(error));
 	Engine::run();
 	SDL_Quit();
 	return (0);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 10:58:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/17 19:01:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,89 +245,6 @@ void	light_pass(Framebuffer *&current_backBuffer, Framebuffer *&current_backText
 	}
 	shader->use(false);
 }
-
-/*void	light_pass(Framebuffer *&current_backBuffer, Framebuffer *&current_backTexture, Framebuffer *&current_tbuffertex)
-{
-	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
-		std::string("#define LIGHTNBR ") + std::to_string(CFG::LightsPerPass()) +
-		"\n#define PointLight " + std::to_string(Point) +
-		"\n#define DirectionnalLight " + std::to_string(Directionnal) +
-		"\n");
-	lighting_shader->use();
-	for (auto i = 0u; Engine::light(i) != nullptr;)
-	{
-		current_backBuffer->bind();
-		auto shaderIndex = 0;
-		while (shaderIndex < CFG::LightsPerPass() && Engine::light(i) != nullptr) {
-			auto	light = Engine::light(i);
-			if (light->cast_shadow() || light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z)) {
-				i++;
-				continue;
-			}
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Position", light->position());
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", vec3_scale(light->color(), light->power()));
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Type", light->type());
-			i++;
-			shaderIndex++;
-		}
-		if (shaderIndex == 0)
-			continue ;
-		lighting_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
-		lighting_shader->bind_texture("Texture.Emitting",		current_tbuffertex->attachement(1), GL_TEXTURE1);
-		lighting_shader->bind_texture("Texture.Specular",		current_tbuffertex->attachement(2), GL_TEXTURE2);
-		lighting_shader->bind_texture("Texture.MaterialValues",	current_tbuffertex->attachement(3), GL_TEXTURE3);
-		lighting_shader->bind_texture("Texture.Normal",			current_tbuffertex->attachement(5), GL_TEXTURE5);
-		lighting_shader->bind_texture("Texture.Depth",			current_tbuffertex->depth(), GL_TEXTURE6);
-		lighting_shader->bind_texture("Texture.Back.Color",		current_backTexture->attachement(0), GL_TEXTURE7);
-		lighting_shader->bind_texture("Texture.Back.Emitting",	current_backTexture->attachement(1), GL_TEXTURE8);
-		Render::display_quad()->draw();
-		std::swap(current_backTexture, current_backBuffer);
-	}
-	lighting_shader->use(false);
-}*/
-
-/*void	light_shadow_pass(Framebuffer *&current_backBuffer, Framebuffer *&current_backTexture, Framebuffer *&current_tbuffertex)
-{
-	static auto	lighting_shader = GLSL::parse("lighting_shadow", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
-		std::string("#define LIGHTNBR ") + std::to_string(CFG::ShadowsPerPass()) +
-		"\n#define PointLight " + std::to_string(Point) +
-		"\n#define DirectionnalLight " + std::to_string(Directionnal) +
-		"\n#define SHADOW" +
-		"\n");
-	lighting_shader->use();
-	for (auto i = 0u; Engine::light(i) != nullptr;)
-	{
-		current_backBuffer->bind();
-		auto shaderIndex = 0;
-		while (shaderIndex < CFG::ShadowsPerPass() && Engine::light(i) != nullptr) {
-			auto	light = Engine::light(i);
-			if (!light->cast_shadow() || light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z)) {
-				i++;
-				continue;
-			}
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Position", light->position());
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Color", vec3_scale(light->color(), light->power()));
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Type", light->type());
-			lighting_shader->set_uniform("Light[" + std::to_string(shaderIndex) + "].Projection", light->mat4_transform());
-			lighting_shader->bind_texture("Light[" + std::to_string(shaderIndex) + "].Shadow", light->render_buffer()->depth(), GL_TEXTURE10 + shaderIndex);
-			i++;
-			shaderIndex++;
-		}
-		if (shaderIndex == 0)
-			continue ;
-		lighting_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
-		lighting_shader->bind_texture("Texture.Emitting",		current_tbuffertex->attachement(1), GL_TEXTURE1);
-		lighting_shader->bind_texture("Texture.Specular",		current_tbuffertex->attachement(2), GL_TEXTURE2);
-		lighting_shader->bind_texture("Texture.MaterialValues",	current_tbuffertex->attachement(3), GL_TEXTURE3);
-		lighting_shader->bind_texture("Texture.Normal",			current_tbuffertex->attachement(5), GL_TEXTURE5);
-		lighting_shader->bind_texture("Texture.Depth",			current_tbuffertex->depth(), GL_TEXTURE6);
-		lighting_shader->bind_texture("Texture.Back.Color",		current_backTexture->attachement(0), GL_TEXTURE7);
-		lighting_shader->bind_texture("Texture.Back.Emitting",	current_backTexture->attachement(1), GL_TEXTURE8);
-		Render::display_quad()->draw();
-		std::swap(current_backTexture, current_backBuffer);
-	}
-	lighting_shader->use(false);
-}*/
 
 void	Render::scene()
 {

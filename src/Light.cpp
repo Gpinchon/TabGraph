@@ -6,13 +6,15 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/10 21:42:11 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/16 15:54:31 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/17 19:18:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Light.hpp"
 #include "Engine.hpp"
 #include "Framebuffer.hpp"
+
+TextureArray	*Light::_shadow_array = nullptr;
 
 Light::Light(const std::string &name) : Node(name) {
 }
@@ -25,6 +27,13 @@ Light		*Light::create(const std::string &name, VEC3 color, VEC3 position, float 
 	light->power() = power;
 	Engine::add(*light);
 	return (light);
+}
+
+TextureArray	*Light::shadow_array()
+{
+	if (nullptr == _shadow_array)
+		_shadow_array = TextureArray::create("ShadowArray", new_vec2(CFG::ShadowRes(), CFG::ShadowRes()), GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, 128);
+	return (_shadow_array);
 }
 
 Framebuffer	*Light::render_buffer()
@@ -68,9 +77,12 @@ DirectionnalLight	*DirectionnalLight::create(const std::string &name, VEC3 color
 	light->power() = power;
 	light->cast_shadow() = cast_shadow;
 	if (cast_shadow) {
-		light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", new_vec2(CFG::ShadowRes(), CFG::ShadowRes()), nullptr, 0, 1);
+		light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", new_vec2(CFG::ShadowRes(), CFG::ShadowRes()), nullptr, 0, 0);
+		light->_render_buffer->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
 		light->_render_buffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 		light->_render_buffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+		shadow_array()->add(light->_render_buffer->depth());
+		shadow_array()->load();
 	}
 	Engine::add(*light);
 	return (light);

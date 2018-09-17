@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 17:28:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/17 17:14:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "Node.hpp"
+#include "TextureArray.hpp"
 
 class Framebuffer;
 
@@ -30,6 +31,7 @@ public :
 	float				&power();
 	bool				&cast_shadow();
 	Framebuffer			*render_buffer();
+	static TextureArray	*shadow_array();
 	virtual LightType	type();
 protected :
 	Light(const std::string &name);
@@ -37,6 +39,8 @@ protected :
 	float		_power{0};
 	bool		_cast_shadow{false};
 	Framebuffer	*_render_buffer{nullptr};
+private :
+	static TextureArray	*_shadow_array;
 };
 
 class DirectionnalLight : public Light

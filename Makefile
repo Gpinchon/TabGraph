@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/09/12 19:45:29 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/09/17 17:01:43 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,6 +32,7 @@ SRC			=	./src/scop42/main.cpp			\
 				./src/VertexArray.cpp			\
 				./src/Shader.cpp				\
 				./src/Texture.cpp				\
+				./src/TextureArray.cpp			\
 				./src/Material.cpp				\
 				./src/parser/tools.cpp			\
 				./src/parser/OBJ.cpp			\

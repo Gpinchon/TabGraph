@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/16 14:47:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/17 19:09:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "Window.hpp"
 #include "Render.hpp"
 #include "parser/GLSL.hpp"
+#include "Errors.hpp"
 
 Texture::Texture(const std::string &name) :
 _glid(0),
@@ -34,7 +35,7 @@ _loaded(false)
 	set_name(name);
 }
 
-Texture::Texture(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data) : Texture(name)
+Texture::Texture(const std::string &iname, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data) : Texture(iname)
 {
 	_target = target;
 	_format = f;
@@ -52,9 +53,11 @@ Texture::Texture(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenu
 	set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, CFG::Anisotropy());
 #ifdef GL_DEBUG
-	glObjectLabel(GL_TEXTURE, _glid, -1, name.c_str());
+	glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
 #endif //GL_DEBUG
 }
+
+#include <iostream>
 
 Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data)
 {
@@ -62,6 +65,11 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum
 
 	t = new Texture(name, s, target, f, fi, data_format, data);
 	Engine::add(*t);
+#ifdef GL_DEBUG
+	auto	error = GLError::CheckForError();
+	if (error != GL_NO_ERROR)
+		throw std::runtime_error(std::string("Error at Texture::create ") + t->name() + " : " + GLError::GetErrorString(error));
+#endif //GL_DEBUG
 	return (t);
 }
 
@@ -216,6 +224,16 @@ Texture		*Texture::get_by_name(const std::string &name)
 	return (nullptr);
 }
 
+GLenum	Texture::internal_format()
+{
+	return (_internal_format);
+}
+
+GLenum	Texture::format()
+{
+	return (_format);
+}
+
 GLenum	Texture::data_format()
 {
 	return (_data_format);
@@ -288,28 +306,31 @@ void	Texture::set_pixel(const VEC2 &uv, const GLubyte *value)
 void	Texture::set_parameterf(GLenum p, float v)
 {
 	_parametersf[p] = v;
+	if (_glid == 0u)
+		return ;
 	glBindTexture(_target, _glid);
 	glTexParameterf(_target, p, v);
 	glBindTexture(_target, 0);
+#ifdef GL_DEBUG
+	auto	error = GLError::CheckForError();
+	if (error != GL_NO_ERROR)
+		throw std::runtime_error(std::string("Error at set_parameterf for ") + name() + " : " + GLError::GetErrorString(error));
+#endif //GL_DEBUG
 }
 
 void	Texture::set_parameteri(GLenum p, GLenum v)
 {
 	_parametersi[p] = v;
+	if (_glid == 0u)
+		return ;
 	glBindTexture(_target, _glid);
 	glTexParameteri(_target, p, v);
 	glBindTexture(_target, 0);
-}
-
-void	Texture::set_parameters(int p_nbr, GLenum *p, GLenum *v)
-{
-	glBindTexture(_target, _glid);
-	while (p_nbr > 0)
-	{
-		glTexParameteri(_target, p[p_nbr - 1], v[p_nbr - 1]);
-		p_nbr--;
-	}
-	glBindTexture(_target, 0);
+#ifdef GL_DEBUG
+	auto	error = GLError::CheckForError();
+	if (error != GL_NO_ERROR)
+		throw std::runtime_error(std::string("Error at set_parameteri for ") + name() + " : " + GLError::GetErrorString(error));
+#endif //GL_DEBUG
 }
 
 VEC4	Texture::sample(const VEC2 &uv)

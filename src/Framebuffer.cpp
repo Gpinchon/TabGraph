@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 17:26:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/17 19:10:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,19 +51,25 @@ GLenum	get_data_format(GLenum internal_format)
 	}
 }
 
-Attachement		*Attachement::create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi)
+#include "Errors.hpp"
+#include <iostream>
+
+Attachement		*Attachement::create(const std::string &iname, VEC2 s, GLenum target, GLenum f, GLenum fi)
 {
 	Attachement	*t;
 
-	t = new Attachement(name, s, target, f, fi, get_data_format(fi));
+	t = new Attachement(iname, s, target, f, fi, get_data_format(fi));
 	glBindTexture(t->_target, t->_glid);
 	if (s.x > 0 && s.y > 0) {
-		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, GL_FLOAT, nullptr);
+		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->data_format(), nullptr);
 	}
 	glBindTexture(t->_target, 0);
 	Engine::add(*t);
 #ifdef GL_DEBUG
-	glObjectLabel(GL_RENDERBUFFER, t->_glid, -1, name.c_str());
+	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
+	auto	error = GLError::CheckForError();
+	if (error != GL_NO_ERROR)
+		throw std::runtime_error(std::string("Error at Attachement::create ") + t->name() + " : " + GLError::GetErrorString(error));
 #endif //GL_DEBUG
 	return (t);
 }
@@ -93,7 +99,7 @@ Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader *sh
 	Engine::add(*f);
 	i = 0;
 	while (i < color_attachements) {
-		f->create_attachement(GL_RGBA, GL_RGBA16F);
+		f->create_attachement(GL_RGBA, GL_RGBA);
 		i++;
 	}
 	if (depth != 0) {
@@ -101,7 +107,10 @@ Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader *sh
 	}
 	f->setup_attachements();
 #ifdef GL_DEBUG
-	glObjectLabel(GL_FRAMEBUFFER, f->_glid, -1, name.c_str());
+	glObjectLabel(GL_FRAMEBUFFER, f->_glid, -1, f->name().c_str());
+	auto	error = GLError::CheckForError();
+	if (error != GL_NO_ERROR)
+		throw std::runtime_error(std::string("Error at Framebuffer::create ") + f->name() + " : " + GLError::GetErrorString(error));
 #endif //GL_DEBUG
 	return (f);
 }
@@ -162,6 +171,11 @@ Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
 		_color_attachements.push_back(a);
 	}
 	bind(false);
+#ifdef GL_DEBUG
+	auto	error = GLError::CheckForError();
+	if (error != GL_NO_ERROR)
+		throw std::runtime_error(std::string("Error at Framebuffer::create_attachement ") + a->name() + " : " + GLError::GetErrorString(error));
+#endif //GL_DEBUG
 	return (a);
 }
 

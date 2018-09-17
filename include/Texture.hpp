@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 19:27:29 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/17 18:26:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,6 @@ public:
 	virtual void	resize(const VEC2 &ns);
 	virtual void	set_parameteri(GLenum p, GLenum v);
 	virtual void	set_parameterf(GLenum p, float v);
-	virtual void	set_parameters(int p_nbr,
-						GLenum *p, GLenum *v);
 	virtual void	assign(Texture &dest_texture,
 						GLenum target);
 	virtual void	load();
@@ -39,8 +37,9 @@ public:
 	virtual void	generate_mipmap();
 	virtual void	blur(const int &pass, const float &radius);
 	virtual GLenum	target() const;
-	virtual void	format(GLenum *format,
-						GLenum *internal_format);
+	virtual void	format(GLenum *format, GLenum *internal_format);
+	virtual GLenum	format();
+	virtual GLenum	internal_format();
 	virtual	GLenum	data_format();
 	virtual size_t	data_size();
 	virtual GLuint	glid() const;
