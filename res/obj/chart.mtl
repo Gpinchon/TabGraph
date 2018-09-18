@@ -191,3 +191,33 @@ newmtl Rougness_00_Specular_00
 	Nr 0.00
 	Ks 0.00 0.00 0.00
 	Kd 0.00 0.30 0.50
+newmtl Transp.00
+	Tr 0.00
+	Kd 0.00 0.416 0.306
+	Nr 0.1
+	Ni 1.5
+newmtl Transp.20
+	Tr 0.20
+	Kd 0.00 0.416 0.306
+	Nr 0.1
+	Ni 1.5
+newmtl Transp.40
+	Tr 0.40
+	Kd 0.00 0.416 0.306
+	Nr 0.1
+	Ni 1.5
+newmtl Transp.60
+	Tr 0.60
+	Kd 0.00 0.416 0.306
+	Nr 0.1
+	Ni 1.5
+newmtl Transp.80
+	Tr 0.80
+	Kd 0.00 0.416 0.306
+	Nr 0.1
+	Ni 1.5
+newmtl Transp.99
+	Tr 0.90
+	Kd 0.00 0.416 0.306
+	Nr 0.1
+	Ni 1.5

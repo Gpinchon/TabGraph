@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 18:07:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/18 18:04:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,9 +81,7 @@ void		Window::init(const std::string &name, int width, int height)
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 #ifdef GL_DEBUG
-	auto	glerror = GLError::CheckForError();
-	if (glerror != GL_NO_ERROR)
-		throw std::runtime_error(std::string("Error creating Window ") + name + " : " + GLError::GetErrorString(glerror));
+	glCheckError();
 #endif //GL_DEBUG
 }
 

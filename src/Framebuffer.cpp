@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 19:10:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/18 18:43:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,17 +59,18 @@ Attachement		*Attachement::create(const std::string &iname, VEC2 s, GLenum targe
 	Attachement	*t;
 
 	t = new Attachement(iname, s, target, f, fi, get_data_format(fi));
+	glGenTextures(1, &t->_glid);
 	glBindTexture(t->_target, t->_glid);
-	if (s.x > 0 && s.y > 0) {
-		glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->data_format(), nullptr);
-	}
+	glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->data_format(), nullptr);
 	glBindTexture(t->_target, 0);
+	t->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	Engine::add(*t);
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
-	auto	error = GLError::CheckForError();
-	if (error != GL_NO_ERROR)
-		throw std::runtime_error(std::string("Error at Attachement::create ") + t->name() + " : " + GLError::GetErrorString(error));
+	glCheckError();
 #endif //GL_DEBUG
 	return (t);
 }
@@ -108,9 +109,7 @@ Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader *sh
 	f->setup_attachements();
 #ifdef GL_DEBUG
 	glObjectLabel(GL_FRAMEBUFFER, f->_glid, -1, f->name().c_str());
-	auto	error = GLError::CheckForError();
-	if (error != GL_NO_ERROR)
-		throw std::runtime_error(std::string("Error at Framebuffer::create ") + f->name() + " : " + GLError::GetErrorString(error));
+	glCheckError();
 #endif //GL_DEBUG
 	return (f);
 }
@@ -156,26 +155,23 @@ Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
 		tname = (name() + "_attachement_" + std::to_string(_color_attachements.size()));
 	bind();
 	auto	a = Attachement::create(tname, size(), GL_TEXTURE_2D, format, iformat); 
-	a->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	a->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	if (format == GL_DEPTH_COMPONENT)
 	{
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-			GL_TEXTURE_2D, a->glid(), 0);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, a->glid(), 0);
+		#ifdef GL_DEBUG
+			glCheckError();
+		#endif //GL_DEBUG
 		_depth = a;
 	}
 	else {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0
-			+ _color_attachements.size(), GL_TEXTURE_2D,
-			a->glid(), 0);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0
+			+ _color_attachements.size(), a->glid(), 0);
+		#ifdef GL_DEBUG
+			glCheckError();
+		#endif //GL_DEBUG
 		_color_attachements.push_back(a);
 	}
 	bind(false);
-#ifdef GL_DEBUG
-	auto	error = GLError::CheckForError();
-	if (error != GL_NO_ERROR)
-		throw std::runtime_error(std::string("Error at Framebuffer::create_attachement ") + a->name() + " : " + GLError::GetErrorString(error));
-#endif //GL_DEBUG
 	return (a);
 }
 
@@ -202,14 +198,11 @@ void			Framebuffer::setup_attachements()
 void	Framebuffer::_resize_attachement(const int &attachement, const VEC2 &ns)
 {
 	auto	t = Framebuffer::attachement(attachement);
+	if (t == nullptr) {
+		return ;
+	}
 	t->resize(ns);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachement,
-		GL_TEXTURE_2D, t->glid(), 0);
-	t->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, CFG::Anisotropy());
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachement, t->glid(), 0);
 }
 
 void	Framebuffer::_resize_depth(const VEC2 &ns)
@@ -218,13 +211,7 @@ void	Framebuffer::_resize_depth(const VEC2 &ns)
 		return ;
 	}
 	_depth->resize(ns);
-	_depth->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	_depth->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	_depth->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	_depth->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	_depth->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, CFG::Anisotropy());
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-			GL_TEXTURE_2D, _depth->glid(), 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth->glid(), 0);
 }
 
 void		Framebuffer::resize(const VEC2 &new_size)
@@ -257,7 +244,7 @@ void		Framebuffer::set_attachement(unsigned color_attachement, Texture *texture)
 		throw std::runtime_error(name() + " : Color attachement index is out of bound");
 	_color_attachements[color_attachement] = texture;
 	bind();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture->target(), texture->glid(), 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture->glid(), 0);
 	bind(false);
 }
 

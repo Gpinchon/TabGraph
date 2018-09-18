@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/17 15:59:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 19:38:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/18 18:06:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,17 +21,28 @@ TextureArray::TextureArray(const std::string &name, VEC2 s, GLenum target, GLenu
 	_target = target;
 	_internal_format = fi;
 	_capacity = capacity;
-	_textures.reserve(capacity);
+	_textures.resize(capacity);
 }
 
 TextureArray	*TextureArray::create(const std::string &name, VEC2 s, GLenum target, GLenum fi, unsigned capacity)
 {
-	auto	texture = new TextureArray(name, s, target, fi, capacity);
-	Engine::add(*texture);
-	return (texture);
+	auto	t = new TextureArray(name, s, target, fi, capacity);
+	glGenTextures(1, &t->_glid);
+	glBindTexture(t->_target, t->_glid);
+	glTexStorage3D(t->_target, 1, t->_internal_format, t->_size.x, t->_size.y, t->_capacity);
+	glBindTexture(t->_target, 0);
+	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	t->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#ifdef GL_DEBUG
+	glCheckError();
+#endif //GL_DEBUG
+	Engine::add(*t);
+	return (t);
 }
 
-int			TextureArray::add(Texture *texture)
+/*int			TextureArray::add(Texture *texture)
 {
 	auto	search = std::find(_textures.begin(), _textures.end(), texture);
 	if (search != _textures.end())
@@ -40,32 +51,31 @@ int			TextureArray::add(Texture *texture)
 		return (-1); //Texture array is full
 	_textures.push_back(texture);
 	return (_textures.size() - 1);
+}*/
+
+void		TextureArray::set(Texture *texture, int index)
+{
+	_textures.at(index) = texture;
 }
 
 void		TextureArray::load()
 {
 	if (_loaded)
 		return ;
-	glGenTextures(1, &_glid);
 	glBindTexture(_target, _glid);
-	glTexStorage3D(_target, 1, _internal_format, _size.x, _size.y, _capacity);
 	for (auto i = 0u; i < _textures.size(); i++)
 	{
 		auto t = _textures.at(i);
+		if (nullptr == t || nullptr == t->data())
+			continue ;
 		if (!t->is_loaded())
 			t->load();
-		//glTextureSubImage3D(t->glid(), 0, 0, 0, i, t->size().x, t->size().y, 1, t->format(), t->data_format(), t->data());
+		glTexSubImage3D(_target, 0, 0, 0, i, t->size().x, t->size().y, 1, t->format(), t->data_format(), t->data());
 	}
-	glTexParameteri(_target,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-	glTexParameteri(_target,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(_target,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-	glTexParameteri(_target,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 	glBindTexture(_target, 0);
 	_loaded = true;
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
-	auto	error = GLError::CheckForError();
-	if (error != GL_NO_ERROR)
-		throw std::runtime_error(std::string("Error at TextureArray::load ") + name() + " : " + GLError::GetErrorString(error));
+	glCheckError();
 #endif //GL_DEBUG
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 19:47:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/18 18:56:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,21 +53,20 @@ void	Cubemap::unload()
 Cubemap::Cubemap(const std::string &name) : Texture(name)
 {
 	_target = GL_TEXTURE_CUBE_MAP;
-	/*glGenTextures(1, &_glid);
-	glBindTexture(_target, _glid);
-	glTexParameteri(_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(_target, GL_TEXTURE_MAX_ANISOTROPY_EXT, ANISOTROPY);
-	glBindTexture(_target, 0);
-#ifdef GL_DEBUG
-	glObjectLabel(GL_TEXTURE, _glid, -1, name.c_str());
-#endif //GL_DEBUG*/
+
 }
 
 Cubemap		*Cubemap::create(const std::string &name)
 {
 	auto	cubemap = new Cubemap(name);
+	glGenTextures(1, &cubemap->_glid);
+	glBindTexture(cubemap->_target, cubemap->_glid);
+	glBindTexture(cubemap->_target, 0);
 	Engine::add(*cubemap);
+#ifdef GL_DEBUG
+	glObjectLabel(GL_TEXTURE, cubemap->_glid, -1, cubemap->name().c_str());
+	glCheckError();
+#endif //GL_DEBUG 
 	return (cubemap);
 }
 
@@ -181,6 +180,7 @@ Cubemap		*Cubemap::create(const std::string &name, Texture *fromTexture)
 	for (auto i = 0u; i < threads.size(); i++)
 		threads.at(i).join();
 	cubemap->generate_mipmap();
+	cubemap->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	Engine::add(*cubemap);
 	std::cout << " Done." << std::endl;
 	return (cubemap);
@@ -197,6 +197,7 @@ Cubemap		*Cubemap::parse(const std::string &name, const std::string &path)
 		cubemap_load_side(t, path + name + "/Z+.bmp", GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
 		cubemap_load_side(t, path + name + "/Z-.bmp", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
 		t->generate_mipmap();
+		t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		return (t);
 	}
 	catch (std::exception &e) {

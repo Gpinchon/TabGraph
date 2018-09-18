@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 18:26:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/18 18:41:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ public:
 	static size_t	get_bpp(GLenum texture_format, GLenum data_type);
 	virtual bool	is_loaded();
 	virtual void	resize(const VEC2 &ns);
-	virtual void	set_parameteri(GLenum p, GLenum v);
+	virtual void	set_parameteri(GLenum p, int v);
 	virtual void	set_parameterf(GLenum p, float v);
 	virtual void	assign(Texture &dest_texture,
 						GLenum target);
@@ -69,7 +69,7 @@ protected:
 	Framebuffer	*_blur_buffer0{nullptr};
 	Framebuffer	*_blur_buffer1{nullptr};
 	Framebuffer	*_generate_blur_buffer(const std::string &);
-	std::unordered_map<GLenum, GLenum>	_parametersi;
+	std::unordered_map<GLenum, int>	_parametersi;
 	std::unordered_map<GLenum, float>	_parametersf;
 };
 

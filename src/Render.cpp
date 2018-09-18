@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 19:01:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/18 18:42:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,7 +259,7 @@ void	Render::scene()
 	static auto	temp_buffer1 = create_render_buffer("temp_buffer1", Window::internal_resolution(), nullptr);
 	static auto	back_buffer = create_back_buffer("back_buffer", Window::internal_resolution(), nullptr);
 	static auto	back_buffer1 = create_back_buffer("back_buffer1", Window::internal_resolution(), nullptr);
-	static auto	back_buffer2 = create_back_buffer("back_buffer1", Window::internal_resolution(), nullptr);
+	static auto	back_buffer2 = create_back_buffer("back_buffer2", Window::internal_resolution(), nullptr);
 	static auto	elighting_shader = GLSL::parse("lighting_env", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader);
 	static auto	telighting_shader = GLSL::parse("lighting_env_transparent", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader, "#define TRANSPARENT\n");
 	static auto	refraction_shader = GLSL::parse("refraction", Engine::program_path() + "./res/shaders/refraction.frag", LightingShader);
@@ -372,7 +372,9 @@ void	Render::scene()
 
 	auto	opaqueBackBuffer = current_backTexture;
 	opaqueBackBuffer->attachement(0)->generate_mipmap();
+	opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	opaqueBackBuffer->attachement(1)->generate_mipmap();
+	opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	current_backTexture = back_buffer2;
 	back_buffer2->bind();
@@ -383,7 +385,6 @@ void	Render::scene()
 	glDepthFunc(GL_ALWAYS);
 	glDisable(GL_CULL_FACE);
 	light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
-	//light_shadow_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
 	current_backBuffer->bind();
 	telighting_shader->use();
@@ -420,6 +421,8 @@ void	Render::scene()
 	Render::display_quad()->draw();
 	refraction_shader->use(false);
 
+	opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	present(current_backBuffer);
 }
 

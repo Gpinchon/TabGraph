@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/10 21:42:11 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 19:18:32 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/18 14:45:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,8 +81,8 @@ DirectionnalLight	*DirectionnalLight::create(const std::string &name, VEC3 color
 		light->_render_buffer->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
 		light->_render_buffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 		light->_render_buffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-		shadow_array()->add(light->_render_buffer->depth());
-		shadow_array()->load();
+		//shadow_array()->add(light->_render_buffer->depth());
+		//shadow_array()->load();
 	}
 	Engine::add(*light);
 	return (light);

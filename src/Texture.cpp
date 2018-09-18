@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 19:09:30 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/18 18:41:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,30 +45,26 @@ Texture::Texture(const std::string &iname, VEC2 s, GLenum target, GLenum f, GLen
 	_data = static_cast<GLubyte*>(data);
 	_bpp = get_bpp(f, data_format);
 	_size = s;
-	glGenTextures(1, &_glid);
-	if (values_per_pixel() < 4) {
-		set_parameteri(GL_TEXTURE_SWIZZLE_A, GL_ONE);
-	}
-	set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, CFG::Anisotropy());
-#ifdef GL_DEBUG
-	glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
-#endif //GL_DEBUG
 }
-
-#include <iostream>
 
 Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data)
 {
 	Texture	*t;
 
 	t = new Texture(name, s, target, f, fi, data_format, data);
+	glGenTextures(1, &t->_glid);
+	glBindTexture(target, t->_glid);
+	glBindTexture(target, 0);
+	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, CFG::Anisotropy());
+	if (t->values_per_pixel() < 4) {
+		t->set_parameteri(GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	}
 	Engine::add(*t);
 #ifdef GL_DEBUG
-	auto	error = GLError::CheckForError();
-	if (error != GL_NO_ERROR)
-		throw std::runtime_error(std::string("Error at Texture::create ") + t->name() + " : " + GLError::GetErrorString(error));
+	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
+	glCheckError();
 #endif //GL_DEBUG
 	return (t);
 }
@@ -129,8 +125,8 @@ void	*Texture::data() const
 
 void	Texture::assign(Texture &dest_texture, GLenum target)
 {
-	//if (!_loaded)
-	//	load();
+	if (!_loaded)
+		load();
 	glBindTexture(_target, _glid);
 	glBindTexture(dest_texture._target, dest_texture._glid);
 	glTexImage2D(target, 0, dest_texture._internal_format, dest_texture._size.x, dest_texture._size.y, 0,
@@ -166,15 +162,14 @@ void	Texture::load()
 	if (_size.x > 0 && _size.y > 0) {
 		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format, _data_format, _data);
 	}
+	glBindTexture(_target, 0);
 	for (auto p : _parametersi) {
-		glTexParameteri(_target, p.first, p.second);
+		glTextureParameteri(_glid, p.first, p.second);
 	}
 	for (auto p : _parametersf) {
-		glTexParameterf(_target, p.first, p.second);
+		glTextureParameterf(_glid, p.first, p.second);
 	}
-	//glGenerateMipmap(_target);
 	generate_mipmap();
-	glBindTexture(_target, 0);
 	_loaded = true;
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
@@ -183,7 +178,6 @@ void	Texture::load()
 
 void	Texture::generate_mipmap()
 {
-	set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glBindTexture(_target, _glid);
 	glGenerateMipmap(_target);
 	glBindTexture(_target, 0);
@@ -308,28 +302,20 @@ void	Texture::set_parameterf(GLenum p, float v)
 	_parametersf[p] = v;
 	if (_glid == 0u)
 		return ;
-	glBindTexture(_target, _glid);
-	glTexParameterf(_target, p, v);
-	glBindTexture(_target, 0);
+	glTextureParameterf(_glid, p, v);
 #ifdef GL_DEBUG
-	auto	error = GLError::CheckForError();
-	if (error != GL_NO_ERROR)
-		throw std::runtime_error(std::string("Error at set_parameterf for ") + name() + " : " + GLError::GetErrorString(error));
+	glCheckError();
 #endif //GL_DEBUG
 }
 
-void	Texture::set_parameteri(GLenum p, GLenum v)
+void	Texture::set_parameteri(GLenum p, int v)
 {
 	_parametersi[p] = v;
 	if (_glid == 0u)
 		return ;
-	glBindTexture(_target, _glid);
-	glTexParameteri(_target, p, v);
-	glBindTexture(_target, 0);
+	glTextureParameteri(_glid, p, v);
 #ifdef GL_DEBUG
-	auto	error = GLError::CheckForError();
-	if (error != GL_NO_ERROR)
-		throw std::runtime_error(std::string("Error at set_parameteri for ") + name() + " : " + GLError::GetErrorString(error));
+	glCheckError();
 #endif //GL_DEBUG
 }
 
@@ -369,10 +355,13 @@ bool	Texture::is_loaded()
 	return (_loaded);
 }
 
+#include <iostream>
+
 void	Texture::resize(const VEC2 &ns)
 {
 	GLubyte	*d;
 
+	_loaded = false;
 	if (_data != nullptr)
 	{
 		auto	opp = _bpp / 8;
@@ -403,7 +392,17 @@ void	Texture::resize(const VEC2 &ns)
 		glBindTexture(_target, _glid);
 		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format, _data_format, _data);
 		glBindTexture(_target, 0);
+		for (auto p : _parametersi) {
+			glTextureParameteri(_glid, p.first, p.second);
+		}
+		for (auto p : _parametersf) {
+			glTextureParameterf(_glid, p.first, p.second);
+		}
 	}
+#ifdef GL_DEBUG
+	glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
+	glCheckError();
+#endif //GL_DEBUG
 }
 
 
@@ -420,9 +419,9 @@ void	Texture::blur(const int &pass, const float &radius)
 	if (pass == 0)
 		return ;
 	if (_blur_buffer0 == nullptr)
-		_blur_buffer0 = _generate_blur_buffer("blur0");
+		_blur_buffer0 = _generate_blur_buffer(name() + "_blur0");
 	if (_blur_buffer1 == nullptr)
-		_blur_buffer1 = _generate_blur_buffer("blur1");
+		_blur_buffer1 = _generate_blur_buffer(name() + "_blur1");
 	_blur_buffer0->resize(size());
 	_blur_buffer1->resize(size());
 
