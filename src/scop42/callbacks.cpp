@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/13 18:07:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 18:09:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ void	callback_scale(SDL_KeyboardEvent *event)
 		scale -= (0.005 * (Keyboard::key(SDL_SCANCODE_LSHIFT) + 1));
 	}
 	scale = CLAMP(scale, 0.0001, 1000);
-	mesh->scale() = new_vec3(scale, scale, scale);
+	mesh->scaling() = new_vec3(scale, scale, scale);
 }
 
 void	switch_background()

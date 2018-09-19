@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/18 18:03:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 19:29:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,10 @@
 #include "Events.hpp"
 #include "GameController.hpp"
 #include "Keyboard.hpp"
+#include "Mouse.hpp"
 #include "parser/OBJ.hpp"
 #include <unistd.h>
+#include <iostream>
 
 /*int		light_create(VEC3 position, VEC3 color, float power, bool cast_shadow = false)
 {
@@ -42,6 +44,17 @@
 	return (Engine::get().lights.size() - 1);
 }*/
 
+void	MouseMoveCallback(SDL_MouseMotionEvent *event)
+{
+	auto	mesh = Engine::renderable(0);
+	auto	rotation = mesh->rotation();
+	rotation.x += event->yrel * 0.01;
+	rotation.y += event->xrel * 0.01;
+	rotation.x = CYCLE(rotation.x, 0, 2 * M_PI);
+	rotation.y = CYCLE(rotation.y, 0, 2 * M_PI);
+	mesh->rotation() = rotation;
+	//std::cout << "X : " << event->xrel << " Y : " << event->yrel << std::endl;
+}
 
 void	setup_callbacks()
 {
@@ -52,6 +65,8 @@ void	setup_callbacks()
 	Keyboard::set_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
 	Keyboard::set_callback(SDL_SCANCODE_Q, callback_quality);
 	Keyboard::set_callback(SDL_SCANCODE_R, keyboard_callback_rotation);
+	Mouse::set_relative(SDL_TRUE);
+	Mouse::set_move_callback(MouseMoveCallback);
 	Events::set_refresh_callback(callback_refresh);
 	auto controller = GameController::get(0);
 	if (controller == nullptr)
@@ -105,6 +120,7 @@ int		main(int argc, char *argv[])
 	camera->target = Node::create("main_camera_target",
 		new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
+	auto cube = Mesh::create_cube("cube", new_vec3(1, 1, 1));
 	obj = nullptr;
 	if (argc >= 2) {
 		obj = OBJ::parse("main_mesh", argv[1]);
@@ -117,6 +133,8 @@ int		main(int argc, char *argv[])
 		obj->load();
 		//obj->sort(alpha_compare);
 	}
+	obj->position() = new_vec3(0, 1, 0);
+	obj->parent = cube;
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	

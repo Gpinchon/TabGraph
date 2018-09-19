@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/17 17:38:55 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/18 18:00:54 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 11:35:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "GLIncludes.hpp"
+#include <iostream>
 
 GLenum glCheckError_(const char *file, int line)
 {

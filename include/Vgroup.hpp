@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:43:25 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/03 23:10:48 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 19:10:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,10 @@ class	Vgroup : public Renderable
 {
 public:
 	static Vgroup		*create(const std::string &);
-	std::vector<VEC3>	v;
-	std::vector<CVEC4>	vn;
-	std::vector<VEC2>	vt;
+	std::vector<VEC3>		v;
+	std::vector<CVEC4>		vn;
+	std::vector<VEC2>		vt;
+	std::vector<unsigned>	i;
 	VEC2				uvmax{1, 1};
 	VEC2				uvmin{0, 0};
 	void				bind();

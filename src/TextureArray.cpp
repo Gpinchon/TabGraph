@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/17 15:59:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/18 18:06:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 10:57:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,14 +63,17 @@ void		TextureArray::load()
 	if (_loaded)
 		return ;
 	glBindTexture(_target, _glid);
-	for (auto i = 0u; i < _textures.size(); i++)
+	for (auto index = 0u; index < _textures.size(); index++)
 	{
-		auto t = _textures.at(i);
+		auto t = _textures.at(index);
 		if (nullptr == t || nullptr == t->data())
 			continue ;
-		if (!t->is_loaded())
-			t->load();
-		glTexSubImage3D(_target, 0, 0, 0, i, t->size().x, t->size().y, 1, t->format(), t->data_format(), t->data());
+		GLint	level = 0;			// Which mipmap is to be used in texture ?
+		GLint	xoffset = 0;
+		GLint	yoffset = 0;
+		GLint	zoffset = index;	// Which texture is to be set ?
+		GLsizei	depth = 1;			// Set only one texture
+		glTexSubImage3D(_target, level, xoffset, yoffset, zoffset, t->size().x, t->size().y, depth, t->format(), t->data_format(), t->data());
 	}
 	glBindTexture(_target, 0);
 	_loaded = true;

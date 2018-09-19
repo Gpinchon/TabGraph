@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 23:06:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 19:11:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ class	Mesh : public RenderableMultiDraw
 {
 public:
 	static Mesh	*create(const std::string &);
+	static Mesh	*create_cube(const std::string &name, VEC3 scale);
 	static Mesh	*get_by_name(const std::string &);
 	//void		sort(renderable_compare);
     void		load();

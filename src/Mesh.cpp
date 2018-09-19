@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 23:05:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 20:06:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,132 @@ Mesh::Mesh(const std::string &name) : RenderableMultiDraw(name)
 Mesh	*Mesh::get_by_name(const std::string &name)
 {
 	return dynamic_cast<Mesh *>(Renderable::get_by_name(name));
+}
+
+Mesh	*Mesh::create_cube(const std::string &name, VEC3 scale)
+{
+	auto *m = new Mesh(name);
+	static std::vector<VEC3> cubeVertices{
+		{-1.0f, -1.0f, -1.0f},
+		{+1.0f, -1.0f, -1.0f},
+		{+1.0f, +1.0f, +1.0f},
+		{-1.0f, +1.0f, +1.0f},
+		{+1.0f, -1.0f, -1.0f},
+		{+1.0f, -1.0f, +1.0f},
+		{-1.0f, +1.0f, -1.0f},
+		{+1.0f, +1.0f, +1.0f},
+		{+1.0f, +1.0f, +1.0f},
+		{+1.0f, +1.0f, +1.0f},
+		{-1.0f, +1.0f, -1.0f},
+		{-1.0f, -1.0f, +1.0f},
+		{-1.0f, +1.0f, -1.0f},
+		{+1.0f, +1.0f, +1.0f},
+		{-1.0f, +1.0f, +1.0f},
+		{-1.0f, -1.0f, +1.0f},
+		{-1.0f, -1.0f, +1.0f},
+		{+1.0f, -1.0f, +1.0f},
+		{+1.0f, +1.0f, +1.0f},
+		{+1.0f, +1.0f, +1.0f},
+		{+1.0f, -1.0f, +1.0f},
+		{+1.0f, -1.0f, -1.0f},
+		{-1.0f, +1.0f, -1.0f},
+		{-1.0f, +1.0f, +1.0f},
+		{-1.0f, +1.0f, +1.0f},
+		{+1.0f, -1.0f, +1.0f},
+		{-1.0f, +1.0f, +1.0f},
+		{-1.0f, -1.0f, +1.0f},
+		{+1.0f, -1.0f, +1.0f},
+		{+1.0f, +1.0f, +1.0f},
+		{+1.0f, +1.0f, +1.0f},
+		{+1.0f, -1.0f, +1.0f}};
+	static std::vector<CVEC4> cubeNormals{
+		{127, 0, 127, 255},
+		{127, 0, 127, 255},
+		{127, 0, 127, 255},
+		{127, 0, 127, 255},
+		{127, 255, 127, 255},
+		{127, 255, 127, 255},
+		{127, 255, 127, 255},
+		{127, 255, 127, 255},
+		{127, 127, 0, 255},
+		{127, 127, 0, 255},
+		{127, 127, 0, 255},
+		{127, 127, 0, 255},
+		{127, 127, 255, 255},
+		{127, 127, 255, 255},
+		{127, 127, 255, 255},
+		{127, 127, 255, 255},
+		{0, 127, 127, 255},
+		{0, 127, 127, 255},
+		{0, 127, 127, 255},
+		{0, 127, 127, 255},
+		{255, 127, 127, 255},
+		{255, 127, 127, 255},
+		{255, 127, 127, 255},
+		{255, 127, 127, 255}};
+	static std::vector<VEC2> cubeTexCoords{
+		{0.0f, 0.0f},
+		{0.0f, 1.0f},
+		{1.0f, 1.0f},
+		{1.0f, 0.0f},
+		{0.0f, 1.0f},
+		{0.0f, 0.0f},
+		{1.0f, 0.0f},
+		{1.0f, 1.0f},
+		{1.0f, 0.0f},
+		{1.0f, 1.0f},
+		{0.0f, 1.0f},
+		{0.0f, 0.0f},
+		{0.0f, 0.0f},
+		{0.0f, 1.0f},
+		{1.0f, 1.0f},
+		{1.0f, 0.0f},
+		{0.0f, 0.0f},
+		{1.0f, 0.0f},
+		{1.0f, 1.0f},
+		{0.0f, 1.0f},
+		{1.0f, 0.0f},
+		{0.0f, 0.0f},
+		{0.0f, 1.0f},
+		{1.0f, 1.0f}};
+		/*0, 2, 1,
+		0, 3, 2,
+		4, 5, 6,
+		4, 6, 7,
+		8, 9, 10,
+		8, 10, 11,
+		12, 15, 14,
+		12, 14, 13,
+		16, 17, 18,
+		16, 18, 19,
+		20, 23, 22,
+		20, 22, 21};*/
+	static std::vector<unsigned> cubeIndices{
+		0, 1, 2,
+		0, 2, 3,
+		4, 5, 6,
+		4, 6, 7,
+		8, 9, 10,
+		8, 10, 11,
+		12, 13, 14,
+		12, 14, 15,
+		16, 17, 18,
+		16, 18, 19,
+		20, 21, 22,
+		20, 23, 24};
+	auto	vg = Vgroup::create(m->name() + "_vgroup");
+	auto	thisCubeVertices = cubeVertices;
+	for (auto &v : thisCubeVertices) {
+		v = vec3_mult(v, scale);
+	}
+	vg->material = Material::create(vg->name() + "_material");
+	vg->v = thisCubeVertices;
+	vg->vn = cubeNormals;
+	vg->vt = cubeTexCoords;
+	vg->i = cubeIndices;
+	m->add(vg);
+	Engine::add(*m);
+	return (m);
 }
 
 Mesh	*Mesh::create(const std::string &name)
@@ -59,8 +185,8 @@ void	Mesh::load()
 bool	Mesh::render_depth(RenderMod mod)
 {
 	bool	ret = false;
-	auto	mvp = mat4_combine(Engine::current_camera()->projection(), Engine::current_camera()->view(), mat4_transform());
-	auto	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
+	auto	mvp = mat4_combine(Engine::current_camera()->projection(), Engine::current_camera()->view(), transform());
+	auto	normal_matrix = mat4_transpose(mat4_inverse(transform()));
 	
 	load();
 	Shader	*last_shader = nullptr;
@@ -69,7 +195,7 @@ bool	Mesh::render_depth(RenderMod mod)
 			continue ;
 		vg->material->depth_shader->use();
 		if (last_shader != vg->material->depth_shader) {
-			vg->material->depth_shader->set_uniform("Matrix.Model", mat4_transform());
+			vg->material->depth_shader->set_uniform("Matrix.Model", transform());
 			vg->material->depth_shader->set_uniform("Matrix.ModelViewProjection", mvp);
 			vg->material->depth_shader->set_uniform("Matrix.Normal", normal_matrix);
 		}
@@ -84,8 +210,8 @@ bool	Mesh::render_depth(RenderMod mod)
 bool	Mesh::render(RenderMod mod)
 {
 	bool	ret = false;
-	auto	mvp = mat4_combine(Engine::current_camera()->projection(), Engine::current_camera()->view(), mat4_transform());
-	auto	normal_matrix = mat4_transpose(mat4_inverse(mat4_transform()));
+	auto	mvp = mat4_combine(Engine::current_camera()->projection(), Engine::current_camera()->view(), transform());
+	auto	normal_matrix = mat4_transpose(mat4_inverse(transform()));
 
 	load();
 	Shader	*last_shader = nullptr;
@@ -94,7 +220,7 @@ bool	Mesh::render(RenderMod mod)
 			continue ;
 		vg->material->shader->use();
 		if (last_shader != vg->material->shader) {
-			vg->material->shader->set_uniform("Matrix.Model", mat4_transform());
+			vg->material->shader->set_uniform("Matrix.Model", transform());
 			vg->material->shader->set_uniform("Matrix.ModelViewProjection", mvp);
 			vg->material->shader->set_uniform("Matrix.Normal", normal_matrix);
 		}

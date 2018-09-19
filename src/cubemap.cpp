@@ -6,12 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/18 18:56:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 11:37:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include "Cubemap.hpp"
+#include "Errors.hpp"
 #include "parser/BMP.hpp"
 
 void	cubemap_load_side(Cubemap *texture, const std::string &path, GLenum side)

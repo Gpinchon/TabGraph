@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/18 18:41:45 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 11:32:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,12 +250,9 @@ GLubyte	*Texture::texelfetch(const VEC2 &uv)
 	if (_data == nullptr) {
 		return (nullptr);
 	}
-	auto	nuv = uv;
-	nuv.x = CLAMP(nuv.x, 0, 1);
-	nuv.y = CLAMP(nuv.y, 0, 1);
-	nuv = new_vec2(
-		round((_size.x - 1) * nuv.x),
-		round((_size.y - 1) * nuv.y));
+	auto	nuv = new_vec2(
+		CLAMP(uv.x, 0, int(_size.x - 1)),
+		CLAMP(uv.y, 0, int(_size.y - 1)));
 	opp = _bpp / 8;
 	return (&_data[int(_size.x * nuv.y  + nuv.x) * opp]);
 }
@@ -271,7 +268,7 @@ void	Texture::set_pixel(const VEC2 &uv, const VEC4 value)
 		_data = new GLubyte[int(_size.x * _size.y) * opp];
 	}
 	GLubyte			*p;
-	p = texelfetch(uv);
+	p = texelfetch(vec2_mult(uv, _size));
 	auto	valuePtr = reinterpret_cast<float*>(&val);
 	for (auto i = 0, j = 0; i < int(opp / _data_size) && j < 4; ++i, ++j)
 	{
@@ -291,7 +288,7 @@ void	Texture::set_pixel(const VEC2 &uv, const GLubyte *value)
 		_data = new GLubyte[int(_size.x * _size.y) * opp];
 	}
 	GLubyte			*p;
-	p = texelfetch(uv);
+	p = texelfetch(vec2_mult(uv, _size));
 	for (auto i = 0; i < opp; ++i) {
 		p[i] = value[i];
 	}

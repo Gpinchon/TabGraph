@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/13 19:39:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 19:10:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ void			Vgroup::load()
 	_vao->add_buffer(GL_FLOAT, 3, v);
 	_vao->add_buffer(GL_UNSIGNED_BYTE, 4, vn);
 	_vao->add_buffer(GL_FLOAT, 2, vt);
+	_vao->add_indices(i);
 	_is_loaded = true;
 }
 

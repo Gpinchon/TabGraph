@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/09 20:13:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 19:36:54 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@
 Material::Material(const std::string &name)
 {
 	set_name(name);
-	if ((shader = Shader::get_by_name("default")) == nullptr) {
-		shader = GLSL::parse("default", Engine::program_path() + "./res/shaders/empty.glsl", ForwardShader);
+	if ((shader = Shader::get_by_name("shader_default")) == nullptr) {
+		shader = GLSL::parse("shader_default", Engine::program_path() + "./res/shaders/empty.glsl", ForwardShader);
 	}
 	if ((depth_shader = Shader::get_by_name("default_depth")) == nullptr) {
 		depth_shader = GLSL::parse("default_depth", Engine::program_path() + "./res/shaders/depth.vert", Engine::program_path() + "./res/shaders/depth.frag");
@@ -31,7 +31,6 @@ Material::Material(const std::string &name)
 Material	*Material::create(const std::string &name)
 {
 	auto	mtl = new Material(name);
-	mtl->shader = Shader::get_by_name("default");
 	Engine::add(*mtl);
 	return (mtl);
 }

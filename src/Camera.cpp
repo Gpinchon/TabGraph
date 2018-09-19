@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 17:26:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 18:10:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void	Camera::fixed_update()
 {
 	//Node::update();
 	if (nullptr != target)
-		mat4_transform() = mat4_lookat(position(), target->position(), UP);
+		transform() = mat4_lookat(position(), target->position(), UP);
 	if (_projection_type == PerspectiveCamera)
 	{
 		VEC2	size = Window::size();
@@ -44,7 +44,7 @@ void	Camera::fixed_update()
 
 MAT4	&Camera::view()
 {
-	return (mat4_transform());
+	return (transform());
 }
 
 MAT4	&Camera::projection()

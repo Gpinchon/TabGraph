@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/18 18:42:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 18:11:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,7 @@ void	render_shadows()
 		light->render_buffer()->bind();
 		glClear(GL_DEPTH_BUFFER_BIT);
 		tempCamera->position() = light->position();
-		tempCamera->view() = light->mat4_transform();
+		tempCamera->view() = light->transform();
 		for (auto index = 0; Engine::renderable(index) != nullptr; index++) {
 			auto	node = Engine::renderable(index);
 			node->render_depth(RenderOpaque);
@@ -224,7 +224,7 @@ void	light_pass(Framebuffer *&current_backBuffer, Framebuffer *&current_backText
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", vec3_scale(light->color(), light->power()));
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));
-			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Projection", light->mat4_transform());
+			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Projection", light->transform());
 			shader->bind_texture("Shadow[" + std::to_string(shadowIndex) + "]", light->render_buffer()->depth(), GL_TEXTURE9 + shadowIndex);
 			j++;
 			lightIndex++;
