@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 20:06:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 22:59:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include "Vgroup.hpp"
 #include <algorithm>
 
+
 Mesh::Mesh(const std::string &name) : RenderableMultiDraw(name)
 {
 	bounding_element = new AABB;
@@ -28,132 +29,6 @@ Mesh::Mesh(const std::string &name) : RenderableMultiDraw(name)
 Mesh	*Mesh::get_by_name(const std::string &name)
 {
 	return dynamic_cast<Mesh *>(Renderable::get_by_name(name));
-}
-
-Mesh	*Mesh::create_cube(const std::string &name, VEC3 scale)
-{
-	auto *m = new Mesh(name);
-	static std::vector<VEC3> cubeVertices{
-		{-1.0f, -1.0f, -1.0f},
-		{+1.0f, -1.0f, -1.0f},
-		{+1.0f, +1.0f, +1.0f},
-		{-1.0f, +1.0f, +1.0f},
-		{+1.0f, -1.0f, -1.0f},
-		{+1.0f, -1.0f, +1.0f},
-		{-1.0f, +1.0f, -1.0f},
-		{+1.0f, +1.0f, +1.0f},
-		{+1.0f, +1.0f, +1.0f},
-		{+1.0f, +1.0f, +1.0f},
-		{-1.0f, +1.0f, -1.0f},
-		{-1.0f, -1.0f, +1.0f},
-		{-1.0f, +1.0f, -1.0f},
-		{+1.0f, +1.0f, +1.0f},
-		{-1.0f, +1.0f, +1.0f},
-		{-1.0f, -1.0f, +1.0f},
-		{-1.0f, -1.0f, +1.0f},
-		{+1.0f, -1.0f, +1.0f},
-		{+1.0f, +1.0f, +1.0f},
-		{+1.0f, +1.0f, +1.0f},
-		{+1.0f, -1.0f, +1.0f},
-		{+1.0f, -1.0f, -1.0f},
-		{-1.0f, +1.0f, -1.0f},
-		{-1.0f, +1.0f, +1.0f},
-		{-1.0f, +1.0f, +1.0f},
-		{+1.0f, -1.0f, +1.0f},
-		{-1.0f, +1.0f, +1.0f},
-		{-1.0f, -1.0f, +1.0f},
-		{+1.0f, -1.0f, +1.0f},
-		{+1.0f, +1.0f, +1.0f},
-		{+1.0f, +1.0f, +1.0f},
-		{+1.0f, -1.0f, +1.0f}};
-	static std::vector<CVEC4> cubeNormals{
-		{127, 0, 127, 255},
-		{127, 0, 127, 255},
-		{127, 0, 127, 255},
-		{127, 0, 127, 255},
-		{127, 255, 127, 255},
-		{127, 255, 127, 255},
-		{127, 255, 127, 255},
-		{127, 255, 127, 255},
-		{127, 127, 0, 255},
-		{127, 127, 0, 255},
-		{127, 127, 0, 255},
-		{127, 127, 0, 255},
-		{127, 127, 255, 255},
-		{127, 127, 255, 255},
-		{127, 127, 255, 255},
-		{127, 127, 255, 255},
-		{0, 127, 127, 255},
-		{0, 127, 127, 255},
-		{0, 127, 127, 255},
-		{0, 127, 127, 255},
-		{255, 127, 127, 255},
-		{255, 127, 127, 255},
-		{255, 127, 127, 255},
-		{255, 127, 127, 255}};
-	static std::vector<VEC2> cubeTexCoords{
-		{0.0f, 0.0f},
-		{0.0f, 1.0f},
-		{1.0f, 1.0f},
-		{1.0f, 0.0f},
-		{0.0f, 1.0f},
-		{0.0f, 0.0f},
-		{1.0f, 0.0f},
-		{1.0f, 1.0f},
-		{1.0f, 0.0f},
-		{1.0f, 1.0f},
-		{0.0f, 1.0f},
-		{0.0f, 0.0f},
-		{0.0f, 0.0f},
-		{0.0f, 1.0f},
-		{1.0f, 1.0f},
-		{1.0f, 0.0f},
-		{0.0f, 0.0f},
-		{1.0f, 0.0f},
-		{1.0f, 1.0f},
-		{0.0f, 1.0f},
-		{1.0f, 0.0f},
-		{0.0f, 0.0f},
-		{0.0f, 1.0f},
-		{1.0f, 1.0f}};
-		/*0, 2, 1,
-		0, 3, 2,
-		4, 5, 6,
-		4, 6, 7,
-		8, 9, 10,
-		8, 10, 11,
-		12, 15, 14,
-		12, 14, 13,
-		16, 17, 18,
-		16, 18, 19,
-		20, 23, 22,
-		20, 22, 21};*/
-	static std::vector<unsigned> cubeIndices{
-		0, 1, 2,
-		0, 2, 3,
-		4, 5, 6,
-		4, 6, 7,
-		8, 9, 10,
-		8, 10, 11,
-		12, 13, 14,
-		12, 14, 15,
-		16, 17, 18,
-		16, 18, 19,
-		20, 21, 22,
-		20, 23, 24};
-	auto	vg = Vgroup::create(m->name() + "_vgroup");
-	auto	thisCubeVertices = cubeVertices;
-	for (auto &v : thisCubeVertices) {
-		v = vec3_mult(v, scale);
-	}
-	vg->material = Material::create(vg->name() + "_material");
-	vg->v = thisCubeVertices;
-	vg->vn = cubeNormals;
-	vg->vt = cubeTexCoords;
-	vg->i = cubeIndices;
-	m->add(vg);
-	Engine::add(*m);
-	return (m);
 }
 
 Mesh	*Mesh::create(const std::string &name)

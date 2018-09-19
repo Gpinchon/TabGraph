@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 19:29:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 23:24:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,7 @@ void	setup_callbacks()
 #include "Material.hpp"
 #include "Render.hpp"
 #include "Light.hpp"
+#include "CubeMesh.hpp"
 #include <iostream>
 
 std::vector<Light *> create_random_lights(unsigned i)
@@ -120,7 +121,11 @@ int		main(int argc, char *argv[])
 	camera->target = Node::create("main_camera_target",
 		new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
-	auto cube = Mesh::create_cube("cube", new_vec3(1, 1, 1));
+	auto cube0 = CubeMesh::create("cube0", new_vec3(1, 2, 1));
+	auto cube1 = CubeMesh::create("cube1", new_vec3(1, 1, 1));
+	cube1->position() = new_vec3(0, 1.5, 0);
+	cube1->rotation() = new_vec3(0, 0, 0.5);
+	cube1->parent = cube0;
 	obj = nullptr;
 	if (argc >= 2) {
 		obj = OBJ::parse("main_mesh", argv[1]);
@@ -133,8 +138,8 @@ int		main(int argc, char *argv[])
 		obj->load();
 		//obj->sort(alpha_compare);
 	}
-	obj->position() = new_vec3(0, 1, 0);
-	obj->parent = cube;
+	obj->position() = new_vec3(0, 0, 0);
+	obj->parent = cube1;
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:14:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 20:01:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 22:17:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,7 @@ void	VertexArray::draw() const
 {
 	bind();
 	if (_indexed) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indices->glid());
 		glDrawElements(_GLDrawType, _indices->size(), GL_UNSIGNED_INT, nullptr);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	else
 		glDrawArrays(_GLDrawType, 0, _vertex_nbr);

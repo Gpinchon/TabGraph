@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 20:09:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 20:01:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/19 22:17:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,6 @@ VertexBuffer::VertexBuffer(const std::vector<unsigned> &indices)
 	glGenBuffers(1, &_GLid);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _GLid);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), &indices[0], GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	_size = indices.size();
 }
 
