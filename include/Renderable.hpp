@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/17 10:49:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 19:05:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,17 +25,19 @@ class Material;
 class	Renderable : public Node
 {
 public:
-	virtual bool	render(RenderMod mod = RenderAll) = 0;
-	virtual bool	render_depth(RenderMod mod = RenderAll) = 0;
-	virtual void	load() = 0;
-	//virtual void	bind() = 0;
-	//static void		alpha_sort();
-	bool			is_loaded() { return (_is_loaded); };
-	static Renderable	*get_by_name(const std::string &);
-    Material		*material{nullptr};
+	static std::shared_ptr<Renderable>	renderable(unsigned index);
+	static std::shared_ptr<Renderable>	get_by_name(const std::string &);
+	virtual bool						render(RenderMod mod = RenderAll) = 0;
+	virtual bool						render_depth(RenderMod mod = RenderAll) = 0;
+	virtual void						load() = 0;
+	virtual void						set_material(std::shared_ptr<Material>);
+	virtual std::shared_ptr<Material>	material();
+	bool								is_loaded() { return (_is_loaded); };
 protected:
-	bool		_is_loaded;
-	Renderable(const std::string &name) : Node(name), material(nullptr), _is_loaded(false) {};
+	static std::vector<std::shared_ptr<Renderable>>	_renderables;
+	std::weak_ptr<Material>				_material;
+	bool								_is_loaded;
+	Renderable(const std::string &name) : Node(name), _is_loaded(false) {};
 };
 
 class RenderableMultiDraw : public Renderable

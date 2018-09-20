@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 18:10:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 17:54:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ Camera::Camera(const std::string &name, float ifov, CameraProjection proj) : Nod
 	_projection_type = proj;
 }
 
-Camera		*Camera::create(const std::string &name, float ifov, CameraProjection proj)
+std::shared_ptr<Camera>	Camera::create(const std::string &name, float ifov, CameraProjection proj)
 {
 	auto	camera = new Camera(name, ifov, proj);
 	Engine::add(*camera);

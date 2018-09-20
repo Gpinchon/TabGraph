@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/18 18:41:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 19:10:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,22 +16,24 @@
 #include "Object.hpp"
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <memory>
 
 class	Framebuffer;
 
 class	Texture : public Object
 {
 public:
-	static Texture	*create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
-	static Texture	*get_by_name(const std::string &);
-	static size_t	get_data_size(GLenum data_type);
-	static size_t	get_bpp(GLenum texture_format, GLenum data_type);
+	static std::shared_ptr<Texture>	create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
+	static std::shared_ptr<Texture>	get_by_name(const std::string &);
+	static std::shared_ptr<Texture>	texture(unsigned index);
+	static size_t					get_data_size(GLenum data_type);
+	static size_t					get_bpp(GLenum texture_format, GLenum data_type);
 	virtual bool	is_loaded();
 	virtual void	resize(const VEC2 &ns);
 	virtual void	set_parameteri(GLenum p, int v);
 	virtual void	set_parameterf(GLenum p, float v);
-	virtual void	assign(Texture &dest_texture,
-						GLenum target);
+	virtual void	assign(Texture &dest_texture, GLenum target);
 	virtual void	load();
 	virtual void	unload();
 	virtual void	generate_mipmap();
@@ -52,10 +54,11 @@ public:
 	virtual VEC4	sample(const VEC2 &uv);
 	virtual	size_t	values_per_pixel();
 	template <typename T>
-	T					*at(float u, float v);
+	T				*at(float u, float v);
 protected:
 	Texture(const std::string &name);
 	Texture(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
+	static std::vector<std::shared_ptr<Texture>>	_textures;
 	GLuint		_glid;
 	VEC2		_size;
 	char		_bpp;

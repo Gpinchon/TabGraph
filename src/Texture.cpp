@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 11:32:53 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 17:49:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ _data(nullptr),
 _loaded(false)
 {
 	set_name(name);
+	
 }
 
 Texture::Texture(const std::string &iname, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data) : Texture(iname)
@@ -47,11 +48,9 @@ Texture::Texture(const std::string &iname, VEC2 s, GLenum target, GLenum f, GLen
 	_size = s;
 }
 
-Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data)
+std::shared_ptr<Texture>	Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data)
 {
-	Texture	*t;
-
-	t = new Texture(name, s, target, f, fi, data_format, data);
+	auto	t = std::shared_ptr<Texture>(new Texture(name, s, target, f, fi, data_format, data));
 	glGenTextures(1, &t->_glid);
 	glBindTexture(target, t->_glid);
 	glBindTexture(target, 0);
@@ -61,12 +60,23 @@ Texture		*Texture::create(const std::string &name, VEC2 s, GLenum target, GLenum
 	if (t->values_per_pixel() < 4) {
 		t->set_parameteri(GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	}
-	Engine::add(*t);
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
 	glCheckError();
 #endif //GL_DEBUG
+	textures.insert(t);
 	return (t);
+}
+
+std::shared_ptr<Texture>	Texture::get_by_name(const std::string &name)
+{
+	std::hash<std::string>	hash_fn;
+	auto					h = hash_fn(name);
+	for (auto t : textures) {
+		if (h == t->id())
+			return (t);
+	}
+	return (nullptr);
 }
 
 size_t	Texture::get_bpp(GLenum texture_format, GLenum data_format)
@@ -197,25 +207,6 @@ GLubyte		Texture::bpp() const
 GLuint		Texture::glid() const
 {
 	return (_glid);
-}
-
-Texture		*Texture::get_by_name(const std::string &name)
-{
-	int			i;
-	size_t			h;
-	Texture	*t;
-
-	i = 0;
-	std::hash<std::string>	hash_fn;
-	h = hash_fn(name);
-	while ((t = Engine::texture(i)) != nullptr)
-	{
-		if (h == t->id()) {
-			return (t);
-		}
-		i++;
-	}
-	return (nullptr);
 }
 
 GLenum	Texture::internal_format()

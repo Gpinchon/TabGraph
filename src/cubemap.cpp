@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 11:37:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 19:25:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,15 @@
 #include "Cubemap.hpp"
 #include "Errors.hpp"
 #include "parser/BMP.hpp"
+#include <thread>
 
-void	cubemap_load_side(Cubemap *texture, const std::string &path, GLenum side)
+void	cubemap_load_side(std::shared_ptr<Cubemap> cubemap, const std::string &path, GLenum iside)
 {
 	auto	sideTexture = BMP::parse(path, path);
 	if (sideTexture == nullptr){
 		return ;
 	}
-	//texture->assign(*sideTexture, side);
-	texture->sides.at(side - GL_TEXTURE_CUBE_MAP_POSITIVE_X) = sideTexture;
+	cubemap->set_side(iside - GL_TEXTURE_CUBE_MAP_POSITIVE_X, sideTexture);
 }
 
 void	Cubemap::load()
@@ -31,10 +31,10 @@ void	Cubemap::load()
 		return ;
 	}
 	Texture::load();
-	for (auto side = 0u; side < sides.size(); side++) {
-		auto t = sides.at(side);
+	for (auto i = 0u; i < 6; i++) {
+		auto t = side(i);
 		t->load();
-		assign(*t, GL_TEXTURE_CUBE_MAP_POSITIVE_X + side);
+		assign(*t, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
 	}
 	generate_mipmap();
 }
@@ -44,9 +44,8 @@ void	Cubemap::unload()
 	if (!_loaded) {
 		return ;
 	}
-	for (auto t : sides) {
-		t->unload();
-	}
+	for (auto i = 0; i < 6; i++)
+		side(i)->unload();
 	Texture::unload();
 }
 
@@ -54,24 +53,22 @@ void	Cubemap::unload()
 Cubemap::Cubemap(const std::string &name) : Texture(name)
 {
 	_target = GL_TEXTURE_CUBE_MAP;
-
 }
 
-Cubemap		*Cubemap::create(const std::string &name)
+std::shared_ptr<Cubemap>	Cubemap::create(const std::string &name)
 {
-	auto	cubemap = new Cubemap(name);
+	auto	cubemap = std::shared_ptr<Cubemap>(new Cubemap(name));
 	glGenTextures(1, &cubemap->_glid);
 	glBindTexture(cubemap->_target, cubemap->_glid);
 	glBindTexture(cubemap->_target, 0);
-	Engine::add(*cubemap);
+	_textures.push_back(std::static_pointer_cast<Texture>(cubemap));
+	_cubemaps.push_back(cubemap);
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, cubemap->_glid, -1, cubemap->name().c_str());
 	glCheckError();
 #endif //GL_DEBUG 
 	return (cubemap);
 }
-
-#include <iostream>
 
 VEC3	outImgToXYZ(float u, float v, int faceIdx)
 {
@@ -105,9 +102,9 @@ float faceTransform[6][2] =
 };
 
 #include <iostream>
-#include <thread>
 
-void	generate_side(Texture *fromTexture, Texture *t, int side)
+
+void	generate_side(std::shared_ptr<Texture> fromTexture, std::shared_ptr<Texture> t, int side)
 {
 	const float ftu = faceTransform[side][1];
 	const float ftv = faceTransform[side][0];
@@ -164,30 +161,29 @@ void	generate_side(Texture *fromTexture, Texture *t, int side)
 	std::cout << "." << std::flush;
 }
 
-Cubemap		*Cubemap::create(const std::string &name, Texture *fromTexture)
+std::shared_ptr<Cubemap>	Cubemap::create(const std::string &name, std::shared_ptr<Texture> fromTexture)
 {
 	std::cout << "Converting " << fromTexture->name() << " into Cubemap";
-	auto	cubemap = new Cubemap(name);
+	auto	cubemap = Cubemap::create(name);
 	GLenum formats[2];
 	fromTexture->format(&formats[0], &formats[1]);
 	std::vector<std::thread> threads;
-	for (auto side = 0; side < 6; ++side)
+	for (auto i = 0; i < 6; ++i)
 	{
 		auto	side_res = fromTexture->size().x / 4.f;
-		auto	sideTexture = Texture::create(fromTexture->name() + "_side_" + std::to_string(side), new_vec2(side_res, side_res), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
-		threads.push_back(std::thread(generate_side, fromTexture, sideTexture, side));
-		cubemap->sides.at(side) = sideTexture;
+		auto	sideTexture = Texture::create(fromTexture->name() + "_side_" + std::to_string(i), new_vec2(side_res, side_res), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
+		threads.push_back(std::thread(generate_side, fromTexture, sideTexture, i));
+		cubemap->set_side(i, sideTexture);
 	}
 	for (auto i = 0u; i < threads.size(); i++)
 		threads.at(i).join();
 	cubemap->generate_mipmap();
 	cubemap->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	Engine::add(*cubemap);
 	std::cout << " Done." << std::endl;
 	return (cubemap);
 }
 
-Cubemap		*Cubemap::parse(const std::string &name, const std::string &path)
+std::shared_ptr<Cubemap>	Cubemap::parse(const std::string &name, const std::string &path)
 {
 	try {
 		auto	t = Cubemap::create(name);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 23:24:39 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 18:42:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,37 +22,30 @@
 #include <unistd.h>
 #include <iostream>
 
-/*int		light_create(VEC3 position, VEC3 color, float power, bool cast_shadow = false)
-{
-	t_light *l;
-	GLenum	e;
+static auto	cameraRotation = new_vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 
-	(void)e;
-	l = new t_light();
-	if (cast_shadow)
-	{
-		l->render_buffer = framebuffer_create(new_vec2(SHADOWRES, SHADOWRES),
-		shader_get_by_name("shadow"), 0, 1);
-		texture_set_parameter(framebuffer_get_depth(l->render_buffer), GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-		texture_set_parameter(framebuffer_get_depth(l->render_buffer), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-		l->data.directional.power = power;
-		l->data.directional.color = color;
-		l->transform_index = transform_create(position, new_vec3(0, 0, 0),
-		new_vec3(1, 1, 1));
-	}
-	Engine::get().lights.push_back(l);
-	return (Engine::get().lights.size() - 1);
-}*/
+void	MouseWheelCallback(SDL_MouseWheelEvent *event)
+{
+	static auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
+	cameraRotation.z += event->y;
+	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+}
 
 void	MouseMoveCallback(SDL_MouseMotionEvent *event)
 {
-	auto	mesh = Engine::renderable(0);
+	if (!Mouse::button(1))
+		return ;
+	static auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
+	cameraRotation.x += event->yrel * Engine::delta_time();
+	cameraRotation.y -= event->xrel * Engine::delta_time();
+	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+	/*auto	mesh = Engine::renderable(0);
 	auto	rotation = mesh->rotation();
 	rotation.x += event->yrel * 0.01;
 	rotation.y += event->xrel * 0.01;
 	rotation.x = CYCLE(rotation.x, 0, 2 * M_PI);
 	rotation.y = CYCLE(rotation.y, 0, 2 * M_PI);
-	mesh->rotation() = rotation;
+	mesh->rotation() = rotation;*/
 	//std::cout << "X : " << event->xrel << " Y : " << event->yrel << std::endl;
 }
 
@@ -67,7 +60,8 @@ void	setup_callbacks()
 	Keyboard::set_callback(SDL_SCANCODE_R, keyboard_callback_rotation);
 	Mouse::set_relative(SDL_TRUE);
 	Mouse::set_move_callback(MouseMoveCallback);
-	Events::set_refresh_callback(callback_refresh);
+	Mouse::set_wheel_callback(MouseWheelCallback);
+	//Events::set_refresh_callback(callback_refresh);
 	auto controller = GameController::get(0);
 	if (controller == nullptr)
 		return ;
@@ -113,19 +107,16 @@ int		main(int argc, char *argv[])
 	Mesh *obj;
 	auto argv0 = std::string(argv[0]);
 
-	//Window::init("Scop", WIDTH, HEIGHT);
 	Engine::init();
-	//light_create(new_vec3(-1, 1, 0), new_vec3(1, 1, 1), 1);
 	auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
-	Engine::set_current_camera(camera);
-	camera->target = Node::create("main_camera_target",
-		new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1));
+	Camera::set_current(camera);
+	camera->set_target(Node::create("main_camera_target", new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
-	auto cube0 = CubeMesh::create("cube0", new_vec3(1, 2, 1));
+	/*auto cube0 = CubeMesh::create("cube0", new_vec3(1, 2, 1));
 	auto cube1 = CubeMesh::create("cube1", new_vec3(1, 1, 1));
 	cube1->position() = new_vec3(0, 1.5, 0);
 	cube1->rotation() = new_vec3(0, 0, 0.5);
-	cube1->parent = cube0;
+	cube1->parent = cube0;*/
 	obj = nullptr;
 	if (argc >= 2) {
 		obj = OBJ::parse("main_mesh", argv[1]);
@@ -136,14 +127,10 @@ int		main(int argc, char *argv[])
 	if (obj != nullptr) {
 		obj->center();
 		obj->load();
-		//obj->sort(alpha_compare);
 	}
-	obj->position() = new_vec3(0, 0, 0);
-	obj->parent = cube1;
+	//obj->parent = cube1;
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
-	
-	
 	setup_callbacks();
 	//create_random_lights(250);
 	DirectionnalLight::create("MainLight", new_vec3(1, 1, 1), new_vec3(10, 10, 0), 1, true);

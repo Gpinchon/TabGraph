@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 18:08:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 17:48:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,37 +17,28 @@ Node::Node(const std::string &name) : Object(name) /*parent(nullptr),  bounding_
 {
 }
 
-Node	*Node::get_by_name(const std::string &name)
+std::shared_ptr<Node>	Node::create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale)
 {
-	int		i;
-	size_t		h;
-	Node	*m;
-
-	i = 0;
-	std::hash<std::string>	hash_fn;
-	h = hash_fn(name);
-	while ((m = Engine::node(i)) != nullptr)
-	{
-		if (h == m->id()) {
-			return (m);
-		}
-		i++;
-	}
-	return (nullptr);
-}
-
-Node	*Node::create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale)
-{
-	Node	*t;
-
-	t = new Node(name);
+	auto	t = std::shared_ptr<Node>(new Node(name));
 	t->_position = position;
 	t->_rotation = rotation;
 	t->_scaling = scale;
 	//t->_transform = new_transform(position, rotation, scale, UP);
 	t->update();
-	Engine::add(*t);
-	return (t);
+	auto	sr = (t);
+	nodes.insert(sr);
+	return (sr);
+}
+
+std::shared_ptr<Node>	Node::get_by_name(const std::string &name)
+{
+	std::hash<std::string>	hash_fn;
+	auto					h = hash_fn(name);
+	for (auto n : nodes) {
+		if (h == n->id())
+			return (n);
+	}
+	return (nullptr);
 }
 
 void	Node::physics_update()

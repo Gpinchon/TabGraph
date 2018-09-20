@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 18:09:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 19:10:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "Window.hpp"
 #include "Keyboard.hpp"
 #include "GameController.hpp"
+#include "Environment.hpp"
 
 void				callback_camera(SDL_Event *)
 {
@@ -46,8 +47,8 @@ void				callback_camera(SDL_Event *)
 	val.x += raxis.y * Engine::delta_time();
 	val.y += raxis.x * Engine::delta_time();
 	val.z -= laxis.y * Engine::delta_time();
-	auto	camera = dynamic_cast<OrbitCamera*>(Engine::current_camera());
-	auto t = camera->target;
+	auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::current());
+	auto	t = camera->target();
 	t->position().y += rtrigger * Engine::delta_time();
 	t->position().y -= ltrigger * Engine::delta_time();
 	val.x = CLAMP(val.x, 0.01, M_PI - 0.01);
@@ -81,14 +82,14 @@ void	switch_background()
 {
 	static int	b = 0;
 	b++;
-	Environment	*env;
-	if ((env = Engine::environment(b)) != nullptr) {
-		Engine::current_environment(env);
+	auto	env = Environment::environment(b);
+	if (env != nullptr) {
+		Environment::set_current(env);
 	}
 	else {
 		b = 0;
-		env = Engine::environment(b);
-		Engine::current_environment(env);
+		env = Environment::environment(b);
+		Environment::set_current(env);
 	}
 }
 
@@ -148,7 +149,7 @@ void	keyboard_callback_rotation(SDL_KeyboardEvent *event)
 void	callback_refresh(SDL_Event */*unused*/)
 {
 	static float	rotation = 0;
-	auto	mesh = Engine::renderable(0);
+	auto	mesh = Renderable::renderable(0);
 	if (mesh == nullptr) {
 		return ;
 	}
