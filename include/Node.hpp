@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:08:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 21:48:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 
 class BoundingElement;
 
-class Node : public Object
+class Node : public Object, std::enable_shared_from_this<Node>
 {
 public:
 	static std::shared_ptr<Node>		create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale);
@@ -37,13 +37,12 @@ public:
 	VEC3								&rotation();
 	VEC3								&scaling();
 	VEC3								&up();
-	void								add_child(Node &child);
-	void								set_parent(Node &parent);
 	std::shared_ptr<Node>				target();
 	void								set_target(std::shared_ptr<Node>);
 	std::shared_ptr<Node>				parent();
 	void								set_parent(std::shared_ptr<Node>);
-	std::shared_ptr<Node>				children(unsigned index);
+	void								add_child(std::shared_ptr<Node> child);
+	std::shared_ptr<Node>				child(unsigned index);
 	BoundingElement						*bounding_element{nullptr};
 protected :
 	Node(const std::string &name);

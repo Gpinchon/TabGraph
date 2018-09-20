@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 18:11:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 22:21:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,13 +114,13 @@ std::vector<Light *> shadowLights;
 void	render_shadows()
 {
 	static auto	tempCamera = Camera::create("light_camera", 45);
-	auto		*camera = Engine::current_camera();	
+	auto		camera = Camera::current();	
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	Engine::set_current_camera(tempCamera);
+	Camera::set_current(tempCamera);
 	tempCamera->projection() = mat4_identity();
 	for (auto light : shadowLights)
 	{
@@ -128,19 +128,19 @@ void	render_shadows()
 		glClear(GL_DEPTH_BUFFER_BIT);
 		tempCamera->position() = light->position();
 		tempCamera->view() = light->transform();
-		for (auto index = 0; Engine::renderable(index) != nullptr; index++) {
-			auto	node = Engine::renderable(index);
+		for (auto index = 0; Renderable::renderable(index) != nullptr; index++) {
+			auto	node = Renderable::renderable(index);
 			node->render_depth(RenderOpaque);
 		}
 		light->render_buffer()->bind(false);
 	}
-	Engine::set_current_camera(camera);
+	Camera::set_current(camera);
 }
 
 void	Render::fixed_update()
 {
-	auto	InvViewMatrix = mat4_inverse(Engine::current_camera()->view());
-	auto	InvProjMatrix = mat4_inverse(Engine::current_camera()->projection());
+	auto	InvViewMatrix = mat4_inverse(Camera::current()->view());
+	auto	InvProjMatrix = mat4_inverse(Camera::current()->projection());
 	auto	res = Window::internal_resolution();
 	auto	index = 0;
 
@@ -163,9 +163,9 @@ normalLights.reserve(1000);
 	while (auto shader = Engine::shader(index))
 	{
 		shader->use();
-		shader->set_uniform("Camera.Position", Engine::current_camera()->position());
-		shader->set_uniform("Camera.Matrix.View", Engine::current_camera()->view());
-		shader->set_uniform("Camera.Matrix.Projection", Engine::current_camera()->projection());
+		shader->set_uniform("Camera.Position", Camera::current()->position());
+		shader->set_uniform("Camera.Matrix.View", Camera::current()->view());
+		shader->set_uniform("Camera.Matrix.Projection", Camera::current()->projection());
 		shader->set_uniform("Camera.InvMatrix.View", InvViewMatrix);
 		shader->set_uniform("Camera.InvMatrix.Projection", InvProjMatrix);
 		shader->set_uniform("Resolution", new_vec3(res.x, res.y, res.x / res.y));
@@ -283,7 +283,7 @@ void	Render::scene()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	Renderable *node;
-	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
+	for (auto index = 0; (node = Renderable::renderable(index)) != nullptr; index++) {
 		node->render(RenderOpaque);
 	}
 
@@ -350,7 +350,7 @@ void	Render::scene()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	bool	rendered_stuff = false;
-	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
+	for (auto index = 0; (node = Renderable::renderable(index)) != nullptr; index++) {
 		if (node->render_depth(RenderTransparent))
 			rendered_stuff = true;
 	}
@@ -366,7 +366,7 @@ void	Render::scene()
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_CULL_FACE);
 	glDepthFunc(GL_EQUAL);
-	for (auto index = 0; (node = Engine::renderable(index)) != nullptr; index++) {
+	for (auto index = 0; (node = Renderable::renderable(index)) != nullptr; index++) {
 		node->render(RenderTransparent);
 	}
 

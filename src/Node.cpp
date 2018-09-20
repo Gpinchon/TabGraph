@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 17:48:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/20 21:50:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,16 +25,15 @@ std::shared_ptr<Node>	Node::create(const std::string &name, VEC3 position, VEC3 
 	t->_scaling = scale;
 	//t->_transform = new_transform(position, rotation, scale, UP);
 	t->update();
-	auto	sr = (t);
-	nodes.insert(sr);
-	return (sr);
+	_nodes.push_back(t);
+	return (t);
 }
 
 std::shared_ptr<Node>	Node::get_by_name(const std::string &name)
 {
 	std::hash<std::string>	hash_fn;
 	auto					h = hash_fn(name);
-	for (auto n : nodes) {
+	for (auto n : _nodes) {
 		if (h == n->id())
 			return (n);
 	}
@@ -48,19 +47,19 @@ void	Node::physics_update()
 	_scale = mat4_scale(_scaling);
 	_transform = mat4_combine(_translate, _rotate, _scale);
 	//transform_update(&_transform);
-	if (parent != nullptr) {
-		_transform = mat4_mult_mat4(parent->transform(), _transform);
-		//transform_set_parent(&_transform, &parent->_transform);
+	if (parent() != nullptr) {
+		_transform = mat4_mult_mat4(parent()->transform(), _transform);
+		//transform_set_parent(&_transform, &parent()->_transform);
 	}
 }
 
-void	Node::add_child(Node &child)
+void	Node::add_child(std::shared_ptr<Node> childNode)
 {
-	if (&child == this) {
+	if (childNode == shared_from_this()) {
 		return ;
 	}
-	children.push_back(&child);
-	child.parent = this;
+	_children.push_back(childNode);
+	childNode->set_parent(shared_from_this());
 }
 
 VEC3	&Node::up()
