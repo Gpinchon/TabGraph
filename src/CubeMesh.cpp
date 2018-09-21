@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/19 22:58:50 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 23:23:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 15:39:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "Vgroup.hpp"
 #include "Material.hpp"
 
-Mesh	*CubeMesh::create(const std::string &name, VEC3 size)
+std::shared_ptr<Mesh>	CubeMesh::create(const std::string &name, VEC3 size)
 {
 	auto	m = Mesh::create(name);
 	static std::vector<VEC3> cubeVertices {
@@ -101,12 +101,11 @@ Mesh	*CubeMesh::create(const std::string &name, VEC3 size)
 	for (auto &v : thisCubeVertices) {
 		v = vec3_mult(v, size);
 	}
-	vg->material = Material::create(vg->name() + "_material");
+	vg->set_material(Material::create(vg->name() + "_material"));
 	vg->v = thisCubeVertices;
 	vg->vn = cubeNormals;
 	vg->vt = cubeTexCoords;
 	vg->i = cubeIndices;
 	m->add(vg);
-	Engine::add(*m);
 	return (m);
 }

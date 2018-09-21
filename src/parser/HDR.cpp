@@ -1,16 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parser.cpp                                         :+:      :+:    :+:   */
+/*   HDR.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/04 22:00:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:16:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Texture.hpp"
 #include "parser/HDR.hpp"
 #include "parser/InternalTools.hpp"
 #include <stdexcept>
@@ -31,7 +32,7 @@ static void workOnRGBE(RGBE *scan, int len, float *cols);
 static bool decrunch(RGBE *scanline, int len, FILE *file);
 static bool oldDecrunch(RGBE *scanline, int len, FILE *file);
 
-Texture *HDR::parse(const std::string &texture_name, const std::string &path)
+std::shared_ptr<Texture>	HDR::parse(const std::string &texture_name, const std::string &path)
 {
 	std::cout << "Parsing " << texture_name;
 	int i;
@@ -92,12 +93,9 @@ Texture *HDR::parse(const std::string &texture_name, const std::string &path)
 
 	delete [] scanline;
 	fclose(file);
-
-	auto	t = static_cast<HDR*>(Texture::create(texture_name, size,
-				GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, nullptr));
-	t->_data = static_cast<GLubyte*>(data);
 	std::cout << " Done." << std::endl;
-	return (t);
+
+	return (Texture::create(texture_name, size, GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data));
 }
 
 float convertComponent(int expo, int val)

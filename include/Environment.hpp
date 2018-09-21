@@ -6,12 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/20 18:43:36 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:05:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:38:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include "Object.hpp"
+#include <vector>
+#include <memory>
 
 class Cubemap;
 
@@ -19,7 +21,7 @@ class Environment : public Object
 {
 public:
 	static std::shared_ptr<Environment>	create(const std::string &name);
-	static std::shared_ptr<Environment>	environment(unsigned index);
+	static std::shared_ptr<Environment>	get(unsigned index);
 	static std::shared_ptr<Environment>	current();
 	static void							set_current(std::shared_ptr<Environment>);
 	void								unload();
@@ -33,5 +35,4 @@ protected:
 	std::weak_ptr<Cubemap>				_diffuse;
 	std::weak_ptr<Cubemap>				_irradiance;
 	Environment(const std::string &name);
-	~Environment() = default;
 };

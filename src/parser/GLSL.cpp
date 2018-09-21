@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 14:38:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:23:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,11 +48,11 @@ GLuint	compile_shader(const std::string &path, GLenum type)
 	return (shaderid);
 }
 
-Shader	*GLSL::parse(const std::string &name,
+std::shared_ptr<Shader>	GLSL::parse(const std::string &name,
 	const std::string &fragment_file_path,
 	const std::string &vertex_file_path, ShaderType type, const std::string &defines)
 {
-	auto	shader = static_cast<GLSL*>(Shader::create(name));
+	auto	shader = std::static_pointer_cast<GLSL>(Shader::create(name));
 	GLuint	vertexid = 0;
 	GLuint	fragmentid = 0;
 	try {
@@ -85,10 +85,10 @@ Shader	*GLSL::parse(const std::string &name,
 	return (shader);
 }
 
-Shader	*GLSL::parse(const std::string &name,
+std::shared_ptr<Shader>	GLSL::parse(const std::string &name,
 	const std::string &fragment_file_path, ShaderType type, const std::string &defines)
 {
-	auto	shader = static_cast<GLSL*>(Shader::create(name));
+	auto	shader = std::static_pointer_cast<GLSL>(Shader::create(name));
 	GLuint	vertexid = 0;
 	GLuint	fragmentid = 0;
 	GLuint	computeid = 0;
@@ -138,11 +138,11 @@ Shader	*GLSL::parse(const std::string &name,
 	return (shader);
 }
 
-Shader	*GLSL::parse(const std::string &name,
+std::shared_ptr<Shader>	GLSL::parse(const std::string &name,
 	const std::string &vertex_file_path,
 	const std::string &fragment_file_path)
 {
-	auto	shader = static_cast<GLSL*>(Shader::create(name));
+	auto	shader = std::static_pointer_cast<GLSL>(Shader::create(name));
 	GLuint	vertexid = 0;
 	GLuint	fragmentid = 0;
 	try {

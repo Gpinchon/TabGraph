@@ -6,14 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:05:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 15:30:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "Node.hpp"
-#include <unordered_set>
+//#include <unordered_set>
 
 enum RenderMod
 {
@@ -25,7 +25,7 @@ class Material;
 class	Renderable : public Node
 {
 public:
-	static std::shared_ptr<Renderable>	renderable(unsigned index);
+	static std::shared_ptr<Renderable>	get(unsigned index);
 	static std::shared_ptr<Renderable>	get_by_name(const std::string &);
 	virtual bool						render(RenderMod mod = RenderAll) = 0;
 	virtual bool						render_depth(RenderMod mod = RenderAll) = 0;
@@ -40,10 +40,11 @@ protected:
 	Renderable(const std::string &name) : Node(name), _is_loaded(false) {};
 };
 
-class RenderableMultiDraw : public Renderable
+/*class RenderableMultiDraw : public Renderable
 {
 public :
-	std::unordered_set<Material*>	materials{0};
+	std::unordered_set<std::weak_ptr<Material>>	materials;
 protected :
 	RenderableMultiDraw(const std::string &name) : Renderable(name) {};
 };
+*/

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:30:14 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/14 17:11:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 16:18:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,9 @@ namespace Render
 	void		update();
 	void		fixed_update();
 	void		scene();
-	void		add_post_treatment(Shader *);
+	void		add_post_treatment(std::shared_ptr<Shader>);
 	void		add_post_treatment(const std::string &name, const std::string &path);
-	void		remove_post_treatment(Shader *);
-	const VertexArray	*display_quad();
-	std::set<Shader*>	post_treatments;
+	void		remove_post_treatment(std::shared_ptr<Shader>);
+	const std::shared_ptr<VertexArray>	display_quad();
+	std::vector<std::weak_ptr<Shader>>	post_treatments;
 };

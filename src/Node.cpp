@@ -6,12 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 21:50:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 19:28:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include "Node.hpp"
+
+std::vector<std::shared_ptr<Node>>	Node::_nodes;
 
 Node::Node(const std::string &name) : Object(name) /*parent(nullptr),  bounding_element(nullptr), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))*/
 {
@@ -40,6 +42,14 @@ std::shared_ptr<Node>	Node::get_by_name(const std::string &name)
 	return (nullptr);
 }
 
+std::shared_ptr<Node>	Node::get(unsigned index)
+{
+	if (index >= _nodes.size())
+		return (nullptr);
+	return (_nodes.at(index));
+}
+
+
 void	Node::physics_update()
 {
 	_translate = mat4_translate(_position);
@@ -61,6 +71,32 @@ void	Node::add_child(std::shared_ptr<Node> childNode)
 	_children.push_back(childNode);
 	childNode->set_parent(shared_from_this());
 }
+
+std::shared_ptr<Node>	Node::target()
+{
+	return (_target.lock());
+}
+
+void					Node::set_target(std::shared_ptr<Node> tgt)
+{
+	_target = tgt;
+}
+
+std::shared_ptr<Node>	Node::parent()
+{
+	return (_parent.lock());
+}
+
+/*/!\ BEWARE OF LOOPS !!! /!\*/
+void					Node::set_parent(std::shared_ptr<Node> prt)
+{
+	if (prt == shared_from_this()) {
+		return ;
+	}
+	_parent = prt;
+	prt->add_child(shared_from_this());
+}
+
 
 VEC3	&Node::up()
 {

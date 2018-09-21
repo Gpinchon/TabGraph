@@ -6,25 +6,26 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 21:48:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 19:24:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "Object.hpp"
+#include <iostream>
 #include <string>
 #include <vector>
 #include <memory>
 
 class BoundingElement;
 
-class Node : public Object, std::enable_shared_from_this<Node>
+class Node : public Object, public std::enable_shared_from_this<Node>
 {
 public:
 	static std::shared_ptr<Node>		create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale);
 	static std::shared_ptr<Node>		get_by_name(const std::string &);
-	static std::shared_ptr<Node>		node(unsigned index);
+	static std::shared_ptr<Node>		get(unsigned index);
 	virtual void						physics_update();
 	virtual void						fixed_update() {};
 	virtual void						update() {};
@@ -44,8 +45,10 @@ public:
 	void								add_child(std::shared_ptr<Node> child);
 	std::shared_ptr<Node>				child(unsigned index);
 	BoundingElement						*bounding_element{nullptr};
+	~Node() { std::cout << name() << "destructed" << std::endl; };
 protected :
 	Node(const std::string &name);
+	
 	std::vector<std::weak_ptr<Node>>	_children;
 	std::weak_ptr<Node>					_target;
 	std::weak_ptr<Node>					_parent;

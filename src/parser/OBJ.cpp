@@ -6,11 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/15 15:23:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 19:26:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Mesh.hpp"
 #include "Vgroup.hpp"
 #include "parser/InternalTools.hpp"
 #include "parser/MTLLIB.hpp"
@@ -159,7 +160,7 @@ void		parse_v(t_obj_parser *p, std::vector<std::string> &split, VEC2 *in_vt)
 	push_values(p, v, vn, vt);
 }
 
-static void	vt_min_max(Vgroup *vg)
+static void	vt_min_max(std::shared_ptr<Vgroup> vg)
 {
 	vg->uvmin = new_vec2(100000, 100000);
 	vg->uvmax = new_vec2(-100000, -100000);
@@ -197,10 +198,10 @@ void		parse_vg(t_obj_parser *p)
 	{
 		childNbr++;
 		vt_min_max(p->vg);
-		p->parent->add_child(*p->vg);
+		//p->parent->add_child(p->vg);
 		p->parent->add(p->vg);
 		p->vg = Vgroup::create(p->parent->name() + "_child " + std::to_string(childNbr));
-		p->vg->material = Material::get_by_name("default");
+		p->vg->set_material(Material::get_by_name("default"));
 	}
 }
 
@@ -255,7 +256,7 @@ VEC3		parse_vec3(std::vector<std::string> &split)
 	{
 		if ((i + 1) >= split.size()) {
 			break ;
-}
+		}
 		v[i] = std::stof(split[i + 1]);
 		i++;
 	}
@@ -359,7 +360,7 @@ static void	parse_line(t_obj_parser *p, const char *line)
 		parse_vg(p);
 		auto	mtl = Material::get_by_name(split[1]);
 		if (mtl != nullptr)
-			p->vg->material = mtl;
+			p->vg->set_material(mtl);
 	}
 	else if (split[0] == "mtllib") {
 		PBRMTLLIB::parse(p->path_split[0] + split[1]);
@@ -377,10 +378,9 @@ static void	start_obj_parsing(t_obj_parser *p, const std::string &name, const st
 	if ((p->fd = fopen(path.c_str(), "r")) == nullptr) {
 		throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
 	}
-	static auto	defaultMat = Material::get_by_name("default");
 	p->parent = Mesh::create(name);
-	p->vg = Vgroup::create(name + "_child 0");//new Vgroup(name + "_child 0");//Mesh::create(name + "_child 0");
-	p->vg->material = defaultMat;
+	p->vg = Vgroup::create(name + "_child 0");
+	p->vg->set_material(Material::get_by_name("default"));
 	p->vg->bounding_element = new AABB(p->bbox);
 	while (fgets(line, 4096, p->fd) != nullptr) {
 		parse_line(p, line);
@@ -394,7 +394,7 @@ static void	start_obj_parsing(t_obj_parser *p, const std::string &name, const st
 	}
 }
 
-Mesh	*OBJ::parse(const std::string &name, const std::string &path)
+std::shared_ptr<Mesh>	OBJ::parse(const std::string &name, const std::string &path)
 {
 	t_obj_parser	p;
 

@@ -6,30 +6,32 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/20 18:45:15 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:05:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:43:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Environment.hpp"
+#include "Cubemap.hpp"
+
+std::weak_ptr<Environment>				Environment::_current;
+std::vector<std::shared_ptr<Environment>>	Environment::_environments;
 
 Environment::Environment(const std::string &name) : Object(name) {
 
 }
 
-std::shared_ptr<Environment> Environment::create(const std::string &name)
+std::shared_ptr<Environment>	Environment::create(const std::string &name)
 {
 	auto	e = std::shared_ptr<Environment>(new Environment(name));
-	_environments.insert(e);
+	_environments.push_back(e);
 	return (e);
 }
 
-
-
-std::shared_ptr<Environment>	Environment::environment(unsigned index)
+std::shared_ptr<Environment>	Environment::get(unsigned index)
 {
 	if (index >= _environments.size())
 		return (nullptr);
-	return (_environments[index].lock());
+	return (_environments.at(index));
 }
 
 std::shared_ptr<Environment>	Environment::current()

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/19 22:57:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 23:05:31 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 15:36:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,5 +16,5 @@
 
 namespace CubeMesh
 {
-	Mesh	*create(const std::string &name, VEC3 size);
+	std::shared_ptr<Mesh>	create(const std::string &name, VEC3 size);
 };

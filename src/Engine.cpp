@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:11:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 10:52:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,20 +226,20 @@ int		event_filter(void *arg, SDL_Event *event)
 
 void	Engine::update()
 {
-	for (auto i = 0; Node::node(i); i++) {
-		auto node = Node::node(i);
+	for (auto i = 0; Node::get(i); i++) {
+		auto node = Node::get(i);
 		node->update();
 	}
 }
 
 void	Engine::fixed_update()
 {
-	for (auto i = 0; Node::node(i); i++) {
-		auto node = Node::node(i);
+	for (auto i = 0; Node::get(i); i++) {
+		auto node = Node::get(i);
 		node->physics_update();
 	}
-	for (auto i = 0; Node::node(i); i++) {
-		auto node = Node::node(i);
+	for (auto i = 0; Node::get(i); i++) {
+		auto node = Node::get(i);
 		node->fixed_update();
 	}
 }

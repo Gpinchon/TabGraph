@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parser.cpp                                         :+:      :+:    :+:   */
+/*   MTLLIB.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/28 22:30:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:25:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <unistd.h>
 
-void	parse_color(std::vector<std::string> &split, Material *mtl)
+void	parse_color(std::vector<std::string> &split, std::shared_ptr<Material> mtl)
 {
 	if (split[0] == "Kd") {
 		mtl->albedo = parse_vec3(split);
@@ -33,35 +33,33 @@ void	parse_color(std::vector<std::string> &split, Material *mtl)
 		
 }
 
-void	parse_texture(t_obj_parser *p, std::vector<std::string> &split, Material *mtl)
+void	parse_texture(t_obj_parser *p, std::vector<std::string> &split, std::shared_ptr<Material> mtl)
 {
 	std::string path(p->path_split[0]);
 
 	path += split[1];
 	if (split[0] == "map_Kd") {
-		mtl->texture_albedo = BMP::parse(path, path);
+		mtl->set_texture_albedo(BMP::parse(path, path));
 	} else if (split[0] == "map_Ks") {
-		mtl->texture_specular = BMP::parse(path, path);
+		mtl->set_texture_specular(BMP::parse(path, path));
 	} else if (split[0] == "map_Ke") {
-		mtl->texture_emitting = BMP::parse(path, path);
+		mtl->set_texture_emitting(BMP::parse(path, path));
 	} else if (split[0] == "map_Nh") {
-		mtl->texture_height = BMP::parse(path, path);
+		mtl->set_texture_height(BMP::parse(path, path));
 	} else if (split[0] == "map_No") {
-		mtl->texture_ao = BMP::parse(path, path);
-	} /*else if (split[0] == "map_Ns") {
-		mtl->texture_sss = BMP::parse(path, path);
-	}*/ else if (split[0] == "map_Nr") {
-		mtl->texture_roughness = BMP::parse(path, path);
+		mtl->set_texture_ao(BMP::parse(path, path));
+	} else if (split[0] == "map_Nr") {
+		mtl->set_texture_roughness(BMP::parse(path, path));
 	} else if (split[0] == "map_Nm") {
-		mtl->texture_metallic = BMP::parse(path, path);
+		mtl->set_texture_metallic(BMP::parse(path, path));
 	} else if (split[0] == "map_bump" || split[0] == "map_Bump") {
-		mtl->texture_normal = BMP::parse(path, path);
+		mtl->set_texture_normal(BMP::parse(path, path));
 	}
 }
 
-void	parse_number(std::vector<std::string> &split, Material *mtl)
+void	parse_number(std::vector<std::string> &split, std::shared_ptr<Material> mtl)
 {
-	float ior;
+	
 
 	if (split[0] == "Np") {
 		mtl->parallax = std::stof(split[1]);
@@ -73,6 +71,7 @@ void	parse_number(std::vector<std::string> &split, Material *mtl)
 		mtl->metallic = std::stof(split[1]);
 	} else if (split[0] == "Ni")
 	{
+		float ior;
 		ior = std::stof(split[1]);
 		mtl->ior = ior;
 		ior = (ior - 1) / (ior + 1);
@@ -86,13 +85,11 @@ void	parse_number(std::vector<std::string> &split, Material *mtl)
 
 void	parse_mtl(t_obj_parser *p, std::string &name)
 {
-	Material	*mtl;
-	char		line[4096];
-
 	if (Material::get_by_name(name) != nullptr) {
 		return ;
 	}
-	mtl = Material::create(name);
+	char		line[4096];
+	auto	mtl = Material::create(name);
 	while (fgets(line, 4096, p->fd) != nullptr)
 	{
 		auto msplit = strsplitwspace(line);

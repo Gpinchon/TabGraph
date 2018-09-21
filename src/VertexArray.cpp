@@ -6,18 +6,21 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:14:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 22:17:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 18:08:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "VertexArray.hpp"
 
-VertexArray	*VertexArray::create(size_t vertex_nbr, GLenum GLDrawType)
+std::vector<std::shared_ptr<VertexArray>>	VertexArray::_vertexArrays;
+
+std::shared_ptr<VertexArray>	VertexArray::create(size_t vertex_nbr, GLenum GLDrawType)
 {
-	auto	vao = new VertexArray();
+	auto	vao = std::shared_ptr<VertexArray>(new VertexArray());
 	vao->_vertex_nbr = vertex_nbr;
 	vao->_GLDrawType = GLDrawType;
 	glGenVertexArrays(1, &vao->_GLid);
+	_vertexArrays.push_back(vao);
 	return (vao);
 }
 

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:25:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 19:27:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include "Errors.hpp"
 #include "parser/BMP.hpp"
 #include <thread>
+
+std::vector<std::shared_ptr<Cubemap>>	Cubemap::_cubemaps;
 
 void	cubemap_load_side(std::shared_ptr<Cubemap> cubemap, const std::string &path, GLenum iside)
 {
@@ -61,7 +63,7 @@ std::shared_ptr<Cubemap>	Cubemap::create(const std::string &name)
 	glGenTextures(1, &cubemap->_glid);
 	glBindTexture(cubemap->_target, cubemap->_glid);
 	glBindTexture(cubemap->_target, 0);
-	_textures.push_back(std::static_pointer_cast<Texture>(cubemap));
+	_textures.push_back(cubemap);
 	_cubemaps.push_back(cubemap);
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, cubemap->_glid, -1, cubemap->name().c_str());
@@ -201,4 +203,16 @@ std::shared_ptr<Cubemap>	Cubemap::parse(const std::string &name, const std::stri
 		throw std::runtime_error(std::string("Error parsing Cubemap : " + path + name + " :\n\t") + e.what());
 	}
 	return (nullptr);
+}
+
+std::shared_ptr<Texture>	Cubemap::side(unsigned index)
+{
+	if (index > 5)
+		return (nullptr);
+	return (_sides.at(index).lock());
+}
+
+void						Cubemap::set_side(unsigned index, std::shared_ptr<Texture> t)
+{
+	_sides.at(index) = t;
 }

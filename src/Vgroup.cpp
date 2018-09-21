@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 19:10:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 18:07:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,15 +20,37 @@
 #include "Texture.hpp"
 #include "parser/GLSL.hpp"
 
+std::vector<std::shared_ptr<Vgroup>> Vgroup::_vgroups;
+
 Vgroup::Vgroup(const std::string &name) : Renderable(name)
 {
 	bounding_element = new AABB;
 }
 
-Vgroup		*Vgroup::create(const std::string &name)
+std::shared_ptr<Vgroup>	Vgroup::create(const std::string &name)
 {
-	return (new Vgroup(name));
-};
+	auto	vg = std::shared_ptr<Vgroup>(new Vgroup(name));
+	_vgroups.push_back(vg);
+	return (vg);
+}
+
+std::shared_ptr<Vgroup>	Vgroup::get(unsigned index)
+{
+	if (index >= _vgroups.size())
+		return (nullptr);
+	return (_vgroups.at(index));
+}
+
+std::shared_ptr<Vgroup>	Vgroup::get_by_name(const std::string &name)
+{
+	std::hash<std::string>	hash_fn;
+	auto					h = hash_fn(name);
+	for (auto n : _vgroups) {
+		if (h == n->id())
+			return (n);
+	}
+	return (nullptr);
+}
 
 void			Vgroup::load()
 {
@@ -45,53 +67,63 @@ void			Vgroup::load()
 
 void			Vgroup::bind()
 {
-	if ((material == nullptr) || (material->shader == nullptr) || (Engine::current_camera() == nullptr)) {
+	if ((material() == nullptr) || (material()->shader() == nullptr) || (Camera::current() == nullptr)) {
 		return ;
 	}
 }
 
 bool			Vgroup::render_depth(RenderMod mod)
 {
-	if ((material == nullptr) || (material->depth_shader == nullptr)) {
+	auto	mtl = material();
+	if ((mtl == nullptr)) {
+		return (false);
+	}
+	auto	depthShader = mtl->depth_shader();
+	if (depthShader == nullptr) {
 		return (false);
 	}
 	if (mod == RenderOpaque
-		&& (material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4)))
+		&& (mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
 		return (false);
 	else if (mod == RenderTransparent
-		&&	!(material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4))) {
+		&&	!(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4))) {
 		return (false);
 	}
-	material->depth_shader->use();
-	material->depth_shader->bind_texture("Texture.Albedo", material->texture_albedo, GL_TEXTURE0);
-	material->depth_shader->set_uniform("Texture.Use_Albedo", material->texture_albedo != nullptr);
-	material->depth_shader->set_uniform("Material.Alpha", material->alpha);
+	depthShader->use();
+	depthShader->bind_texture("Texture.Albedo", mtl->texture_albedo(), GL_TEXTURE0);
+	depthShader->set_uniform("Texture.Use_Albedo", mtl->texture_albedo() != nullptr);
+	depthShader->set_uniform("Material.Alpha", mtl->alpha);
 	/*material->bind_textures();
 	material->bind_values();*/
 	//bind();
 	_vao->draw();
-	material->depth_shader->use(false);
+	depthShader->use(false);
 	return (true);
 }
 
 bool			Vgroup::render(RenderMod mod)
 {
-	if ((material == nullptr) || (material->shader == nullptr)) {
+	auto	mtl = material();
+	if ((mtl == nullptr)) {
+		return (false);
+	}
+	auto	cShader = mtl->shader();
+	if (cShader == nullptr) {
 		return (false);
 	}
 	if (mod == RenderOpaque
-		&& (material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4)))
+		&& (mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
 		return (false);
 	else if (mod == RenderTransparent
-		&&	!(material->alpha < 1 || (material->texture_albedo != nullptr && material->texture_albedo->values_per_pixel() == 4))) {
+		&&	!(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4))) {
 		return (false);
 	}
-	material->shader->use();
-	material->bind_textures();
-	material->bind_values();
+	cShader->use();
+	mtl->bind_textures();
+	mtl->bind_values();
 	bind();
 	_vao->draw();
-	material->shader->use(false);
+	cShader->use(false);
 	return (true);
 }
 

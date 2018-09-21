@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:25:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 10:47:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ public:
 	static std::shared_ptr<Cubemap>	create(const std::string &);
 	static std::shared_ptr<Cubemap>	create(const std::string &, std::shared_ptr<Texture> fromTexture);
 	static std::shared_ptr<Cubemap>	parse(const std::string &, const std::string &);
-	static std::shared_ptr<Cubemap>	cubemap(unsigned index);
+	static std::shared_ptr<Cubemap>	get(unsigned index);
 	static std::shared_ptr<Cubemap>	get_by_name(const std::string &);
 	void							load();
 	void							unload();

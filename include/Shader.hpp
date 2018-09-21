@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 14:29:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 11:04:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,18 +31,18 @@ struct	ShaderVariable
 class Shader : public Object
 {
 public:
-	static Shader	*get_by_name(const std::string &);
-    static Shader   *create(const std::string &);
-	static bool		check_shader(const GLuint &id);
-	static bool		check_program(const GLuint &id);
-	GLuint			link(const GLuint &vertexid, const GLuint &fragmentid);
-	GLuint			link(const GLuint &geometryid, const GLuint &vertexid, const GLuint &fragmentid);
-	GLuint			link(const GLuint &shaderid);
-	void			bind_texture(const std::string &,
-					Texture *, const GLenum &texture_unit);
+	static std::shared_ptr<Shader>  create(const std::string &);
+	static std::shared_ptr<Shader>	get(unsigned index);
+	static std::shared_ptr<Shader>	get_by_name(const std::string &);
+	static bool		check_shader(const GLuint id);
+	static bool		check_program(const GLuint id);
+	GLuint			link(const GLuint vertexid, const GLuint fragmentid);
+	GLuint			link(const GLuint geometryid, const GLuint vertexid, const GLuint fragmentid);
+	GLuint			link(const GLuint shaderid);
+	void			bind_texture(const std::string &, std::shared_ptr<Texture>, const GLenum texture_unit);
 	void			unbind_texture(GLenum texture_unit);
-	void            set_uniform(const std::string &uname, const bool &, unsigned nbr = 1);
-    void			set_uniform(const std::string &uname, const int &, unsigned nbr = 1);
+	void			set_uniform(const std::string &uname, const bool &, unsigned nbr = 1);
+	void			set_uniform(const std::string &uname, const int &, unsigned nbr = 1);
 	void			set_uniform(const std::string &uname, const unsigned &, unsigned nbr = 1);
 	void			set_uniform(const std::string &uname, const float &, unsigned nbr = 1);
 	void			set_uniform(const std::string &uname, const VEC2 &, unsigned nbr = 1);
@@ -52,9 +52,10 @@ public:
 	ShaderVariable	*get_uniform(const std::string &name);
 	bool			in_use();
 protected:
+	static std::vector<std::shared_ptr<Shader>>	_shaders;
+	GLuint			_program;
+	bool			_in_use;
 	std::unordered_map<std::string, ShaderVariable>	_get_variables(GLenum type);
-	GLuint		    _program;
-	bool		    _in_use;
 	std::unordered_map<std::string, ShaderVariable> _uniforms;
 	std::unordered_map<std::string, ShaderVariable> _attributes;
 private:

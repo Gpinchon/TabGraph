@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 17:49:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:51:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include "Render.hpp"
 #include "parser/GLSL.hpp"
 #include "Errors.hpp"
+
+std::vector<std::shared_ptr<Texture>>	Texture::_textures;
 
 Texture::Texture(const std::string &name) :
 _glid(0),
@@ -64,7 +66,7 @@ std::shared_ptr<Texture>	Texture::create(const std::string &name, VEC2 s, GLenum
 	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
 	glCheckError();
 #endif //GL_DEBUG
-	textures.insert(t);
+	_textures.push_back(t);
 	return (t);
 }
 
@@ -72,7 +74,7 @@ std::shared_ptr<Texture>	Texture::get_by_name(const std::string &name)
 {
 	std::hash<std::string>	hash_fn;
 	auto					h = hash_fn(name);
-	for (auto t : textures) {
+	for (auto t : _textures) {
 		if (h == t->id())
 			return (t);
 	}
@@ -394,9 +396,9 @@ void	Texture::resize(const VEC2 &ns)
 }
 
 
-Framebuffer	*Texture::_generate_blur_buffer(const std::string &bname)
+std::shared_ptr<Framebuffer>	Texture::_generate_blur_buffer(const std::string &bname)
 {
-	auto	buffer = Framebuffer::create(bname, size(), nullptr, 0, 0);
+	auto	buffer = Framebuffer::create(bname, size(), 0, 0);
 	buffer->create_attachement(_format, _internal_format);
 	buffer->setup_attachements();
 	return (buffer);
@@ -417,9 +419,9 @@ void	Texture::blur(const int &pass, const float &radius)
 	
 	auto	totalPass = pass * 4;
 	auto	cbuffer = _blur_buffer0;
-	auto	ctexture = this;
+	auto	ctexture = shared_from_this();
 	float	angle = 0;
-	Texture	*attachement = nullptr;
+	std::shared_ptr<Texture>	attachement;
 	blurShader->use();
 	while (totalPass > 0)
 	{
@@ -428,7 +430,7 @@ void	Texture::blur(const int &pass, const float &radius)
 		direction = vec2_scale(direction, radius);
 		if (totalPass == 1) {
 			attachement = cbuffer->attachement(0);
-			cbuffer->set_attachement(0, this);
+			cbuffer->set_attachement(0, shared_from_this());
 		}
 		cbuffer->bind();
 		blurShader->set_uniform("in_Direction", direction);

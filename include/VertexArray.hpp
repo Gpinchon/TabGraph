@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 20:09:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 22:17:41 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 15:58:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "GLIncludes.hpp"
+#include <memory>
 #include <vector>
 
 class VertexBuffer
@@ -33,7 +34,7 @@ private:
 class VertexArray
 {
 public:
-	static VertexArray	*create(size_t vertex_nbr, GLenum GLDrawType = GL_TRIANGLES);
+	static std::shared_ptr<VertexArray>	create(size_t vertex_nbr, GLenum GLDrawType = GL_TRIANGLES);
 	void				bind(bool tobind = true) const;
 	void				draw() const;
 	GLuint				glid() const;
@@ -41,7 +42,7 @@ public:
 	VertexBuffer		*add_buffer(GLenum data_type, int size, const std::vector<T> &a);
 	VertexBuffer		*add_indices(const std::vector<unsigned int> &a);
 private:
-	VertexArray() = default;
+	static std::vector<std::shared_ptr<VertexArray>>	_vertexArrays;
 	std::vector<VertexBuffer*>	_buffers;
 	VertexBuffer				*_indices;
 	bool						_indexed{false};
@@ -49,6 +50,7 @@ private:
 	size_t						_vertex_nbr{0};
 	GLuint						_GLid{0};
 	GLenum						_GLDrawType{GL_TRIANGLES};
+	VertexArray() = default;
 };
 
 template <typename T>

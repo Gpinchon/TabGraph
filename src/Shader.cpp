@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 14:39:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 18:01:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,16 +14,36 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 
+std::vector<std::shared_ptr<Shader>>	Shader::_shaders;
+
 Shader::Shader(const std::string &name) : _program(0), _in_use(false)
 {
 	set_name(name);
 }
 
-Shader	*Shader::create(const std::string &name)
+std::shared_ptr<Shader>	Shader::create(const std::string &name)
 {
-	auto	shader = new Shader(name);
-	Engine::add(*shader);
+	auto	shader = std::shared_ptr<Shader>(new Shader(name));
+	_shaders.push_back(shader);
 	return (shader);
+}
+
+std::shared_ptr<Shader>	Shader::get(unsigned index)
+{
+	if (index >= _shaders.size())
+		return (nullptr);
+	return (_shaders.at(index));
+}
+
+std::shared_ptr<Shader> Shader::get_by_name(const std::string &name)
+{
+	std::hash<std::string>	hash_fn;
+	auto					h = hash_fn(name);
+	for (auto s : _shaders) {
+		if (h == s->id())
+			return (s);
+	}
+	return (nullptr);
 }
 
 ShaderVariable	*Shader::get_uniform(const std::string &name)
@@ -163,25 +183,6 @@ void			Shader::use(const bool &use_program)
 	_in_use = true;
 }
 
-Shader		*Shader::get_by_name(const std::string &name)
-{
-	int			i;
-	size_t			h;
-	Shader	*s;
-
-	i = 0;
-	std::hash<std::string>	hash_fn;
-	h = hash_fn(name);
-	while ((s = Engine::shader(i)) != nullptr)
-	{
-		if (h == s->id()) {
-			return (s);
-		}
-		i++;
-	}
-	return (nullptr);
-}
-
 void	Shader::unbind_texture(GLenum texture_unit)
 {
 	bool	bound = in_use();
@@ -199,7 +200,7 @@ void	Shader::unbind_texture(GLenum texture_unit)
 }
 
 void	Shader::bind_texture(const std::string &name,
-	Texture *texture, const GLenum &texture_unit)
+	std::shared_ptr<Texture> texture, const GLenum texture_unit)
 {
 	bool	bound = in_use();
 	if (!bound) {
@@ -219,7 +220,7 @@ void	Shader::bind_texture(const std::string &name,
 	}
 }
 
-GLuint	Shader::link(const GLuint &shaderid)
+GLuint	Shader::link(const GLuint shaderid)
 {
 	_program = glCreateProgram();
 	glAttachShader(_program, shaderid);
@@ -233,7 +234,22 @@ GLuint	Shader::link(const GLuint &shaderid)
 	return (_program);
 }
 
-GLuint	Shader::link(const GLuint &geometryid, const GLuint &vertexid, const GLuint &fragmentid)
+GLuint	Shader::link(const GLuint vertexid, const GLuint fragmentid)
+{
+	_program = glCreateProgram();
+	glAttachShader(_program, vertexid);
+	glAttachShader(_program, fragmentid);
+	glLinkProgram(_program);
+	try {
+		check_program(_program);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Linking Error :\n") + e.what());
+	}
+	return (_program);
+}
+
+GLuint	Shader::link(const GLuint geometryid, const GLuint vertexid, const GLuint fragmentid)
 {
 	_program = glCreateProgram();
 	glAttachShader(_program, geometryid);
@@ -249,22 +265,7 @@ GLuint	Shader::link(const GLuint &geometryid, const GLuint &vertexid, const GLui
 	return (_program);
 }
 
-GLuint	Shader::link(const GLuint &vertexid, const GLuint &fragmentid)
-{
-	_program = glCreateProgram();
-	glAttachShader(_program, vertexid);
-	glAttachShader(_program, fragmentid);
-	glLinkProgram(_program);
-	try {
-		check_program(_program);
-	}
-	catch (std::exception &e) {
-		throw std::runtime_error(std::string("Linking Error :\n") + e.what());
-	}
-	return (_program);
-}
-
-bool	Shader::check_shader(const GLuint &id)
+bool	Shader::check_shader(const GLuint id)
 {
 	GLint	result;
 	GLint	loglength;
@@ -281,7 +282,7 @@ bool	Shader::check_shader(const GLuint &id)
 	return (false);
 }
 
-bool	Shader::check_program(const GLuint &id)
+bool	Shader::check_program(const GLuint id)
 {
 	GLint	result;
 	GLint	loglength;

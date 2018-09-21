@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 22:59:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 18:55:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,30 +20,40 @@
 #include "Vgroup.hpp"
 #include <algorithm>
 
+std::vector<std::shared_ptr<Mesh>>	Mesh::_meshes;
 
-Mesh::Mesh(const std::string &name) : RenderableMultiDraw(name)
+Mesh::Mesh(const std::string &name) : Renderable(name)
 {
 	bounding_element = new AABB;
 }
 
-Mesh	*Mesh::get_by_name(const std::string &name)
-{
-	return dynamic_cast<Mesh *>(Renderable::get_by_name(name));
-}
 
-Mesh	*Mesh::create(const std::string &name)
+
+std::shared_ptr<Mesh>	Mesh::create(const std::string &name)
 {
-	auto *m = new Mesh(name);
-	Engine::add(*m);
+	auto	m = std::shared_ptr<Mesh>(new Mesh(name));
+	_meshes.push_back(m);
+	_renderables.push_back(m);
+	_nodes.push_back(m);
 	return (m);
 }
 
-void	Mesh::add(Vgroup *group)
+std::shared_ptr<Mesh>	Mesh::get_by_name(const std::string &name)
+{
+	std::hash<std::string>	hash_fn;
+	auto					h = hash_fn(name);
+	for (auto n : _meshes) {
+		if (h == n->id())
+			return (n);
+	}
+	return (nullptr);
+}
+
+void	Mesh::add(std::shared_ptr<Vgroup> group)
 {
 	if (nullptr == group)
 		return ;
 	_vgroups.push_back(group);
-	materials.insert(group->material);
 }
 
 void	Mesh::load()
@@ -60,24 +70,26 @@ void	Mesh::load()
 bool	Mesh::render_depth(RenderMod mod)
 {
 	bool	ret = false;
-	auto	mvp = mat4_combine(Engine::current_camera()->projection(), Engine::current_camera()->view(), transform());
+	auto	mvp = mat4_combine(Camera::current()->projection(), Camera::current()->view(), transform());
 	auto	normal_matrix = mat4_transpose(mat4_inverse(transform()));
 	
 	load();
-	Shader	*last_shader = nullptr;
+	std::shared_ptr<Shader>	last_shader;
 	for (auto vg : _vgroups) {
-		if (vg->material == nullptr)
+		auto	vgMaterial = vg->material();
+		if (vgMaterial == nullptr)
 			continue ;
-		vg->material->depth_shader->use();
-		if (last_shader != vg->material->depth_shader) {
-			vg->material->depth_shader->set_uniform("Matrix.Model", transform());
-			vg->material->depth_shader->set_uniform("Matrix.ModelViewProjection", mvp);
-			vg->material->depth_shader->set_uniform("Matrix.Normal", normal_matrix);
+		auto	depthShader = vgMaterial->depth_shader();
+		depthShader->use();
+		if (last_shader != depthShader) {
+			depthShader->set_uniform("Matrix.Model", transform());
+			depthShader->set_uniform("Matrix.ModelViewProjection", mvp);
+			depthShader->set_uniform("Matrix.Normal", normal_matrix);
 		}
-		//vg->material->depth_shader->use(false);
+		//depthShader->use(false);
 		if (vg->render_depth(mod))
 			ret = true;
-		last_shader = vg->material->depth_shader;
+		last_shader = depthShader;
 	}
 	return (ret);
 }
@@ -85,24 +97,26 @@ bool	Mesh::render_depth(RenderMod mod)
 bool	Mesh::render(RenderMod mod)
 {
 	bool	ret = false;
-	auto	mvp = mat4_combine(Engine::current_camera()->projection(), Engine::current_camera()->view(), transform());
+	auto	mvp = mat4_combine(Camera::current()->projection(), Camera::current()->view(), transform());
 	auto	normal_matrix = mat4_transpose(mat4_inverse(transform()));
 
 	load();
-	Shader	*last_shader = nullptr;
+	std::shared_ptr<Shader>	last_shader;
 	for (auto vg : _vgroups) {
-		if (vg->material == nullptr)
+		auto	vgMaterial = vg->material();
+		if (vgMaterial == nullptr)
 			continue ;
-		vg->material->shader->use();
-		if (last_shader != vg->material->shader) {
-			vg->material->shader->set_uniform("Matrix.Model", transform());
-			vg->material->shader->set_uniform("Matrix.ModelViewProjection", mvp);
-			vg->material->shader->set_uniform("Matrix.Normal", normal_matrix);
+		auto	vgShader = vgMaterial->shader();
+		vgShader->use();
+		if (last_shader != vgShader) {
+			vgShader->set_uniform("Matrix.Model", transform());
+			vgShader->set_uniform("Matrix.ModelViewProjection", mvp);
+			vgShader->set_uniform("Matrix.Normal", normal_matrix);
 		}
 		//vg->material->shader->use(false);
 		if (vg->render(mod))
 			ret = true;
-		last_shader = vg->material->shader;
+		last_shader = vgShader;
 	}
 	return (ret);
 }

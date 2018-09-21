@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/09/19 23:01:38 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/09/21 17:36:26 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ SRC			=	./src/scop42/main.cpp			\
 				./src/scop42/callbacks.cpp		\
 				./src/Window.cpp				\
 				./src/Engine.cpp				\
+				./src/Environment.cpp			\
 				./src/Object.cpp				\
 				./src/Events.cpp				\
 				./src/Mouse.cpp					\

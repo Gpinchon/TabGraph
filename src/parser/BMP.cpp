@@ -1,40 +1,41 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parser.cpp                                         :+:      :+:    :+:   */
+/*   BMP.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/11 17:40:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:21:03 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //#include "Engine.hpp"
 #include "parser/BMP.hpp"
+#include "Texture.hpp"
 #include "parser/InternalTools.hpp"
 #include <sys/stat.h>
 #include <stdexcept>
 #include <unistd.h>
 
-static void	prepare_header(t_bmp_header *header, t_bmp_info *info, const Texture &t)
+static void	prepare_header(t_bmp_header *header, t_bmp_info *info, std::shared_ptr<Texture> t)
 {
 	memset(header, 0, sizeof(t_bmp_header));
 	memset(info, 0, sizeof(t_bmp_info));
 	header->type = 0x4D42;
 	header->data_offset = sizeof(t_bmp_header) + sizeof(t_bmp_info);
-	header->size = header->data_offset + (t.size().x * t.size().y * 4);
+	header->size = header->data_offset + (t->size().x * t->size().y * 4);
 	info->header_size = sizeof(t_bmp_info);
-	info->width = t.size().x;
-	info->height = t.size().y;
+	info->width = t->size().x;
+	info->height = t->size().y;
 	info->color_planes = 1;
-	info->bpp = t.bpp();
-	info->size = t.size().x * t.size().y * 4;
+	info->bpp = t->bpp();
+	info->size = t->size().x * t->size().y * 4;
 	info->horizontal_resolution = 0x0ec4;
 	info->vertical_resolution = 0x0ec4;
 }
 
-void		BMP::save(const Texture &t, const std::string &imagepath)
+void		BMP::save(std::shared_ptr<Texture> t, const std::string &imagepath)
 {
 	t_bmp_header	header;
 	t_bmp_info		info;
@@ -46,9 +47,9 @@ void		BMP::save(const Texture &t, const std::string &imagepath)
 		S_IRWXU | S_IRWXG | S_IRWXO);
 	write(fd, &header, sizeof(t_bmp_header));
 	write(fd, &info, sizeof(t_bmp_info));
-	write(fd, t.data(), (t.size().x * t.size().y * t.bpp() / 8));
-	padding = new GLubyte[int(info.size - (t.size().x * t.size().y * t.bpp() / 8))]();
-	write(fd, padding, info.size - (t.size().x * t.size().y * t.bpp() / 8));
+	write(fd, t->data(), (t->size().x * t->size().y * t->bpp() / 8));
+	padding = new GLubyte[int(info.size - (t->size().x * t->size().y * t->bpp() / 8))]();
+	write(fd, padding, info.size - (t->size().x * t->size().y * t->bpp() / 8));
 	delete [] padding;
 	close(fd);
 }
@@ -141,10 +142,9 @@ static void	get_format(GLubyte bpp, GLenum *format, GLenum *internal_format)
 	}
 }
 
-Texture		*BMP::parse(const std::string &texture_name, const std::string &path)
+std::shared_ptr<Texture> BMP::parse(const std::string &texture_name, const std::string &path)
 {
 	t_bmp_parser	parser;
-	BMP				*texture;
 	GLenum			format[2];
 
 	try {
@@ -154,11 +154,6 @@ Texture		*BMP::parse(const std::string &texture_name, const std::string &path)
 		throw std::runtime_error(std::string("Error parsing ") + path + " : " + e.what());
 	}
 	get_format(parser.info.bpp, &format[0], &format[1]);
-	texture = static_cast<BMP*>(Texture::create(texture_name, new_vec2(parser.info.width, parser.info.height),
-			GL_TEXTURE_2D, format[0], format[1]));
-	texture->_size.x = parser.info.width;
-	texture->_size.y = parser.info.height;
-	texture->_bpp = parser.info.bpp;
-	texture->_data = parser.data;
-	return (texture);
+	return (Texture::create(texture_name, new_vec2(parser.info.width, parser.info.height),
+			GL_TEXTURE_2D, format[0], format[1], GL_UNSIGNED_BYTE, parser.data));
 }

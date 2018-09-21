@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:10:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 10:52:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,13 +82,13 @@ void	switch_background()
 {
 	static int	b = 0;
 	b++;
-	auto	env = Environment::environment(b);
+	auto	env = Environment::get(b);
 	if (env != nullptr) {
 		Environment::set_current(env);
 	}
 	else {
 		b = 0;
-		env = Environment::environment(b);
+		env = Environment::get(b);
 		Environment::set_current(env);
 	}
 }
@@ -149,7 +149,7 @@ void	keyboard_callback_rotation(SDL_KeyboardEvent *event)
 void	callback_refresh(SDL_Event */*unused*/)
 {
 	static float	rotation = 0;
-	auto	mesh = Renderable::renderable(0);
+	auto	mesh = Renderable::get(0);
 	if (mesh == nullptr) {
 		return ;
 	}

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/18 18:43:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 18:06:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 #include "Framebuffer.hpp"
 #include "Shader.hpp"
 #include "Window.hpp"
+
+std::vector<std::shared_ptr<Framebuffer>> Framebuffer::_framebuffers;
 
 Attachement::Attachement(const std::string &name) : Texture(name){}
 Attachement::Attachement(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format) : Texture(name, s, target, f, fi, data_format) {};
@@ -54,11 +56,9 @@ GLenum	get_data_format(GLenum internal_format)
 #include "Errors.hpp"
 #include <iostream>
 
-Attachement		*Attachement::create(const std::string &iname, VEC2 s, GLenum target, GLenum f, GLenum fi)
+std::shared_ptr<Attachement>	Attachement::create(const std::string &iname, VEC2 s, GLenum target, GLenum f, GLenum fi)
 {
-	Attachement	*t;
-
-	t = new Attachement(iname, s, target, f, fi, get_data_format(fi));
+	auto	t = std::shared_ptr<Attachement>(new Attachement(iname, s, target, f, fi, get_data_format(fi)));
 	glGenTextures(1, &t->_glid);
 	glBindTexture(t->_target, t->_glid);
 	glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->data_format(), nullptr);
@@ -67,7 +67,7 @@ Attachement		*Attachement::create(const std::string &iname, VEC2 s, GLenum targe
 	t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	Engine::add(*t);
+	_textures.push_back(std::static_pointer_cast<Texture>(t));
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
 	glCheckError();
@@ -87,17 +87,13 @@ void		Attachement::unload() {
 
 Framebuffer::Framebuffer(const std::string &name) : Texture(name) {}
 
-Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader *shader,
-	int color_attachements, int depth)
+std::shared_ptr<Framebuffer>	Framebuffer::create(const std::string &name, VEC2 size, int color_attachements, int depth)
 {
-	Framebuffer	*f;
-	int				i;
+	int			i;
 
-	f = new Framebuffer(name);
+	auto	f = std::shared_ptr<Framebuffer>(new Framebuffer(name));
 	f->_size = size;
-	f->_shader = shader;
 	glGenFramebuffers(1, &f->_glid);
-	Engine::add(*f);
 	i = 0;
 	while (i < color_attachements) {
 		f->create_attachement(GL_RGBA, GL_RGBA);
@@ -107,11 +103,31 @@ Framebuffer		*Framebuffer::create(const std::string &name, VEC2 size, Shader *sh
 		f->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
 	}
 	f->setup_attachements();
+	_framebuffers.push_back(f);
+	_textures.push_back(std::static_pointer_cast<Texture>(f));
 #ifdef GL_DEBUG
 	glObjectLabel(GL_FRAMEBUFFER, f->_glid, -1, f->name().c_str());
 	glCheckError();
 #endif //GL_DEBUG
 	return (f);
+}
+
+std::shared_ptr<Framebuffer>	Framebuffer::get(unsigned index)
+{
+	if (index >= _framebuffers.size())
+		return (nullptr);
+	return (_framebuffers.at(index));
+}
+
+std::shared_ptr<Framebuffer>	Framebuffer::get_by_name(const std::string &name)
+{
+	std::hash<std::string>	hash_fn;
+	auto					h = hash_fn(name);
+	for (auto f : _framebuffers) {
+		if (h == f->id())
+			return (f);
+	}
+	return (nullptr);
 }
 
 bool			Framebuffer::is_loaded()
@@ -129,15 +145,10 @@ void			Framebuffer::bind(bool to_bind)
 	if (!to_bind)
 	{
 		bind_default();
-		if (shader() != nullptr)
-			shader()->use(false);
 		return ;
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, _glid);
 	glViewport(0, 0, size().x, size().y);
-	if (shader() == nullptr)
-		return ;
-	shader()->use();
 }
 
 void			Framebuffer::bind_default()
@@ -146,7 +157,7 @@ void			Framebuffer::bind_default()
 	glViewport(0, 0, Window::size().x, Window::size().y);
 }
 
-Texture			*Framebuffer::create_attachement(GLenum format, GLenum iformat)
+std::shared_ptr<Texture>	Framebuffer::create_attachement(GLenum format, GLenum iformat)
 {
 	std::string tname;
 	if (format == GL_DEPTH_COMPONENT)
@@ -233,12 +244,7 @@ void		Framebuffer::resize(const VEC2 &new_size)
 	bind(false);
 }
 
-void		Framebuffer::set_shader(Shader *shader)
-{
-	_shader = shader;
-}
-
-void		Framebuffer::set_attachement(unsigned color_attachement, Texture *texture)
+void		Framebuffer::set_attachement(unsigned color_attachement, std::shared_ptr<Texture> texture)
 {
 	if (color_attachement >= _color_attachements.size())
 		throw std::runtime_error(name() + " : Color attachement index is out of bound");
@@ -248,19 +254,14 @@ void		Framebuffer::set_attachement(unsigned color_attachement, Texture *texture)
 	bind(false);
 }
 
-Texture			*Framebuffer::attachement(unsigned color_attachement)
+std::shared_ptr<Texture>	Framebuffer::attachement(unsigned color_attachement)
 {
 	if (unsigned(color_attachement) >= _color_attachements.size())
 		return (nullptr);
 	return (_color_attachements[color_attachement]);
 }
 
-Texture			*Framebuffer::depth()
+std::shared_ptr<Texture>	Framebuffer::depth()
 {
 	return (_depth);
-}
-
-Shader			*Framebuffer::shader()
-{
-	return (_shader);
 }

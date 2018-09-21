@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:16:45 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/05 17:15:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 18:17:45 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,8 @@ struct	t_obj_parser
 	std::vector<VEC3>			v;
 	std::vector<VEC3>			vn;
 	std::vector<VEC2>			vt;
-	Mesh						*parent{nullptr};
-	Vgroup						*vg{nullptr};
+	std::shared_ptr<Mesh>		parent;
+	std::shared_ptr<Vgroup>		vg;
 	AABB						bbox;
 };
 

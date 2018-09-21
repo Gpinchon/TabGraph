@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:10:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 16:57:59 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,19 +14,19 @@
 
 #include "GLIncludes.hpp"
 #include "Object.hpp"
+#include <vector>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <memory>
 
 class	Framebuffer;
 
-class	Texture : public Object
+class	Texture : public Object, std::enable_shared_from_this<Texture>
 {
 public:
 	static std::shared_ptr<Texture>	create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
 	static std::shared_ptr<Texture>	get_by_name(const std::string &);
-	static std::shared_ptr<Texture>	texture(unsigned index);
+	static std::shared_ptr<Texture>	get(unsigned index);
 	static size_t					get_data_size(GLenum data_type);
 	static size_t					get_bpp(GLenum texture_format, GLenum data_type);
 	virtual bool	is_loaded();
@@ -69,9 +69,9 @@ protected:
 	GLenum		_internal_format;
 	GLubyte		*_data{nullptr};
 	bool		_loaded{false};
-	Framebuffer	*_blur_buffer0{nullptr};
-	Framebuffer	*_blur_buffer1{nullptr};
-	Framebuffer	*_generate_blur_buffer(const std::string &);
+	std::shared_ptr<Framebuffer>	_blur_buffer0;
+	std::shared_ptr<Framebuffer>	_blur_buffer1;
+	std::shared_ptr<Framebuffer>	_generate_blur_buffer(const std::string &);
 	std::unordered_map<GLenum, int>	_parametersi;
 	std::unordered_map<GLenum, float>	_parametersf;
 };

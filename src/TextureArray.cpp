@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/17 15:59:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 10:57:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 16:59:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,9 @@ TextureArray::TextureArray(const std::string &name, VEC2 s, GLenum target, GLenu
 	_textures.resize(capacity);
 }
 
-TextureArray	*TextureArray::create(const std::string &name, VEC2 s, GLenum target, GLenum fi, unsigned capacity)
+std::shared_ptr<TextureArray>	TextureArray::create(const std::string &name, VEC2 s, GLenum target, GLenum fi, unsigned capacity)
 {
-	auto	t = new TextureArray(name, s, target, fi, capacity);
+	auto	t = std::shared_ptr<TextureArray>(new TextureArray(name, s, target, fi, capacity));
 	glGenTextures(1, &t->_glid);
 	glBindTexture(t->_target, t->_glid);
 	glTexStorage3D(t->_target, 1, t->_internal_format, t->_size.x, t->_size.y, t->_capacity);
@@ -35,10 +35,11 @@ TextureArray	*TextureArray::create(const std::string &name, VEC2 s, GLenum targe
 	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	t->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	t->_array.resize(capacity);
+	_textures.push_back(std::static_pointer_cast<Texture>(t));
 #ifdef GL_DEBUG
 	glCheckError();
 #endif //GL_DEBUG
-	Engine::add(*t);
 	return (t);
 }
 
@@ -53,9 +54,9 @@ TextureArray	*TextureArray::create(const std::string &name, VEC2 s, GLenum targe
 	return (_textures.size() - 1);
 }*/
 
-void		TextureArray::set(Texture *texture, int index)
+void		TextureArray::set(std::shared_ptr<Texture> texture, int index)
 {
-	_textures.at(index) = texture;
+	_array.at(index) = texture;
 }
 
 void		TextureArray::load()

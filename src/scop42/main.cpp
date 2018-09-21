@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 18:42:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:26:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,12 +80,11 @@ void	setup_callbacks()
 #include "CubeMesh.hpp"
 #include <iostream>
 
-std::vector<Light *> create_random_lights(unsigned i)
+std::vector<std::shared_ptr<Light>> create_random_lights(unsigned i)
 {
-	std::vector<Light *> v;
+	std::vector<std::shared_ptr<Light>> v;
 	for (auto index = 0u; index < i; index++)
 	{
-		Light *light;
 		VEC3	Position = new_vec3(
 			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
 			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
@@ -94,7 +93,7 @@ std::vector<Light *> create_random_lights(unsigned i)
 			std::rand() / float(RAND_MAX),
 			std::rand() / float(RAND_MAX),
 			std::rand() / float(RAND_MAX));
-		light = Light::create("Light" + std::to_string(i), Color, Position, 1 / float(i));
+		auto	light = Light::create("Light" + std::to_string(i), Color, Position, 1 / float(i));
 		v.push_back(light);
 	}
 	return (v);
@@ -104,7 +103,7 @@ std::vector<Light *> create_random_lights(unsigned i)
 
 int		main(int argc, char *argv[])
 {
-	Mesh *obj;
+	std::shared_ptr<Mesh>	obj;
 	auto argv0 = std::string(argv[0]);
 
 	Engine::init();

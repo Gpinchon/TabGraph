@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/10 21:42:11 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 18:10:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:55:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,31 +14,40 @@
 #include "Engine.hpp"
 #include "Framebuffer.hpp"
 
-TextureArray	*Light::_shadow_array = nullptr;
+//TextureArray	*Light::_shadow_array = nullptr;
+std::vector<std::shared_ptr<Light>>	Light::_lights;
 
 Light::Light(const std::string &name) : Node(name) {
 }
 
-Light		*Light::create(const std::string &name, VEC3 color, VEC3 position, float power)
+std::shared_ptr<Light>	Light::create(const std::string &name, VEC3 color, VEC3 position, float power)
 {
-	auto	light = new Light(name);
+	auto	light = std::shared_ptr<Light>(new Light(name));
 	light->color() = color;
 	light->position() = position;
 	light->power() = power;
-	Engine::add(*light);
+	_lights.push_back(light);
+	_nodes.push_back(std::static_pointer_cast<Node>(light));
 	return (light);
 }
 
-TextureArray	*Light::shadow_array()
+std::shared_ptr<Light>	Light::get(unsigned index)
+{
+	if (index >= _lights.size())
+		return (nullptr);
+	return (_lights.at(index));
+}
+
+/*TextureArray	*Light::shadow_array()
 {
 	if (nullptr == _shadow_array)
 		_shadow_array = TextureArray::create("ShadowArray", new_vec2(CFG::ShadowRes(), CFG::ShadowRes()), GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, 128);
 	return (_shadow_array);
-}
+}*/
 
-Framebuffer	*Light::render_buffer()
+std::shared_ptr<Framebuffer>	Light::render_buffer()
 {
-	return (_render_buffer);
+	return (_render_buffer.lock());
 }
 
 VEC3		&Light::color()
@@ -69,22 +78,24 @@ void		Light::render_shadow()
 DirectionnalLight::DirectionnalLight(const std::string &name) : Light(name) {
 }
 
-DirectionnalLight	*DirectionnalLight::create(const std::string &name, VEC3 color, VEC3 position, float power, bool cast_shadow)
+std::shared_ptr<DirectionnalLight>	DirectionnalLight::create(const std::string &name, VEC3 color, VEC3 position, float power, bool cast_shadow)
 {
-	auto	light = new DirectionnalLight(name);
+	auto	light = std::shared_ptr<DirectionnalLight>(new DirectionnalLight(name));
 	light->color() = color;
 	light->position() = position;
 	light->power() = power;
 	light->cast_shadow() = cast_shadow;
 	if (cast_shadow) {
-		light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", new_vec2(CFG::ShadowRes(), CFG::ShadowRes()), nullptr, 0, 0);
-		light->_render_buffer->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
-		light->_render_buffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-		light->_render_buffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+		light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", new_vec2(CFG::ShadowRes(), CFG::ShadowRes()), 0, 0);
+		auto renderBuffer = light->_render_buffer.lock();
+		renderBuffer->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
+		renderBuffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+		renderBuffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 		//shadow_array()->add(light->_render_buffer->depth());
 		//shadow_array()->load();
 	}
-	Engine::add(*light);
+	_lights.push_back(light);
+	_nodes.push_back(std::static_pointer_cast<Node>(light));
 	return (light);
 }
 

@@ -6,22 +6,21 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:16:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 19:17:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 17:21:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "Texture.hpp"
+#include <memory>
+
+class Texture;
 
 /*
 ** .BMP parsing interface
 */
-class	BMP : public Texture
+namespace	BMP
 {
-public:
-	static std::shared_ptr<Texture>	parse(const std::string &texture_name, const std::string &imagepath);
-	static void						save(const Texture &, const std::string &);
-private:
-	virtual void abstract() = 0;
+	std::shared_ptr<Texture>	parse(const std::string &texture_name, const std::string &imagepath);
+	void						save(std::shared_ptr<Texture>, const std::string &);
 };

@@ -6,21 +6,20 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:17:05 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/05/19 20:21:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/21 19:13:49 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "Mesh.hpp"
+#include <memory>
+
+class Mesh;
 
 /*
 ** .OBJ parsing interface
 */
-class	OBJ : public Mesh
+namespace	OBJ
 {
-public:
-	static Mesh	*parse(const std::string &, const std::string &);
-private:
-	virtual void abstract() = 0;
+	std::shared_ptr<Mesh>	parse(const std::string &, const std::string &);
 };
