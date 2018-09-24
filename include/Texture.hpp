@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 11:32:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 15:37:15 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,10 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <memory>
 
 class	Framebuffer;
 
-class	Texture : public Object, public std::enable_shared_from_this<Texture>
+class	Texture : public Object
 {
 public:
 	static std::shared_ptr<Texture>	create(const std::string &name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
@@ -29,6 +28,7 @@ public:
 	static std::shared_ptr<Texture>	get(unsigned index);
 	static size_t					get_data_size(GLenum data_type);
 	static size_t					get_bpp(GLenum texture_format, GLenum data_type);
+	virtual std::shared_ptr<Texture>	shared_from_this();
 	virtual bool	is_loaded();
 	virtual void	resize(const VEC2 &ns);
 	virtual void	set_parameteri(GLenum p, int v);

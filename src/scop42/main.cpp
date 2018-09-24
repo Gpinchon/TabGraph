@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 12:04:29 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 15:42:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	MouseWheelCallback(SDL_MouseWheelEvent *event)
 	cameraRotation.z -= event->y;
 	cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
 	cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-	cameraRotation.z = CLAMP(cameraRotation.z, 0, 1000.f);
+	cameraRotation.z = CLAMP(cameraRotation.z, 0.01, 1000.f);
 	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }
 
@@ -117,11 +117,11 @@ int		main(int argc, char *argv[])
 	Camera::set_current(camera);
 	camera->set_target(Node::create("main_camera_target", new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
-	/*auto cube0 = CubeMesh::create("cube0", new_vec3(1, 2, 1));
+	auto cube0 = CubeMesh::create("cube0", new_vec3(1, 2, 1));
 	auto cube1 = CubeMesh::create("cube1", new_vec3(1, 1, 1));
 	cube1->position() = new_vec3(0, 1.5, 0);
 	cube1->rotation() = new_vec3(0, 0, 0.5);
-	cube1->parent = cube0;*/
+	cube1->set_parent(cube0);
 	obj = nullptr;
 	if (argc >= 2) {
 		obj = OBJ::parse("main_mesh", argv[1]);
@@ -133,7 +133,7 @@ int		main(int argc, char *argv[])
 		obj->center();
 		obj->load();
 	}
-	//obj->parent = cube1;
+	obj->set_parent(cube1);
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	setup_callbacks();

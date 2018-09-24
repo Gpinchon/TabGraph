@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 11:36:02 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 15:55:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,10 @@ std::shared_ptr<Node>	Node::get(unsigned index)
 	return (_nodes.at(index));
 }
 
+std::shared_ptr<Node>	Node::shared_from_this()
+{
+	return (std::static_pointer_cast<Node>(Object::shared_from_this()));
+};
 
 void	Node::physics_update()
 {
@@ -92,7 +96,7 @@ std::shared_ptr<Node>	Node::parent()
 */
 void					Node::set_parent(std::shared_ptr<Node> prt)
 {
-	if (prt == shared_from_this()) {
+	if (prt == shared_from_this() || _parent.lock() == prt) {
 		return ;
 	}
 	_parent = prt;

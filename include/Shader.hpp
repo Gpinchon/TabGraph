@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 11:04:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 15:31:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,8 @@ public:
 	bool			in_use();
 protected:
 	static std::vector<std::shared_ptr<Shader>>	_shaders;
-	GLuint			_program;
-	bool			_in_use;
+	GLuint			_program{0};
+	bool			_in_use{false};
 	std::unordered_map<std::string, ShaderVariable>	_get_variables(GLenum type);
 	std::unordered_map<std::string, ShaderVariable> _uniforms;
 	std::unordered_map<std::string, ShaderVariable> _attributes;

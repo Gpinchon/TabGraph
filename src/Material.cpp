@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 11:13:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 15:29:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,8 @@
 
 std::vector<std::shared_ptr<Material>>	Material::_materials;
 
-Material::Material(const std::string &name)
+Material::Material(const std::string &name) : Object(name)
 {
-	set_name(name);
 	if ((_shader = Shader::get_by_name("shader_default")).lock() == nullptr) {
 		_shader = GLSL::parse("shader_default", Engine::program_path() + "./res/shaders/empty.glsl", ForwardShader);
 	}

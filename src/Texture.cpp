@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 11:34:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 15:35:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 
 std::vector<std::shared_ptr<Texture>>	Texture::_textures;
 
-Texture::Texture(const std::string &name) :
+Texture::Texture(const std::string &name) : Object(name),
 _glid(0),
 _size(new_vec2(0, 0)),
 _bpp(0),
@@ -33,9 +33,7 @@ _format(0),
 _internal_format(0),
 _data(nullptr),
 _loaded(false)
-{
-	set_name(name);
-	
+{	
 }
 
 Texture::Texture(const std::string &iname, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format, void *data) : Texture(iname)
@@ -79,6 +77,11 @@ std::shared_ptr<Texture>	Texture::get_by_name(const std::string &name)
 			return (t);
 	}
 	return (nullptr);
+}
+
+std::shared_ptr<Texture>	Texture::shared_from_this()
+{
+	return (std::static_pointer_cast<Texture>(Object::shared_from_this()));
 }
 
 size_t	Texture::get_bpp(GLenum texture_format, GLenum data_format)
