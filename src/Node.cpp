@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 19:28:36 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 11:36:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,9 @@ std::shared_ptr<Node>	Node::parent()
 	return (_parent.lock());
 }
 
-/*/!\ BEWARE OF LOOPS !!! /!\*/
+/*
+** /!\ BEWARE OF THE BIG BAD LOOP !!! /!\
+*/
 void					Node::set_parent(std::shared_ptr<Node> prt)
 {
 	if (prt == shared_from_this()) {

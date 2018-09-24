@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 18:09:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 11:13:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,8 +77,10 @@ void	Material::bind_textures()
 	shaderPtr->bind_texture("Texture.Height", texture_height(), GL_TEXTURE7);
 	shaderPtr->set_uniform("Texture.Use_Height", texture_height() != nullptr ? true : false);
 	shaderPtr->bind_texture("Texture.AO", texture_ao(), GL_TEXTURE8);
-	shaderPtr->bind_texture("Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE9);
-	shaderPtr->bind_texture("Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE10);
+	if (Environment::current() != nullptr) {
+		shaderPtr->bind_texture("Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE9);
+		shaderPtr->bind_texture("Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE10);
+	}
 }
 
 void	Material::bind_values()

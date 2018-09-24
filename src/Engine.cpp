@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 10:52:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 11:38:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,6 +190,7 @@ void			Engine::_load_res()
 		}
 	}
 	closedir(dir);
+	Environment::set_current(Environment::get(0));
 }
 
 void			Engine::init()

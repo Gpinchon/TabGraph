@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 19:26:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 12:00:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,7 @@ static void	vt_min_max(std::shared_ptr<Vgroup> vg)
 	}
 }
 
-void		parse_vg(t_obj_parser *p)
+void		parse_vg(t_obj_parser *p, const std::string &name)
 {
 	static int	childNbr = 0;
 	if (!p->vg->v.empty())
@@ -200,7 +200,12 @@ void		parse_vg(t_obj_parser *p)
 		vt_min_max(p->vg);
 		//p->parent->add_child(p->vg);
 		p->parent->add(p->vg);
-		p->vg = Vgroup::create(p->parent->name() + "_child " + std::to_string(childNbr));
+		if (name == "") {
+			p->vg = Vgroup::create(p->parent->name() + "_Vgroup_" + std::to_string(childNbr));
+		}
+		else {
+			p->vg = Vgroup::create(name);
+		}
 		p->vg->set_material(Material::get_by_name("default"));
 	}
 }
@@ -354,8 +359,16 @@ static void	parse_line(t_obj_parser *p, const char *line)
 		parse_vtn(p, split);
 	} else if (split[0][0] == 'f') {
 		parse_f(p, split);
-	} else if (split[0][0] == 'g' || split[0][0] == 'o'
-		|| split[0] == "usemtl")
+	} else if (split[0][0] == 'g' || split[0][0] == 'o') {
+		std::shared_ptr<Material> mtl;
+		if (p->vg != nullptr) {
+			mtl = p->vg->material();
+		}
+		parse_vg(p, split[1]);
+		if (mtl != nullptr)
+			p->vg->set_material(mtl);
+	}
+	else if (split[0] == "usemtl")
 	{
 		parse_vg(p);
 		auto	mtl = Material::get_by_name(split[1]);
@@ -363,7 +376,7 @@ static void	parse_line(t_obj_parser *p, const char *line)
 			p->vg->set_material(mtl);
 	}
 	else if (split[0] == "mtllib") {
-		PBRMTLLIB::parse(p->path_split[0] + split[1]);
+		MTLLIB::parse(p->path_split[0] + split[1]);
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 00:16:45 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 18:17:45 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 11:56:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ struct	t_bmp_parser
 std::string		access_get_error(const int &access_result);
 VEC3			parse_vec3(std::vector<std::string> &split);
 VEC2			parse_vec2(std::vector<std::string> &split);
-void			parse_vg(t_obj_parser *p);
+void			parse_vg(t_obj_parser *p, const std::string &name = "");
 void			parse_v(t_obj_parser *p, std::vector<std::string> &split, VEC2 *in_vt);
 void			parse_vtn(t_obj_parser *p, std::vector<std::string> &split);
 void			correct_vt(VEC2 *vt);

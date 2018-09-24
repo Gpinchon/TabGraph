@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 16:32:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 11:34:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -299,6 +299,7 @@ void	Render::scene()
 		auto	shaderPtr = shader.lock();
 		if (nullptr == shaderPtr)
 			continue ;
+
 		current_tbuffer->bind();
 		shaderPtr->use();
 		shaderPtr->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
@@ -309,11 +310,15 @@ void	Render::scene()
 		shaderPtr->bind_texture("Texture.Normal",			current_tbuffertex->attachement(5), GL_TEXTURE5);
 		shaderPtr->bind_texture("Texture.Depth",			current_tbuffertex->depth(), GL_TEXTURE6);
 		shaderPtr->bind_texture("Texture.BRDF",				brdf, GL_TEXTURE7);
-		shaderPtr->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE8);
-		shaderPtr->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE9);
+		if (Environment::current() != nullptr) {
+			shaderPtr->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE8);
+			shaderPtr->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE9);
+		}
 		Render::display_quad()->draw();
 		shaderPtr->use(false);
+		
 		std::swap(current_tbuffer, current_tbuffertex);
+
 	}
 	current_tbuffertex->attachement(4)->blur(1, 0.75);
 	
@@ -338,10 +343,12 @@ void	Render::scene()
 	elighting_shader->bind_texture("Texture.Normal",			current_tbuffertex->attachement(5), GL_TEXTURE5);
 	elighting_shader->bind_texture("Texture.Depth",				current_tbuffertex->depth(), GL_TEXTURE6);
 	elighting_shader->bind_texture("Texture.BRDF",				brdf, GL_TEXTURE7);
-	elighting_shader->bind_texture("Texture.Environment.Diffuse",		Environment::current()->diffuse(), GL_TEXTURE8);
-	elighting_shader->bind_texture("Texture.Environment.Irradiance",	Environment::current()->irradiance(), GL_TEXTURE9);
-	elighting_shader->bind_texture("Texture.Back.Color",				current_backTexture->attachement(0), GL_TEXTURE10);
-	elighting_shader->bind_texture("Texture.Back.Emitting",				current_backTexture->attachement(1), GL_TEXTURE11);
+	elighting_shader->bind_texture("Texture.Back.Color",				current_backTexture->attachement(0), GL_TEXTURE8);
+	elighting_shader->bind_texture("Texture.Back.Emitting",				current_backTexture->attachement(1), GL_TEXTURE9);
+	if (Environment::current() != nullptr) {
+		elighting_shader->bind_texture("Texture.Environment.Diffuse",		Environment::current()->diffuse(), GL_TEXTURE10);
+		elighting_shader->bind_texture("Texture.Environment.Irradiance",	Environment::current()->irradiance(), GL_TEXTURE11);
+	}
 	Render::display_quad()->draw();
 	elighting_shader->use(false);
 
@@ -399,12 +406,14 @@ void	Render::scene()
 	telighting_shader->bind_texture("Texture.Normal",			current_tbuffertex->attachement(5), GL_TEXTURE5);
 	telighting_shader->bind_texture("Texture.Depth",			current_tbuffertex->depth(), GL_TEXTURE6);
 	telighting_shader->bind_texture("Texture.BRDF",				brdf, GL_TEXTURE7);
-	telighting_shader->bind_texture("Texture.Environment.Diffuse",		Environment::current()->diffuse(), GL_TEXTURE8);
-	telighting_shader->bind_texture("Texture.Environment.Irradiance",	Environment::current()->irradiance(), GL_TEXTURE9);
-	telighting_shader->bind_texture("Texture.Back.Color",				current_backTexture->attachement(0), GL_TEXTURE10);
-	telighting_shader->bind_texture("Texture.Back.Emitting",			current_backTexture->attachement(1), GL_TEXTURE11);
-	telighting_shader->bind_texture("opaqueBackColor",			opaqueBackBuffer->attachement(0), GL_TEXTURE12);
-	telighting_shader->bind_texture("opaqueBackEmitting",		opaqueBackBuffer->attachement(1), GL_TEXTURE13);
+	telighting_shader->bind_texture("Texture.Back.Color",		current_backTexture->attachement(0), GL_TEXTURE8);
+	telighting_shader->bind_texture("Texture.Back.Emitting",	current_backTexture->attachement(1), GL_TEXTURE9);
+	telighting_shader->bind_texture("opaqueBackColor",			opaqueBackBuffer->attachement(0), GL_TEXTURE10);
+	telighting_shader->bind_texture("opaqueBackEmitting",		opaqueBackBuffer->attachement(1), GL_TEXTURE11);
+	if (Environment::current() != nullptr) {
+		telighting_shader->bind_texture("Texture.Environment.Diffuse",		Environment::current()->diffuse(), GL_TEXTURE12);
+		telighting_shader->bind_texture("Texture.Environment.Irradiance",	Environment::current()->irradiance(), GL_TEXTURE13);
+	}
 
 	Render::display_quad()->draw();
 	telighting_shader->use(false);

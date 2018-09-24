@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 18:20:52 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 17:25:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 11:42:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ void	parse_mtl(t_obj_parser *p, std::string &name)
 	}
 }
 
-bool			PBRMTLLIB::parse(const std::string &path)
+bool			MTLLIB::parse(const std::string &path)
 {
 	char		line[4096];
 	t_obj_parser p;

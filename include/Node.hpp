@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 19:24:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 11:36:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ public:
 	void								add_child(std::shared_ptr<Node> child);
 	std::shared_ptr<Node>				child(unsigned index);
 	BoundingElement						*bounding_element{nullptr};
-	~Node() { std::cout << name() << "destructed" << std::endl; };
+	~Node() { std::cout << name() << " destructed" << std::endl; };
 protected :
 	Node(const std::string &name);
 	

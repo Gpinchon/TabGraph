@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 17:26:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 12:04:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,10 @@ static auto	cameraRotation = new_vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 void	MouseWheelCallback(SDL_MouseWheelEvent *event)
 {
 	static auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
-	cameraRotation.z += event->y;
+	cameraRotation.z -= event->y;
+	cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
+	cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
+	cameraRotation.z = CLAMP(cameraRotation.z, 0, 1000.f);
 	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }
 
@@ -38,6 +41,9 @@ void	MouseMoveCallback(SDL_MouseMotionEvent *event)
 	static auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
 	cameraRotation.x += event->yrel * Engine::delta_time();
 	cameraRotation.y -= event->xrel * Engine::delta_time();
+	cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
+	cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
+	cameraRotation.z = CLAMP(cameraRotation.z, 0.01, 1000.f);
 	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 	/*auto	mesh = Engine::renderable(0);
 	auto	rotation = mesh->rotation();
