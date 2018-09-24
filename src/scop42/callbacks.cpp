@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:17:37 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 10:52:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 19:28:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,12 @@
 #include "Engine.hpp"
 #include "Mesh.hpp"
 #include "Window.hpp"
+#include "Mouse.hpp"
 #include "Keyboard.hpp"
 #include "GameController.hpp"
 #include "Environment.hpp"
+
+static auto	cameraRotation = new_vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 
 void				callback_camera(SDL_Event *)
 {
@@ -43,18 +46,18 @@ void				callback_camera(SDL_Event *)
 		ltrigger = Keyboard::key(SDL_SCANCODE_PAGEDOWN);
 		rtrigger = Keyboard::key(SDL_SCANCODE_PAGEUP);
 	}
-	static VEC3	val = (VEC3){M_PI / 2.f, M_PI / 2.f, 5.f};
-	val.x += raxis.y * Engine::delta_time();
-	val.y += raxis.x * Engine::delta_time();
-	val.z -= laxis.y * Engine::delta_time();
+	//static VEC3	val = (VEC3){M_PI / 2.f, M_PI / 2.f, 5.f};
+	cameraRotation.x += raxis.y * Engine::delta_time();
+	cameraRotation.y += raxis.x * Engine::delta_time();
+	cameraRotation.z -= laxis.y * Engine::delta_time();
 	auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::current());
 	auto	t = camera->target();
 	t->position().y += rtrigger * Engine::delta_time();
 	t->position().y -= ltrigger * Engine::delta_time();
-	val.x = CLAMP(val.x, 0.01, M_PI - 0.01);
-	val.y = CYCLE(val.y, 0, 2 * M_PI);
-	val.z = CLAMP(val.z, 0.1f, 1000.f);
-	camera->orbite(val.x, val.y, val.z);
+	cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
+	cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
+	cameraRotation.z = CLAMP(cameraRotation.z, 0.1f, 1000.f);
+	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }
 
 void	callback_scale(SDL_KeyboardEvent *event)
@@ -176,4 +179,37 @@ void	callback_fullscreen(SDL_KeyboardEvent *event)
 		Window::fullscreen(fullscreen);
 	}
 	(void)event;
+}
+
+void	MouseWheelCallback(SDL_MouseWheelEvent *event)
+{
+	static auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
+	cameraRotation.z -= event->y;
+	cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
+	cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
+	cameraRotation.z = CLAMP(cameraRotation.z, 0.01, 1000.f);
+	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+}
+
+void	MouseMoveCallback(SDL_MouseMotionEvent *event)
+{
+	static auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
+	/*if (Mouse::button(2))
+	{
+		auto	world_mouse_pos = mat4_mult_vec4(camera->projection(), new_vec4(event->xrel, event->yrel, 0, 1));
+		auto	world_mouse_pos3 = new_vec3(world_mouse_pos.x, world_mouse_pos.y, world_mouse_pos.z);
+		world_mouse_pos3 = vec3_normalize(vec3_sub(camera->position(), world_mouse_pos3));
+		camera->target()->position().x += world_mouse_pos3.x;
+		camera->target()->position().y += world_mouse_pos3.y;
+		camera->target()->position().z += world_mouse_pos3.z;
+		std::cout << world_mouse_pos.x << " " << world_mouse_pos.y << " " << world_mouse_pos.z << std::endl;
+	}*/
+	if (Mouse::button(1)) {
+		cameraRotation.x += event->yrel * Engine::delta_time();
+		cameraRotation.y -= event->xrel * Engine::delta_time();
+		cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
+		cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
+		cameraRotation.z = CLAMP(cameraRotation.z, 0.01, 1000.f);
+	}
+	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }

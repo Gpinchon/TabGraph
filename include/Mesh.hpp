@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 15:30:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 17:26:37 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 #include "Renderable.hpp"
 
 class Vgroup;
-
-typedef bool (*renderable_compare)(Renderable *m, Renderable *m1);
 
 class	Mesh : public Renderable
 {

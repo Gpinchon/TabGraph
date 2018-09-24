@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 18:03:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 18:49:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,11 +60,12 @@ void	Camera::set_current(std::shared_ptr<Camera> camera)
 	_current = camera;
 }
 
-void	Camera::fixed_update()
+void	Camera::transform_update()
 {
 	//Node::update();
-	if (nullptr != target())
+	if (nullptr != target()) {
 		transform() = mat4_lookat(position(), target()->position(), UP);
+	}
 	if (_projection_type == PerspectiveCamera)
 	{
 		VEC2	size = Window::size();

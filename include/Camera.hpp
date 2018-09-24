@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 17:28:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 18:54:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ public :
 	static std::shared_ptr<Camera>	get(unsigned index);
 	static std::shared_ptr<Camera>	current();
 	static void						set_current(std::shared_ptr<Camera>);
-	virtual void					fixed_update();
+	virtual void					transform_update();
 	virtual MAT4					&view();
 	virtual MAT4					&projection();
 	virtual FRUSTUM					&frustum();

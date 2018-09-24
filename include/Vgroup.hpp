@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:43:25 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 18:07:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 17:26:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ struct  CVEC4
 };
 
 class	VertexArray;
+class	Material;
 
 class	Vgroup : public Renderable
 {
@@ -30,6 +31,8 @@ public:
 	static std::shared_ptr<Vgroup>	create(const std::string &);
 	static std::shared_ptr<Vgroup>	get(unsigned index);
 	static std::shared_ptr<Vgroup>	get_by_name(const std::string &name);
+	std::shared_ptr<Material>		material();
+	void							set_material(std::shared_ptr<Material>);
 	void							bind();
 	void							load();
 	bool							render(RenderMod mod = RenderAll);
@@ -41,7 +44,9 @@ public:
 	std::vector<CVEC4>				vn;
 	std::vector<VEC2>				vt;
 	std::vector<unsigned>			i;
+	
 protected:
+	std::weak_ptr<Material>				_material;
 	static std::vector<std::shared_ptr<Vgroup>> _vgroups;
 	std::shared_ptr<VertexArray>		_vao;
 	Vgroup(const std::string &);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/10 21:42:11 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 17:55:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 18:19:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ void		DirectionnalLight::render_shadow()
 	
 }
 
-void		DirectionnalLight::fixed_update()
+void		DirectionnalLight::transform_update()
 {
 	auto	proj = mat4_orthographic(new_frustum(-10, 10, -10, 10), 0.1, 100);
 	transform() = mat4_mult_mat4(proj, mat4_lookat(position(), new_vec3(0, 0 , 0), UP));

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 15:54:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 18:03:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,9 @@ public:
 	static std::shared_ptr<Node>		get_by_name(const std::string &);
 	static std::shared_ptr<Node>		get(unsigned index);
 	virtual std::shared_ptr<Node>		shared_from_this();
-	virtual void						physics_update();
-	virtual void						fixed_update() {};
-	virtual void						update() {};
-	virtual void						render() {};
+	virtual void						transform_update();
+	virtual void						fixed_update();
+	virtual void						update();
 	MAT4								&transform();
 	MAT4								&translate();
 	MAT4								&rotate();
@@ -39,10 +38,10 @@ public:
 	VEC3								&scaling();
 	VEC3								&up();
 	std::shared_ptr<Node>				target();
-	void								set_target(std::shared_ptr<Node>);
 	std::shared_ptr<Node>				parent();
+	void								set_target(std::shared_ptr<Node>);
 	void								set_parent(std::shared_ptr<Node>);
-	void								add_child(std::shared_ptr<Node> child);
+	void								add_child(std::shared_ptr<Node>);
 	std::shared_ptr<Node>				child(unsigned index);
 	BoundingElement						*bounding_element{nullptr};
 protected :

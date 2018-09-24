@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 18:07:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 17:14:19 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,4 +136,17 @@ void			Vgroup::center(VEC3 &center)
 	bounding_element->max = vec3_sub(bounding_element->max, center);
 	bounding_element->center = vec3_sub(bounding_element->center, center);
 	position() = vec3_sub(bounding_element->center, center);
+}
+
+void						Vgroup::set_material(std::shared_ptr<Material> mtl)
+{
+	if (mtl != nullptr)
+		_material = mtl;
+	else
+		_material.reset();
+}
+
+std::shared_ptr<Material>	Vgroup::material()
+{
+	return (_material.lock());
 }

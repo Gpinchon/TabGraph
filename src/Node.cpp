@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 15:55:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 18:00:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,19 +52,29 @@ std::shared_ptr<Node>	Node::get(unsigned index)
 std::shared_ptr<Node>	Node::shared_from_this()
 {
 	return (std::static_pointer_cast<Node>(Object::shared_from_this()));
-};
+}
 
-void	Node::physics_update()
+void					Node::transform_update()
 {
 	_translate = mat4_translate(_position);
 	_rotate = mat4_rotation(_rotation);
 	_scale = mat4_scale(_scaling);
 	_transform = mat4_combine(_translate, _rotate, _scale);
-	//transform_update(&_transform);
-	if (parent() != nullptr) {
-		_transform = mat4_mult_mat4(parent()->transform(), _transform);
-		//transform_set_parent(&_transform, &parent()->_transform);
+	auto	parentPtr = parent();
+	if (parentPtr != nullptr) {
+		parentPtr->transform_update();
+		_transform = mat4_mult_mat4(parentPtr->transform(), _transform);
 	}
+}
+
+void					Node::fixed_update()
+{
+	
+}
+
+void					Node::update()
+{
+
 }
 
 void	Node::add_child(std::shared_ptr<Node> childNode)

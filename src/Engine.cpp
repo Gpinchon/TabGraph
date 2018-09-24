@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 11:38:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 18:01:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,7 +237,7 @@ void	Engine::fixed_update()
 {
 	for (auto i = 0; Node::get(i); i++) {
 		auto node = Node::get(i);
-		node->physics_update();
+		node->transform_update();
 	}
 	for (auto i = 0; Node::get(i); i++) {
 		auto node = Node::get(i);

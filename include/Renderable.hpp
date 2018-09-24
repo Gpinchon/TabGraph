@@ -6,21 +6,18 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 15:30:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/24 17:29:01 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "Node.hpp"
-//#include <unordered_set>
 
 enum RenderMod
 {
 	RenderAll, RenderOpaque, RenderTransparent
 };
-
-class Material;
 
 class	Renderable : public Node
 {
@@ -30,21 +27,9 @@ public:
 	virtual bool						render(RenderMod mod = RenderAll) = 0;
 	virtual bool						render_depth(RenderMod mod = RenderAll) = 0;
 	virtual void						load() = 0;
-	virtual void						set_material(std::shared_ptr<Material>);
-	virtual std::shared_ptr<Material>	material();
-	bool								is_loaded() { return (_is_loaded); };
+	bool								is_loaded();
 protected:
 	static std::vector<std::shared_ptr<Renderable>>	_renderables;
-	std::weak_ptr<Material>				_material;
-	bool								_is_loaded;
-	Renderable(const std::string &name) : Node(name), _is_loaded(false) {};
+	bool								_is_loaded{false};
+	Renderable(const std::string &name);
 };
-
-/*class RenderableMultiDraw : public Renderable
-{
-public :
-	std::unordered_set<std::weak_ptr<Material>>	materials;
-protected :
-	RenderableMultiDraw(const std::string &name) : Renderable(name) {};
-};
-*/
