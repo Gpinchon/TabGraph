@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 18:55:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 19:03:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,9 @@ Mesh::Mesh(const std::string &name) : Renderable(name)
 std::shared_ptr<Mesh>	Mesh::create(const std::string &name)
 {
 	auto	m = std::shared_ptr<Mesh>(new Mesh(name));
-	_meshes.push_back(m);
-	_renderables.push_back(m);
-	_nodes.push_back(m);
+	Mesh::add(m);
+	Renderable::add(m);
+	Node::add(m);
 	return (m);
 }
 
@@ -47,6 +47,11 @@ std::shared_ptr<Mesh>	Mesh::get_by_name(const std::string &name)
 			return (n);
 	}
 	return (nullptr);
+}
+
+void					Mesh::add(std::shared_ptr<Mesh> mesh)
+{
+	_meshes.push_back(mesh);
 }
 
 void	Mesh::add(std::shared_ptr<Vgroup> group)

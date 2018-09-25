@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/24 17:00:20 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 18:15:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:51:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@ std::shared_ptr<ComputeObject>	ComputeObject::create(const std::string &name, st
 {
 	auto	obj = std::shared_ptr<ComputeObject>(new ComputeObject(name));
 	obj->_shader = computeShader;
-	_nodes.push_back(obj);
+	Renderable::add(obj);
+	Node::add(obj);
 	return (obj);
 }
 
@@ -46,4 +47,38 @@ bool							ComputeObject::render_depth(RenderMod /*mod*/)
 void							ComputeObject::load()
 {
 
+}
+
+void							ComputeObject::run()
+{
+	/*auto	shaderPtr = shader();
+	auto	inTexturePtr = in_texture();
+	auto	outTexturePtr = out_texture();
+	if (shaderPtr == nullptr)
+		return ;
+	shaderPtr->use();
+	if (inTexturePtr == outTexturePtr) {
+		shaderPtr->bind_texture("in_data")
+	}
+	shaderPtr->use(false);*/
+}
+
+std::shared_ptr<Texture>		ComputeObject::out_texture()
+{
+	return (_out_texture.lock());
+}
+
+void							ComputeObject::set_out_texture(std::shared_ptr<Texture> itexture)
+{
+	_out_texture = itexture;
+}
+
+std::shared_ptr<Texture>		ComputeObject::in_texture()
+{
+	return (_in_texture.lock());
+}
+
+void							ComputeObject::set_in_texture(std::shared_ptr<Texture> itexture)
+{
+	_in_texture = itexture;
 }

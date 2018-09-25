@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 18:03:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:48:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ public:
 	static std::shared_ptr<Node>		create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale);
 	static std::shared_ptr<Node>		get_by_name(const std::string &);
 	static std::shared_ptr<Node>		get(unsigned index);
+	static void							add(std::shared_ptr<Node>);
 	virtual std::shared_ptr<Node>		shared_from_this();
 	virtual void						transform_update();
 	virtual void						fixed_update();
@@ -57,5 +58,6 @@ protected :
 	MAT4								_translate{0};
 	MAT4								_rotate{0};
 	MAT4								_scale{mat4_identity()};
+private :
 	static std::vector<std::shared_ptr<Node>>	_nodes;
 };

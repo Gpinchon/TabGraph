@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 17:29:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:47:42 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,9 @@ public:
 	virtual void						load() = 0;
 	bool								is_loaded();
 protected:
-	static std::vector<std::shared_ptr<Renderable>>	_renderables;
 	bool								_is_loaded{false};
+	static void							add(std::shared_ptr<Renderable>);
 	Renderable(const std::string &name);
+private :
+	static std::vector<std::shared_ptr<Renderable>>	_renderables;
 };

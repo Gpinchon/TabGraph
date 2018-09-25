@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:57:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 17:28:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:45:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,4 +40,9 @@ std::shared_ptr<Renderable> Renderable::get_by_name(const std::string &name)
 bool						Renderable::is_loaded()
 {
 	return (_is_loaded);
+}
+
+void						Renderable::add(std::shared_ptr<Renderable> renderable)
+{
+	_renderables.push_back(renderable);
 }

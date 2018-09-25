@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/07/30 19:13:58 by anonymous         #+#    #+#             */
-/*   Updated: 2018/09/24 15:07:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:44:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "GLIncludes.hpp"
+#include <iostream>
 #include <memory>
 #include <string>
 

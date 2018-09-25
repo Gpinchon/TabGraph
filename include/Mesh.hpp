@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 17:26:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:57:12 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,14 @@ class	Mesh : public Renderable
 public:
 	static std::shared_ptr<Mesh>	create(const std::string &);
 	static std::shared_ptr<Mesh>	get_by_name(const std::string &);
+	static void						add(std::shared_ptr<Mesh>);
     void							load();
 	bool							render(RenderMod mod = RenderAll);
 	bool							render_depth(RenderMod mod = RenderAll);
 	void							center();
 	void							set_cull_mod(GLenum);
 	void							add(std::shared_ptr<Vgroup>);
+
 private:
 	Mesh(const std::string &name);
 	static std::vector<std::shared_ptr<Mesh>>	_meshes;

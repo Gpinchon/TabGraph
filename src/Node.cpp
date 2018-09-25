@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 18:00:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:49:12 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ std::shared_ptr<Node>	Node::create(const std::string &name, VEC3 position, VEC3 
 	t->_scaling = scale;
 	//t->_transform = new_transform(position, rotation, scale, UP);
 	t->update();
-	_nodes.push_back(t);
+	add(t);
 	return (t);
 }
 
@@ -52,6 +52,11 @@ std::shared_ptr<Node>	Node::get(unsigned index)
 std::shared_ptr<Node>	Node::shared_from_this()
 {
 	return (std::static_pointer_cast<Node>(Object::shared_from_this()));
+}
+
+void					Node::add(std::shared_ptr<Node> node)
+{
+	_nodes.push_back(node);
 }
 
 void					Node::transform_update()

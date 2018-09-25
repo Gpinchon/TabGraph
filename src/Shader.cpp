@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 15:31:37 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 15:59:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,9 +188,6 @@ void	Shader::unbind_texture(GLenum texture_unit)
 	}
 	glActiveTexture(texture_unit);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_TEXTURE_CUBE_MAP);
 	if (!bound) {
 		use(false);
 	}

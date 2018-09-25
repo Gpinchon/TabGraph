@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 12:00:06 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:26:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -370,7 +370,7 @@ static void	parse_line(t_obj_parser *p, const char *line)
 	}
 	else if (split[0] == "usemtl")
 	{
-		parse_vg(p);
+		//parse_vg(p);
 		auto	mtl = Material::get_by_name(split[1]);
 		if (mtl != nullptr)
 			p->vg->set_material(mtl);

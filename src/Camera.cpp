@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 18:49:42 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:52:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,8 @@ Camera::Camera(const std::string &name, float ifov, CameraProjection proj) : Nod
 std::shared_ptr<Camera>	Camera::create(const std::string &name, float ifov, CameraProjection proj)
 {
 	auto	camera = std::shared_ptr<Camera>(new Camera(name, ifov, proj));
-	_nodes.push_back(std::static_pointer_cast<Node>(camera));
+	Node::add(camera);
+	//_nodes.push_back(std::static_pointer_cast<Node>(camera));
 	_cameras.push_back(camera);
 	return (camera);
 }
@@ -105,7 +106,7 @@ OrbitCamera::OrbitCamera(const std::string &iname, float ifov, float phi, float 
 std::shared_ptr<OrbitCamera>	OrbitCamera::create(const std::string &iname, float ifov, float phi, float theta, float radius)
 {
 	auto	camera = std::shared_ptr<OrbitCamera>(new OrbitCamera(iname, ifov, phi, theta, radius));
-	_nodes.push_back(std::static_pointer_cast<Node>(camera));
+	Node::add(camera);
 	_cameras.push_back(std::static_pointer_cast<Camera>(camera));
 	return (camera);
 }

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/10 21:42:11 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 18:19:29 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/25 18:52:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ std::shared_ptr<Light>	Light::create(const std::string &name, VEC3 color, VEC3 p
 	light->position() = position;
 	light->power() = power;
 	_lights.push_back(light);
-	_nodes.push_back(std::static_pointer_cast<Node>(light));
+	Node::add(light);
 	return (light);
 }
 
@@ -95,7 +95,7 @@ std::shared_ptr<DirectionnalLight>	DirectionnalLight::create(const std::string &
 		//shadow_array()->load();
 	}
 	_lights.push_back(light);
-	_nodes.push_back(std::static_pointer_cast<Node>(light));
+	Node::add(light);
 	return (light);
 }
 
