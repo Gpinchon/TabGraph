@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 15:31:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/26 12:01:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,8 @@ public:
 	GLuint			link(const GLuint vertexid, const GLuint fragmentid);
 	GLuint			link(const GLuint geometryid, const GLuint vertexid, const GLuint fragmentid);
 	GLuint			link(const GLuint shaderid);
-	void			bind_texture(const std::string &, std::shared_ptr<Texture>, const GLenum texture_unit);
+	void			bind_texture(const std::string &uname, std::shared_ptr<Texture>, const GLenum texture_unit);
+	void			bind_image(const std::string &uname, std::shared_ptr<Texture> texture, const GLint level, const bool layered, const GLint layer, const GLenum access, const GLenum texture_unit);
 	void			unbind_texture(GLenum texture_unit);
 	void			set_uniform(const std::string &uname, const bool &, unsigned nbr = 1);
 	void			set_uniform(const std::string &uname, const int &, unsigned nbr = 1);

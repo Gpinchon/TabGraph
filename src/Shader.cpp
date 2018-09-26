@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/25 15:59:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/26 12:00:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,6 +188,30 @@ void	Shader::unbind_texture(GLenum texture_unit)
 	}
 	glActiveTexture(texture_unit);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	if (!bound) {
+		use(false);
+	}
+}
+
+void	Shader::bind_image(const std::string &name,
+	std::shared_ptr<Texture> texture, const GLint level, const bool layered, const GLint layer, const GLenum access, const GLenum texture_unit)
+{
+	bool	bound = in_use();
+	if (!bound) {
+		use();
+	}
+	if (texture == nullptr) {
+		unbind_texture(texture_unit);
+	}
+	else {
+		texture->load();
+		glActiveTexture(texture_unit);
+		glBindImageTexture(texture_unit,
+			texture->glid(), level, layered,
+			layer, access, texture->internal_format());
+		//glBindTexture(texture->target(), texture->glid());
+	}
+	set_uniform(name, int(texture_unit - GL_TEXTURE0));
 	if (!bound) {
 		use(false);
 	}
