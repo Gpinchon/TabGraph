@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/10 21:42:11 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/25 18:52:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/26 16:12:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,20 @@ std::shared_ptr<Light>	Light::create(const std::string &name, VEC3 color, VEC3 p
 	light->color() = color;
 	light->position() = position;
 	light->power() = power;
-	_lights.push_back(light);
+	Light::add(light);
 	Node::add(light);
 	return (light);
+}
+
+std::shared_ptr<Light>	Light::get_by_name(const std::string &iname)
+{
+	std::hash<std::string>	hash_fn;
+	auto					h = hash_fn(iname);
+	for (auto n : _lights) {
+		if (h == n->id())
+			return (n);
+	}
+	return (nullptr);
 }
 
 std::shared_ptr<Light>	Light::get(unsigned index)
@@ -36,6 +47,11 @@ std::shared_ptr<Light>	Light::get(unsigned index)
 	if (index >= _lights.size())
 		return (nullptr);
 	return (_lights.at(index));
+}
+
+void					Light::add(std::shared_ptr<Light> light)
+{
+	_lights.push_back(light);
 }
 
 /*TextureArray	*Light::shadow_array()
@@ -94,7 +110,7 @@ std::shared_ptr<DirectionnalLight>	DirectionnalLight::create(const std::string &
 		//shadow_array()->add(light->_render_buffer->depth());
 		//shadow_array()->load();
 	}
-	_lights.push_back(light);
+	Light::add(light);
 	Node::add(light);
 	return (light);
 }

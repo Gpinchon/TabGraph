@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 15:48:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/26 19:16:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,8 @@ std::vector<std::shared_ptr<Light>> create_random_lights(unsigned i)
 }
 
 #include "Errors.hpp"
+#include "ComputeObject.hpp"
+#include "Vgroup.hpp"
 
 int		main(int argc, char *argv[])
 {
@@ -106,11 +108,14 @@ int		main(int argc, char *argv[])
 	Camera::set_current(camera);
 	camera->set_target(Node::create("main_camera_target", new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
-	/*auto cube0 = CubeMesh::create("cube0", new_vec3(1, 2, 1));
-	auto cube1 = CubeMesh::create("cube1", new_vec3(1, 1, 1));
-	cube1->position() = new_vec3(0, 1.5, 0);
-	cube1->rotation() = new_vec3(0, 0, 0.5);
-	cube1->set_parent(cube0);*/
+	/*auto	cube = CubeMesh::create("cube", new_vec3(1, 1, 1));
+	auto	compute_shader = GLSL::parse("CheckerBoard", "./compute/checkerboard.compute", ComputeShader);
+	auto	compute_object = ComputeObject::create("computeObject", compute_shader);
+	auto	texture = Texture::create("checkerBoardTexture", new_vec2(256, 256), GL_TEXTURE_2D, GL_RGBA, GL_RGBA32F, GL_FLOAT);
+	//compute_object->set_in_texture(texture);
+	compute_object->set_out_texture(texture);
+	compute_object->run();
+	cube->vgroup(0)->material()->set_texture_albedo(texture);*/
 	obj = nullptr;
 	if (argc >= 2) {
 		obj = OBJ::parse("main_mesh", argv[1]);
@@ -122,7 +127,6 @@ int		main(int argc, char *argv[])
 		obj->center();
 		obj->load();
 	}
-	//obj->set_parent(cube1);
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	setup_callbacks();

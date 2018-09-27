@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 12:00:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/26 18:18:18 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,8 +205,9 @@ void	Shader::bind_image(const std::string &name,
 	}
 	else {
 		texture->load();
-		glActiveTexture(texture_unit);
-		glBindImageTexture(texture_unit,
+		//glActiveTexture(texture_unit);
+		glBindTexture(texture->target(), texture->glid());
+		glBindImageTexture(texture_unit - GL_TEXTURE0,
 			texture->glid(), level, layered,
 			layer, access, texture->internal_format());
 		//glBindTexture(texture->target(), texture->glid());

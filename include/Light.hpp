@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 18:19:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/26 16:05:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ public :
 	static std::shared_ptr<Light>	create(const std::string &name, VEC3 color, VEC3 position, float power);
 	static std::shared_ptr<Light>	get_by_name(const std::string &);
 	static std::shared_ptr<Light>	get(unsigned index);
+	static void						add(std::shared_ptr<Light>);
 	virtual void					render_shadow();
 	VEC3							&color();
 	float							&power();
@@ -36,12 +37,13 @@ public :
 	//static TextureArray				*shadow_array();
 	virtual LightType				type();
 protected :
-	static std::vector<std::shared_ptr<Light>>	_lights;
 	Light(const std::string &name);
 	VEC3						_color{0, 0, 0};
 	float						_power{0};
 	bool						_cast_shadow{false};
 	std::weak_ptr<Framebuffer>	_render_buffer;
+private :
+	static std::vector<std::shared_ptr<Light>>	_lights;
 };
 
 class DirectionnalLight : public Light

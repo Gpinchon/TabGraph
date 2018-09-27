@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/25 19:03:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/26 18:00:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ Mesh::Mesh(const std::string &name) : Renderable(name)
 
 
 
-std::shared_ptr<Mesh>	Mesh::create(const std::string &name)
+std::shared_ptr<Mesh>	Mesh::create(const std::string &name) /*static*/
 {
 	auto	m = std::shared_ptr<Mesh>(new Mesh(name));
 	Mesh::add(m);
@@ -38,7 +38,7 @@ std::shared_ptr<Mesh>	Mesh::create(const std::string &name)
 	return (m);
 }
 
-std::shared_ptr<Mesh>	Mesh::get_by_name(const std::string &name)
+std::shared_ptr<Mesh>	Mesh::get_by_name(const std::string &name) /*static*/
 {
 	std::hash<std::string>	hash_fn;
 	auto					h = hash_fn(name);
@@ -49,9 +49,23 @@ std::shared_ptr<Mesh>	Mesh::get_by_name(const std::string &name)
 	return (nullptr);
 }
 
-void					Mesh::add(std::shared_ptr<Mesh> mesh)
+std::shared_ptr<Mesh>	Mesh::get(unsigned index) /*static*/
+{
+	if (index >= _meshes.size())
+		return (nullptr);
+	return (_meshes.at(index));
+}
+
+void	Mesh::add(std::shared_ptr<Mesh> mesh) /*static*/
 {
 	_meshes.push_back(mesh);
+}
+
+std::shared_ptr<Vgroup>	Mesh::vgroup(unsigned index)
+{
+	if (index >= _vgroups.size())
+		return (nullptr);
+	return (_vgroups.at(index));
 }
 
 void	Mesh::add(std::shared_ptr<Vgroup> group)

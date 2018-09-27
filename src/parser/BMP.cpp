@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 17:21:03 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/27 12:23:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,6 +154,8 @@ std::shared_ptr<Texture> BMP::parse(const std::string &texture_name, const std::
 		throw std::runtime_error(std::string("Error parsing ") + path + " : " + e.what());
 	}
 	get_format(parser.info.bpp, &format[0], &format[1]);
-	return (Texture::create(texture_name, new_vec2(parser.info.width, parser.info.height),
-			GL_TEXTURE_2D, format[0], format[1], GL_UNSIGNED_BYTE, parser.data));
+	auto	t = Texture::create(texture_name, new_vec2(parser.info.width, parser.info.height),
+			GL_TEXTURE_2D, format[0], format[1], GL_UNSIGNED_BYTE, parser.data);
+	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	return (t);
 }

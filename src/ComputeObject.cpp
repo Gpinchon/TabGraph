@@ -6,12 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/24 17:00:20 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 14:56:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/09/26 19:13:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ComputeObject.hpp"
 #include "Shader.hpp"
+#include "Errors.hpp"
 
 ComputeObject::ComputeObject(const std::string &name) : Node(name) {}
 
@@ -56,10 +57,14 @@ void							ComputeObject::run()
 	}
 	else {
 		shaderPtr->bind_image("in_data", inTexturePtr, 0, false, 0, GL_READ_ONLY, GL_TEXTURE0);
+		glCheckError();
 		shaderPtr->bind_image("out_data", outTexturePtr, 0, false, 0, GL_WRITE_ONLY, GL_TEXTURE1);
+		glCheckError();
 	}
-	glDispatchCompute(_num_groups.x, _num_groups.y, _num_groups.z);
+	glDispatchCompute(30, 40, 1);
+	glCheckError();
 	glMemoryBarrier(memory_barrier());
+	glCheckError();
 	shaderPtr->use(false);
 }
 

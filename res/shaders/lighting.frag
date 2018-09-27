@@ -104,6 +104,8 @@ void	ApplyTechnique()
 			Attenuation = length(L);
 			Attenuation = 1.0 / (Attenuation * Attenuation);
 		}
+		if (Attenuation <= 0.01)
+			continue ;
 		L = normalize(L);
 		N = Frag.Normal;
 		float	NdL = dot(N, L);
