@@ -124,5 +124,4 @@ void	ApplyTechnique()
 	Out.Color.rgb += (specular + diffuse + reflection) * alpha;
 	Out.Color.a = 1;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
-	Out.Emitting.a = 1;
 }

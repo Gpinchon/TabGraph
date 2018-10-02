@@ -52,7 +52,7 @@ void	ApplyTechnique()
 	vec3	Back_Emitting = sampleLod(opaqueBackEmitting, refract_UV, Frag.Material.Roughness).rgb;
 	if (Out.Color.a == 0) {
 		Out.Color = vec4(Back_Color, 1);
-		Out.Emitting = vec4(Back_Emitting, 1);
+		Out.Emitting = Back_Emitting;
 		return ;
 	}
 	Back_Color = mix(Back_Color, Back_Color * Frag.Material.Albedo, Frag.Material.Alpha);
@@ -60,5 +60,4 @@ void	ApplyTechnique()
 	Out.Color.rgb += Back_Color * (1 - Frag.Material.Alpha);
 	Out.Color.a = 1;
 	Out.Emitting.rgb += Back_Emitting * (1 - Frag.Material.Alpha);
-	Out.Emitting.a = 1;
 }

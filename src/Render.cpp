@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 11:34:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/02 18:03:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -328,7 +328,6 @@ void	Render::scene()
 	current_backTexture->bind();
 	glClear(GL_COLOR_BUFFER_BIT);
 	light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
-	//light_shadow_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
 	// APPLY LIGHTING SHADER
 	// OUTPUT : out_Color, out_Brightness

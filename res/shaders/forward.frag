@@ -78,11 +78,11 @@ in vec3	frag_WorldNormal;
 in vec2	frag_Texcoord;
 
 layout(location = 0) out vec4	out_Albedo;
-layout(location = 1) out vec4	out_Emitting;
-layout(location = 2) out vec4	out_Specular;
-layout(location = 3) out vec4	out_Material_Values; // Roughness, Metallic, Ior
-layout(location = 4) out vec4	out_AO;
-layout(location = 5) out vec4	out_Normal;
+layout(location = 1) out vec3	out_Emitting;
+layout(location = 2) out vec3	out_Specular;
+layout(location = 3) out vec3	out_Material_Values; // Roughness, Metallic, Ior
+layout(location = 4) out float	out_AO;
+layout(location = 5) out vec3	out_Normal;
 
 t_Frag	Frag;
 
@@ -183,20 +183,14 @@ void	FillIn()
 
 void	FillOut()
 {
-	out_Specular.a = 1;
-	out_Emitting.a = 1;
-	out_Material_Values.a = 1;
-	out_AO.a = 1;
-	out_Normal.a = 1;
-
 	out_Albedo = vec4(Frag.Material.Albedo.rgb, Frag.Material.Alpha);
-	out_Specular.rgb = Frag.Material.Specular;
-	out_Emitting.rgb = max(vec3(0), Frag.Material.Albedo.rgb - 1) + Frag.Material.Emitting;
+	out_Specular = Frag.Material.Specular;
+	out_Emitting = max(vec3(0), Frag.Material.Albedo.rgb - 1) + Frag.Material.Emitting;
 	out_Material_Values.x = Frag.Material.Roughness;
 	out_Material_Values.y = Frag.Material.Metallic;
 	out_Material_Values.z = Frag.Material.Ior;
-	out_AO.r = Frag.Material.AO;
-	out_Normal.xyz = normalize(Frag.Normal);
+	out_AO = Frag.Material.AO;
+	out_Normal = normalize(Frag.Normal);
 #ifdef FORCEDEPTHWRITE
 	gl_FragDepth = Frag.Depth;
 	bvec3	positionsEqual = notEqual(Frag.Position, frag_WorldPosition);

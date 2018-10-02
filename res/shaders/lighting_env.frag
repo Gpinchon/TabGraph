@@ -55,7 +55,7 @@ void	ApplyTechnique()
 	#endif //TRANSPARENT
 		Out.Color = vec4(EnvDiffuse, 1);
 		brightness = dot(pow(Out.Color.rgb, envGammaCorrection), brightnessDotValue);
-		Out.Emitting = vec4(max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness)), 1);
+		Out.Emitting = max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness));
 		return ;
 	}
 	vec3	fresnel = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
@@ -72,5 +72,4 @@ void	ApplyTechnique()
 	Out.Color.rgb += (specular + diffuse + reflection + Frag.Material.Emitting) * alpha;
 	Out.Color.a = 1;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
-	Out.Emitting.a = 1;
 }
