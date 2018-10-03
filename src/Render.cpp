@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/02 18:03:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/03 22:57:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -329,11 +329,15 @@ void	Render::scene()
 	glClear(GL_COLOR_BUFFER_BIT);
 	light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
+	current_backTexture->attachement(0)->generate_mipmap();
+	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	/*current_backTexture->attachement(1)->generate_mipmap();
+	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);*/
+
 	// APPLY LIGHTING SHADER
 	// OUTPUT : out_Color, out_Brightness
 	current_backBuffer->bind();
 	elighting_shader->use();
-
 	elighting_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
 	elighting_shader->bind_texture("Texture.Emitting",			current_tbuffertex->attachement(1), GL_TEXTURE1);
 	elighting_shader->bind_texture("Texture.Specular",			current_tbuffertex->attachement(2), GL_TEXTURE2);
@@ -350,6 +354,9 @@ void	Render::scene()
 	}
 	Render::display_quad()->draw();
 	elighting_shader->use(false);
+
+	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	std::swap(current_backTexture, current_backBuffer);
 
@@ -396,6 +403,11 @@ void	Render::scene()
 	glDisable(GL_CULL_FACE);
 	light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
+	current_backTexture->attachement(0)->generate_mipmap();
+	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	/*current_backTexture->attachement(1)->generate_mipmap();
+	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);*/
+
 	current_backBuffer->bind();
 	telighting_shader->use();
 	telighting_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
@@ -413,10 +425,11 @@ void	Render::scene()
 		telighting_shader->bind_texture("Texture.Environment.Diffuse",		Environment::current()->diffuse(), GL_TEXTURE12);
 		telighting_shader->bind_texture("Texture.Environment.Irradiance",	Environment::current()->irradiance(), GL_TEXTURE13);
 	}
-
 	Render::display_quad()->draw();
 	telighting_shader->use(false);
 
+	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	std::swap(current_backTexture, current_backBuffer);
 
 	refraction_shader->use();

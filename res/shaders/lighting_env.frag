@@ -1,6 +1,71 @@
 uniform vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
 uniform vec3	envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
 
+uniform float	step = 0.1;
+uniform float	minRayStep = 0.1;
+uniform int		maxSteps = 30;
+uniform float	searchDist = 5;
+uniform int		numBinarySearchSteps = 5;
+uniform float	reflectionSpecularFalloffExponent = 3.0;
+
+vec3 BinarySearch(inout vec3 dir, inout vec3 hitCoord, inout float dDepth)
+{
+	float depth;
+
+	vec4 projectedCoord;
+	for(int i = 0; i < numBinarySearchSteps; i++)
+	{
+		projectedCoord = Camera.Matrix.Projection * vec4(hitCoord, 1.0);
+		projectedCoord /= projectedCoord.w;
+		projectedCoord = projectedCoord * 0.5 + 0.5;
+		depth = texture(Texture.Depth, projectedCoord.xy).r;
+		if (depth == 1)
+			continue;
+		dDepth = projectedCoord.z - depth;
+		dir *= 0.5;
+		if(dDepth > 0.0) {
+			hitCoord += dir;
+		}
+		else {
+			hitCoord -= dir;
+		}
+	}
+
+	projectedCoord = Camera.Matrix.Projection * vec4(hitCoord, 1.0);
+	projectedCoord.xy /= projectedCoord.w;
+	projectedCoord.xy = projectedCoord.xy * 0.5 + 0.5;
+
+	return vec3(projectedCoord.xy, depth);
+}
+
+vec3	SSR()
+{
+	vec3	V = normalize(Camera.Position - Frag.Position);
+	vec3	reflectDir = -normalize(mat3(Camera.Matrix.View) * normalize(reflect(V, Frag.Normal)));
+	vec4	hitPos = Camera.Matrix.View * vec4(Frag.Position, 1);
+	float	dDepth;
+	vec4	projectedCoord;
+
+	reflectDir *= step;
+	for (int i = 0; i < maxSteps && reflectDir.z < 0; i++)
+	{
+		hitPos.xyz += reflectDir;
+		projectedCoord = Camera.Matrix.Projection * hitPos;
+		projectedCoord /= projectedCoord.w;
+		projectedCoord = projectedCoord * 0.5 + 0.5;
+		float sampleDepth = texture(Texture.Depth, projectedCoord.xy).r;
+		if (sampleDepth == 1)
+			continue;
+		dDepth = projectedCoord.z - sampleDepth;
+		if (dDepth > 0) {
+			return (BinarySearch(reflectDir, hitPos.xyz, dDepth));
+		}
+	}
+	return (vec3(0, 0, 1));
+	//if (result.z != 1)
+	//	Out.Color.rgb += sampleLod(Texture.Back.Color, result.xy, Frag.Material.Roughness).rgb;
+}
+
 float	Env_Specular(in float NdV, in float roughness)
 {
 	float	alpha = roughness * roughness;
@@ -69,7 +134,22 @@ void	ApplyTechnique()
 	float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));
 	alpha = min(1, alpha);
 
-	Out.Color.rgb += (specular + diffuse + reflection + Frag.Material.Emitting) * alpha;
+	vec3	envReflection = (specular + reflection) * alpha;
+
+	vec3	ssrResult = vec3(0, 0, 1);
+	if (Frag.Material.Roughness < 1) {
+		ssrResult = SSR();
+	}
+	if (ssrResult.z != 1) {
+		vec3	ssrReflection = sampleLod(Texture.Back.Color, ssrResult.xy, Frag.Material.Roughness).rgb + sampleLod(Texture.Back.Emitting, ssrResult.xy, Frag.Material.Roughness).rgb;
+		Out.Color.rgb += 
+			mix(ssrReflection * fresnel, envReflection, Frag.Material.Roughness) * Frag.Material.Alpha;
+	}
+	else {
+		Out.Color.rgb += envReflection;
+	}
+	Out.Color.rgb += (diffuse + Frag.Material.Emitting) * alpha;
 	Out.Color.a = 1;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
+	
 }
