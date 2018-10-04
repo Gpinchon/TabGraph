@@ -24,7 +24,7 @@ vec3 BinarySearch(inout vec3 dir, inout vec3 hitCoord, inout float dDepth)
 		projectedCoord = projectedCoord * 0.5 + 0.5;
 		if (projectedCoord.x > 1 || projectedCoord.x < 0 || projectedCoord.y > 1 || projectedCoord.y < 0)
 			break;
-		depth = sampleLod(LastDepth, projectedCoord.xy, Frag.Material.Roughness).r;
+		depth = sampleLod(LastDepth, projectedCoord.xy, Frag.Material.Roughness * 1.25).r;
 		if (depth == 1)
 			continue;
 		dDepth = projectedCoord.z - depth;
@@ -62,7 +62,7 @@ vec4	SSR()
 		projectedCoord = projectedCoord * 0.5 + 0.5;
 		if (projectedCoord.x > 1 || projectedCoord.x < 0 || projectedCoord.y > 1 || projectedCoord.y < 0)
 			break;
-		float sampleDepth = sampleLod(LastDepth, projectedCoord.xy, Frag.Material.Roughness).r;
+		float sampleDepth = sampleLod(LastDepth, projectedCoord.xy, Frag.Material.Roughness * 1.25).r;
 		if (sampleDepth == 1)
 			continue;
 		dDepth = projectedCoord.z - sampleDepth;
@@ -149,11 +149,10 @@ void	ApplyTechnique()
 		ssrResult = SSR();
 	}
 	if (ssrResult.z != 1) {
-		vec3	ssrReflection = sampleLod(LastColor, ssrResult.xy, Frag.Material.Roughness).rgb + sampleLod(LastEmitting, ssrResult.xy, Frag.Material.Roughness).rgb;
-		vec2	dCoord = abs(vec2(0.5, 0.5) - ssrResult.xy);
-		float	screenEdgeFactor = smoothstep(0, 1, 1 - pow(dCoord.x + dCoord.y, 3));
-		float	reflectionFactor = ssrResult.w * length(fresnel) * screenEdgeFactor;
-		Out.Color.rgb += mix(envReflection, specular + ssrReflection * fresnel, clamp(reflectionFactor, 0, 1));
+		vec3	ssrReflection = sampleLod(LastColor, ssrResult.xy, Frag.Material.Roughness * 2).rgb + sampleLod(LastEmitting, ssrResult.xy, Frag.Material.Roughness * 2).rgb;
+		float	screenEdgeFactor = smoothstep(0, 1, 1 - pow(length(ssrResult.xy * 2 - 1), 10));
+		float	reflectionFactor = ssrResult.w * min(length(fresnel), 1) * screenEdgeFactor;
+		Out.Color.rgb += mix(envReflection, Frag.Material.Metallic * specular + ssrReflection * fresnel, clamp(reflectionFactor, 0, 1));
 	}
 	else {
 		Out.Color.rgb += envReflection;
