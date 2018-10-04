@@ -189,6 +189,11 @@ float	map(in float value, in float low1, in float high1, in float low2, in float
 	return (low2 + (value - low1) * (high2 - low2) / (high1 - low1));
 }
 
+float	smootherstep(float edge0, float edge1, float x) {
+	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+	return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
 void	ApplyTechnique();
 
 void main()

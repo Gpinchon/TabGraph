@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/03 22:57:32 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/04 19:19:36 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,6 +261,7 @@ void	Render::scene()
 	static auto	back_buffer = create_back_buffer("back_buffer", Window::internal_resolution());
 	static auto	back_buffer1 = create_back_buffer("back_buffer1", Window::internal_resolution());
 	static auto	back_buffer2 = create_back_buffer("back_buffer2", Window::internal_resolution());
+	static auto	final_back_buffer = create_back_buffer("final_back_buffer", Window::internal_resolution());
 	static auto	elighting_shader = GLSL::parse("lighting_env", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader);
 	static auto	telighting_shader = GLSL::parse("lighting_env_transparent", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader, "#define TRANSPARENT\n");
 	static auto	refraction_shader = GLSL::parse("refraction", Engine::program_path() + "./res/shaders/refraction.frag", LightingShader);
@@ -270,6 +271,7 @@ void	Render::scene()
 	back_buffer->resize(Window::internal_resolution());
 	back_buffer1->resize(Window::internal_resolution());
 	back_buffer2->resize(Window::internal_resolution());
+	final_back_buffer->resize(Window::internal_resolution());
 
 	/*
 	** TODO :
@@ -329,10 +331,15 @@ void	Render::scene()
 	glClear(GL_COLOR_BUFFER_BIT);
 	light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
-	current_backTexture->attachement(0)->generate_mipmap();
-	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	/*current_backTexture->attachement(0)->generate_mipmap();
+	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);*/
 	/*current_backTexture->attachement(1)->generate_mipmap();
 	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);*/
+
+	final_back_buffer->attachement(0)->generate_mipmap();
+	final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	final_back_buffer->depth()->generate_mipmap();
+	final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	// APPLY LIGHTING SHADER
 	// OUTPUT : out_Color, out_Brightness
@@ -348,6 +355,9 @@ void	Render::scene()
 	elighting_shader->bind_texture("Texture.BRDF",				brdf, GL_TEXTURE7);
 	elighting_shader->bind_texture("Texture.Back.Color",				current_backTexture->attachement(0), GL_TEXTURE8);
 	elighting_shader->bind_texture("Texture.Back.Emitting",				current_backTexture->attachement(1), GL_TEXTURE9);
+	elighting_shader->bind_texture("LastColor",					final_back_buffer->attachement(0), GL_TEXTURE12);
+	elighting_shader->bind_texture("LastEmitting",				final_back_buffer->attachement(1), GL_TEXTURE13);
+	elighting_shader->bind_texture("LastDepth",					final_back_buffer->depth(), GL_TEXTURE14);
 	if (Environment::current() != nullptr) {
 		elighting_shader->bind_texture("Texture.Environment.Diffuse",		Environment::current()->diffuse(), GL_TEXTURE10);
 		elighting_shader->bind_texture("Texture.Environment.Irradiance",	Environment::current()->irradiance(), GL_TEXTURE11);
@@ -355,8 +365,8 @@ void	Render::scene()
 	Render::display_quad()->draw();
 	elighting_shader->use(false);
 
-	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	/*current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);*/
 
 	std::swap(current_backTexture, current_backBuffer);
 
@@ -403,9 +413,9 @@ void	Render::scene()
 	glDisable(GL_CULL_FACE);
 	light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
-	current_backTexture->attachement(0)->generate_mipmap();
+	/*current_backTexture->attachement(0)->generate_mipmap();
 	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	/*current_backTexture->attachement(1)->generate_mipmap();
+	current_backTexture->attachement(1)->generate_mipmap();
 	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);*/
 
 	current_backBuffer->bind();
@@ -421,6 +431,9 @@ void	Render::scene()
 	telighting_shader->bind_texture("Texture.Back.Emitting",	current_backTexture->attachement(1), GL_TEXTURE9);
 	telighting_shader->bind_texture("opaqueBackColor",			opaqueBackBuffer->attachement(0), GL_TEXTURE10);
 	telighting_shader->bind_texture("opaqueBackEmitting",		opaqueBackBuffer->attachement(1), GL_TEXTURE11);
+	telighting_shader->bind_texture("LastColor",				final_back_buffer->attachement(0), GL_TEXTURE14);
+	telighting_shader->bind_texture("LastEmitting",				final_back_buffer->attachement(1), GL_TEXTURE15);
+	telighting_shader->bind_texture("LastDepth",				final_back_buffer->depth(), GL_TEXTURE16);
 	if (Environment::current() != nullptr) {
 		telighting_shader->bind_texture("Texture.Environment.Diffuse",		Environment::current()->diffuse(), GL_TEXTURE12);
 		telighting_shader->bind_texture("Texture.Environment.Irradiance",	Environment::current()->irradiance(), GL_TEXTURE13);
@@ -428,12 +441,12 @@ void	Render::scene()
 	Render::display_quad()->draw();
 	telighting_shader->use(false);
 
-	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	/*current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);*/
 	std::swap(current_backTexture, current_backBuffer);
 
 	refraction_shader->use();
-	current_backBuffer->bind();
+	final_back_buffer->bind();
 	refraction_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
 	refraction_shader->bind_texture("Texture.Specular",			current_tbuffertex->attachement(2), GL_TEXTURE1);
 	refraction_shader->bind_texture("Texture.MaterialValues",	current_tbuffertex->attachement(3), GL_TEXTURE2);
@@ -446,9 +459,12 @@ void	Render::scene()
 	Render::display_quad()->draw();
 	refraction_shader->use(false);
 
+	final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 	opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	present(current_backBuffer);
+	present(final_back_buffer);
 }
 
 void	Render::add_post_treatment(std::shared_ptr<Shader> shader)
