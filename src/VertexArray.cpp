@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:14:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 18:08:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/05 15:27:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,11 @@ VertexBuffer	*VertexArray::add_indices(const std::vector<unsigned> &indices)
 	_indexed = true;
 	bind(false);
 	return (_indices);
+}
+
+void	VertexArray::set_draw_type(GLenum draw_type)
+{
+	_GLDrawType = draw_type;
 }
 
 GLuint	VertexArray::glid() const

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 20:09:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 15:58:59 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/05 15:27:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ public:
 	template <typename T>
 	VertexBuffer		*add_buffer(GLenum data_type, int size, const std::vector<T> &a);
 	VertexBuffer		*add_indices(const std::vector<unsigned int> &a);
+	void				set_draw_type(GLenum);
 private:
 	static std::vector<std::shared_ptr<VertexArray>>	_vertexArrays;
 	std::vector<VertexBuffer*>	_buffers;
