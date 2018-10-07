@@ -23,13 +23,13 @@ vec3 BinarySearch(inout vec3 dir, inout vec3 hitCoord, inout float dDepth)
 		projectedCoord /= projectedCoord.w;
 		projectedCoord = projectedCoord * 0.5 + 0.5;
 		if (projectedCoord.x > 1 || projectedCoord.x < 0 || projectedCoord.y > 1 || projectedCoord.y < 0)
-			break;
-		depth = sampleLod(LastDepth, projectedCoord.xy, Frag.Material.Roughness * 1.25).r;
+			continue;
+		depth = sampleLod(LastDepth, projectedCoord.xy, 0).r;
 		if (depth == 1)
 			continue;
 		dDepth = projectedCoord.z - depth;
 		dir *= 0.5;
-		if(dDepth > 0.0) {
+		if(dDepth >= 0.0) {
 			hitCoord += dir;
 		}
 		else {
@@ -46,28 +46,37 @@ vec3 BinarySearch(inout vec3 dir, inout vec3 hitCoord, inout float dDepth)
 
 vec4	SSR()
 {
-	vec3	V = normalize(Camera.Position - Frag.Position);
-	vec3	reflectDir = -normalize(mat3(Camera.Matrix.View) * normalize(reflect(V, Frag.Normal)));
-	vec4	hitPos = Camera.Matrix.View * vec4(Frag.Position, 1);
 	float	dDepth;
+	vec3	V = normalize(Camera.Position - Frag.Position);
+	vec3	reflectDir = -(mat3(Camera.Matrix.View) * normalize(reflect(V, Frag.Normal)));
+	vec3	hitPos = (Camera.Matrix.View * vec4(Frag.Position, 1)).xyz;
 	vec4	projectedCoord;
 	vec4	ret = vec4(0, 0, 1, -reflectDir.z);
 
-	reflectDir *= /* step *  */Frag.Depth;
-	for (int i = 0; i < maxSteps /* && reflectDir.z < 0 */; i++)
+	//vec3	maxStep = hitPos + (reflectDir * ac * 30.f);
+	//vec3	maxStep = hitPos + (reflectDir * 30.f) * Frag.Depth;
+	/* vec2	nReflectDir = normalize(reflectDir.xy);
+	float	aA = atan(nReflectDir.x, nReflectDir.y) * 180.f / M_PI;
+	float	cA = 180 - (90 + aA);
+	vec2	a = Frag.UV;
+	vec2	b = sign(a);
+	float	ac = length(a - b) / sin(cA * M_PI / 180.f);
+	reflectDir *= Frag.Depth; */
+	reflectDir *= max(0.1, Frag.Depth * 0.25);
+	for (int i = 0; i < maxSteps; i++)
 	{
-		hitPos.xyz += reflectDir;
-		projectedCoord = Camera.Matrix.Projection * hitPos;
+		hitPos += reflectDir;
+		projectedCoord = Camera.Matrix.Projection * vec4(hitPos, 1.0);
 		projectedCoord /= projectedCoord.w;
 		projectedCoord = projectedCoord * 0.5 + 0.5;
 		if (projectedCoord.x > 1 || projectedCoord.x < 0 || projectedCoord.y > 1 || projectedCoord.y < 0)
 			break;
-		float sampleDepth = sampleLod(LastDepth, projectedCoord.xy, Frag.Material.Roughness * 1.25).r;
+		float sampleDepth = sampleLod(LastDepth, projectedCoord.xy, 0).r;
 		if (sampleDepth == 1)
 			continue;
 		dDepth = projectedCoord.z - sampleDepth;
-		if (dDepth > 0) {
-			ret.xyz = BinarySearch(reflectDir, hitPos.xyz, dDepth);
+		if (dDepth >= 0) {
+			return vec4(BinarySearch(reflectDir, hitPos, dDepth), ret.w * smoothstep(0, 1, 1 - i / float(maxSteps)));
 			break;
 		}
 	}
@@ -149,15 +158,26 @@ void	ApplyTechnique()
 		ssrResult = SSR();
 	}
 	if (ssrResult.z != 1) {
-		vec3	ssrReflection = sampleLod(LastColor, ssrResult.xy, Frag.Material.Roughness * 2).rgb + sampleLod(LastEmitting, ssrResult.xy, Frag.Material.Roughness * 2).rgb;
+		vec3	ssrReflection = sampleLod(LastColor, ssrResult.xy, Frag.Material.Roughness * 2).rgb + sampleLod(LastEmitting, ssrResult.xy, Frag.Material.Roughness * 1.5).rgb;
+		//vec3	ssrReflection = sampleLod(LastColor, ssrResult.xy, Frag.Material.Roughness * 2).rgb + texture(LastEmitting, ssrResult.xy).rgb;
+		//float	screenEdgeFactor = smoothstep(0, 1, 1 - pow(length(ssrResult.xy * 2 - 1), 10));
+		/* float	screenEdgeFactor = 1;
+		vec2	dCoord = abs(ssrResult.xy * 2 - 1);
+		if (dCoord.x > 1 || dCoord.x < 0)
+			screenEdgeFactor -= mod(dCoord.x, 1) * 2;
+		if (dCoord.y > 1 || dCoord.y < 0)
+			screenEdgeFactor -= mod(dCoord.y, 1) * 2; */
 		float	screenEdgeFactor = smoothstep(0, 1, 1 - pow(length(ssrResult.xy * 2 - 1), 10));
-		float	reflectionFactor = ssrResult.w * min(length(fresnel), 1) * screenEdgeFactor;
-		Out.Color.rgb += mix(envReflection, Frag.Material.Metallic * specular + ssrReflection * fresnel, clamp(reflectionFactor, 0, 1));
+		float	reflectionFactor = ssrResult.w * screenEdgeFactor;
+		Out.Color.rgb += mix(envReflection, ssrReflection * fresnel, clamp(reflectionFactor, 0, 1));
+		//Out.Color.rgb = ssrReflection;
 	}
 	else {
 		Out.Color.rgb += envReflection;
 	}
 	Out.Color.rgb += (diffuse + Frag.Material.Emitting) * alpha;
 	Out.Color.a = 1;
+	//vec4 ssr = SSR();
+	//Out.Color.rgb = ssr.xyz * ssr.w;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 }
