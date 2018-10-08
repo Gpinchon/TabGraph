@@ -112,14 +112,14 @@ vec4	SSR()
 
 	vec3	V = normalize(Frag.Position - Camera.Position);
 	vec3	reflectDir = reflect(V, Frag.Normal);
-	float	curLength = 1;
+	float	curLength = 0.1;
 
 	for (int i = 0; i < maxSteps; i++)
 	{
 		vec3	curPos = Frag.Position + reflectDir * curLength;
 		vec3	curUV = UVFromPosition(curPos);
 		float	curDepth = texture(Texture.Depth, curUV.xy).r;
-		if (abs(curUV.z - curDepth) <= 0.01)
+		if (abs(curUV.z - curDepth) <= 0.001)
 		{
 			return (vec4(curUV, 1));
 		}
