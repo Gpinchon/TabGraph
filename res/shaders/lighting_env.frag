@@ -24,12 +24,12 @@ vec3 BinarySearch(inout vec3 dir, inout vec3 hitCoord, inout float dDepth)
 		projectedCoord = projectedCoord * 0.5 + 0.5;
 		if (projectedCoord.x > 1 || projectedCoord.x < 0 || projectedCoord.y > 1 || projectedCoord.y < 0)
 			continue;
-		depth = sampleLod(LastDepth, projectedCoord.xy, 0).r;
+		depth = sampleLod(Texture.Depth, projectedCoord.xy, 0.1).r;
 		if (depth == 1)
 			continue;
 		dDepth = projectedCoord.z - depth;
 		dir *= 0.5;
-		if(dDepth >= 0.0) {
+		if(dDepth > 0.0) {
 			hitCoord += dir;
 		}
 		else {
@@ -44,17 +44,62 @@ vec3 BinarySearch(inout vec3 dir, inout vec3 hitCoord, inout float dDepth)
 	return vec3(projectedCoord.xy, depth);
 }
 
+bool	LineSegmentsIntersect(in vec2 p, in vec2 p2, in vec2 q, in vec2 q2, out vec2 intersection);
+bool	LineSegmentsIntersect(in vec3 a0, in vec3 a1, in vec3 b0, in vec3 b1, out vec3 ip);
+bool	LineSegmentsIntersect(in vec3 p1, in vec3 p2, in vec3 p3, in vec3 p4, out vec3 pa, out vec3 pb,
+   out float mua, out float mub);
+
+vec2	screenSides[] = vec2[4](
+	vec2(-1, 1), vec2(1, 1),
+	vec2(1, -1), vec2(-1, -1)
+);
+
+vec3	UVFromPosition(in vec3 position)
+{
+	vec4	projectedPosition = Camera.Matrix.Projection * Camera.Matrix.View * vec4(position, 1);
+	projectedPosition /= projectedPosition.w;
+	projectedPosition = projectedPosition * 0.5 + 0.5;
+	return (projectedPosition.xyz);
+}
+
 vec4	SSR()
 {
-	float	dDepth;
-	vec3	V = normalize(Camera.Position - Frag.Position);
-	vec3	reflectDir = -(mat3(Camera.Matrix.View) * normalize(reflect(V, Frag.Normal)));
-	vec3	hitPos = (Camera.Matrix.View * vec4(Frag.Position, 1)).xyz;
+	/* float	dDepth;
+	vec3	V = normalize(Frag.Position - Camera.Position);
+	vec3	reflectDir = reflect(V, Frag.Normal);
+	reflectDir = mat3(Camera.Matrix.View) * reflectDir;
+	vec3	startPos = (Camera.Matrix.View * vec4(Frag.Position, 1)).xyz;
 	vec4	projectedCoord;
 	vec4	ret = vec4(0, 0, 1, -reflectDir.z);
+	vec3	endPos; */
 
-	//vec3	maxStep = hitPos + (reflectDir * ac * 30.f);
-	//vec3	maxStep = hitPos + (reflectDir * 30.f) * Frag.Depth;
+	//return (vec4(atan(reflectDir.xy), 0, 0));
+	/* for (int i = 0; i < 4; i++)
+	{
+		vec2	side0 = screenSides[i];
+		vec2	side1 = screenSides[(i + 1) % 4];
+		vec2	c = Frag.UV * 2 - 1;
+		vec2	d = c + 100 * normalize(reflectDir.xy);
+		vec2	intersection;
+		if (LineSegmentsIntersect(side0, side1, c, d, intersection)) {
+			endPos = startPos + reflectDir * distance(c, intersection);
+			return (vec4(distance(c, intersection) / 2.828427));
+			// vec3	a0 = vec3(intersection, 0);
+			//vec3	a1 = vec3(intersection, 1000);
+			//vec3	b0 = startPos;
+			//vec3	b1 = startPos + 1000 * reflectDir;
+			//vec3	pa, pb;
+			//float	mua, mub;
+			//LineSegmentsIntersect(a0, a1, b0, b1, pa, pb, mua, mub);
+			//endPos = startPos + reflectDir * distance(startPos, pb);
+			//endPos = startPos + reflectDir * distance(c, intersection) / 2.828427;
+			//reflectDir *= (distance(c, intersection) / 2.828427);
+			break;
+		}
+	}
+	return (vec4(1, 0, 0, 0)); */
+	//vec3	endPos = hitPos + (reflectDir * ac * 30.f);
+	//vec3	endPos = hitPos + (reflectDir * 30.f) * Frag.Depth;
 	/* vec2	nReflectDir = normalize(reflectDir.xy);
 	float	aA = atan(nReflectDir.x, nReflectDir.y) * 180.f / M_PI;
 	float	cA = 180 - (90 + aA);
@@ -62,25 +107,47 @@ vec4	SSR()
 	vec2	b = sign(a);
 	float	ac = length(a - b) / sin(cA * M_PI / 180.f);
 	reflectDir *= Frag.Depth; */
-	reflectDir *= max(0.1, Frag.Depth * 0.25);
+	//reflectDir *= max(0.1, Frag.Depth * 0.25);
+	//endPos = startPos + reflectDir * maxSteps * Frag.Depth;
+
+	vec3	V = normalize(Frag.Position - Camera.Position);
+	vec3	reflectDir = reflect(V, Frag.Normal);
+	float	curLength = 1;
+
 	for (int i = 0; i < maxSteps; i++)
 	{
-		hitPos += reflectDir;
-		projectedCoord = Camera.Matrix.Projection * vec4(hitPos, 1.0);
+		vec3	curPos = Frag.Position + reflectDir * curLength;
+		vec3	curUV = UVFromPosition(curPos);
+		float	curDepth = texture(Texture.Depth, curUV.xy).r;
+		if (abs(curUV.z - curDepth) <= 0.01)
+		{
+			return (vec4(curUV, 1));
+		}
+		vec3	newPos = Position(curUV.xy, curDepth);
+		curLength = length(Frag.Position - newPos);
+	}
+	return (vec4(0, 0, 1, 0));
+
+	/* for (int i = 0; i < maxSteps; i++)
+	{
+		vec3	curPos = mix(startPos, endPos, (i + 1) / float(maxSteps));
+		//curPos = hitPos + reflectDir * ((i + 1) / float(maxSteps));
+		projectedCoord = Camera.Matrix.Projection * vec4(curPos, 1.0);
 		projectedCoord /= projectedCoord.w;
 		projectedCoord = projectedCoord * 0.5 + 0.5;
 		if (projectedCoord.x > 1 || projectedCoord.x < 0 || projectedCoord.y > 1 || projectedCoord.y < 0)
 			break;
-		float sampleDepth = sampleLod(LastDepth, projectedCoord.xy, 0).r;
+		float sampleDepth = sampleLod(Texture.Depth, projectedCoord.xy, 0.1).r;
 		if (sampleDepth == 1)
 			continue;
-		dDepth = projectedCoord.z - sampleDepth;
-		if (dDepth >= 0) {
-			return vec4(BinarySearch(reflectDir, hitPos, dDepth), ret.w * smoothstep(0, 1, 1 - i / float(maxSteps)));
+		dDepth = abs(projectedCoord.z - sampleDepth);
+		if (dDepth <= 0.001) {
+			return vec4(projectedCoord.xyz, ret.w * smoothstep(0, 1, 1 - i / float(maxSteps)));
+			//return vec4(BinarySearch(reflectDir, curPos, dDepth), ret.w * smoothstep(0, 1, 1 - i / float(maxSteps)));
 			break;
 		}
 	}
-	return (ret);
+	return (ret); */
 }
 
 float	Env_Specular(in float NdV, in float roughness)
@@ -177,7 +244,141 @@ void	ApplyTechnique()
 	}
 	Out.Color.rgb += (diffuse + Frag.Material.Emitting) * alpha;
 	Out.Color.a = 1;
-	//vec4 ssr = SSR();
-	//Out.Color.rgb = ssr.xyz * ssr.w;
+	vec4 ssr = SSR();
+	Out.Color.rgb = ssr.xyz * ssr.w;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 }
+
+#define EPSILON 0.0001
+
+bool	isZero(in float v)
+{
+	return (abs(v) < EPSILON);
+}
+
+bool	isZero(in vec2 v)
+{
+	bvec2	eq = equal(v, vec2(0));
+	return (eq.x && eq.y);
+}
+
+bool	lequal(in vec2 v, in vec2 v1)
+{
+	bvec2	eq = lessThanEqual(v, v1);
+	return (eq.x && eq.y);
+}
+
+bool	LineSegmentsIntersect(
+   in vec3 p1, in vec3 p2, in vec3 p3, in vec3 p4, out vec3 pa, out vec3 pb,
+   out float mua, out float mub)
+{
+   vec3		p13, p43, p21;
+   float	d1343, d4321, d1321, d4343, d2121;
+   float	numer, denom;
+
+   p13.x = p1.x - p3.x;
+   p13.y = p1.y - p3.y;
+   p13.z = p1.z - p3.z;
+   p43.x = p4.x - p3.x;
+   p43.y = p4.y - p3.y;
+   p43.z = p4.z - p3.z;
+   if (isZero(p43.x) && isZero(p43.y) && isZero(p43.z))
+      return(false);
+   p21.x = p2.x - p1.x;
+   p21.y = p2.y - p1.y;
+   p21.z = p2.z - p1.z;
+   if (isZero(p21.x) && isZero(p21.y) && isZero(p21.z))
+      return(false);
+
+   d1343 = p13.x * p43.x + p13.y * p43.y + p13.z * p43.z;
+   d4321 = p43.x * p21.x + p43.y * p21.y + p43.z * p21.z;
+   d1321 = p13.x * p21.x + p13.y * p21.y + p13.z * p21.z;
+   d4343 = p43.x * p43.x + p43.y * p43.y + p43.z * p43.z;
+   d2121 = p21.x * p21.x + p21.y * p21.y + p21.z * p21.z;
+
+   denom = d2121 * d4343 - d4321 * d4321;
+   if (isZero(denom))
+      return(false);
+   numer = d1343 * d4321 - d1321 * d4343;
+
+   mua = numer / denom;
+   mub = (d1343 + d4321 * mua) / d4343;
+
+   pa.x = p1.x + mua * p21.x;
+   pa.y = p1.y + mua * p21.y;
+   pa.z = p1.z + mua * p21.z;
+   pb.x = p3.x + mub * p43.x;
+   pb.y = p3.y + mub * p43.y;
+   pb.z = p3.z + mub * p43.z;
+
+   return(true);
+}
+
+bool	LineSegmentsIntersect(in vec3 a0, in vec3 a1, in vec3 b0, in vec3 b1, out vec3 ip)
+{
+	vec3 da = a1 - a0; 
+	vec3 db = b1 - b0;
+	vec3 dc = b0 - a0;
+
+	if (dot(dc, cross(da, db)) != 0.0) // lines are not coplanar
+		return (false);
+
+	vec3	dadb = cross(da, db);
+	float	s = dot(cross(dc, db), cross(da, db)) / dot(dadb, dadb);
+	if (s >= 0.0 && s <= 1.0)
+	{
+		da = normalize(da);
+		ip = a0 + da * vec3(s, s, s);
+		return (true);
+	}
+	return (false);
+}
+
+float	cross(in vec2 v, in vec2 v1)
+{
+	return (v.x * v1.y - v.y * v1.x);
+}
+
+//https://www.codeproject.com/tips/862988/find-the-intersection-point-of-two-line-segments
+bool	LineSegmentsIntersect(in vec2 p, in vec2 p2, in vec2 q, in vec2 q2, out vec2 intersection)
+{
+	vec2	r = p2 - p;
+	vec2	s = q2 - q;
+	float	rxs = cross(r, s);
+	float	qpxr = cross(q - p, r);
+
+	if (isZero(rxs) && isZero(qpxr)) {
+		return (false);
+	}
+	if (isZero(rxs) && !isZero(qpxr))
+	return (false);
+	float	t = cross(q - p, s) / rxs;
+	float	u = cross(q - p, r) / rxs;
+	if (!isZero(rxs) && (0 <= t && t <= 1) && (0 <= u && u <= 1))
+	{
+		intersection = p + t*r;
+		return (true);
+	}
+	return (false);
+}
+
+/* bool	LineSegmentsIntersect(in vec2 rayOrigin, in vec2 rayDirection, in vec2 point1, in vec2 point2, out vec2 inter)
+{
+	vec2	v1 = rayOrigin - point1;
+	vec2	v2 = point2 - point1;
+	vec2	v3 = vec2(-rayDirection.y, rayDirection.x);
+	float	d = dot(v2, v3);
+
+	if (isZero(d))
+		return (false);
+
+	float t1 = cross(v2, v1) / d;
+	float t2 = dot(v1, v3) / d;
+
+	if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)) {
+		inter = rayOrigin + t1;
+		return (true);
+	}
+
+	return (false);
+} */
