@@ -107,10 +107,9 @@ vec3	Position(vec2 UV)
 	return (projectedCoord.xyz / projectedCoord.w);
 }
 
-vec3	Position(vec2 UV, float depth)
+vec3	Position(in vec2 UV, in float depth)
 {
-	vec2	coord = UV * 2.0 - 1.0;
-	vec4	projectedCoord = vec4(coord, depth, 1.0);
+	vec4	projectedCoord = vec4(UV * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
 	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
 	return (projectedCoord.xyz / projectedCoord.w);
 }

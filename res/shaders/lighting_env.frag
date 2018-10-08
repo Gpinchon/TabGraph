@@ -62,6 +62,13 @@ vec3	UVFromPosition(in vec3 position)
 	return (projectedPosition.xyz);
 }
 
+#define	KERNEL_SIZE 9
+
+uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
+	vec2(0.95581, -0.18159), vec2(0.50147, -0.35807), vec2(0.69607, 0.35559),
+	vec2(-0.0036825, -0.59150),	vec2(0.15930, 0.089750), vec2(-0.65031, 0.058189),
+	vec2(0.11915, 0.78449),	vec2(-0.34296, 0.51575), vec2(-0.60380, -0.41527));
+
 vec4	SSR()
 {
 	/* float	dDepth;
@@ -112,21 +119,50 @@ vec4	SSR()
 
 	vec3	V = normalize(Frag.Position - Camera.Position);
 	vec3	reflectDir = reflect(V, Frag.Normal);
-	float	curLength = 0.1;
+	float	curLength = 0.25;
 
+	vec4	ret = vec4(0, 0, 1, 0);
 	for (int i = 0; i < maxSteps; i++)
 	{
 		vec3	curPos = Frag.Position + reflectDir * curLength;
 		vec3	curUV = UVFromPosition(curPos);
-		float	curDepth = texture(Texture.Depth, curUV.xy).r;
+		float	curDepth = texture(LastDepth, curUV.xy).r;
+		if (curDepth == 1)
+			continue;
+		vec3	newPos = Position(curUV.xy);
+		vec3	tempPos = newPos;
+		for (int i = 0; i < KERNEL_SIZE; i++)
+		{
+			//if (abs(curUV.z - curDepth) <= 0.001)
+			if (distance(tempPos, newPos) <= 0.001)
+			{
+				ret.xyz = curUV.xyz;
+				ret.w = dot(reflectDir, V) /* * (1 - Frag.Material.Roughness) */;
+				break;
+			}
+			curUV.xy = curUV.xy + (poissonDisk[i] * (0.25 * Frag.Material.Roughness));
+			curDepth = texture(LastDepth, curUV.xy).r;
+			tempPos = Position(curUV.xy, curDepth);
+			
+		}
+		/* if (distance(curPos, newPos) <= 0.001)
+		{
+			return (vec4(curUV, 1));
+		} */
+		/* vec3	newPos = Position(curUV.xy);
+		if (distance(curPos, newPos) <= 0.001)
+		{
+			return (vec4(curUV, 1));
+		}*/
+		/* float	curDepth = texture(Texture.Depth, curUV.xy).r;
 		if (abs(curUV.z - curDepth) <= 0.001)
 		{
 			return (vec4(curUV, 1));
 		}
-		vec3	newPos = Position(curUV.xy, curDepth);
+		vec3	newPos = Position(curUV.xy, curDepth); */
 		curLength = length(Frag.Position - newPos);
 	}
-	return (vec4(0, 0, 1, 0));
+	return (ret);
 
 	/* for (int i = 0; i < maxSteps; i++)
 	{
@@ -224,28 +260,19 @@ void	ApplyTechnique()
 	if (Frag.Material.Roughness < 1) {
 		ssrResult = SSR();
 	}
-	if (ssrResult.z != 1) {
-		vec3	ssrReflection = sampleLod(LastColor, ssrResult.xy, Frag.Material.Roughness * 2).rgb + sampleLod(LastEmitting, ssrResult.xy, Frag.Material.Roughness * 1.5).rgb;
-		//vec3	ssrReflection = sampleLod(LastColor, ssrResult.xy, Frag.Material.Roughness * 2).rgb + texture(LastEmitting, ssrResult.xy).rgb;
-		//float	screenEdgeFactor = smoothstep(0, 1, 1 - pow(length(ssrResult.xy * 2 - 1), 10));
-		/* float	screenEdgeFactor = 1;
-		vec2	dCoord = abs(ssrResult.xy * 2 - 1);
-		if (dCoord.x > 1 || dCoord.x < 0)
-			screenEdgeFactor -= mod(dCoord.x, 1) * 2;
-		if (dCoord.y > 1 || dCoord.y < 0)
-			screenEdgeFactor -= mod(dCoord.y, 1) * 2; */
+	if (ssrResult.w > 0) {
+		vec3	ssrReflection = sampleLod(LastColor, ssrResult.xy, Frag.Material.Roughness * 2).rgb + sampleLod(LastEmitting, ssrResult.xy, Frag.Material.Roughness).rgb;
 		float	screenEdgeFactor = smoothstep(0, 1, 1 - pow(length(ssrResult.xy * 2 - 1), 10));
 		float	reflectionFactor = ssrResult.w * screenEdgeFactor;
 		Out.Color.rgb += mix(envReflection, ssrReflection * fresnel, clamp(reflectionFactor, 0, 1));
-		//Out.Color.rgb = ssrReflection;
 	}
 	else {
 		Out.Color.rgb += envReflection;
 	}
 	Out.Color.rgb += (diffuse + Frag.Material.Emitting) * alpha;
 	Out.Color.a = 1;
-	vec4 ssr = SSR();
-	Out.Color.rgb = ssr.xyz * ssr.w;
+	//vec4 ssr = SSR();
+	//Out.Color.rgb = ssr.xyz * ssr.w;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 }
 
