@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/09 11:56:38 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/09 19:11:03 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -338,10 +338,10 @@ void	Render::scene()
 
 	final_back_buffer->attachement(0)->generate_mipmap();
 	final_back_buffer->attachement(1)->generate_mipmap();
-	//final_back_buffer->depth()->generate_mipmap();
+	final_back_buffer->depth()->generate_mipmap();
 	final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	final_back_buffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	////final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	// APPLY LIGHTING SHADER
 	// OUTPUT : out_Color, out_Brightness
@@ -372,31 +372,20 @@ void	Render::scene()
 
 	std::swap(current_backTexture, current_backBuffer);
 
-	// ATTEMPT RENDERING TRANSPARENT OBJECTS
-	// WRITE DEPTH FOR FUTUR USE
 	current_tbuffer->bind();
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	bool	rendered_stuff = false;
 	for (auto index = 0; (node = Renderable::get(index)) != nullptr; index++) {
-		if (node->render_depth(RenderTransparent))
+		if (node->render(RenderTransparent))
 			rendered_stuff = true;
 	}
-	
+
 	if (!rendered_stuff) {
 		// NO OBJECTS WERE RENDERED PRESENT IMEDIATLY
 		//present(current_backTexture);
 		//return ;
-	}
-
-	// REWRITE TRANSPARENT OBJECTS
-	// WRITE ONLY CLOSEST OBJECTS
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_CULL_FACE);
-	glDepthFunc(GL_EQUAL);
-	for (auto index = 0; (node = Renderable::get(index)) != nullptr; index++) {
-		node->render(RenderTransparent);
 	}
 
 	auto	opaqueBackBuffer = current_backTexture;
@@ -463,7 +452,7 @@ void	Render::scene()
 
 	final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	final_back_buffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);

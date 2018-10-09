@@ -12,38 +12,6 @@ uniform float	searchDist = 5;
 uniform int		numBinarySearchSteps = 5;
 uniform float	reflectionSpecularFalloffExponent = 3.0;
 
-vec3 BinarySearch(inout vec3 dir, inout vec3 hitCoord, inout float dDepth)
-{
-	float depth;
-
-	vec4 projectedCoord;
-	for(int i = 0; i < numBinarySearchSteps; i++)
-	{
-		projectedCoord = Camera.Matrix.Projection * vec4(hitCoord, 1.0);
-		projectedCoord /= projectedCoord.w;
-		projectedCoord = projectedCoord * 0.5 + 0.5;
-		if (projectedCoord.x > 1 || projectedCoord.x < 0 || projectedCoord.y > 1 || projectedCoord.y < 0)
-			continue;
-		depth = sampleLod(Texture.Depth, projectedCoord.xy, 0.1).r;
-		if (depth == 1)
-			continue;
-		dDepth = projectedCoord.z - depth;
-		dir *= 0.5;
-		if(dDepth > 0.0) {
-			hitCoord += dir;
-		}
-		else {
-			hitCoord -= dir;
-		}
-	}
-
-	projectedCoord = Camera.Matrix.Projection * vec4(hitCoord, 1.0);
-	projectedCoord.xy /= projectedCoord.w;
-	projectedCoord.xy = projectedCoord.xy * 0.5 + 0.5;
-
-	return vec3(projectedCoord.xy, depth);
-}
-
 vec3	UVFromPosition(in vec3 position)
 {
 	vec4	projectedPosition = Camera.Matrix.Projection * Camera.Matrix.View * vec4(position, 1);
@@ -70,40 +38,26 @@ vec4	SSR()
 	{
 		vec3	curPos = Frag.Position + reflectDir * curLength;
 		vec3	curUV = UVFromPosition(curPos);
-		float	curDepth = texture(LastDepth, curUV.xy).r;
-		if (curDepth == 1)
-			continue;
+		float	curDepth = sampleLod(LastDepth, curUV.xy, min(0.5, Frag.Material.Roughness * 2)).r;
+		//if (curDepth == 1)
+		//	continue;
 		vec3	newPos = Position(curUV.xy);
-		vec3	tempPos = newPos;
+		//vec3	tempPos = newPos;
 		for (int i = 0; i < KERNEL_SIZE; i++)
 		{
-			//if (abs(curUV.z - curDepth) <= 0.001)
-			if (distance(tempPos, newPos) <= 0.001)
+			curUV.xy = curUV.xy + (poissonDisk[i] * map(Frag.Material.Roughness, 0, 1, 0.0000001, 0.0000002));
+			curDepth = sampleLod(LastDepth, curUV.xy, min(0.5, Frag.Material.Roughness * 2)).r;
+			if (curDepth == 1)
+				continue;
+			vec3	tempPos = Position(curUV.xy, curDepth);
+			if (abs(curUV.z - curDepth) <= 0.1)
+			//if (distance(tempPos, newPos) <= 0.0001)
 			{
 				ret.xyz = curUV.xyz;
-				ret.w = dot(reflectDir, V) /* * (1 - Frag.Material.Roughness) */;
+				ret.w = dot(reflectDir, V);
 				break;
 			}
-			curUV.xy = curUV.xy + (poissonDisk[i] * 0.1);
-			curDepth = texture(LastDepth, curUV.xy).r;
-			tempPos = Position(curUV.xy, curDepth);
-			
 		}
-		/* if (distance(curPos, newPos) <= 0.001)
-		{
-			return (vec4(curUV, 1));
-		} */
-		/* vec3	newPos = Position(curUV.xy);
-		if (distance(curPos, newPos) <= 0.001)
-		{
-			return (vec4(curUV, 1));
-		}*/
-		/* float	curDepth = texture(Texture.Depth, curUV.xy).r;
-		if (abs(curUV.z - curDepth) <= 0.001)
-		{
-			return (vec4(curUV, 1));
-		}
-		vec3	newPos = Position(curUV.xy, curDepth); */
 		curLength = length(Frag.Position - newPos);
 	}
 	return (ret);
@@ -185,9 +139,14 @@ void	ApplyTechnique()
 	}
 	if (ssrResult.w > 0) {
 		vec3	ssrReflection = sampleLod(LastColor, ssrResult.xy, Frag.Material.Roughness * 2).rgb + sampleLod(LastEmitting, ssrResult.xy, Frag.Material.Roughness).rgb;
-		float	screenEdgeFactor = smoothstep(0, 1, 1 - pow(length(ssrResult.xy * 2 - 1), 10));
+		//float	screenEdgeFactor = smoothstep(0, 1, 1 - pow(length(ssrResult.xy * 2 - 1), 10));
+		float	screenEdgeFactor = 1;
+		ssrResult.xy = ssrResult.xy * 2 - 1;
+		screenEdgeFactor -= smoothstep(0, 1, pow(abs(ssrResult.x), 10.f));
+		screenEdgeFactor -= smoothstep(0, 1, pow(abs(ssrResult.y), 10.f));
 		float	reflectionFactor = ssrResult.w * screenEdgeFactor;
-		ssrReflection = mix(ssrReflection * fresnel, envReflection, Frag.Material.Roughness * 0.5);
+		//ssrReflection = mix(ssrReflection * fresnel, envReflection, Frag.Material.Roughness * 0.5);
+		ssrReflection *= fresnel;
 		Out.Color.rgb += mix(envReflection, ssrReflection, clamp(reflectionFactor, 0, 1));
 	}
 	else {
