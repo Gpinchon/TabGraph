@@ -5,12 +5,7 @@ uniform sampler2D	LastColor;
 uniform sampler2D	LastEmitting;
 uniform sampler2D	LastDepth;
 
-uniform float	step = 0.1;
-uniform float	minRayStep = 0.1;
 uniform int		maxSteps = 30;
-uniform float	searchDist = 5;
-uniform int		numBinarySearchSteps = 5;
-uniform float	reflectionSpecularFalloffExponent = 3.0;
 
 vec3	UVFromPosition(in vec3 position)
 {
@@ -31,34 +26,35 @@ vec4	SSR()
 {
 	vec3	V = normalize(Frag.Position - Camera.Position);
 	vec3	reflectDir = reflect(V, Frag.Normal);
-	float	curLength = 0.25;
+	float	curLength = 0.15;
 
 	vec4	ret = vec4(0, 0, 1, 0);
 	for (int i = 0; i < maxSteps; i++)
 	{
-		vec3	curPos = Frag.Position + reflectDir * curLength;
+		vec3	curPos = reflectDir * curLength + Frag.Position;//Position(sampleUV.xy, curDepth);
 		vec3	curUV = UVFromPosition(curPos);
-		float	curDepth = sampleLod(LastDepth, curUV.xy, min(0.5, Frag.Material.Roughness * 2)).r;
-		//if (curDepth == 1)
-		//	continue;
-		vec3	newPos = Position(curUV.xy);
-		//vec3	tempPos = newPos;
+		/*if (curUV.x < 0 || curUV.y < 0 || curUV.x > 1 || curUV.y > 1)
+			break; */
+		float	curDepth = sampleLod(LastDepth, curUV.xy, min(0.2, Frag.Material.Roughness * 1.2)).r;
 		for (int i = 0; i < KERNEL_SIZE; i++)
 		{
-			curUV.xy = curUV.xy + (poissonDisk[i] * map(Frag.Material.Roughness, 0, 1, 0.0000001, 0.0000002));
-			curDepth = sampleLod(LastDepth, curUV.xy, min(0.5, Frag.Material.Roughness * 2)).r;
-			if (curDepth == 1)
+			vec3	sampleUV = curUV;
+			sampleUV.xy = curUV.xy + (poissonDisk[i] * 0.0001);
+			/* if (sampleUV.x < 0 || sampleUV.y < 0 || sampleUV.x > 1 || sampleUV.y > 1)
+				continue; */
+			float	sampleDepth = sampleLod(LastDepth, sampleUV.xy, min(0.2, Frag.Material.Roughness * 1.2)).r;
+			if (sampleDepth == 1)
 				continue;
-			vec3	tempPos = Position(curUV.xy, curDepth);
-			if (abs(curUV.z - curDepth) <= 0.1)
-			//if (distance(tempPos, newPos) <= 0.0001)
+			vec3	samplePos = Position(sampleUV.xy, sampleDepth);
+			if (abs(curUV.z - sampleDepth) <= 0.1)
+			//if (distance(curPos, samplePos) <= 0.1)
 			{
-				ret.xyz = curUV.xyz;
-				ret.w = dot(reflectDir, V);
+				ret.xyz = sampleUV.xyz;
+				ret.w = dot(reflectDir, V) * min(0.5, 1 - Frag.Material.Roughness);
 				break;
 			}
 		}
-		curLength = length(Frag.Position - newPos);
+		curLength = length(Frag.Position - Position(curUV.xy, curDepth));
 	}
 	return (ret);
 }
