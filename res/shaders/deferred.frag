@@ -1,4 +1,5 @@
 #define M_PI 3.1415926535897932384626433832795
+#define EPSILON 0.0001
 
 precision lowp float;
 precision lowp int;
@@ -199,6 +200,23 @@ float	map(in float value, in float low1, in float high1, in float low2, in float
 float	smootherstep(float edge0, float edge1, float x) {
 	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
 	return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
+bool	isZero(in float v)
+{
+	return (abs(v) < EPSILON);
+}
+
+bool	isZero(in vec2 v)
+{
+	bvec2	eq = equal(v, vec2(0));
+	return (eq.x && eq.y);
+}
+
+bool	lequal(in vec2 v, in vec2 v1)
+{
+	bvec2	eq = lessThanEqual(v, v1);
+	return (eq.x && eq.y);
 }
 
 void	ApplyTechnique();

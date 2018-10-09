@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/06 14:06:58 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/09 11:56:38 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -338,10 +338,10 @@ void	Render::scene()
 
 	final_back_buffer->attachement(0)->generate_mipmap();
 	final_back_buffer->attachement(1)->generate_mipmap();
-	final_back_buffer->depth()->generate_mipmap();
+	//final_back_buffer->depth()->generate_mipmap();
 	final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	final_back_buffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	////final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	// APPLY LIGHTING SHADER
 	// OUTPUT : out_Color, out_Brightness
@@ -463,7 +463,7 @@ void	Render::scene()
 
 	final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	final_back_buffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
