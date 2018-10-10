@@ -5,7 +5,7 @@ uniform sampler2D	LastColor;
 uniform sampler2D	LastEmitting;
 uniform sampler2D	LastDepth;
 
-uniform int		maxSteps = 30;
+#define MAX_REFLEXION_STEPS	15
 
 vec3	UVFromPosition(in vec3 position)
 {
@@ -22,39 +22,53 @@ uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(-0.0036825, -0.59150),	vec2(0.15930, 0.089750), vec2(-0.65031, 0.058189),
 	vec2(0.11915, 0.78449),	vec2(-0.34296, 0.51575), vec2(-0.60380, -0.41527));
 
+uint hash( uint x ) {
+    x += ( x << 10u );
+    x ^= ( x >>  6u );
+    x += ( x <<  3u );
+    x ^= ( x >> 11u );
+    x += ( x << 15u );
+    return x;
+}
+
 vec4	SSR()
 {
 	vec3	V = normalize(Frag.Position - Camera.Position);
-	vec3	reflectDir = reflect(V, Frag.Normal);
+	vec3	R = reflect(V, Frag.Normal);
+	float	RV = dot(R, V);
 	float	curLength = 0.15;
 
 	vec4	ret = vec4(0, 0, 1, 0);
-	for (int i = 0; i < maxSteps; i++)
+	for (uint i = 0; i < MAX_REFLEXION_STEPS; i++)
 	{
-		vec3	curPos = reflectDir * curLength + Frag.Position;//Position(sampleUV.xy, curDepth);
+		vec3	curPos = R * curLength + Frag.Position;
 		vec3	curUV = UVFromPosition(curPos);
-		/*if (curUV.x < 0 || curUV.y < 0 || curUV.x > 1 || curUV.y > 1)
-			break; */
-		float	curDepth = sampleLod(LastDepth, curUV.xy, min(0.2, Frag.Material.Roughness * 1.2)).r;
-		for (int i = 0; i < KERNEL_SIZE; i++)
+		//if (curUV.x < 0 || curUV.y < 0 || curUV.x > 1 || curUV.y > 1)
+		//	break;
+		float	curDepth = sampleLod(LastDepth, curUV.xy, 0.1/* min(0.2, Frag.Material.Roughness * 1.2) */).r;
+		for (uint j = 0; j < KERNEL_SIZE; j++)
 		{
-			vec3	sampleUV = curUV;
-			sampleUV.xy = curUV.xy + (poissonDisk[i] * 0.0001);
-			/* if (sampleUV.x < 0 || sampleUV.y < 0 || sampleUV.x > 1 || sampleUV.y > 1)
-				continue; */
-			float	sampleDepth = sampleLod(LastDepth, sampleUV.xy, min(0.2, Frag.Material.Roughness * 1.2)).r;
+			uint	h = hash(i + i * j + uint(curDepth + 1000)) % KERNEL_SIZE;
+			vec3	poisson3D = normalize(vec3(poissonDisk[h], poissonDisk[h].x * poissonDisk[h].y));
+			vec3	sampleR = normalize(R + (poisson3D * 0.0001/* mix(0.0001, 0.0002, Frag.Material.Roughness)*/));
+			vec3	samplePos = sampleR * curLength + Frag.Position;
+			vec3	sampleUV = UVFromPosition(samplePos);
+			if (sampleUV.x < 0 || sampleUV.y < 0 || sampleUV.x > 1 || sampleUV.y > 1)
+				continue;
+			float	sampleDepth = sampleLod(LastDepth, sampleUV.xy, 0.1/* min(0.2, Frag.Material.Roughness * 1.2) */).r;
 			if (sampleDepth == 1)
 				continue;
-			vec3	samplePos = Position(sampleUV.xy, sampleDepth);
-			if (abs(curUV.z - sampleDepth) <= 0.1)
-			//if (distance(curPos, samplePos) <= 0.1)
+			//if (abs(curUV.z - sampleDepth) <= 0.1)
+			if (distance(curPos, samplePos) <= 0.1)
 			{
 				ret.xyz = sampleUV.xyz;
-				ret.w = dot(reflectDir, V) * min(0.5, 1 - Frag.Material.Roughness);
+				ret.w = RV/*  * min(0.5, 1 - Frag.Material.Roughness) */;
 				break;
 			}
 		}
-		curLength = length(Frag.Position - Position(curUV.xy, curDepth));
+		//curLength += min(Frag.Depth, 0.15);
+		//curLength += 0.025;
+		curLength = curLength + length(Frag.Position - Position(curUV.xy, curDepth)) * 0.045;
 	}
 	return (ret);
 }
