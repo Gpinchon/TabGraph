@@ -43,32 +43,30 @@ vec4	SSR()
 	{
 		vec3	curPos = R * curLength + Frag.Position;
 		vec3	curUV = UVFromPosition(curPos);
-		//if (curUV.x < 0 || curUV.y < 0 || curUV.x > 1 || curUV.y > 1)
-		//	break;
-		float	curDepth = sampleLod(LastDepth, curUV.xy, 0.1/* min(0.2, Frag.Material.Roughness * 1.2) */).r;
+		float	curDepth = sampleLod(LastDepth, curUV.xy, min(0.2, Frag.Material.Roughness * 1.2)).r;
 		for (uint j = 0; j < KERNEL_SIZE; j++)
 		{
 			uint	h = hash(i + i * j + uint(curDepth + 1000)) % KERNEL_SIZE;
 			vec3	poisson3D = normalize(vec3(poissonDisk[h], poissonDisk[h].x * poissonDisk[h].y));
-			vec3	sampleR = normalize(R + (poisson3D * 0.0001/* mix(0.0001, 0.0002, Frag.Material.Roughness)*/));
+			vec3	sampleR = normalize(R + (poisson3D * mix(0.0001, 0.0002, Frag.Material.Roughness)));
 			vec3	samplePos = sampleR * curLength + Frag.Position;
 			vec3	sampleUV = UVFromPosition(samplePos);
-			if (sampleUV.x < 0 || sampleUV.y < 0 || sampleUV.x > 1 || sampleUV.y > 1)
-				continue;
-			float	sampleDepth = sampleLod(LastDepth, sampleUV.xy, 0.1/* min(0.2, Frag.Material.Roughness * 1.2) */).r;
+			//if (sampleUV.x < 0 || sampleUV.y < 0 || sampleUV.x > 1 || sampleUV.y > 1)
+			//	continue;
+			float	sampleDepth = sampleLod(LastDepth, sampleUV.xy, min(0.2, Frag.Material.Roughness * 1.2)).r;
 			if (sampleDepth == 1)
 				continue;
-			//if (abs(curUV.z - sampleDepth) <= 0.1)
-			if (distance(curPos, samplePos) <= 0.1)
+			if (abs(curUV.z - sampleDepth) <= 0.1)
+			//if (distance(curPos, samplePos) <= 0.01)
 			{
 				ret.xyz = sampleUV.xyz;
-				ret.w = RV/*  * min(0.5, 1 - Frag.Material.Roughness) */;
+				ret.w = RV * min(0.5, 1 - Frag.Material.Roughness);
 				break;
 			}
 		}
-		//curLength += min(Frag.Depth, 0.15);
 		//curLength += 0.025;
-		curLength = curLength + length(Frag.Position - Position(curUV.xy, curDepth)) * 0.045;
+		//curLength = curLength + length(Frag.Position - Position(curUV.xy, curDepth)) * 0.045;
+		curLength = length(Frag.Position - Position(curUV.xy, curDepth));
 	}
 	return (ret);
 }
