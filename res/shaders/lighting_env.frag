@@ -121,7 +121,7 @@ void	ApplyTechnique()
 	vec3	fresnel = min(vec3(0.5), Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness));
 	reflection *= fresnel;
 	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
-	reflection_spec *= brightness * min(fresnel + 1, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
+	reflection_spec *= brightness * min(fresnel + 0.5, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
 	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, Frag.Material.Metallic) * BRDF.y;
 	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 
