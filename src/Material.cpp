@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 15:29:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/11 18:48:48 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ std::vector<std::shared_ptr<Material>>	Material::_materials;
 Material::Material(const std::string &name) : Object(name)
 {
 	if ((_shader = Shader::get_by_name("shader_default")).lock() == nullptr) {
-		_shader = GLSL::parse("shader_default", Engine::program_path() + "./res/shaders/empty.glsl", ForwardShader);
+		_shader = GLSL::parse("shader_default", Engine::program_path() + "./res/shaders/forward_default.frag", ForwardShader);
 	}
 	if ((_depth_shader = Shader::get_by_name("default_depth")).lock() == nullptr) {
 		_depth_shader = GLSL::parse("default_depth", Engine::program_path() + "./res/shaders/depth.vert", Engine::program_path() + "./res/shaders/depth.frag");
