@@ -1,6 +1,7 @@
 #define	KERNEL_SIZE				9
 #define MAX_REFLEXION_STEPS		5
 #define MAX_REFLEXION_SAMPLES	4
+#define SCREEN_BOARDER_FACTOR	10
 
 uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(0.95581, -0.18159), vec2(0.50147, -0.35807), vec2(0.69607, 0.35559),
@@ -45,8 +46,8 @@ vec4	SSR()
 				ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb; //Sample last image color and accumulate it
 				ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb; //LastEmitting is already blurred
 				float	screenEdgeFactor = 1;
-				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.x * 2 - 1), 5.f)); //Attenuate reflection factor when getting closer to screen border
-				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.y * 2 - 1), 5.f));
+				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.x * 2 - 1), SCREEN_BOARDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
+				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.y * 2 - 1), SCREEN_BOARDER_FACTOR));
 				ret.w += clamp(screenEdgeFactor, 0, 1);
 				hits++;
 			}
