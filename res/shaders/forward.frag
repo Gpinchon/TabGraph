@@ -175,7 +175,7 @@ void	FillIn()
 		if (dot(new_normal, new_normal) > 0)
 			Frag.Normal = new_normal;
 	}
-	if (Frag.Material.Alpha == 1)
+	//if (Frag.Material.Alpha == 1)
 		Frag.Position = Frag.Position - (Frag.Normal * ph);
 	Frag.Material.Roughness = map(Frag.Material.Roughness, 0, 1, 0.05, 1);
 	Frag.Material.Specular = mix(Frag.Material.Specular, Frag.Material.Albedo.rgb, Frag.Material.Metallic);

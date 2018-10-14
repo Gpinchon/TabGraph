@@ -37,10 +37,10 @@ vec4	SSR()
 		float	sampleDepth;
 		for (uint j = 0; j < MAX_REFLEXION_SAMPLES; j++)
 		{
-			sampleDepth = sampleLod(LastDepth, sampleUV.xy, 0).r; //Get precise depth value at pixel
+			sampleDepth = texture(LastDepth, sampleUV.xy).r; //Get precise depth value at pixel
 			//Don't check if sampleUV is offscreen, this would result in even more branching code and hurt performances
 			//If current step behind ZBuffer or at "almost" same depth, accept as valid reflexion (avoids holes)
-			if (abs(curUV.z - sampleDepth) <= 0.1 || curUV.z > sampleDepth)
+			if (abs(curUV.z - sampleDepth) <= 0.1 || curUV.z >= sampleDepth)
 			{
 				ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb; //Sample last image color and accumulate it
 				ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb; //LastEmitting is already blurred
