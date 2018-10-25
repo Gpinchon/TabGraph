@@ -19,25 +19,22 @@ uniform sampler2DShadow	Shadow[SHADOWNBR];
 uniform vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
 uniform vec3	envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
 
-float	Env_Specular(in float NdV, in float roughness)
-{
-	float	alpha = roughness * roughness;
-	float	den = (alpha - 1) + 1;
-	float	D = (alpha / (M_PI * den * den));
-	float	alpha2 = alpha * alpha;
-	float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
-	return (D * G);
-}
-
 vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
 {
 	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
 }
 
-float	GGX_Geometry(in float NdV, in float alpha)
+/* float	GGX_Geometry(in float NdV, in float alpha)
 {
 	float	alpha2 = alpha * alpha;
 	return (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
+} */
+
+float	GGX_Geometry(in float NdV, in float alpha)
+{
+	float k = (alpha * alpha) / 2.f;
+	float denom = NdV * (1.f - k) + k;
+	return (NdV / denom);
 }
 
 float	GGX_Distribution(in float NdH, in float alpha)
@@ -49,6 +46,7 @@ float	GGX_Distribution(in float NdH, in float alpha)
 float	Specular(in float NdV, in float NdH, in float roughness)
 {
 	float	alpha = roughness * roughness;
+	alpha *= alpha;
 	float	D = GGX_Distribution(NdH, alpha);
 	float	G = GGX_Geometry(NdV, alpha);
 	return (max(D * G, 0));
@@ -115,6 +113,7 @@ void	ApplyTechnique()
 		float	LdH = max(0, dot(L, H));
 		vec3	lightColor = Light[i].Color * Attenuation;
 		diffuse += lightColor * NdL * Frag.Material.Albedo * (1 - Frag.Material.Metallic);
+		//specular += lightColor * min(fresnel + 1, fresnel * DistributionGGX(NdH, Frag.Material.Roughness));
 		specular += lightColor * min(fresnel + 1, fresnel * Specular(LdH, NdH, Frag.Material.Roughness));
 	}
 

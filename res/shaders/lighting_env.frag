@@ -19,6 +19,17 @@ vec3	UVFromPosition(in vec3 position)
 	return (projectedPosition.xyz);
 }
 
+float	random(in vec3 seed, in float freq)
+{
+	float dt = dot(floor(seed * freq), vec3(53.1215, 21.1352, 9.1322));
+	return fract(sin(dt) * 2105.2354);
+}
+
+float	randomAngle(in vec3 seed, in float freq)
+{
+	return random(seed, freq) * 6.283285;
+}
+
 vec4	SSR()
 {
 	vec3	V = normalize(Frag.Position - Camera.Position);
@@ -33,6 +44,10 @@ vec4	SSR()
 		vec3	curUV = UVFromPosition(curPos); //Compute step's screen coordinates
 		vec2	sampleUV = curUV.xy;
 		float	sampleDepth = 0;
+		float	sampleAngle = randomAngle(curPos, 1024);
+		float	s = sin(sampleAngle);
+		float	c = cos(sampleAngle);
+		vec2	sampleRotation = vec2(c, -s);
 		for (uint j = 0; j < REFLEXION_SAMPLES; j++)
 		{
 			sampleDepth = texture(LastDepth, sampleUV.xy).r; //Get precise depth value at pixel
@@ -48,7 +63,7 @@ vec4	SSR()
 				ret.w += max(0, screenEdgeFactor);
 				hits++;
 			}
-			sampleUV = curUV.xy + poissonDisk[j] * (0.001 * Frag.Material.Roughness + 0.0001); //Offset sampling to look around a bit
+			sampleUV = curUV.xy + poissonDisk[j] * sampleRotation * (0.1 * Frag.Material.Roughness + 0.0001); //Offset sampling to look around a bit
 		}
 		curLength = length(Frag.Position - Position(curUV.xy, sampleDepth)); //Advance in ray marching proportionaly to current point's distance (make sure you don't miss anything)
 	}
@@ -62,12 +77,24 @@ vec4	SSR()
 float	Env_Specular(in float NdV, in float roughness)
 {
 	float	alpha = roughness * roughness;
-	float	den = (alpha - 1) + 1;
-	float	D = (alpha / (M_PI * den * den));
 	float	alpha2 = alpha * alpha;
+	float	den = (alpha2 - 1) + 1;
+	float	D = alpha2 / (M_PI * den * den);
+	float	k = alpha / 2.f;
+	float	denom = NdV * (1.f - k) + k;
+	float	G = NdV / denom;
+	return (max(D * G, 0));
+}
+
+/* float	Env_Specular(in float NdV, in float roughness)
+{
+	float	alpha = roughness * roughness;
+	float	alpha2 = alpha * alpha;
+	float	den = (alpha2 - 1) + 1;
+	float	D = (alpha2 / (M_PI * den * den));
 	float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
 	return (D * G);
-}
+} */
 
 vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
 {
