@@ -6,10 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 18:01:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/25 11:38:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "Config.hpp"
 #include "parser/InternalTools.hpp"
 #include "Environment.hpp"
 #include "Render.hpp"
@@ -30,97 +31,11 @@
 #define _getcwd getcwd
 #endif //_getcwd
 
-Engine	*Engine::_instance = nullptr;
-CFG		*CFG::_instance = nullptr;
-
 /*
 ** engine is a singleton
 */
 
-#include <iostream>
-
-CFG			*CFG::_get()
-{
-	if (nullptr == _instance)
-		_instance = new CFG();
-	return (_instance);
-}
-
-void			CFG::Load()
-{
-	auto	fd = fopen((Engine::program_path() + "config.ini").c_str(), "r");
-	char	buffer[4096];
-	while (fgets(buffer, 4096, fd))
-	{
-		unsigned	valu, valu1;
-		int			vali;
-		char		vals[4096];
-		if (sscanf(buffer, "WindowName = %s", vals)) {
-			CFG::WindowName() = vals;
-		}
-		else if (sscanf(buffer, "WindowSize = %u %u", &valu, &valu1)) {
-			CFG::WindowSize().x = valu;
-			CFG::WindowSize().y = valu1;
-		}
-		else if (sscanf(buffer, "MaxTexRes = %u", &vali)) {
-			CFG::MaxTexRes() = vali;
-		}
-		else if (sscanf(buffer, "ShadowRes = %u", &valu)) {
-			CFG::ShadowRes() = valu;
-		}
-		else if (sscanf(buffer, "Anisotropy = %u", &valu)) {
-			CFG::Anisotropy() = valu;
-		}
-		else if (sscanf(buffer, "MSAA = %u", &valu)) {
-			CFG::Msaa() = valu;
-		}
-		else if (sscanf(buffer, "BloomPass = %u", &valu)) {
-			CFG::BloomPass() = valu;
-		}
-		else if (sscanf(buffer, "LightsPerPass = %u", &valu)) {
-			CFG::LightsPerPass() = valu;
-		}
-		else if (sscanf(buffer, "ShadowsPerPass = %u", &valu)) {
-			CFG::ShadowsPerPass() = valu;
-		}
-	}
-}
-
-VEC2		&CFG::WindowSize() {
-	return (_get()->_windowSize);
-}
-
-std::string	&CFG::WindowName() {
-	return (_get()->_windowName);
-}
-
-float		&CFG::Anisotropy() {
-	return (_get()->_anisotropy);
-}
-
-int16_t		&CFG::MaxTexRes() {
-	return (_get()->_maxTexRes);
-}
-
-uint16_t		&CFG::ShadowRes() {
-	return (_get()->_shadowRes);
-}
-
-uint16_t		&CFG::Msaa() {
-	return (_get()->_msaa);
-}
-
-uint16_t		&CFG::BloomPass() {
-	return (_get()->_bloomPass);
-}
-
-uint16_t		&CFG::LightsPerPass() {
-	return (_get()->_lightsPerPass);
-}
-
-uint16_t		&CFG::ShadowsPerPass() {
-	return (_get()->_shadowsPerPass);
-}
+Engine	*Engine::_instance = nullptr;
 
 Engine::Engine() :
 	_loop(),
@@ -138,8 +53,7 @@ Engine::Engine() :
 	_program_path += "/";
 }
 
-Engine::~Engine()
-= default;
+Engine::~Engine() = default;
 
 Engine	&Engine::_get()
 {
@@ -195,8 +109,8 @@ void			Engine::_load_res()
 
 void			Engine::init()
 {
-	CFG::Load();
-	Window::init(CFG::WindowName(), CFG::WindowSize().x, CFG::WindowSize().y);
+	Config::Load();
+	Window::init(Config::WindowName(), Config::WindowSize().x, Config::WindowSize().y);
 	_get()._load_res();
 }
 

@@ -1,0 +1,120 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Config.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2018/10/25 11:34:44 by gpinchon          #+#    #+#             */
+/*   Updated: 2018/10/25 11:52:47 by gpinchon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "Config.hpp"
+#include "Engine.hpp"
+
+Config		*Config::_instance = nullptr;
+
+Config			*Config::_get()
+{
+	if (nullptr == _instance)
+		_instance = new Config();
+	return (_instance);
+}
+
+void			Config::Load()
+{
+	auto	fd = fopen((Engine::program_path() + "config.ini").c_str(), "r");
+	char	buffer[4096];
+	while (fgets(buffer, 4096, fd))
+	{
+		unsigned	valu, valu1;
+		int			vali;
+		char		vals[4096];
+		if (sscanf(buffer, "WindowName = %s", vals)) {
+			Config::WindowName() = vals;
+		}
+		else if (sscanf(buffer, "WindowSize = %u %u", &valu, &valu1)) {
+			Config::WindowSize().x = valu;
+			Config::WindowSize().y = valu1;
+		}
+		else if (sscanf(buffer, "MaxTexRes = %u", &vali)) {
+			Config::MaxTexRes() = vali;
+		}
+		else if (sscanf(buffer, "ShadowRes = %u", &valu)) {
+			Config::ShadowRes() = valu;
+		}
+		else if (sscanf(buffer, "Anisotropy = %u", &valu)) {
+			Config::Anisotropy() = valu;
+		}
+		else if (sscanf(buffer, "MSAA = %u", &valu)) {
+			Config::Msaa() = valu;
+		}
+		else if (sscanf(buffer, "BloomPass = %u", &valu)) {
+			Config::BloomPass() = valu;
+		}
+		else if (sscanf(buffer, "LightsPerPass = %u", &valu)) {
+			Config::LightsPerPass() = valu;
+		}
+		else if (sscanf(buffer, "ShadowsPerPass = %u", &valu)) {
+			Config::ShadowsPerPass() = valu;
+		}
+		else if (sscanf(buffer, "ReflexionMaxSteps = %u", &valu)) {
+			Config::ReflexionMaxSteps() = valu;
+		}
+		else if (sscanf(buffer, "ReflexionSamples = %u", &valu)) {
+			Config::ReflexionSamples() = valu;
+		}
+		else if (sscanf(buffer, "ReflexionBorderFactor = %u", &valu)) {
+			Config::ReflexionBorderFactor() = valu;
+		}
+	}
+}
+
+VEC2		&Config::WindowSize() {
+	return (_get()->_windowSize);
+}
+
+std::string	&Config::WindowName() {
+	return (_get()->_windowName);
+}
+
+float		&Config::Anisotropy() {
+	return (_get()->_anisotropy);
+}
+
+int16_t		&Config::MaxTexRes() {
+	return (_get()->_maxTexRes);
+}
+
+uint16_t		&Config::ShadowRes() {
+	return (_get()->_shadowRes);
+}
+
+uint16_t		&Config::Msaa() {
+	return (_get()->_msaa);
+}
+
+uint16_t		&Config::BloomPass() {
+	return (_get()->_bloomPass);
+}
+
+uint16_t		&Config::LightsPerPass() {
+	return (_get()->_lightsPerPass);
+}
+
+uint16_t		&Config::ShadowsPerPass() {
+	return (_get()->_shadowsPerPass);
+}
+
+uint16_t		&Config::ReflexionMaxSteps() {
+	return (_get()->_reflexionMaxSteps);
+}
+
+uint16_t		&Config::ReflexionSamples() {
+	return (_get()->_reflexionSamples);
+}
+
+uint16_t		&Config::ReflexionBorderFactor() {
+	return (_get()->_reflexionBorderFactor);
+}

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/20 18:44:32 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/25 11:36:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,34 +63,4 @@ private :
 	std::string					_program_path;
 	std::string					_exec_path;
 	float						_internal_quality;
-};
-
-class CFG
-{
-public :
-	static void			Load();
-	static VEC2			&WindowSize();
-	static std::string	&WindowName();
-	static float		&Anisotropy();
-	static int16_t		&MaxTexRes();
-	static uint16_t		&ShadowRes();
-	static uint16_t		&Msaa();
-	static uint16_t		&BloomPass();
-	static uint16_t		&LightsPerPass();
-	static uint16_t		&ShadowsPerPass();
-private :
-	static CFG	*_get();
-	static CFG	*_instance;
-	VEC2		_windowSize{1280, 720};
-	std::string	_windowName{""};
-	float		_anisotropy{16.f};
-	int16_t		_maxTexRes{0};
-	uint16_t	_shadowRes{2048};
-	uint16_t	_msaa{0};
-	uint16_t	_bloomPass{1};
-	uint16_t	_lightsPerPass{32};
-	uint16_t	_shadowsPerPass{16};
-	CFG() = default;
-	~CFG() = default;
-	
 };

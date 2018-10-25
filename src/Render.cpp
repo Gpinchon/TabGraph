@@ -6,12 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/11 23:52:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/25 12:05:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser/InternalTools.hpp"
 #include "Render.hpp"
+#include "Config.hpp"
 #include "Environment.hpp"
 #include "Engine.hpp"
 #include "Light.hpp"
@@ -81,7 +82,7 @@ void	present(std::shared_ptr<Framebuffer> back_buffer)
 		Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/present.frag");
 
 	// GENERATE BLOOM FROM out_Brightness
-	back_buffer->attachement(1)->blur(CFG::BloomPass(), 3.5);
+	back_buffer->attachement(1)->blur(Config::BloomPass(), 3.5);
 	glDepthFunc(GL_ALWAYS);
 	glDisable(GL_CULL_FACE);
 	Framebuffer::bind_default();
@@ -185,23 +186,22 @@ void	Render::update()
 void	light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_ptr<Framebuffer> &current_backTexture, std::shared_ptr<Framebuffer> &current_tbuffertex)
 {
 	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
-		std::string("#define LIGHTNBR ") + std::to_string(CFG::LightsPerPass()) +
-		"\n#define SHADOWNBR " + std::to_string(CFG::ShadowsPerPass()) +
-		"\n#define PointLight " + std::to_string(Point) +
-		"\n#define DirectionnalLight " + std::to_string(Directionnal) +
-		"\n");
+		std::string("\n#define LIGHTNBR				") + std::to_string(Config::LightsPerPass()) +
+		std::string("\n#define PointLight			") + std::to_string(Point) +
+		std::string("\n#define DirectionnalLight	") + std::to_string(Directionnal) +
+		std::string("\n"));
 	static auto	slighting_shader = GLSL::parse("shadow_lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
-		std::string("#define LIGHTNBR ") + std::to_string(CFG::LightsPerPass()) +
-		"\n#define SHADOWNBR " + std::to_string(CFG::ShadowsPerPass()) +
-		"\n#define PointLight " + std::to_string(Point) +
-		"\n#define DirectionnalLight " + std::to_string(Directionnal) +
-		"\n#define SHADOW" +
-		"\n");
+		std::string("\n#define SHADOW") +
+		std::string("\n#define LIGHTNBR				") + std::to_string(Config::LightsPerPass()) +
+		std::string("\n#define SHADOWNBR			") + std::to_string(Config::ShadowsPerPass()) +
+		std::string("\n#define PointLight			") + std::to_string(Point) +
+		std::string("\n#define DirectionnalLight	") + std::to_string(Directionnal) +
+		std::string("\n"));
 	
 	auto	shader = lighting_shader;
 	for (auto i = 0u, j = 0u; i < normalLights.size() || j < shadowLights.size();)
 	{
-		if (normalLights.size() - i < CFG::LightsPerPass() &&
+		if (normalLights.size() - i < Config::LightsPerPass() &&
 			shadowLights.size() - j != 0)
 			shader = slighting_shader;
 		else
@@ -209,7 +209,7 @@ void	light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
 		current_backBuffer->bind();
 		shader->use();
 		auto lightIndex = 0u;
-		while (lightIndex < CFG::LightsPerPass() && i < normalLights.size()) {
+		while (lightIndex < Config::LightsPerPass() && i < normalLights.size()) {
 			auto	light = normalLights.at(i);
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", vec3_scale(light->color(), light->power()));
@@ -219,7 +219,7 @@ void	light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
 			lightIndex++;
 		}
 		auto shadowIndex = 0u;
-		while (lightIndex < CFG::LightsPerPass() && shadowIndex < CFG::ShadowsPerPass() && j < shadowLights.size()) {
+		while (lightIndex < Config::LightsPerPass() && shadowIndex < Config::ShadowsPerPass() && j < shadowLights.size()) {
 			auto	light = shadowLights.at(j);
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", vec3_scale(light->color(), light->power()));
@@ -262,8 +262,17 @@ void	Render::scene()
 	static auto	back_buffer1 = create_back_buffer("back_buffer1", Window::internal_resolution());
 	static auto	back_buffer2 = create_back_buffer("back_buffer2", Window::internal_resolution());
 	static auto	final_back_buffer = create_back_buffer("final_back_buffer", Window::internal_resolution());
-	static auto	elighting_shader = GLSL::parse("lighting_env", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader);
-	static auto	telighting_shader = GLSL::parse("lighting_env_transparent", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader, "#define TRANSPARENT\n");
+	static auto	elighting_shader = GLSL::parse("lighting_env", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader,
+			std::string("\n#define MAX_REFLEXION_STEPS		") + std::to_string(Config::ReflexionMaxSteps()) +
+			std::string("\n#define REFLEXION_SAMPLES		") + std::to_string(Config::ReflexionSamples()) +
+			std::string("\n#define SCREEN_BOARDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) +
+			std::string("\n"));
+	static auto	telighting_shader = GLSL::parse("lighting_env_transparent", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader,
+			std::string("\n#define TRANSPARENT") +
+			std::string("\n#define MAX_REFLEXION_STEPS		") + std::to_string(Config::ReflexionMaxSteps()) +
+			std::string("\n#define REFLEXION_SAMPLES		") + std::to_string(Config::ReflexionSamples()) +
+			std::string("\n#define SCREEN_BOARDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) +
+			std::string("\n"));
 	static auto	refraction_shader = GLSL::parse("refraction", Engine::program_path() + "./res/shaders/refraction.frag", LightingShader);
 
 	temp_buffer->resize(Window::internal_resolution());

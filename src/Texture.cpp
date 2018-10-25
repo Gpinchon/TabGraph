@@ -6,10 +6,11 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 15:35:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/25 11:41:20 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "Config.hpp"
 #include "Engine.hpp"
 #include "VertexArray.hpp"
 #include "Texture.hpp"
@@ -56,7 +57,7 @@ std::shared_ptr<Texture>	Texture::create(const std::string &name, VEC2 s, GLenum
 	glBindTexture(target, 0);
 	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, CFG::Anisotropy());
+	t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Anisotropy());
 	if (t->values_per_pixel() < 4) {
 		t->set_parameteri(GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	}
@@ -165,10 +166,10 @@ void	Texture::load()
 	if (_loaded) {
 		return ;
 	}
-	if (CFG::MaxTexRes() > 0 && _data && (_size.x > CFG::MaxTexRes() || _size.y > CFG::MaxTexRes())) {
+	if (Config::MaxTexRes() > 0 && _data && (_size.x > Config::MaxTexRes() || _size.y > Config::MaxTexRes())) {
 		resize(new_vec2(
-			std::min(int16_t(_size.x), CFG::MaxTexRes()),
-			std::min(int16_t(_size.y), CFG::MaxTexRes())));
+			std::min(int16_t(_size.x), Config::MaxTexRes()),
+			std::min(int16_t(_size.y), Config::MaxTexRes())));
 	}
 	if (_glid == 0u) {
 		glGenTextures(1, &_glid);

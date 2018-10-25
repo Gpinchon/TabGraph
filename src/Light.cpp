@@ -6,11 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/10 21:42:11 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 16:12:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/25 11:40:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Light.hpp"
+#include "Config.hpp"
 #include "Engine.hpp"
 #include "Framebuffer.hpp"
 
@@ -57,7 +58,7 @@ void					Light::add(std::shared_ptr<Light> light)
 /*TextureArray	*Light::shadow_array()
 {
 	if (nullptr == _shadow_array)
-		_shadow_array = TextureArray::create("ShadowArray", new_vec2(CFG::ShadowRes(), CFG::ShadowRes()), GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, 128);
+		_shadow_array = TextureArray::create("ShadowArray", new_vec2(Config::ShadowRes(), Config::ShadowRes()), GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, 128);
 	return (_shadow_array);
 }*/
 
@@ -102,7 +103,7 @@ std::shared_ptr<DirectionnalLight>	DirectionnalLight::create(const std::string &
 	light->power() = power;
 	light->cast_shadow() = cast_shadow;
 	if (cast_shadow) {
-		light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", new_vec2(CFG::ShadowRes(), CFG::ShadowRes()), 0, 0);
+		light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", new_vec2(Config::ShadowRes(), Config::ShadowRes()), 0, 0);
 		auto renderBuffer = light->_render_buffer.lock();
 		renderBuffer->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
 		renderBuffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);

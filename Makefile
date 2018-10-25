@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/09/24 17:05:35 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/10/25 11:38:09 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ SRC			=	./src/scop42/main.cpp			\
 				./src/scop42/callbacks.cpp		\
 				./src/Window.cpp				\
 				./src/Engine.cpp				\
+				./src/Config.cpp				\
 				./src/Environment.cpp			\
 				./src/Object.cpp				\
 				./src/ComputeObject.cpp			\

@@ -6,11 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/18 18:04:56 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/25 11:38:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Config.hpp"
 #include "Framebuffer.hpp"
 #include "Events.hpp"
 #include "Window.hpp"
@@ -58,7 +59,7 @@ void		Window::init(const std::string &name, int width, int height)
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, CFG::Msaa());
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, Config::Msaa());
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	if (nullptr == _get()._sdl_window)
 		_get()._sdl_window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED,

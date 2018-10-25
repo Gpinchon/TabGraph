@@ -1,7 +1,7 @@
 #define	KERNEL_SIZE				9
-#define MAX_REFLEXION_STEPS		5
-#define MAX_REFLEXION_SAMPLES	4
-#define SCREEN_BOARDER_FACTOR	10
+/* #define MAX_REFLEXION_STEPS		5
+#define REFLEXION_SAMPLES		4
+#define SCREEN_BOARDER_FACTOR	10 */
 
 uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(0.95581, -0.18159), vec2(0.50147, -0.35807), vec2(0.69607, 0.35559),
@@ -36,7 +36,7 @@ vec4	SSR()
 		vec3	curUV = UVFromPosition(curPos); //Compute step's screen coordinates
 		vec2	sampleUV = curUV.xy;
 		float	sampleDepth;
-		for (uint j = 0; j < MAX_REFLEXION_SAMPLES; j++)
+		for (uint j = 0; j < REFLEXION_SAMPLES; j++)
 		{
 			sampleDepth = texture(LastDepth, sampleUV.xy).r; //Get precise depth value at pixel
 			//Don't check if sampleUV is offscreen, this would result in even more branching code and hurt performances
