@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 12:05:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/25 18:27:24 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,8 +146,8 @@ void	Render::fixed_update()
 	auto	res = Window::internal_resolution();
 	auto	index = 0;
 
-shadowLights.reserve(1000);
-normalLights.reserve(1000);
+	shadowLights.reserve(1000);
+	normalLights.reserve(1000);
 	shadowLights.clear();
 	normalLights.clear();
 	while (auto light = Light::get(index))
@@ -185,19 +185,21 @@ void	Render::update()
 
 void	light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_ptr<Framebuffer> &current_backTexture, std::shared_ptr<Framebuffer> &current_tbuffertex)
 {
+	if (Config::LightsPerPass() == 0)
+		return ;
 	static auto	lighting_shader = GLSL::parse("lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
 		std::string("\n#define LIGHTNBR				") + std::to_string(Config::LightsPerPass()) +
 		std::string("\n#define PointLight			") + std::to_string(Point) +
 		std::string("\n#define DirectionnalLight	") + std::to_string(Directionnal) +
 		std::string("\n"));
 	static auto	slighting_shader = GLSL::parse("shadow_lighting", Engine::program_path() + "./res/shaders/lighting.frag", LightingShader,
-		std::string("\n#define SHADOW") +
-		std::string("\n#define LIGHTNBR				") + std::to_string(Config::LightsPerPass()) +
+		(Config::ShadowsPerPass() > 0 ? std::string("\n#define SHADOW") : std::string("\n")) +
 		std::string("\n#define SHADOWNBR			") + std::to_string(Config::ShadowsPerPass()) +
+		std::string("\n#define LIGHTNBR				") + std::to_string(Config::LightsPerPass()) +
 		std::string("\n#define PointLight			") + std::to_string(Point) +
 		std::string("\n#define DirectionnalLight	") + std::to_string(Directionnal) +
 		std::string("\n"));
-	
+	auto	actualShadowNbr = std::max(uint16_t(1), Config::ShadowsPerPass());
 	auto	shader = lighting_shader;
 	for (auto i = 0u, j = 0u; i < normalLights.size() || j < shadowLights.size();)
 	{
@@ -208,7 +210,7 @@ void	light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
 			shader = lighting_shader;
 		current_backBuffer->bind();
 		shader->use();
-		auto lightIndex = 0u;
+		auto	lightIndex = 0u;
 		while (lightIndex < Config::LightsPerPass() && i < normalLights.size()) {
 			auto	light = normalLights.at(i);
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
@@ -218,8 +220,8 @@ void	light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
 			i++;
 			lightIndex++;
 		}
-		auto shadowIndex = 0u;
-		while (lightIndex < Config::LightsPerPass() && shadowIndex < Config::ShadowsPerPass() && j < shadowLights.size()) {
+		auto	shadowIndex = 0u;
+		while (lightIndex < Config::LightsPerPass() && shadowIndex < actualShadowNbr && j < shadowLights.size()) {
 			auto	light = shadowLights.at(j);
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
 			shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", vec3_scale(light->color(), light->power()));
@@ -263,16 +265,16 @@ void	Render::scene()
 	static auto	back_buffer2 = create_back_buffer("back_buffer2", Window::internal_resolution());
 	static auto	final_back_buffer = create_back_buffer("final_back_buffer", Window::internal_resolution());
 	static auto	elighting_shader = GLSL::parse("lighting_env", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader,
-			std::string("\n#define MAX_REFLEXION_STEPS		") + std::to_string(Config::ReflexionMaxSteps()) +
-			std::string("\n#define REFLEXION_SAMPLES		") + std::to_string(Config::ReflexionSamples()) +
-			std::string("\n#define SCREEN_BOARDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) +
-			std::string("\n"));
+		std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::ReflexionSteps()) +
+		std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::ReflexionSamples()) +
+		std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) +
+		std::string("\n"));
 	static auto	telighting_shader = GLSL::parse("lighting_env_transparent", Engine::program_path() + "./res/shaders/lighting_env.frag", LightingShader,
-			std::string("\n#define TRANSPARENT") +
-			std::string("\n#define MAX_REFLEXION_STEPS		") + std::to_string(Config::ReflexionMaxSteps()) +
-			std::string("\n#define REFLEXION_SAMPLES		") + std::to_string(Config::ReflexionSamples()) +
-			std::string("\n#define SCREEN_BOARDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) +
-			std::string("\n"));
+		std::string("\n#define TRANSPARENT") +
+		std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::ReflexionSteps()) +
+		std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::ReflexionSamples()) +
+		std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) +
+		std::string("\n"));
 	static auto	refraction_shader = GLSL::parse("refraction", Engine::program_path() + "./res/shaders/refraction.frag", LightingShader);
 
 	temp_buffer->resize(Window::internal_resolution());
@@ -285,7 +287,6 @@ void	Render::scene()
 	/*
 	** TODO :
 	** 	- CLEANUP CODE
-	** 	- MANAGE TRANSPARENT OBJECTS
 	*/
 	glClearColor(0, 0, 0, 0);
 	temp_buffer1->bind();
@@ -339,11 +340,6 @@ void	Render::scene()
 	current_backTexture->bind();
 	glClear(GL_COLOR_BUFFER_BIT);
 	light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
-
-	/*current_backTexture->attachement(0)->generate_mipmap();
-	current_backTexture->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);*/
-	/*current_backTexture->attachement(1)->generate_mipmap();
-	current_backTexture->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);*/
 
 	final_back_buffer->attachement(0)->generate_mipmap();
 	final_back_buffer->attachement(1)->generate_mipmap();
@@ -452,6 +448,7 @@ void	Render::scene()
 
 	opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
 	present(final_back_buffer);
 }
 

@@ -1,7 +1,4 @@
 #define	KERNEL_SIZE				9
-/* #define MAX_REFLEXION_STEPS		5
-#define REFLEXION_SAMPLES		4
-#define SCREEN_BOARDER_FACTOR	10 */
 
 uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(0.95581, -0.18159), vec2(0.50147, -0.35807), vec2(0.69607, 0.35559),
@@ -30,25 +27,25 @@ vec4	SSR()
 	vec4	ret = vec4(0);
 	float	hits = 0;
 
-	for (uint i = 0; i < MAX_REFLEXION_STEPS; i++)
+	for (uint i = 0; i < REFLEXION_STEPS; i++)
 	{
 		vec3	curPos = R * curLength + Frag.Position; //Calculate current step's position
 		vec3	curUV = UVFromPosition(curPos); //Compute step's screen coordinates
 		vec2	sampleUV = curUV.xy;
-		float	sampleDepth;
+		float	sampleDepth = 0;
 		for (uint j = 0; j < REFLEXION_SAMPLES; j++)
 		{
 			sampleDepth = texture(LastDepth, sampleUV.xy).r; //Get precise depth value at pixel
 			//Don't check if sampleUV is offscreen, this would result in even more branching code and hurt performances
 			//If current step behind ZBuffer or at "almost" same depth, accept as valid reflexion (avoids holes)
-			if (abs(curUV.z - sampleDepth) <= 0.1 || curUV.z >= sampleDepth)
+			if (abs(curUV.z - sampleDepth) <= 0.05 || curUV.z >= sampleDepth)
 			{
 				ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb; //Sample last image color and accumulate it
 				ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb; //LastEmitting is already blurred
 				float	screenEdgeFactor = 1;
-				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.x * 2 - 1), SCREEN_BOARDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
-				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.y * 2 - 1), SCREEN_BOARDER_FACTOR));
-				ret.w += clamp(screenEdgeFactor, 0, 1);
+				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
+				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
+				ret.w += max(0, screenEdgeFactor);
 				hits++;
 			}
 			sampleUV = curUV.xy + poissonDisk[j] * (0.001 * Frag.Material.Roughness + 0.0001); //Offset sampling to look around a bit
@@ -113,11 +110,12 @@ void	ApplyTechnique()
 	if (Frag.Material.Alpha == 0) {
 	#ifdef TRANSPARENT
 		return ;
-	#endif //TRANSPARENT
+	#else
 		Out.Color = vec4(EnvDiffuse, 1);
 		brightness = dot(pow(Out.Color.rgb, envGammaCorrection), brightnessDotValue);
 		Out.Emitting = max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness));
 		return ;
+	#endif //TRANSPARENT
 	}
 	vec3	fresnel = min(vec3(0.5), Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness));
 	reflection *= fresnel;

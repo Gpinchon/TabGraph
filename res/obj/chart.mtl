@@ -195,29 +195,35 @@ newmtl Transp.00
 	Tr 0.00
 	Kd 0.00 0.416 0.306
 	Nr 0.1
-	Ni 1.5
+	Ni 2.6
+	Ks 0.2 0.2 0.2
 newmtl Transp.20
 	Tr 0.20
 	Kd 1.00 0.416 0.306
 	Nr 0.1
-	Ni 1.5
+	Ni 2.6
+	Ks 0.2 0.2 0.2
 newmtl Transp.40
 	Tr 0.40
 	Kd 0.00 1.00 0.306
 	Nr 0.1
-	Ni 1.5
+	Ni 2.6
+	Ks 0.2 0.2 0.2
 newmtl Transp.60
 	Tr 0.60
 	Kd 0.00 0.416 1.00
 	Nr 0.1
-	Ni 1.5
+	Ni 2.6
+	Ks 0.2 0.2 0.2
 newmtl Transp.80
 	Tr 0.80
 	Kd 1.00 1.00 0.306
 	Nr 0.1
-	Ni 1.5
+	Ni 2.6
+	Ks 0.2 0.2 0.2
 newmtl Transp.99
 	Tr 0.90
 	Kd 1.00 0.416 1.00
 	Nr 0.1
-	Ni 1.5
+	Ni 2.6
+	Ks 0.2 0.2 0.2

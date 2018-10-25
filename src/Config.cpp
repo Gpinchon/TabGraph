@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/25 11:34:44 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 11:52:47 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/10/25 16:19:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,8 @@ void			Config::Load()
 		else if (sscanf(buffer, "ShadowsPerPass = %u", &valu)) {
 			Config::ShadowsPerPass() = valu;
 		}
-		else if (sscanf(buffer, "ReflexionMaxSteps = %u", &valu)) {
-			Config::ReflexionMaxSteps() = valu;
+		else if (sscanf(buffer, "ReflexionSteps = %u", &valu)) {
+			Config::ReflexionSteps() = valu;
 		}
 		else if (sscanf(buffer, "ReflexionSamples = %u", &valu)) {
 			Config::ReflexionSamples() = valu;
@@ -107,8 +107,8 @@ uint16_t		&Config::ShadowsPerPass() {
 	return (_get()->_shadowsPerPass);
 }
 
-uint16_t		&Config::ReflexionMaxSteps() {
-	return (_get()->_reflexionMaxSteps);
+uint16_t		&Config::ReflexionSteps() {
+	return (_get()->_ReflexionSteps);
 }
 
 uint16_t		&Config::ReflexionSamples() {
