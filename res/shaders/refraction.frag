@@ -25,9 +25,15 @@ vec2	warpUV(vec2 min, vec2 max, vec2 percent)
 	return (vec2(warpUV(min.x, max.x, percent.x), warpUV(min.y, max.y, percent.y)));
 }
 
-vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
+vec3	Fresnel(in float cosT, in vec3 F0)
 {
-	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
+  return (F0 + (1 - F0) * pow(1 - cosT, 5));
+}
+
+vec3	F0(in float ior)
+{
+	float	f0 = abs((1.0 - ior) / (1.0 + ior));
+	return (vec3(f0 * f0));
 }
 
 void	ApplyTechnique()
@@ -42,8 +48,8 @@ void	ApplyTechnique()
 			Frag.Normal = -Frag.Normal;
 			NdV = -NdV;
 		}
-		vec3	fresnel = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
-		vec2	refractFactor = min(vec2(1), vec2(1 - Frag.Depth) + (fresnel.x + fresnel.y + fresnel.z) / 3.f) * 0.05f;
+		vec3	fresnel = Fresnel(NdV, F0(Frag.Material.Ior));
+		vec2	refractFactor = vec2((1 - Frag.Depth) * max(fresnel.x, max(fresnel.y, fresnel.z)));
 		vec2	refractDir = (mat3(Camera.Matrix.View) * normalize(refract(V, Frag.Normal, 1.0 / Frag.Material.Ior))).xy;
 		refract_UV = refractDir * refractFactor + Frag.UV;
 		refract_UV = warpUV(vec2(0), vec2(1), refract_UV);
