@@ -88,7 +88,7 @@ void	parse_mtl(t_obj_parser *p, std::string &name)
 	if (Material::get_by_name(name) != nullptr) {
 		return ;
 	}
-	char		line[4096];
+	char	line[4096];
 	auto	mtl = Material::create(name);
 	while (fgets(line, 4096, p->fd) != nullptr)
 	{

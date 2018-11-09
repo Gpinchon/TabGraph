@@ -1,3 +1,9 @@
+#define	KERNEL_SIZE				9
+
+const vec2 poissonDisk[] = vec2[KERNEL_SIZE](
+	vec2(0.95581, -0.18159), vec2(0.50147, -0.35807), vec2(0.69607, 0.35559),
+	vec2(-0.0036825, -0.59150),	vec2(0.15930, 0.089750), vec2(-0.65031, 0.058189),
+	vec2(0.11915, 0.78449),	vec2(-0.34296, 0.51575), vec2(-0.60380, -0.41527));
 
 struct t_Light {
 	vec3	Position;
@@ -61,6 +67,22 @@ float	SampleShadowMap(in t_Light light)
 	vec3	projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
 	return (texture(Shadow[light.ShadowIndex], vec3(projCoord.xy, projCoord.z - 0.001)));
 }
+
+float	SampleShadowMap(in t_Light light, in vec2 sampleRotation)
+{
+	if (light.ShadowIndex < 0)
+		return (1);
+	vec4	shadowPos = light.Projection * vec4(Frag.Position, 1.0);
+	vec3	projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
+	float	sampleOffset = 1 / 512.f;
+	float	shadow = 0;
+	for (int i = 0; i < KERNEL_SIZE; i++)
+	{
+		vec2	sampleUV = projCoord.xy + poissonDisk[i] * sampleRotation * sampleOffset;
+		shadow += texture(Shadow[light.ShadowIndex], vec3(sampleUV, projCoord.z - 0.001));
+	}
+	return (shadow / float(KERNEL_SIZE));
+}
 #endif //SHADOW
 
 void	ApplyTechnique()
@@ -83,11 +105,15 @@ void	ApplyTechnique()
 	vec3	specular = vec3(0);
 	vec3	reflection = vec3(0);
 
+	float	sampleAngle = randomAngle(Frag.Position, 1024);
+	float	s = sin(sampleAngle);
+	float	c = cos(sampleAngle);
+	vec2	sampleRotation = vec2(c, -s);
 	for (int i = 0; i < LIGHTNBR; i++)
 	{
 		float	Attenuation = 1;
 		#ifdef SHADOW
-			Attenuation *= SampleShadowMap(Light[i]);
+			Attenuation *= SampleShadowMap(Light[i], sampleRotation);
 			if (Attenuation == 0)
 				continue ;
 		#endif //SHADOW

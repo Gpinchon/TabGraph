@@ -1,5 +1,5 @@
-#define M_PI 3.1415926535897932384626433832795
-#define EPSILON 0.0001
+#define M_PI	3.1415926535897932384626433832795
+#define EPSILON	0.0001
 
 precision lowp float;
 precision lowp int;
@@ -69,6 +69,10 @@ struct t_Out {
 	vec4		Color;
 	vec3		Emitting;
 };
+
+layout(location = 0) out vec4	out_Color;
+layout(location = 1) out vec3	out_Emitting;
+t_Out	Out;
 #endif //LIGHTSHADER
 
 uniform t_Textures		Texture;
@@ -88,16 +92,7 @@ layout(location = 4) out float	out_AO;
 layout(location = 5) out vec3	out_Normal;
 #endif //POSTSHADER
 
-#ifdef LIGHTSHADER
-layout(location = 0) out vec4	out_Color;
-layout(location = 1) out vec3	out_Emitting;
-#endif //LIGHTSHADER
-
 t_Frag	Frag;
-
-#ifdef LIGHTSHADER
-t_Out	Out;
-#endif //LIGHTSHADER
 
 vec3	Position(vec2 UV)
 {
@@ -124,14 +119,12 @@ vec3	Position()
 	return (projectedCoord.xyz / projectedCoord.w);
 }
 
-vec3	OriginalPosition;
-
 void	FillFrag()
 {
 	Frag.UV = frag_UV;
 	Frag.CubeUV = frag_Cube_UV;
 	Frag.Depth = gl_FragDepth = texture(Texture.Depth, frag_UV).r;
-	OriginalPosition = Frag.Position = Position();
+	Frag.Position = Position();
 	Frag.Normal = texture(Texture.Normal, frag_UV).xyz;
 	vec4	albedo_sample = texture(Texture.Albedo, frag_UV);
 	Frag.Material.Albedo = albedo_sample.rgb;
@@ -150,7 +143,7 @@ void	FillFrag()
 }
 
 #ifdef POSTSHADER
-void	FillOut()
+void	FillOut(in vec3 OriginalPosition)
 {
 	gl_FragDepth = Frag.Depth;
 	bvec3	positionsEqual = notEqual(Frag.Position, OriginalPosition);
@@ -169,9 +162,14 @@ void	FillOut()
 #endif
 
 #ifdef LIGHTSHADER
-void	FillOut()
+void	FillOut(in vec3 OriginalPosition)
 {
-	gl_FragDepth = Frag.Depth;
+	bvec3	positionsEqual = notEqual(Frag.Position, OriginalPosition);
+	if (positionsEqual.x || positionsEqual.y || positionsEqual.z)
+	{
+		vec4	NDC = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Frag.Position, 1.0);
+		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
+	}
 	out_Color = Out.Color;
 	out_Emitting = Out.Emitting;
 }
@@ -182,14 +180,38 @@ vec2	BRDF(in float NdV, in float Roughness)
 	return (texture(Texture.BRDF, vec2(NdV, Frag.Material.Roughness)).xy);
 }
 
-vec4	sampleLod(in samplerCube texture, in vec3 uv, in float value)
+float	random(in vec3 seed, in float freq)
 {
-	return textureLod(texture, uv, value * textureQueryLevels(texture));
+	float dt = dot(floor(seed * freq), vec3(53.1215, 21.1352, 9.1322));
+	return fract(sin(dt) * 2105.2354);
 }
 
-vec4	sampleLod(in sampler2D texture, in vec2 uv, in float value)
+float	randomAngle(in vec3 seed, in float freq)
 {
-	return textureLod(texture, uv, value * textureQueryLevels(texture));
+	return random(seed, freq) * 6.283285;
+}
+
+vec4	sampleLod(in samplerCube tex, in vec3 uv, in float value)
+{
+#ifdef textureQueryLevels
+	return textureLod(tex, uv, value * textureQueryLevels(tex));
+#else
+	//Try to guess the max LOD
+	ivec2	texRes = textureSize(tex, 0);
+	float	maxLOD = floor(log2(max(texRes.x, texRes.y)));
+	return textureLod(tex, uv, value * maxLOD);
+#endif
+}
+
+vec4	sampleLod(in sampler2D tex, in vec2 uv, in float value)
+{
+#ifdef textureQueryLevels
+	return textureLod(tex, uv, value * textureQueryLevels(tex));
+#else
+	ivec2	texRes = textureSize(tex, 0);
+	float	maxLOD = floor(log2(max(texRes.x, texRes.y)));
+	return textureLod(tex, uv, value * maxLOD);
+#endif
 }
 
 float	map(in float value, in float low1, in float high1, in float low2, in float high2)
@@ -224,7 +246,8 @@ void	ApplyTechnique();
 void main()
 {
 	FillFrag();
+	vec3	OriginalPosition = Frag.Position;
 	ApplyTechnique();
-	FillOut();
+	FillOut(OriginalPosition);
 }
 

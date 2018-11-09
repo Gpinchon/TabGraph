@@ -296,7 +296,14 @@ void	Texture::set_parameterf(GLenum p, float v)
 	_parametersf[p] = v;
 	if (_glid == 0u)
 		return ;
-	glTextureParameterf(_glid, p, v);
+	if (glTextureParameteri == nullptr) {
+		glBindTexture(_target, _glid);
+		glTexParameterf(_target, p, v);
+		glBindTexture(_target, 0);
+	}
+	else {
+		glTextureParameterf(_glid, p, v);
+	}
 #ifdef GL_DEBUG
 	glCheckError();
 #endif //GL_DEBUG
@@ -307,7 +314,14 @@ void	Texture::set_parameteri(GLenum p, int v)
 	_parametersi[p] = v;
 	if (_glid == 0u)
 		return ;
-	glTextureParameteri(_glid, p, v);
+	if (glTextureParameteri == nullptr) {
+		glBindTexture(_target, _glid);
+		glTexParameteri(_target, p, v);
+		glBindTexture(_target, 0);
+	}
+	else {
+		glTextureParameteri(_glid, p, v);
+	}
 #ifdef GL_DEBUG
 	glCheckError();
 #endif //GL_DEBUG

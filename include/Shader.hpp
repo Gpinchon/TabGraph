@@ -36,6 +36,9 @@ public:
 	static std::shared_ptr<Shader>	get_by_name(const std::string &);
 	static bool		check_shader(const GLuint id);
 	static bool		check_program(const GLuint id);
+	void			attach(const GLuint shaderid);
+	void			detach(const GLuint shaderid);
+	GLuint			link();
 	GLuint			link(const GLuint vertexid, const GLuint fragmentid);
 	GLuint			link(const GLuint geometryid, const GLuint vertexid, const GLuint fragmentid);
 	GLuint			link(const GLuint shaderid);

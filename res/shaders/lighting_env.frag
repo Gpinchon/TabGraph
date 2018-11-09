@@ -1,6 +1,6 @@
 #define	KERNEL_SIZE				9
 
-uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
+const vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(0.95581, -0.18159), vec2(0.50147, -0.35807), vec2(0.69607, 0.35559),
 	vec2(-0.0036825, -0.59150),	vec2(0.15930, 0.089750), vec2(-0.65031, 0.058189),
 	vec2(0.11915, 0.78449),	vec2(-0.34296, 0.51575), vec2(-0.60380, -0.41527));
@@ -17,17 +17,6 @@ vec3	UVFromPosition(in vec3 position)
 	projectedPosition /= projectedPosition.w;
 	projectedPosition = projectedPosition * 0.5 + 0.5;
 	return (projectedPosition.xyz);
-}
-
-float	random(in vec3 seed, in float freq)
-{
-	float dt = dot(floor(seed * freq), vec3(53.1215, 21.1352, 9.1322));
-	return fract(sin(dt) * 2105.2354);
-}
-
-float	randomAngle(in vec3 seed, in float freq)
-{
-	return random(seed, freq) * 6.283285;
 }
 
 vec4	SSR()
@@ -86,16 +75,6 @@ float	Env_Specular(in float NdV, in float roughness)
 	return (max(D * G, 0));
 }
 
-/* float	Env_Specular(in float NdV, in float roughness)
-{
-	float	alpha = roughness * roughness;
-	float	alpha2 = alpha * alpha;
-	float	den = (alpha2 - 1) + 1;
-	float	D = (alpha2 / (M_PI * den * den));
-	float	G = (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
-	return (D * G);
-} */
-
 vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
 {
 	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
@@ -103,7 +82,7 @@ vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
 
 void	ApplyTechnique()
 {
-	const vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, Frag.CubeUV).rgb;
+	vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, Frag.CubeUV).rgb;
 
 	Frag.Material.AO = 1 - Frag.Material.AO;
 	
@@ -123,14 +102,13 @@ void	ApplyTechnique()
 #endif //TRANSPARENT
 	vec3	R = reflect(V, N);
 
-	const vec2	BRDF = BRDF(NdV, Frag.Material.Roughness);
+	vec2	brdf = BRDF(NdV, Frag.Material.Roughness);
 
 	vec3	diffuse = Frag.Material.AO * (sampleLod(Texture.Environment.Diffuse, -N, Frag.Material.Roughness + 0.9).rgb
 			+ texture(Texture.Environment.Irradiance, -N).rgb);
 	vec3	reflection = sampleLod(Texture.Environment.Diffuse, R, Frag.Material.Roughness * 2.f).rgb;
 	vec3	specular = texture(Texture.Environment.Irradiance, R).rgb;
 	vec3	reflection_spec = reflection;
-
 
 	float	brightness = 0;
 
@@ -148,7 +126,7 @@ void	ApplyTechnique()
 	reflection *= fresnel;
 	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
 	reflection_spec *= brightness * min(fresnel + 0.5, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
-	specular *= fresnel * BRDF.x + mix(vec3(1), fresnel, Frag.Material.Metallic) * BRDF.y;
+	specular *= fresnel * brdf.x + mix(vec3(1), fresnel, Frag.Material.Metallic) * brdf.y;
 	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 
 	float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));

@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Errors.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
 
@@ -241,8 +242,38 @@ void	Shader::bind_texture(const std::string &name,
 
 GLuint	Shader::link(const GLuint shaderid)
 {
-	_program = glCreateProgram();
+	if (_program == 0)
+		_program = glCreateProgram();
 	glAttachShader(_program, shaderid);
+	glLinkProgram(_program);
+	glDetachShader(_program, shaderid);
+	try {
+		check_program(_program);
+	}
+	catch (std::exception &e) {
+		throw std::runtime_error(std::string("Linking Error :\n") + e.what());
+	}
+	return (_program);
+}
+
+void	Shader::attach(const GLuint shaderid)
+{
+	if (_program == 0)
+		_program = glCreateProgram();
+	glAttachShader(_program, shaderid);
+	glCheckError();
+}
+
+void	Shader::detach(const GLuint shaderid)
+{
+	if (_program == 0)
+		_program = glCreateProgram();
+	glDetachShader(_program, shaderid);
+	glCheckError();
+}
+
+GLuint	Shader::link()
+{
 	glLinkProgram(_program);
 	try {
 		check_program(_program);
@@ -255,10 +286,13 @@ GLuint	Shader::link(const GLuint shaderid)
 
 GLuint	Shader::link(const GLuint vertexid, const GLuint fragmentid)
 {
-	_program = glCreateProgram();
+	if (_program == 0)
+		_program = glCreateProgram();
 	glAttachShader(_program, vertexid);
 	glAttachShader(_program, fragmentid);
 	glLinkProgram(_program);
+	glDetachShader(_program, vertexid);
+	glDetachShader(_program, fragmentid);
 	try {
 		check_program(_program);
 	}
@@ -270,11 +304,15 @@ GLuint	Shader::link(const GLuint vertexid, const GLuint fragmentid)
 
 GLuint	Shader::link(const GLuint geometryid, const GLuint vertexid, const GLuint fragmentid)
 {
-	_program = glCreateProgram();
+	if (_program == 0)
+		_program = glCreateProgram();
 	glAttachShader(_program, geometryid);
 	glAttachShader(_program, vertexid);
 	glAttachShader(_program, fragmentid);
 	glLinkProgram(_program);
+	glDetachShader(_program, geometryid);
+	glDetachShader(_program, vertexid);
+	glDetachShader(_program, fragmentid);
 	try {
 		check_program(_program);
 	}
@@ -291,12 +329,18 @@ bool	Shader::check_shader(const GLuint id)
 
 	result = GL_FALSE;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(id, GL_INFO_LOG_LENGTH, &loglength);
-	if (loglength > 1)
+	if (result != GL_TRUE)
 	{
-		char	log[loglength];
-		glGetShaderInfoLog(id, loglength, nullptr, &log[0]);
-		throw std::runtime_error(log);
+		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &loglength);
+		if (loglength > 1)
+		{
+			char	log[loglength];
+			glGetShaderInfoLog(id, loglength, nullptr, &log[0]);
+			throw std::runtime_error(log);
+		}
+		else {
+			throw std::runtime_error("Unknown Error");
+		}
 	}
 	return (false);
 }

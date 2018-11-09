@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <iostream>
 
-static std::string glslVersion = std::string("#version 440\n");
+//static std::string glslVersion = std::string("#version 440\n");
 static auto	deferredVertCode = file_to_str(Engine::program_path() + "./res/shaders/deferred.vert");
 static auto	deferredFragCode = file_to_str(Engine::program_path() + "./res/shaders/deferred.frag");
 static auto	forwardVertCode = file_to_str(Engine::program_path() + "./res/shaders/forward.vert");
@@ -26,11 +26,13 @@ static auto emptyShaderCode = file_to_str(Engine::program_path() + "./res/shader
 GLuint	compile_shader_code(const std::string &code, GLenum type)
 {
 	GLuint	shaderid;
+	auto	glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+	auto	glslVersionNbr = int(std::stof(glslVersionString) * 100);
 
-	auto	fullCode = glslVersion + code;
-	auto	buf = fullCode.c_str();
+	auto	fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n" + code;
+	auto	codeBuff = fullCode.c_str();
 	shaderid = glCreateShader(type);
-	glShaderSource(shaderid, 1, &buf, nullptr);
+	glShaderSource(shaderid, 1, &codeBuff, nullptr);
 	glCompileShader(shaderid);
 	Shader::check_shader(shaderid);
 	return (shaderid);
@@ -78,8 +80,6 @@ std::shared_ptr<Shader>	GLSL::parse(const std::string &name,
 	}
 	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
-	glDetachShader(shader->_program, vertexid);
-	glDetachShader(shader->_program, fragmentid);
 	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
 	return (shader);
@@ -124,15 +124,12 @@ std::shared_ptr<Shader>	GLSL::parse(const std::string &name,
 	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
 	if (vertexid > 0) {
-		glDetachShader(shader->_program, vertexid);
 		glDeleteShader(vertexid);
 	}
 	if (fragmentid > 0) {
-		glDetachShader(shader->_program, fragmentid);
 		glDeleteShader(fragmentid);
 	}
 	if (computeid > 0) {
-		glDetachShader(shader->_program, computeid);
 		glDeleteShader(computeid);
 	}
 	return (shader);
@@ -165,8 +162,6 @@ std::shared_ptr<Shader>	GLSL::parse(const std::string &name,
 	}
 	shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
-	glDetachShader(shader->_program, vertexid);
-	glDetachShader(shader->_program, fragmentid);
 	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
 	return (shader);

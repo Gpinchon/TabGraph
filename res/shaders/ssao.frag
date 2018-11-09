@@ -1,20 +1,9 @@
 #define	KERNEL_SIZE 9
 
-uniform vec2 poissonDisk[] = vec2[KERNEL_SIZE](
+const vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(0.95581, -0.18159), vec2(0.50147, -0.35807), vec2(0.69607, 0.35559),
 	vec2(-0.0036825, -0.59150),	vec2(0.15930, 0.089750), vec2(-0.65031, 0.058189),
 	vec2(0.11915, 0.78449),	vec2(-0.34296, 0.51575), vec2(-0.60380, -0.41527));
-
-float	random(in vec3 seed, in float freq)
-{
-	float dt = dot(floor(seed * freq), vec3(53.1215, 21.1352, 9.1322));
-	return fract(sin(dt) * 2105.2354);
-}
-
-float	randomAngle(in vec3 seed, in float freq)
-{
-	return random(seed, freq) * 6.283285;
-}
 
 void	ApplyTechnique()
 {
