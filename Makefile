@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/10/25 11:38:09 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/11/15 14:40:38 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -48,7 +48,7 @@ SRC			=	./src/scop42/main.cpp			\
 
 OBJ			=	$(SRC:.cpp=.o)
 HYPER_OBJ	=	final.o
-CC			=	g++
+CC			=	clang
 
 INCLUDE_REP	=	./include				\
 				./libs/vml/include		\
@@ -58,8 +58,8 @@ LIBDIR		=	./libs/vml/
 LIBFILES	=	./libs/vml/libvml.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CXXFLAGS	=	-Ofast -std=c++14 -Wall -Wextra -Werror $(INCLUDE)
-LINKFLAGS	=	
+CXXFLAGS	=	-Ofast -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
+LINKFLAGS	=	-Wl,--allow-multiple-definition
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -75,7 +75,7 @@ else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
 else
-LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lSDL2main -lSDL2 -lGL -lm -lGLEW
+LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
 $(NAME): $(LIBFILES) $(OBJ)

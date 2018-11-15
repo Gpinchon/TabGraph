@@ -55,8 +55,8 @@ protected :
 	VEC3								_scaling{1, 1, 1};
 	VEC3								_up{0, 1, 0};
 	MAT4								_transform{mat4_identity()};
-	MAT4								_translate{0};
-	MAT4								_rotate{0};
+	MAT4								_translate{mat4_zero()};
+	MAT4								_rotate{mat4_zero()};
 	MAT4								_scale{mat4_identity()};
 private :
 	static std::vector<std::shared_ptr<Node>>	_nodes;

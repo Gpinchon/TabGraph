@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 20:09:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/05 15:27:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 00:21:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,6 @@ private:
 	std::vector<VertexBuffer*>	_buffers;
 	VertexBuffer				*_indices;
 	bool						_indexed{false};
-	bool						_bound{false};
 	size_t						_vertex_nbr{0};
 	GLuint						_GLid{0};
 	GLenum						_GLDrawType{GL_TRIANGLES};

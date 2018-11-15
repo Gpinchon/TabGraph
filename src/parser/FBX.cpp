@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/11 17:34:53 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/12 19:39:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 00:26:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #pragma pack(1)
 union	FBXArrayData
 {
-	byte	*toByte;
+	Byte	*toByte;
 	char	*toChar;
 	float	*toFloat;
 	double	*toDouble;
@@ -43,7 +43,7 @@ struct FBXRawData
 
 union	FBXPropertyData
 {
-	byte		toByte;
+	Byte		toByte;
 	char		toChar;
 	bool		toBool;
 	float		toFloat;
@@ -101,11 +101,11 @@ void			DecompressArray(FBXArray *array)
     infstream.avail_in = array->compressedLength; // size of input
     infstream.next_in = array->data.toByte; // input char array
     infstream.avail_out = array->length * sizeof(T); // size of output
-    infstream.next_out = (byte*)data; // output char array
+    infstream.next_out = (Byte*)data; // output char array
     inflateInit(&infstream);
     inflate(&infstream, Z_NO_FLUSH);
     inflateEnd(&infstream);
-    array->data.toByte = (byte*)data;
+    array->data.toByte = (Byte*)data;
     array->encoding = 0;
     array->compressedLength = 0;
 }
@@ -135,13 +135,13 @@ FBXArray		*ParseArray(unsigned char typeCode, FILE *fd)
 				fread(array->data.toInt32, array->length, sizeof(int32_t), fd);
 				break ;
 			case ('b') :
-				array->data.toByte = new byte[array->length];
-				fread(array->data.toByte, array->length, sizeof(byte), fd);
+				array->data.toByte = new Byte[array->length];
+				fread(array->data.toByte, array->length, sizeof(Byte), fd);
 				break ;
 		}
 	}
 	else {
-		array->data.toByte = new byte[array->compressedLength];
+		array->data.toByte = new Byte[array->compressedLength];
 		fread(array->data.toByte, array->compressedLength, 1, fd);
 		switch (typeCode) {
 			case ('f') :
@@ -157,7 +157,7 @@ FBXArray		*ParseArray(unsigned char typeCode, FILE *fd)
 				DecompressArray<int32_t>(array);
 				break ;
 			case ('b') :
-				DecompressArray<byte>(array);
+				DecompressArray<Byte>(array);
 				break ;
 		}
 	}
@@ -171,7 +171,7 @@ FBXRawData	*parseRawData(FILE *fd)
 {
 	auto	rawData = new FBXRawData;
 	fread(&rawData->length, sizeof(unsigned), 1, fd);
-	rawData->data.toByte = new byte[rawData->length];
+	rawData->data.toByte = new Byte[rawData->length];
 	fread(rawData->data.toByte, rawData->length, 1, fd);
 	return (rawData);
 }
@@ -196,7 +196,7 @@ FBXProperty	*ParseProperty(FILE *fd)
 			fread(&property->data.toInt16, sizeof(short), 1, fd);
 			break ;
 		case ('C') :
-			fread(&property->data.toByte, sizeof(byte), 1, fd);
+			fread(&property->data.toByte, sizeof(Byte), 1, fd);
 			break ;
 		case ('I') :
 			fread(&property->data.toInt32, sizeof(int32_t), 1, fd);
@@ -330,7 +330,7 @@ void		printProperty(FBXProperty *property)
 			std::cout << "string, \"" << property->data.toRawData->data.toChar << "\"";
 			break ;
 		case ('R') :
-			std::cout << "byte *, " << property->data.toRawData->length;
+			std::cout << "Byte *, " << property->data.toRawData->length;
 			break ;
 		case ('b') :
 			std::cout << "bool *, " << property->data.toArray->length;

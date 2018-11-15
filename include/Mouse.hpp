@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/07 18:08:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/07 19:19:32 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/14 23:49:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ private:
 	Mouse();
 	static Mouse	*_get();
 	static Mouse	*_instance;
-	std::array<mouse_button_callback, 5>	_button_callbacks{nullptr};
+	std::array<mouse_button_callback, 5>	_button_callbacks{{nullptr}};
 	mouse_motion_callback					_move_callback{nullptr};
 	mouse_wheel_callback					_wheel_callback{nullptr};
 };

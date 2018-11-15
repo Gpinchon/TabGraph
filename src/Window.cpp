@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 11:38:29 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 01:54:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,10 +53,12 @@ void		Window::swap()
 
 void		Window::init(const std::string &name, int width, int height)
 {
-	SDL_Init(SDL_INIT_EVERYTHING);
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		throw std::runtime_error(SDL_GetError());
+	}
 	SDL_JoystickEventState(SDL_ENABLE);
 	SDL_GameControllerEventState(SDL_ENABLE);
-	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+	//SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, Config::Msaa());

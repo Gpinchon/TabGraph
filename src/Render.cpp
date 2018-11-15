@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 18:27:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 13:10:02 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,8 +118,9 @@ void	render_shadows()
 	static auto	tempCamera = Camera::create("light_camera", 45);
 	auto		camera = Camera::current();	
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	Camera::set_current(tempCamera);
