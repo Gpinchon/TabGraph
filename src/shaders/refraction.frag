@@ -1,3 +1,4 @@
+R""(
 uniform sampler2D	opaqueBackColor;
 uniform sampler2D	opaqueBackEmitting;
 
@@ -67,3 +68,5 @@ void	ApplyTechnique()
 	Out.Color.a = 1;
 	Out.Emitting.rgb += Back_Emitting * (1 - Frag.Material.Alpha);
 }
+
+)""

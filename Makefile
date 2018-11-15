@@ -6,14 +6,13 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/11/15 14:40:38 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/11/15 22:10:03 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME		=	Scop
-SRC			=	./src/scop42/main.cpp			\
-				./src/scop42/callbacks.cpp		\
-				./src/Window.cpp				\
+TEST		=	Test
+NAME		=	./bin/libTabGraph.a
+SRC			=	./src/Window.cpp				\
 				./src/Engine.cpp				\
 				./src/Config.cpp				\
 				./src/Environment.cpp			\
@@ -46,9 +45,12 @@ SRC			=	./src/scop42/main.cpp			\
 				./src/parser/GLSL.cpp			\
 				./src/parser/MTLLIB.cpp
 
+TESTOBJ		=	./src/scop42/main.cpp			\
+				./src/scop42/callbacks.cpp
+
 OBJ			=	$(SRC:.cpp=.o)
-HYPER_OBJ	=	final.o
-CC			=	clang
+#HYPER_OBJ	=	final.o
+CC			=	g++
 
 INCLUDE_REP	=	./include				\
 				./libs/vml/include		\
@@ -58,7 +60,7 @@ LIBDIR		=	./libs/vml/
 LIBFILES	=	./libs/vml/libvml.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
-CXXFLAGS	=	-Ofast -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
+CXXFLAGS	=	-Ofast -std=c++17 -Wall -Wextra -Werror $(INCLUDE)
 LINKFLAGS	=	-Wl,--allow-multiple-definition
 
 NO_COLOR=\033[0m
@@ -67,7 +69,7 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-NAME		=	Scop.exe
+TEST		=	./bin/Test.exe
 LIBS		=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lz -Wl,-Bdynamic $(addprefix -L , $(LIBDIR)) -lvml -lmingw32 -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 LINKFLAGS	=	-Wl,--allow-multiple-definition
 CXXFLAGS	=	-Ofast -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
@@ -78,21 +80,26 @@ else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
-$(NAME): $(LIBFILES) $(OBJ)
-	$(CC) $(CXXFLAGS) $(OBJ) $(LINKFLAGS) $(LIBS) -o $(NAME)
+$(NAME) : $(LIBFILES) $(OBJ)
+	ar -rc $(NAME) $(OBJ)
+	#$(CC) $(CXXFLAGS) $(OBJ) $(LINKFLAGS) $(LIBS) -o $(NAME)
+	ranlib $(NAME)
 
-hyper: $(LIBFILES) $(HYPER_OBJ)
-	$(CC) $(CXXFLAGS) $(HYPER_OBJ) $(LIBS) -o $(addprefix Hyper, $(NAME))
+test: $(LIBFILES) $(NAME) $(TESTOBJ)
+	$(CC) $(CXXFLAGS) $(TESTOBJ) $(LINKFLAGS) -L ./bin -lTabGraph $(LIBS) -o $(TEST)
+
+#hyper: $(LIBFILES) $(HYPER_OBJ)
+#	$(CC) $(CXXFLAGS) $(HYPER_OBJ) $(LIBS) -o $(addprefix Hyper, $(NAME))
 
 %.o: %.cpp
 	@echo -n Compiling $@...
 	@($(CC) $(CXXFLAGS) -o $@ -c $<)
 	@echo "$(OK_STRING)"
 
-%.o: %.hyper
-	@echo -n Compiling $@...
-	@($(CC) -x c++ $(CXXFLAGS) -o $@ -c $<)
-	@echo "$(OK_STRING)"
+#%.o: %.hyper
+#	@echo -n Compiling $@...
+#	@($(CC) -x c++ $(CXXFLAGS) -o $@ -c $<)
+#	@echo "$(OK_STRING)"
 
 .INTERMEDIATE: final.hyper
 final.hyper: $(SRC)
@@ -123,9 +130,9 @@ clean:
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) clean && ) true
 
 fclean:
-	rm -rf $(OBJ) $(HYPER_OBJ) $(NAME)
+	rm -rf $(OBJ) $(HYPER_OBJ) $(NAME) $(TEST)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) fclean && ) true
 
-re: fclean $(NAME)
+re: fclean $(NAME) test
 
 .PHONY: all clean fclean re

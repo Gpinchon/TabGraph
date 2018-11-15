@@ -1,3 +1,4 @@
+R""(
 #define	KERNEL_SIZE 9
 
 const vec2 poissonDisk[] = vec2[KERNEL_SIZE](
@@ -29,3 +30,5 @@ void	ApplyTechnique()
 	occlusion /= float(KERNEL_SIZE);
 	Frag.Material.AO += max(0, occlusion);
 }
+
+)""

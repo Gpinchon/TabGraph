@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 19:16:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 19:25:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,6 @@ int		main(int argc, char *argv[])
 		obj->load();
 	}
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
-	Render::add_post_treatment("SSAO", Engine::program_path() + "./res/shaders/ssao.frag");
 	setup_callbacks();
 	//create_random_lights(250);
 	DirectionnalLight::create("MainLight", new_vec3(1, 1, 1), new_vec3(10, 10, 10), 1, true);

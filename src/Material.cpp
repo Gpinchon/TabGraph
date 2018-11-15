@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/11 23:34:03 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 16:55:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,13 +20,25 @@
 
 std::vector<std::shared_ptr<Material>>	Material::_materials;
 
+static auto	default_fragment_code =
+	#include "./shaders/forward_default.frag"
+;
+
+static auto	default_depth_vertex_code =
+	#include "./shaders/depth.vert"
+;
+
+static auto	default_depth_fragment_code =
+	#include "./shaders/depth.frag"
+;
+
 Material::Material(const std::string &name) : Object(name)
 {
 	if ((_shader = Shader::get_by_name("shader_default")).lock() == nullptr) {
-		_shader = GLSL::parse("shader_default", Engine::program_path() + "./res/shaders/forward_default.frag", ForwardShader);
+		_shader = GLSL::compile("shader_default", default_fragment_code, ForwardShader);
 	}
 	if ((_depth_shader = Shader::get_by_name("default_depth")).lock() == nullptr) {
-		_depth_shader = GLSL::parse("default_depth", Engine::program_path() + "./res/shaders/depth.vert", Engine::program_path() + "./res/shaders/depth.frag");
+		_depth_shader = GLSL::compile("default_depth", default_depth_vertex_code, default_depth_fragment_code);
 	}
 }
 

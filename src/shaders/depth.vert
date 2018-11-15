@@ -1,3 +1,4 @@
+R""(
 struct t_Matrix {
 	mat4	Model;
 	mat4	Normal;
@@ -14,3 +15,5 @@ void main()
 	frag_Texcoord = in_Texcoord;
 	gl_Position = Matrix.ModelViewProjection * vec4(in_Position, 1);
 }
+
+)""

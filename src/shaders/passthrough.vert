@@ -1,3 +1,4 @@
+R""(
 layout(location = 0) in vec2	in_Position;
 
 uniform mat4					in_InvProjMatrix;
@@ -12,3 +13,5 @@ void main()
 	gl_Position = vec4(in_Position, 0, 1);
 	frag_Cube_UV = -mat3(in_InvViewMatrix) * (in_InvProjMatrix * gl_Position).xyz;
 }
+
+)""

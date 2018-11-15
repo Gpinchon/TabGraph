@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/25 11:34:44 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 16:19:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 14:55:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ Config			*Config::_get()
 void			Config::Load()
 {
 	auto	fd = fopen((Engine::program_path() + "config.ini").c_str(), "r");
+	if (nullptr == fd)
+		return ;
 	char	buffer[4096];
 	while (fgets(buffer, 4096, fd))
 	{

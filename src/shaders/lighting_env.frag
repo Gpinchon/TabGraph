@@ -1,3 +1,4 @@
+R""(
 #define	KERNEL_SIZE				9
 
 const vec2 poissonDisk[] = vec2[KERNEL_SIZE](
@@ -148,3 +149,5 @@ void	ApplyTechnique()
 	Out.Color.a = 1;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 }
+
+)""

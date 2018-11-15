@@ -1,3 +1,4 @@
+R""(
 layout(location = 0) in vec2	in_Position;
 
 struct t_Vert {
@@ -49,3 +50,5 @@ void main()
 	ApplyTechnique();
 	FillOut();
 }
+
+)""

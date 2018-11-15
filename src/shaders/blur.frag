@@ -1,3 +1,4 @@
+R""(
 uniform sampler2D	in_Texture_Color;
 uniform vec2		in_Direction;
 
@@ -16,3 +17,5 @@ void main()
 	out_Color += texture2D(in_Texture_Color, frag_UV + offset2) * 0.153388f;
 	out_Color += texture2D(in_Texture_Color, frag_UV - offset2) * 0.153388f;
 }
+
+)""

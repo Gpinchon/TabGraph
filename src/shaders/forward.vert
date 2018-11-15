@@ -1,3 +1,4 @@
+R""(
 precision lowp float;
 precision lowp int;
 precision lowp sampler2D;
@@ -93,3 +94,5 @@ void main()
 	ApplyTechnique();
 	FillOut();
 }
+
+)""

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 18:00:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 21:34:05 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ std::shared_ptr<Vgroup>	Mesh::vgroup(unsigned index)
 {
 	if (index >= _vgroups.size())
 		return (nullptr);
-	return (_vgroups.at(index));
+	return (_vgroups.at(index).lock());
 }
 
 void	Mesh::add(std::shared_ptr<Vgroup> group)
@@ -80,7 +80,10 @@ void	Mesh::load()
 	if (_is_loaded)
 		return ;
 	for (auto vg : _vgroups) {
-		vg->load();
+		auto	vgPtr = vg.lock();
+		if (nullptr == vgPtr)
+			continue ;
+		vgPtr->load();
 	}
 }
 
@@ -95,7 +98,10 @@ bool	Mesh::render_depth(RenderMod mod)
 	load();
 	std::shared_ptr<Shader>	last_shader;
 	for (auto vg : _vgroups) {
-		auto	vgMaterial = vg->material();
+		auto	vgPtr = vg.lock();
+		if (nullptr == vgPtr)
+			continue ;
+		auto	vgMaterial = vgPtr->material();
 		if (vgMaterial == nullptr)
 			continue ;
 		auto	depthShader = vgMaterial->depth_shader();
@@ -106,7 +112,7 @@ bool	Mesh::render_depth(RenderMod mod)
 			depthShader->set_uniform("Matrix.Normal", normal_matrix);
 		}
 		//depthShader->use(false);
-		if (vg->render_depth(mod))
+		if (vgPtr->render_depth(mod))
 			ret = true;
 		last_shader = depthShader;
 	}
@@ -122,7 +128,10 @@ bool	Mesh::render(RenderMod mod)
 	load();
 	std::shared_ptr<Shader>	last_shader;
 	for (auto vg : _vgroups) {
-		auto	vgMaterial = vg->material();
+		auto	vgPtr = vg.lock();
+		if (nullptr == vgPtr)
+			continue ;
+		auto	vgMaterial = vgPtr->material();
 		if (vgMaterial == nullptr)
 			continue ;
 		auto	vgShader = vgMaterial->shader();
@@ -132,8 +141,7 @@ bool	Mesh::render(RenderMod mod)
 			vgShader->set_uniform("Matrix.ModelViewProjection", mvp);
 			vgShader->set_uniform("Matrix.Normal", normal_matrix);
 		}
-		//vg->material->shader->use(false);
-		if (vg->render(mod))
+		if (vgPtr->render(mod))
 			ret = true;
 		last_shader = vgShader;
 	}
@@ -153,7 +161,10 @@ void	Mesh::set_cull_mod(GLenum mod)
 void	Mesh::center()
 {
 	for (auto vg : _vgroups) {
-		vg->center(bounding_element->center);
+		auto	vgPtr = vg.lock();
+		if (nullptr == vgPtr)
+			continue ;
+		vgPtr->center(bounding_element->center);
 	}
 	bounding_element->min = vec3_sub(bounding_element->min, bounding_element->center);
 	bounding_element->max = vec3_sub(bounding_element->max, bounding_element->center);

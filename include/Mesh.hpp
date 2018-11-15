@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 16:03:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 21:30:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ public:
 private:
 	Mesh(const std::string &name);
 	static std::vector<std::shared_ptr<Mesh>>	_meshes;
-	std::vector<std::shared_ptr<Vgroup>>		_vgroups;
+	std::vector<std::weak_ptr<Vgroup>>		_vgroups;
 	GLenum							_cull_mod{GL_BACK};
 };
 

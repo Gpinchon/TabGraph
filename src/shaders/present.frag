@@ -1,3 +1,4 @@
+R""(
 out vec4			out_Color;
 
 uniform sampler2D	in_Texture_Color;
@@ -12,3 +13,5 @@ void main()
 	out_Color.a = 1;
 	gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 }
+
+)""

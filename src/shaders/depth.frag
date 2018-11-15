@@ -1,3 +1,4 @@
+R""(
 struct t_Textures {
 	sampler2D	Albedo;
 	bool		Use_Albedo;
@@ -21,3 +22,5 @@ void main()
 	if (alpha <= 0.05f)
 		discard;
 }
+
+)""

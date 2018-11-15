@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:43:25 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 17:26:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 21:21:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,8 @@ public:
 	std::vector<unsigned>			i;
 	
 protected:
-	std::weak_ptr<Material>				_material;
 	static std::vector<std::shared_ptr<Vgroup>> _vgroups;
-	std::shared_ptr<VertexArray>		_vao;
+	std::weak_ptr<Material>			_material;
+	std::weak_ptr<VertexArray>		_vao;
 	Vgroup(const std::string &);
 };

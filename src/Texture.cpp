@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 11:41:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 18:00:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -433,7 +433,13 @@ void	Texture::blur(const int &pass, const float &radius)
 	_blur_buffer0->resize(size());
 	_blur_buffer1->resize(size());
 
-	static auto	blurShader = GLSL::parse("blur", Engine::program_path() + "./res/shaders/passthrough.vert", Engine::program_path() + "./res/shaders/blur.frag");
+	static auto	blurVertexCode =
+		#include "./shaders/passthrough.vert"
+	;
+	static auto	blurFragmentCode =
+		#include "./shaders/blur.frag"
+	;
+	static auto	blurShader = GLSL::compile("blur", blurVertexCode, blurFragmentCode);
 
 	auto	totalPass = pass * 4;
 	auto	cbuffer = _blur_buffer0;

@@ -1,3 +1,4 @@
+R""(
 layout(location = 0) out vec4	out_Buffer0;
 layout(location = 1) out vec4	out_Buffer1;
 layout(location = 2) out vec4	out_Buffer2;
@@ -25,3 +26,5 @@ void main()
 	out_Buffer5 = texture(in_Buffer5, frag_UV);
 	gl_FragDepth = texture(in_Texture_Depth, frag_UV).r;
 }
+
+)""

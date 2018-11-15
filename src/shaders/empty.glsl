@@ -1,4 +1,7 @@
+R""(
 void	ApplyTechnique()
 {
 
 }
+
+)""

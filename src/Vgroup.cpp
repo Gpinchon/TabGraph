@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 17:14:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 21:28:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,10 +58,11 @@ void			Vgroup::load()
 		return ;
 	}
 	_vao = VertexArray::create(v.size());
-	_vao->add_buffer(GL_FLOAT, 3, v);
-	_vao->add_buffer(GL_UNSIGNED_BYTE, 4, vn);
-	_vao->add_buffer(GL_FLOAT, 2, vt);
-	_vao->add_indices(i);
+	auto	vaoPtr = _vao.lock();
+	vaoPtr->add_buffer(GL_FLOAT, 3, v);
+	vaoPtr->add_buffer(GL_UNSIGNED_BYTE, 4, vn);
+	vaoPtr->add_buffer(GL_FLOAT, 2, vt);
+	vaoPtr->add_indices(i);
 	_is_loaded = true;
 }
 
@@ -89,6 +90,9 @@ bool			Vgroup::render_depth(RenderMod mod)
 		&&	!(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4))) {
 		return (false);
 	}
+	auto	vaoPtr = _vao.lock();
+	if (nullptr == vaoPtr)
+		return (false);
 	depthShader->use();
 	depthShader->bind_texture("Texture.Albedo", mtl->texture_albedo(), GL_TEXTURE0);
 	depthShader->set_uniform("Texture.Use_Albedo", mtl->texture_albedo() != nullptr);
@@ -96,7 +100,7 @@ bool			Vgroup::render_depth(RenderMod mod)
 	/*material->bind_textures();
 	material->bind_values();*/
 	//bind();
-	_vao->draw();
+	vaoPtr->draw();
 	depthShader->use(false);
 	return (true);
 }
@@ -118,11 +122,14 @@ bool			Vgroup::render(RenderMod mod)
 		&&	!(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4))) {
 		return (false);
 	}
+	auto	vaoPtr = _vao.lock();
+	if (nullptr == vaoPtr)
+		return (false);
 	cShader->use();
 	mtl->bind_textures();
 	mtl->bind_values();
 	bind();
-	_vao->draw();
+	vaoPtr->draw();
 	cShader->use(false);
 	return (true);
 }

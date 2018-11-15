@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 12:01:08 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 19:35:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 #include "GLIncludes.hpp"
 #include "Object.hpp"
+#include <vector>
 #include <string>
 #include <unordered_map>
 

@@ -6,11 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 11:38:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2018/11/15 19:57:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
+#include "parser/GLSL.hpp"
 #include "parser/InternalTools.hpp"
 #include "Environment.hpp"
 #include "Render.hpp"
@@ -82,7 +83,7 @@ void			Engine::_load_res()
 	}
 	folder = Engine::program_path() + "res/skybox/";
 	dir = opendir(folder.c_str());
-	while ((e = readdir(dir)) != nullptr)
+	while (dir != nullptr && (e = readdir(dir)) != nullptr)
 	{
 		if (e->d_name[0] == '.') {
 			continue ;
@@ -111,6 +112,11 @@ void			Engine::init()
 {
 	Config::Load();
 	Window::init(Config::WindowName(), Config::WindowSize().x, Config::WindowSize().y);
+	static auto	SSAOShaderCode =
+		#include "./shaders/ssao.frag"
+	;
+	static auto	SSAOShader = GLSL::compile("SSAO", SSAOShaderCode, PostShader);
+	Render::add_post_treatment(SSAOShader);
 	_get()._load_res();
 }
 
