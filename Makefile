@@ -6,11 +6,11 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/11/15 22:10:03 by gpinchon         ###   ########.fr        #
+#    Updated: 2018/11/27 18:12:26 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-TEST		=	Test
+TEST		=	Scop
 NAME		=	./bin/libTabGraph.a
 SRC			=	./src/Window.cpp				\
 				./src/Engine.cpp				\
@@ -69,7 +69,7 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-TEST		=	./bin/Test.exe
+TEST		=	Scop.exe
 LIBS		=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lz -Wl,-Bdynamic $(addprefix -L , $(LIBDIR)) -lvml -lmingw32 -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 LINKFLAGS	=	-Wl,--allow-multiple-definition
 CXXFLAGS	=	-Ofast -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
@@ -81,6 +81,7 @@ LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main 
 endif
 
 $(NAME) : $(LIBFILES) $(OBJ)
+	mkdir -p ./bin
 	ar -rc $(NAME) $(OBJ)
 	#$(CC) $(CXXFLAGS) $(OBJ) $(LINKFLAGS) $(LIBS) -o $(NAME)
 	ranlib $(NAME)
