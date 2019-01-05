@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 16:38:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/01/05 08:58:34 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,19 +17,16 @@
 #include <iostream>
 
 static auto	deferredVertCode =
-	#include "../shaders/deferred.vert"
+	#include "deferred.vert"
 ;
 static auto	deferredFragCode = 
-	#include "../shaders/deferred.frag"
+	#include "deferred.frag"
 ;
 static auto	forwardVertCode = 
-	#include "../shaders/forward.vert"
+	#include "forward.vert"
 ;
 static auto	forwardFragCode = 
-	#include "../shaders/forward.frag"
-;
-static auto emptyShaderCode = 
-	#include "../shaders/empty.glsl"
+	#include "forward.frag"
 ;
 
 GLuint	compile_shader_code(const std::string &code, GLenum type)
@@ -138,7 +135,11 @@ std::shared_ptr<Shader>	GLSL::parse(const std::string &name,
 std::shared_ptr<Shader>	GLSL::compile(const std::string &name,
 	const std::string &shader_code, ShaderType type, const std::string &defines)
 {
-		auto	shader = std::static_pointer_cast<GLSL>(Shader::create(name));
+	auto	shader = std::static_pointer_cast<GLSL>(Shader::create(name));
+	static auto emptyShaderCode = 
+		#include "empty.glsl"
+	;
+
 	GLuint	vertexid = 0;
 	GLuint	fragmentid = 0;
 	GLuint	computeid = 0;

@@ -434,10 +434,10 @@ void	Texture::blur(const int &pass, const float &radius)
 	_blur_buffer1->resize(size());
 
 	static auto	blurVertexCode =
-		#include "./shaders/passthrough.vert"
+		#include "passthrough.vert"
 	;
 	static auto	blurFragmentCode =
-		#include "./shaders/blur.frag"
+		#include "blur.frag"
 	;
 	static auto	blurShader = GLSL::compile("blur", blurVertexCode, blurFragmentCode);
 

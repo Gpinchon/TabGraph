@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 16:55:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/01/05 08:56:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,15 +21,15 @@
 std::vector<std::shared_ptr<Material>>	Material::_materials;
 
 static auto	default_fragment_code =
-	#include "./shaders/forward_default.frag"
+	#include "forward_default.frag"
 ;
 
 static auto	default_depth_vertex_code =
-	#include "./shaders/depth.vert"
+	#include "depth.vert"
 ;
 
 static auto	default_depth_fragment_code =
-	#include "./shaders/depth.frag"
+	#include "depth.frag"
 ;
 
 Material::Material(const std::string &name) : Object(name)

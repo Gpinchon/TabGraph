@@ -6,60 +6,133 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2018/11/27 18:12:26 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/01/05 09:21:33 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-TEST		=	Scop
-NAME		=	./bin/libTabGraph.a
-SRC			=	./src/Window.cpp				\
-				./src/Engine.cpp				\
-				./src/Config.cpp				\
-				./src/Environment.cpp			\
-				./src/Object.cpp				\
-				./src/ComputeObject.cpp			\
-				./src/Events.cpp				\
-				./src/Mouse.cpp					\
-				./src/Keyboard.cpp				\
-				./src/GameController.cpp		\
-				./src/Cubemap.cpp				\
-				./src/Node.cpp					\
-				./src/Renderable.cpp			\
-				./src/Render.cpp				\
-				./src/Camera.cpp				\
-				./src/Framebuffer.cpp			\
-				./src/Light.cpp					\
-				./src/Mesh.cpp					\
-				./src/CubeMesh.cpp				\
-				./src/Vgroup.cpp				\
-				./src/VertexArray.cpp			\
-				./src/Shader.cpp				\
-				./src/Texture.cpp				\
-				./src/TextureArray.cpp			\
-				./src/Material.cpp				\
-				./src/parser/tools.cpp			\
-				./src/parser/OBJ.cpp			\
-				./src/parser/FBX.cpp			\
-				./src/parser/HDR.cpp			\
-				./src/parser/BMP.cpp			\
-				./src/parser/GLSL.cpp			\
-				./src/parser/MTLLIB.cpp
+TEST			=	Scop
+NAME			=	./bin/libTabGraph.a
+
+#   Paths Declaration   #
+SRC_PATH		=	./src/
+SHADERS_PATH	=	./src/shaders/
+HEADERS_PATH	=	./include/
+# Paths Declaration End #
+
+# Files Declaration #
+SHADER_FILES	=	blur.frag				\
+					deferred.frag			\
+					deferred.vert			\
+					depth.frag				\
+					depth.vert				\
+					empty.glsl				\
+					forward.frag			\
+					forward.vert			\
+					forward_default.frag	\
+					lighting.frag			\
+					lighting_env.frag		\
+					passthrough.frag		\
+					passthrough.vert		\
+					present.frag			\
+					refraction.frag			\
+					ssao.frag
+HEADERS_FILES	=	AABB.hpp					\
+					BoundingElement.hpp			\
+					Camera.hpp					\
+					ComputeObject.hpp			\
+					Config.hpp					\
+					Cubemap.hpp					\
+					CubeMesh.hpp				\
+					Engine.hpp					\
+					Environment.hpp				\
+					Errors.hpp					\
+					Events.hpp					\
+					Framebuffer.hpp				\
+					GameController.hpp			\
+					GLIncludes.hpp				\
+					InputDevice.hpp				\
+					Keyboard.hpp				\
+					Light.hpp					\
+					Material.hpp				\
+					Mesh.hpp					\
+					Mouse.hpp					\
+					Node.hpp					\
+					Object.hpp					\
+					parser						\
+					Render.hpp					\
+					Renderable.hpp				\
+					scop.hpp					\
+					Shader.hpp					\
+					Texture.hpp					\
+					TextureArray.hpp			\
+					VertexArray.hpp				\
+					Vgroup.hpp					\
+					Window.hpp					\
+					parser/BMP.hpp				\
+					parser/FBX.hpp				\
+					parser/GLSL.hpp				\
+					parser/HDR.hpp				\
+					parser/InternalTools.hpp	\
+					parser/MTLLIB.hpp			\
+					parser/OBJ.hpp				\
+					parser/TABSCENE.hpp
+SRC_FILES		=	Camera.cpp			\
+					ComputeObject.cpp	\
+					Config.cpp			\
+					Cubemap.cpp			\
+					CubeMesh.cpp		\
+					Engine.cpp			\
+					Environment.cpp		\
+					Events.cpp			\
+					Framebuffer.cpp		\
+					GameController.cpp	\
+					Keyboard.cpp		\
+					Light.cpp			\
+					Material.cpp		\
+					Mesh.cpp			\
+					Mouse.cpp			\
+					Node.cpp			\
+					Object.cpp			\
+					Render.cpp			\
+					Renderable.cpp		\
+					Shader.cpp			\
+					Texture.cpp			\
+					TextureArray.cpp	\
+					VertexArray.cpp		\
+					Vgroup.cpp			\
+					Window.cpp			\
+					parser/BMP.cpp		\
+					parser/FBX.cpp		\
+					parser/GLSL.cpp		\
+					parser/HDR.cpp		\
+					parser/MTLLIB.cpp	\
+					parser/OBJ.cpp		\
+					parser/tools.cpp	\
+					render/shadow.cpp
+# Files Declaration End #
+
+#   Files Generation   #
+SRC				=	$(addprefix $(SRC_PATH), $(SRC_FILES))
+SHADERS			=	$(addprefix $(SHADERS_PATH), $(SHADERS_FILES))
+HEADERS			=	$(addprefix $(HEADERS_PATH), $(HEADERS_FILES))
+# Files Generation End #
 
 TESTOBJ		=	./src/scop42/main.cpp			\
 				./src/scop42/callbacks.cpp
 
 OBJ			=	$(SRC:.cpp=.o)
-#HYPER_OBJ	=	final.o
+
 CC			=	g++
 
 INCLUDE_REP	=	./include				\
-				./libs/vml/include		\
+				./libs/vml/include
 
 LIBDIR		=	./libs/vml/
 
 LIBFILES	=	./libs/vml/libvml.a
 
 INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
+INCLUDE		+=	$(addprefix -I, $(SHADERS_PATH))
 CXXFLAGS	=	-Ofast -std=c++17 -Wall -Wextra -Werror $(INCLUDE)
 LINKFLAGS	=	-Wl,--allow-multiple-definition
 
@@ -89,23 +162,9 @@ $(NAME) : $(LIBFILES) $(OBJ)
 test: $(LIBFILES) $(NAME) $(TESTOBJ)
 	$(CC) $(CXXFLAGS) $(TESTOBJ) $(LINKFLAGS) -L ./bin -lTabGraph $(LIBS) -o $(TEST)
 
-#hyper: $(LIBFILES) $(HYPER_OBJ)
-#	$(CC) $(CXXFLAGS) $(HYPER_OBJ) $(LIBS) -o $(addprefix Hyper, $(NAME))
-
-%.o: %.cpp
+%.o: %.cpp $(HEADERS) $(SHADERS)
 	@echo -n Compiling $@...
 	@($(CC) $(CXXFLAGS) -o $@ -c $<)
-	@echo "$(OK_STRING)"
-
-#%.o: %.hyper
-#	@echo -n Compiling $@...
-#	@($(CC) -x c++ $(CXXFLAGS) -o $@ -c $<)
-#	@echo "$(OK_STRING)"
-
-.INTERMEDIATE: final.hyper
-final.hyper: $(SRC)
-	@echo -n Generating $@...
-	@(cat $^ > final.hyper)
 	@echo "$(OK_STRING)"
 
 ./libs/ezmem/libezmem.a :
@@ -127,11 +186,11 @@ pull:
 	git submodule foreach git pull origin vml++
 
 clean:
-	rm -rf $(OBJ) $(HYPER_OBJ)
+	rm -rf $(OBJ)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) clean && ) true
 
 fclean:
-	rm -rf $(OBJ) $(HYPER_OBJ) $(NAME) $(TEST)
+	rm -rf $(OBJ) $(NAME) $(TEST)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) fclean && ) true
 
 re: fclean $(NAME) test

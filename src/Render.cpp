@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 21:18:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/01/05 08:56:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,15 +28,15 @@
 #include <algorithm>
 
 static auto	passthrough_vertex_code =
-	#include "./shaders/passthrough.vert"
+	#include "passthrough.vert"
 ;
 
 static auto	present_fragment_code =
-	#include "./shaders/present.frag"
+	#include "present.frag"
 ;
 
 static auto emptyShaderCode = 
-	#include "./shaders/empty.glsl"
+	#include "empty.glsl"
 ;
 
 /*
@@ -202,7 +202,7 @@ void	light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
 	if (Config::LightsPerPass() == 0)
 		return ;
 	static auto	lightingFragmentCode =
-		#include "./shaders/lighting.frag"
+		#include "lighting.frag"
 	;
 	static auto	lighting_shader = GLSL::compile("lighting", lightingFragmentCode, LightingShader,
 		std::string("\n#define LIGHTNBR				") + std::to_string(Config::LightsPerPass()) +
@@ -282,10 +282,10 @@ void	Render::scene()
 	static auto	back_buffer2 = create_back_buffer("back_buffer2", Window::internal_resolution());
 	static auto	final_back_buffer = create_back_buffer("final_back_buffer", Window::internal_resolution());
 	static auto	lightingEnvFragmentCode =
-		#include "./shaders/lighting_env.frag"
+		#include "lighting_env.frag"
 	;
 	static auto	refractionFragmentCode =
-		#include "./shaders/refraction.frag"
+		#include "refraction.frag"
 	;
 	static auto	elighting_shader = GLSL::compile("lighting_env", lightingEnvFragmentCode, LightingShader,
 		std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::ReflexionSteps()) +
@@ -308,8 +308,8 @@ void	Render::scene()
 	back_buffer2->resize(Window::internal_resolution());
 	final_back_buffer->resize(Window::internal_resolution());
 
-	static auto	current_tbuffer = temp_buffer;
-	static auto	current_tbuffertex = temp_buffer1;
+	auto	current_tbuffer = temp_buffer;
+	auto	current_tbuffertex = temp_buffer1;
 
 	/*
 	** TODO :

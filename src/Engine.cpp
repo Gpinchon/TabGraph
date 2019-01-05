@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 19:57:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/01/05 08:55:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,7 @@ void			Engine::init()
 	Config::Load();
 	Window::init(Config::WindowName(), Config::WindowSize().x, Config::WindowSize().y);
 	static auto	SSAOShaderCode =
-		#include "./shaders/ssao.frag"
+		#include "ssao.frag"
 	;
 	static auto	SSAOShader = GLSL::compile("SSAO", SSAOShaderCode, PostShader);
 	Render::add_post_treatment(SSAOShader);
