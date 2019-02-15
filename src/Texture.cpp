@@ -174,17 +174,12 @@ void	Texture::load()
 	if (_glid == 0u) {
 		glGenTextures(1, &_glid);
 	}
-	glBindTexture(_target, _glid);
 	if (_size.x > 0 && _size.y > 0) {
+		glBindTexture(_target, _glid);
 		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format, _data_format, _data);
+		glBindTexture(_target, 0);
 	}
-	glBindTexture(_target, 0);
-	for (auto p : _parametersi) {
-		glTextureParameteri(_glid, p.first, p.second);
-	}
-	for (auto p : _parametersf) {
-		glTextureParameterf(_glid, p.first, p.second);
-	}
+	restore_parameters();
 	generate_mipmap();
 	_loaded = true;
 #ifdef GL_DEBUG
@@ -296,7 +291,7 @@ void	Texture::set_parameterf(GLenum p, float v)
 	_parametersf[p] = v;
 	if (_glid == 0u)
 		return ;
-	if (glTextureParameteri == nullptr) {
+	if (glTextureParameterf == nullptr) {
 		glBindTexture(_target, _glid);
 		glTexParameterf(_target, p, v);
 		glBindTexture(_target, 0);
@@ -325,6 +320,16 @@ void	Texture::set_parameteri(GLenum p, int v)
 #ifdef GL_DEBUG
 	glCheckError();
 #endif //GL_DEBUG
+}
+
+void	Texture::restore_parameters()
+{
+	for (auto p : _parametersi) {
+		set_parameteri(p.first, p.second);
+	}
+	for (auto p : _parametersf) {
+		set_parameterf(p.first, p.second);
+	}
 }
 
 VEC4	Texture::sample(const VEC2 &uv)
@@ -400,12 +405,7 @@ void	Texture::resize(const VEC2 &ns)
 		glBindTexture(_target, _glid);
 		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format, _data_format, _data);
 		glBindTexture(_target, 0);
-		for (auto p : _parametersi) {
-			glTextureParameteri(_glid, p.first, p.second);
-		}
-		for (auto p : _parametersf) {
-			glTextureParameterf(_glid, p.first, p.second);
-		}
+		restore_parameters();
 	}
 #ifdef GL_DEBUG
 	glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());

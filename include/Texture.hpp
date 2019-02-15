@@ -33,6 +33,7 @@ public:
 	virtual void	resize(const VEC2 &ns);
 	virtual void	set_parameteri(GLenum p, int v);
 	virtual void	set_parameterf(GLenum p, float v);
+	virtual void	restore_parameters();
 	virtual void	assign(Texture &dest_texture, GLenum target);
 	virtual void	load();
 	virtual void	unload();
