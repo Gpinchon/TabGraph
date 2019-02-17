@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 20:14:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/18 00:00:13 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,12 +266,26 @@ void	light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
 	shader->use(false);
 }
 
+#include <fstream>
+
 void	Render::scene()
 {
 	static std::shared_ptr<Texture>	brdf;
 	if (brdf == nullptr)
 	{
-		brdf = BMP::parse("brdf", Engine::program_path() + "./res/brdfLUT.bmp");
+		brdf = BMP::parse("brdf", Engine::resource_path() + "/brdfLUT.bmp");
+		/*static std::ofstream myfile;
+		myfile.open ("brdfLUT");
+		for (auto x = brdf->size().x; x > 0; x--) {
+			for (auto y = 0; y < brdf->size().y; y++) {
+				VEC2	uv;
+				uv.x = x / brdf->size().x;
+				uv.y = y / brdf->size().y;
+				auto pixel = brdf->sample(uv);
+				myfile << int(pixel.z * 255.f) << ", " << int(pixel.y * 255.f) << ", ";
+			}
+			myfile << std::endl;
+		}*/
 		brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
