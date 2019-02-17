@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/15 23:50:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 22:54:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ void		Window::swap()
 	SDL_GL_SwapWindow(_get()._sdl_window);
 }
 
-void		Window::init(const std::string &name, int width, int height)
+void		Window::init(const std::string &name, VEC2 resolution)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		throw std::runtime_error(SDL_GetError());
@@ -65,7 +65,7 @@ void		Window::init(const std::string &name, int width, int height)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	if (nullptr == _get()._sdl_window)
 		_get()._sdl_window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED,
-			SDL_WINDOWPOS_CENTERED, width, height,
+			SDL_WINDOWPOS_CENTERED, resolution.x, resolution.y,
 			SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN |
 			SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
 	if (_get()._sdl_window == nullptr) {

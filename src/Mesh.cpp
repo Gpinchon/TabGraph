@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:32:34 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 21:34:05 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 21:57:32 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,8 @@ std::shared_ptr<Mesh>	Mesh::create(const std::string &name) /*static*/
 
 std::shared_ptr<Mesh>	Mesh::get_by_name(const std::string &name) /*static*/
 {
-	std::hash<std::string>	hash_fn;
-	auto					h = hash_fn(name);
 	for (auto n : _meshes) {
-		if (h == n->id())
+		if (name == n->name())
 			return (n);
 	}
 	return (nullptr);

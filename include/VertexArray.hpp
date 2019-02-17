@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 20:09:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 15:48:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 19:39:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,23 +14,9 @@
 
 #include "GLIncludes.hpp"
 #include "Debug.hpp"
+#include "VertexBuffer.hpp"
 #include <memory>
 #include <vector>
-
-class VertexBuffer
-{
-public:
-	template <typename T>
-	VertexBuffer(GLuint attrib, GLenum data_type, int size, const std::vector<T> &a);
-	VertexBuffer(const std::vector<unsigned int> &a);
-	GLuint	glid();
-	void	bind(bool tobind = true);
-	size_t	size();
-private:
-	size_t	_size{0};
-	GLuint	_GLid{0};
-	VertexBuffer();
-};
 
 class VertexArray
 {
@@ -67,34 +53,4 @@ VertexBuffer	*VertexArray::add_buffer(GLenum data_type, int size, const std::vec
 	return (buffer);
 }
 
-template <typename T>
-VertexBuffer::VertexBuffer(GLuint attrib, GLenum data_type, int size, const std::vector<T> &a)
-{
-	glGenBuffers(1, &_GLid);
-	glBindBuffer(GL_ARRAY_BUFFER, _GLid);
-	glBufferData(GL_ARRAY_BUFFER, a.size() * sizeof(T), &a[0], GL_STATIC_DRAW);
-	glEnableVertexAttribArray(attrib);
-	glVertexAttribPointer(attrib, size, data_type, GL_FALSE, 0, (void*)nullptr);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glCheckError();
-	_size = a.size();
-}
 
-VertexBuffer::VertexBuffer(const std::vector<unsigned> &indices)
-{
-	glGenBuffers(1, &_GLid);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _GLid);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), &indices[0], GL_STATIC_DRAW);
-	glCheckError();
-	_size = indices.size();
-}
-
-size_t	VertexBuffer::size()
-{
-	return (_size);
-}
-
-GLuint	VertexBuffer::glid()
-{
-	return (_GLid);
-}

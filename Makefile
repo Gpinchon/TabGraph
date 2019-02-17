@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/02/17 17:30:15 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/02/17 20:47:31 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ BUILD_PATH		=	build/
 HEADERS_PATH	=	include/
 REL_PATH		=	release/
 DBG_PATH		=	debug/
-TEST_PATH		=	tests/
+TEST_PATH		=	$(BUILD_PATH)tests/
 SHADERS_PATH	=	$(SRC_PATH)shaders/
 RELOBJ_PATH		=	$(OBJ_PATH)$(REL_PATH)
 DBGOBJ_PATH		=	$(OBJ_PATH)$(DBG_PATH)
@@ -51,6 +51,7 @@ HEADERS_FILES	=	AABB.hpp					\
 					Config.hpp					\
 					Cubemap.hpp					\
 					CubeMesh.hpp				\
+					DLLExport.hpp				\
 					Engine.hpp					\
 					Environment.hpp				\
 					Debug.hpp					\
@@ -74,6 +75,7 @@ HEADERS_FILES	=	AABB.hpp					\
 					Texture.hpp					\
 					TextureArray.hpp			\
 					VertexArray.hpp				\
+					VertexBuffer.hpp			\
 					Vgroup.hpp					\
 					Window.hpp					\
 					parser/BMP.hpp				\
@@ -107,6 +109,7 @@ SRC_FILES		=	Camera.cpp			\
 					Texture.cpp			\
 					TextureArray.cpp	\
 					VertexArray.cpp		\
+					VertexBuffer.cpp	\
 					Vgroup.cpp			\
 					Window.cpp			\
 					parser/BMP.cpp		\
@@ -162,7 +165,7 @@ ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
 TEST		=	Scop.exe
 LIBS		=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lz -Wl,-Bdynamic $(addprefix -L , $(LIBDIR)) -lvml -lmingw32 -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
-LINKFLAGS	=	-Wl,--allow-multiple-definition
+LINKFLAGS	=	#-Wl,--allow-multiple-definition
 CXXFLAGS	=	-std=c++1z -Wall -Wextra -Werror $(INCLUDE)
 else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
@@ -181,9 +184,9 @@ $(RELBUILD_PATH)$(NAME) : $(LIBFILES) $(RELOBJ)
 
 $(RELOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 	@(mkdir -p $(@D))
-	@echo -n Compiling $@...
+	@echo Compiling $@...
 	@($(CC) $(CXXFLAGS) -o $@ -c $<)
-	@echo "$(OK_STRING)"
+	@echo $@ compilation "$(OK_STRING)"
 
 debug: CXXFLAGS += $(DBGFLAGS)
 debug: $(DBGBUILD_PATH)$(NAME)
@@ -195,15 +198,15 @@ $(DBGBUILD_PATH)$(NAME) : $(LIBFILES) $(DBGOBJ)
 
 $(DBGOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 	@(mkdir -p $(@D))
-	@echo -n Compiling $@...
+	@echo Compiling $@...
 	@($(CC) $(CXXFLAGS) -o $@ -c $<)
-	@echo "$(OK_STRING)"
+	@echo $@ compilation "$(OK_STRING)"
 
 $(BUILD_RES_FILES): %: $(RES_FILES)
 	@(mkdir -p $(@D))
-	@echo -n Copying $(patsubst $(TEST_PATH)%,%,$@) to $@... 
+	@echo Copying $(patsubst $(TEST_PATH)%,%,$@) to $@... 
 	@(cp $(patsubst $(TEST_PATH)%,%,$@) $@)
-	@echo "$(OK_STRING)"
+	@echo Copied $(patsubst $(TEST_PATH)%,%,$@) to $@
 
 info:
 	@echo $(SHADERS)
@@ -232,6 +235,8 @@ fclean:
 	rm -rf $(TEST_PATH) $(BUILD_PATH) $(OBJ_PATH)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) fclean && ) true
 
-re: fclean $(NAME) test
+re: fclean all
+
+all: tests
 
 .PHONY: all clean fclean re

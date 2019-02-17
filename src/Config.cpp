@@ -6,12 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/25 11:34:44 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 14:55:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 22:48:39 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 #include "Engine.hpp"
+#include "Debug.hpp"
 
 Config		*Config::_instance = nullptr;
 
@@ -22,11 +23,13 @@ Config			*Config::_get()
 	return (_instance);
 }
 
-void			Config::Load()
+void			Config::Load(const std::string &path)
 {
-	auto	fd = fopen((Engine::program_path() + "config.ini").c_str(), "r");
-	if (nullptr == fd)
+	auto	fd = fopen(path.c_str(), "r");
+	if (nullptr == fd) {
+		debugLog("Config file not found");
 		return ;
+	}
 	char	buffer[4096];
 	while (fgets(buffer, 4096, fd))
 	{

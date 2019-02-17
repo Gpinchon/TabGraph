@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:48:07 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 21:28:41 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 22:01:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,10 +43,8 @@ std::shared_ptr<Vgroup>	Vgroup::get(unsigned index)
 
 std::shared_ptr<Vgroup>	Vgroup::get_by_name(const std::string &name)
 {
-	std::hash<std::string>	hash_fn;
-	auto					h = hash_fn(name);
 	for (auto n : _vgroups) {
-		if (h == n->id())
+		if (name == n->name())
 			return (n);
 	}
 	return (nullptr);

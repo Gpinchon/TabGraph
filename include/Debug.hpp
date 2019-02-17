@@ -6,18 +6,20 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/17 17:38:55 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 14:52:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 20:15:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #pragma once
 
 #include "GLIncludes.hpp"
 #include <iostream>
-#ifdef DEBUG_MOD
+
 #define _debugStream(func, line) std::cerr << func << " at line [" << line << "] : "
+#ifdef DEBUG_MOD
 #define debugLog(message) _debugStream(__PRETTY_FUNCTION__, __LINE__) << message << std::endl;
+#define consoleLog(message) debugLog(message)
 #define glCheckError() _glCheckError(__PRETTY_FUNCTION__, __LINE__)
-auto _glCheckError(const char *func, const int line)
+inline auto _glCheckError(const char *func, const int line)
 {
 	GLenum errorCode;
 	GLenum errorRet = GL_NO_ERROR;
@@ -41,8 +43,8 @@ auto _glCheckError(const char *func, const int line)
 }
 #else
 #define debugLog(message)
-#define glCheckError() _glCheckError()
-inline auto _glCheckError()
+#define consoleLog(message) _debugStream(__PRETTY_FUNCTION__, __LINE__) << message << std::endl;
+inline auto glCheckError()
 {
 	return (GL_NO_ERROR);
 }

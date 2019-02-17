@@ -6,11 +6,15 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 15:48:27 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 22:58:55 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#define USE_HIGH_PERFORMANCE_GPU
+#include "DLLExport.hpp"
+
 #include "scop.hpp"
+#include "Config.hpp"
 #include "Window.hpp"
 #include "Engine.hpp"
 #include "Camera.hpp"
@@ -19,6 +23,17 @@
 #include "Keyboard.hpp"
 #include "Mouse.hpp"
 #include "parser/OBJ.hpp"
+#include "parser/HDR.hpp"
+#include "parser/FBX.hpp"
+#include "parser/GLSL.hpp"
+#include "Material.hpp"
+#include "Render.hpp"
+#include "Light.hpp"
+#include "CubeMesh.hpp"
+#include "Debug.hpp"
+#include "ComputeObject.hpp"
+#include "Vgroup.hpp"
+#include <iostream>
 #include <unistd.h>
 #include <iostream>
 
@@ -66,15 +81,6 @@ void	setup_callbacks()
 	
 }
 
-#include "parser/HDR.hpp"
-#include "parser/FBX.hpp"
-#include "parser/GLSL.hpp"
-#include "Material.hpp"
-#include "Render.hpp"
-#include "Light.hpp"
-#include "CubeMesh.hpp"
-#include <iostream>
-
 std::vector<std::shared_ptr<Light>> create_random_lights(unsigned i)
 {
 	std::vector<std::shared_ptr<Light>> v;
@@ -94,28 +100,28 @@ std::vector<std::shared_ptr<Light>> create_random_lights(unsigned i)
 	return (v);
 }
 
-#include "Debug.hpp"
-#include "ComputeObject.hpp"
-#include "Vgroup.hpp"
+/*
+auto	cube = CubeMesh::create("cube", new_vec3(1, 1, 1));
+auto	compute_shader = GLSL::parse("CheckerBoard", "./compute/checkerboard.compute", ComputeShader);
+auto	compute_object = ComputeObject::create("computeObject", compute_shader);
+auto	texture = Texture::create("checkerBoardTexture", new_vec2(256, 256), GL_TEXTURE_2D, GL_RGBA, GL_RGBA32F, GL_FLOAT);
+//compute_object->set_in_texture(texture);
+compute_object->set_out_texture(texture);
+compute_object->run();
+cube->vgroup(0)->material()->set_texture_albedo(texture);
+*/
 
 int		main(int argc, char *argv[])
 {
 	std::shared_ptr<Mesh>	obj;
 	auto argv0 = std::string(argv[0]);
 
+	Config::Load(Engine::resource_path() + "config.ini");
 	Engine::init();
 	auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
 	Camera::set_current(camera);
 	camera->set_target(Node::create("main_camera_target", new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
-	/*auto	cube = CubeMesh::create("cube", new_vec3(1, 1, 1));
-	auto	compute_shader = GLSL::parse("CheckerBoard", "./compute/checkerboard.compute", ComputeShader);
-	auto	compute_object = ComputeObject::create("computeObject", compute_shader);
-	auto	texture = Texture::create("checkerBoardTexture", new_vec2(256, 256), GL_TEXTURE_2D, GL_RGBA, GL_RGBA32F, GL_FLOAT);
-	//compute_object->set_in_texture(texture);
-	compute_object->set_out_texture(texture);
-	compute_object->run();
-	cube->vgroup(0)->material()->set_texture_albedo(texture);*/
 	obj = nullptr;
 	if (argc >= 2) {
 		obj = OBJ::parse("main_mesh", argv[1]);

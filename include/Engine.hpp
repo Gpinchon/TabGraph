@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/15 23:50:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 22:45:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,9 @@
 # include <string>
 
 # ifndef M_PI
-const auto M_PI				= 3.14159265359f;
+#define M_PI				3.14159265359f
 # endif //M_PI
-auto UP						= (VEC3){0, 1, 0};
+#define UP					(VEC3){0, 1, 0}
 //#define DEBUG_MOD
 
 class Material;
@@ -45,11 +45,12 @@ public :
 	static void		stop() { _get()._loop = false; };
 	static float	&internal_quality();
 	static int8_t	&swap_interval();
-	static void			fixed_update();
-	static void			update();
-	static std::string	program_path();
-	static std::string	execution_path();
-	static int32_t				frame_nbr();
+	static void		fixed_update();
+	static void		update();
+	static int32_t	frame_nbr();
+	static std::string			&execution_path();
+	static std::string			&program_path();
+	static const std::string	&resource_path();
 private :
 	Engine();
 	static Engine				&_get();

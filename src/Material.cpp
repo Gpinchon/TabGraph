@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/20 20:40:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/01/05 08:56:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 21:57:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,12 +58,8 @@ std::shared_ptr<Material>	Material::get(unsigned index)
 
 std::shared_ptr<Material>	Material::get_by_name(const std::string &name)
 {
-	size_t		h;
-	
-	std::hash<std::string> hash_fn;
-	h = hash_fn(name);
 	for (auto m : _materials) {
-		if (h == m->id()) {
+		if (name == m->name()) {
 			return (m);
 		}
 	}

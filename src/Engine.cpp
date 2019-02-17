@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 15:50:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 22:58:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,8 +110,7 @@ void			Engine::_load_res()
 
 void			Engine::init()
 {
-	Config::Load();
-	Window::init(Config::WindowName(), Config::WindowSize().x, Config::WindowSize().y);
+	Window::init(Config::WindowName(), Config::WindowSize());
 	static auto	SSAOShaderCode =
 		#include "ssao.frag"
 	;
@@ -130,14 +129,20 @@ int8_t	&Engine::swap_interval()
 	return (_get()._swap_interval);
 }
 
-std::string	Engine::program_path()
+std::string	&Engine::program_path()
 {
 	return (_get()._program_path);
 }
 
-std::string	Engine::execution_path()
+std::string	&Engine::execution_path()
 {
 	return (_get()._exec_path);
+}
+
+const std::string	&Engine::resource_path()
+{
+	static auto path = program_path() + "/res/";
+	return (path);
 }
 
 int		event_filter(void *arg, SDL_Event *event)

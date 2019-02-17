@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/25 11:36:06 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 16:19:11 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 22:34:33 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #pragma once
@@ -17,7 +17,7 @@
 class Config
 {
 public :
-	static void			Load();
+	static void			Load(const std::string &);
 	static VEC2			&WindowSize();
 	static std::string	&WindowName();
 	static float		&Anisotropy();

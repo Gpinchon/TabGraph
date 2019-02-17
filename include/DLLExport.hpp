@@ -1,28 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Render.hpp                                         :+:      :+:    :+:   */
+/*   DLLExport.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/08/04 19:30:14 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 20:08:21 by gpinchon         ###   ########.fr       */
+/*   Created: 2019/02/17 20:26:28 by gpinchon          #+#    #+#             */
+/*   Updated: 2019/02/17 21:22:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-class VertexArray;
-class Shader;
+#ifdef _WIN32
 
-namespace Render
-{
-	void		update();
-	void		fixed_update();
-	void		scene();
-	void		add_post_treatment(std::shared_ptr<Shader>);
-	void		add_post_treatment(const std::string &name, const std::string &path);
-	void		remove_post_treatment(std::shared_ptr<Shader>);
-	const std::shared_ptr<VertexArray>	display_quad();
-	std::vector<std::weak_ptr<Shader>>	&post_treatments();
-};
+#include <windows.h>
+
+#ifdef USE_HIGH_PERFORMANCE_GPU
+
+extern "C" {
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+
+#endif //USE_HIGH_PERFORMANCE_GPU
+
+#endif //_WIN32

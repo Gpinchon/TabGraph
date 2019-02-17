@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 15:02:10 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 22:00:43 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,10 +69,8 @@ std::shared_ptr<Texture>	Texture::create(const std::string &name, VEC2 s, GLenum
 
 std::shared_ptr<Texture>	Texture::get_by_name(const std::string &name)
 {
-	std::hash<std::string>	hash_fn;
-	auto					h = hash_fn(name);
 	for (auto t : _textures) {
-		if (h == t->id())
+		if (name == t->name())
 			return (t);
 	}
 	return (nullptr);

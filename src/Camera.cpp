@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:30:02 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/25 18:52:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 21:55:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,6 @@ std::shared_ptr<Camera>	Camera::create(const std::string &name, float ifov, Came
 {
 	auto	camera = std::shared_ptr<Camera>(new Camera(name, ifov, proj));
 	Node::add(camera);
-	//_nodes.push_back(std::static_pointer_cast<Node>(camera));
 	_cameras.push_back(camera);
 	return (camera);
 }
@@ -42,10 +41,8 @@ std::shared_ptr<Camera>	Camera::get(unsigned index)
 
 std::shared_ptr<Camera>	Camera::get_by_name(const std::string &name)
 {
-	std::hash<std::string>	hash_fn;
-	auto					h = hash_fn(name);
 	for (auto n : _cameras) {
-		if (h == n->id())
+		if (name == n->name())
 			return (n);
 	}
 	return (nullptr);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 15:00:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 21:55:56 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,10 +120,8 @@ std::shared_ptr<Framebuffer>	Framebuffer::get(unsigned index)
 
 std::shared_ptr<Framebuffer>	Framebuffer::get_by_name(const std::string &name)
 {
-	std::hash<std::string>	hash_fn;
-	auto					h = hash_fn(name);
 	for (auto f : _framebuffers) {
-		if (h == f->id())
+		if (name == f->name())
 			return (f);
 	}
 	return (nullptr);

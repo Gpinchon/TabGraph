@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/25 18:49:12 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 21:57:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,8 @@ std::shared_ptr<Node>	Node::create(const std::string &name, VEC3 position, VEC3 
 
 std::shared_ptr<Node>	Node::get_by_name(const std::string &name)
 {
-	std::hash<std::string>	hash_fn;
-	auto					h = hash_fn(name);
 	for (auto n : _nodes) {
-		if (h == n->id())
+		if (name == n->name())
 			return (n);
 	}
 	return (nullptr);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 17:42:04 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 17:56:40 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ static auto	forwardFragCode =
 GLuint	compile_shader_code(const std::string &code, GLenum type)
 {
 	GLuint	shaderid;
-	auto	glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
-	auto	glslVersionNbr = int(std::stof(glslVersionString) * 100);
+	static auto	glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+	static auto	glslVersionNbr = int(std::stof(glslVersionString) * 100);
 
 	auto	fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n" + code;
 	auto	codeBuff = fullCode.c_str();
@@ -48,14 +48,10 @@ GLuint	compile_shader_code(const std::string &code, GLenum type)
 
 GLuint	compile_shader(const std::string &path, GLenum type)
 {
-	GLuint	shaderid;
-
 	if (access(path.c_str(), R_OK) != 0) {
 		throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
 	}
-	shaderid = compile_shader_code(file_to_str(path), type);
-	Shader::check_shader(shaderid);
-	return (shaderid);
+	return (compile_shader_code(file_to_str(path), type));
 }
 
 std::shared_ptr<Shader>	GLSL::compile(const std::string &name,

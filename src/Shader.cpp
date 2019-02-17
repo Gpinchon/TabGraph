@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 17:21:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 21:58:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,8 @@ std::shared_ptr<Shader>	Shader::get(unsigned index)
 
 std::shared_ptr<Shader> Shader::get_by_name(const std::string &name)
 {
-	std::hash<std::string>	hash_fn;
-	auto					h = hash_fn(name);
 	for (auto s : _shaders) {
-		if (h == s->id())
+		if (name == s->name())
 			return (s);
 	}
 	return (nullptr);

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/10 21:42:11 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 11:40:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 21:56:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,12 +32,10 @@ std::shared_ptr<Light>	Light::create(const std::string &name, VEC3 color, VEC3 p
 	return (light);
 }
 
-std::shared_ptr<Light>	Light::get_by_name(const std::string &iname)
+std::shared_ptr<Light>	Light::get_by_name(const std::string &name)
 {
-	std::hash<std::string>	hash_fn;
-	auto					h = hash_fn(iname);
 	for (auto n : _lights) {
-		if (h == n->id())
+		if (name == n->name())
 			return (n);
 	}
 	return (nullptr);

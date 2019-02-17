@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/01/05 08:56:31 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 20:14:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -330,7 +330,7 @@ void	Render::scene()
 
 	glDepthFunc(GL_ALWAYS);
 	glDisable(GL_CULL_FACE);
-	if (post_treatments.size() == 0u) {
+	if (post_treatments().size() == 0u) {
 		current_tbuffer->bind();
 		passthrough_shader->use();
 		passthrough_shader->bind_texture("Texture.Albedo",			current_tbuffertex->attachement(0), GL_TEXTURE0);
@@ -343,7 +343,7 @@ void	Render::scene()
 		Render::display_quad()->draw();
 		passthrough_shader->use(false);
 	}
-	for (auto shader : post_treatments)
+	for (auto shader : post_treatments())
 	{
 		// APPLY POST-TREATMENT
 		auto	shaderPtr = shader.lock();
@@ -485,10 +485,16 @@ void	Render::scene()
 	present(final_back_buffer);
 }
 
+std::vector<std::weak_ptr<Shader>>	&Render::post_treatments()
+{
+	static std::vector<std::weak_ptr<Shader>>	ptVector;
+	return (ptVector);
+}
+
 void	Render::add_post_treatment(std::shared_ptr<Shader> shader)
 {
 	if (shader != nullptr)
-		post_treatments.push_back(shader);
+		post_treatments().push_back(shader);
 }
 
 void	Render::add_post_treatment(const std::string &name, const std::string &path)
@@ -496,15 +502,15 @@ void	Render::add_post_treatment(const std::string &name, const std::string &path
 	auto shader = GLSL::parse(name, path, PostShader);
 
 	if (shader != nullptr)
-		post_treatments.push_back(shader);
+		post_treatments().push_back(shader);
 }
 
 void	Render::remove_post_treatment(std::shared_ptr<Shader> shader)
 {
 	if (shader != nullptr) {
-		post_treatments.erase(std::remove_if(
-			post_treatments.begin(),
-			post_treatments.end(),
-			[shader](std::weak_ptr<Shader> p){ return !(p.owner_before(shader) || shader.owner_before(p));}), post_treatments.end());//post_treatments.erase(shader);
+		post_treatments().erase(std::remove_if(
+			post_treatments().begin(),
+			post_treatments().end(),
+			[shader](std::weak_ptr<Shader> p){ return !(p.owner_before(shader) || shader.owner_before(p));}), post_treatments().end());//post_treatments.erase(shader);
 	}
 }

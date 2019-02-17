@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 18:50:23 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/01 19:17:16 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 22:53:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ public :
 	static void		resize(const VEC2 &);
 	static VEC2		size();
 	static VEC2		internal_resolution();
-	static void		init(const std::string &name, int width, int height);
+	static void		init(const std::string &name, VEC2 resolution);
 	static void		fullscreen(const bool &fullscreen);
 	static void		swap();
 	static GLbitfield	&clear_mask();
