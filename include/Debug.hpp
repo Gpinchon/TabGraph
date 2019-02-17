@@ -1,15 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Errors.hpp                                         :+:      :+:    :+:   */
+/*   Debug.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/17 17:38:55 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/19 11:35:50 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 02:00:58 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 #pragma once
 
 #include "GLIncludes.hpp"
@@ -36,4 +35,10 @@ GLenum glCheckError_(const char *file, int line)
     return errorCode;
 }
 
+#ifdef DEBUG_MOD
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
+#define debugLog(message) std::cerr << __FILE__ << " [" << __LINE__ << "] : " << message << std::endl;
+#else
+#define glCheckError()
+#define debugLog(message)
+#endif

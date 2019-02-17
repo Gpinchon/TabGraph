@@ -6,17 +6,25 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/01/05 09:21:33 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/02/17 01:21:11 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-TEST			=	Scop
-NAME			=	./bin/libTabGraph.a
+NAME			=	libTabGraph.a
 
 #   Paths Declaration   #
-SRC_PATH		=	./src/
-SHADERS_PATH	=	./src/shaders/
-HEADERS_PATH	=	./include/
+OBJ_PATH		=	obj/
+SRC_PATH		=	src/
+BUILD_PATH		=	build/
+HEADERS_PATH	=	include/
+REL_PATH		=	release/
+DBG_PATH		=	debug/
+TEST_PATH		=	tests/
+SHADERS_PATH	=	$(SRC_PATH)shaders/
+RELOBJ_PATH		=	$(OBJ_PATH)$(REL_PATH)
+DBGOBJ_PATH		=	$(OBJ_PATH)$(DBG_PATH)
+RELBUILD_PATH	=	$(BUILD_PATH)$(REL_PATH)
+DBGBUILD_PATH	=	$(BUILD_PATH)$(DBG_PATH)
 # Paths Declaration End #
 
 # Files Declaration #
@@ -45,7 +53,7 @@ HEADERS_FILES	=	AABB.hpp					\
 					CubeMesh.hpp				\
 					Engine.hpp					\
 					Environment.hpp				\
-					Errors.hpp					\
+					Debug.hpp					\
 					Events.hpp					\
 					Framebuffer.hpp				\
 					GameController.hpp			\
@@ -109,31 +117,41 @@ SRC_FILES		=	Camera.cpp			\
 					parser/OBJ.cpp		\
 					parser/tools.cpp	\
 					render/shadow.cpp
+SRC_FILES_TEST	=	scop42/main.cpp			\
+					scop42/callbacks.cpp
+RES_FILES		=	$(shell find ./res -type f)
+BUILD_RES_FILES	=	$(addprefix $(TEST_PATH), $(RES_FILES))
 # Files Declaration End #
 
 #   Files Generation   #
 SRC				=	$(addprefix $(SRC_PATH), $(SRC_FILES))
+TEST_SRC		=	$(addprefix $(SRC_PATH), $(SRC_FILES_TEST))
 SHADERS			=	$(addprefix $(SHADERS_PATH), $(SHADERS_FILES))
 HEADERS			=	$(addprefix $(HEADERS_PATH), $(HEADERS_FILES))
+OBJ				=	$(SRC_FILES:.cpp=.o)
+OBJ_TEST		=	$(SRC_FILES_TEST:.cpp=.o)
+RELOBJ			=	$(addprefix $(RELOBJ_PATH), $(OBJ))
+DBGOBJ			=	$(addprefix $(DBGOBJ_PATH), $(OBJ))
+RELOBJ_TEST		=	$(addprefix $(RELOBJ_PATH), $(OBJ_TEST))
+DBGOBJ_TEST		=	$(addprefix $(DBGOBJ_PATH), $(OBJ_TEST))
 # Files Generation End #
 
-TESTOBJ		=	./src/scop42/main.cpp			\
-				./src/scop42/callbacks.cpp
 
-OBJ			=	$(SRC:.cpp=.o)
 
 CC			=	g++
 
-INCLUDE_REP	=	./include				\
-				./libs/vml/include
+INCLUDE_PATH	=	./include				\
+					./libs/vml/include
 
 LIBDIR		=	./libs/vml/
 
 LIBFILES	=	./libs/vml/libvml.a
 
-INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
+INCLUDE		=	$(addprefix -I, $(INCLUDE_PATH))
 INCLUDE		+=	$(addprefix -I, $(SHADERS_PATH))
-CXXFLAGS	=	-Ofast -std=c++17 -Wall -Wextra -Werror $(INCLUDE)
+CXXFLAGS	=	-std=c++17 -Wall -Wextra -Werror $(INCLUDE)
+DBGFLAGS	=	-DDEBUG_MOD -g
+RELFLAGS	=	-Ofast
 LINKFLAGS	=	-Wl,--allow-multiple-definition
 
 NO_COLOR=\033[0m
@@ -145,39 +163,61 @@ OK_STRING	=	[OK]
 TEST		=	Scop.exe
 LIBS		=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lz -Wl,-Bdynamic $(addprefix -L , $(LIBDIR)) -lvml -lmingw32 -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 LINKFLAGS	=	-Wl,--allow-multiple-definition
-CXXFLAGS	=	-Ofast -std=c++1z -Wall -Wextra -Werror $(INCLUDE)
+CXXFLAGS	=	-std=c++1z -Wall -Wextra -Werror $(INCLUDE)
 else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
-INCLUDE		=	$(addprefix -I, $(INCLUDE_REP))
+INCLUDE		=	$(addprefix -I, $(INCLUDE_PATH))
 else
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
-$(NAME) : $(LIBFILES) $(OBJ)
-	mkdir -p ./bin
-	ar -rc $(NAME) $(OBJ)
-	#$(CC) $(CXXFLAGS) $(OBJ) $(LINKFLAGS) $(LIBS) -o $(NAME)
-	ranlib $(NAME)
+release: CXXFLAGS += $(RELFLAGS)
+release: $(RELBUILD_PATH)$(NAME)
 
-test: $(LIBFILES) $(NAME) $(TESTOBJ)
-	$(CC) $(CXXFLAGS) $(TESTOBJ) $(LINKFLAGS) -L ./bin -lTabGraph $(LIBS) -o $(TEST)
+$(RELBUILD_PATH)$(NAME) : $(LIBFILES) $(RELOBJ)
+	@(mkdir -p $(@D))
+	ar -rc $(RELBUILD_PATH)$(NAME) $(RELOBJ)
+	ranlib $(RELBUILD_PATH)$(NAME)
 
-%.o: %.cpp $(HEADERS) $(SHADERS)
+$(RELOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
+	@(mkdir -p $(@D))
 	@echo -n Compiling $@...
 	@($(CC) $(CXXFLAGS) -o $@ -c $<)
 	@echo "$(OK_STRING)"
 
-./libs/ezmem/libezmem.a :
-	$(MAKE) -C ./libs/ezmem/
+debug: CXXFLAGS += $(DBGFLAGS)
+debug: $(DBGBUILD_PATH)$(NAME)
+
+$(DBGBUILD_PATH)$(NAME) : $(LIBFILES) $(DBGOBJ)
+	@(mkdir -p $(@D))
+	ar -rc $(DBGBUILD_PATH)$(NAME) $(DBGOBJ)
+	ranlib $(DBGBUILD_PATH)$(NAME)
+
+$(DBGOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
+	@(mkdir -p $(@D))
+	@echo -n Compiling $@...
+	@($(CC) $(CXXFLAGS) -o $@ -c $<)
+	@echo "$(OK_STRING)"
+
+$(BUILD_RES_FILES): %: $(RES_FILES)
+	@(mkdir -p $(@D))
+	@echo -n Copying $(patsubst $(TEST_PATH)%,%,$@) to $@... 
+	@(cp $(patsubst $(TEST_PATH)%,%,$@) $@)
+	@echo "$(OK_STRING)"
+
+info: $(BUILD_RES_FILES)
+	@echo $(BUILD_RES_FILES)
+	@echo $(RELOBJ_TEST)
+
+tests: release debug $(RELOBJ_TEST) $(DBGOBJ_TEST) $(BUILD_RES_FILES)
+	$(CC) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_TEST) $(LINKFLAGS) -L $(RELBUILD_PATH) -lTabGraph $(LIBS) -o $(TEST_PATH)Scop.exe
+	$(CC) $(CXXFLAGS) $(DBGFLAGS) $(DBGOBJ_TEST) $(LINKFLAGS) -L $(DBGBUILD_PATH) -lTabGraph $(LIBS) -o $(TEST_PATH)ScopD.exe
 
 ./libs/vml/libvml.a :
 	$(MAKE) -C ./libs/vml/
 
-./libs/libft/libft.a :
-	$(MAKE) -C ./libs/libft/
-
 tidy:
-	clang-tidy $(SRC) -checks=* -- $(CXXFLAGS) $(INCLUDE_REP)
+	clang-tidy $(SRC) -checks=* -- $(CXXFLAGS) $(INCLUDE_PATH)
 
 pull:
 	git pull
@@ -186,11 +226,11 @@ pull:
 	git submodule foreach git pull origin vml++
 
 clean:
-	rm -rf $(OBJ)
+	rm -rf $(OBJ_PATH)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) clean && ) true
 
 fclean:
-	rm -rf $(OBJ) $(NAME) $(TEST)
+	rm -rf $(TEST_PATH) $(BUILD_PATH) $(OBJ_PATH)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) fclean && ) true
 
 re: fclean $(NAME) test

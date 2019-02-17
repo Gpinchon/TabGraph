@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/12 11:22:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 01:54:00 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/15 23:50:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "Framebuffer.hpp"
 #include "Events.hpp"
 #include "Window.hpp"
-#include "Errors.hpp"
+#include "Debug.hpp"
 #include <unistd.h>
 
 Window *Window::_instance = nullptr;
@@ -83,9 +83,7 @@ void		Window::init(const std::string &name, int width, int height)
 	}
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-#ifdef GL_DEBUG
 	glCheckError();
-#endif //GL_DEBUG
 }
 
 GLbitfield	&Window::clear_mask()

@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/24 17:00:20 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 19:13:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/15 23:41:23 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ComputeObject.hpp"
 #include "Shader.hpp"
-#include "Errors.hpp"
+#include "Debug.hpp"
 
 ComputeObject::ComputeObject(const std::string &name) : Node(name) {}
 

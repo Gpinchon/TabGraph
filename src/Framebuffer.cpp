@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 18:06:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/15 23:54:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,13 +53,14 @@ GLenum	get_data_format(GLenum internal_format)
 	}
 }
 
-#include "Errors.hpp"
+#include "Debug.hpp"
 #include <iostream>
 
 std::shared_ptr<Attachement>	Attachement::create(const std::string &iname, VEC2 s, GLenum target, GLenum f, GLenum fi)
 {
 	auto	t = std::shared_ptr<Attachement>(new Attachement(iname, s, target, f, fi, get_data_format(fi)));
 	glGenTextures(1, &t->_glid);
+	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
 	glBindTexture(t->_target, t->_glid);
 	glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->data_format(), nullptr);
 	glBindTexture(t->_target, 0);
@@ -68,10 +69,7 @@ std::shared_ptr<Attachement>	Attachement::create(const std::string &iname, VEC2 
 	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	_textures.push_back(std::static_pointer_cast<Texture>(t));
-#ifdef GL_DEBUG
-	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
 	glCheckError();
-#endif //GL_DEBUG
 	return (t);
 }
 
@@ -94,6 +92,7 @@ std::shared_ptr<Framebuffer>	Framebuffer::create(const std::string &name, VEC2 s
 	auto	f = std::shared_ptr<Framebuffer>(new Framebuffer(name));
 	f->_size = size;
 	glGenFramebuffers(1, &f->_glid);
+	glObjectLabel(GL_FRAMEBUFFER, f->_glid, -1, f->name().c_str());
 	i = 0;
 	while (i < color_attachements) {
 		f->create_attachement(GL_RGBA, GL_RGBA);
@@ -105,10 +104,7 @@ std::shared_ptr<Framebuffer>	Framebuffer::create(const std::string &name, VEC2 s
 	f->setup_attachements();
 	_framebuffers.push_back(f);
 	_textures.push_back(std::static_pointer_cast<Texture>(f));
-#ifdef GL_DEBUG
-	glObjectLabel(GL_FRAMEBUFFER, f->_glid, -1, f->name().c_str());
 	glCheckError();
-#endif //GL_DEBUG
 	return (f);
 }
 
@@ -169,17 +165,13 @@ std::shared_ptr<Texture>	Framebuffer::create_attachement(GLenum format, GLenum i
 	if (format == GL_DEPTH_COMPONENT)
 	{
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, a->glid(), 0);
-		#ifdef GL_DEBUG
-			glCheckError();
-		#endif //GL_DEBUG
+		glCheckError();
 		_depth = a;
 	}
 	else {
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0
 			+ _color_attachements.size(), a->glid(), 0);
-		#ifdef GL_DEBUG
-			glCheckError();
-		#endif //GL_DEBUG
+		glCheckError();
 		_color_attachements.push_back(a);
 	}
 	bind(false);

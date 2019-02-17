@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 17:16:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 01:51:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,9 +93,9 @@ std::shared_ptr<Texture>	HDR::parse(const std::string &texture_name, const std::
 
 	delete [] scanline;
 	fclose(file);
+	auto t = Texture::create(texture_name, size, GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data);
 	std::cout << " Done." << std::endl;
-
-	return (Texture::create(texture_name, size, GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data));
+	return (t);
 }
 
 float convertComponent(int expo, int val)

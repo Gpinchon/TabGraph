@@ -6,12 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 18:18:18 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/15 23:49:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
-#include "Errors.hpp"
+#include "Debug.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
 

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/25 11:36:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/15 23:50:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 const auto M_PI				= 3.14159265359f;
 # endif //M_PI
 auto UP						= (VEC3){0, 1, 0};
-#define GL_DEBUG
+//#define DEBUG_MOD
 
 class Material;
 class Shader;

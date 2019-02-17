@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/17 15:59:46 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 16:59:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/16 00:01:17 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "TextureArray.hpp"
 #include "Engine.hpp"
-#include "Errors.hpp"
+#include "Debug.hpp"
 #include <algorithm>
 
 TextureArray::TextureArray(const std::string &name, VEC2 s, GLenum target, GLenum fi, unsigned capacity) : Texture(name)
@@ -28,6 +28,7 @@ std::shared_ptr<TextureArray>	TextureArray::create(const std::string &name, VEC2
 {
 	auto	t = std::shared_ptr<TextureArray>(new TextureArray(name, s, target, fi, capacity));
 	glGenTextures(1, &t->_glid);
+	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
 	glBindTexture(t->_target, t->_glid);
 	glTexStorage3D(t->_target, 1, t->_internal_format, t->_size.x, t->_size.y, t->_capacity);
 	glBindTexture(t->_target, 0);
@@ -37,9 +38,7 @@ std::shared_ptr<TextureArray>	TextureArray::create(const std::string &name, VEC2
 	t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	t->_array.resize(capacity);
 	_textures.push_back(std::static_pointer_cast<Texture>(t));
-#ifdef GL_DEBUG
 	glCheckError();
-#endif //GL_DEBUG
 	return (t);
 }
 
@@ -78,8 +77,5 @@ void		TextureArray::load()
 	}
 	glBindTexture(_target, 0);
 	_loaded = true;
-#ifdef GL_DEBUG
-	glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
 	glCheckError();
-#endif //GL_DEBUG
 }

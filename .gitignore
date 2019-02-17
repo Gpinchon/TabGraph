@@ -37,6 +37,9 @@
 # Mac OS trash
 .DS_Store
 
+# Build folder
+tests/
+
 # Project executable
 Test
 Scop

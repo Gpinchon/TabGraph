@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 19:25:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/15 23:41:28 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ std::vector<std::shared_ptr<Light>> create_random_lights(unsigned i)
 	return (v);
 }
 
-#include "Errors.hpp"
+#include "Debug.hpp"
 #include "ComputeObject.hpp"
 #include "Vgroup.hpp"
 

@@ -6,13 +6,13 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/21 19:27:31 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 01:46:51 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
 #include "Cubemap.hpp"
-#include "Errors.hpp"
+#include "Debug.hpp"
 #include "parser/BMP.hpp"
 #include <thread>
 
@@ -61,14 +61,13 @@ std::shared_ptr<Cubemap>	Cubemap::create(const std::string &name)
 {
 	auto	cubemap = std::shared_ptr<Cubemap>(new Cubemap(name));
 	glGenTextures(1, &cubemap->_glid);
-	glBindTexture(cubemap->_target, cubemap->_glid);
-	glBindTexture(cubemap->_target, 0);
-	_textures.push_back(cubemap);
-	_cubemaps.push_back(cubemap);
-#ifdef GL_DEBUG
+	glCheckError();
 	glObjectLabel(GL_TEXTURE, cubemap->_glid, -1, cubemap->name().c_str());
 	glCheckError();
-#endif //GL_DEBUG 
+	//glBindTexture(cubemap->_target, cubemap->_glid);
+	//glBindTexture(cubemap->_target, 0);
+	_textures.push_back(cubemap);
+	_cubemaps.push_back(cubemap);
 	return (cubemap);
 }
 
