@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 02:05:26 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 15:02:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,21 +53,16 @@ std::shared_ptr<Texture>	Texture::create(const std::string &name, VEC2 s, GLenum
 {
 	auto	t = std::shared_ptr<Texture>(new Texture(name, s, target, f, fi, data_format, data));
 	glGenTextures(1, &t->_glid);
-	glCheckError();
+	glBindTexture(target, t->_glid);
 	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
+	glBindTexture(target, 0);
 	glCheckError();
-	//glBindTexture(target, t->_glid);
-	//glBindTexture(target, 0);
 	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glCheckError();
 	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glCheckError();
 	t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Anisotropy());
-	glCheckError();
 	if (t->values_per_pixel() < 4) {
 		t->set_parameteri(GL_TEXTURE_SWIZZLE_A, GL_ONE);
 	}
-	glCheckError();
 	_textures.push_back(t);
 	return (t);
 }
@@ -296,13 +291,12 @@ void	Texture::set_parameterf(GLenum p, float v)
 	if (glTextureParameterf == nullptr) {
 		glBindTexture(_target, _glid);
 		glTexParameterf(_target, p, v);
-		glCheckError();
 		glBindTexture(_target, 0);
 	}
 	else {
 		glTextureParameterf(_glid, p, v);
-		glCheckError();
 	}
+	glCheckError();
 }
 
 void	Texture::set_parameteri(GLenum p, int v)
@@ -313,12 +307,13 @@ void	Texture::set_parameteri(GLenum p, int v)
 	if (glTextureParameteri == nullptr) {
 		glBindTexture(_target, _glid);
 		glTexParameteri(_target, p, v);
-		glCheckError();
 		glBindTexture(_target, 0);
 	}
 	else {
 		glTextureParameteri(_glid, p, v);
-		glCheckError();
+	}
+	if (glCheckError() != GL_NO_ERROR){
+		debugLog(name());
 	}
 }
 
@@ -402,13 +397,13 @@ void	Texture::resize(const VEC2 &ns)
 	{
 		glDeleteTextures(1, &_glid);
 		glGenTextures(1, &_glid);
-		glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
 		glBindTexture(_target, _glid);
+		glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
 		glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format, _data_format, _data);
 		glBindTexture(_target, 0);
+		glCheckError();
 		restore_parameters();
 	}
-	glCheckError();
 }
 
 

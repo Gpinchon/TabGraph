@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 01:46:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 13:40:50 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,11 +61,10 @@ std::shared_ptr<Cubemap>	Cubemap::create(const std::string &name)
 {
 	auto	cubemap = std::shared_ptr<Cubemap>(new Cubemap(name));
 	glGenTextures(1, &cubemap->_glid);
-	glCheckError();
+	glBindTexture(cubemap->_target, cubemap->_glid);
 	glObjectLabel(GL_TEXTURE, cubemap->_glid, -1, cubemap->name().c_str());
+	glBindTexture(cubemap->_target, 0);
 	glCheckError();
-	//glBindTexture(cubemap->_target, cubemap->_glid);
-	//glBindTexture(cubemap->_target, 0);
 	_textures.push_back(cubemap);
 	_cubemaps.push_back(cubemap);
 	return (cubemap);

@@ -195,24 +195,25 @@ float	randomAngle(in vec3 seed, in float freq)
 vec4	sampleLod(in samplerCube tex, in vec3 uv, in float value)
 {
 #ifdef textureQueryLevels
-	return textureLod(tex, uv, value * textureQueryLevels(tex));
+	float maxLOD = textureQueryLevels(tex);
 #else
 	//Try to guess the max LOD
 	ivec2	texRes = textureSize(tex, 0);
 	float	maxLOD = floor(log2(max(texRes.x, texRes.y)));
-	return textureLod(tex, uv, value * maxLOD);
 #endif
+	return textureLod(tex, uv, value * maxLOD);
 }
 
 vec4	sampleLod(in sampler2D tex, in vec2 uv, in float value)
 {
 #ifdef textureQueryLevels
-	return textureLod(tex, uv, value * textureQueryLevels(tex));
+	float maxLOD = textureQueryLevels(tex);
 #else
+	//Try to guess the max LOD
 	ivec2	texRes = textureSize(tex, 0);
 	float	maxLOD = floor(log2(max(texRes.x, texRes.y)));
-	return textureLod(tex, uv, value * maxLOD);
 #endif
+	return textureLod(tex, uv, value * maxLOD);
 }
 
 float	map(in float value, in float low1, in float high1, in float low2, in float high2)

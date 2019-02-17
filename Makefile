@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/02/17 01:21:11 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/02/17 17:30:15 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,7 +28,7 @@ DBGBUILD_PATH	=	$(BUILD_PATH)$(DBG_PATH)
 # Paths Declaration End #
 
 # Files Declaration #
-SHADER_FILES	=	blur.frag				\
+SHADERS_FILES	=	blur.frag				\
 					deferred.frag			\
 					deferred.vert			\
 					depth.frag				\
@@ -205,9 +205,8 @@ $(BUILD_RES_FILES): %: $(RES_FILES)
 	@(cp $(patsubst $(TEST_PATH)%,%,$@) $@)
 	@echo "$(OK_STRING)"
 
-info: $(BUILD_RES_FILES)
-	@echo $(BUILD_RES_FILES)
-	@echo $(RELOBJ_TEST)
+info:
+	@echo $(SHADERS)
 
 tests: release debug $(RELOBJ_TEST) $(DBGOBJ_TEST) $(BUILD_RES_FILES)
 	$(CC) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_TEST) $(LINKFLAGS) -L $(RELBUILD_PATH) -lTabGraph $(LIBS) -o $(TEST_PATH)Scop.exe

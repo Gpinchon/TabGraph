@@ -6,11 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 21:14:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/10/05 15:27:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 15:43:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "VertexArray.hpp"
+#include "Debug.hpp"
 
 std::vector<std::shared_ptr<VertexArray>>	VertexArray::_vertexArrays;
 
@@ -20,6 +21,7 @@ std::shared_ptr<VertexArray>	VertexArray::create(size_t vertex_nbr, GLenum GLDra
 	vao->_vertex_nbr = vertex_nbr;
 	vao->_GLDrawType = GLDrawType;
 	glGenVertexArrays(1, &vao->_GLid);
+	glCheckError();
 	_vertexArrays.push_back(vao);
 	return (vao);
 }
@@ -54,6 +56,7 @@ void	VertexArray::draw() const
 	}
 	else
 		glDrawArrays(_GLDrawType, 0, _vertex_nbr);
+	glCheckError();
 	bind(false);
 };
 
@@ -65,4 +68,5 @@ void	VertexArray::bind(bool tobind) const
 	else {
 		glBindVertexArray(0);
 	}
+	glCheckError();
 };

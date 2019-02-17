@@ -6,11 +6,12 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/01/05 08:58:34 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 17:42:04 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Engine.hpp"
+#include "Debug.hpp"
 #include "parser/GLSL.hpp"
 #include "parser/InternalTools.hpp"
 #include <unistd.h>
@@ -40,6 +41,7 @@ GLuint	compile_shader_code(const std::string &code, GLenum type)
 	shaderid = glCreateShader(type);
 	glShaderSource(shaderid, 1, &codeBuff, nullptr);
 	glCompileShader(shaderid);
+	glCheckError();
 	Shader::check_shader(shaderid);
 	return (shaderid);
 }
@@ -75,6 +77,7 @@ std::shared_ptr<Shader>	GLSL::compile(const std::string &name,
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
 	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
+	glCheckError();
 	return (shader);
 }
 
@@ -118,6 +121,7 @@ std::shared_ptr<Shader>	GLSL::compile(const std::string &name,
 	shader->_attributes = shader->_get_variables(GL_ACTIVE_ATTRIBUTES);
 	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
+	glCheckError();
 	return (shader);
 }
 
@@ -177,6 +181,7 @@ std::shared_ptr<Shader>	GLSL::compile(const std::string &name,
 	glDeleteShader(vertexid);
 	glDeleteShader(fragmentid);
 	glDeleteShader(computeid);
+	glCheckError();
 	return (shader);
 }
 

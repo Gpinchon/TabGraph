@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/01/05 08:55:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 15:50:10 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,7 +174,7 @@ void	Engine::run()
 	SDL_GL_SetSwapInterval(Engine::_get().swap_interval());
 	fixed_timing = last_ticks = SDL_GetTicks() / 1000.f;
 	SDL_SetEventFilter(event_filter, nullptr);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	while (_get()._loop)
 	{
 		ticks = SDL_GetTicks() / 1000.f;

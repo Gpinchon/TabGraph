@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/15 23:49:17 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 17:21:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ void			Shader::set_uniform(const std::string &name, const int &value, unsigned n
 		use();
 	}
 	glUniform1iv(v->loc, nbr, &value);
+	glCheckError();
 	if (!bound) {
 		use(false);
 	}
@@ -81,6 +82,7 @@ void			Shader::set_uniform(const std::string &name, const bool &value, unsigned 
 	}
 	int	val = value;
 	glUniform1iv(v->loc, nbr, &val);
+	glCheckError();
 	if (!bound) {
 		use(false);
 	}
@@ -97,6 +99,7 @@ void			Shader::set_uniform(const std::string &name, const unsigned &value, unsig
 		use();
 	}
 	glUniform1uiv(v->loc, nbr, &value);
+	glCheckError();
 	if (!bound) {
 		use(false);
 	}
@@ -113,6 +116,7 @@ void			Shader::set_uniform(const std::string &name, const float &value, unsigned
 		use();
 	}
 	glUniform1fv(v->loc, nbr, &value);
+	glCheckError();
 	if (!bound) {
 		use(false);
 	}
@@ -129,6 +133,7 @@ void			Shader::set_uniform(const std::string &name, const VEC2 &value, unsigned 
 		use();
 	}
 	glUniform2fv(v->loc, nbr, &value.x);
+	glCheckError();
 	if (!bound) {
 		use(false);
 	}
@@ -145,6 +150,7 @@ void			Shader::set_uniform(const std::string &name, const VEC3 &value, unsigned 
 		use();
 	}
 	glUniform3fv(v->loc, nbr, &value.x);
+	glCheckError();
 	if (!bound) {
 		use(false);
 	}
@@ -161,6 +167,7 @@ void			Shader::set_uniform(const std::string &name, const MAT4 &value, unsigned 
 		use();
 	}
 	glUniformMatrix4fv(v->loc, nbr, GL_FALSE, (float*)&value);
+	glCheckError();
 	if (!bound) {
 		use(false);
 	}
@@ -178,6 +185,9 @@ void			Shader::use(const bool &use_program)
 		return ;
 	}
 	glUseProgram(_program);
+	if (glCheckError()) {
+		debugLog(name());
+	}
 	_in_use = true;
 }
 
@@ -189,6 +199,7 @@ void	Shader::unbind_texture(GLenum texture_unit)
 	}
 	glActiveTexture(texture_unit);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glCheckError();
 	if (!bound) {
 		use(false);
 	}
@@ -211,6 +222,7 @@ void	Shader::bind_image(const std::string &name,
 		glBindImageTexture(texture_unit - GL_TEXTURE0,
 			texture->glid(), level, layered,
 			layer, access, texture->internal_format());
+		glCheckError();
 		//glBindTexture(texture->target(), texture->glid());
 	}
 	set_uniform(name, int(texture_unit - GL_TEXTURE0));
@@ -233,6 +245,7 @@ void	Shader::bind_texture(const std::string &name,
 		texture->load();
 		glActiveTexture(texture_unit);
 		glBindTexture(texture->target(), texture->glid());
+		glCheckError();
 	}
 	set_uniform(name, int(texture_unit - GL_TEXTURE0));
 	if (!bound) {
@@ -247,6 +260,7 @@ GLuint	Shader::link(const GLuint shaderid)
 	glAttachShader(_program, shaderid);
 	glLinkProgram(_program);
 	glDetachShader(_program, shaderid);
+	glCheckError();
 	try {
 		check_program(_program);
 	}
@@ -275,6 +289,7 @@ void	Shader::detach(const GLuint shaderid)
 GLuint	Shader::link()
 {
 	glLinkProgram(_program);
+	glCheckError();
 	try {
 		check_program(_program);
 	}
@@ -293,6 +308,7 @@ GLuint	Shader::link(const GLuint vertexid, const GLuint fragmentid)
 	glLinkProgram(_program);
 	glDetachShader(_program, vertexid);
 	glDetachShader(_program, fragmentid);
+	glCheckError();
 	try {
 		check_program(_program);
 	}
@@ -313,6 +329,7 @@ GLuint	Shader::link(const GLuint geometryid, const GLuint vertexid, const GLuint
 	glDetachShader(_program, geometryid);
 	glDetachShader(_program, vertexid);
 	glDetachShader(_program, fragmentid);
+	glCheckError();
 	try {
 		check_program(_program);
 	}
@@ -342,6 +359,7 @@ bool	Shader::check_shader(const GLuint id)
 			throw std::runtime_error("Unknown Error");
 		}
 	}
+	glCheckError();
 	return (false);
 }
 
@@ -359,6 +377,7 @@ bool	Shader::check_program(const GLuint id)
 		glGetProgramInfoLog(id, loglength, nullptr, &log[0]);
 		throw std::runtime_error(log);
 	}
+	glCheckError();
 	return (false);
 }
 
@@ -382,5 +401,6 @@ std::unordered_map<std::string, ShaderVariable>		Shader::_get_variables(GLenum t
 		v.loc = glGetUniformLocation(_program, name);
 		variables.insert(std::make_pair(v.name, v));
 	}
+	glCheckError();
 	return (variables);
 }

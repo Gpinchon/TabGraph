@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 20:09:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 00:21:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 15:48:52 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "GLIncludes.hpp"
+#include "Debug.hpp"
 #include <memory>
 #include <vector>
 
@@ -75,6 +76,7 @@ VertexBuffer::VertexBuffer(GLuint attrib, GLenum data_type, int size, const std:
 	glEnableVertexAttribArray(attrib);
 	glVertexAttribPointer(attrib, size, data_type, GL_FALSE, 0, (void*)nullptr);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glCheckError();
 	_size = a.size();
 }
 
@@ -83,6 +85,7 @@ VertexBuffer::VertexBuffer(const std::vector<unsigned> &indices)
 	glGenBuffers(1, &_GLid);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _GLid);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned), &indices[0], GL_STATIC_DRAW);
+	glCheckError();
 	_size = indices.size();
 }
 

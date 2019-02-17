@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/22 21:56:32 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/15 23:54:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/17 15:00:00 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,16 +60,16 @@ std::shared_ptr<Attachement>	Attachement::create(const std::string &iname, VEC2 
 {
 	auto	t = std::shared_ptr<Attachement>(new Attachement(iname, s, target, f, fi, get_data_format(fi)));
 	glGenTextures(1, &t->_glid);
-	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
 	glBindTexture(t->_target, t->_glid);
+	glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
 	glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->data_format(), nullptr);
 	glBindTexture(t->_target, 0);
+	glCheckError();
 	t->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	_textures.push_back(std::static_pointer_cast<Texture>(t));
-	glCheckError();
 	return (t);
 }
 
@@ -91,8 +91,12 @@ std::shared_ptr<Framebuffer>	Framebuffer::create(const std::string &name, VEC2 s
 
 	auto	f = std::shared_ptr<Framebuffer>(new Framebuffer(name));
 	f->_size = size;
+	f->_target = GL_FRAMEBUFFER;
 	glGenFramebuffers(1, &f->_glid);
-	glObjectLabel(GL_FRAMEBUFFER, f->_glid, -1, f->name().c_str());
+	glBindFramebuffer(f->_target, f->_glid);
+	glObjectLabel(f->_target, f->_glid, -1, f->name().c_str());
+	glBindFramebuffer(f->_target, 0);
+	glCheckError();
 	i = 0;
 	while (i < color_attachements) {
 		f->create_attachement(GL_RGBA, GL_RGBA);
@@ -104,7 +108,6 @@ std::shared_ptr<Framebuffer>	Framebuffer::create(const std::string &name, VEC2 s
 	f->setup_attachements();
 	_framebuffers.push_back(f);
 	_textures.push_back(std::static_pointer_cast<Texture>(f));
-	glCheckError();
 	return (f);
 }
 
@@ -145,12 +148,14 @@ void			Framebuffer::bind(bool to_bind)
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, _glid);
 	glViewport(0, 0, size().x, size().y);
+	glCheckError();
 }
 
 void			Framebuffer::bind_default()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::size().x, Window::size().y);
+	glCheckError();
 }
 
 std::shared_ptr<Texture>	Framebuffer::create_attachement(GLenum format, GLenum iformat)
@@ -165,15 +170,14 @@ std::shared_ptr<Texture>	Framebuffer::create_attachement(GLenum format, GLenum i
 	if (format == GL_DEPTH_COMPONENT)
 	{
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, a->glid(), 0);
-		glCheckError();
 		_depth = a;
 	}
 	else {
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0
 			+ _color_attachements.size(), a->glid(), 0);
-		glCheckError();
 		_color_attachements.push_back(a);
 	}
+	glCheckError();
 	bind(false);
 	return (a);
 }
@@ -195,6 +199,7 @@ void			Framebuffer::setup_attachements()
 	}
 	bind();
 	glDrawBuffers(color_attachements.size(), &color_attachements[0]);
+	glCheckError();
 	bind(false);
 }
 
@@ -206,6 +211,7 @@ void	Framebuffer::_resize_attachement(const int &attachement, const VEC2 &ns)
 	}
 	t->resize(ns);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachement, t->glid(), 0);
+	glCheckError();
 }
 
 void	Framebuffer::_resize_depth(const VEC2 &ns)
@@ -215,6 +221,7 @@ void	Framebuffer::_resize_depth(const VEC2 &ns)
 	}
 	_depth->resize(ns);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth->glid(), 0);
+	glCheckError();
 }
 
 void		Framebuffer::resize(const VEC2 &new_size)
@@ -243,6 +250,7 @@ void		Framebuffer::set_attachement(unsigned color_attachement, std::shared_ptr<T
 	_color_attachements[color_attachement] = texture;
 	bind();
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture->glid(), 0);
+	glCheckError();
 	bind(false);
 }
 
