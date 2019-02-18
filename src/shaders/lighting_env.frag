@@ -27,7 +27,7 @@ vec4	SSR()
 	float	curLength = 0.25;
 	vec4	ret = vec4(0);
 	float	hits = 0;
-	float CameraFacingReflectionAttenuation = 1 - smoothstep(0.25, 0.5, dot(-V, R));
+	float CameraFacingReflectionAttenuation = 1 - smoothstep(0.0, 0.01, dot(-V, R));
 	if (CameraFacingReflectionAttenuation <= 0)
 		return (vec4(0));
 
@@ -41,15 +41,28 @@ vec4	SSR()
 		float	s = sin(sampleAngle);
 		float	c = cos(sampleAngle);
 		vec2	sampleRotation = vec2(c, -s);
-		vec2	curUVAttenuation = smoothstep(vec2(0.05), vec2(0.1), sampleUV.xy) * (1 - smoothstep(vec2(0.95),vec2 (1), sampleUV.xy));
-		for (uint j = 0; j < REFLEXION_SAMPLES; j++)
+		bool	onScreen = sampleUV.x >= 0 && sampleUV.x <= 1 && sampleUV.y >= 0 && sampleUV.y <= 1;
+		for (uint j = 0; onScreen && j < REFLEXION_SAMPLES; j++)
 		{
 			//Don't check if sampleUV is offscreen, this would result in even more branching code and hurt performances
 			sampleDepth = texture(LastDepth, sampleUV.xy).r; //Get depth value at pixel
 			//If current step behind ZBuffer or at "almost" same depth, accept as valid reflexion (avoids holes)
-			if (abs(curUV.z - sampleDepth) <= 0.05/*  || curUV.z >= sampleDepth */)
+			if (abs(curUV.z - sampleDepth) <= 0.01/*  || curUV.z >= sampleDepth */)
 			{
 				hits++;
+
+				float	screenEdgeFactor = 1;
+				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
+				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
+				if (screenEdgeFactor > 0)
+				{
+					screenEdgeFactor = clamp(screenEdgeFactor, 0, 1);
+					ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb * screenEdgeFactor; //Sample last image color and accumulate it
+					ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb * screenEdgeFactor; //LastEmitting is already blurred
+					ret.w += screenEdgeFactor;
+				}
+
+				/*
 				vec2	UVSamplingAttenuation = smoothstep(vec2(0.05), vec2(0.1), sampleUV.xy) * (1 - smoothstep(vec2(0.95),vec2 (1), sampleUV.xy));
 				UVSamplingAttenuation.x *= UVSamplingAttenuation.y;
 				if (UVSamplingAttenuation.x > 0)
@@ -59,10 +72,8 @@ vec4	SSR()
 					ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb * UVSamplingAttenuation.x; //LastEmitting is already blurred
 					ret.w += UVSamplingAttenuation.x;
 				}
+				*/
 			}
-			//float	screenEdgeFactor = 1;
-			//screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
-			//screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
 				
 			sampleUV = curUV.xy + poissonDisk[j] * sampleRotation * (0.1 * Frag.Material.Roughness + 0.0001); //Offset sampling to look around a bit
 		}

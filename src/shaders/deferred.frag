@@ -192,6 +192,18 @@ float	randomAngle(in vec3 seed, in float freq)
 	return random(seed, freq) * 6.283285;
 }
 
+vec4	texelFetchLod(in sampler2D tex, in ivec2 uv, in int value)
+{
+#ifdef textureQueryLevels
+	int maxLOD = textureQueryLevels(tex);
+#else
+	//Try to guess the max LOD
+	ivec2	texRes = textureSize(tex, 0);
+	int	maxLOD = int(log2(max(texRes.x, texRes.y)));
+#endif
+	return texelFetch(tex, uv, value * maxLOD);
+}
+
 vec4	sampleLod(in samplerCube tex, in vec3 uv, in float value)
 {
 #ifdef textureQueryLevels
