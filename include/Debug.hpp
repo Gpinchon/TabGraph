@@ -14,10 +14,11 @@
 #include "GLIncludes.hpp"
 #include <iostream>
 
-#define _debugStream(func, line) std::cerr << func << " at line [" << line << "] : "
+#define consoleLog(message) std::cout << __DATE__ << __TIME__ << " | " << message << std::endl;
+
 #ifdef DEBUG_MOD
+#define _debugStream(func, line) std::cerr << __DATE__ << __TIME__ << func << " at line [" << line << "] | "
 #define debugLog(message) _debugStream(__PRETTY_FUNCTION__, __LINE__) << message << std::endl;
-#define consoleLog(message) debugLog(message)
 #define glCheckError() _glCheckError(__PRETTY_FUNCTION__, __LINE__)
 inline auto _glCheckError(const char *func, const int line)
 {
@@ -43,7 +44,6 @@ inline auto _glCheckError(const char *func, const int line)
 }
 #else
 #define debugLog(message)
-#define consoleLog(message) _debugStream(__PRETTY_FUNCTION__, __LINE__) << message << std::endl;
 inline auto glCheckError()
 {
 	return (GL_NO_ERROR);

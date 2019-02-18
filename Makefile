@@ -155,7 +155,6 @@ INCLUDE		+=	$(addprefix -I, $(SHADERS_PATH))
 CXXFLAGS	=	-std=c++17 -Wall -Wextra -Werror $(INCLUDE)
 DBGFLAGS	=	-DDEBUG_MOD -g
 RELFLAGS	=	-Ofast
-LINKFLAGS	=	-Wl,--allow-multiple-definition
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -165,7 +164,6 @@ ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
 TEST		=	Scop.exe
 LIBS		=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lz -Wl,-Bdynamic $(addprefix -L , $(LIBDIR)) -lvml -lmingw32 -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
-LINKFLAGS	=	#-Wl,--allow-multiple-definition
 CXXFLAGS	=	-std=c++1z -Wall -Wextra -Werror $(INCLUDE)
 else ifeq ($(shell uname -s), Darwin)
 LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
@@ -212,8 +210,8 @@ info:
 	@echo $(SHADERS)
 
 tests: release debug $(RELOBJ_TEST) $(DBGOBJ_TEST) $(BUILD_RES_FILES)
-	$(CC) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_TEST) $(LINKFLAGS) -L $(RELBUILD_PATH) -lTabGraph $(LIBS) -o $(TEST_PATH)Scop.exe
-	$(CC) $(CXXFLAGS) $(DBGFLAGS) $(DBGOBJ_TEST) $(LINKFLAGS) -L $(DBGBUILD_PATH) -lTabGraph $(LIBS) -o $(TEST_PATH)ScopD.exe
+	$(CC) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_TEST) -L $(RELBUILD_PATH) -lTabGraph $(LIBS) -o $(TEST_PATH)Scop.exe
+	$(CC) $(CXXFLAGS) $(DBGFLAGS) $(DBGOBJ_TEST) -L $(DBGBUILD_PATH) -lTabGraph $(LIBS) -o $(TEST_PATH)ScopD.exe
 
 ./libs/vml/libvml.a :
 	$(MAKE) -C ./libs/vml/
