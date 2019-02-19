@@ -20,11 +20,29 @@ vec3	UVFromPosition(in vec3 position)
 	return (projectedPosition.xyz);
 }
 
+/*
+vec2	UVSamplingAttenuation = smoothstep(vec2(0.05), vec2(0.1), sampleUV.xy) * (1 - smoothstep(vec2(0.95),vec2 (1), sampleUV.xy));
+UVSamplingAttenuation.x *= UVSamplingAttenuation.y;
+if (UVSamplingAttenuation.x > 0)
+{
+	UVSamplingAttenuation.x = clamp(UVSamplingAttenuation.x, 0, 1);
+	ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb * UVSamplingAttenuation.x; //Sample last image color and accumulate it
+	ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb * UVSamplingAttenuation.x; //LastEmitting is already blurred
+	ret.w += UVSamplingAttenuation.x;
+}
+*/
+
 vec4	SSR()
 {
 	vec3	V = normalize(Frag.Position - Camera.Position);
 	vec3	R = reflect(V, Frag.Normal);
-	float	curLength = 0.5;
+	vec3	RSDirs[REFLEXION_SAMPLES];
+
+	for (uint i = 0; i < REFLEXION_SAMPLES; i++) {
+		vec2 offset = poissonDisk[i] * (0.1 * Frag.Material.Roughness + 0.0001);
+		RSDirs[i] = R + vec3(offset.x, offset.y, offset.x * offset.y);
+	}
+	float	curLength = 0.25;
 	vec4	ret = vec4(0);
 	float	hits = 0;
 	float CameraFacingReflectionAttenuation = 1 - smoothstep(0.25, 0.5, dot(-V, R));
@@ -43,6 +61,23 @@ vec4	SSR()
 		vec2	sampleRotation = vec2(c, -s);
 		for (uint j = 0; j < REFLEXION_SAMPLES; j++)
 		{
+			curUV = UVFromPosition(RSDirs[i] * curLength + Frag.Position);
+			sampleDepth = texture(LastDepth, curUV.xy).r;
+			if (abs(curUV.z - sampleDepth) <= 0.05)
+			{
+				float	screenEdgeFactor = 1;
+				screenEdgeFactor -= smoothstep(0, 1, pow(abs(curUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
+				screenEdgeFactor -= smoothstep(0, 1, pow(abs(curUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
+				if (screenEdgeFactor > 0)
+				{
+					hits++;
+					screenEdgeFactor = clamp(screenEdgeFactor, 0, 1);
+					ret.xyz += sampleLod(LastColor, curUV.xy, Frag.Material.Roughness * 2).rgb * screenEdgeFactor; //Sample last image color and accumulate it
+					ret.xyz += sampleLod(LastEmitting, curUV.xy, Frag.Material.Roughness).rgb * screenEdgeFactor; //LastEmitting is already blurred
+					ret.w += screenEdgeFactor;
+				}
+			}
+			/*
 			//Don't check if sampleUV is offscreen, this would result in even more branching code and hurt performances
 			sampleDepth = texture(LastDepth, sampleUV.xy).r; //Get depth value at pixel
 			//If current step behind ZBuffer or at "almost" same depth, accept as valid reflexion (avoids holes)
@@ -60,21 +95,9 @@ vec4	SSR()
 					ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb * screenEdgeFactor; //LastEmitting is already blurred
 					ret.w += screenEdgeFactor;
 				}
-
-				/*
-				vec2	UVSamplingAttenuation = smoothstep(vec2(0.05), vec2(0.1), sampleUV.xy) * (1 - smoothstep(vec2(0.95),vec2 (1), sampleUV.xy));
-				UVSamplingAttenuation.x *= UVSamplingAttenuation.y;
-				if (UVSamplingAttenuation.x > 0)
-				{
-					UVSamplingAttenuation.x = clamp(UVSamplingAttenuation.x, 0, 1);
-					ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb * UVSamplingAttenuation.x; //Sample last image color and accumulate it
-					ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb * UVSamplingAttenuation.x; //LastEmitting is already blurred
-					ret.w += UVSamplingAttenuation.x;
-				}
-				*/
 			}
-				
 			sampleUV = curUV.xy + poissonDisk[j] * sampleRotation * (0.05 * Frag.Material.Roughness + 0.0001); //Offset sampling to look around a bit
+			*/
 		}
 		curLength = length(Frag.Position - Position(curUV.xy, sampleDepth)); //Advance in ray marching proportionaly to current point's distance (make sure you don't miss anything)
 	}
