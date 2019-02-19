@@ -24,10 +24,10 @@ vec4	SSR()
 {
 	vec3	V = normalize(Frag.Position - Camera.Position);
 	vec3	R = reflect(V, Frag.Normal);
-	float	curLength = 0.25;
+	float	curLength = 0.5;
 	vec4	ret = vec4(0);
 	float	hits = 0;
-	float CameraFacingReflectionAttenuation = 1 - smoothstep(0.0, 0.01, dot(-V, R));
+	float CameraFacingReflectionAttenuation = 1 - smoothstep(0.25, 0.5, dot(-V, R));
 	if (CameraFacingReflectionAttenuation <= 0)
 		return (vec4(0));
 
@@ -41,13 +41,12 @@ vec4	SSR()
 		float	s = sin(sampleAngle);
 		float	c = cos(sampleAngle);
 		vec2	sampleRotation = vec2(c, -s);
-		bool	onScreen = sampleUV.x >= 0 && sampleUV.x <= 1 && sampleUV.y >= 0 && sampleUV.y <= 1;
-		for (uint j = 0; onScreen && j < REFLEXION_SAMPLES; j++)
+		for (uint j = 0; j < REFLEXION_SAMPLES; j++)
 		{
 			//Don't check if sampleUV is offscreen, this would result in even more branching code and hurt performances
 			sampleDepth = texture(LastDepth, sampleUV.xy).r; //Get depth value at pixel
 			//If current step behind ZBuffer or at "almost" same depth, accept as valid reflexion (avoids holes)
-			if (abs(curUV.z - sampleDepth) <= 0.01/*  || curUV.z >= sampleDepth */)
+			if (abs(curUV.z - sampleDepth) <= 0.01)
 			{
 				hits++;
 
@@ -75,7 +74,7 @@ vec4	SSR()
 				*/
 			}
 				
-			sampleUV = curUV.xy + poissonDisk[j] * sampleRotation * (0.1 * Frag.Material.Roughness + 0.0001); //Offset sampling to look around a bit
+			sampleUV = curUV.xy + poissonDisk[j] * sampleRotation * (0.05 * Frag.Material.Roughness + 0.0001); //Offset sampling to look around a bit
 		}
 		curLength = length(Frag.Position - Position(curUV.xy, sampleDepth)); //Advance in ray marching proportionaly to current point's distance (make sure you don't miss anything)
 	}
