@@ -20,6 +20,13 @@ vec3	UVFromPosition(in vec3 position)
 	return (projectedPosition.xyz);
 }
 
+vec3	DirectionFromVec2(in vec2 perturbation)
+{
+	mat3	tbn = tbn_matrix();
+	vec3	new_normal = vec3(perturbation, 1) * tbn;
+	return (new_normal);
+}
+
 /*
 vec2	UVSamplingAttenuation = smoothstep(vec2(0.05), vec2(0.1), sampleUV.xy) * (1 - smoothstep(vec2(0.95),vec2 (1), sampleUV.xy));
 UVSamplingAttenuation.x *= UVSamplingAttenuation.y;
@@ -36,12 +43,14 @@ vec4	SSR()
 {
 	vec3	V = normalize(Frag.Position - Camera.Position);
 	vec3	R = reflect(V, Frag.Normal);
-	bool	intersected[REFLEXION_SAMPLES];
-	vec2	RSPoisson[REFLEXION_SAMPLES];
+	//bool	intersected[REFLEXION_SAMPLES];
+	vec3	RSPoisson[REFLEXION_SAMPLES];
 
+	float	sampleAngle = randomAngle(Frag.Position, 1024);
+	vec2	sampleRotation = vec2(cos(sampleAngle), -sin(sampleAngle));
 	for (uint i = 0; i < REFLEXION_SAMPLES; i++) {
-		RSPoisson[i] = poissonDisk[i] * (Frag.Material.Roughness + 0.0001);
-		intersected[i] = false;
+		RSPoisson[i] = DirectionFromVec2(poissonDisk[i] * sampleRotation) * (0.1 * Frag.Material.Roughness + 0.0001);
+		//intersected[i] = false;
 	}
 	
 	/*
@@ -66,20 +75,18 @@ vec4	SSR()
 		vec3	curUV = UVFromPosition(curPos); //Compute step's screen coordinates
 		if (curUV.z >= 1)
 			break ;
-		float	sampleAngle = randomAngle(curPos, 1024);
-		vec2	sampleRotation = vec2(cos(sampleAngle), -sin(sampleAngle));
+		
 		bool	allRaysIntersected = true;
 		for (uint j = 0; j < REFLEXION_SAMPLES; j++)
 		{
-			vec2	offset = RSPoisson[j] * sampleRotation;
-			vec3	RSDir = R + vec3(offset.x, offset.y, offset.x * offset.y);
-			vec3	sampleUV = UVFromPosition(RSDir * curLength + Frag.Position);
+			vec3	RSDir = R + RSPoisson[j];
+			vec3	sampleUV = UVFromPosition(normalize(RSDir) * curLength + Frag.Position);
 			if (sampleUV.z >= 1)
 				break;
 			//if (intersected[j])
 			//	continue;
 			float sampleDepth = texture(LastDepth, sampleUV.xy).r;
-			if (abs(sampleUV.z - sampleDepth) <= 0.01)
+			if (abs(sampleUV.z - sampleDepth) <= 0.05)
 			{
 				float	screenEdgeFactor = 1;
 				//vec2	UVSamplingAttenuation = smoothstep(0.05, 0.1, sampleUV.xy) * (1 - smoothstep(0.95, 1.0, sampleUV.xy));
@@ -89,9 +96,10 @@ vec4	SSR()
 				if (screenEdgeFactor > 0)
 				{
 					hits++;
-					intersected[j] = true;
-					allRaysIntersected = allRaysIntersected && intersected[j];
+				//	intersected[j] = true;
+				//	allRaysIntersected = allRaysIntersected && intersected[j];
 					screenEdgeFactor = clamp(screenEdgeFactor, 0, 1);
+					screenEdgeFactor *= max(0, dot(RSDir, R));
 					ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb * screenEdgeFactor; //Sample last image color and accumulate it
 					ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb * screenEdgeFactor; //LastEmitting is already blurred
 					ret.w += screenEdgeFactor;
@@ -105,7 +113,7 @@ vec4	SSR()
 	}
 	if (hits > 0) {
 		ret /= hits; //Compute average color and attenuation
-		ret.w *= CameraFacingReflectionAttenuation;
+		ret.w *= CameraFacingReflectionAttenuation * dot(R, V);
 	}
 	return (ret);
 }

@@ -181,6 +181,17 @@ vec2	BRDF(in float NdV, in float Roughness)
 	return (texture(Texture.BRDF, vec2(NdV, Frag.Material.Roughness)).xy);
 }
 
+mat3x3	tbn_matrix()
+{
+	vec3 Q1 = dFdx(Frag.Position);
+	vec3 Q2 = dFdy(Frag.Position);
+	vec2 st1 = dFdx(Frag.UV);
+	vec2 st2 = dFdy(Frag.UV);
+	vec3 T = normalize(Q1*st2.t - Q2*st1.t);
+	vec3 B = normalize(-Q1*st2.s + Q2*st1.s);
+	return(transpose(mat3(T, B, Frag.Normal)));
+}
+
 float	random(in vec3 seed, in float freq)
 {
 	float dt = dot(floor(seed * freq), vec3(53.1215, 21.1352, 9.1322));
