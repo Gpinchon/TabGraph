@@ -24,7 +24,7 @@ vec3	DirectionFromVec2(in vec2 perturbation)
 {
 	mat3	tbn = tbn_matrix();
 	vec3	new_normal = vec3(perturbation, 1) * tbn;
-	return (new_normal);
+	return normalize(new_normal);
 }
 
 /*
@@ -47,46 +47,79 @@ vec2 rotateUV(vec2 uv, float rotation, vec2 mid)
     );
 }
 
+/* vec3 rotateVec3()
+{
+	vec3 A, B;
+
+	vec3 R; // rotation axis (normalized)
+
+	vec3 A_r   = R * dot(A, R); // component of A, in the direction of R
+	vec3 A_prj = A - A_r;       // component of A, in the rotation plane
+
+	vec3 B_r   = R * dot(B, R); // component of B, in the direction of R
+	vec3 B_prj = B - B_r;       // component of B, in the rotation plane
+
+	vec3 AB    = length(A_prj) * normalize(B_prj) + A_r;
+}
+ */
 vec4	SSR()
 {
 	vec3	V = normalize(Frag.Position - Camera.Position);
 	vec3	R = reflect(V, Frag.Normal);
-	float	curLength = 0.25 * (1 - Frag.Depth);
+	int		sampleNbr = REFLEXION_SAMPLES + 1;
+	vec3	RSDirs[REFLEXION_SAMPLES + 1];
+
+	RSDirs[0] = R;
+	for (uint i = 0; i < sampleNbr; i++) {
+		//vec2 offset = poissonDisk[i % 9] * (Frag.Material.Roughness + 0.0001);
+		vec3	n = DirectionFromVec2(poissonDisk[i % 9] * (0.1 * Frag.Material.Roughness + 0.0001));
+		RSDirs[i] = reflect(V, n);
+		/* RSDirs[i] = R + vec3(offset.x, offset.y, offset.x * offset.y);
+		RSDirs[i] = normalize(RSDirs[i]); */
+	}
+	float	curLength = 0.5;
 	vec4	ret = vec4(0);
 	float	hits = 0;
+	//float CameraFacingReflectionAttenuation = 1 - smoothstep(0.25, 0.5, dot(-V, R));
+	//if (CameraFacingReflectionAttenuation <= 0)
+	//	return (vec4(0));
 
 	for (uint i = 0; i < REFLEXION_STEPS; i++)
 	{
 		vec3	curPos = R * curLength + Frag.Position; //Calculate current step's position
 		vec3	curUV = UVFromPosition(curPos); //Compute step's screen coordinates
-		if (curUV.z >= 1)
-			break;
-		vec2	sampleUV = curUV.xy;
-		float	sampleDepth = 0;
+		float	curDepth = texture(LastDepth, curUV.xy).r;
 		float	sampleAngle = randomAngle(curPos, 1024);
-		for (uint j = 0; j < REFLEXION_SAMPLES; j++)
+		if (curUV.z > 1)
+			break;
+		for (uint j = 0; j < sampleNbr; j++)
 		{
-			sampleDepth = texture(LastDepth, sampleUV.xy).r; //Get precise depth value at pixel
-			//Don't check if sampleUV is offscreen, this would result in even more branching code and hurt performances
-			//If current step behind ZBuffer or at "almost" same depth, accept as valid reflexion (avoids holes)
-			if (sampleDepth < 1 && abs(curUV.z - sampleDepth) <= 0.01 || curUV.z >= sampleDepth)
+			vec3	sampleUV = UVFromPosition(RSDirs[j] * curLength + Frag.Position);
+			sampleUV.xy = rotateUV(sampleUV.xy, sampleAngle, curUV.xy);
+			float	sampleDepth = texture(LastDepth, sampleUV.xy).r;
+			if (sampleDepth < 1 && sampleUV.z > sampleDepth && abs(sampleUV.z - sampleDepth) <= 0.00025)
 			{
-				ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb; //Sample last image color and accumulate it
-				//ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb; //LastEmitting is already blurred
 				float	screenEdgeFactor = 1;
 				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
 				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
-				ret.w += max(0, screenEdgeFactor);
-				hits++;
+				screenEdgeFactor *= max(0, dot(RSDirs[j], V)) * max(0, dot(RSDirs[j], R));
+				if (screenEdgeFactor > 0)
+				{
+					hits++;
+					screenEdgeFactor = clamp(screenEdgeFactor, 0, 1);
+					ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb * screenEdgeFactor; //Sample last image color and accumulate it
+					ret.xyz += sampleLod(LastEmitting, sampleUV.xy, Frag.Material.Roughness).rgb * screenEdgeFactor; //LastEmitting is already blurred
+					ret.w += screenEdgeFactor;
+				}
 			}
-			sampleUV = curUV.xy + poissonDisk[j] * (0.1 * Frag.Material.Roughness + 0.0001); //Offset sampling to look around a bit
-			sampleUV.xy = rotateUV(sampleUV.xy, sampleAngle, curUV.xy);
 		}
-		curLength = length(Frag.Position - Position(curUV.xy, sampleDepth)); //Advance in ray marching proportionaly to current point's distance (make sure you don't miss anything)
+		curLength = length(Frag.Position - Position(curUV.xy, curDepth)); //Advance in ray marching proportionaly to current point's distance (make sure you don't miss anything)
+		//curLength += curLength;
+		//curLength = length(Frag.Position - Position(curUV.xy, sampleDepth)); //Advance in ray marching proportionaly to current point's distance (make sure you don't miss anything)
 	}
 	if (hits > 0) {
 		ret /= hits; //Compute average color and attenuation
-		ret.w *= dot(R, V);
+		//ret.w *= CameraFacingReflectionAttenuation;
 	}
 	return (ret);
 }
