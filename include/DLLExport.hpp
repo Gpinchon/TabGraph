@@ -19,8 +19,8 @@
 #ifdef USE_HIGH_PERFORMANCE_GPU
 
 extern "C" {
-	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
-	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 
 #endif //USE_HIGH_PERFORMANCE_GPU

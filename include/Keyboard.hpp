@@ -12,20 +12,20 @@
 
 #pragma once
 
-#include "InputDevice.hpp"
 #include "Events.hpp"
+#include "InputDevice.hpp"
 
-typedef void	(*keyboard_callback)(SDL_KeyboardEvent *event);
+typedef void (*keyboard_callback)(SDL_KeyboardEvent* event);
 
-class Keyboard : InputDevice
-{
+class Keyboard : InputDevice {
 public:
-	static Uint8	key(SDL_Scancode);
-	static void		set_callback(SDL_Scancode key, keyboard_callback callback);
-	void			process_event(SDL_Event *);
+    static Uint8 key(SDL_Scancode);
+    static void set_callback(SDL_Scancode key, keyboard_callback callback);
+    void process_event(SDL_Event*);
+
 private:
-	static Keyboard	&_get();
-	static Keyboard	*_instance;
-	std::map<SDL_Scancode, keyboard_callback>	_callbacks;
-	Keyboard();
+    static Keyboard& _get();
+    static Keyboard* _instance;
+    std::map<SDL_Scancode, keyboard_callback> _callbacks;
+    Keyboard();
 };

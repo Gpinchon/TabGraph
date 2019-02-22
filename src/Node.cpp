@@ -10,149 +10,147 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Engine.hpp"
 #include "Node.hpp"
+#include "Engine.hpp"
 
-std::vector<std::shared_ptr<Node>>	Node::_nodes;
+std::vector<std::shared_ptr<Node>> Node::_nodes;
 
-Node::Node(const std::string &name) : Object(name) /*parent(nullptr),  bounding_element(nullptr), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))*/
+Node::Node(const std::string& name)
+    : Object(name) /*parent(nullptr),  bounding_element(nullptr), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))*/
 {
 }
 
-std::shared_ptr<Node>	Node::create(const std::string &name, VEC3 position, VEC3 rotation, VEC3 scale)
+std::shared_ptr<Node> Node::create(const std::string& name, VEC3 position, VEC3 rotation, VEC3 scale)
 {
-	auto	t = std::shared_ptr<Node>(new Node(name));
-	t->_position = position;
-	t->_rotation = rotation;
-	t->_scaling = scale;
-	//t->_transform = new_transform(position, rotation, scale, UP);
-	t->update();
-	add(t);
-	return (t);
+    auto t = std::shared_ptr<Node>(new Node(name));
+    t->_position = position;
+    t->_rotation = rotation;
+    t->_scaling = scale;
+    //t->_transform = new_transform(position, rotation, scale, UP);
+    t->update();
+    add(t);
+    return (t);
 }
 
-std::shared_ptr<Node>	Node::get_by_name(const std::string &name)
+std::shared_ptr<Node> Node::get_by_name(const std::string& name)
 {
-	for (auto n : _nodes) {
-		if (name == n->name())
-			return (n);
-	}
-	return (nullptr);
+    for (auto n : _nodes) {
+        if (name == n->name())
+            return (n);
+    }
+    return (nullptr);
 }
 
-std::shared_ptr<Node>	Node::get(unsigned index)
+std::shared_ptr<Node> Node::get(unsigned index)
 {
-	if (index >= _nodes.size())
-		return (nullptr);
-	return (_nodes.at(index));
+    if (index >= _nodes.size())
+        return (nullptr);
+    return (_nodes.at(index));
 }
 
-std::shared_ptr<Node>	Node::shared_from_this()
+std::shared_ptr<Node> Node::shared_from_this()
 {
-	return (std::static_pointer_cast<Node>(Object::shared_from_this()));
+    return (std::static_pointer_cast<Node>(Object::shared_from_this()));
 }
 
-void					Node::add(std::shared_ptr<Node> node)
+void Node::add(std::shared_ptr<Node> node)
 {
-	_nodes.push_back(node);
+    _nodes.push_back(node);
 }
 
-void					Node::transform_update()
+void Node::transform_update()
 {
-	_translate = mat4_translate(_position);
-	_rotate = mat4_rotation(_rotation);
-	_scale = mat4_scale(_scaling);
-	_transform = mat4_combine(_translate, _rotate, _scale);
-	auto	parentPtr = parent();
-	if (parentPtr != nullptr) {
-		parentPtr->transform_update();
-		_transform = mat4_mult_mat4(parentPtr->transform(), _transform);
-	}
+    _translate = mat4_translate(_position);
+    _rotate = mat4_rotation(_rotation);
+    _scale = mat4_scale(_scaling);
+    _transform = mat4_combine(_translate, _rotate, _scale);
+    auto parentPtr = parent();
+    if (parentPtr != nullptr) {
+        parentPtr->transform_update();
+        _transform = mat4_mult_mat4(parentPtr->transform(), _transform);
+    }
 }
 
-void					Node::fixed_update()
+void Node::fixed_update()
 {
-	
 }
 
-void					Node::update()
+void Node::update()
 {
-
 }
 
-void	Node::add_child(std::shared_ptr<Node> childNode)
+void Node::add_child(std::shared_ptr<Node> childNode)
 {
-	if (childNode == shared_from_this()) {
-		return ;
-	}
-	_children.push_back(childNode);
-	childNode->set_parent(shared_from_this());
+    if (childNode == shared_from_this()) {
+        return;
+    }
+    _children.push_back(childNode);
+    childNode->set_parent(shared_from_this());
 }
 
-std::shared_ptr<Node>	Node::target()
+std::shared_ptr<Node> Node::target()
 {
-	return (_target.lock());
+    return (_target.lock());
 }
 
-void					Node::set_target(std::shared_ptr<Node> tgt)
+void Node::set_target(std::shared_ptr<Node> tgt)
 {
-	_target = tgt;
+    _target = tgt;
 }
 
-std::shared_ptr<Node>	Node::parent()
+std::shared_ptr<Node> Node::parent()
 {
-	return (_parent.lock());
+    return (_parent.lock());
 }
 
 /*
 ** /!\ BEWARE OF THE BIG BAD LOOP !!! /!\
 */
-void					Node::set_parent(std::shared_ptr<Node> prt)
+void Node::set_parent(std::shared_ptr<Node> prt)
 {
-	if (prt == shared_from_this() || _parent.lock() == prt) {
-		return ;
-	}
-	_parent = prt;
-	prt->add_child(shared_from_this());
+    if (prt == shared_from_this() || _parent.lock() == prt) {
+        return;
+    }
+    _parent = prt;
+    prt->add_child(shared_from_this());
 }
 
-
-VEC3	&Node::up()
+VEC3& Node::up()
 {
-	return (_up);
+    return (_up);
 }
 
-VEC3	&Node::position()
+VEC3& Node::position()
 {
-	return (_position);
+    return (_position);
 }
 
-VEC3	&Node::rotation()
+VEC3& Node::rotation()
 {
-	return (_rotation);
+    return (_rotation);
 }
 
-VEC3	&Node::scaling()
+VEC3& Node::scaling()
 {
-	return (_scaling);
+    return (_scaling);
 }
 
-MAT4	&Node::transform()
+MAT4& Node::transform()
 {
-	return (_transform);
+    return (_transform);
 }
 
-MAT4	&Node::translate()
+MAT4& Node::translate()
 {
-	return (_translate);
+    return (_translate);
 }
 
-MAT4	&Node::rotate()
+MAT4& Node::rotate()
 {
-	return (_rotate);
+    return (_rotate);
 }
 
-MAT4	&Node::scale()
+MAT4& Node::scale()
 {
-	return (_scale);
+    return (_scale);
 }

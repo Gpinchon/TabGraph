@@ -17,7 +17,6 @@
 /*
 ** .MTLLIB parsing interface
 */
-namespace	MTLLIB
-{
-	bool parse(const std::string &path);
+namespace MTLLIB {
+bool parse(const std::string& path);
 };

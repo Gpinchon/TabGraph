@@ -16,25 +16,25 @@
 
 class Vgroup;
 
-class	Mesh : public Renderable
-{
+class Mesh : public Renderable {
 public:
-	static std::shared_ptr<Mesh>	create(const std::string &);
-	static std::shared_ptr<Mesh>	get_by_name(const std::string &);
-	static std::shared_ptr<Mesh>	get(unsigned index);
-	static void						add(std::shared_ptr<Mesh>);
-    void							load();
-	bool							render(RenderMod mod = RenderAll);
-	bool							render_depth(RenderMod mod = RenderAll);
-	void							center();
-	void							set_cull_mod(GLenum);
-	void							add(std::shared_ptr<Vgroup>);
-	std::shared_ptr<Vgroup>			vgroup(unsigned index);
+    static std::shared_ptr<Mesh> create(const std::string&);
+    static std::shared_ptr<Mesh> get_by_name(const std::string&);
+    static std::shared_ptr<Mesh> get(unsigned index);
+    static void add(std::shared_ptr<Mesh>);
+    void load();
+    bool render(RenderMod mod = RenderAll);
+    bool render_depth(RenderMod mod = RenderAll);
+    void center();
+    void set_cull_mod(GLenum);
+    void add(std::shared_ptr<Vgroup>);
+    std::shared_ptr<Vgroup> vgroup(unsigned index);
+
 private:
-	Mesh(const std::string &name);
-	static std::vector<std::shared_ptr<Mesh>>	_meshes;
-	std::vector<std::weak_ptr<Vgroup>>		_vgroups;
-	GLenum							_cull_mod{GL_BACK};
+    Mesh(const std::string& name);
+    static std::vector<std::shared_ptr<Mesh>> _meshes;
+    std::vector<std::weak_ptr<Vgroup>> _vgroups;
+    GLenum _cull_mod { GL_BACK };
 };
 
-bool	alpha_compare(Renderable	*m, Renderable *m1);
+bool alpha_compare(Renderable* m, Renderable* m1);

@@ -14,9 +14,9 @@
 
 #include "BoundingElement.hpp"
 
-class	AABB : public BoundingElement
-{
-public :
-	AABB() : BoundingElement() {};
-	bool	collides(const BoundingElement &) { return (false); };
+class AABB : public BoundingElement {
+public:
+    AABB()
+        : BoundingElement() {};
+    bool collides(const BoundingElement&) { return (false); };
 };

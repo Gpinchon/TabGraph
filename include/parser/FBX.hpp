@@ -13,10 +13,10 @@
 #pragma once
 #include "Mesh.hpp"
 
-class	FBX : public Mesh
-{
+class FBX : public Mesh {
 public:
-	static void parseBin(const std::string &);
+    static void parseBin(const std::string&);
+
 private:
-	virtual void abstract() = 0;
+    virtual void abstract() = 0;
 };

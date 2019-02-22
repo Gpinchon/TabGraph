@@ -15,15 +15,15 @@
 #include "Texture.hpp"
 #include <vector>
 
-class TextureArray : public Texture
-{
-public :
-	static std::shared_ptr<TextureArray>	create(const std::string &name, VEC2 s, GLenum target, GLenum fi, unsigned capacity);
-	virtual void	set(std::shared_ptr<Texture>, int index);
-	//virtual int		add(Texture *texture);
-	virtual void	load();
-protected :
-	TextureArray(const std::string &name, VEC2 s, GLenum target, GLenum fi, unsigned capacity);
-	unsigned				_capacity{0};
-	std::vector<std::shared_ptr<Texture>>	_array;
+class TextureArray : public Texture {
+public:
+    static std::shared_ptr<TextureArray> create(const std::string& name, VEC2 s, GLenum target, GLenum fi, unsigned capacity);
+    virtual void set(std::shared_ptr<Texture>, int index);
+    //virtual int		add(Texture *texture);
+    virtual void load();
+
+protected:
+    TextureArray(const std::string& name, VEC2 s, GLenum target, GLenum fi, unsigned capacity);
+    unsigned _capacity { 0 };
+    std::vector<std::shared_ptr<Texture>> _array;
 };

@@ -17,7 +17,6 @@ class Texture;
 /*
 ** .HDR parsing interface
 */
-namespace HDR
-{
-	std::shared_ptr<Texture>	parse(const std::string &texture_name, const std::string &imagepath);
+namespace HDR {
+std::shared_ptr<Texture> parse(const std::string& texture_name, const std::string& imagepath);
 };

@@ -11,99 +11,100 @@
 /* ************************************************************************** */
 
 #include "ComputeObject.hpp"
-#include "Shader.hpp"
 #include "Debug.hpp"
+#include "Shader.hpp"
 
-ComputeObject::ComputeObject(const std::string &name) : Node(name) {}
-
-std::shared_ptr<ComputeObject>	ComputeObject::create(const std::string &name, std::shared_ptr<Shader> computeShader)
+ComputeObject::ComputeObject(const std::string& name)
+    : Node(name)
 {
-	int		workgroup_count[3];
-	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &workgroup_count[0]);
-	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &workgroup_count[1]);
-	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &workgroup_count[2]);
-	auto	obj = std::shared_ptr<ComputeObject>(new ComputeObject(name));
-	obj->_shader = computeShader;
-	obj->_num_groups = new_vec3(workgroup_count[0], workgroup_count[1], workgroup_count[2]);
-	Node::add(obj);
-	return (obj);
 }
 
-std::shared_ptr<Shader>			ComputeObject::shader()
+std::shared_ptr<ComputeObject> ComputeObject::create(const std::string& name, std::shared_ptr<Shader> computeShader)
 {
-	return (_shader.lock());
+    int workgroup_count[3];
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &workgroup_count[0]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &workgroup_count[1]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &workgroup_count[2]);
+    auto obj = std::shared_ptr<ComputeObject>(new ComputeObject(name));
+    obj->_shader = computeShader;
+    obj->_num_groups = new_vec3(workgroup_count[0], workgroup_count[1], workgroup_count[2]);
+    Node::add(obj);
+    return (obj);
 }
 
-void							ComputeObject::set_shader(std::shared_ptr<Shader> ishader)
+std::shared_ptr<Shader> ComputeObject::shader()
 {
-	_shader = ishader;
+    return (_shader.lock());
 }
 
-void							ComputeObject::load()
+void ComputeObject::set_shader(std::shared_ptr<Shader> ishader)
 {
-
+    _shader = ishader;
 }
 
-void							ComputeObject::run()
+void ComputeObject::load()
 {
-	auto	shaderPtr = shader();
-	auto	inTexturePtr = in_texture();
-	auto	outTexturePtr = out_texture();
-	if (shaderPtr == nullptr)
-		return ;
-	shaderPtr->use();
-	if (inTexturePtr == outTexturePtr) {
-		shaderPtr->bind_image("inout_data", inTexturePtr, 0, false, 0, GL_READ_WRITE, GL_TEXTURE0);
-	}
-	else {
-		shaderPtr->bind_image("in_data", inTexturePtr, 0, false, 0, GL_READ_ONLY, GL_TEXTURE0);
-		glCheckError();
-		shaderPtr->bind_image("out_data", outTexturePtr, 0, false, 0, GL_WRITE_ONLY, GL_TEXTURE1);
-		glCheckError();
-	}
-	glDispatchCompute(30, 40, 1);
-	glCheckError();
-	glMemoryBarrier(memory_barrier());
-	glCheckError();
-	shaderPtr->use(false);
 }
 
-std::shared_ptr<Texture>		ComputeObject::out_texture()
+void ComputeObject::run()
 {
-	return (_out_texture.lock());
+    auto shaderPtr = shader();
+    auto inTexturePtr = in_texture();
+    auto outTexturePtr = out_texture();
+    if (shaderPtr == nullptr)
+        return;
+    shaderPtr->use();
+    if (inTexturePtr == outTexturePtr) {
+        shaderPtr->bind_image("inout_data", inTexturePtr, 0, false, 0, GL_READ_WRITE, GL_TEXTURE0);
+    } else {
+        shaderPtr->bind_image("in_data", inTexturePtr, 0, false, 0, GL_READ_ONLY, GL_TEXTURE0);
+        glCheckError();
+        shaderPtr->bind_image("out_data", outTexturePtr, 0, false, 0, GL_WRITE_ONLY, GL_TEXTURE1);
+        glCheckError();
+    }
+    glDispatchCompute(30, 40, 1);
+    glCheckError();
+    glMemoryBarrier(memory_barrier());
+    glCheckError();
+    shaderPtr->use(false);
 }
 
-void							ComputeObject::set_out_texture(std::shared_ptr<Texture> itexture)
+std::shared_ptr<Texture> ComputeObject::out_texture()
 {
-	_out_texture = itexture;
+    return (_out_texture.lock());
 }
 
-std::shared_ptr<Texture>		ComputeObject::in_texture()
+void ComputeObject::set_out_texture(std::shared_ptr<Texture> itexture)
 {
-	return (_in_texture.lock());
+    _out_texture = itexture;
 }
 
-void							ComputeObject::set_in_texture(std::shared_ptr<Texture> itexture)
+std::shared_ptr<Texture> ComputeObject::in_texture()
 {
-	_in_texture = itexture;
+    return (_in_texture.lock());
 }
 
-GLbitfield						ComputeObject::memory_barrier()
+void ComputeObject::set_in_texture(std::shared_ptr<Texture> itexture)
 {
-	return (_memory_barrier);
+    _in_texture = itexture;
 }
 
-void							ComputeObject::set_memory_barrier(GLbitfield barrier)
+GLbitfield ComputeObject::memory_barrier()
 {
-	_memory_barrier = barrier;
+    return (_memory_barrier);
 }
 
-VEC3							ComputeObject::num_groups()
+void ComputeObject::set_memory_barrier(GLbitfield barrier)
 {
-	return (_num_groups);
+    _memory_barrier = barrier;
 }
 
-void							ComputeObject::set_num_groups(VEC3 groups)
+VEC3 ComputeObject::num_groups()
 {
-	_num_groups = groups;
+    return (_num_groups);
+}
+
+void ComputeObject::set_num_groups(VEC3 groups)
+{
+    _num_groups = groups;
 }

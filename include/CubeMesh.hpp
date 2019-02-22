@@ -14,7 +14,6 @@
 
 #include "Mesh.hpp"
 
-namespace CubeMesh
-{
-	std::shared_ptr<Mesh>	create(const std::string &name, VEC3 size);
+namespace CubeMesh {
+std::shared_ptr<Mesh> create(const std::string& name, VEC3 size);
 };

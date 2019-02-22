@@ -13,9 +13,9 @@
 #pragma once
 
 #include "GLIncludes.hpp"
-#include <vector>
 #include <memory>
 #include <string>
+#include <vector>
 /*#include <iostream>
 #include <memory>
 #include <string>*/
@@ -25,15 +25,16 @@
 ** ALWAYS STORE IN A SHARED_PTR !!!
 */
 
-class Object : public std::enable_shared_from_this<Object>
-{
+class Object : public std::enable_shared_from_this<Object> {
 public:
-	const std::string	&name();
-	void				set_name(const std::string &name);
-protected :
-	Object();
-	Object(const std::string &name);
+    const std::string& name();
+    void set_name(const std::string& name);
+
+protected:
+    Object();
+    Object(const std::string& name);
+
 private:
-	std::string	_name;
-	static std::vector<std::shared_ptr<Object>> _objects;
+    std::string _name;
+    static std::vector<std::shared_ptr<Object>> _objects;
 };

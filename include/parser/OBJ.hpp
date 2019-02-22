@@ -19,7 +19,6 @@ class Mesh;
 /*
 ** .OBJ parsing interface
 */
-namespace	OBJ
-{
-	std::shared_ptr<Mesh>	parse(const std::string &, const std::string &);
+namespace OBJ {
+std::shared_ptr<Mesh> parse(const std::string&, const std::string&);
 };

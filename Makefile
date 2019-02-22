@@ -218,6 +218,9 @@ tests: release debug $(RELOBJ_TEST) $(DBGOBJ_TEST) $(BUILD_RES_FILES)
 tidy:
 	clang-tidy $(SRC) -checks=* -- $(CXXFLAGS) $(INCLUDE_PATH)
 
+format:
+	clang-format -i -style=WebKit $(SRC) $(HEADERS)
+
 pull:
 	git pull
 	git submodule update --init --recursive

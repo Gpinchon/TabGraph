@@ -12,32 +12,32 @@
 
 #include "Keyboard.hpp"
 
-Keyboard	*Keyboard::_instance = new Keyboard();
+Keyboard* Keyboard::_instance = new Keyboard();
 
 Keyboard::Keyboard()
 {
-	Events::add(this, SDL_KEYUP);
-	Events::add(this, SDL_KEYDOWN);
+    Events::add(this, SDL_KEYUP);
+    Events::add(this, SDL_KEYDOWN);
 }
 
-Keyboard	&Keyboard::_get()
+Keyboard& Keyboard::_get()
 {
-	return (*_instance);
+    return (*_instance);
 }
 
-Uint8		Keyboard::key(SDL_Scancode key)
+Uint8 Keyboard::key(SDL_Scancode key)
 {
-	return (SDL_GetKeyboardState(nullptr)[key]);
+    return (SDL_GetKeyboardState(nullptr)[key]);
 }
 
-void	Keyboard::set_callback(SDL_Scancode key, keyboard_callback callback)
+void Keyboard::set_callback(SDL_Scancode key, keyboard_callback callback)
 {
-	_get()._callbacks[key] = callback;
+    _get()._callbacks[key] = callback;
 }
 
-void	Keyboard::process_event(SDL_Event *event)
+void Keyboard::process_event(SDL_Event* event)
 {
-	auto	callback = _get()._callbacks.find(event->key.keysym.scancode);
-	if (callback != _get()._callbacks.end())
-		callback->second(&event->key);
+    auto callback = _get()._callbacks.find(event->key.keysym.scancode);
+    if (callback != _get()._callbacks.end())
+        callback->second(&event->key);
 }

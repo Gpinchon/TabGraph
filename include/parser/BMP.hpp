@@ -19,8 +19,7 @@ class Texture;
 /*
 ** .BMP parsing interface
 */
-namespace	BMP
-{
-	std::shared_ptr<Texture>	parse(const std::string &texture_name, const std::string &imagepath);
-	void						save(std::shared_ptr<Texture>, const std::string &);
+namespace BMP {
+std::shared_ptr<Texture> parse(const std::string& texture_name, const std::string& imagepath);
+void save(std::shared_ptr<Texture>, const std::string&);
 };

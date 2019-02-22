@@ -14,10 +14,10 @@
 
 #include "GLIncludes.hpp"
 
-class	InputDevice
-{
+class InputDevice {
 public:
-	virtual void	process_event(SDL_Event *) = 0;
+    virtual void process_event(SDL_Event*) = 0;
+
 protected:
-	InputDevice() = default;
+    InputDevice() = default;
 };

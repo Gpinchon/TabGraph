@@ -12,26 +12,26 @@
 
 #include "Object.hpp"
 
-std::vector<std::shared_ptr<Object>>	Object::_objects;
+std::vector<std::shared_ptr<Object>> Object::_objects;
 
 Object::Object()
 {
-	auto objectName = std::string("object_") + std::to_string(_objects.size());
-	auto object = std::shared_ptr<Object>(new Object(objectName));
-	_objects.push_back(object);
+    auto objectName = std::string("object_") + std::to_string(_objects.size());
+    auto object = std::shared_ptr<Object>(new Object(objectName));
+    _objects.push_back(object);
 }
 
-Object::Object(const std::string &name)
+Object::Object(const std::string& name)
 {
-	set_name(name);
+    set_name(name);
 }
 
-const std::string	&Object::name()
+const std::string& Object::name()
 {
-	return (_name);
+    return (_name);
 }
 
-void				Object::set_name(const std::string &name)
+void Object::set_name(const std::string& name)
 {
-	_name = name;
+    _name = name;
 }

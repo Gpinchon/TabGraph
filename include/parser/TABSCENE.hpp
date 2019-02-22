@@ -17,10 +17,10 @@
 /*
 ** TABSCENE parsing interface
 */
-class TABSCENE
-{
+class TABSCENE {
 public:
-	static void	parse(const std::string &path);
+    static void parse(const std::string& path);
+
 private:
-	virtual void abstract() = 0;
+    virtual void abstract() = 0;
 };

@@ -13,28 +13,28 @@
 #pragma once
 
 #include "GLIncludes.hpp"
-#include <set>
 #include <map>
+#include <set>
 
 #define EVENT_REFRESH 0
 
 class InputDevice;
 
-typedef void	(*t_callback)(SDL_Event *event);
+typedef void (*t_callback)(SDL_Event* event);
 
-class Events
-{
+class Events {
 public:
-	static void	add(InputDevice *device, SDL_EventType event_type);
-	static void	remove(InputDevice *device, SDL_EventType event_type);
-	static int	filter(void *e, SDL_Event *event);
-	static int	refresh(void);
-	static void	set_refresh_callback(t_callback callback);
-private :
-	static void	window(SDL_Event *event);
-	static Events	&_get();
-	static Events	*_instance;
-	t_callback		_rcallback{nullptr};
-	std::map<Uint32, std::set<InputDevice*>> _input_devices;
-	Events();
+    static void add(InputDevice* device, SDL_EventType event_type);
+    static void remove(InputDevice* device, SDL_EventType event_type);
+    static int filter(void* e, SDL_Event* event);
+    static int refresh(void);
+    static void set_refresh_callback(t_callback callback);
+
+private:
+    static void window(SDL_Event* event);
+    static Events& _get();
+    static Events* _instance;
+    t_callback _rcallback { nullptr };
+    std::map<Uint32, std::set<InputDevice*>> _input_devices;
+    Events();
 };
