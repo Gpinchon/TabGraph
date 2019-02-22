@@ -139,20 +139,17 @@ RELOBJ_TEST		=	$(addprefix $(RELOBJ_PATH), $(OBJ_TEST))
 DBGOBJ_TEST		=	$(addprefix $(DBGOBJ_PATH), $(OBJ_TEST))
 # Files Generation End #
 
-
-
-CC			=	g++
-
 INCLUDE_PATH	=	./include				\
 					./libs/vml/include
 
 LIBDIR		=	./libs/vml/
+LDFLAGS		+=	$(addprefix -L , $(LIBDIR))
 
 LIBFILES	=	./libs/vml/libvml.a
 
-INCLUDE		=	$(addprefix -I, $(INCLUDE_PATH))
-INCLUDE		+=	$(addprefix -I, $(SHADERS_PATH))
-CXXFLAGS	=	-std=c++17 -Wall -Wextra -Werror $(INCLUDE)
+CPPFLAGS	+=	$(addprefix -I, $(INCLUDE_PATH))
+CPPFLAGS	+=	$(addprefix -I, $(SHADERS_PATH))
+CXXFLAGS	+=	-std=c++17 -Wall -Wextra -Werror $(CPPFLAGS)
 DBGFLAGS	=	-DDEBUG_MOD -g
 RELFLAGS	=	-Ofast
 
@@ -162,15 +159,14 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-TEST		=	Scop.exe
-LIBS		=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lz -Wl,-Bdynamic $(addprefix -L , $(LIBDIR)) -lvml -lmingw32 -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
-CXXFLAGS	=	-std=c++1z -Wall -Wextra -Werror $(INCLUDE)
+LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lz -Wl,-Bdynamic $(LDFLAGS) -lvml -lmingw32 -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
-LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
-INCLUDE		=	$(addprefix -I, $(INCLUDE_PATH))
+LDLIBS		+=	$(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 else
-LIBS		=	$(addprefix -L , $(LIBDIR)) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
+LDLIBS		+=	$(LDFLAGS) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
+
+all: tests
 
 release: CXXFLAGS += $(RELFLAGS)
 release: $(RELBUILD_PATH)$(NAME)
@@ -183,7 +179,7 @@ $(RELBUILD_PATH)$(NAME) : $(LIBFILES) $(RELOBJ)
 $(RELOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
-	@($(CC) $(CXXFLAGS) -o $@ -c $<)
+	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
 debug: CXXFLAGS += $(DBGFLAGS)
@@ -197,7 +193,7 @@ $(DBGBUILD_PATH)$(NAME) : $(LIBFILES) $(DBGOBJ)
 $(DBGOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
-	@($(CC) $(CXXFLAGS) -o $@ -c $<)
+	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
 $(BUILD_RES_FILES): %: $(RES_FILES)
@@ -209,9 +205,12 @@ $(BUILD_RES_FILES): %: $(RES_FILES)
 info:
 	@echo $(SHADERS)
 
+depend:
+	makedepend -- $(CXXFLAGS) -- $(SRC)
+
 tests: release debug $(RELOBJ_TEST) $(DBGOBJ_TEST) $(BUILD_RES_FILES)
-	$(CC) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_TEST) -L $(RELBUILD_PATH) -lTabGraph $(LIBS) -o $(TEST_PATH)Scop.exe
-	$(CC) $(CXXFLAGS) $(DBGFLAGS) $(DBGOBJ_TEST) -L $(DBGBUILD_PATH) -lTabGraph $(LIBS) -o $(TEST_PATH)ScopD.exe
+	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_TEST) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)Scop
+	$(CXX) $(CXXFLAGS) $(DBGFLAGS) $(DBGOBJ_TEST) -L $(DBGBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)ScopD
 
 ./libs/vml/libvml.a :
 	$(MAKE) -C ./libs/vml/
@@ -234,7 +233,5 @@ fclean:
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) fclean && ) true
 
 re: fclean all
-
-all: tests
 
 .PHONY: all clean fclean re

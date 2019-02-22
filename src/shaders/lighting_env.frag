@@ -71,8 +71,9 @@ vec4	SSR()
 
 	RSDirs[0] = R;
 	for (uint i = 0; i < sampleNbr; i++) {
-		//vec2 offset = poissonDisk[i % 9] * (Frag.Material.Roughness + 0.0001);
-		vec3	n = DirectionFromVec2(poissonDisk[i % 9] * (0.1 * Frag.Material.Roughness + 0.0001));
+		vec2 offset = poissonDisk[i % 9] * (0.1 * Frag.Material.Roughness + 0.0001);
+		offset = rotateUV(offset, randomAngle(Frag.Position, 1024), vec2(0));
+		vec3	n = DirectionFromVec2(offset);
 		RSDirs[i] = reflect(V, n);
 		/* RSDirs[i] = R + vec3(offset.x, offset.y, offset.x * offset.y);
 		RSDirs[i] = normalize(RSDirs[i]); */
@@ -95,9 +96,9 @@ vec4	SSR()
 		for (uint j = 0; j < sampleNbr; j++)
 		{
 			vec3	sampleUV = UVFromPosition(RSDirs[j] * curLength + Frag.Position);
-			sampleUV.xy = rotateUV(sampleUV.xy, sampleAngle, curUV.xy);
+			//sampleUV.xy = rotateUV(sampleUV.xy, sampleAngle, curUV.xy);
 			float	sampleDepth = texture(LastDepth, sampleUV.xy).r;
-			if (sampleDepth < 1 && sampleUV.z > sampleDepth && abs(sampleUV.z - sampleDepth) <= 0.00025)
+			if (sampleDepth < 1 && sampleUV.z > sampleDepth && abs(sampleUV.z - sampleDepth) <= 0.0025)
 			{
 				float	screenEdgeFactor = 1;
 				screenEdgeFactor -= smoothstep(0, 1, pow(abs(sampleUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
