@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 16:52:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 21:58:51 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/22 22:27:46 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,9 @@
 std::vector<std::shared_ptr<Shader>> Shader::_shaders;
 
 Shader::Shader(const std::string& name)
-    : Object(name) {};
+    : Object(name)
+{
+}
 
 std::shared_ptr<Shader> Shader::create(const std::string& name)
 {

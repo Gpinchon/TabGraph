@@ -34,13 +34,13 @@ public:
 
 protected:
     Camera(const std::string& name, float fov, CameraProjection proj = PerspectiveCamera);
-    CameraProjection _projection_type { PerspectiveCamera };
-    MAT4 _view { { 0 } };
-    MAT4 _projection { { 0 } };
-    FRUSTUM _frustum { -50, 50, -50, 50 };
-    float _fov { 45 };
-    float _znear { 0.1 };
-    float _zfar { 1000 };
+    CameraProjection _projection_type{ PerspectiveCamera };
+    MAT4 _view{ { 0 } };
+    MAT4 _projection{ { 0 } };
+    FRUSTUM _frustum{ -50, 50, -50, 50 };
+    float _fov{ 45 };
+    float _znear{ 0.1 };
+    float _zfar{ 1000 };
     static std::vector<std::shared_ptr<Camera>> _cameras;
     static std::weak_ptr<Camera> _current;
 };

@@ -27,7 +27,7 @@
 
 struct t_obj_parser {
     std::vector<std::string> path_split;
-    FILE* fd { nullptr };
+    FILE* fd{ nullptr };
     std::vector<VEC3> v;
     std::vector<VEC3> vn;
     std::vector<VEC2> vt;
@@ -64,7 +64,7 @@ struct t_bmp_parser {
     FILE* fd;
     t_bmp_info info;
     t_bmp_header header;
-    GLubyte* data { nullptr };
+    GLubyte* data{ nullptr };
     unsigned size_read;
 };
 

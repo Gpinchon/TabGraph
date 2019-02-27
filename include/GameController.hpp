@@ -41,12 +41,12 @@ public:
     Uint8 button(SDL_GameControllerButton);
 
 private:
-    SDL_GameController* _gamepad { nullptr };
-    SDL_Haptic* _haptic { nullptr };
-    SDL_JoystickID _instance_id { -1 };
-    bool _is_connected { false };
-    controller_callback _connection_callback { nullptr };
-    controller_callback _disconnect_callback { nullptr };
+    SDL_GameController* _gamepad{ nullptr };
+    SDL_Haptic* _haptic{ nullptr };
+    SDL_JoystickID _instance_id{ -1 };
+    bool _is_connected{ false };
+    controller_callback _connection_callback{ nullptr };
+    controller_callback _disconnect_callback{ nullptr };
     std::map<Uint8, controller_axis_callback> _axis_callbacks;
     std::map<Uint8, controller_button_callback> _button_callbacks;
     Controller();

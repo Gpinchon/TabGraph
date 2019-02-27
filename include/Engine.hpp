@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 20:02:35 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 22:45:25 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/22 22:25:47 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,11 @@ private:
     static Engine* _instance;
     void _set_program_path(std::string& argv0);
     void _load_res();
-    bool _loop;
-    int32_t _frame_nbr;
-    int8_t _swap_interval;
-    float _delta_time;
-    std::string _program_path;
-    std::string _exec_path;
-    float _internal_quality;
+    bool _loop{ false };
+    int32_t _frame_nbr{ 0 };
+    int8_t _swap_interval{ 1 };
+    float _delta_time{ 0 };
+    std::string _program_path{ "" };
+    std::string _exec_path{ "" };
+    float _internal_quality{ 1 };
 };

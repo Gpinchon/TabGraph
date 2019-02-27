@@ -57,8 +57,8 @@ public:
 
 protected:
     static std::vector<std::shared_ptr<Shader>> _shaders;
-    GLuint _program { 0 };
-    bool _in_use { false };
+    GLuint _program{ 0 };
+    bool _in_use{ false };
     std::unordered_map<std::string, ShaderVariable> _get_variables(GLenum type);
     std::unordered_map<std::string, ShaderVariable> _uniforms;
     std::unordered_map<std::string, ShaderVariable> _attributes;

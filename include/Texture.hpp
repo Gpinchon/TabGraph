@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 15:37:15 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/22 22:22:22 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,16 +60,16 @@ protected:
     Texture(const std::string& name);
     Texture(const std::string& name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
     static std::vector<std::shared_ptr<Texture>> _textures;
-    GLuint _glid;
-    VEC2 _size;
-    char _bpp;
-    size_t _data_size;
-    GLenum _data_format;
-    GLenum _target;
-    GLenum _format;
-    GLenum _internal_format;
-    GLubyte* _data { nullptr };
-    bool _loaded { false };
+    GLuint _glid{ 0 };
+    VEC2 _size{ 0, 0 };
+    char _bpp{ 0 };
+    size_t _data_size{ 0 };
+    GLenum _data_format{ 0 };
+    GLenum _target{ 0 };
+    GLenum _format{ 0 };
+    GLenum _internal_format{ 0 };
+    GLubyte* _data{ nullptr };
+    bool _loaded{ false };
     std::shared_ptr<Framebuffer> _blur_buffer0;
     std::shared_ptr<Framebuffer> _blur_buffer1;
     std::shared_ptr<Framebuffer> _generate_blur_buffer(const std::string&);

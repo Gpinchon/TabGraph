@@ -44,15 +44,15 @@ public:
     void set_texture_roughness(std::shared_ptr<Texture>);
     void set_texture_metallic(std::shared_ptr<Texture>);
     void set_texture_ao(std::shared_ptr<Texture>);
-    VEC3 albedo { 0, 0, 0 };
-    VEC3 specular { 0.04, 0.04, 0.04 };
-    VEC3 emitting { 0, 0, 0 };
-    VEC2 uv_scale { 1, 1 };
-    float roughness { 0.5 };
-    float metallic { 0 };
-    float alpha { 1 };
-    float parallax { 0.01 };
-    float ior { 1 };
+    VEC3 albedo{ 0, 0, 0 };
+    VEC3 specular{ 0.04, 0.04, 0.04 };
+    VEC3 emitting{ 0, 0, 0 };
+    VEC2 uv_scale{ 1, 1 };
+    float roughness{ 0.5 };
+    float metallic{ 0 };
+    float alpha{ 1 };
+    float parallax{ 0.01 };
+    float ior{ 1 };
 
 protected:
     static std::vector<std::shared_ptr<Material>> _materials;

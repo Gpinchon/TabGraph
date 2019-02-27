@@ -38,9 +38,9 @@ public:
 
 protected:
     Light(const std::string& name);
-    VEC3 _color { 0, 0, 0 };
-    float _power { 0 };
-    bool _cast_shadow { false };
+    VEC3 _color{ 0, 0, 0 };
+    float _power{ 0 };
+    bool _cast_shadow{ false };
     std::weak_ptr<Framebuffer> _render_buffer;
 
 private:

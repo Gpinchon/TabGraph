@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 01:51:28 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/22 19:36:29 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,8 @@
 #include "Texture.hpp"
 #include "parser/InternalTools.hpp"
 #include <cstddef>
-#include <stdexcept>
-
 #include <iostream>
+#include <stdexcept>
 
 typedef unsigned char RGBE[4];
 #define R 0
@@ -58,7 +57,7 @@ std::shared_ptr<Texture> HDR::parse(const std::string& texture_name, const std::
             break;
     }
     std::cout << "." << std::flush;
-    char reso[200] { 0 };
+    char reso[200]{ 0 };
     i = 0;
     while (true) {
         c = getc(file);

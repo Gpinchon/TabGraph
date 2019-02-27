@@ -33,7 +33,7 @@ private:
     Mouse();
     static Mouse* _get();
     static Mouse* _instance;
-    std::array<mouse_button_callback, 5> _button_callbacks { { nullptr } };
-    mouse_motion_callback _move_callback { nullptr };
-    mouse_wheel_callback _wheel_callback { nullptr };
+    std::array<mouse_button_callback, 5> _button_callbacks{ { nullptr } };
+    mouse_motion_callback _move_callback{ nullptr };
+    mouse_wheel_callback _wheel_callback{ nullptr };
 };

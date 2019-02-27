@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/18 00:00:13 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/24 19:54:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -364,9 +364,9 @@ void Render::scene()
     light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
     final_back_buffer->attachement(0)->generate_mipmap();
-    final_back_buffer->attachement(1)->generate_mipmap();
+    final_back_buffer->depth()->generate_mipmap();
     final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    final_back_buffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     // APPLY LIGHTING SHADER
     // OUTPUT : out_Color, out_Brightness
@@ -414,8 +414,8 @@ void Render::scene()
     auto opaqueBackBuffer = current_backTexture;
     opaqueBackBuffer->attachement(0)->generate_mipmap();
     opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    opaqueBackBuffer->attachement(1)->generate_mipmap();
-    opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    opaqueBackBuffer->depth()->generate_mipmap();
+    opaqueBackBuffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     current_backTexture = back_buffer2;
     back_buffer2->bind();

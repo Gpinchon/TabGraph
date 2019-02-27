@@ -43,21 +43,21 @@ public:
     void set_parent(std::shared_ptr<Node>);
     void add_child(std::shared_ptr<Node>);
     std::shared_ptr<Node> child(unsigned index);
-    BoundingElement* bounding_element { nullptr };
+    BoundingElement* bounding_element{ nullptr };
 
 protected:
     Node(const std::string& name);
     std::vector<std::weak_ptr<Node>> _children;
     std::weak_ptr<Node> _target;
     std::weak_ptr<Node> _parent;
-    VEC3 _position { 0, 0, 0 };
-    VEC3 _rotation { 0, 0, 0 };
-    VEC3 _scaling { 1, 1, 1 };
-    VEC3 _up { 0, 1, 0 };
-    MAT4 _transform { mat4_identity() };
-    MAT4 _translate { mat4_zero() };
-    MAT4 _rotate { mat4_zero() };
-    MAT4 _scale { mat4_identity() };
+    VEC3 _position{ 0, 0, 0 };
+    VEC3 _rotation{ 0, 0, 0 };
+    VEC3 _scaling{ 1, 1, 1 };
+    VEC3 _up{ 0, 1, 0 };
+    MAT4 _transform{ mat4_identity() };
+    MAT4 _translate{ mat4_zero() };
+    MAT4 _rotate{ mat4_zero() };
+    MAT4 _scale{ mat4_identity() };
 
 private:
     static std::vector<std::shared_ptr<Node>> _nodes;

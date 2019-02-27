@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/24 16:57:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 15:47:46 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/22 22:28:44 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ protected:
     std::weak_ptr<Texture> _in_texture;
     std::weak_ptr<Texture> _out_texture;
     std::weak_ptr<Shader> _shader;
-    GLbitfield _memory_barrier { GL_ALL_BARRIER_BITS };
-    VEC3 _num_groups;
+    GLbitfield _memory_barrier{ GL_ALL_BARRIER_BITS };
+    VEC3 _num_groups{ 0, 0, 0 };
     ComputeObject(const std::string& name);
 };

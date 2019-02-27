@@ -34,7 +34,7 @@ private:
     Mesh(const std::string& name);
     static std::vector<std::shared_ptr<Mesh>> _meshes;
     std::vector<std::weak_ptr<Vgroup>> _vgroups;
-    GLenum _cull_mod { GL_BACK };
+    GLenum _cull_mod{ GL_BACK };
 };
 
 bool alpha_compare(Renderable* m, Renderable* m1);

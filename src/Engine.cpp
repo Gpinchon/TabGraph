@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 22:58:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/22 22:25:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,11 +39,6 @@
 Engine* Engine::_instance = nullptr;
 
 Engine::Engine()
-    : _loop()
-    , _frame_nbr(0)
-    , _swap_interval(1)
-    , _delta_time(0)
-    , _internal_quality(1)
 {
     _loop = true;
     _swap_interval = 1;

@@ -24,6 +24,6 @@ public:
 
 protected:
     TextureArray(const std::string& name, VEC2 s, GLenum target, GLenum fi, unsigned capacity);
-    unsigned _capacity { 0 };
+    unsigned _capacity{ 0 };
     std::vector<std::shared_ptr<Texture>> _array;
 };

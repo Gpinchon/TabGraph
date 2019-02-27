@@ -22,7 +22,7 @@ Attachement::Attachement(const std::string& name)
 {
 }
 Attachement::Attachement(const std::string& name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format)
-    : Texture(name, s, target, f, fi, data_format) {};
+    : Texture(name, s, target, f, fi, data_format){};
 
 GLenum get_data_format(GLenum internal_format)
 {

@@ -6,11 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:30:14 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 20:08:21 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/22 19:32:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
+#include <memory>
+#include <string>
+#include <vector>
 
 class VertexArray;
 class Shader;

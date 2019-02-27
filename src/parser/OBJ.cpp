@@ -21,7 +21,7 @@
 static void push_values(t_obj_parser* p, VEC3* v, VEC3* vn, VEC2* vt)
 {
     unsigned i;
-    CVEC4 ub { 0, 0, 0, 0 };
+    CVEC4 ub{ 0, 0, 0, 0 };
 
     i = 0;
     while (i < 3) {
@@ -203,7 +203,7 @@ void parse_vg(t_obj_parser* p, const std::string& name)
 void correct_vt(VEC2* vt)
 {
     VEC3 v[3];
-    VEC3 texnormal { 0, 0, 0 };
+    VEC3 texnormal{ 0, 0, 0 };
 
     v[0] = vec2_to_vec3(vt[0], 0);
     v[1] = vec2_to_vec3(vt[1], 0);
@@ -224,8 +224,8 @@ void correct_vt(VEC2* vt)
 
 VEC2 generate_vt(VEC3 v, VEC3 center)
 {
-    VEC2 vt { 0, 0 };
-    VEC3 vec { 0, 0, 0 };
+    VEC2 vt{ 0, 0 };
+    VEC3 vec{ 0, 0, 0 };
 
     vec = vec3_normalize(vec3_sub(center, v));
     vt.x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));
@@ -275,8 +275,8 @@ VEC2 parse_vec2(std::vector<std::string>& split)
 
 void parse_vtn(t_obj_parser* p, std::vector<std::string>& split)
 {
-    VEC3 v { 0, 0, 0 };
-    VEC2 vn { 0, 0 };
+    VEC3 v{ 0, 0, 0 };
+    VEC2 vn{ 0, 0 };
 
     if (split[0] == "v") {
         v = parse_vec3(split);

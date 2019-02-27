@@ -17,6 +17,6 @@
 class AABB : public BoundingElement {
 public:
     AABB()
-        : BoundingElement() {};
+        : BoundingElement(){};
     bool collides(const BoundingElement&) { return (false); };
 };

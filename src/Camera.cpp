@@ -110,7 +110,7 @@ std::shared_ptr<OrbitCamera> OrbitCamera::create(const std::string& iname, float
 
 void OrbitCamera::orbite(float phi, float theta, float radius)
 {
-    VEC3 target_position { 0, 0, 0 };
+    VEC3 target_position{ 0, 0, 0 };
     VEC3 new_position = position();
 
     _phi = phi;

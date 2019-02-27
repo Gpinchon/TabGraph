@@ -34,7 +34,7 @@ private:
     static void window(SDL_Event* event);
     static Events& _get();
     static Events* _instance;
-    t_callback _rcallback { nullptr };
+    t_callback _rcallback{ nullptr };
     std::map<Uint32, std::set<InputDevice*>> _input_devices;
     Events();
 };

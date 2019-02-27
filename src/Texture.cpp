@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 22:00:43 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/22 22:23:09 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,16 +25,6 @@ std::vector<std::shared_ptr<Texture>> Texture::_textures;
 
 Texture::Texture(const std::string& name)
     : Object(name)
-    , _glid(0)
-    , _size(new_vec2(0, 0))
-    , _bpp(0)
-    , _data_size(0)
-    , _data_format(GL_UNSIGNED_BYTE)
-    , _target(0)
-    , _format(0)
-    , _internal_format(0)
-    , _data(nullptr)
-    , _loaded(false)
 {
 }
 
@@ -226,7 +216,7 @@ GLubyte* Texture::texelfetch(const VEC2& uv)
 void Texture::set_pixel(const VEC2& uv, const VEC4 value)
 {
     int opp;
-    VEC4 val { 0, 0, 0, 1 };
+    VEC4 val{ 0, 0, 0, 1 };
 
     opp = _bpp / 8;
     val = value;
@@ -304,7 +294,7 @@ void Texture::restore_parameters()
 VEC4 Texture::sample(const VEC2& uv)
 {
     VEC3 vt[4];
-    VEC4 value { 0, 0, 0, 1 };
+    VEC4 value{ 0, 0, 0, 1 };
 
     if (_data == nullptr) {
         return (value);

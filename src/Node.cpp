@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:10:01 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 21:57:52 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/02/22 22:27:16 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 std::vector<std::shared_ptr<Node>> Node::_nodes;
 
 Node::Node(const std::string& name)
-    : Object(name) /*parent(nullptr),  bounding_element(nullptr), _transform(new_transform(new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1), UP))*/
+    : Object(name)
 {
 }
 

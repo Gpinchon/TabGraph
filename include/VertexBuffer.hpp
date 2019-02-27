@@ -26,8 +26,8 @@ public:
     size_t size();
 
 private:
-    size_t _size { 0 };
-    GLuint _GLid { 0 };
+    size_t _size{ 0 };
+    GLuint _GLid{ 0 };
     VertexBuffer();
 };
 

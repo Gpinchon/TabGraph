@@ -33,10 +33,10 @@ private:
     static std::vector<std::shared_ptr<VertexArray>> _vertexArrays;
     std::vector<VertexBuffer*> _buffers;
     VertexBuffer* _indices;
-    bool _indexed { false };
-    size_t _vertex_nbr { 0 };
-    GLuint _GLid { 0 };
-    GLenum _GLDrawType { GL_TRIANGLES };
+    bool _indexed{ false };
+    size_t _vertex_nbr{ 0 };
+    GLuint _GLid{ 0 };
+    GLenum _GLDrawType{ GL_TRIANGLES };
     VertexArray() = default;
 };
 

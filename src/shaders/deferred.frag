@@ -203,39 +203,50 @@ float	randomAngle(in vec3 seed, in float freq)
 	return random(seed, freq) * 6.283285;
 }
 
-vec4	texelFetchLod(in sampler2D tex, in ivec2 uv, in int value)
+int		textureMaxLod(in samplerCube tex)
 {
 #ifdef textureQueryLevels
-	int maxLOD = textureQueryLevels(tex);
+	return textureQueryLevels(tex);
 #else
 	//Try to guess the max LOD
 	ivec2	texRes = textureSize(tex, 0);
-	int	maxLOD = int(log2(max(texRes.x, texRes.y)));
+	return int(log2(max(texRes.x, texRes.y)));
 #endif
-	return texelFetch(tex, uv, value * maxLOD);
 }
+
+int		textureMaxLod(in sampler2D tex)
+{
+#ifdef textureQueryLevels
+	return textureQueryLevels(tex);
+#else
+	//Try to guess the max LOD
+	ivec2	texRes = textureSize(tex, 0);
+	return int(log2(max(texRes.x, texRes.y)));
+#endif
+}
+
+vec4	texelFetchLod(in sampler2D tex, in vec2 uv, in int mipLevel)
+{
+	ivec2	Resolution = textureSize(tex, 0);
+	return texelFetch(tex, ivec2(Resolution * uv), mipLevel);
+}
+
+/* vec4	texelFetchLod(in sampler2D tex, in vec2 uv, in float value)
+{
+	int		maxLOD = textureMaxLod(tex);
+	int		lodValue = maxLOD * value;
+	return texelFetchLod(tex, uv, lodValue);
+} */
 
 vec4	sampleLod(in samplerCube tex, in vec3 uv, in float value)
 {
-#ifdef textureQueryLevels
-	float maxLOD = textureQueryLevels(tex);
-#else
-	//Try to guess the max LOD
-	ivec2	texRes = textureSize(tex, 0);
-	float	maxLOD = floor(log2(max(texRes.x, texRes.y)));
-#endif
+	float maxLOD = textureMaxLod(tex);
 	return textureLod(tex, uv, value * maxLOD);
 }
 
 vec4	sampleLod(in sampler2D tex, in vec2 uv, in float value)
 {
-#ifdef textureQueryLevels
-	float maxLOD = textureQueryLevels(tex);
-#else
-	//Try to guess the max LOD
-	ivec2	texRes = textureSize(tex, 0);
-	float	maxLOD = floor(log2(max(texRes.x, texRes.y)));
-#endif
+	float maxLOD = textureMaxLod(tex);
 	return textureLod(tex, uv, value * maxLOD);
 }
 

@@ -30,7 +30,7 @@ public:
     bool is_loaded();
 
 protected:
-    bool _is_loaded { false };
+    bool _is_loaded{ false };
     static void add(std::shared_ptr<Renderable>);
     Renderable(const std::string& name);
 
