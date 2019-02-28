@@ -198,7 +198,6 @@ $(DBGOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 
 $(BUILD_RES_FILES): %: $(RES_FILES)
 	@(mkdir -p $(@D))
-	@echo Copying $(patsubst $(TEST_PATH)%,%,$@) to $@... 
 	@(cp $(patsubst $(TEST_PATH)%,%,$@) $@)
 	@echo Copied $(patsubst $(TEST_PATH)%,%,$@) to $@
 
@@ -211,6 +210,8 @@ depend:
 tests: release debug $(RELOBJ_TEST) $(DBGOBJ_TEST) $(BUILD_RES_FILES)
 	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_TEST) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)Scop
 	$(CXX) $(CXXFLAGS) $(DBGFLAGS) $(DBGOBJ_TEST) -L $(DBGBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)ScopD
+	./scripts/copyDlls.sh $(TEST_PATH)Scop.exe
+	./scripts/copyDlls.sh $(TEST_PATH)ScopD.exe
 
 ./libs/vml/libvml.a :
 	$(MAKE) -C ./libs/vml/
