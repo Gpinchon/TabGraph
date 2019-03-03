@@ -181,7 +181,7 @@ vec4	SSR()
 		screenEdgeFactor -= smoothstep(0, 1, pow(abs(intersectionUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
 		screenEdgeFactor = clamp(screenEdgeFactor, 0, 1);
 		screenEdgeFactor *= 1 - smoothstep(0.25, 0.5, dot(-V, RSDirs[j]));
-		screenEdgeFactor *= smoothstep(0.5, 1.0, dot(RSNormal.xyz, -RSDirs[j]));
+		screenEdgeFactor *= max(0, -dot(RSNormal.xyz, RSDirs[j]));//smoothstep(0.0, 1.0, max(0, -dot(RSNormal.xyz, RSDirs[j])));
 		//screenEdgeFactor -= DirectionBasedAttenuation;
 		ret.xyz += sampleLod(LastColor, intersectionUV.xy, Frag.Material.Roughness * 2).rgb * screenEdgeFactor;
 		ret.w += screenEdgeFactor; 
