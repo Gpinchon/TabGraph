@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 22:58:55 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/03 16:46:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <iostream>
+#include <csignal>
 
 /*bool	alpha_compare(Renderable	*m, Renderable *m1)
 {

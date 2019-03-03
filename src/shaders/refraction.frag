@@ -1,6 +1,7 @@
 R""(
 uniform sampler2D	opaqueBackColor;
 uniform sampler2D	opaqueBackEmitting;
+uniform sampler2D	opaqueBackNormal;
 
 float	cmix(float min, float max, float percent)
 {
@@ -57,9 +58,11 @@ void	ApplyTechnique()
 	}
 	vec3	Back_Color = sampleLod(opaqueBackColor, refract_UV, Frag.Material.Roughness).rgb;
 	vec3	Back_Emitting = sampleLod(opaqueBackEmitting, refract_UV, Frag.Material.Roughness).rgb;
+	vec3	Back_Normal = texture(opaqueBackNormal, refract_UV).rgb;
 	if (Out.Color.a == 0) {
 		Out.Color = vec4(Back_Color, 1);
 		Out.Emitting = Back_Emitting;
+		Out.Normal = Back_Normal;
 		return ;
 	}
 	Back_Color = mix(Back_Color, Back_Color * Frag.Material.Albedo, Frag.Material.Alpha);

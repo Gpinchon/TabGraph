@@ -16,6 +16,7 @@ struct t_Environment {
 struct t_BackTextures {
 	sampler2D	Color;
 	sampler2D	Emitting;
+	sampler2D	Normal;
 };
 #endif //LIGHTSHADER
 
@@ -69,10 +70,12 @@ struct t_Camera {
 struct t_Out {
 	vec4		Color;
 	vec3		Emitting;
+	vec3		Normal;
 };
 
 layout(location = 0) out vec4	out_Color;
 layout(location = 1) out vec3	out_Emitting;
+layout(location = 2) out vec3	out_Normal;
 t_Out	Out;
 #endif //LIGHTSHADER
 
@@ -140,6 +143,7 @@ void	FillFrag()
 #ifdef LIGHTSHADER
 	Out.Color = texture(Texture.Back.Color, frag_UV);
 	Out.Emitting = texture(Texture.Back.Emitting, frag_UV).rgb;
+	Out.Normal = texture(Texture.Normal, frag_UV).rgb;
 #endif
 }
 
@@ -173,6 +177,7 @@ void	FillOut(in vec3 OriginalPosition)
 	}
 	out_Color = Out.Color;
 	out_Emitting = Out.Emitting;
+	out_Normal = Out.Normal;
 }
 #endif
 

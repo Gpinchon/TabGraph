@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/22 22:22:22 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/03 11:59:27 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,11 +22,13 @@ class Framebuffer;
 
 class Texture : public Object {
 public:
+
     static std::shared_ptr<Texture> create(const std::string& name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
     static std::shared_ptr<Texture> get_by_name(const std::string&);
     static std::shared_ptr<Texture> get(unsigned index);
     static size_t get_data_size(GLenum data_type);
     static size_t get_bpp(GLenum texture_format, GLenum data_type);
+    static std::shared_ptr<Texture> parse(const std::string&, const std::string&);
     virtual std::shared_ptr<Texture> shared_from_this();
     virtual bool is_loaded();
     virtual void resize(const VEC2& ns);
@@ -70,6 +72,7 @@ protected:
     GLenum _internal_format{ 0 };
     GLubyte* _data{ nullptr };
     bool _loaded{ false };
+    SDL_Surface *_surface{nullptr};
     std::shared_ptr<Framebuffer> _blur_buffer0;
     std::shared_ptr<Framebuffer> _blur_buffer1;
     std::shared_ptr<Framebuffer> _generate_blur_buffer(const std::string&);

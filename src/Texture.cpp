@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/22 22:23:09 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/03 16:07:07 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include "VertexArray.hpp"
 #include "Window.hpp"
 #include "parser/GLSL.hpp"
+#include <SDL2/SDL_image.h>
 
 std::vector<std::shared_ptr<Texture>> Texture::_textures;
 
@@ -42,17 +43,113 @@ Texture::Texture(const std::string& iname, VEC2 s, GLenum target, GLenum f,
     _size = s;
 }
 
+#define SDL_LOCKIFMUST(s) (SDL_MUSTLOCK(s) ? SDL_LockSurface(s) : 0)
+#define SDL_UNLOCKIFMUST(s) { if(SDL_MUSTLOCK(s)) SDL_UnlockSurface(s); }
+
+int invert_surface_vertical(SDL_Surface *surface)
+{
+    Uint8 *t;
+    Uint8 *a, *b;
+    Uint8 *last;
+    Uint16 pitch;
+
+    if( SDL_LOCKIFMUST(surface) < 0 )
+        return -2;
+
+    /* do nothing unless at least two lines */
+    if(surface->h < 2) {
+        SDL_UNLOCKIFMUST(surface);
+        return 0;
+    }
+
+    /* get a place to store a line */
+    pitch = surface->pitch;
+    t = (Uint8*)malloc(pitch);
+
+    if(t == NULL) {
+        SDL_UNLOCKIFMUST(surface);
+        return -2;
+    }
+
+    /* get first line; it's about to be trampled */
+    memcpy(t,surface->pixels,pitch);
+
+    /* now, shuffle the rest so it's almost correct */
+    a = (Uint8*)surface->pixels;
+    last = a + pitch * (surface->h - 1);
+    b = last;
+
+    while(a < b) {
+        memcpy(a,b,pitch);
+        a += pitch;
+        memcpy(b,a,pitch);
+        b -= pitch;
+    }
+
+    /* in this shuffled state, the bottom slice is too far down */
+    memmove( b, b+pitch, last-b );
+
+    /* now we can put back that first row--in the last place */
+    memcpy(last,t,pitch);
+
+    /* everything is in the right place; close up. */
+    free(t);
+    SDL_UNLOCKIFMUST(surface);
+
+    return 0;
+}
+
+std::shared_ptr<Texture> Texture::parse(const std::string &name, const std::string &path)
+{
+    auto surface = IMG_Load(path.c_str());
+    if(!surface || !surface->format)
+        throw std::runtime_error(std::string("Error parsing ") + path + " : " + SDL_GetError());
+    invert_surface_vertical(surface);
+    auto nColors = surface->format->BytesPerPixel;
+    GLenum  textureFormat = 0;
+    GLenum  textureInternalFormat = 0;
+
+    if(nColors == 4)
+    {
+        if(surface->format->Rmask==0x000000ff)
+            textureFormat = GL_RGBA;
+        else
+            textureFormat = GL_BGRA;
+        textureInternalFormat = GL_COMPRESSED_RGBA;
+    }
+    else if(nColors == 3)
+    {
+        if(surface->format->Rmask==0x000000ff)
+            textureFormat = GL_RGB;
+        else
+            textureFormat = GL_BGR;
+        textureInternalFormat = GL_COMPRESSED_RGB;
+    }
+    else if(nColors == 2)
+    {
+        textureFormat = GL_RG;
+        textureInternalFormat = GL_COMPRESSED_RG;
+    }
+    else if(nColors == 1)
+    {
+        textureFormat = GL_RED;
+        textureInternalFormat = GL_COMPRESSED_RED;
+    }
+    debugLog(int(surface->format->BytesPerPixel));
+    auto texture = Texture::create(name, new_vec2(surface->w, surface->h), GL_TEXTURE_2D,
+    textureFormat, textureInternalFormat,
+    GL_UNSIGNED_BYTE, surface->pixels);
+    texture->_bpp = surface->format->BitsPerPixel;
+    return (texture);
+
+}
+
 std::shared_ptr<Texture> Texture::create(const std::string& name, VEC2 s,
     GLenum target, GLenum f, GLenum fi,
     GLenum data_format, void* data)
 {
     auto t = std::shared_ptr<Texture>(
         new Texture(name, s, target, f, fi, data_format, data));
-    glGenTextures(1, &t->_glid);
-    glBindTexture(target, t->_glid);
-    glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
-    glBindTexture(target, 0);
-    glCheckError();
     t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Anisotropy());
@@ -156,7 +253,9 @@ void Texture::load()
     }
     if (_glid == 0u) {
         glGenTextures(1, &_glid);
+        glBindTexture(_target, _glid);
         glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
+        glBindTexture(_target, 0);
     }
     if (_size.x > 0 && _size.y > 0) {
         glBindTexture(_target, _glid);
@@ -164,6 +263,7 @@ void Texture::load()
             _data_format, _data);
         glBindTexture(_target, 0);
     }
+    glCheckError();
     restore_parameters();
     generate_mipmap();
     _loaded = true;

@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/10/27 20:18:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/26 11:27:24 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/03 16:05:26 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -276,7 +276,7 @@ VEC2 parse_vec2(std::vector<std::string>& split)
 void parse_vtn(t_obj_parser* p, std::vector<std::string>& split)
 {
     VEC3 v{ 0, 0, 0 };
-    VEC2 vn{ 0, 0 };
+    VEC2 vt{ 0, 0 };
 
     if (split[0] == "v") {
         v = parse_vec3(split);
@@ -292,8 +292,9 @@ void parse_vtn(t_obj_parser* p, std::vector<std::string>& split)
         v = parse_vec3(split);
         p->vn.push_back(v);
     } else if (split[0] == "vt") {
-        vn = parse_vec2(split);
-        p->vt.push_back(vn);
+        vt = parse_vec2(split);
+        vt.y = vt.y;
+        p->vt.push_back(vt);
     }
 }
 
