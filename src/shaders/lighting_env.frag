@@ -174,17 +174,23 @@ vec4	SSR()
 		
 		//return vec4(ReflectionNormalColor, 1);
 		//float DirectionBasedAttenuation = smoothstep(-0.17, 0.0, dot(RSNormal.xyz, -RSDirs[j]));
-		hits++;
+		
 		vec3 RSNormal = texture(LastNormal, intersectionUV).xyz;
 		float	screenEdgeFactor = 1;
 		screenEdgeFactor -= smoothstep(0, 1, pow(abs(intersectionUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
 		screenEdgeFactor -= smoothstep(0, 1, pow(abs(intersectionUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
-		screenEdgeFactor = clamp(screenEdgeFactor, 0, 1);
+		screenEdgeFactor = max(0, screenEdgeFactor);
+		//screenEdgeFactor *= dot(V, RSDirs[j]);
 		screenEdgeFactor *= 1 - smoothstep(0.25, 0.5, dot(-V, RSDirs[j]));
-		screenEdgeFactor *= max(0, -dot(RSNormal.xyz, RSDirs[j]));//smoothstep(0.0, 1.0, max(0, -dot(RSNormal.xyz, RSDirs[j])));
+		screenEdgeFactor *= step(0.17, -dot(RSNormal.xyz, RSDirs[j]));
+		//screenEdgeFactor *= max(0, -dot(RSNormal.xyz, RSDirs[j]));
+		//screenEdgeFactor *= smoothstep(0.0, 1.0, max(0, 1 - dot(RSNormal.xyz, RSDirs[j])));
 		//screenEdgeFactor -= DirectionBasedAttenuation;
+		if (screenEdgeFactor <= 0)
+			continue;
 		ret.xyz += sampleLod(LastColor, intersectionUV.xy, Frag.Material.Roughness * 2).rgb * screenEdgeFactor;
-		ret.w += screenEdgeFactor; 
+		ret.w += screenEdgeFactor;
+		hits++;
 	}
 	if (hits > 0) {
 		ret /= hits; //Compute average color and attenuation
@@ -292,7 +298,7 @@ void	ApplyTechnique()
 	
 	vec3	V = normalize(Camera.Position - Frag.Position);
 	vec3	N = Frag.Normal;
-	#ifdef TRANSPARENT
+#ifdef TRANSPARENT
 	float	NdV = dot(N, V);
 	if (Frag.Material.Alpha < 1 && NdV < 0) {
 		N = -N;
@@ -301,56 +307,56 @@ void	ApplyTechnique()
 	else {
 		NdV = max(0, dot(N, V));
 	}
-	#else
+#else
 	float	NdV = max(0, dot(N, V));
 #endif //TRANSPARENT
-vec3	R = reflect(V, N);
+	vec3	R = reflect(V, N);
 
-vec2	brdf = BRDF(NdV, Frag.Material.Roughness);
+	vec2	brdf = BRDF(NdV, Frag.Material.Roughness);
 
-vec3	diffuse = Frag.Material.AO * (sampleLod(Texture.Environment.Diffuse, -N, Frag.Material.Roughness + 0.9).rgb
-	+ texture(Texture.Environment.Irradiance, -N).rgb);
-vec3	reflection = sampleLod(Texture.Environment.Diffuse, R, Frag.Material.Roughness * 2.f).rgb;
-vec3	specular = texture(Texture.Environment.Irradiance, R).rgb;
-vec3	reflection_spec = reflection;
+	vec3	diffuse = Frag.Material.AO * (sampleLod(Texture.Environment.Diffuse, -N, Frag.Material.Roughness + 0.9).rgb
+		+ texture(Texture.Environment.Irradiance, -N).rgb);
+	vec3	reflection = sampleLod(Texture.Environment.Diffuse, R, Frag.Material.Roughness * 2.f).rgb;
+	vec3	specular = texture(Texture.Environment.Irradiance, R).rgb;
+	vec3	reflection_spec = reflection;
 
-float	brightness = 0;
+	float	brightness = 0;
 
-if (Frag.Material.Alpha == 0) {
-	#ifdef TRANSPARENT
-	return ;
-	#else
-	Out.Color = vec4(EnvDiffuse, 1);
-	brightness = dot(pow(Out.Color.rgb, envGammaCorrection), brightnessDotValue);
-	Out.Emitting = max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness));
-	return ;
-	#endif //TRANSPARENT
-}
-vec3	fresnel = min(vec3(0.5), Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness));
-reflection *= fresnel;
-brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
-reflection_spec *= brightness * min(fresnel + 0.5, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
-specular *= fresnel * brdf.x + mix(vec3(1), fresnel, Frag.Material.Metallic) * brdf.y;
-diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
+	if (Frag.Material.Alpha == 0) {
+		#ifdef TRANSPARENT
+		return ;
+		#else
+		Out.Color = vec4(EnvDiffuse, 1);
+		brightness = dot(pow(Out.Color.rgb, envGammaCorrection), brightnessDotValue);
+		Out.Emitting = max(vec3(0), (Out.Color.rgb - 0.8) * min(1, brightness));
+		return ;
+		#endif //TRANSPARENT
+	}
+	vec3	fresnel = min(vec3(0.5), Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness));
+	reflection *= fresnel;
+	brightness = dot(pow(reflection_spec, envGammaCorrection), brightnessDotValue);
+	reflection_spec *= brightness * min(fresnel + 0.5, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
+	specular *= fresnel * brdf.x + mix(vec3(1), fresnel, Frag.Material.Metallic) * brdf.y;
+	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 
-float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));
-alpha = min(1, alpha);
+	float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));
+	alpha = min(1, alpha);
 
-vec3	envReflection = (specular + reflection_spec + reflection) * alpha;
+	vec3	envReflection = (specular + reflection_spec + reflection) * alpha;
 
-vec4	ssrResult = vec4(0);
-if (Frag.Material.Roughness < 1) {
-	ssrResult = SSR();
-}
-if (ssrResult.w > 0) {
-	Out.Color.rgb += mix(envReflection, ssrResult.xyz * fresnel, clamp(ssrResult.w, 0, 1));
-}
-else {
-	Out.Color.rgb += envReflection;
-}
-Out.Color.rgb += (diffuse + Frag.Material.Emitting) * alpha;
-Out.Color.a = 1;
-Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
+	vec4	ssrResult = vec4(0);
+	if (Frag.Material.Roughness < 1) {
+		ssrResult = SSR();
+	}
+	if (ssrResult.w > 0) {
+		Out.Color.rgb += mix(envReflection, ssrResult.xyz * fresnel, ssrResult.w);
+	}
+	else {
+		Out.Color.rgb += envReflection;
+	}
+	Out.Color.rgb += (diffuse + Frag.Material.Emitting) * alpha;
+	Out.Color.a = 1;
+	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
 }
 
 )""

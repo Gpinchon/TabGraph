@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/04 19:42:59 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/03/03 19:59:01 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/04 22:54:30 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -258,7 +258,6 @@ void Render::scene()
     static std::shared_ptr<Texture> brdf;
     if (brdf == nullptr) {
         brdf = Texture::parse("brdf", Engine::resource_path() + "/brdfLUT.bmp");
-        //brdf = BMP::parse("brdf", Engine::resource_path() + "/brdfLUT.bmp");
         /*static std::ofstream myfile;
 		myfile.open ("brdfLUT");
 		for (auto x = brdf->size().x; x > 0; x--) {

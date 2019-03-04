@@ -6,21 +6,20 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/16 16:36:27 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/03/03 15:16:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/04 22:51:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cubemap.hpp"
 #include "Debug.hpp"
 #include "Engine.hpp"
-#include "parser/BMP.hpp"
 #include <thread>
 
 std::vector<std::shared_ptr<Cubemap>> Cubemap::_cubemaps;
 
 void cubemap_load_side(std::shared_ptr<Cubemap> cubemap, const std::string& path, GLenum iside)
 {
-    auto sideTexture = BMP::parse(path, path);
+    auto sideTexture = Texture::parse(path, path);
     if (sideTexture == nullptr) {
         return;
     }
