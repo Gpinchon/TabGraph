@@ -4,6 +4,7 @@ SYSTEMDLLS=(
 "KERNEL32.dll"
 "msvcrt.dll"
 "OPENGL32.dll"
+"USER32.dll"
 )
 
 BINDIR=$(dirname "$1")
