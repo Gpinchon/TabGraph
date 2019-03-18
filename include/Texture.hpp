@@ -22,7 +22,6 @@ class Framebuffer;
 
 class Texture : public Object {
 public:
-
     static std::shared_ptr<Texture> create(const std::string& name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
     static std::shared_ptr<Texture> get_by_name(const std::string&);
     static std::shared_ptr<Texture> get(unsigned index);
@@ -72,7 +71,6 @@ protected:
     GLenum _internal_format{ 0 };
     GLubyte* _data{ nullptr };
     bool _loaded{ false };
-    SDL_Surface *_surface{nullptr};
     std::shared_ptr<Framebuffer> _blur_buffer0;
     std::shared_ptr<Framebuffer> _blur_buffer1;
     std::shared_ptr<Framebuffer> _generate_blur_buffer(const std::string&);

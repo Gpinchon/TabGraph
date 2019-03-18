@@ -29,11 +29,13 @@ public:
     static int filter(void* e, SDL_Event* event);
     static int refresh(void);
     static void set_refresh_callback(t_callback callback);
+    static double delta_time();
 
 private:
     static void window(SDL_Event* event);
     static Events& _get();
     static Events* _instance;
+    double _delta_time {0};
     t_callback _rcallback{ nullptr };
     std::map<Uint32, std::set<InputDevice*>> _input_devices;
     Events();

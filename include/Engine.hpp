@@ -38,8 +38,8 @@ class Engine {
 public:
     ~Engine();
     static void init();
-    static float delta_time();
-    static float fixed_delta_time();
+    static double delta_time();
+    static double fixed_delta_time();
     static void run();
     static void stop() { _get()._loop = false; };
     static float& internal_quality();
@@ -55,12 +55,13 @@ private:
     Engine();
     static Engine& _get();
     static Engine* _instance;
+    static void _renderingThread(void);
     void _set_program_path(std::string& argv0);
     void _load_res();
     bool _loop{ false };
     int32_t _frame_nbr{ 0 };
     int8_t _swap_interval{ 1 };
-    float _delta_time{ 0 };
+    double _delta_time{ 0 };
     std::string _program_path{ "" };
     std::string _exec_path{ "" };
     float _internal_quality{ 1 };

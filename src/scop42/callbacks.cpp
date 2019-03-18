@@ -47,13 +47,13 @@ void				callback_camera(SDL_Event *)
 		rtrigger = Keyboard::key(SDL_SCANCODE_PAGEUP);
 	}
 	//static VEC3	val = (VEC3){M_PI / 2.f, M_PI / 2.f, 5.f};
-	cameraRotation.x += raxis.y * Engine::delta_time();
-	cameraRotation.y += raxis.x * Engine::delta_time();
-	cameraRotation.z -= laxis.y * Engine::delta_time();
+	cameraRotation.x += raxis.y * Events::delta_time();
+	cameraRotation.y += raxis.x * Events::delta_time();
+	cameraRotation.z -= laxis.y * Events::delta_time();
 	auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::current());
 	auto	t = camera->target();
-	t->position().y += rtrigger * Engine::delta_time();
-	t->position().y -= ltrigger * Engine::delta_time();
+	t->position().y += rtrigger * Events::delta_time();
+	t->position().y -= ltrigger * Events::delta_time();
 	cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
 	cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
 	cameraRotation.z = CLAMP(cameraRotation.z, 0.1f, 1000.f);
@@ -158,7 +158,7 @@ void	callback_refresh(SDL_Event */*unused*/)
 	}
 	if (rotate_model)
 	{
-		rotation += 0.2 * Engine::delta_time();
+		rotation += 0.2 * Events::delta_time();
 		rotation = CYCLE(rotation, 0, 2 * M_PI);
 		mesh->rotation() = new_vec3(0, rotation, 0);
 	}
@@ -205,8 +205,8 @@ void	MouseMoveCallback(SDL_MouseMotionEvent *event)
 		std::cout << world_mouse_pos.x << " " << world_mouse_pos.y << " " << world_mouse_pos.z << std::endl;
 	}*/
 	if (Mouse::button(1)) {
-		cameraRotation.x += event->yrel * Engine::delta_time();
-		cameraRotation.y -= event->xrel * Engine::delta_time();
+		cameraRotation.x += event->yrel * Events::delta_time();
+		cameraRotation.y -= event->xrel * Events::delta_time();
 		cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
 		cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
 		cameraRotation.z = CLAMP(cameraRotation.z, 0.01, 1000.f);

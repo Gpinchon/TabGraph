@@ -137,9 +137,9 @@ std::shared_ptr<Texture> Texture::parse(const std::string &name, const std::stri
     }
     debugLog(int(surface->format->BytesPerPixel));
     auto texture = Texture::create(name, new_vec2(surface->w, surface->h), GL_TEXTURE_2D,
-    textureFormat, textureInternalFormat,
-    GL_UNSIGNED_BYTE, surface->pixels);
+    textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     texture->_bpp = surface->format->BitsPerPixel;
+    //SDL_FreeSurface(surface);
     return (texture);
 
 }

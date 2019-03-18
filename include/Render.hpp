@@ -18,13 +18,18 @@
 class VertexArray;
 class Shader;
 
-namespace Render {
-void update();
-void fixed_update();
-void scene();
-void add_post_treatment(std::shared_ptr<Shader>);
-void add_post_treatment(const std::string& name, const std::string& path);
-void remove_post_treatment(std::shared_ptr<Shader>);
-const std::shared_ptr<VertexArray> display_quad();
-std::vector<std::weak_ptr<Shader>>& post_treatments();
+class Render {
+	public :
+		static void update();
+		static void fixed_update();
+		static void scene();
+		static void add_post_treatment(std::shared_ptr<Shader>);
+		static void add_post_treatment(const std::string& name, const std::string& path);
+		static void remove_post_treatment(std::shared_ptr<Shader>);
+		static double delta_time();
+		static const std::shared_ptr<VertexArray> display_quad();
+		static std::vector<std::weak_ptr<Shader>>& post_treatments();
+
+	private:
+		double _delta_time{0};
 };

@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+
+
 void print_event_name(SDL_Event* event)
 {
     switch (event->type) {
@@ -232,6 +234,11 @@ Events& Events::_get()
     return (*_instance);
 }
 
+double Events::delta_time()
+{
+    return (_get()._delta_time);
+}
+
 void Events::add(InputDevice* device, SDL_EventType event_type)
 {
     _get()._input_devices[event_type].insert(device);
@@ -264,6 +271,12 @@ int Events::filter(void* /*unused*/, SDL_Event* event)
 
 int Events::refresh()
 {
+    double ticks;
+    static double last_ticks;
+
+    ticks = SDL_GetTicks() / 1000.f;
+    _get()._delta_time = ticks - last_ticks;
+    last_ticks = ticks;
     if (_get()._rcallback != nullptr) {
         _get()._rcallback(nullptr);
     }

@@ -50,6 +50,16 @@ void Window::swap()
     SDL_GL_SwapWindow(_get()._sdl_window);
 }
 
+SDL_GLContext   Window::context()
+{
+    return (_get()._gl_context);
+}
+
+SDL_Window      *Window::sdl_window()
+{
+    return (_get()._sdl_window);
+}
+
 void Window::init(const std::string& name, VEC2 resolution)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {

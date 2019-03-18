@@ -28,6 +28,8 @@ public:
     static VEC4& clear_color();
     //static Framebuffer	&render_buffer();
     void process_event(SDL_Event*);
+    static SDL_GLContext   context();
+    static SDL_Window      *sdl_window();
 
 private:
     static Window& _get();

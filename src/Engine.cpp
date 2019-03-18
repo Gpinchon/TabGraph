@@ -110,7 +110,7 @@ void Engine::init()
     _get()._load_res();
 }
 
-float Engine::delta_time()
+double Engine::delta_time()
 {
     return (_get()._delta_time);
 }
@@ -161,19 +161,58 @@ void Engine::fixed_update()
     }
 }
 
+#include <thread>
+#include <mutex>
+
+std::mutex eventUpdateMutex;
+
+bool frameRendered = false;
+
+void Engine::_renderingThread(void)
+{
+    float ticks;
+    float fixed_timing;
+
+    fixed_timing = SDL_GetTicks() / 1000.f;
+    SDL_GL_SetSwapInterval(Engine::_get().swap_interval());
+    SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
+    while (_get()._loop)
+    {
+        if (frameRendered)
+            continue;
+        //if (eventUpdateMutex.try_lock()) {
+            _get()._frame_nbr++;
+            ticks = SDL_GetTicks() / 1000.f;
+            if (ticks - fixed_timing >= 0.015) {
+                fixed_timing = ticks;
+                Render::fixed_update();
+            }
+            Render::update();
+            //eventUpdateMutex.unlock();
+            frameRendered = true;
+        //}
+        Render::scene();
+    }
+}
+
 void Engine::run()
 {
     float ticks;
     float last_ticks;
     float fixed_timing;
 
-    SDL_GL_SetSwapInterval(Engine::_get().swap_interval());
     fixed_timing = last_ticks = SDL_GetTicks() / 1000.f;
     SDL_SetEventFilter(event_filter, nullptr);
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    SDL_GL_MakeCurrent(Window::sdl_window(), nullptr); 
+    std::thread renderingThread(_renderingThread);
     while (_get()._loop) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+        if (!frameRendered)
+            continue;
+        /*if (!eventUpdateMutex.try_lock())
+            continue;*/
+        //eventUpdateMutex.lock();
         ticks = SDL_GetTicks() / 1000.f;
-        _get()._frame_nbr++;
         _get()._delta_time = ticks - last_ticks;
         last_ticks = ticks;
         SDL_PumpEvents();
@@ -181,12 +220,12 @@ void Engine::run()
         if (ticks - fixed_timing >= 0.015) {
             fixed_timing = ticks;
             Engine::fixed_update();
-            Render::fixed_update();
         }
         Engine::update();
-        Render::update();
-        Render::scene();
+        frameRendered = false;
+        //eventUpdateMutex.unlock();
     }
+    renderingThread.join();
 }
 
 float& Engine::internal_quality()
