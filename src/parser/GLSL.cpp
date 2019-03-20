@@ -30,6 +30,15 @@ static auto forwardFragCode =
 #include "forward.frag"
     ;
 
+std::string replace(const std::string& str, const std::string& from, const std::string& to) {
+    auto newStr = str;
+    size_t start_pos = newStr.find(from);
+    if(start_pos == std::string::npos)
+        return newStr;
+    newStr.replace(start_pos, from.length(), to);
+    return newStr;
+}
+
 GLuint compile_shader_code(const std::string& code, GLenum type)
 {
     GLuint shaderid;
@@ -93,14 +102,14 @@ std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     GLuint fragmentid = 0;
     try {
         if (ForwardShader == type) {
-            vertexid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardVertCode + vertex_code, GL_VERTEX_SHADER);
-            fragmentid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardFragCode + fragment_code, GL_FRAGMENT_SHADER);
+            vertexid = compile_shader_code("#define FORWARDSHADER\n" + defines + replace(forwardVertCode, "[CODE]", vertex_code), GL_VERTEX_SHADER);
+            fragmentid = compile_shader_code("#define FORWARDSHADER\n" + defines + replace(forwardFragCode, "[CODE]", fragment_code), GL_FRAGMENT_SHADER);
         } else if (LightingShader == type) {
-            vertexid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredVertCode + vertex_code, GL_VERTEX_SHADER);
-            fragmentid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredFragCode + fragment_code, GL_FRAGMENT_SHADER);
+            vertexid = compile_shader_code("#define LIGHTSHADER\n" + defines + replace(deferredVertCode, "[CODE]", vertex_code), GL_VERTEX_SHADER);
+            fragmentid = compile_shader_code("#define LIGHTSHADER\n" + defines + replace(deferredFragCode, "[CODE]", fragment_code), GL_FRAGMENT_SHADER);
         } else if (PostShader == type) {
-            vertexid = compile_shader_code("#define POSTSHADER\n" + defines + deferredVertCode + vertex_code, GL_VERTEX_SHADER);
-            fragmentid = compile_shader_code("#define POSTSHADER\n" + defines + deferredFragCode + fragment_code, GL_FRAGMENT_SHADER);
+            vertexid = compile_shader_code("#define POSTSHADER\n" + defines + replace(deferredVertCode, "[CODE]", vertex_code), GL_VERTEX_SHADER);
+            fragmentid = compile_shader_code("#define POSTSHADER\n" + defines + replace(deferredFragCode, "[CODE]", fragment_code), GL_FRAGMENT_SHADER);
         }
         shader->link(vertexid, fragmentid);
     } catch (std::exception& e) {
@@ -128,29 +137,27 @@ std::shared_ptr<Shader> GLSL::parse(const std::string& name,
 std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     const std::string& shader_code, ShaderType type, const std::string& defines)
 {
-    auto shader = std::static_pointer_cast<GLSL>(Shader::create(name));
-    static auto emptyShaderCode =
-#include "empty.glsl"
-        ;
+    return (GLSL::compile(name, "", shader_code, type, defines));
+    /*auto shader = std::static_pointer_cast<GLSL>(Shader::create(name));
 
     GLuint vertexid = 0;
     GLuint fragmentid = 0;
     GLuint computeid = 0;
     try {
         if (ForwardShader == type) {
-            vertexid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardVertCode + emptyShaderCode, GL_VERTEX_SHADER);
+            vertexid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardVertCode, GL_VERTEX_SHADER);
             fragmentid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardFragCode + shader_code, GL_FRAGMENT_SHADER);
             shader->link(vertexid, fragmentid);
         } else if (LightingShader == type) {
-            vertexid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredVertCode + emptyShaderCode, GL_VERTEX_SHADER);
+            vertexid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredVertCode, GL_VERTEX_SHADER);
             fragmentid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredFragCode + shader_code, GL_FRAGMENT_SHADER);
             shader->link(vertexid, fragmentid);
         } else if (PostShader == type) {
-            vertexid = compile_shader_code("#define POSTSHADER\n" + defines + deferredVertCode + emptyShaderCode, GL_VERTEX_SHADER);
+            vertexid = compile_shader_code("#define POSTSHADER\n" + defines + deferredVertCode, GL_VERTEX_SHADER);
             fragmentid = compile_shader_code("#define POSTSHADER\n" + defines + deferredFragCode + shader_code, GL_FRAGMENT_SHADER);
             shader->link(vertexid, fragmentid);
         } else if (ComputeShader == type) {
-            computeid = compile_shader_code(defines + shader_code, GL_COMPUTE_SHADER);
+            computeid = compile_shader_code("#define COMPUTESHADER\n" + defines + shader_code, GL_COMPUTE_SHADER);
             shader->link(computeid);
         }
 
@@ -163,7 +170,7 @@ std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     glDeleteShader(fragmentid);
     glDeleteShader(computeid);
     glCheckError();
-    return (shader);
+    return (shader);*/
 }
 
 std::shared_ptr<Shader> GLSL::parse(const std::string& name,

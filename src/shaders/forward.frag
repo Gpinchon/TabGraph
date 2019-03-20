@@ -203,12 +203,14 @@ void	FillOut()
 #endif //FORCEDEPTHWRITE
 }
 
-void	ApplyTechnique();
+[CODE]
 
 void	main()
 {
 	FillIn();
+#ifdef ApplyTechnique
 	ApplyTechnique();
+#endif //ApplyTechnique
 	FillOut();
 }
 

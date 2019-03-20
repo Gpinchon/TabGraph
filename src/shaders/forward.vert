@@ -86,12 +86,14 @@ void	FillOut()
 	gl_Position = Matrix.ModelViewProjection * vec4(in_Position, 1);
 }
 
-void	ApplyTechnique();
+[CODE]
 
 void main()
 {
 	FillIn();
+#ifdef ApplyTechnique
 	ApplyTechnique();
+#endif //ApplyTechnique
 	FillOut();
 }
 

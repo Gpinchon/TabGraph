@@ -35,10 +35,6 @@ static auto present_fragment_code =
 #include "present.frag"
     ;
 
-static auto emptyShaderCode =
-#include "empty.glsl"
-    ;
-
 static auto lightingEnvFragmentCode =
 #include "lighting_env.frag"
         ;
@@ -308,7 +304,7 @@ void Render::scene()
     static auto telighting_shader = GLSL::compile("lighting_env_transparent", lightingEnvFragmentCode, LightingShader,
         std::string("\n#define TRANSPARENT") + std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::ReflexionSteps()) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::ReflexionSamples()) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) + std::string("\n"));
     static auto refraction_shader = GLSL::compile("refraction", refractionFragmentCode, LightingShader);
-    static auto passthrough_shader = GLSL::compile("passthrough", emptyShaderCode, LightingShader);
+    static auto passthrough_shader = GLSL::compile("passthrough", "", LightingShader);
 
     if (!Render::needs_update()) {
         present(final_back_buffer);
