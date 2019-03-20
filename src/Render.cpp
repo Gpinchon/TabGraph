@@ -39,6 +39,13 @@ static auto emptyShaderCode =
 #include "empty.glsl"
     ;
 
+static auto lightingEnvFragmentCode =
+#include "lighting_env.frag"
+        ;
+static auto refractionFragmentCode =
+#include "refraction.frag"
+        ;
+
 /*
 ** quad is a singleton
 */
@@ -62,6 +69,13 @@ const std::shared_ptr<VertexArray> Render::display_quad()
     vao->add_buffer(GL_FLOAT, 2, quad);
     return (vao);
 }
+
+/*
+** Render is a singleton
+*/
+
+Render* Render::_instance = nullptr;
+
 
 #include "parser/GLSL.hpp"
 
@@ -93,8 +107,6 @@ void present(std::shared_ptr<Framebuffer> back_buffer)
     static auto presentShader = GLSL::compile("present",
         passthrough_vertex_code, present_fragment_code);
 
-    // GENERATE BLOOM FROM out_Brightness
-    back_buffer->attachement(1)->blur(Config::BloomPass(), 3.5);
     glDepthFunc(GL_ALWAYS);
     glDisable(GL_CULL_FACE);
     Framebuffer::bind_default();
@@ -251,6 +263,18 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
     shader->use(false);
 }
 
+Render &Render::_get()
+{
+    if (_instance == nullptr)
+        _instance = new Render;
+    return (*_instance);
+}
+
+bool &Render::needs_update()
+{
+    return (_get()._needs_update);
+}
+
 #include <fstream>
 
 void Render::scene()
@@ -279,18 +303,17 @@ void Render::scene()
     static auto back_buffer1 = create_back_buffer("back_buffer1", Window::internal_resolution());
     static auto back_buffer2 = create_back_buffer("back_buffer2", Window::internal_resolution());
     static auto final_back_buffer = create_back_buffer("final_back_buffer", Window::internal_resolution());
-    static auto lightingEnvFragmentCode =
-#include "lighting_env.frag"
-        ;
-    static auto refractionFragmentCode =
-#include "refraction.frag"
-        ;
     static auto elighting_shader = GLSL::compile("lighting_env", lightingEnvFragmentCode, LightingShader,
         std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::ReflexionSteps()) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::ReflexionSamples()) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) + std::string("\n"));
     static auto telighting_shader = GLSL::compile("lighting_env_transparent", lightingEnvFragmentCode, LightingShader,
         std::string("\n#define TRANSPARENT") + std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::ReflexionSteps()) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::ReflexionSamples()) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) + std::string("\n"));
     static auto refraction_shader = GLSL::compile("refraction", refractionFragmentCode, LightingShader);
     static auto passthrough_shader = GLSL::compile("passthrough", emptyShaderCode, LightingShader);
+
+    if (!Render::needs_update()) {
+        present(final_back_buffer);
+        return;
+    }
 
     temp_buffer->resize(Window::internal_resolution());
     temp_buffer1->resize(Window::internal_resolution());
@@ -481,6 +504,8 @@ void Render::scene()
     opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+    // GENERATE BLOOM FROM out_Brightness
+    final_back_buffer->attachement(1)->blur(Config::BloomPass(), 3.5);
     present(final_back_buffer);
 }
 

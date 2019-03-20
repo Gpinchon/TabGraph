@@ -21,6 +21,7 @@
 #include "Window.hpp"
 #include "parser/GLSL.hpp"
 #include <SDL2/SDL_image.h>
+#include <cstring>
 
 std::vector<std::shared_ptr<Texture>> Texture::_textures;
 
@@ -38,9 +39,14 @@ Texture::Texture(const std::string& iname, VEC2 s, GLenum target, GLenum f,
     _internal_format = fi;
     _data_format = data_format;
     _data_size = get_data_size(data_format);
-    _data = static_cast<GLubyte*>(data);
     _bpp = get_bpp(f, data_format);
     _size = s;
+    //_data = static_cast<GLubyte*>(data);
+    if (data != nullptr) {
+        uint64_t dataTotalSize = _size.x * _size.y * _bpp / 8;
+        _data = new GLubyte[dataTotalSize];
+        std::memcpy(_data, data, dataTotalSize);
+    }
 }
 
 #define SDL_LOCKIFMUST(s) (SDL_MUSTLOCK(s) ? SDL_LockSurface(s) : 0)
@@ -139,7 +145,7 @@ std::shared_ptr<Texture> Texture::parse(const std::string &name, const std::stri
     auto texture = Texture::create(name, new_vec2(surface->w, surface->h), GL_TEXTURE_2D,
     textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     texture->_bpp = surface->format->BitsPerPixel;
-    //SDL_FreeSurface(surface);
+    SDL_FreeSurface(surface);
     return (texture);
 
 }

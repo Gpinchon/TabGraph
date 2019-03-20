@@ -27,9 +27,13 @@ class Render {
 		static void add_post_treatment(const std::string& name, const std::string& path);
 		static void remove_post_treatment(std::shared_ptr<Shader>);
 		static double delta_time();
+		static bool &needs_update();
 		static const std::shared_ptr<VertexArray> display_quad();
 		static std::vector<std::weak_ptr<Shader>>& post_treatments();
 
 	private:
-		double _delta_time{0};
+		static Render &_get();
+		static Render *_instance;
+		double _delta_time {0};
+		bool _needs_update {true};
 };

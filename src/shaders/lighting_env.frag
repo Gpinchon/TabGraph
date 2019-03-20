@@ -157,7 +157,7 @@ vec4	SSR()
 	RSAttenuation[0] = 1.0;
 	for (uint i = 0; i < sampleNbr; i++) {
 		vec2 offset = rotateUV(poissonDisk[i % KERNEL_SIZE], randomAngle(Frag.Position, 1024), vec2(0));
-		offset *= (0.5 * Frag.Material.Roughness + 0.0001);
+		offset *= (Frag.Material.Roughness * Frag.Material.Roughness + 0.0001);
 		offset = rotateUV(offset, randomAngle(Frag.Position, 1024), vec2(0));
 		RSDirs[i] = reflect(V, DirectionFromVec2(offset));
 	}

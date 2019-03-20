@@ -164,9 +164,8 @@ void Engine::fixed_update()
 #include <thread>
 #include <mutex>
 
-std::mutex eventUpdateMutex;
-
 bool frameRendered = false;
+std::mutex eventUpdateMutex;
 
 void Engine::_renderingThread(void)
 {
@@ -178,9 +177,7 @@ void Engine::_renderingThread(void)
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
     while (_get()._loop)
     {
-        if (frameRendered)
-            continue;
-        //if (eventUpdateMutex.try_lock()) {
+        if (Render::needs_update() && eventUpdateMutex.try_lock()) {
             _get()._frame_nbr++;
             ticks = SDL_GetTicks() / 1000.f;
             if (ticks - fixed_timing >= 0.015) {
@@ -188,10 +185,12 @@ void Engine::_renderingThread(void)
                 Render::fixed_update();
             }
             Render::update();
-            //eventUpdateMutex.unlock();
-            frameRendered = true;
-        //}
-        Render::scene();
+            Render::scene();
+            Render::needs_update() = false;
+            eventUpdateMutex.unlock();
+        }
+        else
+            Render::scene();
     }
 }
 
@@ -207,11 +206,7 @@ void Engine::run()
     std::thread renderingThread(_renderingThread);
     while (_get()._loop) {
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        if (!frameRendered)
-            continue;
-        /*if (!eventUpdateMutex.try_lock())
-            continue;*/
-        //eventUpdateMutex.lock();
+        eventUpdateMutex.lock();
         ticks = SDL_GetTicks() / 1000.f;
         _get()._delta_time = ticks - last_ticks;
         last_ticks = ticks;
@@ -222,8 +217,8 @@ void Engine::run()
             Engine::fixed_update();
         }
         Engine::update();
-        frameRendered = false;
-        //eventUpdateMutex.unlock();
+        Render::needs_update() = true;
+        eventUpdateMutex.unlock();
     }
     renderingThread.join();
 }
