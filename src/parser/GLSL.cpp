@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/03/20 22:32:35 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/20 23:43:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,15 +30,6 @@ static auto forwardFragCode =
 #include "forward.frag"
     ;
 
-<<<<<<< HEAD
-#include <regex>
-
-std::string replace(const std::string& str, const std::string& from, const std::string& to) {
-    return std::regex_replace(str, std::regex("\\" + from), to);;
-}
-
-=======
->>>>>>> parent of ac42dc0... [BROKEN] Shader WIP
 GLuint compile_shader_code(const std::string& code, GLenum type)
 {
     GLuint shaderid;
