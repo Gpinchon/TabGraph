@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/21 16:37:40 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/17 17:56:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/20 22:32:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,13 +30,10 @@ static auto forwardFragCode =
 #include "forward.frag"
     ;
 
+#include <regex>
+
 std::string replace(const std::string& str, const std::string& from, const std::string& to) {
-    auto newStr = str;
-    size_t start_pos = newStr.find(from);
-    if(start_pos == std::string::npos)
-        return newStr;
-    newStr.replace(start_pos, from.length(), to);
-    return newStr;
+    return std::regex_replace(str, std::regex("\\" + from), to);;
 }
 
 GLuint compile_shader_code(const std::string& code, GLenum type)
