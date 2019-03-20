@@ -33,6 +33,7 @@ SHADERS_FILES	=	blur.frag				\
 					deferred.vert			\
 					depth.frag				\
 					depth.vert				\
+					empty.glsl				\
 					forward.frag			\
 					forward.vert			\
 					forward_default.frag	\

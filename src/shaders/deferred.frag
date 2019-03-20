@@ -282,15 +282,13 @@ bool	lequal(in vec2 v, in vec2 v1)
 	return (eq.x && eq.y);
 }
 
-[CODE]
+void	ApplyTechnique();
 
 void main()
 {
 	FillFrag();
 	vec3	OriginalPosition = Frag.Position;
-#ifdef ApplyTechnique
 	ApplyTechnique();
-#endif //ApplyTechnique
 	FillOut(OriginalPosition);
 }
 

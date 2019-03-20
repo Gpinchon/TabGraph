@@ -42,14 +42,12 @@ void	FillOut()
 	frag_Cube_UV = Vert.CubeUV;
 }
 
-[CODE]
+void	ApplyTechnique();
 
 void main()
 {
 	FillIn();
-#ifdef ApplyTechnique
 	ApplyTechnique();
-#endif //ApplyTechnique
 	FillOut();
 }
 
