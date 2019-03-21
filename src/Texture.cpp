@@ -186,6 +186,8 @@ size_t Texture::get_bpp(GLenum texture_format, GLenum data_format)
     switch (texture_format) {
     case GL_RED:
         return (1 * 8 * data_size);
+    case GL_RG:
+        return (2 * 8 * data_size);
     case GL_RGB:
     case GL_BGR:
         return (3 * 8 * data_size);

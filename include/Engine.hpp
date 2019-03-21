@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <mutex>
 
 #ifndef M_PI
 #define M_PI 3.14159265359f
@@ -37,19 +38,20 @@ class Light;
 class Engine {
 public:
     ~Engine();
-    static void init();
-    static double delta_time();
-    static double fixed_delta_time();
-    static void run();
-    static void stop() { _get()._loop = false; };
-    static float& internal_quality();
-    static int8_t& swap_interval();
-    static void fixed_update();
-    static void update();
-    static int32_t frame_nbr();
-    static std::string& execution_path();
-    static std::string& program_path();
-    static const std::string& resource_path();
+    static void init(void);
+    static double delta_time(void);
+    static double fixed_delta_time(void);
+    static void run(void);
+    static void stop(void) { _get()._loop = false; };
+    static float& internal_quality(void);
+    static int8_t& swap_interval(void);
+    static void fixed_update(void);
+    static void update(void);
+    static std::string& execution_path(void);
+    static std::string& program_path(void);
+    static const std::string& resource_path(void);
+    static std::mutex &update_mutex(void);
+    static bool loop();
 
 private:
     Engine();
@@ -59,10 +61,10 @@ private:
     void _set_program_path(std::string& argv0);
     void _load_res();
     bool _loop{ false };
-    int32_t _frame_nbr{ 0 };
     int8_t _swap_interval{ 1 };
     double _delta_time{ 0 };
     std::string _program_path{ "" };
     std::string _exec_path{ "" };
     float _internal_quality{ 1 };
+    std::mutex _update_mutex;
 };

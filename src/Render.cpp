@@ -24,8 +24,10 @@
 #include "Window.hpp"
 #include "parser/BMP.hpp"
 #include "parser/InternalTools.hpp"
+#include "brdfLUT.hpp"
 #include <algorithm>
 #include <vector>
+#include <thread>
 
 static auto passthrough_vertex_code =
 #include "passthrough.vert"
@@ -199,6 +201,55 @@ void Render::fixed_update()
     }
 }
 
+void Render::request_redraw(void)
+{
+    _get()._needs_update = true;
+}
+
+void Render::start_rendering_thread(void)
+{
+    _get()._loop = true;
+    _get()._rendering_thread = std::thread(_thread);
+}
+
+void Render::stop_rendering_thread(void)
+{
+    _get()._loop = false;
+    _get()._rendering_thread.join();
+}
+
+void Render::_thread(void)
+{
+    float ticks;
+    float fixed_timing;
+
+    fixed_timing = SDL_GetTicks() / 1000.f;
+    SDL_GL_SetSwapInterval(Engine::swap_interval());
+    SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
+    while (_get()._loop)
+    {
+        if (Render::needs_update() && Engine::update_mutex().try_lock()) {
+            _get()._frame_nbr++;
+            ticks = SDL_GetTicks() / 1000.f;
+            if (ticks - fixed_timing >= 0.015) {
+                fixed_timing = ticks;
+                Render::fixed_update();
+            }
+            Render::update();
+            Render::scene();
+            _get()._needs_update = false;
+            Engine::update_mutex().unlock();
+        }
+        else
+            Render::scene();
+    }
+}
+
+uint64_t Render::frame_nbr()
+{
+    return (_get()._frame_nbr);
+}
+
 void Render::update()
 {
 }
@@ -270,33 +321,20 @@ Render &Render::_get()
     return (*_instance);
 }
 
-bool &Render::needs_update()
+bool Render::needs_update()
 {
     return (_get()._needs_update);
 }
-
-#include <fstream>
 
 void Render::scene()
 {
     static std::shared_ptr<Texture> brdf;
     if (brdf == nullptr) {
-        brdf = Texture::parse("brdf", Engine::resource_path() + "/brdfLUT.bmp");
-        /*static std::ofstream myfile;
-		myfile.open ("brdfLUT");
-		for (auto x = brdf->size().x; x > 0; x--) {
-			for (auto y = 0; y < brdf->size().y; y++) {
-				VEC2	uv;
-				uv.x = x / brdf->size().x;
-				uv.y = y / brdf->size().y;
-				auto pixel = brdf->sample(uv);
-				myfile << int(pixel.z * 255.f) << ", " << int(pixel.y * 255.f) << ", ";
-			}
-			myfile << std::endl;
-		}*/
+        brdf = Texture::create("brdf", new_vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
         brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
+    
     static auto temp_buffer = create_render_buffer("temp_buffer", Window::internal_resolution());
     static auto temp_buffer1 = create_render_buffer("temp_buffer1", Window::internal_resolution());
     static auto back_buffer = create_back_buffer("back_buffer", Window::internal_resolution());

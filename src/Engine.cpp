@@ -161,37 +161,14 @@ void Engine::fixed_update()
     }
 }
 
-#include <thread>
-#include <mutex>
-
-bool frameRendered = false;
-std::mutex eventUpdateMutex;
-
-void Engine::_renderingThread(void)
+std::mutex &Engine::update_mutex(void)
 {
-    float ticks;
-    float fixed_timing;
+    return _get()._update_mutex;
+}
 
-    fixed_timing = SDL_GetTicks() / 1000.f;
-    SDL_GL_SetSwapInterval(Engine::_get().swap_interval());
-    SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
-    while (_get()._loop)
-    {
-        if (Render::needs_update() && eventUpdateMutex.try_lock()) {
-            _get()._frame_nbr++;
-            ticks = SDL_GetTicks() / 1000.f;
-            if (ticks - fixed_timing >= 0.015) {
-                fixed_timing = ticks;
-                Render::fixed_update();
-            }
-            Render::update();
-            Render::scene();
-            Render::needs_update() = false;
-            eventUpdateMutex.unlock();
-        }
-        else
-            Render::scene();
-    }
+bool Engine::loop(void)
+{
+    return _get()._loop;
 }
 
 void Engine::run()
@@ -203,10 +180,10 @@ void Engine::run()
     fixed_timing = last_ticks = SDL_GetTicks() / 1000.f;
     SDL_SetEventFilter(event_filter, nullptr);
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr); 
-    std::thread renderingThread(_renderingThread);
+    Render::start_rendering_thread();
     while (_get()._loop) {
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        eventUpdateMutex.lock();
+        Engine::update_mutex().lock();
         ticks = SDL_GetTicks() / 1000.f;
         _get()._delta_time = ticks - last_ticks;
         last_ticks = ticks;
@@ -217,18 +194,13 @@ void Engine::run()
             Engine::fixed_update();
         }
         Engine::update();
-        Render::needs_update() = true;
-        eventUpdateMutex.unlock();
+        Engine::update_mutex().unlock();
+        Render::request_redraw();
     }
-    renderingThread.join();
+    Render::stop_rendering_thread();
 }
 
 float& Engine::internal_quality()
 {
     return (_get()._internal_quality);
-}
-
-int32_t Engine::frame_nbr()
-{
-    return (_get()._frame_nbr);
 }

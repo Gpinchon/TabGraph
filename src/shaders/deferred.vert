@@ -18,9 +18,6 @@ struct t_Camera {
 	t_CameraMatrix	InvMatrix;
 };
 
-
-/* uniform mat4	in_InvProjMatrix;
-uniform mat4	in_InvViewMatrix; */
 uniform t_Camera	Camera;
 
 out vec2		frag_UV;
