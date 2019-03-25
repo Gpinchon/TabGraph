@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/03/20 21:42:53 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/03/25 23:09:49 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,8 +70,9 @@ HEADERS_FILES	=	AABB.hpp					\
 					parser						\
 					Render.hpp					\
 					Renderable.hpp				\
-					scop.hpp					\
+					tests/scop.hpp				\
 					Shader.hpp					\
+					Terrain.hpp					\
 					Texture.hpp					\
 					TextureArray.hpp			\
 					VertexArray.hpp				\
@@ -106,6 +107,7 @@ SRC_FILES		=	Camera.cpp			\
 					Render.cpp			\
 					Renderable.cpp		\
 					Shader.cpp			\
+					Terrain.cpp			\
 					Texture.cpp			\
 					TextureArray.cpp	\
 					VertexArray.cpp		\
@@ -120,23 +122,27 @@ SRC_FILES		=	Camera.cpp			\
 					parser/OBJ.cpp		\
 					parser/tools.cpp	\
 					render/shadow.cpp
-SRC_FILES_TEST	=	scop42/main.cpp			\
-					scop42/callbacks.cpp
+SRC_FILES_SCOP		=	tests/scop42/main.cpp		\
+						tests/scop42/callbacks.cpp
+
+SRC_FILES_TERRAIN	=	tests/terrain/main.cpp		\
+						tests/scop42/callbacks.cpp
+
 RES_FILES		=	$(shell find ./res -type f)
 BUILD_RES_FILES	=	$(addprefix $(TEST_PATH), $(RES_FILES))
 # Files Declaration End #
 
 #   Files Generation   #
 SRC				=	$(addprefix $(SRC_PATH), $(SRC_FILES))
-TEST_SRC		=	$(addprefix $(SRC_PATH), $(SRC_FILES_TEST))
+SCOP_SRC		=	$(addprefix $(SRC_PATH), $(SRC_FILES_SCOP))
 SHADERS			=	$(addprefix $(SHADERS_PATH), $(SHADERS_FILES))
 HEADERS			=	$(addprefix $(HEADERS_PATH), $(HEADERS_FILES))
 OBJ				=	$(SRC_FILES:.cpp=.o)
-OBJ_TEST		=	$(SRC_FILES_TEST:.cpp=.o)
+OBJ_SCOP		=	$(SRC_FILES_SCOP:.cpp=.o)
 RELOBJ			=	$(addprefix $(RELOBJ_PATH), $(OBJ))
 DBGOBJ			=	$(addprefix $(DBGOBJ_PATH), $(OBJ))
-RELOBJ_TEST		=	$(addprefix $(RELOBJ_PATH), $(OBJ_TEST))
-DBGOBJ_TEST		=	$(addprefix $(DBGOBJ_PATH), $(OBJ_TEST))
+RELOBJ_SCOP		=	$(addprefix $(RELOBJ_PATH), $(OBJ_SCOP))
+DBGOBJ_SCOP		=	$(addprefix $(DBGOBJ_PATH), $(OBJ_SCOP))
 # Files Generation End #
 
 INCLUDE_PATH	=	./include				\
@@ -207,9 +213,9 @@ info:
 depend:
 	makedepend -- $(CXXFLAGS) -- $(SRC)
 
-tests: release debug $(RELOBJ_TEST) $(DBGOBJ_TEST) $(BUILD_RES_FILES)
-	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_TEST) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)Scop
-	$(CXX) $(CXXFLAGS) $(DBGFLAGS) $(DBGOBJ_TEST) -L $(DBGBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)ScopD
+tests: release debug $(RELOBJ_SCOP) $(DBGOBJ_SCOP) $(BUILD_RES_FILES)
+	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_SCOP) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)Scop
+	$(CXX) $(CXXFLAGS) $(DBGFLAGS) $(DBGOBJ_SCOP) -L $(DBGBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)ScopD
 	./scripts/copyDlls.sh $(TEST_PATH)Scop.exe
 	./scripts/copyDlls.sh $(TEST_PATH)ScopD.exe
 
