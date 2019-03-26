@@ -38,7 +38,7 @@
 .DS_Store
 
 # Build folder
-tests/
+build/
 
 # Project executable
 Test
