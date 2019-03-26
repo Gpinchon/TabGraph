@@ -165,7 +165,7 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
+LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
 LDLIBS		+=	$(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 else
@@ -212,6 +212,21 @@ info:
 
 depend:
 	makedepend -- $(CXXFLAGS) -- $(SRC)
+
+$(APP_PATH)$(APP_OBJPATH)%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS)
+	@(mkdir -p $(@D))
+	@echo Compiling $@...
+	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
+	@echo $@ compilation "$(OK_STRING)"
+
+$(APP_PATH)/build/$(APP_NAME): $(APP_OBJ)
+	@(mkdir -p $(@D))
+	@echo Compiling $@...
+	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(APP_RELOBJ) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
+	@echo $@ compilation "$(OK_STRING)"
+
+application: $(APP_PATH)/build/$(APP_NAME)
+	./scripts/copyDlls.sh $(APP_PATH)/build/$(APP_NAME)
 
 tests: release debug $(RELOBJ_SCOP) $(DBGOBJ_SCOP) $(BUILD_RES_FILES)
 	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_SCOP) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)Scop
