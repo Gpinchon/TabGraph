@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/03/25 23:09:49 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/03/26 22:10:02 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -153,7 +153,7 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
+LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
 LDLIBS		+=	$(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 else

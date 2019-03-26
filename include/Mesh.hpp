@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/15 20:25:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/11/15 21:30:14 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/26 22:50:35 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,10 @@ public:
     void add(std::shared_ptr<Vgroup>);
     std::shared_ptr<Vgroup> vgroup(unsigned index);
 
-private:
+protected:
     Mesh(const std::string& name);
+
+private:
     static std::vector<std::shared_ptr<Mesh>> _meshes;
     std::vector<std::weak_ptr<Vgroup>> _vgroups;
     GLenum _cull_mod{ GL_BACK };
