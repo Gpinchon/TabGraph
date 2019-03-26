@@ -13,7 +13,7 @@
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
 
-#include "tests/scop.hpp"
+#include "scop.hpp"
 #include "Config.hpp"
 #include "Window.hpp"
 #include "Engine.hpp"

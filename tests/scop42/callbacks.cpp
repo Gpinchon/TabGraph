@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "tests/scop.hpp"
+#include "scop.hpp"
 #include "Camera.hpp"
 #include "Engine.hpp"
 #include "Mesh.hpp"

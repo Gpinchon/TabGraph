@@ -19,7 +19,6 @@ BUILD_PATH		=	build/
 HEADERS_PATH	=	include/
 REL_PATH		=	release/
 DBG_PATH		=	debug/
-TEST_PATH		=	$(BUILD_PATH)tests/
 SHADERS_PATH	=	$(SRC_PATH)shaders/
 RELOBJ_PATH		=	$(OBJ_PATH)$(REL_PATH)
 DBGOBJ_PATH		=	$(OBJ_PATH)$(DBG_PATH)
@@ -70,7 +69,6 @@ HEADERS_FILES	=	AABB.hpp					\
 					parser						\
 					Render.hpp					\
 					Renderable.hpp				\
-					tests/scop.hpp				\
 					Shader.hpp					\
 					Terrain.hpp					\
 					Texture.hpp					\
@@ -122,27 +120,17 @@ SRC_FILES		=	Camera.cpp			\
 					parser/OBJ.cpp		\
 					parser/tools.cpp	\
 					render/shadow.cpp
-SRC_FILES_SCOP		=	tests/scop42/main.cpp		\
-						tests/scop42/callbacks.cpp
-
-SRC_FILES_TERRAIN	=	tests/terrain/main.cpp		\
-						tests/scop42/callbacks.cpp
 
 RES_FILES		=	$(shell find ./res -type f)
-BUILD_RES_FILES	=	$(addprefix $(TEST_PATH), $(RES_FILES))
 # Files Declaration End #
 
 #   Files Generation   #
 SRC				=	$(addprefix $(SRC_PATH), $(SRC_FILES))
-SCOP_SRC		=	$(addprefix $(SRC_PATH), $(SRC_FILES_SCOP))
 SHADERS			=	$(addprefix $(SHADERS_PATH), $(SHADERS_FILES))
 HEADERS			=	$(addprefix $(HEADERS_PATH), $(HEADERS_FILES))
 OBJ				=	$(SRC_FILES:.cpp=.o)
-OBJ_SCOP		=	$(SRC_FILES_SCOP:.cpp=.o)
 RELOBJ			=	$(addprefix $(RELOBJ_PATH), $(OBJ))
 DBGOBJ			=	$(addprefix $(DBGOBJ_PATH), $(OBJ))
-RELOBJ_SCOP		=	$(addprefix $(RELOBJ_PATH), $(OBJ_SCOP))
-DBGOBJ_SCOP		=	$(addprefix $(DBGOBJ_PATH), $(OBJ_SCOP))
 # Files Generation End #
 
 INCLUDE_PATH	=	./include				\
@@ -172,7 +160,7 @@ else
 LDLIBS		+=	$(LDFLAGS) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
-all: tests
+all: release debug
 
 release: CXXFLAGS += $(RELFLAGS)
 release: $(RELBUILD_PATH)$(NAME)
@@ -202,13 +190,6 @@ $(DBGOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(BUILD_RES_FILES): %: $(RES_FILES)
-	@(mkdir -p $(@D))
-	@(cp $(patsubst $(TEST_PATH)%,%,$@) $@)
-	@echo Copied $(patsubst $(TEST_PATH)%,%,$@) to $@
-
-
-
 BUILD_APP_RES = $(addprefix $(APP_PATH)/build/, $(APP_RES_FILES))
 APP_RES = $(addprefix $(APP_PATH), $(APP_RES_FILES))
 APP_OBJ = $(addprefix $(APP_PATH)/obj/, $(APP_SRC:.cpp=.o))
@@ -237,11 +218,6 @@ $(APP_PATH)/build/$(APP_NAME): $(APP_OBJ)
 application: release $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES)
 	./scripts/copyDlls.sh $(APP_PATH)/build/$(APP_NAME)
 
-tests: release debug $(RELOBJ_SCOP) $(DBGOBJ_SCOP) $(BUILD_RES_FILES)
-	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(RELOBJ_SCOP) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)Scop
-	$(CXX) $(CXXFLAGS) $(DBGFLAGS) $(DBGOBJ_SCOP) -L $(DBGBUILD_PATH) -lTabGraph $(LDLIBS) -o $(TEST_PATH)ScopD
-	./scripts/copyDlls.sh $(TEST_PATH)Scop.exe
-	./scripts/copyDlls.sh $(TEST_PATH)ScopD.exe
 
 ./libs/vml/libvml.a :
 	$(MAKE) -C ./libs/vml/
@@ -264,7 +240,7 @@ clean:
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) clean && ) true
 
 fclean:
-	rm -rf $(TEST_PATH) $(BUILD_PATH) $(OBJ_PATH)
+	rm -rf $(BUILD_PATH) $(OBJ_PATH)
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) fclean && ) true
 
 re: fclean all
