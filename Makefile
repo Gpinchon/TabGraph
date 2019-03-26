@@ -207,13 +207,22 @@ $(BUILD_RES_FILES): %: $(RES_FILES)
 	@(cp $(patsubst $(TEST_PATH)%,%,$@) $@)
 	@echo Copied $(patsubst $(TEST_PATH)%,%,$@) to $@
 
+
+
+BUILD_APP_RES = $(addprefix $(APP_PATH)/build/, $(APP_RES_FILES))
+APP_RES = $(addprefix $(APP_PATH), $(APP_RES_FILES))
+APP_OBJ = $(addprefix $(APP_PATH)/obj/, $(APP_SRC:.cpp=.o))
+
 info:
-	@echo $(SHADERS)
+	@echo $(APP_RES)
+	@echo $(BUILD_APP_RES)
 
-depend:
-	makedepend -- $(CXXFLAGS) -- $(SRC)
+$(BUILD_APP_RES): %: $(APP_RES)
+	@(mkdir -p $(@D))
+	@(cp $(patsubst $(APP_PATH)/build/%, $(APP_PATH)%,$@) $@)
+	@echo Copied $(patsubst $(APP_PATH)%,%,$@) to $@
 
-$(APP_PATH)$(APP_OBJPATH)%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS)
+$(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
@@ -222,10 +231,10 @@ $(APP_PATH)$(APP_OBJPATH)%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(AP
 $(APP_PATH)/build/$(APP_NAME): $(APP_OBJ)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
-	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(APP_RELOBJ) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
+	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(APP_OBJ) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
 	@echo $@ compilation "$(OK_STRING)"
 
-application: $(APP_PATH)/build/$(APP_NAME)
+application: release $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES)
 	./scripts/copyDlls.sh $(APP_PATH)/build/$(APP_NAME)
 
 tests: release debug $(RELOBJ_SCOP) $(DBGOBJ_SCOP) $(BUILD_RES_FILES)
