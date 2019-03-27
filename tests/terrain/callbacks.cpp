@@ -67,7 +67,7 @@ void	callback_scale(SDL_KeyboardEvent *event)
 	if (event == nullptr || event->type == SDL_KEYUP) {
 		return ;
 	}
-	auto	mesh = Mesh::get_by_name("main_mesh");
+	auto	mesh = Mesh::get_by_name("terrain_test");
 	if (Keyboard::key(SDL_SCANCODE_LCTRL) == 0u) {
 		return ;
 	}
