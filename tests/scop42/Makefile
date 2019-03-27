@@ -3,7 +3,7 @@ APP_SRC			=	main.cpp			\
 
 APP_RES_FILES	=	$(shell find ./res -type f)
 
-APP_PATH		=	tests/scop42/
+APP_PATH		=	$(PWD)/
 
 APP_NAME		=	Scop.exe
 
