@@ -160,11 +160,9 @@ else
 LDLIBS		+=	$(LDFLAGS) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
-all: release debug
+all: $(RELBUILD_PATH)$(NAME) $(DBGBUILD_PATH)$(NAME)
 
-release: CXXFLAGS += $(RELFLAGS)
-release: $(RELBUILD_PATH)$(NAME)
-
+$(RELBUILD_PATH)$(NAME) : CXXFLAGS += $(RELFLAGS)
 $(RELBUILD_PATH)$(NAME) : $(LIBFILES) $(RELOBJ)
 	@(mkdir -p $(@D))
 	ar -rc $(RELBUILD_PATH)$(NAME) $(RELOBJ)
@@ -176,9 +174,7 @@ $(RELOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-debug: CXXFLAGS += $(DBGFLAGS)
-debug: $(DBGBUILD_PATH)$(NAME)
-
+$(DBGBUILD_PATH)$(NAME) : CXXFLAGS += $(DBGFLAGS)
 $(DBGBUILD_PATH)$(NAME) : $(LIBFILES) $(DBGOBJ)
 	@(mkdir -p $(@D))
 	ar -rc $(DBGBUILD_PATH)$(NAME) $(DBGOBJ)
@@ -209,13 +205,13 @@ $(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(APP_PATH)/build/$(APP_NAME): $(APP_OBJ)
+$(APP_PATH)/build/$(APP_NAME): $(RELBUILD_PATH)$(NAME) $(RELBUILD_PATH)$(NAME) $(APP_OBJ)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(APP_OBJ) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
 	@echo $@ compilation "$(OK_STRING)"
 
-application: release $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES)
+application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES)
 	./scripts/copyDlls.sh $(APP_PATH)/build/$(APP_NAME)
 
 
