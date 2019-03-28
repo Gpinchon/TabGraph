@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/25 23:08:57 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/03/27 23:23:33 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/28 22:54:21 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,21 +64,13 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 		auto &n1 = vg->vn.at(i1);
 		auto &n2 = vg->vn.at(i2);
 
-		VEC3 N0 = new_vec3(n0.x / 255.f, n0.y / 255.f, n0.z / 255.f);
-		VEC3 N1 = new_vec3(n1.x / 255.f, n1.y / 255.f, n1.z / 255.f);
-		VEC3 N2 = new_vec3(n2.x / 255.f, n2.y / 255.f, n2.z / 255.f);
-
-		auto U = vec3_normalize(vec3_sub(v1, v0));
-		auto V = vec3_normalize(vec3_sub(v2, v0));
+		VEC3 N0 = new_vec3((n0.x / 255.f) * 2 - 1, (n0.y / 255.f) * 2 - 1, (n0.z / 255.f) * 2 - 1);
+		VEC3 N1 = new_vec3((n1.x / 255.f) * 2 - 1, (n1.y / 255.f) * 2 - 1, (n1.z / 255.f) * 2 - 1);
+		VEC3 N2 = new_vec3((n2.x / 255.f) * 2 - 1, (n2.y / 255.f) * 2 - 1, (n2.z / 255.f) * 2 - 1);
 		VEC3 N;
-
-		N.x = U.y * V.z - U.z * V.y;
-		N.y = U.z * V.x - U.x * V.z;
-		N.z = U.x * V.y - U.y * V.x;
-
+		N = vec3_cross(vec3_sub(v1, v0), vec3_sub(v2, v0));
 		N = vec3_normalize(N);
-
-		if (N0.x == 0 && N0.y == 0 && N0.z == 0) {
+		if ((N0.x + N0.y + N0.z) == 0) {
 			N0 = N;
 		}
 		else {
@@ -86,7 +78,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 			N0 = vec3_fdiv(N0, 2);
 			N0 = vec3_normalize(N0);
 		}
-		if (N1.x == 0 && N1.y == 0 && N1.z == 0) {
+		if ((N1.x + N1.y + N1.z) == 0) {
 			N1 = N;
 		}
 		else {
@@ -94,7 +86,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 			N1 = vec3_fdiv(N1, 2);
 			N1 = vec3_normalize(N1);
 		}
-		if (N2.x == 0 && N2.y == 0 && N2.z == 0) {
+		if ((N2.x + N2.y + N2.z) == 0) {
 			N2 = N;
 		}
 		else {
@@ -102,19 +94,21 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 			N2 = vec3_fdiv(N2, 2);
 			N2 = vec3_normalize(N2);
 		}
-		n0.x = N0.x * 255.f;
-		n0.y = N0.y * 255.f;
-		n0.z = N0.z * 255.f;
-		n1.x = N1.x * 255.f;
-		n1.y = N1.y * 255.f;
-		n1.z = N1.z * 255.f;
-		n2.x = N2.x * 255.f;
-		n2.y = N2.y * 255.f;
-		n2.z = N2.z * 255.f;
+		n0.x = ((N0.x + 1) * 0.5) * 255.f;
+		n0.y = ((N0.y + 1) * 0.5) * 255.f;
+		n0.z = ((N0.z + 1) * 0.5) * 255.f;
+		n1.x = ((N1.x + 1) * 0.5) * 255.f;
+		n1.y = ((N1.y + 1) * 0.5) * 255.f;
+		n1.z = ((N1.z + 1) * 0.5) * 255.f;
+		n2.x = ((N2.x + 1) * 0.5) * 255.f;
+		n2.y = ((N2.y + 1) * 0.5) * 255.f;
+		n2.z = ((N2.z + 1) * 0.5) * 255.f;
 	}
 	auto mtl = Material::create("default_terrain");
 	mtl->set_texture_albedo(texture);
-	mtl->roughness = 0;
+	mtl->set_texture_roughness(texture);
+	mtl->albedo = new_vec3(1, 1, 1);
+	//mtl->roughness = 0;
 	vg->set_material(mtl);
 	terrain->add(vg);
 	return terrain;
