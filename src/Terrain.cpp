@@ -23,44 +23,40 @@ Terrain::Terrain(const std::string &name) : Mesh(name)
 std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 	VEC2 resolution, VEC3 scale, std::shared_ptr<Texture> texture)
 {
-	std::cout << name << " create" << std::endl;
 	auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
     Mesh::add(terrain);
     Renderable::add(terrain);
     Node::add(terrain);
 	auto vg = Vgroup::create(name + "vgroup");
 	vg->v.resize(uint32_t(resolution.x * resolution.y));
-	vg->vn.resize(uint32_t(resolution.x * resolution.y));
+	vg->vn.resize(vg->v.size());
+	vg->vt.resize(vg->v.size());
 	for (auto x = 0.f; x < resolution.x; x++) {
 		for (auto y = 0.f; y < resolution.y; y++) {
-			auto v2 = new_vec2(x / resolution.x, y / resolution.y);
+			auto uv = new_vec2(x / resolution.x, y / resolution.y);
 			auto z = 0.f;
 			if (texture) {
-				z = texture->sample(v2).x;
+				z = texture->sample(uv).x;
 			}
+			vg->vt.at(uint32_t(x + y * resolution.x)) = uv;
 			auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
-			v3 = new_vec3(v2.x * scale.x, z * scale.z, v2.y * scale.y);
-		}
-	}
-	for (auto x = 0.f; x < resolution.x; x++) {
-		for (auto y = 0.f; y < resolution.y; y++) {
-			if (x < resolution.x && y < resolution.y) {
+			v3 = new_vec3(uv.x * scale.x - scale.x / 2.f, z * scale.z, uv.y * scale.y - scale.y / 2.f);
+			if (x < resolution.x - 1 && y < resolution.y - 1) {
 				vg->i.push_back(uint32_t(x + y * resolution.x));
 				vg->i.push_back(uint32_t(x + (y + 1) * resolution.x));
 				vg->i.push_back(uint32_t((x + 1) + (y + 1) * resolution.x));
-			}
-			if (x < resolution.x && y < resolution.y) {
+
 				vg->i.push_back(uint32_t(x + y * resolution.x));
 				vg->i.push_back(uint32_t((x + 1) + (y + 1) * resolution.x));
 				vg->i.push_back(uint32_t((x + 1) + y * resolution.x));
 			}
 		}
 	}
-	for (auto i = 0u; i < vg->i.size() - 3; i += 3)
+	for (auto i = 0u; i * 3 < vg->i.size(); i++)
 	{
-		auto i0 = vg->i.at(i + 0);
-		auto i1 = vg->i.at(i + 1);
-		auto i2 = vg->i.at(i + 2);
+		auto i0 = vg->i.at(i * 3 + 0);
+		auto i1 = vg->i.at(i * 3 + 1);
+		auto i2 = vg->i.at(i * 3 + 2);
 		auto v0 = vg->v.at(i0);
 		auto v1 = vg->v.at(i1);
 		auto v2 = vg->v.at(i2);
@@ -68,8 +64,12 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 		auto &n1 = vg->vn.at(i1);
 		auto &n2 = vg->vn.at(i2);
 
-		auto U = vec3_sub(v1, v0);
-		auto V = vec3_sub(v2, v0);
+		VEC3 N0 = new_vec3(n0.x / 255.f, n0.y / 255.f, n0.z / 255.f);
+		VEC3 N1 = new_vec3(n1.x / 255.f, n1.y / 255.f, n1.z / 255.f);
+		VEC3 N2 = new_vec3(n2.x / 255.f, n2.y / 255.f, n2.z / 255.f);
+
+		auto U = vec3_normalize(vec3_sub(v1, v0));
+		auto V = vec3_normalize(vec3_sub(v2, v0));
 		VEC3 N;
 
 		N.x = U.y * V.z - U.z * V.y;
@@ -77,40 +77,45 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 		N.z = U.x * V.y - U.y * V.x;
 
 		N = vec3_normalize(N);
-		N = vec3_scale(N, 255);
 
-		if (n0.x == 0 && n0.y == 0 && n0.z == 0) {
-			n0.x = N.x;
-			n0.y = N.y;
-			n0.z = N.z;
+		if (N0.x == 0 && N0.y == 0 && N0.z == 0) {
+			N0 = N;
 		}
 		else {
-			n0.x = (n0.x + N.x) / 2.f;
-			n0.y = (n0.y + N.y) / 2.f;
-			n0.z = (n0.z + N.z) / 2.f;
+			N0 = vec3_add(N0, N);
+			N0 = vec3_fdiv(N0, 2);
+			N0 = vec3_normalize(N0);
 		}
-		if (n1.x == 0 && n1.y == 0 && n1.z == 0) {
-			n1.x = N.x;
-			n1.y = N.y;
-			n1.z = N.z;
+		if (N1.x == 0 && N1.y == 0 && N1.z == 0) {
+			N1 = N;
 		}
 		else {
-			n1.x = (n1.x + N.x) / 2.f;
-			n1.y = (n1.y + N.y) / 2.f;
-			n1.z = (n1.z + N.z) / 2.f;
+			N1 = vec3_add(N1, N);
+			N1 = vec3_fdiv(N1, 2);
+			N1 = vec3_normalize(N1);
 		}
-		if (n2.x == 0 && n2.y == 0 && n2.z == 0) {
-			n2.x = N.x;
-			n2.y = N.y;
-			n2.z = N.z;
+		if (N2.x == 0 && N2.y == 0 && N2.z == 0) {
+			N2 = N;
 		}
 		else {
-			n2.x = (n2.x + N.x) / 2.f;
-			n2.y = (n2.y + N.y) / 2.f;
-			n2.z = (n2.z + N.z) / 2.f;
+			N2 = vec3_add(N2, N);
+			N2 = vec3_fdiv(N2, 2);
+			N2 = vec3_normalize(N2);
 		}
+		n0.x = N0.x * 255.f;
+		n0.y = N0.y * 255.f;
+		n0.z = N0.z * 255.f;
+		n1.x = N1.x * 255.f;
+		n1.y = N1.y * 255.f;
+		n1.z = N1.z * 255.f;
+		n2.x = N2.x * 255.f;
+		n2.y = N2.y * 255.f;
+		n2.z = N2.z * 255.f;
 	}
-	vg->set_material(Material::create("default_terrain"));
+	auto mtl = Material::create("default_terrain");
+	mtl->set_texture_albedo(texture);
+	mtl->roughness = 0;
+	vg->set_material(mtl);
 	terrain->add(vg);
 	return terrain;
 }
