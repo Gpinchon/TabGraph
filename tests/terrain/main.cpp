@@ -48,7 +48,7 @@ int		main(int /*argc*/, char **/*argv*/)
 	camera->set_target(Node::create("main_camera_target", new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 
-	Terrain::create("terrain_test", new_vec2(1024, 1024), new_vec3(50, 50, 1), Texture::parse("heightMap", "res/heightMap.jpg"));
+	Terrain::create("terrain_test", new_vec2(1024, 1024), new_vec3(50, 50, 1), Texture::parse("heightMap", "res/heightMap.png"));
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	setup_callbacks();
 	//create_random_lights(250);

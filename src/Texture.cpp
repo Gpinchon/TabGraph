@@ -115,6 +115,62 @@ std::shared_ptr<Texture> Texture::parse(const std::string &name, const std::stri
     GLenum  textureFormat = 0;
     GLenum  textureInternalFormat = 0;
 
+    consoleLog(SDL_GetPixelFormatName(surface->format->format));
+
+    switch (surface->format->format)
+    {
+        //case SDL_PIXELFORMAT_UNKNOWN:
+        case SDL_PIXELFORMAT_INDEX1LSB:
+        case SDL_PIXELFORMAT_INDEX1MSB:
+        case SDL_PIXELFORMAT_INDEX4LSB:
+        case SDL_PIXELFORMAT_INDEX4MSB:
+        case SDL_PIXELFORMAT_INDEX8:
+            textureFormat = GL_COLOR_INDEX;
+            break;
+        case SDL_PIXELFORMAT_RGB332:
+        case SDL_PIXELFORMAT_RGB444:
+        case SDL_PIXELFORMAT_RGB555:
+        case SDL_PIXELFORMAT_RGB565:
+        case SDL_PIXELFORMAT_RGB24:
+        case SDL_PIXELFORMAT_RGB888:
+        case SDL_PIXELFORMAT_RGBX8888:
+        case SDL_PIXELFORMAT_RGBA8888:
+            textureFormat = GL_RGB;
+            break;
+        case SDL_PIXELFORMAT_BGR555:
+        case SDL_PIXELFORMAT_BGR565:
+        case SDL_PIXELFORMAT_BGR888:
+        case SDL_PIXELFORMAT_BGR24:
+            textureFormat = GL_BGR;
+            break;
+        case SDL_PIXELFORMAT_RGBA4444:
+        case SDL_PIXELFORMAT_RGBA5551:
+        case SDL_PIXELFORMAT_RGBA32:
+            textureFormat = GL_RGBA;
+            break;
+        case SDL_PIXELFORMAT_BGRA4444:
+        case SDL_PIXELFORMAT_BGRA5551:
+        case SDL_PIXELFORMAT_BGRA8888:
+        case SDL_PIXELFORMAT_BGRA32:
+            textureFormat = GL_BGRA;
+            break;
+        //case SDL_PIXELFORMAT_ARGB4444:
+        //case SDL_PIXELFORMAT_ARGB1555:
+        //case SDL_PIXELFORMAT_ARGB8888:
+        //case SDL_PIXELFORMAT_ARGB2101010:
+        //case SDL_PIXELFORMAT_ABGR32:
+        //    textureFormat = GL_ARGB;
+        //    break;
+        //case SDL_PIXELFORMAT_ABGR4444:
+        //case SDL_PIXELFORMAT_ABGR1555:
+        //    textureFormat = GL_ABGR;
+        //    break;
+        //case SDL_PIXELFORMAT_BGRX8888:
+        //case SDL_PIXELFORMAT_ABGR8888:
+        //    textureFormat = GL_ABGR;
+        //    break;
+    }
+
     if(nColors == 4)
     {
         if(surface->format->Rmask==0x000000ff)
