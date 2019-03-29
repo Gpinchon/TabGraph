@@ -111,13 +111,13 @@ std::shared_ptr<Texture> Texture::parse(const std::string &name, const std::stri
     if(!surface || !surface->format)
         throw std::runtime_error(std::string("Error parsing ") + path + " : " + SDL_GetError());
     invert_surface_vertical(surface);
-    auto nColors = surface->format->BytesPerPixel;
+    //auto nColors = surface->format->BytesPerPixel;
     GLenum  textureFormat = 0;
     GLenum  textureInternalFormat = 0;
 
     consoleLog(SDL_GetPixelFormatName(surface->format->format));
 
-    switch (surface->format->format)
+    /*switch (surface->format->format)
     {
         //case SDL_PIXELFORMAT_UNKNOWN:
         case SDL_PIXELFORMAT_INDEX1LSB:
@@ -169,9 +169,16 @@ std::shared_ptr<Texture> Texture::parse(const std::string &name, const std::stri
         //case SDL_PIXELFORMAT_ABGR8888:
         //    textureFormat = GL_ABGR;
         //    break;
-    }
+    }*/
 
-    if(nColors == 4)
+    auto newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(surface);
+    surface = newSurface;
+
+    textureFormat = GL_RGBA;
+    textureInternalFormat = GL_COMPRESSED_RGBA;
+
+    /*if(nColors == 4)
     {
         if(surface->format->Rmask==0x000000ff)
             textureFormat = GL_RGBA;
@@ -196,7 +203,7 @@ std::shared_ptr<Texture> Texture::parse(const std::string &name, const std::stri
     {
         textureFormat = GL_RED;
         textureInternalFormat = GL_COMPRESSED_RED;
-    }
+    }*/
     debugLog(int(surface->format->BytesPerPixel));
     auto texture = Texture::create(name, new_vec2(surface->w, surface->h), GL_TEXTURE_2D,
     textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
