@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/03/27 23:23:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/30 10:45:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,8 @@
 
 int		main(int /*argc*/, char **/*argv*/)
 {
+	debugLog("THIS IS A DEBUG LOG");
+
 	Config::Load(Engine::resource_path() + "config.ini");
 	Engine::init();
 	auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);

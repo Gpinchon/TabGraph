@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 17:03:48 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/03/03 16:07:07 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/30 10:35:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ Texture::Texture(const std::string& iname, VEC2 s, GLenum target, GLenum f,
     //_data = static_cast<GLubyte*>(data);
     if (data != nullptr) {
         uint64_t dataTotalSize = _size.x * _size.y * _bpp / 8;
+        std::cout << "dataTotalSize" << " " << dataTotalSize << std::endl;
         _data = new GLubyte[dataTotalSize];
         std::memcpy(_data, data, dataTotalSize);
     }
@@ -105,106 +106,199 @@ int invert_surface_vertical(SDL_Surface *surface)
     return 0;
 }
 
+#include <sstream>
+
+void   print_hex(int i)
+{
+    std::stringstream ss; 
+    ss << std::hex << i; 
+    std::string res = ss.str(); 
+    std::cout << "0x" << res << std::endl;
+}
+
+bool    paletteIsGrey(SDL_Palette *palette)
+{
+    for (auto i = 0; i < palette->ncolors; i++)
+    {
+        if (palette->colors[i].r != palette->colors[i].g ||
+            palette->colors[i].g != palette->colors[i].b)
+            return (false);
+    }
+    return (true);
+}
+
+auto convertTextureToGrey(const std::string &name, SDL_Surface *surface)
+{
+    std::vector<uint8_t> pixelsVector;
+    uint8_t *pixels = (uint8_t*)surface->pixels;
+    for (auto y = 0; y < surface->h; y++)
+    {
+        for (auto x = 0; x < surface->w; x++)
+        {
+            auto pixel = pixels[y * surface->pitch + x];
+            pixelsVector.push_back(surface->format->palette->colors[pixel].r);
+        }
+    }
+    std::cout << "pixelsVector.size()" << " " << pixelsVector.size() << std::endl;
+    return Texture::create(name, new_vec2(surface->w, surface->h), GL_TEXTURE_2D,
+    GL_RED, GL_COMPRESSED_RED, GL_UNSIGNED_BYTE, &pixelsVector.at(0));
+}
+
 std::shared_ptr<Texture> Texture::parse(const std::string &name, const std::string &path)
 {
     auto surface = IMG_Load(path.c_str());
     if(!surface || !surface->format)
         throw std::runtime_error(std::string("Error parsing ") + path + " : " + SDL_GetError());
     invert_surface_vertical(surface);
-    //auto nColors = surface->format->BytesPerPixel;
     GLenum  textureFormat = 0;
     GLenum  textureInternalFormat = 0;
-
+    debugLog("THIS IS A DEBUG LOG");
+    consoleLog("\nparsing new texture");
     consoleLog(SDL_GetPixelFormatName(surface->format->format));
+    if (surface->format->palette) {
+        consoleLog("this image has a palette");
+    }
+    print_hex(surface->format->Rmask);
+    print_hex(surface->format->Gmask);
+    print_hex(surface->format->Bmask);
+    print_hex(surface->format->Amask);
+    consoleLog(int(surface->format->BytesPerPixel));
+    consoleLog(int(surface->format->BitsPerPixel));
+    consoleLog(surface->w);
+    consoleLog(surface->h);
+    consoleLog(surface->pitch)
+    /*switch (SDL_PIXELTYPE(surface->format->format))
+    {
+        case SDL_PIXELTYPE_UNKNOWN :
+            consoleLog("SDL_PIXELTYPE_UNKNOWN");
+            break;
+        case SDL_PIXELTYPE_INDEX1 :
+            consoleLog("SDL_PIXELTYPE_INDEX1");
+            break;
+        case SDL_PIXELTYPE_INDEX4 :
+            consoleLog("SDL_PIXELTYPE_INDEX4");
+            break;
+        case SDL_PIXELTYPE_INDEX8 :
+            consoleLog("SDL_PIXELTYPE_INDEX8");
+            break;
+        case SDL_PIXELTYPE_PACKED8 :
+            consoleLog("SDL_PIXELTYPE_PACKED8");
+            break;
+        case SDL_PIXELTYPE_PACKED16 :
+            consoleLog("SDL_PIXELTYPE_PACKED16");
+            break;
+        case SDL_PIXELTYPE_PACKED32 :
+            consoleLog("SDL_PIXELTYPE_PACKED32");
+            break;
+        case SDL_PIXELTYPE_ARRAYU8 :
+            consoleLog("SDL_PIXELTYPE_ARRAYU8");
+            break;
+        case SDL_PIXELTYPE_ARRAYU16 :
+            consoleLog("SDL_PIXELTYPE_ARRAYU16");
+            break;
+        case SDL_PIXELTYPE_ARRAYU32 :
+            consoleLog("SDL_PIXELTYPE_ARRAYU32");
+            break;
+        case SDL_PIXELTYPE_ARRAYF16 :
+            consoleLog("SDL_PIXELTYPE_ARRAYF16");
+            break;
+        case SDL_PIXELTYPE_ARRAYF32 :
+            consoleLog("SDL_PIXELTYPE_ARRAYF32");
+            break;
+    }*/
+
+    auto hasAlpha = surface->format->Amask != 0;
+    /*if (surface->format->Rmask != 0xff0000) {
+        consoleLog("convert");
+        auto newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+        SDL_FreeSurface(surface);
+        surface = newSurface;
+        hasAlpha = true;
+    }*/
+    if (hasAlpha) {
+        textureFormat = GL_RGBA;
+        textureInternalFormat = GL_COMPRESSED_RGBA;
+    }
+    else {
+        textureFormat = GL_RGB;
+        textureInternalFormat = GL_COMPRESSED_RGB;
+    }
+    if (surface->format->palette && paletteIsGrey(surface->format->palette)) {
+        return convertTextureToGrey(name, surface);
+        textureInternalFormat = GL_COMPRESSED_RED;
+    }
+    
 
     /*switch (surface->format->format)
     {
-        //case SDL_PIXELFORMAT_UNKNOWN:
+        case SDL_PIXELFORMAT_INDEX8:
+            {
+                if (surface->format->palette != nullptr)
+                {
+                    auto newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+                    SDL_FreeSurface(surface);
+                    surface = newSurface;
+                    textureFormat = GL_RGBA;
+                    textureInternalFormat = GL_COMPRESSED_RGBA;
+                    break;
+                }
+                textureFormat = GL_RED;
+                textureInternalFormat = GL_COMPRESSED_RED;
+            }
+            break;
         case SDL_PIXELFORMAT_INDEX1LSB:
         case SDL_PIXELFORMAT_INDEX1MSB:
         case SDL_PIXELFORMAT_INDEX4LSB:
         case SDL_PIXELFORMAT_INDEX4MSB:
-        case SDL_PIXELFORMAT_INDEX8:
-            textureFormat = GL_COLOR_INDEX;
+        case SDL_PIXELFORMAT_ARGB4444:
+        case SDL_PIXELFORMAT_ARGB1555:
+        case SDL_PIXELFORMAT_ARGB8888:
+        case SDL_PIXELFORMAT_ARGB2101010:
+        case SDL_PIXELFORMAT_ABGR32:
+        case SDL_PIXELFORMAT_ABGR4444:
+        case SDL_PIXELFORMAT_ABGR1555:
+        case SDL_PIXELFORMAT_BGRX8888:
+        case SDL_PIXELFORMAT_ABGR8888:
+        case SDL_PIXELFORMAT_RGBX8888:
+            {
+                auto newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+                SDL_FreeSurface(surface);
+                surface = newSurface;
+                textureFormat = GL_RGBA;
+                textureInternalFormat = GL_COMPRESSED_RGBA;
+            }
             break;
         case SDL_PIXELFORMAT_RGB332:
         case SDL_PIXELFORMAT_RGB444:
         case SDL_PIXELFORMAT_RGB555:
         case SDL_PIXELFORMAT_RGB565:
-        case SDL_PIXELFORMAT_RGB24:
         case SDL_PIXELFORMAT_RGB888:
-        case SDL_PIXELFORMAT_RGBX8888:
-        case SDL_PIXELFORMAT_RGBA8888:
+        case SDL_PIXELFORMAT_RGB24:
             textureFormat = GL_RGB;
+            textureInternalFormat = GL_COMPRESSED_RGB;
             break;
         case SDL_PIXELFORMAT_BGR555:
         case SDL_PIXELFORMAT_BGR565:
         case SDL_PIXELFORMAT_BGR888:
         case SDL_PIXELFORMAT_BGR24:
             textureFormat = GL_BGR;
+            textureInternalFormat = GL_COMPRESSED_RGB;
             break;
         case SDL_PIXELFORMAT_RGBA4444:
         case SDL_PIXELFORMAT_RGBA5551:
-        case SDL_PIXELFORMAT_RGBA32:
+        //case SDL_PIXELFORMAT_RGBA8888:
+        //case SDL_PIXELFORMAT_RGBA32:
             textureFormat = GL_RGBA;
+            textureInternalFormat = GL_COMPRESSED_RGBA;
             break;
         case SDL_PIXELFORMAT_BGRA4444:
         case SDL_PIXELFORMAT_BGRA5551:
         case SDL_PIXELFORMAT_BGRA8888:
-        case SDL_PIXELFORMAT_BGRA32:
+        //case SDL_PIXELFORMAT_BGRA32:
             textureFormat = GL_BGRA;
+            textureInternalFormat = GL_COMPRESSED_RGBA;
             break;
-        //case SDL_PIXELFORMAT_ARGB4444:
-        //case SDL_PIXELFORMAT_ARGB1555:
-        //case SDL_PIXELFORMAT_ARGB8888:
-        //case SDL_PIXELFORMAT_ARGB2101010:
-        //case SDL_PIXELFORMAT_ABGR32:
-        //    textureFormat = GL_ARGB;
-        //    break;
-        //case SDL_PIXELFORMAT_ABGR4444:
-        //case SDL_PIXELFORMAT_ABGR1555:
-        //    textureFormat = GL_ABGR;
-        //    break;
-        //case SDL_PIXELFORMAT_BGRX8888:
-        //case SDL_PIXELFORMAT_ABGR8888:
-        //    textureFormat = GL_ABGR;
-        //    break;
     }*/
-
-    auto newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
-    SDL_FreeSurface(surface);
-    surface = newSurface;
-
-    textureFormat = GL_RGBA;
-    textureInternalFormat = GL_COMPRESSED_RGBA;
-
-    /*if(nColors == 4)
-    {
-        if(surface->format->Rmask==0x000000ff)
-            textureFormat = GL_RGBA;
-        else
-            textureFormat = GL_BGRA;
-        textureInternalFormat = GL_COMPRESSED_RGBA;
-    }
-    else if(nColors == 3)
-    {
-        if(surface->format->Rmask==0x000000ff)
-            textureFormat = GL_RGB;
-        else
-            textureFormat = GL_BGR;
-        textureInternalFormat = GL_COMPRESSED_RGB;
-    }
-    else if(nColors == 2)
-    {
-        textureFormat = GL_RG;
-        textureInternalFormat = GL_COMPRESSED_RG;
-    }
-    else if(nColors == 1)
-    {
-        textureFormat = GL_RED;
-        textureInternalFormat = GL_COMPRESSED_RED;
-    }*/
-    debugLog(int(surface->format->BytesPerPixel));
     auto texture = Texture::create(name, new_vec2(surface->w, surface->h), GL_TEXTURE_2D,
     textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     texture->_bpp = surface->format->BitsPerPixel;

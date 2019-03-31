@@ -11,3 +11,7 @@ export
 
 all:
 	cd ../.. && $(MAKE) application
+
+debug: APP_NAME = TerrainD.exe
+debug:
+	cd ../.. && $(MAKE) application DEBUG=1
