@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/25 23:08:57 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/03/30 01:20:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/04/04 22:44:08 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "Vgroup.hpp"
 #include "Texture.hpp"
 #include "Material.hpp"
+#include "Debug.hpp"
 
 Terrain::Terrain(const std::string &name) : Mesh(name)
 {
@@ -31,8 +32,8 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 	vg->v.resize(uint32_t(resolution.x * resolution.y));
 	vg->vn.resize(vg->v.size());
 	vg->vt.resize(vg->v.size());
-	for (auto x = 0.f; x < resolution.x; x++) {
-		for (auto y = 0.f; y < resolution.y; y++) {
+	for (auto y = 0.f; y < resolution.y; y++) {
+		for (auto x = 0.f; x < resolution.x; x++) {
 			auto uv = new_vec2(x / resolution.x, y / resolution.y);
 			auto z = 0.f;
 			if (texture) {

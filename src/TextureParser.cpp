@@ -69,19 +69,31 @@ int invert_surface_vertical(SDL_Surface *surface)
     return 0;
 }
 
+#include <sstream>
+
+std::string hexToString(int hex)
+{
+    std::ostringstream stream;
+    stream << std::hex << hex;
+    return stream.str();
+}
+
 std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std::string& path)
 {
 	auto surface = IMG_Load(path.c_str());
     if(!surface || !surface->format)
         throw std::runtime_error(std::string("Error parsing ") + path + " : " + SDL_GetError());
     invert_surface_vertical(surface);
-    //auto nColors = surface->format->BytesPerPixel;
     GLenum  textureFormat = 0;
     GLenum  textureInternalFormat = 0;
 
     debugLog(SDL_GetPixelFormatName(surface->format->format));
     debugLog(int(surface->format->BitsPerPixel));
     debugLog(int(surface->format->BytesPerPixel));
+    debugLog(hexToString(surface->format->Rmask));
+    debugLog(hexToString(surface->format->Gmask));
+    debugLog(hexToString(surface->format->Bmask));
+    debugLog(hexToString(surface->format->Amask));
 
 
     /*switch (surface->format->format)
@@ -144,33 +156,6 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
 
     textureFormat = GL_RGBA;
     textureInternalFormat = GL_COMPRESSED_RGBA;
-
-    /*if(nColors == 4)
-    {
-        if(surface->format->Rmask==0x000000ff)
-            textureFormat = GL_RGBA;
-        else
-            textureFormat = GL_BGRA;
-        textureInternalFormat = GL_COMPRESSED_RGBA;
-    }
-    else if(nColors == 3)
-    {
-        if(surface->format->Rmask==0x000000ff)
-            textureFormat = GL_RGB;
-        else
-            textureFormat = GL_BGR;
-        textureInternalFormat = GL_COMPRESSED_RGB;
-    }
-    else if(nColors == 2)
-    {
-        textureFormat = GL_RG;
-        textureInternalFormat = GL_COMPRESSED_RG;
-    }
-    else if(nColors == 1)
-    {
-        textureFormat = GL_RED;
-        textureInternalFormat = GL_COMPRESSED_RED;
-    }*/
     auto texture = Texture::create(name, new_vec2(surface->w, surface->h), GL_TEXTURE_2D,
     textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     SDL_FreeSurface(surface);
