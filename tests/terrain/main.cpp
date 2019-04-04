@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/03/27 23:23:40 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/03/30 10:45:25 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,8 @@
 
 int		main(int /*argc*/, char **/*argv*/)
 {
+	debugLog("THIS IS A DEBUG LOG");
+
 	Config::Load(Engine::resource_path() + "config.ini");
 	Engine::init();
 	auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
@@ -49,7 +51,7 @@ int		main(int /*argc*/, char **/*argv*/)
 	camera->set_target(Node::create("main_camera_target", new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 
-	Terrain::create("terrain_test", new_vec2(1024, 1024), new_vec3(50, 50, 1), TextureParser::parse("heightMap", "res/heightMap.tif"));
+	Terrain::create("terrain_test", new_vec2(1024, 1024), new_vec3(50, 50, 1), TextureParser::parse("heightMap", Engine::program_path() + "res/heightMap.tif"));
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	setup_callbacks();
 	//create_random_lights(250);
