@@ -13,13 +13,14 @@
 #include "Cubemap.hpp"
 #include "Debug.hpp"
 #include "Engine.hpp"
+#include "TextureParser.hpp"
 #include <thread>
 
 std::vector<std::shared_ptr<Cubemap>> Cubemap::_cubemaps;
 
 void cubemap_load_side(std::shared_ptr<Cubemap> cubemap, const std::string& path, GLenum iside)
 {
-    auto sideTexture = Texture::parse(path, path);
+    auto sideTexture = TextureParser::parse(path, path);
     if (sideTexture == nullptr) {
         return;
     }

@@ -13,6 +13,7 @@
 #include "parser/HDR.hpp"
 #include "Engine.hpp"
 #include "Texture.hpp"
+#include "TextureParser.hpp"
 #include "parser/InternalTools.hpp"
 #include <cstddef>
 #include <iostream>
@@ -30,6 +31,8 @@ typedef unsigned char RGBE[4];
 static void workOnRGBE(RGBE* scan, int len, float* cols);
 static bool decrunch(RGBE* scanline, int len, FILE* file);
 static bool oldDecrunch(RGBE* scanline, int len, FILE* file);
+
+TextureParser hdrParser("hdr", HDR::parse);
 
 std::shared_ptr<Texture> HDR::parse(const std::string& texture_name, const std::string& path)
 {

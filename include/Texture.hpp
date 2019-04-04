@@ -27,7 +27,6 @@ public:
     static std::shared_ptr<Texture> get(unsigned index);
     static size_t get_data_size(GLenum data_type);
     static size_t get_bpp(GLenum texture_format, GLenum data_type);
-    static std::shared_ptr<Texture> parse(const std::string&, const std::string&);
     virtual std::shared_ptr<Texture> shared_from_this();
     virtual bool is_loaded();
     virtual void resize(const VEC2& ns);

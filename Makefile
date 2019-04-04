@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/03/27 22:03:04 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/03/30 10:44:59 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -73,6 +73,7 @@ HEADERS_FILES	=	AABB.hpp					\
 					Terrain.hpp					\
 					Texture.hpp					\
 					TextureArray.hpp			\
+					TextureParser.hpp			\
 					VertexArray.hpp				\
 					VertexBuffer.hpp			\
 					Vgroup.hpp					\
@@ -108,6 +109,7 @@ SRC_FILES		=	Camera.cpp			\
 					Terrain.cpp			\
 					Texture.cpp			\
 					TextureArray.cpp	\
+					TextureParser.cpp	\
 					VertexArray.cpp		\
 					VertexBuffer.cpp	\
 					Vgroup.cpp			\
@@ -144,8 +146,6 @@ LIBFILES	=	./libs/vml/libvml.a
 CPPFLAGS	+=	$(addprefix -I, $(INCLUDE_PATH))
 CPPFLAGS	+=	$(addprefix -I, $(SHADERS_PATH))
 CXXFLAGS	+=	-std=c++17 -Wall -Wextra -Werror $(CPPFLAGS)
-DBGFLAGS	=	-DDEBUG_MOD -g
-RELFLAGS	=	-Ofast
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -153,16 +153,28 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
+LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lzstd -lz -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
 LDLIBS		+=	$(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 else
 LDLIBS		+=	$(LDFLAGS) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
+
 all: $(RELBUILD_PATH)$(NAME) $(DBGBUILD_PATH)$(NAME)
 
-$(RELBUILD_PATH)$(NAME) : CXXFLAGS += $(RELFLAGS)
+DEBUG ?= 0
+
+ifeq ($(DEBUG), 1)
+	CXXFLAGS += -DDEBUG_MOD -g
+	LIBTAB = $(DBGBUILD_PATH)$(NAME)
+	LIBPATH = $(DBGBUILD_PATH)
+else
+	CXXFLAGS += -Ofast
+	LIBTAB = $(RELBUILD_PATH)$(NAME)
+	LIBPATH = $(RELBUILD_PATH)
+endif
+
 $(RELBUILD_PATH)$(NAME) : $(LIBFILES) $(RELOBJ)
 	@(mkdir -p $(@D))
 	ar -rc $(RELBUILD_PATH)$(NAME) $(RELOBJ)
@@ -174,7 +186,6 @@ $(RELOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(DBGBUILD_PATH)$(NAME) : CXXFLAGS += $(DBGFLAGS)
 $(DBGBUILD_PATH)$(NAME) : $(LIBFILES) $(DBGOBJ)
 	@(mkdir -p $(@D))
 	ar -rc $(DBGBUILD_PATH)$(NAME) $(DBGOBJ)
@@ -193,6 +204,7 @@ APP_OBJ = $(addprefix $(APP_PATH)/obj/, $(APP_SRC:.cpp=.o))
 info:
 	@echo $(APP_RES)
 	@echo $(BUILD_APP_RES)
+	@echo $(CXXFLAGS)
 
 $(BUILD_APP_RES): %: $(APP_RES)
 	@(mkdir -p $(@D))
@@ -205,13 +217,14 @@ $(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(APP_PATH)/build/$(APP_NAME): $(RELBUILD_PATH)$(NAME) $(RELBUILD_PATH)$(NAME) $(APP_OBJ)
+$(APP_PATH)/build/$(APP_NAME): $(LIBTAB) $(APP_OBJ)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
-	$(CXX) $(CXXFLAGS) $(RELFLAGS) $(APP_OBJ) -L $(RELBUILD_PATH) -lTabGraph $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
+	$(CXX) $(CXXFLAGS) $(APP_OBJ) -L $(LIBPATH) -lTabGraph $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
 	@echo $@ compilation "$(OK_STRING)"
 
 application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES)
+	@echo $(LIBTAB) $(CXXFLAGS)
 	./scripts/copyDlls.sh $(APP_PATH)/build/$(APP_NAME)
 
 

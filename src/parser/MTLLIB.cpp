@@ -13,6 +13,7 @@
 #include "parser/MTLLIB.hpp"
 #include "Engine.hpp"
 #include "Material.hpp"
+#include "TextureParser.hpp"
 //#include "parser/BMP.hpp"
 #include "parser/InternalTools.hpp"
 #include <stdexcept>
@@ -36,21 +37,21 @@ void parse_texture(t_obj_parser* p, std::vector<std::string>& split, std::shared
 
     path += split[1];
     if (split[0] == "map_Kd") {
-        mtl->set_texture_albedo(Texture::parse(path, path));
+        mtl->set_texture_albedo(TextureParser::parse(path, path));
     } else if (split[0] == "map_Ks") {
-        mtl->set_texture_specular(Texture::parse(path, path));
+        mtl->set_texture_specular(TextureParser::parse(path, path));
     } else if (split[0] == "map_Ke") {
-        mtl->set_texture_emitting(Texture::parse(path, path));
+        mtl->set_texture_emitting(TextureParser::parse(path, path));
     } else if (split[0] == "map_Nh") {
-        mtl->set_texture_height(Texture::parse(path, path));
+        mtl->set_texture_height(TextureParser::parse(path, path));
     } else if (split[0] == "map_No") {
-        mtl->set_texture_ao(Texture::parse(path, path));
+        mtl->set_texture_ao(TextureParser::parse(path, path));
     } else if (split[0] == "map_Nr") {
-        mtl->set_texture_roughness(Texture::parse(path, path));
+        mtl->set_texture_roughness(TextureParser::parse(path, path));
     } else if (split[0] == "map_Nm") {
-        mtl->set_texture_metallic(Texture::parse(path, path));
+        mtl->set_texture_metallic(TextureParser::parse(path, path));
     } else if (split[0] == "map_bump" || split[0] == "map_Bump") {
-        mtl->set_texture_normal(Texture::parse(path, path));
+        mtl->set_texture_normal(TextureParser::parse(path, path));
     }
 }
 
