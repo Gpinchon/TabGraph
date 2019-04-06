@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/07 18:23:47 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/02/22 22:25:57 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/04/06 15:37:53 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,10 @@
 #include "Light.hpp"
 #include "Render.hpp"
 #include "Renderable.hpp"
+#include "TextureParser.hpp"
 #include "Window.hpp"
 #include "parser/GLSL.hpp"
-#include "parser/HDR.hpp"
+//#include "parser/HDR.hpp"
 #include "parser/InternalTools.hpp"
 #include <algorithm>
 #include <dirent.h>
@@ -72,8 +73,8 @@ void Engine::_load_res()
         }
         std::string name = e->d_name;
         auto newEnv = Environment::create(name);
-        newEnv->set_diffuse(Cubemap::create(name + "Cube", HDR::parse(name, folder + name + "/environment.hdr")));
-        newEnv->set_irradiance(Cubemap::create(name + "CubeDiffuse", HDR::parse(name + "Diffuse", folder + name + "/diffuse.hdr")));
+        newEnv->set_diffuse(Cubemap::create(name + "Cube", TextureParser::parse(name, folder + name + "/environment.hdr")));
+        newEnv->set_irradiance(Cubemap::create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", folder + name + "/diffuse.hdr")));
     }
     folder = Engine::program_path() + "res/skybox/";
     dir = opendir(folder.c_str());

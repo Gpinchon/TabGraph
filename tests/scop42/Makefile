@@ -11,3 +11,7 @@ export
 
 all:
 	cd ../.. && $(MAKE) application
+
+debug: APP_NAME = ScopD.exe
+debug:
+	cd ../.. && $(MAKE) application DEBUG=1

@@ -6,11 +6,11 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/04/04 22:11:36 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/04/06 18:43:52 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME			=	libTabGraph.a
+#NAME			=	libTabGraph.a
 
 #   Paths Declaration   #
 OBJ_PATH		=	obj/
@@ -153,44 +153,38 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
+LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
 LDLIBS		+=	$(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 else
 LDLIBS		+=	$(LDFLAGS) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
-all: $(RELBUILD_PATH)$(NAME) $(DBGBUILD_PATH)$(NAME)
-
 DEBUG ?= 0
 
 ifeq ($(DEBUG), 1)
 	CXXFLAGS += -DDEBUG_MOD -g
-	LIBTAB = $(DBGBUILD_PATH)$(NAME)
+	#LIBTAB = $(DBGBUILD_PATH)$(NAME)
 	LIBPATH = $(DBGBUILD_PATH)
+	LIBOBJ = $(DBGOBJ)
+	LIBOBJ_PATH = $(DBGOBJ_PATH)
+all: $(LIBOBJ)
 else
 	CXXFLAGS += -Ofast
-	LIBTAB = $(RELBUILD_PATH)$(NAME)
+	#LIBTAB = $(RELBUILD_PATH)$(NAME)
 	LIBPATH = $(RELBUILD_PATH)
+	LIBOBJ = $(RELOBJ)
+	LIBOBJ_PATH = $(RELOBJ_PATH)
+all: $(LIBOBJ)
+	$(MAKE) DEBUG=1
 endif
 
-$(RELBUILD_PATH)$(NAME) : $(LIBFILES) $(RELOBJ)
-	@(mkdir -p $(@D))
-	ar -rc $(RELBUILD_PATH)$(NAME) $(RELOBJ)
-	ranlib $(RELBUILD_PATH)$(NAME)
+#$(LIBTAB) : $(LIBFILES) $(LIBOBJ)
+#	@(mkdir -p $(@D))
+#	ar -rc $(LIBTAB) $(LIBOBJ)
+#	ranlib $(LIBTAB)
 
-$(RELOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
-	@(mkdir -p $(@D))
-	@echo Compiling $@...
-	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
-	@echo $@ compilation "$(OK_STRING)"
-
-$(DBGBUILD_PATH)$(NAME) : $(LIBFILES) $(DBGOBJ)
-	@(mkdir -p $(@D))
-	ar -rc $(DBGBUILD_PATH)$(NAME) $(DBGOBJ)
-	ranlib $(DBGBUILD_PATH)$(NAME)
-
-$(DBGOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
+$(LIBOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
@@ -199,6 +193,7 @@ $(DBGOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
 BUILD_APP_RES = $(addprefix $(APP_PATH)/build/, $(APP_RES_FILES))
 APP_RES = $(addprefix $(APP_PATH), $(APP_RES_FILES))
 APP_OBJ = $(addprefix $(APP_PATH)/obj/, $(APP_SRC:.cpp=.o))
+APP_CXXFLAGS += $(CPPFLAGS)
 
 info:
 	@echo $(APP_RES)
@@ -213,17 +208,16 @@ $(BUILD_APP_RES): %: $(APP_RES)
 $(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
-	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
+	@($(CXX) $(APP_CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(APP_PATH)/build/$(APP_NAME): $(LIBTAB) $(APP_OBJ)
+$(APP_PATH)/build/$(APP_NAME): $(LIBOBJ) $(APP_OBJ)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
-	$(CXX) $(CXXFLAGS) $(APP_OBJ) -L $(LIBPATH) -lTabGraph $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
+	@$(CXX) $(APP_CXXFLAGS) $(LIBOBJ) $(APP_OBJ) $(APP_LDLIBS) $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
 	@echo $@ compilation "$(OK_STRING)"
 
 application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES)
-	@echo $(LIBTAB) $(CXXFLAGS)
 	./scripts/copyDlls.sh $(APP_PATH)/build/$(APP_NAME)
 
 

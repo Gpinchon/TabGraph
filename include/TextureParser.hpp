@@ -16,5 +16,5 @@ public:
 	static std::shared_ptr<Texture> parse(const std::string& name, const std::string& path);
 private:
 	ParsingFunction _parsingFunction;
-	static std::map<std::string, TextureParser *> _parsers;
+	static std::map<std::string, TextureParser *> *_parsers;
 };

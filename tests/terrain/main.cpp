@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/04/04 22:48:19 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/04/06 18:53:41 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@
 #include "Mouse.hpp"
 #include "TextureParser.hpp"
 #include "parser/OBJ.hpp"
-#include "parser/HDR.hpp"
 #include "parser/FBX.hpp"
 #include "parser/GLSL.hpp"
 #include "Material.hpp"

@@ -5,12 +5,16 @@
 
 #include "Debug.hpp"
 
-std::map<std::string, TextureParser *> TextureParser::_parsers = std::map<std::string, TextureParser *>();
+std::map<std::string, TextureParser *> *TextureParser::_parsers = nullptr;//std::map<std::string, TextureParser *>();
 
 TextureParser::TextureParser(const std::string &format, ParsingFunction parsingFunction)
 {
+    debugLog(format);
 	_parsingFunction = parsingFunction;
-	_parsers[format] = this;
+    if (_parsers == nullptr){
+        _parsers = new std::map<std::string, TextureParser *>;
+    }
+	(*_parsers)[format] = this;
 }
 
 #define SDL_LOCKIFMUST(s) (SDL_MUSTLOCK(s) ? SDL_LockSurface(s) : 0)
@@ -164,8 +168,11 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
 
 std::shared_ptr<Texture> TextureParser::parse(const std::string& name, const std::string& path)
 {
-	auto format = name.substr(name.find_last_of(".") + 1);
-	auto parser = _parsers[format];
+	auto format = path.substr(path.find_last_of(".") + 1);
+    debugLog(path);
+    debugLog(format);
+	auto parser = (*_parsers)[format];
+    debugLog(parser);
 	if (parser == nullptr)
 		return (GenericTextureParser(name, path));
 	return (parser->_parsingFunction(name, path));
