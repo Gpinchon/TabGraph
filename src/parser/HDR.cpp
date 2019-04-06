@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/04/22 01:23:28 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/04/06 18:18:08 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/04/06 18:55:12 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,14 +31,9 @@ typedef unsigned char RGBE[4];
 static void workOnRGBE(RGBE* scan, int len, float* cols);
 static bool decrunch(RGBE* scanline, int len, FILE* file);
 static bool oldDecrunch(RGBE* scanline, int len, FILE* file);
-/*
-TextureParser   *hdrParser;
 
-void  __attribute__ ((constructor)) addParser() {
-    hdrParser = new TextureParser("hdr", HDR::parse);
-}*/
-
-TextureParser hdrParser("hdr", HDR::parse);
+//Add this parser to TextureParser !
+TextureParser __hdrParser("hdr", HDR::parse);
 
 std::shared_ptr<Texture> HDR::parse(const std::string& texture_name, const std::string& path)
 {
