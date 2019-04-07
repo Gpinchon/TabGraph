@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/25 23:08:57 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/04/04 22:44:08 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/04/07 23:29:57 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ Terrain::Terrain(const std::string &name) : Mesh(name)
 
 }
 
+#include <limits>
+
 std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 	VEC2 resolution, VEC3 scale, std::shared_ptr<Texture> texture)
 {
@@ -32,16 +34,22 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 	vg->v.resize(uint32_t(resolution.x * resolution.y));
 	vg->vn.resize(vg->v.size());
 	vg->vt.resize(vg->v.size());
+	float minZ = std::numeric_limits<float>::max();
+	float maxZ = std::numeric_limits<float>::lowest();
 	for (auto y = 0.f; y < resolution.y; y++) {
 		for (auto x = 0.f; x < resolution.x; x++) {
 			auto uv = new_vec2(x / resolution.x, y / resolution.y);
 			auto z = 0.f;
 			if (texture) {
 				z = texture->sample(uv).x;
+				//z = ((float*)texture->texelfetch(new_vec2(x, y)))[0];
+				minZ = z < minZ ? z : minZ;
+				maxZ = z > maxZ ? z : maxZ;
 			}
 			vg->vt.at(uint32_t(x + y * resolution.x)) = uv;
 			auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
-			v3 = new_vec3(uv.x * scale.x - scale.x / 2.f, z * scale.z, uv.y * scale.y - scale.y / 2.f);
+			v3 = new_vec3(uv.x * scale.x - scale.x / 2.f, z * scale.y, uv.y * scale.z - scale.z / 2.f);
+
 			if (x < resolution.x - 1 && y < resolution.y - 1) {
 				vg->i.push_back(uint32_t(x + y * resolution.x));
 				vg->i.push_back(uint32_t(x + (y + 1) * resolution.x));
@@ -53,6 +61,9 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 			}
 		}
 	}
+	auto medZ = (maxZ + minZ) / 2.f * scale.y;
+	for (auto &v : vg->v)
+		v.y -= medZ;
 	for (auto i = 0u; i * 3 < vg->i.size(); i++)
 	{
 		auto i0 = vg->i.at(i * 3 + 0);
@@ -106,11 +117,18 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
 		n2.z = ((N2.z + 1) * 0.5) * 255.f;
 	}
 	auto mtl = Material::create("default_terrain");
-	mtl->set_texture_albedo(texture);
+	//mtl->set_texture_albedo(texture);
 	mtl->set_texture_roughness(texture);
-	mtl->albedo = new_vec3(1, 1, 1);
+	mtl->albedo = new_vec3(0.5, 0.5, 0.5);
 	//mtl->roughness = 0;
 	vg->set_material(mtl);
 	terrain->add(vg);
 	return terrain;
 }
+
+/*
+std::shared_ptr<Terrain> create(const std::string& name, VEC2 resolution, const std::string &path)
+{
+
+}
+*/

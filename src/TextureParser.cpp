@@ -5,18 +5,6 @@
 
 #include "Debug.hpp"
 
-std::map<std::string, TextureParser *> *TextureParser::_parsers = nullptr;//std::map<std::string, TextureParser *>();
-
-TextureParser::TextureParser(const std::string &format, ParsingFunction parsingFunction)
-{
-    debugLog(format);
-	_parsingFunction = parsingFunction;
-    if (_parsers == nullptr){
-        _parsers = new std::map<std::string, TextureParser *>;
-    }
-	(*_parsers)[format] = this;
-}
-
 #define SDL_LOCKIFMUST(s) (SDL_MUSTLOCK(s) ? SDL_LockSurface(s) : 0)
 #define SDL_UNLOCKIFMUST(s) { if(SDL_MUSTLOCK(s)) SDL_UnlockSurface(s); }
 
@@ -99,62 +87,7 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
     debugLog(hexToString(surface->format->Bmask));
     debugLog(hexToString(surface->format->Amask));
 
-
-    /*switch (surface->format->format)
-    {
-        //case SDL_PIXELFORMAT_UNKNOWN:
-        case SDL_PIXELFORMAT_INDEX1LSB:
-        case SDL_PIXELFORMAT_INDEX1MSB:
-        case SDL_PIXELFORMAT_INDEX4LSB:
-        case SDL_PIXELFORMAT_INDEX4MSB:
-        case SDL_PIXELFORMAT_INDEX8:
-            textureFormat = GL_COLOR_INDEX;
-            break;
-        case SDL_PIXELFORMAT_RGB332:
-        case SDL_PIXELFORMAT_RGB444:
-        case SDL_PIXELFORMAT_RGB555:
-        case SDL_PIXELFORMAT_RGB565:
-        case SDL_PIXELFORMAT_RGB24:
-        case SDL_PIXELFORMAT_RGB888:
-        case SDL_PIXELFORMAT_RGBX8888:
-        case SDL_PIXELFORMAT_RGBA8888:
-            textureFormat = GL_RGB;
-            break;
-        case SDL_PIXELFORMAT_BGR555:
-        case SDL_PIXELFORMAT_BGR565:
-        case SDL_PIXELFORMAT_BGR888:
-        case SDL_PIXELFORMAT_BGR24:
-            textureFormat = GL_BGR;
-            break;
-        case SDL_PIXELFORMAT_RGBA4444:
-        case SDL_PIXELFORMAT_RGBA5551:
-        case SDL_PIXELFORMAT_RGBA32:
-            textureFormat = GL_RGBA;
-            break;
-        case SDL_PIXELFORMAT_BGRA4444:
-        case SDL_PIXELFORMAT_BGRA5551:
-        case SDL_PIXELFORMAT_BGRA8888:
-        case SDL_PIXELFORMAT_BGRA32:
-            textureFormat = GL_BGRA;
-            break;
-        //case SDL_PIXELFORMAT_ARGB4444:
-        //case SDL_PIXELFORMAT_ARGB1555:
-        //case SDL_PIXELFORMAT_ARGB8888:
-        //case SDL_PIXELFORMAT_ARGB2101010:
-        //case SDL_PIXELFORMAT_ABGR32:
-        //    textureFormat = GL_ARGB;
-        //    break;
-        //case SDL_PIXELFORMAT_ABGR4444:
-        //case SDL_PIXELFORMAT_ABGR1555:
-        //    textureFormat = GL_ABGR;
-        //    break;
-        //case SDL_PIXELFORMAT_BGRX8888:
-        //case SDL_PIXELFORMAT_ABGR8888:
-        //    textureFormat = GL_ABGR;
-        //    break;
-    }*/
-
-    auto newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+    auto newSurface = SDL_ConvertSurfaceFormat(surface, surface->format->Amask ? SDL_PIXELFORMAT_RGBA32 : SDL_PIXELFORMAT_RGB24, 0);
     SDL_FreeSurface(surface);
     surface = newSurface;
 
@@ -164,6 +97,20 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
     textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     SDL_FreeSurface(surface);
     return (texture);
+}
+
+TextureParser   __genericTextureParser("generic", GenericTextureParser);
+
+std::map<std::string, TextureParser *> *TextureParser::_parsers = nullptr;//std::map<std::string, TextureParser *>();
+
+TextureParser::TextureParser(const std::string &format, ParsingFunction parsingFunction)
+{
+    debugLog(format);
+    _parsingFunction = parsingFunction;
+    if (_parsers == nullptr){
+        _parsers = new std::map<std::string, TextureParser *>;
+    }
+    (*_parsers)[format] = this;
 }
 
 std::shared_ptr<Texture> TextureParser::parse(const std::string& name, const std::string& path)
@@ -176,4 +123,12 @@ std::shared_ptr<Texture> TextureParser::parse(const std::string& name, const std
 	if (parser == nullptr)
 		return (GenericTextureParser(name, path));
 	return (parser->_parsingFunction(name, path));
+}
+
+ParsingFunction   TextureParser::get(const std::string &format)
+{
+    auto parser = (*_parsers)[format];
+    if (parser != nullptr)
+        return parser->_parsingFunction;
+    return nullptr;
 }
