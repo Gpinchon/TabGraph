@@ -147,20 +147,26 @@ LIBFILES	=	./libs/vml/libvml.a
 
 CPPFLAGS	+=	$(addprefix -I, $(INCLUDE_PATH))
 CPPFLAGS	+=	$(addprefix -I, $(SHADERS_PATH))
-CXXFLAGS	+=	-std=c++17 -Wall -Wextra -Werror $(CPPFLAGS)
+CXXFLAGS	+=	-std=c++17 -Wall -Wextra -Werror $(CPPFLAGS) -DCURL_STATICLIB
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
 OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
+#-lgcc_s_seh-1
+#-lstdc++-6
+
+
+
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-GDALLIBS	= -Wl,-Bdynamic -lgdal -Wl,-Bstatic
-LDLIBS		+=	-static-libgcc -static-libstdc++ -Wl,-Bdynamic -lgdal -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
+GDALLIBS	= -Wl,-Bstatic -lgdal -lcfitsio -lcryptopp -lexpat -lfreexl -lgeotiff -lgif -liconv -ljasper -ljpeg -ljson-c -lnetcdf -lspatialite -lhdf5 -lxerces-c -lopenjp2 -lpcre -lpng16 -lgeos -lsqlite3 -ltiff -lwebp -Wl,-Bdynamic -lxml2 -lkmlbase -lkmldom -lkmlengine -lPQ -lpoppler -lqhull -lcurl `pkg-config --libs --cflags icu-uc icu-io`
+#zlib1.dll # -lhdf5 -lgeotiff -lgif -lnetcdf -lgeos -lxerces-c -ljson-c -lsqlite3 -lcryptopp -lexpat -Wl,-Bdynamic -lkmlbase -lkmldom -lkmlengine -lpq -lcurl
+LDLIBS		+=	-static-libgcc -static-libstdc++ $(GDALLIBS) -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
-LDLIBS		+=	$(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
+LDLIBS		+= $(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 else
-LDLIBS		+=	$(LDFLAGS) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
+LDLIBS		+= $(LDFLAGS) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
 DEBUG ?= 0

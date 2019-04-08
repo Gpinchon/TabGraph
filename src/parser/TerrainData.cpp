@@ -13,8 +13,9 @@ std::shared_ptr<Texture>  TerrainData::parse(const std::string& texture_name, co
 {
 	GDALAllRegister();
 	auto data = (GDALDataset*)GDALOpen(imagepath.c_str(), GA_ReadOnly );
-	if (data == nullptr)
+	if (data == nullptr) {
 		debugLog("Could not open " + imagepath);
+	}
 	auto	band = data->GetRasterBand( 1 );
 	VEC2	size {float(band->GetXSize()), float(band->GetYSize())};
 	float	*scanLine = (float *) CPLMalloc(sizeof(float) * size.x * size.y);
