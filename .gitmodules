@@ -1,3 +1,6 @@
 [submodule "libs/vml"]
 	path = libs/vml
 	url = https://github.com/Gpinchon/VML.git
+[submodule "libs/gdal"]
+	path = libs/gdal
+	url = https://github.com/OSGeo/gdal.git

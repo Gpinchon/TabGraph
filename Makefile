@@ -140,10 +140,12 @@ DBGOBJ			=	$(addprefix $(DBGOBJ_PATH), $(OBJ))
 INCLUDE_PATH	=	./include				\
 					./libs/vml/include
 
-LIBDIR		=	./libs/vml/
+LIBDIR		=	./libs/vml/ \
+				./libs/gdal/gdal/
 LDFLAGS		+=	$(addprefix -L , $(LIBDIR))
 
-LIBFILES	=	./libs/vml/libvml.a
+LIBFILES	=	./libs/vml/libvml.a \
+				./libs/gdal/gdal/libgdal.a
 
 CPPFLAGS	+=	$(addprefix -I, $(INCLUDE_PATH))
 CPPFLAGS	+=	$(addprefix -I, $(SHADERS_PATH))
@@ -160,7 +162,7 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-GDALLIBS	= -Wl,-Bstatic -lgdal -lcfitsio -lcryptopp -lexpat -lfreexl -lgeotiff -lgif -liconv -ljasper -ljpeg -ljson-c -lnetcdf -lspatialite -lhdf5 -lxerces-c -lopenjp2 -lpcre -lpng16 -lgeos -lsqlite3 -ltiff -lwebp -Wl,-Bdynamic -lxml2 -lkmlbase -lkmldom -lkmlengine -lPQ -lpoppler -lqhull -lcurl `pkg-config --libs --cflags icu-uc icu-io`
+GDALLIBS	= -Wl,-Bstatic -lgdal -lgeos -lproj -lsqlite3# -lcfitsio -lcryptopp -lexpat -lfreexl -lgeotiff -lgif -liconv -ljasper -ljpeg -ljson-c -lnetcdf -lspatialite -lhdf5 -lxerces-c -lopenjp2 -lpcre -lpng16 -ltiff -lwebp -Wl,-Bdynamic -lxml2 -lkmlbase -lkmldom -lkmlengine -lPQ -lpoppler -lqhull -lcurl `pkg-config --libs --cflags icu-uc icu-io`
 #zlib1.dll # -lhdf5 -lgeotiff -lgif -lnetcdf -lgeos -lxerces-c -ljson-c -lsqlite3 -lcryptopp -lexpat -Wl,-Bdynamic -lkmlbase -lkmldom -lkmlengine -lpq -lcurl
 LDLIBS		+=	-static-libgcc -static-libstdc++ $(GDALLIBS) -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
@@ -220,7 +222,7 @@ $(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS
 	@($(CXX) $(APP_CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(APP_PATH)/build/$(APP_NAME): $(LIBOBJ) $(APP_OBJ)
+$(APP_PATH)/build/$(APP_NAME): $(LIBFILES) $(LIBOBJ) $(APP_OBJ)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@$(CXX) $(APP_CXXFLAGS) $(LIBOBJ) $(APP_OBJ) $(APP_LDLIBS) $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
@@ -232,6 +234,9 @@ application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES)
 
 ./libs/vml/libvml.a :
 	$(MAKE) -C ./libs/vml/
+
+./libs/gdal/gdal/libgdal.a:
+	sh ./scripts/minimalGdal.sh
 
 tidy:
 	#cppclean $(SRC) --include-path $(HEADERS_PATH)
