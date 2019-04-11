@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/04/07 21:51:15 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/04/11 22:44:29 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -149,7 +149,7 @@ LIBFILES	=	./libs/vml/libvml.a \
 
 CPPFLAGS	+=	$(addprefix -I, $(INCLUDE_PATH))
 CPPFLAGS	+=	$(addprefix -I, $(SHADERS_PATH))
-CXXFLAGS	+=	-std=c++17 -Wall -Wextra -Werror $(CPPFLAGS) -DCURL_STATICLIB
+CXXFLAGS	+=	-std=c++17 -Wall -Wextra -Werror $(CPPFLAGS)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
@@ -162,9 +162,10 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-GDALLIBS	= -Wl,-Bstatic -lgdal -lgeos -lproj -lsqlite3# -lcfitsio -lcryptopp -lexpat -lfreexl -lgeotiff -lgif -liconv -ljasper -ljpeg -ljson-c -lnetcdf -lspatialite -lhdf5 -lxerces-c -lopenjp2 -lpcre -lpng16 -ltiff -lwebp -Wl,-Bdynamic -lxml2 -lkmlbase -lkmldom -lkmlengine -lPQ -lpoppler -lqhull -lcurl `pkg-config --libs --cflags icu-uc icu-io`
+GDALLIBS	= -Wl,-Bstatic -lgdal -lproj -lgeos -lsqlite3 -liconv -lwsock32 -lws2_32 #-lcryptopp# -lgeos -lproj -lsqlite3# -lcfitsio -lcryptopp -lexpat -lfreexl -lgeotiff -lgif -liconv -ljasper -ljpeg -ljson-c -lnetcdf -lspatialite -lhdf5 -lxerces-c -lopenjp2 -lpcre -lpng16 -ltiff -lwebp -Wl,-Bdynamic -lxml2 -lkmlbase -lkmldom -lkmlengine -lPQ -lpoppler -lqhull -lcurl `pkg-config --libs --cflags icu-uc icu-io`
 #zlib1.dll # -lhdf5 -lgeotiff -lgif -lnetcdf -lgeos -lxerces-c -ljson-c -lsqlite3 -lcryptopp -lexpat -Wl,-Bdynamic -lkmlbase -lkmldom -lkmlengine -lpq -lcurl
-LDLIBS		+=	-static-libgcc -static-libstdc++ $(GDALLIBS) -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -ltiff -lwebp -lz -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
+# -lz
+LDLIBS		+=	-static-libgcc -static-libstdc++ $(GDALLIBS) -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -lz -ltiff -lwebp -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
 LDLIBS		+= $(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 else
@@ -179,14 +180,14 @@ ifeq ($(DEBUG), 1)
 	LIBPATH = $(DBGBUILD_PATH)
 	LIBOBJ = $(DBGOBJ)
 	LIBOBJ_PATH = $(DBGOBJ_PATH)
-all: $(LIBOBJ)
+all: $(LIBOBJ) $(LIBFILES)
 else
 	CXXFLAGS += -Ofast
 	#LIBTAB = $(RELBUILD_PATH)$(NAME)
 	LIBPATH = $(RELBUILD_PATH)
 	LIBOBJ = $(RELOBJ)
 	LIBOBJ_PATH = $(RELOBJ_PATH)
-all: $(LIBOBJ)
+all: $(LIBOBJ) $(LIBFILES)
 	$(MAKE) DEBUG=1
 endif
 
@@ -222,7 +223,7 @@ $(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS
 	@($(CXX) $(APP_CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(APP_PATH)/build/$(APP_NAME): $(LIBFILES) $(LIBOBJ) $(APP_OBJ)
+$(APP_PATH)/build/$(APP_NAME): $(LIBOBJ) $(APP_OBJ) $(LIBFILES)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@$(CXX) $(APP_CXXFLAGS) $(LIBOBJ) $(APP_OBJ) $(APP_LDLIBS) $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
@@ -231,6 +232,7 @@ $(APP_PATH)/build/$(APP_NAME): $(LIBFILES) $(LIBOBJ) $(APP_OBJ)
 application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES)
 	./scripts/copyDlls.sh $(APP_PATH)/build/$(APP_NAME)
 
+libraries: $(LIBFILES)
 
 ./libs/vml/libvml.a :
 	$(MAKE) -C ./libs/vml/
@@ -248,8 +250,8 @@ format:
 pull:
 	git pull
 	git submodule update --init --recursive
-	git submodule foreach git reset --hard origin/vml++
-	git submodule foreach git pull origin vml++
+	git submodule foreach git reset --hard
+	git submodule foreach git pull
 
 clean:
 	rm -rf $(OBJ_PATH)
