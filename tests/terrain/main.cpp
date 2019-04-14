@@ -6,7 +6,7 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2019/04/07 23:44:49 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/04/14 22:55:31 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ int		main(int /*argc*/, char **/*argv*/)
 	camera->set_target(Node::create("main_camera_target", new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 
-	Terrain::create("terrain_test", new_vec2(1024, 1024), new_vec3(50, 0.00001, 50), TerrainData::parse("heightMap", Engine::program_path() + "res/heightMap.tif"));
+	Terrain::create("terrain_test", new_vec2(1024, 1024), new_vec3(50, 0.001, 50), TerrainData::parse("heightMap", Engine::resource_path() + "/heightMap.tif"));
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	setup_callbacks();
 	//create_random_lights(250);
