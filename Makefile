@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/04/11 22:44:29 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/04/13 19:42:53 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -138,7 +138,10 @@ DBGOBJ			=	$(addprefix $(DBGOBJ_PATH), $(OBJ))
 # Files Generation End #
 
 INCLUDE_PATH	=	./include				\
-					./libs/vml/include
+					./libs/vml/include		\
+					./libs/gdal/gdal/gcore	\
+					./libs/gdal/gdal/port	\
+					./libs/gdal/gdal/ogr
 
 LIBDIR		=	./libs/vml/ \
 				./libs/gdal/gdal/
@@ -162,10 +165,10 @@ OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-GDALLIBS	= -Wl,-Bstatic -lgdal -lproj -lgeos -lsqlite3 -liconv -lwsock32 -lws2_32 #-lcryptopp# -lgeos -lproj -lsqlite3# -lcfitsio -lcryptopp -lexpat -lfreexl -lgeotiff -lgif -liconv -ljasper -ljpeg -ljson-c -lnetcdf -lspatialite -lhdf5 -lxerces-c -lopenjp2 -lpcre -lpng16 -ltiff -lwebp -Wl,-Bdynamic -lxml2 -lkmlbase -lkmldom -lkmlengine -lPQ -lpoppler -lqhull -lcurl `pkg-config --libs --cflags icu-uc icu-io`
+GDALLIBS	= -Wl,--allow-multiple-definition -Wl,-Bstatic -lgdal -lproj -lgeos -lsqlite3 -liconv -lwsock32 -lws2_32 #-lcryptopp# -lgeos -lproj -lsqlite3# -lcfitsio -lcryptopp -lexpat -lfreexl -lgeotiff -lgif -liconv -ljasper -ljpeg -ljson-c -lnetcdf -lspatialite -lhdf5 -lxerces-c -lopenjp2 -lpcre -lpng16 -ltiff -lwebp -Wl,-Bdynamic -lxml2 -lkmlbase -lkmldom -lkmlengine -lPQ -lpoppler -lqhull -lcurl `pkg-config --libs --cflags icu-uc icu-io`
 #zlib1.dll # -lhdf5 -lgeotiff -lgif -lnetcdf -lgeos -lxerces-c -ljson-c -lsqlite3 -lcryptopp -lexpat -Wl,-Bdynamic -lkmlbase -lkmldom -lkmlengine -lpq -lcurl
 # -lz
-LDLIBS		+=	-static-libgcc -static-libstdc++ $(GDALLIBS) -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -lz -ltiff -lwebp -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
+LDLIBS		+= $(GDALLIBS)	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -lz -ltiff -lwebp -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
 LDLIBS		+= $(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
 else
@@ -196,7 +199,7 @@ endif
 #	ar -rc $(LIBTAB) $(LIBOBJ)
 #	ranlib $(LIBTAB)
 
-$(LIBOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(HEADERS) $(SHADERS)
+$(LIBOBJ_PATH)%.o: $(SRC_PATH)%.cpp | $(LIBFILES) $(HEADERS) $(SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
@@ -217,13 +220,13 @@ $(BUILD_APP_RES): %: $(APP_RES)
 	@(cp $(patsubst $(APP_PATH)/build/%, $(APP_PATH)%,$@) $@)
 	@echo Copied $(patsubst $(APP_PATH)%,%,$@) to $@
 
-$(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS)
+$(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS) $(HEADERS) $(SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@($(CXX) $(APP_CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(APP_PATH)/build/$(APP_NAME): $(LIBOBJ) $(APP_OBJ) $(LIBFILES)
+$(APP_PATH)/build/$(APP_NAME): $(LIBOBJ) $(APP_OBJ)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@$(CXX) $(APP_CXXFLAGS) $(LIBOBJ) $(APP_OBJ) $(APP_LDLIBS) $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)

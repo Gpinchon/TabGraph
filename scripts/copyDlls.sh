@@ -1,20 +1,14 @@
 #!/bin/bash
 
-SYSTEMDLLS=(
-"KERNEL32.dll"
-"msvcrt.dll"
-"OPENGL32.dll"
-"USER32.dll"
-)
-
 BINDIR=$(dirname "$1")
 
 function isSystemDLL () {
-	for i in "${SYSTEMDLLS[@]}"; do
-		if [ "$i" == "$1" ]; then
+	while read -d ':' p; do
+		p="$p""/""$1"
+		if test -f "$p"; then
 			return 0
 		fi
-	done
+	done <<< "$ORIGINAL_PATH:"
 	return 1
 }
 

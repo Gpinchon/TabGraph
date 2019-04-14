@@ -66,7 +66,6 @@ cd ./libs/gdal/gdal
     --without-ld-shared             \
     --disable-shared                \
     --enable-static
-    #--with-libz=internal            \
 
 /bin/make
 rm -f ./libgdal.a

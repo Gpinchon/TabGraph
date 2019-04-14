@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/05/13 17:50:25 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/07 18:18:44 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/04/13 20:24:06 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "GLIncludes.hpp"
+#include <SDL2/SDL.h>
 #include <map>
 #include <set>
 

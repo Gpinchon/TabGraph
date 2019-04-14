@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/02/18 20:44:18 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/24 19:26:20 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/04/13 19:40:14 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "Engine.hpp"
+#include <SDL2/SDL.h>
 
 const auto WIDTH = 1280;
 const auto HEIGHT = 720;

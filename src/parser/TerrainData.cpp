@@ -1,16 +1,17 @@
+#include "Engine.hpp"
 #include "Texture.hpp"
-#include "Debug.hpp"
 #include "TextureParser.hpp"
+#include "Debug.hpp"
 #include "parser/TerrainData.hpp"
 #include <gdal_priv.h>
 
-//TextureParser __tifParser("tif", TerrainData::parse);
-//TextureParser __gtifParser("gtif", TerrainData::parse);
-//TextureParser __tiffParser("tiff", TerrainData::parse);
-
-
 std::shared_ptr<Texture>  TerrainData::parse(const std::string& texture_name, const std::string& imagepath)
 {
+	auto PROJ_DATA = std::string("PROJ_DATA=") + Engine::program_path() + "proj.db";
+	debugLog(PROJ_DATA);
+	putenv(PROJ_DATA.c_str());
+	debugLog(getenv("PROJ_DATA"));
+	
 	GDALAllRegister();
 	auto data = (GDALDataset*)GDALOpen(imagepath.c_str(), GA_ReadOnly );
 	if (data == nullptr) {

@@ -6,13 +6,14 @@
 /*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/05 20:13:51 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/08/05 20:16:23 by gpinchon         ###   ########.fr       */
+/*   Updated: 2019/04/13 20:25:11 by gpinchon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "GLIncludes.hpp"
+//#include "GLIncludes.hpp"
+#include <SDL2/SDL.h>
 
 class InputDevice {
 public:
