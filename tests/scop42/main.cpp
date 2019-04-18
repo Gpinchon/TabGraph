@@ -93,7 +93,6 @@ cube->vgroup(0)->material()->set_texture_albedo(texture);
 int		main(int argc, char *argv[])
 {
 	std::shared_ptr<Mesh>	obj;
-	auto argv0 = std::string(argv[0]);
 
 	Config::Load(Engine::resource_path() + "config.ini");
 	Engine::init();

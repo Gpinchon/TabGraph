@@ -13,6 +13,7 @@
 #pragma once
 
 #include "Engine.hpp"
+#include <SDL2/SDL.h>
 
 const auto WIDTH = 1280;
 const auto HEIGHT = 720;

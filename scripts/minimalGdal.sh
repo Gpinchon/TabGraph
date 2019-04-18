@@ -4,17 +4,11 @@ cd ./libs/gdal/gdal
     --prefix=${PREFIX}              \
     --with-cpp14                    \
     --with-hide-internal-symbols    \
-    --with-geos                     \
-    --with-geotiff=internal         \
-    --with-libtiff=internal         \
-    --with-libjson-c=internal       \
     --with-threads                  \
     --with-liblzma=no               \
-    --without-bsb                   \
     --without-cfitsio               \
     --without-cryptopp              \
     --without-curl                  \
-    --without-dwgdirect             \
     --without-ecw                   \
     --without-expat                 \
     --without-fme                   \
@@ -23,7 +17,6 @@ cd ./libs/gdal/gdal
     --without-gif                   \
     --without-gnm                   \
     --without-grass                 \
-    --without-grib                  \
     --without-hdf4                  \
     --without-hdf5                  \
     --without-idb                   \
@@ -34,8 +27,6 @@ cd ./libs/gdal/gdal
     --without-kakadu                \
     --without-libgrass              \
     --without-libkml                \
-    --without-libtool               \
-    --without-mrf                   \
     --without-mrsid                 \
     --without-mysql                 \
     --without-netcdf                \
@@ -47,7 +38,6 @@ cd ./libs/gdal/gdal
     --without-pcre                  \
     --without-perl                  \
     --without-pg                    \
-    --without-php                   \
     --without-png                   \
     --without-python                \
     --without-qhull                 \
@@ -67,96 +57,111 @@ cd ./libs/gdal/gdal
     --disable-shared                \
     --enable-static
 
-/bin/make
+/bin/make -j 4
 rm -f ./libgdal.a
 mkdir ./tmpobj/
-ld -r   ./frmts/o/*.o                 -o ./tmpobj/frmts.o
-ld -r   ./gcore/*.o                   -o ./tmpobj/gcore.o
-ld -r   ./port/*.o                    -o ./tmpobj/port.o
-ld -r   ./alg/*.o                     -o ./tmpobj/alg.o
-ld -r   ./apps/commonutils.o          \
-        ./apps/gdalinfo_lib.o         \
-        ./apps/gdal_translate_lib.o   \
-        ./apps/gdalwarp_lib.o         \
-        ./apps/ogr2ogr_lib.o          \
-        ./apps/gdaldem_lib.o          \
-        ./apps/nearblack_lib.o        \
-        ./apps/gdal_grid_lib.o        \
-        ./apps/gdal_rasterize_lib.o   \
-        ./apps/gdalbuildvrt_lib.o     -o ./tmpobj/apps.o
-ld -r   ./ogr/ogrsf_frmts/o/*.o       -o ./tmpobj/ogrsf_frmts.o
-ld -r   ./third_party/o/*.o           -o ./tmpobj/third_party.o
-ld -r   ./ogr/ogrgeometryfactory.o     \
-        ./ogr/ogrpoint.o               \
-        ./ogr/ogrcurve.o               \
-        ./ogr/ogrlinestring.o          \
-        ./ogr/ogrlinearring.o          \
-        ./ogr/ogrpolygon.o             \
-        ./ogr/ogrtriangle.o            \
-        ./ogr/ogrutils.o               \
-        ./ogr/ogrgeometry.o            \
-        ./ogr/ogrgeometrycollection.o  \
-        ./ogr/ogrmultipolygon.o        \
-        ./ogr/ogrsurface.o             \
-        ./ogr/ogrpolyhedralsurface.o   \
+
+ # 先将其分作四部分，生成四个静态库# 注意ar 生成这四个静态库的参数是sr
+# ar sr basepart.a Z:/gdal-2.1.2/frmts/o/*.o Z:/gdal-2.1.2/gcore/*.o Z:/gdal-2.1.2/port/*.o Z:/gdal-2.1.2/alg/*.o
+# ar sr appspart.a Z:/gdal-2.1.2/apps/commonutils.o Z:/gdal-2.1.2/apps/gdalinfo_lib.o Z:/gdal-2.1.2/apps/gdal_translate_lib.o Z:/gdal-2.1.2/apps/gdalwarp_lib.o Z:/gdal-2.1.2/apps/ogr2ogr_lib.o Z:/gdal-2.1.2/apps/gdaldem_lib.o Z:/gdal-2.1.2/apps/nearblack_lib.o Z:/gdal-2.1.2/apps/gdal_grid_lib.o Z:/gdal-2.1.2/apps/gdal_rasterize_lib.o Z:/gdal-2.1.2/apps/gdalbuildvrt_lib.o
+# ar sr ogrpart1.a Z:/gdal-2.1.2/ogr/ogrsf_frmts/o/*.o ./ogr/ogrgeometryfactory.o ./ogr/ogrpoint.o ./ogr/ogrcurve.o ./ogr/ogrlinestring.o ./ogr/ogrlinearring.o ./ogr/ogrpolygon.o ./ogr/ogrutils.o ./ogr/ogrgeometry.o ./ogr/ogrgeometrycollection.o ./ogr/ogrmultipolygon.o ./ogr/ogrsurface.o ./ogr/ogrmultipoint.o ./ogr/ogrmultilinestring.o ./ogr/ogrcircularstring.o ./ogr/ogrcompoundcurve.o ./ogr/ogrcurvepolygon.o ./ogr/ogrcurvecollection.o ./ogr/ogrmulticurve.o ./ogr/ogrmultisurface.o ./ogr/ogr_api.o ./ogr/ogrfeature.o ./ogr/ogrfeaturedefn.o ./ogr/ogrfeaturequery.o ./ogr/ogrfeaturestyle.o ./ogr/ogrfielddefn.o ./ogr/ogrspatialreference.o ./ogr/ogr_srsnode.o ./ogr/ogr_srs_proj4.o ./ogr/ogr_fromepsg.o ./ogr/ogrct.o
+# ar sr ogrpart2.a ./ogr/ogr_opt.o ./ogr/ogr_srs_esri.o ./ogr/ogr_srs_pci.o ./ogr/ogr_srs_usgs.o ./ogr/ogr_srs_dict.o ./ogr/ogr_srs_panorama.o ./ogr/ogr_srs_ozi.o ./ogr/ogr_srs_erm.o ./ogr/swq.o ./ogr/swq_expr_node.o ./ogr/swq_parser.o ./ogr/swq_select.o ./ogr/swq_op_registrar.o ./ogr/swq_op_general.o ./ogr/ogr_srs_validate.o ./ogr/ogr_srs_xml.o ./ogr/ograssemblepolygon.o ./ogr/ogr2gmlgeometry.o ./ogr/gml2ogrgeometry.o ./ogr/ogr_expat.o ./ogr/ogrpgeogeometry.o ./ogr/ogrgeomediageometry.o ./ogr/ogr_geocoding.o ./ogr/osr_cs_wkt.o ./ogr/osr_cs_wkt_parser.o ./ogr/ogrgeomfielddefn.o ./ogr/ograpispy.o
+# 然后合成一个
+# ar r Z:/gdal-2.1.2/libgdal.a basepart.a appspart.a ogrpart1.a ogrpart2.a 
+
+
+ar sr   ./tmpobj/frmts.a \
+        ./frmts/o/*.o
+
+ar sr   ./tmpobj/gcore.a \
+        ./gcore/*.o
+
+ar sr   ./tmpobj/port.a \
+        ./port/*.o
+
+ar sr   ./tmpobj/alg.a \
+        ./alg/*.o
+
+ar sr   ./tmpobj/apps.a \
+        ./apps/commonutils.o        \
+        ./apps/gdalinfo_lib.o       \
+        ./apps/gdal_translate_lib.o \
+        ./apps/gdalwarp_lib.o       \
+        ./apps/ogr2ogr_lib.o        \
+        ./apps/gdaldem_lib.o        \
+        ./apps/nearblack_lib.o      \
+        ./apps/gdal_grid_lib.o      \
+        ./apps/gdal_rasterize_lib.o \
+        ./apps/gdalbuildvrt_lib.o
+
+ar sr   ./tmpobj/ogrsf_frmts.a \
+        ./ogr/ogrsf_frmts/o/*.o
+
+ar sr   ./tmpobj/third_party.a \
+        ./third_party/o/*.o
+
+ar sr   ./tmpobj/ogr.a \
+        ./ogr/ogrgeometryfactory.o \
+        ./ogr/ogrpoint.o \
+        ./ogr/ogrcurve.o \
+        ./ogr/ogrlinestring.o \
+        ./ogr/ogrlinearring.o \
+        ./ogr/ogrpolygon.o \
+        ./ogr/ogrtriangle.o \
+        ./ogr/ogrutils.o \
+        ./ogr/ogrgeometry.o \
+        ./ogr/ogrgeometrycollection.o \
+        ./ogr/ogrmultipolygon.o \
+        ./ogr/ogrsurface.o \
+        ./ogr/ogrpolyhedralsurface.o \
         ./ogr/ogrtriangulatedsurface.o \
-        ./ogr/ogrmultipoint.o          \
-        ./ogr/ogrmultilinestring.o     \
-        ./ogr/ogrcircularstring.o      \
-        ./ogr/ogrcompoundcurve.o       \
-        ./ogr/ogrcurvepolygon.o        \
-        ./ogr/ogrcurvecollection.o     \
-        ./ogr/ogrmulticurve.o          \
-        ./ogr/ogrmultisurface.o        \
-        ./ogr/ogr_api.o                \
-        ./ogr/ogrfeature.o             \
-        ./ogr/ogrfeaturedefn.o         \
-        ./ogr/ogrfeaturequery.o        \
-        ./ogr/ogrfeaturestyle.o        \
-        ./ogr/ogrfielddefn.o           \
-        ./ogr/ogrspatialreference.o    \
-        ./ogr/ogr_srsnode.o            \
-        ./ogr/ogr_fromepsg.o           \
-        ./ogr/ogrct.o                  \
-        ./ogr/ogr_srs_esri.o           \
-        ./ogr/ogr_srs_pci.o            \
-        ./ogr/ogr_srs_usgs.o           \
-        ./ogr/ogr_srs_dict.o           \
-        ./ogr/ogr_srs_panorama.o       \
-        ./ogr/ogr_srs_ozi.o            \
-        ./ogr/ogr_srs_erm.o            \
-        ./ogr/swq.o                    \
-        ./ogr/swq_expr_node.o          \
-        ./ogr/swq_parser.o             \
-        ./ogr/swq_select.o             \
-        ./ogr/swq_op_registrar.o       \
-        ./ogr/swq_op_general.o         \
-        ./ogr/ogr_srs_xml.o            \
-        ./ogr/ograssemblepolygon.o     \
-        ./ogr/ogr2gmlgeometry.o        \
-        ./ogr/gml2ogrgeometry.o        \
-        ./ogr/ogr_expat.o              \
-        ./ogr/ogrpgeogeometry.o        \
-        ./ogr/ogrgeomediageometry.o    \
-        ./ogr/ogr_geocoding.o          \
-        ./ogr/ogrgeomfielddefn.o       \
-        ./ogr/ograpispy.o              \
-        ./ogr/ogr_xerces.o             \
-        ./ogr/ogr_geo_utils.o          \
-        ./ogr/ogr_proj_p.o             -o ./tmpobj/ogr.o
-ar r ./libgdal.a ./tmpobj/frmts.o ./tmpobj/gcore.o ./tmpobj/port.o ./tmpobj/alg.o ./tmpobj/apps.o ./tmpobj/ogrsf_frmts.o ./tmpobj/third_party.o ./tmpobj/ogr.o
+        ./ogr/ogrmultipoint.o \
+        ./ogr/ogrmultilinestring.o \
+        ./ogr/ogrcircularstring.o \
+        ./ogr/ogrcompoundcurve.o \
+        ./ogr/ogrcurvepolygon.o \
+        ./ogr/ogrcurvecollection.o \
+        ./ogr/ogrmulticurve.o \
+        ./ogr/ogrmultisurface.o \
+        ./ogr/ogr_api.o \
+        ./ogr/ogrfeature.o \
+        ./ogr/ogrfeaturedefn.o \
+        ./ogr/ogrfeaturequery.o \
+        ./ogr/ogrfeaturestyle.o \
+        ./ogr/ogrfielddefn.o \
+        ./ogr/ogrspatialreference.o \
+        ./ogr/ogr_srsnode.o \
+        ./ogr/ogr_fromepsg.o \
+        ./ogr/ogrct.o \
+        ./ogr/ogr_srs_esri.o \
+        ./ogr/ogr_srs_pci.o \
+        ./ogr/ogr_srs_usgs.o \
+        ./ogr/ogr_srs_dict.o \
+        ./ogr/ogr_srs_panorama.o \
+        ./ogr/ogr_srs_ozi.o \
+        ./ogr/ogr_srs_erm.o \
+        ./ogr/swq.o \
+        ./ogr/swq_expr_node.o \
+        ./ogr/swq_parser.o \
+        ./ogr/swq_select.o \
+        ./ogr/swq_op_registrar.o \
+        ./ogr/swq_op_general.o \
+        ./ogr/ogr_srs_xml.o \
+        ./ogr/ograssemblepolygon.o \
+        ./ogr/ogr2gmlgeometry.o \
+        ./ogr/gml2ogrgeometry.o \
+        ./ogr/ogr_expat.o \
+        ./ogr/ogrpgeogeometry.o \
+        ./ogr/ogrgeomediageometry.o \
+        ./ogr/ogr_geocoding.o \
+        ./ogr/ogrgeomfielddefn.o \
+        ./ogr/ograpispy.o \
+        ./ogr/ogr_xerces.o \
+        ./ogr/ogr_geo_utils.o \
+        ./ogr/ogr_proj_p.o
+ar r ./libgdal.a ./tmpobj/frmts.a ./tmpobj/gcore.a ./tmpobj/port.a ./tmpobj/alg.a ./tmpobj/apps.a ./tmpobj/ogrsf_frmts.a ./tmpobj/third_party.a ./tmpobj/ogr.a
 ranlib ./libgdal.a
 rm -rf ./tmpobj/
-#ld -r ./frmts/o/*.o              -o ./tmpobj/frmts.o
-#ld -r ./gcore/*.o ./tmpobj/frmts.o                -o ./tmpobj/core.o
-#ld -r ./port/*.o ./tmpobj/core.o                 -o ./tmpobj/port.o
-#ld -r ./alg/*.o ./tmpobj/port.o                  -o ./tmpobj/alg.o
-#ld -r ./apps/*.o ./tmpobj/alg.o                 -o ./tmpobj/apps.o
-#ld -r ./ogr/ogrsf_frmts/o/*.o ./tmpobj/apps.o    -o ./tmpobj/ogrsf_frmts.o
-#ld -r ./third_party/o/*.o ./tmpobj/ogrsf_frmts.o        -o ./tmpobj/third_party.o
-#ld -r ./ogr/*.o ./tmpobj/third_party.o                 -o ./tmpobj/ogr.o
-#./tmpobj/ogr.o #./tmpobj/apps.o ./tmpobj/core.o ./tmpobj/port.o ./tmpobj/alg.o ./tmpobj/ogrsf_frmts.o ./tmpobj/ogr.o ./tmpobj/frmts.o ./tmpobj/third_party.o 
-
 
 #--with-cpp14                                    #Enable C++14 compiler options
 #--with-pic[=PKGS]                               #try to use only PIC/non-PIC objects [default=use
