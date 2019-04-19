@@ -152,7 +152,7 @@ LIBFILES	=	./libs/vml/libvml.a \
 
 CPPFLAGS	+=	$(addprefix -I, $(INCLUDE_PATH))
 CPPFLAGS	+=	$(addprefix -I, $(SHADERS_PATH))
-CXXFLAGS	+=	-std=c++17 -Wall -Wextra -Werror $(CPPFLAGS)
+CXXFLAGS	+=	-flto -std=c++17 -Wall -Wextra -Werror $(CPPFLAGS)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m

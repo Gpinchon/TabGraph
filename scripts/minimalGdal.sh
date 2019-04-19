@@ -6,6 +6,7 @@ cd ./libs/gdal/gdal
     --with-hide-internal-symbols    \
     --with-threads                  \
     --with-liblzma=no               \
+    --with-libjson-c=internal       \
     --without-cfitsio               \
     --without-cryptopp              \
     --without-curl                  \
@@ -27,6 +28,7 @@ cd ./libs/gdal/gdal
     --without-kakadu                \
     --without-libgrass              \
     --without-libkml                \
+    --without-libtool               \
     --without-mrsid                 \
     --without-mysql                 \
     --without-netcdf                \
@@ -57,32 +59,26 @@ cd ./libs/gdal/gdal
     --disable-shared                \
     --enable-static
 
-/bin/make -j 4
 rm -f ./libgdal.a
+make -j
 mkdir ./tmpobj/
 
  # 先将其分作四部分，生成四个静态库# 注意ar 生成这四个静态库的参数是sr
-# ar sr basepart.a Z:/gdal-2.1.2/frmts/o/*.o Z:/gdal-2.1.2/gcore/*.o Z:/gdal-2.1.2/port/*.o Z:/gdal-2.1.2/alg/*.o
-# ar sr appspart.a Z:/gdal-2.1.2/apps/commonutils.o Z:/gdal-2.1.2/apps/gdalinfo_lib.o Z:/gdal-2.1.2/apps/gdal_translate_lib.o Z:/gdal-2.1.2/apps/gdalwarp_lib.o Z:/gdal-2.1.2/apps/ogr2ogr_lib.o Z:/gdal-2.1.2/apps/gdaldem_lib.o Z:/gdal-2.1.2/apps/nearblack_lib.o Z:/gdal-2.1.2/apps/gdal_grid_lib.o Z:/gdal-2.1.2/apps/gdal_rasterize_lib.o Z:/gdal-2.1.2/apps/gdalbuildvrt_lib.o
-# ar sr ogrpart1.a Z:/gdal-2.1.2/ogr/ogrsf_frmts/o/*.o ./ogr/ogrgeometryfactory.o ./ogr/ogrpoint.o ./ogr/ogrcurve.o ./ogr/ogrlinestring.o ./ogr/ogrlinearring.o ./ogr/ogrpolygon.o ./ogr/ogrutils.o ./ogr/ogrgeometry.o ./ogr/ogrgeometrycollection.o ./ogr/ogrmultipolygon.o ./ogr/ogrsurface.o ./ogr/ogrmultipoint.o ./ogr/ogrmultilinestring.o ./ogr/ogrcircularstring.o ./ogr/ogrcompoundcurve.o ./ogr/ogrcurvepolygon.o ./ogr/ogrcurvecollection.o ./ogr/ogrmulticurve.o ./ogr/ogrmultisurface.o ./ogr/ogr_api.o ./ogr/ogrfeature.o ./ogr/ogrfeaturedefn.o ./ogr/ogrfeaturequery.o ./ogr/ogrfeaturestyle.o ./ogr/ogrfielddefn.o ./ogr/ogrspatialreference.o ./ogr/ogr_srsnode.o ./ogr/ogr_srs_proj4.o ./ogr/ogr_fromepsg.o ./ogr/ogrct.o
+# ar sr basepart.a ./frmts/o/*.o ./gcore/*.o ./port/*.o ./alg/*.o
+# ar sr appspart.a ./apps/commonutils.o ./apps/gdalinfo_lib.o ./apps/gdal_translate_lib.o ./apps/gdalwarp_lib.o ./apps/ogr2ogr_lib.o ./apps/gdaldem_lib.o ./apps/nearblack_lib.o ./apps/gdal_grid_lib.o ./apps/gdal_rasterize_lib.o ./apps/gdalbuildvrt_lib.o
+# ar sr ogrpart1.a ./ogr/ogrsf_frmts/o/*.o ./ogr/ogrgeometryfactory.o ./ogr/ogrpoint.o ./ogr/ogrcurve.o ./ogr/ogrlinestring.o ./ogr/ogrlinearring.o ./ogr/ogrpolygon.o ./ogr/ogrutils.o ./ogr/ogrgeometry.o ./ogr/ogrgeometrycollection.o ./ogr/ogrmultipolygon.o ./ogr/ogrsurface.o ./ogr/ogrmultipoint.o ./ogr/ogrmultilinestring.o ./ogr/ogrcircularstring.o ./ogr/ogrcompoundcurve.o ./ogr/ogrcurvepolygon.o ./ogr/ogrcurvecollection.o ./ogr/ogrmulticurve.o ./ogr/ogrmultisurface.o ./ogr/ogr_api.o ./ogr/ogrfeature.o ./ogr/ogrfeaturedefn.o ./ogr/ogrfeaturequery.o ./ogr/ogrfeaturestyle.o ./ogr/ogrfielddefn.o ./ogr/ogrspatialreference.o ./ogr/ogr_srsnode.o ./ogr/ogr_srs_proj4.o ./ogr/ogr_fromepsg.o ./ogr/ogrct.o
 # ar sr ogrpart2.a ./ogr/ogr_opt.o ./ogr/ogr_srs_esri.o ./ogr/ogr_srs_pci.o ./ogr/ogr_srs_usgs.o ./ogr/ogr_srs_dict.o ./ogr/ogr_srs_panorama.o ./ogr/ogr_srs_ozi.o ./ogr/ogr_srs_erm.o ./ogr/swq.o ./ogr/swq_expr_node.o ./ogr/swq_parser.o ./ogr/swq_select.o ./ogr/swq_op_registrar.o ./ogr/swq_op_general.o ./ogr/ogr_srs_validate.o ./ogr/ogr_srs_xml.o ./ogr/ograssemblepolygon.o ./ogr/ogr2gmlgeometry.o ./ogr/gml2ogrgeometry.o ./ogr/ogr_expat.o ./ogr/ogrpgeogeometry.o ./ogr/ogrgeomediageometry.o ./ogr/ogr_geocoding.o ./ogr/osr_cs_wkt.o ./ogr/osr_cs_wkt_parser.o ./ogr/ogrgeomfielddefn.o ./ogr/ograpispy.o
 # 然后合成一个
-# ar r Z:/gdal-2.1.2/libgdal.a basepart.a appspart.a ogrpart1.a ogrpart2.a 
+# ar r ./libgdal.a basepart.a appspart.a ogrpart1.a ogrpart2.a 
+
+#ar sr   ./tmpobj/frmts.a ./frmts/o/*.o
+#ar sr   ./tmpobj/gcore.a ./gcore/*.o
+#ar sr   ./tmpobj/port.a ./port/*.o
+#ar sr   ./tmpobj/alg.a ./alg/*.o
 
 
-ar sr   ./tmpobj/frmts.a \
-        ./frmts/o/*.o
-
-ar sr   ./tmpobj/gcore.a \
-        ./gcore/*.o
-
-ar sr   ./tmpobj/port.a \
-        ./port/*.o
-
-ar sr   ./tmpobj/alg.a \
-        ./alg/*.o
-
-ar sr   ./tmpobj/apps.a \
+ld -r   -o ./tmpobj/basepart.o ./frmts/o/*.o ./gcore/*.o ./port/*.o ./alg/*.o
+ld -r   -o ./tmpobj/apps.o \
         ./apps/commonutils.o        \
         ./apps/gdalinfo_lib.o       \
         ./apps/gdal_translate_lib.o \
@@ -93,14 +89,11 @@ ar sr   ./tmpobj/apps.a \
         ./apps/gdal_grid_lib.o      \
         ./apps/gdal_rasterize_lib.o \
         ./apps/gdalbuildvrt_lib.o
-
-ar sr   ./tmpobj/ogrsf_frmts.a \
+ld -r   -o ./tmpobj/ogrsf_frmts.o \
         ./ogr/ogrsf_frmts/o/*.o
-
-ar sr   ./tmpobj/third_party.a \
+ld -r   -o ./tmpobj/third_party.o \
         ./third_party/o/*.o
-
-ar sr   ./tmpobj/ogr.a \
+ld -r   -o ./tmpobj/ogr.o \
         ./ogr/ogrgeometryfactory.o \
         ./ogr/ogrpoint.o \
         ./ogr/ogrcurve.o \
@@ -159,8 +152,8 @@ ar sr   ./tmpobj/ogr.a \
         ./ogr/ogr_xerces.o \
         ./ogr/ogr_geo_utils.o \
         ./ogr/ogr_proj_p.o
-ar r ./libgdal.a ./tmpobj/frmts.a ./tmpobj/gcore.a ./tmpobj/port.a ./tmpobj/alg.a ./tmpobj/apps.a ./tmpobj/ogrsf_frmts.a ./tmpobj/third_party.a ./tmpobj/ogr.a
-ranlib ./libgdal.a
+
+ar -rs ./libgdal.a ./tmpobj/basepart.o ./tmpobj/apps.o ./tmpobj/ogrsf_frmts.o ./tmpobj/third_party.o ./tmpobj/ogr.o
 rm -rf ./tmpobj/
 
 #--with-cpp14                                    #Enable C++14 compiler options
