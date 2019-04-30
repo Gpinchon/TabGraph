@@ -99,18 +99,28 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
     return (texture);
 }
 
-TextureParser   __genericTextureParser("generic", GenericTextureParser);
+auto   __genericTextureParser = TextureParser::add("generic", GenericTextureParser);
 
 std::map<std::string, TextureParser *> *TextureParser::_parsers = nullptr;//std::map<std::string, TextureParser *>();
 
 TextureParser::TextureParser(const std::string &format, ParsingFunction parsingFunction)
+    : _format(format), _parsingFunction(parsingFunction)
 {
     debugLog(format);
-    _parsingFunction = parsingFunction;
-    if (_parsers == nullptr){
+}
+
+TextureParser *TextureParser::add(const std::string &format, ParsingFunction parsingFunction)
+{
+    auto parser = new TextureParser(format, parsingFunction);
+    _getParsers()[format] = parser;
+    return parser;
+}
+
+std::map<std::string, TextureParser *> &TextureParser::_getParsers()
+{
+    if (_parsers == nullptr)
         _parsers = new std::map<std::string, TextureParser *>;
-    }
-    (*_parsers)[format] = this;
+    return *_parsers;
 }
 
 std::shared_ptr<Texture> TextureParser::parse(const std::string& name, const std::string& path)
@@ -118,17 +128,15 @@ std::shared_ptr<Texture> TextureParser::parse(const std::string& name, const std
 	auto format = path.substr(path.find_last_of(".") + 1);
     debugLog(path);
     debugLog(format);
-	auto parser = (*_parsers)[format];
+	auto parser = _get(format);
     debugLog(parser);
 	if (parser == nullptr)
 		return (GenericTextureParser(name, path));
-	return (parser->_parsingFunction(name, path));
+	return (parser(name, path));
 }
 
-ParsingFunction   TextureParser::get(const std::string &format)
+ParsingFunction   TextureParser::_get(const std::string &format)
 {
-    auto parser = (*_parsers)[format];
-    if (parser != nullptr)
-        return parser->_parsingFunction;
-    return nullptr;
+    auto parser = _getParsers()[format];
+    return parser ? parser->_parsingFunction : nullptr;
 }

@@ -11,12 +11,16 @@
 /* ************************************************************************** */
 
 #include "parser/OBJ.hpp"
+#include "MeshParser.hpp"
 #include "Engine.hpp"
 #include "Mesh.hpp"
 #include "Vgroup.hpp"
 #include "parser/InternalTools.hpp"
 #include "parser/MTLLIB.hpp"
 #include <stdexcept>
+
+//Add this parser to MeshParser !
+MeshParser __objParser("obj", OBJ::parse);
 
 static void push_values(t_obj_parser* p, VEC3* v, VEC3* vn, VEC2* vt)
 {
