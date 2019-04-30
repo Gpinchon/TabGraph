@@ -11,18 +11,6 @@ typedef std::shared_ptr<Mesh> (*ParsingFunction)(const std::string&name, const s
 class MeshParser
 {
 public:
-	MeshParser() = delete;
-	MeshParser(const std::string &format, ParsingFunction);
-	static ParsingFunction	get(const std::string &format);
-	static std::shared_ptr<Mesh> parse(const std::string& name, const std::string& path);
-private:
-	ParsingFunction _parsingFunction;
-	static std::map<std::string, MeshParser *> *_parsers;
-};
-
-class MeshParser
-{
-public:
 	static MeshParser				*add(const std::string &format, ParsingFunction);
 	static std::shared_ptr<Mesh>	parse(const std::string& name, const std::string& path);
 private:

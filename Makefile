@@ -183,14 +183,14 @@ ifeq ($(DEBUG), 1)
 	LIBPATH = $(DBGBUILD_PATH)
 	LIBOBJ = $(DBGOBJ)
 	LIBOBJ_PATH = $(DBGOBJ_PATH)
-all: $(LIBOBJ) $(LIBFILES)
+all: $(LIBFILES) $(LIBOBJ)
 else
 	CXXFLAGS += -Ofast
 	#LIBTAB = $(RELBUILD_PATH)$(NAME)
 	LIBPATH = $(RELBUILD_PATH)
 	LIBOBJ = $(RELOBJ)
 	LIBOBJ_PATH = $(RELOBJ_PATH)
-all: $(LIBOBJ) $(LIBFILES)
+all: $(LIBFILES) $(LIBOBJ)
 	$(MAKE) DEBUG=1
 endif
 
@@ -199,7 +199,7 @@ endif
 #	ar -rc $(LIBTAB) $(LIBOBJ)
 #	ranlib $(LIBTAB)
 
-$(LIBOBJ_PATH)%.o: $(SRC_PATH)%.cpp | $(LIBFILES) $(HEADERS) $(SHADERS)
+$(LIBOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(LIBFILES) $(HEADERS) $(SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)

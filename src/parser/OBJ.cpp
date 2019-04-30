@@ -20,7 +20,7 @@
 #include <stdexcept>
 
 //Add this parser to MeshParser !
-MeshParser __objParser("obj", OBJ::parse);
+auto __objParser = MeshParser::add("obj", OBJ::parse);
 
 static void push_values(t_obj_parser* p, VEC3* v, VEC3* vn, VEC2* vt)
 {
