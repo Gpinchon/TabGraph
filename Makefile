@@ -133,8 +133,6 @@ SRC				=	$(addprefix $(SRC_PATH), $(SRC_FILES))
 SHADERS			=	$(addprefix $(SHADERS_PATH), $(SHADERS_FILES))
 HEADERS			=	$(addprefix $(HEADERS_PATH), $(HEADERS_FILES))
 OBJ				=	$(SRC_FILES:.cpp=.o)
-RELOBJ			=	$(addprefix $(RELOBJ_PATH), $(OBJ))
-DBGOBJ			=	$(addprefix $(DBGOBJ_PATH), $(OBJ))
 # Files Generation End #
 
 INCLUDE_PATH	=	./include				\
@@ -179,17 +177,17 @@ DEBUG ?= 0
 
 ifeq ($(DEBUG), 1)
 	CXXFLAGS += -DDEBUG_MOD -g
-	#LIBTAB = $(DBGBUILD_PATH)$(NAME)
 	LIBPATH = $(DBGBUILD_PATH)
-	LIBOBJ = $(DBGOBJ)
 	LIBOBJ_PATH = $(DBGOBJ_PATH)
+	#LIBTAB = $(LIBPATH)$(NAME)
+	LIBOBJ = $(addprefix $(LIBOBJ_PATH), $(OBJ))
 all: $(LIBFILES) $(LIBOBJ)
 else
 	CXXFLAGS += -Ofast
-	#LIBTAB = $(RELBUILD_PATH)$(NAME)
 	LIBPATH = $(RELBUILD_PATH)
-	LIBOBJ = $(RELOBJ)
 	LIBOBJ_PATH = $(RELOBJ_PATH)
+	#LIBTAB = $(LIBPATH)$(NAME)
+	LIBOBJ = $(addprefix $(LIBOBJ_PATH), $(OBJ))
 all: $(LIBFILES) $(LIBOBJ)
 	$(MAKE) DEBUG=1
 endif
@@ -220,13 +218,13 @@ $(BUILD_APP_RES): %: $(APP_RES)
 	@(cp $(patsubst $(APP_PATH)/build/%, $(APP_PATH)%,$@) $@)
 	@echo Copied $(patsubst $(APP_PATH)%,%,$@) to $@
 
-$(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS) $(HEADERS) $(SHADERS)
+$(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@($(CXX) $(APP_CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(APP_PATH)/build/$(APP_NAME): $(LIBOBJ) $(APP_OBJ)
+$(APP_PATH)/build/$(APP_NAME): $(APP_OBJ) $(LIBOBJ)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@$(CXX) $(APP_CXXFLAGS) $(LIBOBJ) $(APP_OBJ) $(APP_LDLIBS) $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)

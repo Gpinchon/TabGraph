@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-04-04 13:53:19
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:07:30
+* @Last Modified time: 2019-05-06 17:10:47
 */
 
 #include "GLIncludes.hpp"
@@ -110,13 +110,13 @@ auto   __genericTextureParser = TextureParser::add("generic", GenericTexturePars
 
 std::map<std::string, TextureParser *> *TextureParser::_parsers = nullptr;//std::map<std::string, TextureParser *>();
 
-TextureParser::TextureParser(const std::string &format, ParsingFunction parsingFunction)
+TextureParser::TextureParser(const std::string &format, TextureParsingFunction parsingFunction)
     : _format(format), _parsingFunction(parsingFunction)
 {
     debugLog(format);
 }
 
-TextureParser *TextureParser::add(const std::string &format, ParsingFunction parsingFunction)
+TextureParser *TextureParser::add(const std::string &format, TextureParsingFunction parsingFunction)
 {
     auto parser = new TextureParser(format, parsingFunction);
     _getParsers()[format] = parser;
@@ -142,7 +142,7 @@ std::shared_ptr<Texture> TextureParser::parse(const std::string& name, const std
 	return (parser(name, path));
 }
 
-ParsingFunction   TextureParser::_get(const std::string &format)
+TextureParsingFunction   TextureParser::_get(const std::string &format)
 {
     auto parser = _getParsers()[format];
     return parser ? parser->_parsingFunction : nullptr;

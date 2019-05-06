@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-04-25 09:44:00
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:00:18
+* @Last Modified time: 2019-05-06 17:36:11
 */
 
 #include "GLIncludes.hpp"
@@ -11,25 +11,24 @@
 
 #include "Debug.hpp"
 
-auto __genericTextureParser = MeshParser::add("generic", GenericTextureParser);
-
 std::map<std::string, MeshParser *> *MeshParser::_parsers = nullptr;//std::map<std::string, MeshParser *>();
 
-MeshParser::MeshParser(const std::string &format, ParsingFunction parsingFunction)
+MeshParser::MeshParser(const std::string &format, MeshParsingFunction parsingFunction)
+    : _format(format), _parsingFunction(parsingFunction)
 {
     debugLog(format);
-    _parsingFunction = parsingFunction;
-    if (_parsers == nullptr){
-        _parsers = new std::map<std::string, MeshParser *>;
-    }
-    (*_parsers)[format] = this;
 }
 
-MeshParser *MeshParser::add(const std::string &format, ParsingFunction parsingFunction)
+MeshParser *MeshParser::add(const std::string &format, MeshParsingFunction parsingFunction)
 {
     auto parser = new MeshParser(format, parsingFunction);
     _getParsers()[format] = parser;
     return parser;
+}
+
+std::map<std::string, MeshParser *> &MeshParser::_getParsers()
+{
+    return _parsers ? _parsers : new std::map<std::string, MeshParser *>;
 }
 
 std::shared_ptr<MeshParser> MeshParser::parse(const std::string& name, const std::string& path)
@@ -39,12 +38,10 @@ std::shared_ptr<MeshParser> MeshParser::parse(const std::string& name, const std
     debugLog(format);
 	auto parser = get(format);
     debugLog(parser);
-	if (parser == nullptr)
-		return (GenericTextureParser(name, path));
-	return (parser(name, path));
+    return parser ? parser(name, path) : nullptr;
 }
 
-ParsingFunction   MeshParser::get(const std::string &format)
+MeshParsingFunction   MeshParser::get(const std::string &format)
 {
     auto parser = _getParsers()[format];
     return parser ? parser->_parsingFunction : nullptr;
