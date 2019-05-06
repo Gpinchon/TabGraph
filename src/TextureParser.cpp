@@ -1,3 +1,10 @@
+/*
+* @Author: gpi
+* @Date:   2019-04-04 13:53:19
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-05-06 14:07:30
+*/
+
 #include "GLIncludes.hpp"
 #include "Texture.hpp"
 #include "TextureParser.hpp"

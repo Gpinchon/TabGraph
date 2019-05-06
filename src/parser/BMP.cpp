@@ -1,16 +1,10 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   BMP.cpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/01/13 19:56:09 by gpinchon          #+#    #+#             */
-/*   Updated: 2018/09/27 12:23:25 by gpinchon         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+/*
+* @Author: gpi
+* @Date:   2019-02-22 16:13:28
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-05-06 14:07:57
+*/
 
-//#include "Engine.hpp"
 #include "parser/BMP.hpp"
 #include "Texture.hpp"
 #include "parser/InternalTools.hpp"
