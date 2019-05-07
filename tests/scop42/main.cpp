@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:33:20
+* @Last Modified time: 2019-05-07 14:58:40
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
@@ -17,7 +17,7 @@
 #include "GameController.hpp"
 #include "Keyboard.hpp"
 #include "Mouse.hpp"
-#include "parser/OBJ.hpp"
+#include "MeshParser.hpp"
 #include "parser/HDR.hpp"
 #include "parser/FBX.hpp"
 #include "parser/GLSL.hpp"
@@ -97,10 +97,10 @@ int		main(int argc, char *argv[])
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 	obj = nullptr;
 	if (argc >= 2) {
-		obj = OBJ::parse("main_mesh", argv[1]);
+		obj = MeshParser::parse("main_mesh", argv[1]);
 	}
 	if (argc > 2 || obj == nullptr) {
-		obj = OBJ::parse("main_mesh", Engine::program_path() + "./res/obj/chart.obj");
+		obj = MeshParser::parse("main_mesh", Engine::program_path() + "./res/obj/chart.obj");
 	}
 	if (obj != nullptr) {
 		obj->center();

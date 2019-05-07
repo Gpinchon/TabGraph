@@ -12,6 +12,9 @@
 
 #NAME			=	libTabGraph.a
 
+DEBUG		?= 0
+USE_GDAL	?= 0
+
 #   Paths Declaration   #
 OBJ_PATH		=	obj/
 SRC_PATH		=	src/
@@ -63,6 +66,7 @@ HEADERS_FILES	=	AABB.hpp					\
 					Light.hpp					\
 					Material.hpp				\
 					Mesh.hpp					\
+					MeshParser.hpp				\
 					Mouse.hpp					\
 					Node.hpp					\
 					Object.hpp					\
@@ -82,7 +86,7 @@ HEADERS_FILES	=	AABB.hpp					\
 					parser/FBX.hpp				\
 					parser/GLSL.hpp				\
 					parser/HDR.hpp				\
-					parser/TerrainData.hpp				\
+					parser/TerrainData.hpp		\
 					parser/InternalTools.hpp	\
 					parser/MTLLIB.hpp			\
 					parser/OBJ.hpp				\
@@ -101,6 +105,7 @@ SRC_FILES		=	Camera.cpp			\
 					Light.cpp			\
 					Material.cpp		\
 					Mesh.cpp			\
+					MeshParser.cpp		\
 					Mouse.cpp			\
 					Node.cpp			\
 					Object.cpp			\
@@ -119,13 +124,18 @@ SRC_FILES		=	Camera.cpp			\
 					parser/FBX.cpp		\
 					parser/GLSL.cpp		\
 					parser/HDR.cpp		\
-					parser/TerrainData.cpp		\
 					parser/MTLLIB.cpp	\
 					parser/OBJ.cpp		\
-					parser/tools.cpp	\
-					render/shadow.cpp
+					parser/tools.cpp
 
 RES_FILES		=	$(shell find ./res -type f)
+
+ifeq ($(USE_GDAL), 1)
+	SRC_FILES	+= parser/TerrainData_GDAL.cpp
+else
+	SRC_FILES	+= parser/TerrainData.cpp
+endif
+
 # Files Declaration End #
 
 #   Files Generation   #
@@ -141,31 +151,28 @@ INCLUDE_PATH	=	./include				\
 					./libs/gdal/gdal/port	\
 					./libs/gdal/gdal/ogr
 
-LIBDIR		=	./libs/vml/ \
-				./libs/gdal/gdal/
+LIBDIR		=	./libs/vml/
+LIBFILES	=	./libs/vml/libvml.a
+
+ifeq ($(USE_GDAL), 1)
+	LIBDIR		+=	./libs/gdal/gdal/
+	LIBFILES	+=	./libs/gdal/gdal/libgdal.a
+endif
+
 LDFLAGS		+=	$(addprefix -L , $(LIBDIR))
-
-LIBFILES	=	./libs/vml/libvml.a \
-				./libs/gdal/gdal/libgdal.a
-
 CPPFLAGS	+=	$(addprefix -I, $(INCLUDE_PATH))
 CPPFLAGS	+=	$(addprefix -I, $(SHADERS_PATH))
-CXXFLAGS	+=	-flto -std=c++17 -Wall -Wextra -Werror $(CPPFLAGS)
+CXXFLAGS	+=	-std=c++17 -Wall -Wextra -Werror $(CPPFLAGS)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
 OK_STRING=$(OK_COLOR)[OK]$(NO_COLOR)
 
-#-lgcc_s_seh-1
-#-lstdc++-6
-
-
-
 ifeq ($(OS), Windows_NT)
 OK_STRING	=	[OK]
-GDALLIBS	= -Wl,--allow-multiple-definition -Wl,-Bstatic -lgdal -lproj -lgeos -lsqlite3 -liconv -lwsock32 -lws2_32 #-lcryptopp# -lgeos -lproj -lsqlite3# -lcfitsio -lcryptopp -lexpat -lfreexl -lgeotiff -lgif -liconv -ljasper -ljpeg -ljson-c -lnetcdf -lspatialite -lhdf5 -lxerces-c -lopenjp2 -lpcre -lpng16 -ltiff -lwebp -Wl,-Bdynamic -lxml2 -lkmlbase -lkmldom -lkmlengine -lPQ -lpoppler -lqhull -lcurl `pkg-config --libs --cflags icu-uc icu-io`
-#zlib1.dll # -lhdf5 -lgeotiff -lgif -lnetcdf -lgeos -lxerces-c -ljson-c -lsqlite3 -lcryptopp -lexpat -Wl,-Bdynamic -lkmlbase -lkmldom -lkmlengine -lpq -lcurl
-# -lz
+	ifeq ($(USE_GDAL), 1)
+		GDALLIBS	= -Wl,--allow-multiple-definition -Wl,-Bstatic -lgdal -lproj -lgeos -lsqlite3 -liconv -lwsock32 -lws2_32
+	endif
 LDLIBS		+= $(GDALLIBS)	-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -lz -ltiff -lwebp -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
 LDLIBS		+= $(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
@@ -173,20 +180,20 @@ else
 LDLIBS		+= $(LDFLAGS) -lvml -lstdc++ -lpthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
-DEBUG ?= 0
+ifeq ($(USE_GDAL), 1)
+	CXXFLAGS += -DUSE_GDAL
+endif
 
 ifeq ($(DEBUG), 1)
 	CXXFLAGS += -DDEBUG_MOD -g
 	LIBPATH = $(DBGBUILD_PATH)
 	LIBOBJ_PATH = $(DBGOBJ_PATH)
-	#LIBTAB = $(LIBPATH)$(NAME)
 	LIBOBJ = $(addprefix $(LIBOBJ_PATH), $(OBJ))
 all: $(LIBFILES) $(LIBOBJ)
 else
 	CXXFLAGS += -Ofast
 	LIBPATH = $(RELBUILD_PATH)
 	LIBOBJ_PATH = $(RELOBJ_PATH)
-	#LIBTAB = $(LIBPATH)$(NAME)
 	LIBOBJ = $(addprefix $(LIBOBJ_PATH), $(OBJ))
 all: $(LIBFILES) $(LIBOBJ)
 	$(MAKE) DEBUG=1
@@ -251,7 +258,6 @@ format:
 pull:
 	git pull
 	git submodule update --init --recursive
-	git submodule foreach git reset --hard
 	git submodule foreach git pull
 
 clean:

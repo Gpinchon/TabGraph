@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-04-04 13:53:19
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 18:19:22
+* @Last Modified time: 2019-05-07 14:46:59
 */
 
 #include "GLIncludes.hpp"
@@ -24,44 +24,28 @@ int invert_surface_vertical(SDL_Surface *surface)
 
     if( SDL_LOCKIFMUST(surface) < 0 )
         return -2;
-
-    /* do nothing unless at least two lines */
     if(surface->h < 2) {
         SDL_UNLOCKIFMUST(surface);
         return 0;
     }
-
-    /* get a place to store a line */
     pitch = surface->pitch;
     t = (Uint8*)malloc(pitch);
-
     if(t == NULL) {
         SDL_UNLOCKIFMUST(surface);
         return -2;
     }
-
-    /* get first line; it's about to be trampled */
     memcpy(t,surface->pixels,pitch);
-
-    /* now, shuffle the rest so it's almost correct */
     a = (Uint8*)surface->pixels;
     last = a + pitch * (surface->h - 1);
     b = last;
-
     while(a < b) {
         memcpy(a,b,pitch);
         a += pitch;
         memcpy(b,a,pitch);
         b -= pitch;
     }
-
-    /* in this shuffled state, the bottom slice is too far down */
     memmove( b, b+pitch, last-b );
-
-    /* now we can put back that first row--in the last place */
     memcpy(last,t,pitch);
-
-    /* everything is in the right place; close up. */
     free(t);
     SDL_UNLOCKIFMUST(surface);
 
@@ -82,10 +66,10 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
 	auto surface = IMG_Load(path.c_str());
     if(!surface || !surface->format)
         throw std::runtime_error(std::string("Error parsing ") + path + " : " + SDL_GetError());
-    invert_surface_vertical(surface);
-    GLenum  textureFormat = 0;
-    GLenum  textureInternalFormat = 0;
+    auto  textureFormat = surface->format->Amask ? GL_RGBA : GL_RGB;
+    auto  textureInternalFormat = surface->format->Amask ? GL_COMPRESSED_RGBA : GL_COMPRESSED_RGB;
 
+    debugLog("Texture Format before conversion :");
     debugLog(SDL_GetPixelFormatName(surface->format->format));
     debugLog(int(surface->format->BitsPerPixel));
     debugLog(int(surface->format->BytesPerPixel));
@@ -97,16 +81,22 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
     auto newSurface = SDL_ConvertSurfaceFormat(surface, surface->format->Amask ? SDL_PIXELFORMAT_RGBA32 : SDL_PIXELFORMAT_RGB24, 0);
     SDL_FreeSurface(surface);
     surface = newSurface;
+    invert_surface_vertical(surface);
 
-    textureFormat = GL_RGBA;
-    textureInternalFormat = GL_COMPRESSED_RGBA;
+    debugLog("Texture Format after conversion :");
+    debugLog(SDL_GetPixelFormatName(surface->format->format));
+    debugLog(int(surface->format->BitsPerPixel));
+    debugLog(int(surface->format->BytesPerPixel));
+    debugLog(hexToString(surface->format->Rmask));
+    debugLog(hexToString(surface->format->Gmask));
+    debugLog(hexToString(surface->format->Bmask));
+    debugLog(hexToString(surface->format->Amask));
+
     auto texture = Texture::create(name, new_vec2(surface->w, surface->h), GL_TEXTURE_2D,
     textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     SDL_FreeSurface(surface);
     return (texture);
 }
-
-auto   __genericTextureParser = TextureParser::add("generic", GenericTextureParser);
 
 std::map<std::string, TextureParser *> *TextureParser::_parsers = nullptr;//std::map<std::string, TextureParser *>();
 
