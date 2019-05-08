@@ -17,4 +17,6 @@ public:
 	static std::shared_ptr<Terrain> create(const std::string& name, VEC2 resolution, const std::string &path);
 private:
 	Terrain(const std::string& name);
+	std::shared_ptr<Texture>	_terrainMap;
+	VEC3						_terrainSize;
 };

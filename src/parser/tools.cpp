@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:58:16
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-05-08 12:46:56
 */
 
 #include "Engine.hpp"
@@ -145,6 +145,23 @@ std::vector<std::string> strsplitwspace(const std::string& s)
 unsigned count_char(const std::string& str, char c)
 {
     return (std::count(str.begin(), str.end(), c));
+}
+
+std::string fileFormat(const std::string &path)
+{
+    return path.substr(path.find_last_of(".") + 1);
+}
+
+FILE    *openFile(const std::string &path, const std::string &mod)
+{
+    FILE    *fd;
+    if (access(path.c_str(), R_OK) != 0) {
+        throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
+    }
+    if ((fd = fopen(path.c_str(), mod.c_str())) == nullptr) {
+        throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
+    }
+    return fd;
 }
 
 /*unsigned long long	hash(GLubyte *str)

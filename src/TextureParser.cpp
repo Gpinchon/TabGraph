@@ -1,13 +1,14 @@
 /*
 * @Author: gpi
 * @Date:   2019-04-04 13:53:19
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-05-07 14:46:59
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-05-08 13:03:49
 */
 
 #include "GLIncludes.hpp"
 #include "Texture.hpp"
 #include "TextureParser.hpp"
+#include "parser/InternalTools.hpp"
 #include <SDL2/SDL_image.h>
 
 #include "Debug.hpp"
@@ -125,11 +126,9 @@ std::shared_ptr<Texture> TextureParser::parse(const std::string& name, const std
 	auto format = path.substr(path.find_last_of(".") + 1);
     debugLog(path);
     debugLog(format);
-	auto parser = _get(format);
+	auto parser = _get(fileFormat(path));
     debugLog(parser);
-	if (parser == nullptr)
-		return (GenericTextureParser(name, path));
-	return (parser(name, path));
+    return parser ? parser(name, path) : GenericTextureParser(name, path);
 }
 
 TextureParsingFunction   TextureParser::_get(const std::string &format)

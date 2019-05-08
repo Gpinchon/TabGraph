@@ -121,6 +121,7 @@ SRC_FILES		=	Camera.cpp			\
 					Vgroup.cpp			\
 					Window.cpp			\
 					parser/BMP.cpp		\
+					parser/BT.cpp		\
 					parser/FBX.cpp		\
 					parser/GLSL.cpp		\
 					parser/HDR.cpp		\

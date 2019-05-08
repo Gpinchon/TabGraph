@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-27 13:38:46
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:33:56
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-05-08 13:04:33
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
@@ -44,7 +44,7 @@ int		main(int /*argc*/, char **/*argv*/)
 	camera->set_target(Node::create("main_camera_target", new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
 	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 
-	Terrain::create("terrain_test", new_vec2(1024, 1024), new_vec3(50, 0.001, 50), TerrainData::parse("heightMap", Engine::resource_path() + "/heightMap.tif"));
+	Terrain::create("terrain_test", new_vec2(1024, 1024), Engine::resource_path() + "crater.bt");
 	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
 	setup_callbacks();
 	//create_random_lights(250);
