@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:07:22
+* @Last Modified time: 2019-05-09 15:40:58
 */
 
 #include "Texture.hpp"
@@ -204,14 +204,14 @@ size_t Texture::values_per_pixel()
 
 GLubyte* Texture::texelfetch(const VEC2& uv)
 {
-    int opp;
-
     if (_data == nullptr) {
         return (nullptr);
     }
-    auto nuv = new_vec2(CLAMP(uv.x, 0, int(_size.x - 1)),
-        CLAMP(uv.y, 0, int(_size.y - 1)));
-    opp = _bpp / 8;
+    auto nuv = new_vec2(
+        CLAMP(int(uv.x), 0, int(_size.x - 1)),
+        CLAMP(int(uv.y), 0, int(_size.y - 1))
+        );
+    auto opp = _bpp / 8;
     return (&_data[int(_size.x * nuv.y + nuv.x) * opp]);
 }
 
@@ -301,9 +301,13 @@ VEC4 Texture::sample(const VEC2& uv)
     if (_data == nullptr) {
         return (value);
     }
-    vt[0] = new_vec3(CLAMP(_size.x * uv.x, 0, _size.x - 1),
-        CLAMP(_size.y * uv.y, 0, _size.y - 1), 0);
+    vt[0] = new_vec3(
+        CLAMP(_size.x * uv.x, 0, _size.x - 1),
+        CLAMP(_size.y * uv.y, 0, _size.y - 1),
+        0);
     auto nuv = new_vec2(fract(vt[0].x), fract(vt[0].y));
+    vt[0].x = int(vt[0].x);
+    vt[0].y = int(vt[0].y);
     vt[0].z = ((1 - nuv.x) * (1 - nuv.y));
     vt[1] = new_vec3(std::min(_size.x - 1, vt[0].x + 1),
         std::min(_size.y - 1, vt[0].y + 1), (nuv.x * (1 - nuv.y)));
@@ -311,7 +315,7 @@ VEC4 Texture::sample(const VEC2& uv)
     vt[3] = new_vec3(vt[1].x, vt[0].y, (nuv.x * nuv.y));
     auto opp = _bpp / 8;
     for (auto i = 0; i < 4; ++i) {
-        auto d = &_data[int(round(vt[i].y) * _size.x + round(vt[i].x)) * opp];
+        auto d = &_data[int(vt[i].y * _size.x + vt[i].x) * opp];
         for (auto j = 0; j < int(opp / _data_size); ++j) {
             if (_data_size == 1)
                 reinterpret_cast<float*>(&value)[j] += (d[j] * vt[i].z) / 255.f;

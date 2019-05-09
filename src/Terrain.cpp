@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-05-08 22:18:27
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-05-09 15:13:15
 */
 
 #include "Terrain.hpp"
@@ -17,6 +17,8 @@ Terrain::Terrain(const std::string &name) : Mesh(name)
 {
 
 }
+
+#include <fstream>
 
 #include <limits>
 
@@ -34,21 +36,23 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     vg->vt.resize(vg->v.size());
     float minZ = std::numeric_limits<float>::max();
     float maxZ = std::numeric_limits<float>::lowest();
+    std::ofstream myfile;
+    myfile.open(name + ".txt");
     for (auto y = 0.f; y < resolution.y; y++) {
         for (auto x = 0.f; x < resolution.x; x++) {
             auto uv = new_vec2(x / resolution.x, y / resolution.y);
             auto z = 0.f;
             if (texture) {
-                //z = texture->sample(uv).x;
+                z = texture->sample(uv).x;
                
-                VEC2    texUV;
-                texUV.x = uv.x * texture->size().x;
-                texUV.y = uv.y * texture->size().y;
-                z = ((float*)texture->texelfetch(texUV))[0];
+                //VEC2    texUV;
+                //texUV.x = uv.x * texture->size().x;
+                //texUV.y = uv.y * texture->size().y;
+                //z = ((float*)texture->texelfetch(texUV))[0];
                 
                 minZ = z < minZ ? z : minZ;
                 maxZ = z > maxZ ? z : maxZ;
-                std::cout << z << " ";
+                myfile << z << " ";
             }
             vg->vt.at(uint32_t(x + y * resolution.x)) = uv;
             auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
@@ -64,8 +68,9 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
                 vg->i.push_back(uint32_t((x + 1) + y * resolution.x));
             }
         }
-        std::cout << std::endl;
+        myfile << std::endl;
     }
+    myfile.close();
     auto medZ = (maxZ + minZ) / 2.f * scale.y;
     for (auto &v : vg->v)
         v.y -= medZ;
@@ -182,6 +187,10 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name, VEC2 resolutio
             terrainScale.z *= 1200.0 / 3937.0;
         }
     }
-    return (Terrain::create(name, resolution, terrainScale, TerrainData::parse(name + "_heightMap", path)));
+    //TEST
+    auto terrainMap = TerrainData::parse(name + "_heightMap", path);
+    //resolution.x = terrainMap->size().x;
+    //resolution.y = terrainMap->size().y;
+    return (Terrain::create(name, resolution, terrainScale, terrainMap));
 }
 
