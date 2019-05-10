@@ -30,7 +30,8 @@ DBGBUILD_PATH	=	$(BUILD_PATH)$(DBG_PATH)
 # Paths Declaration End #
 
 # Files Declaration #
-SHADERS_FILES	=	blur.frag				\
+SHADERS_FILES	=	\
+					blur.frag				\
 					deferred.frag			\
 					deferred.vert			\
 					depth.frag				\
@@ -46,17 +47,18 @@ SHADERS_FILES	=	blur.frag				\
 					present.frag			\
 					refraction.frag			\
 					ssao.frag
-HEADERS_FILES	=	AABB.hpp					\
+HEADERS_FILES	=	\
+					AABB.hpp					\
 					BoundingElement.hpp			\
 					Camera.hpp					\
 					ComputeObject.hpp			\
 					Config.hpp					\
 					Cubemap.hpp					\
 					CubeMesh.hpp				\
+					Debug.hpp					\
 					DLLExport.hpp				\
 					Engine.hpp					\
 					Environment.hpp				\
-					Debug.hpp					\
 					Events.hpp					\
 					Framebuffer.hpp				\
 					GameController.hpp			\
@@ -71,6 +73,15 @@ HEADERS_FILES	=	AABB.hpp					\
 					Node.hpp					\
 					Object.hpp					\
 					parser						\
+					parser/BMP.hpp				\
+					parser/FBX.hpp				\
+					parser/GLSL.hpp				\
+					parser/HDR.hpp				\
+					parser/InternalTools.hpp	\
+					parser/MTLLIB.hpp			\
+					parser/OBJ.hpp				\
+					parser/TABSCENE.hpp			\
+					parser/TerrainData.hpp		\
 					Render.hpp					\
 					Renderable.hpp				\
 					Shader.hpp					\
@@ -81,17 +92,9 @@ HEADERS_FILES	=	AABB.hpp					\
 					VertexArray.hpp				\
 					VertexBuffer.hpp			\
 					Vgroup.hpp					\
-					Window.hpp					\
-					parser/BMP.hpp				\
-					parser/FBX.hpp				\
-					parser/GLSL.hpp				\
-					parser/HDR.hpp				\
-					parser/TerrainData.hpp		\
-					parser/InternalTools.hpp	\
-					parser/MTLLIB.hpp			\
-					parser/OBJ.hpp				\
-					parser/TABSCENE.hpp
-SRC_FILES		=	Camera.cpp			\
+					Window.hpp
+SRC_FILES		=	\
+					Camera.cpp			\
 					ComputeObject.cpp	\
 					Config.cpp			\
 					Cubemap.cpp			\
@@ -109,6 +112,14 @@ SRC_FILES		=	Camera.cpp			\
 					Mouse.cpp			\
 					Node.cpp			\
 					Object.cpp			\
+					parser/BMP.cpp		\
+					parser/BT.cpp		\
+					parser/FBX.cpp		\
+					parser/GLSL.cpp		\
+					parser/HDR.cpp		\
+					parser/MTLLIB.cpp	\
+					parser/OBJ.cpp		\
+					parser/tools.cpp	\
 					Render.cpp			\
 					Renderable.cpp		\
 					Shader.cpp			\
@@ -119,15 +130,7 @@ SRC_FILES		=	Camera.cpp			\
 					VertexArray.cpp		\
 					VertexBuffer.cpp	\
 					Vgroup.cpp			\
-					Window.cpp			\
-					parser/BMP.cpp		\
-					parser/BT.cpp		\
-					parser/FBX.cpp		\
-					parser/GLSL.cpp		\
-					parser/HDR.cpp		\
-					parser/MTLLIB.cpp	\
-					parser/OBJ.cpp		\
-					parser/tools.cpp
+					Window.cpp
 
 RES_FILES		=	$(shell find ./res -type f)
 
@@ -259,7 +262,7 @@ format:
 pull:
 	git pull
 	git submodule update --init --recursive
-	git submodule foreach git pull
+	git submodule update --recursive --remote
 
 clean:
 	rm -rf $(OBJ_PATH)
