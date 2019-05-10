@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:18
+* @Last Modified time: 2019-05-10 14:20:06
 */
 
 #pragma once
@@ -17,6 +17,7 @@ public:
 	static std::shared_ptr<Terrain> create(const std::string& name, VEC2 resolution, const std::string &path);
 private:
 	Terrain(const std::string& name);
-	std::shared_ptr<Texture>	_terrainMap;
+	std::shared_ptr<Texture>	_terrainData;
+	VEC2						_terrainResolution;
 	VEC3						_terrainSize;
 };

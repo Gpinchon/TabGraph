@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-09 15:13:15
+* @Last Modified time: 2019-05-10 14:53:13
 */
 
 #include "Terrain.hpp"
@@ -10,7 +10,6 @@
 #include "Texture.hpp"
 #include "Material.hpp"
 #include "Debug.hpp"
-#include "parser/TerrainData.hpp"
 #include "parser/InternalTools.hpp"
 
 Terrain::Terrain(const std::string &name) : Mesh(name)
@@ -127,8 +126,6 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         n2.z = ((N2.z + 1) * 0.5) * 255.f;
     }
     auto mtl = Material::create("default_terrain");
-    //mtl->set_texture_albedo(texture);
-    //mtl->set_texture_roughness(texture);
     mtl->albedo = new_vec3(0.5, 0.5, 0.5);
     mtl->roughness = 0.5;
     vg->set_material(mtl);

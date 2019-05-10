@@ -81,7 +81,6 @@ HEADERS_FILES	=	\
 					parser/MTLLIB.hpp			\
 					parser/OBJ.hpp				\
 					parser/TABSCENE.hpp			\
-					parser/TerrainData.hpp		\
 					Render.hpp					\
 					Renderable.hpp				\
 					Shader.hpp					\
@@ -123,7 +122,6 @@ SRC_FILES		=	\
 					Render.cpp			\
 					Renderable.cpp		\
 					Shader.cpp			\
-					Terrain.cpp			\
 					Texture.cpp			\
 					TextureArray.cpp	\
 					TextureParser.cpp	\
@@ -135,9 +133,9 @@ SRC_FILES		=	\
 RES_FILES		=	$(shell find ./res -type f)
 
 ifeq ($(USE_GDAL), 1)
-	SRC_FILES	+= parser/TerrainData_GDAL.cpp
+	SRC_FILES	+= Terrain_GDAL.cpp
 else
-	SRC_FILES	+= parser/TerrainData.cpp
+	SRC_FILES	+= Terrain.cpp
 endif
 
 # Files Declaration End #
