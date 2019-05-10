@@ -77,8 +77,8 @@ mkdir ./tmpobj/
 #ar sr   ./tmpobj/alg.a ./alg/*.o
 
 
-ld -r   -o ./tmpobj/basepart.o ./frmts/o/*.o ./gcore/*.o ./port/*.o ./alg/*.o
-ld -r   -o ./tmpobj/apps.o \
+ld -r -S -o ./tmpobj/basepart.o ./frmts/o/*.o ./gcore/*.o ./port/*.o ./alg/*.o
+ld -r -S -o ./tmpobj/apps.o \
         ./apps/commonutils.o        \
         ./apps/gdalinfo_lib.o       \
         ./apps/gdal_translate_lib.o \
@@ -89,11 +89,11 @@ ld -r   -o ./tmpobj/apps.o \
         ./apps/gdal_grid_lib.o      \
         ./apps/gdal_rasterize_lib.o \
         ./apps/gdalbuildvrt_lib.o
-ld -r   -o ./tmpobj/ogrsf_frmts.o \
+ld -r -S -o ./tmpobj/ogrsf_frmts.o \
         ./ogr/ogrsf_frmts/o/*.o
-ld -r   -o ./tmpobj/third_party.o \
+ld -r -S -o ./tmpobj/third_party.o \
         ./third_party/o/*.o
-ld -r   -o ./tmpobj/ogr.o \
+ld -r -S -o ./tmpobj/ogr.o \
         ./ogr/ogrgeometryfactory.o \
         ./ogr/ogrpoint.o \
         ./ogr/ogrcurve.o \
