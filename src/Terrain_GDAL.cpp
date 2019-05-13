@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-10 16:53:23
+* @Last Modified time: 2019-05-13 14:22:30
 */
 
 #include "Terrain.hpp"
@@ -10,7 +10,7 @@
 #include "Texture.hpp"
 #include "Material.hpp"
 #include "Debug.hpp"
-#include <TextureParser.hpp>
+#include "TextureParser.hpp"
 #include "parser/InternalTools.hpp"
 #include <gdal_priv.h>
 
@@ -143,9 +143,12 @@ std::shared_ptr<Terrain>  Terrain::create(const std::string& name, VEC2 resoluti
     GDALAllRegister();
     auto data = (GDALDataset*)GDALOpen(path.c_str(), GA_ReadOnly );
     if (data == nullptr) {
-        debugLog("Could not open " + path);
+        throw std::runtime_error(path + " : Could not open");
     }
     auto    band = data->GetRasterBand(1);
+    if (band == nullptr) {
+        throw std::runtime_error(path + " : Could not get raster band.");
+    }
     double  gt[6];
     auto    err1 = data->GetGeoTransform(gt);
     VEC2    size {float(band->GetXSize()), float(band->GetYSize())};

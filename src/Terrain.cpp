@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-10 14:53:13
+* @Last Modified time: 2019-05-13 14:22:26
 */
 
 #include "Terrain.hpp"
@@ -10,6 +10,7 @@
 #include "Texture.hpp"
 #include "Material.hpp"
 #include "Debug.hpp"
+#include "TextureParser.hpp"
 #include "parser/InternalTools.hpp"
 
 Terrain::Terrain(const std::string &name) : Mesh(name)
@@ -25,7 +26,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     VEC2 resolution, VEC3 scale, std::shared_ptr<Texture> texture)
 {
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
-    terrain->_terrainMap = texture;
+    terrain->_terrainData = texture;
     Mesh::add(terrain);
     Renderable::add(terrain);
     Node::add(terrain);
@@ -184,10 +185,6 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name, VEC2 resolutio
             terrainScale.z *= 1200.0 / 3937.0;
         }
     }
-    //TEST
-    auto terrainMap = TerrainData::parse(name + "_heightMap", path);
-    //resolution.x = terrainMap->size().x;
-    //resolution.y = terrainMap->size().y;
-    return (Terrain::create(name, resolution, terrainScale, terrainMap));
+    return (Terrain::create(name, resolution, terrainScale, TextureParser::parse(name + "_heightMap", path)));
 }
 
