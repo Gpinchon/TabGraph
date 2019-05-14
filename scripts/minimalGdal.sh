@@ -62,7 +62,7 @@ cd ./libs/gdal/gdal
     --enable-static
 
 rm -f ./libgdal.a
-make -j
+make -j 4
 mkdir ./tmpobj/
 
 ld -r -S -o ./tmpobj/basepart.o     ./frmts/o/*.o ./gcore/*.o ./port/*.o ./alg/*.o 
