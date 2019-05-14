@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-13 14:22:30
+* @Last Modified time: 2019-05-14 09:37:44
 */
 
 #include "Terrain.hpp"
@@ -45,12 +45,12 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
             auto uv = new_vec2(x / resolution.x, y / resolution.y);
             auto z = 0.f;
             if (texture) {
-                z = texture->sample(uv).x;
+                //z = texture->sample(uv).x;
                
-                //VEC2    texUV;
-                //texUV.x = uv.x * texture->size().x;
-                //texUV.y = uv.y * texture->size().y;
-                //z = ((float*)texture->texelfetch(texUV))[0];
+                VEC2    texUV;
+                texUV.x = uv.x * texture->size().x;
+                texUV.y = uv.y * texture->size().y;
+                z = ((float*)texture->texelfetch(texUV))[0];
                 
                 minZ = z < minZ ? z : minZ;
                 maxZ = z > maxZ ? z : maxZ;
