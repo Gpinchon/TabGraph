@@ -216,6 +216,7 @@ BUILD_APP_RES = $(addprefix $(APP_PATH)/build/, $(APP_RES_FILES))
 APP_RES = $(addprefix $(APP_PATH), $(APP_RES_FILES))
 APP_OBJ = $(addprefix $(APP_PATH)/obj/, $(APP_SRC:.cpp=.o))
 APP_CXXFLAGS += $(CPPFLAGS)
+APP_CXXFLAGS += $(addprefix -I, $(addprefix $(APP_PATH), $(APP_INCLUDE_PATH)))
 
 info:
 	@echo $(APP_RES)

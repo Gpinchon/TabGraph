@@ -1,11 +1,10 @@
-APP_SRC			=	main.cpp			\
-					callbacks.cpp
+APP_NAME			=	Scop.exe
+APP_SRC				=	src/main.cpp			\
+						src/callbacks.cpp
+APP_INCLUDE_PATH	=	include
+APP_RES_FILES		=	$(shell find ./res -type f)
 
-APP_RES_FILES	=	$(shell find ./res -type f)
-
-APP_PATH		=	$(PWD)/
-
-APP_NAME		=	Scop.exe
+APP_PATH			=	$(PWD)/
 
 export
 

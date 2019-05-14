@@ -1,0 +1,47 @@
+{
+	"folders":
+	[
+		{
+			"path":"src",
+			"name":"Source",
+			"follow_symlinks": true
+		},
+		{
+			"path":"include",
+			"name":"Includes",
+			"follow_symlinks": true
+		},
+		{
+			"path":"libs",
+			"name":"Libraries",
+			"follow_symlinks": true
+		},
+		{
+			"path":"tests",
+			"name":"Tests",
+			"follow_symlinks": true
+		},
+		{
+			"path": ".",
+			"folder_include_patterns": ["tabGraph"],
+			"name": "Makefile",
+			"file_include_patterns": ["Makefile"]
+		},
+		{
+			"path": "man",
+			"name": "Manual",
+			"follow_symlinks": true
+		}
+	],
+	"settings":
+    {
+        "tab_size": 4
+    },
+    "build_systems":
+    [
+        {
+            "name": "Make",
+            "shell_cmd": "make -j 4"
+        }
+    ]
+}
