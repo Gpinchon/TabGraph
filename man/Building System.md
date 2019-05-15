@@ -4,7 +4,7 @@
 
 In order to use *tabGraph*, you need to setup your project with a Makefile calling *tabGraph*'s main Makefile.
 
-The application will be build in `$(APP_PATH)/build/` by default
+The application will be built in `$(APP_PATH)/build/` by default
 
 # Exportable Makefile Variables
 
