@@ -93,6 +93,7 @@ HEADERS_FILES	=	\
 					Vgroup.hpp					\
 					Window.hpp
 SRC_FILES		=	\
+					AABB.cpp			\
 					Camera.cpp			\
 					ComputeObject.cpp	\
 					Config.cpp			\
