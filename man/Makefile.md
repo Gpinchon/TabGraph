@@ -5,7 +5,7 @@ In order to use *tabGraph*, you need to setup your project with a Makefile calli
 
 # Exportable Makefile Variables
 
-    In order to allow for application building, several variable can be set.
+In order to allow for application building, several variable can be set.
 
 ##### APP_SRC (MANDATORY)
 
@@ -44,23 +44,26 @@ In order to use *tabGraph*, you need to setup your project with a Makefile calli
 
     The listof shader files used by the application, allows for rebuild if a shader changed
 
+##### DEBUG (OPTIONAL)
+
+    Set it to 1 in order to build the application in debug mod
+
 # Example
 
 ```make
-APP_NAME			=	Scop.exe
-APP_SRC				=	src/main.cpp			\
-						src/callbacks.cpp
-APP_INCLUDE_PATH	=	include
-APP_RES_FILES		=	$(shell find ./res -type f)
-
-APP_PATH			=	$(PWD)/
+APP_NAME            =   Scop.exe
+APP_SRC             =   src/main.cpp			\
+                        src/callbacks.cpp
+APP_INCLUDE_PATH    =   include
+APP_RES_FILES       =   $(shell find ./res -type f)
+APP_PATH            =   $(PWD)/
 
 export
 
 all:
-	cd ../.. && $(MAKE) application
+    cd ../.. && $(MAKE) application
 
 debug: APP_NAME = ScopD.exe
 debug:
-	cd ../.. && $(MAKE) application DEBUG=1
+    cd ../.. && $(MAKE) application DEBUG=1
 ```
