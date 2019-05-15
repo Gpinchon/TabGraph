@@ -1,84 +1,85 @@
-# Table of Contents
-- [What is this ?](#what-is-this-)
-- [Screenshots](#screenshots)
-- [How to use ?](#how-to-use-)
-- [Key Binding](#key-binding)
-- [Features](#features)
-- [System Requirements](#system-requirements)
-- [Credits](#credits)
+# TabGraph
 
-# What is this ?
-This is the source code for 42's project scop, a .obj viewer.
-See Win64_release for precompiled Windows version
+*tabGraph* Provides a complete building system, allowing for the generation of portable executables.
 
-***If you're a student looking for guidance, jump to Credits section ;-)***
+In order to use *tabGraph*, you need to setup your project with a Makefile calling *tabGraph*'s main Makefile.
 
-# Screenshots
-![Artorias](/screenshots/screen.png "Artorias")
-![DreamSong](/screenshots/screen1.png "DreamSong")
-![Warmonger](/screenshots/screen2.png "Warmonger Sword")
-![Cyber Warrior](/screenshots/screen3.png "Cyber Warrior")
+The application will be built in `$(APP_PATH)/build/` by default
 
-# How to use ?
-Simply drop a *.obj* file directly onto *Scop*, or run *Scop* through shell with the model's path as first argument as such :
+# Exportable Makefile Variables
+
+In order to allow for application building, several variable can be set.
+
+##### APP_SRC (MANDATORY)
+
+- The list of the source files of your project
+- Path must be relative to your project's path
+
+##### APP_NAME (MANDATORY)
+
+- The name of the executable to be built
+
+##### APP_PATH (MANDATORY)
+
+- The root of your application, usually set to $(PWD)/
+
+##### APP_INCLUDE_PATH (OPTIONAL)
+
+- The list of include paths relative to the application's path
+
+##### APP_RES_FILES (OPTIONAL)
+
+- The list of the application's resource files, they will be copied to the build folder
+
+##### APP_LDLIBS (OPTIONAL)
+
+- The list of libs to link to (such as -lpng)
+
+##### APP_CXXFLAGS (OPTIONAL)
+
+- The list of options to use with GCC for building the application,
+- Will be concanated with *tabGraph*'s default options
+
+##### APP_HEADERS (OPTIONAL)
+
+- The list of header files used by the application
+- Allows for rebuild if a header changed
+
+##### APP_SHADERS (OPTIONAL)
+
+- The list of shader files used by the application
+- Allows for rebuild if a shader changed
+
+##### DEBUG (OPTIONAL)
+
+- DEFAULT VALUE = 0
+- Set it to 1 in order to build the application in debug mod
+- When building in debug mod, the `DEBUG_MOD` is defined,
+- `DEBUGLOG` will be enabled
+- `-g` option will be used for compilation
+
+##### USE_GDAL (OPTIONAL)
+
+- DEFAULT VALUE = 0
+- Set it to 1 in order to build using GDAL library
+- Set it to 0 to use internal parsing methods (with limited abilities) to parse terrains
+
+# Example
+
+```make
+APP_NAME            =   Scop.exe
+APP_SRC             =   src/main.cpp        \
+                        src/callbacks.cpp
+APP_INCLUDE_PATH    =   include
+APP_RES_FILES       =   $(shell find ./res -type f)
+APP_PATH            =   $(PWD)/
+
+export
+
+all:
+    cd $(TABGRAPH_PATH) && $(MAKE) application
+
+debug: APP_NAME = ScopD.exe
+debug:
+    cd $(TABGRAPH_PATH) && $(MAKE) application DEBUG=1
 ```
-./Scop ./some/model/path.obj
-```
-
-# Key Binding
-- [⇦ ⇨ ⇧ ⇩] Orbit camera around model
-- [Keypad -/+] Zoom out/in
-- [LCtrl + [Keypad +/-]] Scale up/down model
-- [Page Up/Down] Move camera up/down
-- [Left Shift] Speed up movements/scaling
-- [Space] Cycle through environments
-- [LAlt + Enter] Switch fullscreen
-- [S] Switch stupidity on/off
-
-# Features
-- This program features real time Physically based rendering for *.obj* models.
-- It features image based lighting using irradiance maps and a custom BRDF Lookup Table (replaceable).
-- It's inspired by Unreal Engine 4 workflow and allows for metallic, roughness and specular (F0).
-- The Specular channel on the material allows for more various materials, such as lacquered plastics for instance.
-- You can specify an heigth texture to enable steep parallax mapping.
-- Here, Specular channels are slightly different from Blinn-Phong's specular channel, it influences the material's reflectivity and behavior regarding light as it is used as a precomputed F0 value. A plastic material with a Specular of *vec3(1, 1, 1)* will have a behavior close to metallic materials, but will have a diffuse channel, unlike metallic material. In order to have "normal" plastic, it is recommended to either leave *Ni* and *Ks* empty, use *Ni 1.5* or *Ks 0.04 0.04 0.04*
-- Extra values have been added to mtl files, allowing for physically based materials :
-```
-Nr [float] //roughness value
-Nm [float] //metallic value
-Np [float] //parallax factor
-map_Nr [./relative/path] //roughness map
-map_Nm [./relative/path] //metallic map
-map_Nh [./relative/path] //heigth map
-map_No [./relative/path] //ambient occlusion map (1 == full occlusion)
-```
-
-# System requirements
-
-*Minimum configuration :*
-```
-CPU : Intel i3 or equivalent
-RAM : 1GB
-GPU : Intel HD Chipset or equivalent with at least 256Mo VRAM
-```
-
-*Recommanded configuration :*
-```
-CPU : Intel i3 or equivalent
-RAM : 1GB
-GPU : NVIDIA GPU with at least 256Mo VRAM
-```
-
-***May crash on Intel Atom systems***
-
-# Credits
-- "Moving Frostbite to PBR" paper by S. Lagarde
-- "Physically-Based Shading at Disney" by B. Burley
-- Brian Karis blog named GraphicRants
-- Unreal Engine's documentation regarding Physically Based Materials
-- learnopengl.com for numerous and helpful tutorials
-- Khronos documentation
-- Apple documentation on GLSL
-- Coding Labs for making PBR and BRDF easier to understand
-- Wikipedia because we always need an encyclopedia
-- Emil Persson and custommapmakers for the free cubemaps
