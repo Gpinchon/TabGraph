@@ -47,6 +47,8 @@ In order to allow for application building, several variable can be set.
 ##### DEBUG (OPTIONAL)
 
     Set it to 1 in order to build the application in debug mod
+    When building in debug mod, the `DEBUG_MOD` is defined,
+    DEBUGLOG will be enabled, and `-g` option will be used for compilation
 
 # Example
 
