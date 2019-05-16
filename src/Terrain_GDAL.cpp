@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-14 09:37:44
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #include "Terrain.hpp"
@@ -147,7 +147,7 @@ std::shared_ptr<Terrain>  Terrain::create(const std::string& name, VEC2 resoluti
     }
     auto    band = data->GetRasterBand(1);
     if (band == nullptr) {
-        throw std::runtime_error(path + " : Could not get raster band.");
+        throw std::runtime_error(path + " : Could not Get raster band.");
     }
     double  gt[6];
     auto    err1 = data->GetGeoTransform(gt);

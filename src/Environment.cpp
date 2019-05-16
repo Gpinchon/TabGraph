@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:19
+* @Last Modified time: 2019-05-16 14:14:33
 */
 
 #include "Environment.hpp"
@@ -23,7 +23,7 @@ std::shared_ptr<Environment> Environment::create(const std::string& name)
     return (e);
 }
 
-std::shared_ptr<Environment> Environment::get(unsigned index)
+std::shared_ptr<Environment> Environment::Get(unsigned index)
 {
     if (index >= _environments.size())
         return (nullptr);

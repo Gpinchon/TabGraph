@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:34
+* @Last Modified time: 2019-05-16 14:21:05
 */
 
 #pragma once
@@ -18,12 +18,12 @@ class Node : public Object {
 public:
     static std::shared_ptr<Node> create(const std::string& name, VEC3 position, VEC3 rotation, VEC3 scale);
     static std::shared_ptr<Node> get_by_name(const std::string&);
-    static std::shared_ptr<Node> get(unsigned index);
+    static std::shared_ptr<Node> Get(unsigned index);
     static void add(std::shared_ptr<Node>);
     virtual std::shared_ptr<Node> shared_from_this();
     virtual void transform_update();
-    virtual void fixed_update();
-    virtual void update();
+    virtual void FixedUpdate();
+    virtual void Update();
     MAT4& transform();
     MAT4& translate();
     MAT4& rotate();

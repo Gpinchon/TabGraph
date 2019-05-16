@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:28:22
+* @Last Modified time: 2019-05-16 14:47:28
 */
 
 #pragma once
@@ -18,48 +18,22 @@
 #define M_PI 3.14159265359f
 #endif // M_PI
 #define UP new_vec3(0, 1, 0)
-//#define DEBUG_MOD
 
-class Material;
-class Shader;
-class Texture;
-class Framebuffer;
-class Cubemap;
-class Renderable;
-class Node;
-class Camera;
-class Light;
+/** @brief This class orchestrates the rendering loop and logics around it
+*/
+namespace Engine {
+    void    Init(void);
+    void    Start(void);
+    void    Stop(void);
+    void    SetInternalQuality(float);
+    void    SetSwapInterval(int8_t);
 
-class Engine {
-public:
-    ~Engine();
-    static void init(void);
-    static double delta_time(void);
-    static double fixed_delta_time(void);
-    static void run(void);
-    static void stop(void) { _get()._loop = false; };
-    static float& internal_quality(void);
-    static int8_t& swap_interval(void);
-    static void fixed_update(void);
-    static void update(void);
-    static std::string& execution_path(void);
-    static std::string& program_path(void);
-    static const std::string& resource_path(void);
-    static std::mutex &update_mutex(void);
-    static bool loop();
-
-private:
-    Engine();
-    static Engine& _get();
-    static Engine* _instance;
-    static void _renderingThread(void);
-    void _set_program_path(std::string& argv0);
-    void _load_res();
-    bool _loop{ false };
-    int8_t _swap_interval{ 1 };
-    double _delta_time{ 0 };
-    std::string _program_path{ "" };
-    std::string _exec_path{ "" };
-    float _internal_quality{ 1 };
-    std::mutex _update_mutex;
+    float   InternalQuality(void);
+    int8_t  SwapInterval(void);
+    double  DeltaTime(void);
+    double  FixedDeltaTime(void);
+    const std::string&  ExecutionPath(void);
+    const std::string&  ProgramPath(void);
+    const std::string   ResourcePath(void);
+    std::mutex          &UpdateMutex(void);
 };

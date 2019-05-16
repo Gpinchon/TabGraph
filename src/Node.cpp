@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:06:43
+* @Last Modified time: 2019-05-16 14:21:05
 */
 
 #include "Node.hpp"
@@ -22,7 +22,7 @@ std::shared_ptr<Node> Node::create(const std::string& name, VEC3 position, VEC3 
     t->_rotation = rotation;
     t->_scaling = scale;
     //t->_transform = new_transform(position, rotation, scale, UP);
-    t->update();
+    t->Update();
     add(t);
     return (t);
 }
@@ -36,7 +36,7 @@ std::shared_ptr<Node> Node::get_by_name(const std::string& name)
     return (nullptr);
 }
 
-std::shared_ptr<Node> Node::get(unsigned index)
+std::shared_ptr<Node> Node::Get(unsigned index)
 {
     if (index >= _nodes.size())
         return (nullptr);
@@ -66,11 +66,11 @@ void Node::transform_update()
     }
 }
 
-void Node::fixed_update()
+void Node::FixedUpdate()
 {
 }
 
-void Node::update()
+void Node::Update()
 {
 }
 

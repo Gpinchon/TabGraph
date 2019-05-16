@@ -4,7 +4,7 @@ APP_SRC				=	src/main.cpp			\
 APP_INCLUDE_PATH	=	include
 APP_RES_FILES		=	$(shell find ./res -type f)
 
-APP_PATH			=	$(PWD)/
+APP_PATH			=	$(shell pwd)/
 
 export
 

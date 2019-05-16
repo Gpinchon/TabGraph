@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:13
+* @Last Modified time: 2019-05-16 14:14:35
 */
 
 #pragma once
@@ -19,7 +19,7 @@ class Texture : public Object {
 public:
     static std::shared_ptr<Texture> create(const std::string& name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
     static std::shared_ptr<Texture> get_by_name(const std::string&);
-    static std::shared_ptr<Texture> get(unsigned index);
+    static std::shared_ptr<Texture> Get(unsigned index);
     static size_t get_data_size(GLenum data_type);
     static size_t get_bpp(GLenum texture_format, GLenum data_type);
     virtual std::shared_ptr<Texture> shared_from_this();

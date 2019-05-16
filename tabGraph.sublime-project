@@ -7,6 +7,11 @@
 			"follow_symlinks": true
 		},
 		{
+			"path":"./src/shaders",
+			"name":"Shaders",
+			"follow_symlinks": true
+		},
+		{
 			"path":"include",
 			"name":"Includes",
 			"follow_symlinks": true
@@ -23,9 +28,9 @@
 		},
 		{
 			"path": ".",
-			"folder_include_patterns": ["tabGraph"],
-			"name": "Makefile",
-			"file_include_patterns": ["Makefile"]
+			"folder_include_patterns": ["tabGraph", "scripts"],
+			"name": "Build System",
+			"file_include_patterns": ["Makefile", "*.sh"]
 		},
 		{
 			"path": "man",

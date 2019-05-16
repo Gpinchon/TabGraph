@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:06:59
+* @Last Modified time: 2019-05-16 14:26:38
 */
 
 #include "Render.hpp"
@@ -151,8 +151,8 @@ void render_shadows()
         glClear(GL_DEPTH_BUFFER_BIT);
         tempCamera->position() = light->position();
         tempCamera->view() = light->transform();
-        for (auto index = 0; Renderable::get(index) != nullptr; index++) {
-            auto node = Renderable::get(index);
+        for (auto index = 0; Renderable::Get(index) != nullptr; index++) {
+            auto node = Renderable::Get(index);
             node->render_depth(RenderOpaque);
         }
         light->render_buffer()->bind(false);
@@ -160,7 +160,7 @@ void render_shadows()
     Camera::set_current(camera);
 }
 
-void Render::fixed_update()
+void Render::FixedUpdate()
 {
     auto InvViewMatrix = mat4_inverse(Camera::current()->view());
     auto InvProjMatrix = mat4_inverse(Camera::current()->projection());
@@ -171,7 +171,7 @@ void Render::fixed_update()
     normalLights.reserve(1000);
     shadowLights.clear();
     normalLights.clear();
-    while (auto light = Light::get(index)) {
+    while (auto light = Light::Get(index)) {
         if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z))
             continue;
         if (light->cast_shadow())
@@ -182,7 +182,7 @@ void Render::fixed_update()
     }
     render_shadows();
     index = 0;
-    while (auto shader = Shader::get(index)) {
+    while (auto shader = Shader::Get(index)) {
         shader->use();
         shader->set_uniform("Camera.Position", Camera::current()->position());
         shader->set_uniform("Camera.Matrix.View", Camera::current()->view());
@@ -219,21 +219,21 @@ void Render::_thread(void)
     float fixed_timing;
 
     fixed_timing = SDL_GetTicks() / 1000.f;
-    SDL_GL_SetSwapInterval(Engine::swap_interval());
+    SDL_GL_SetSwapInterval(Engine::SwapInterval());
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
     while (_get()._loop)
     {
-        if (Render::needs_update() && Engine::update_mutex().try_lock()) {
+        if (Render::needs_update() && Engine::UpdateMutex().try_lock()) {
             _get()._frame_nbr++;
             ticks = SDL_GetTicks() / 1000.f;
             if (ticks - fixed_timing >= 0.015) {
                 fixed_timing = ticks;
-                Render::fixed_update();
+                Render::FixedUpdate();
             }
-            Render::update();
+            Render::Update();
             Render::scene();
             _get()._needs_update = false;
-            Engine::update_mutex().unlock();
+            Engine::UpdateMutex().unlock();
         }
         else
             Render::scene();
@@ -245,7 +245,7 @@ uint64_t Render::frame_nbr()
     return (_get()._frame_nbr);
 }
 
-void Render::update()
+void Render::Update()
 {
 }
 
@@ -370,7 +370,7 @@ void Render::scene()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     std::shared_ptr<Renderable> node;
-    for (auto index = 0; (node = Renderable::get(index)) != nullptr; index++) {
+    for (auto index = 0; (node = Renderable::Get(index)) != nullptr; index++) {
         node->render(RenderOpaque);
     }
     std::swap(current_tbuffer, current_tbuffertex);
@@ -459,7 +459,7 @@ void Render::scene()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     bool rendered_stuff = false;
-    for (auto index = 0; (node = Renderable::get(index)) != nullptr; index++) {
+    for (auto index = 0; (node = Renderable::Get(index)) != nullptr; index++) {
         if (node->render(RenderTransparent))
             rendered_stuff = true;
     }

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:27
+* @Last Modified time: 2019-05-16 14:14:33
 */
 
 #include "Framebuffer.hpp"
@@ -117,7 +117,7 @@ std::shared_ptr<Framebuffer> Framebuffer::create(const std::string& name, VEC2 s
     return (f);
 }
 
-std::shared_ptr<Framebuffer> Framebuffer::get(unsigned index)
+std::shared_ptr<Framebuffer> Framebuffer::Get(unsigned index)
 {
     if (index >= _framebuffers.size())
         return (nullptr);

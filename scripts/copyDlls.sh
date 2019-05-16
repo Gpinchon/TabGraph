@@ -3,7 +3,7 @@
 BINDIR=$(dirname "$1")
 
 function isSystemDLL () {
-	while read -d ':' p; do
+	while read -r -d ':' p; do
 		p="$p""/""$1"
 		if test -f "$p"; then
 			return 0

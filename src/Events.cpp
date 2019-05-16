@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:23
+* @Last Modified time: 2019-05-16 14:23:10
 */
 
 #include "Events.hpp"
@@ -254,7 +254,7 @@ void Events::set_refresh_callback(t_callback callback)
 int Events::filter(void* /*unused*/, SDL_Event* event)
 {
     if (event->type == SDL_QUIT) {
-        Engine::stop();
+        Engine::Stop();
     }
     auto inputdevice = _get()._input_devices.find(event->type);
     if (inputdevice != _get()._input_devices.end()) {

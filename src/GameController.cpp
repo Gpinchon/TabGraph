@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:33
+* @Last Modified time: 2019-05-16 14:14:33
 */
 
 #include "GameController.hpp"
@@ -176,10 +176,10 @@ void GameController::process_event(SDL_Event* event)
         controllerIndex = get_controller_index(event->cdevice.which);
     }
     if (controllerIndex != -1)
-        get(controllerIndex)->process_event(event);
+        Get(controllerIndex)->process_event(event);
 }
 
-Controller* GameController::get(SDL_JoystickID device)
+Controller* GameController::Get(SDL_JoystickID device)
 {
     auto controller = _get()->_controllers.find(device);
     if (controller == _get()->_controllers.end()) {

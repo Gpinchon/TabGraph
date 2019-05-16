@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-14 13:53:27
+* @Last Modified time: 2019-05-16 14:39:23
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
@@ -81,7 +81,7 @@ auto	compute_object = ComputeObject::create("computeObject", compute_shader);
 auto	texture = Texture::create("checkerBoardTexture", new_vec2(256, 256), GL_TEXTURE_2D, GL_RGBA, GL_RGBA32F, GL_FLOAT);
 //compute_object->set_in_texture(texture);
 compute_object->set_out_texture(texture);
-compute_object->run();
+compute_object->Start();
 cube->vgroup(0)->material()->set_texture_albedo(texture);
 */
 
@@ -89,8 +89,8 @@ int		main(int argc, char *argv[])
 {
 	std::shared_ptr<Mesh>	obj;
 
-	Config::Load(Engine::resource_path() + "config.ini");
-	Engine::init();
+	Config::Load(Engine::ProgramPath() + "./res/config.ini");
+	Engine::Init();
 	auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
 	Camera::set_current(camera);
 	camera->set_target(Node::create("main_camera_target", new_vec3(0, 0, 0), new_vec3(0, 0, 0), new_vec3(1, 1, 1)));
@@ -100,18 +100,18 @@ int		main(int argc, char *argv[])
 		obj = MeshParser::parse("main_mesh", argv[1]);
 	}
 	if (argc > 2 || obj == nullptr) {
-		obj = MeshParser::parse("main_mesh", Engine::program_path() + "./res/obj/chart.obj");
+		obj = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/obj/chart.obj");
 	}
 	if (obj != nullptr) {
 		obj->center();
 		obj->load();
 	}
-	//FBX::parseBin(Engine::program_path() + "./mug.fbx");
+	//FBX::parseBin(Engine::ProgramPath() + "./mug.fbx");
 	setup_callbacks();
 	//create_random_lights(250);
 	DirectionnalLight::create("MainLight", new_vec3(1, 1, 1), new_vec3(10, 10, 10), 1, true);
 	//DirectionnalLight::create("BackLight", new_vec3(0.3, 0.3, 0.3), new_vec3(-10, -10, 0), 1, false);
-	Engine::run();
+	Engine::Start();
 	SDL_Quit();
 	return (0);
 }

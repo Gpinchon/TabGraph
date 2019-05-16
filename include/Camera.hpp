@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:28:47
+* @Last Modified time: 2019-05-16 14:20:09
 */
 
 #pragma once
@@ -18,7 +18,7 @@ class Camera : public Node {
 public:
     static std::shared_ptr<Camera> create(const std::string&, float fov, CameraProjection proj = PerspectiveCamera);
     static std::shared_ptr<Camera> get_by_name(const std::string&);
-    static std::shared_ptr<Camera> get(unsigned index);
+    static std::shared_ptr<Camera> Get(unsigned index);
     static std::shared_ptr<Camera> current();
     static void set_current(std::shared_ptr<Camera>);
     virtual void transform_update();
@@ -43,7 +43,7 @@ protected:
 class OrbitCamera : public Camera {
 public:
     static std::shared_ptr<OrbitCamera> create(const std::string&, float fov, float phi, float theta, float radius);
-    //virtual void	update();
+    //virtual void	Update();
     void orbite(float phi, float theta, float radius);
 
 private:

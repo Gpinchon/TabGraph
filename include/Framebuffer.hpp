@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:28:12
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #pragma once
@@ -13,7 +13,7 @@ class Framebuffer : public Texture {
 public:
     static std::shared_ptr<Framebuffer> create(const std::string& name, VEC2 size, int color_attachements, int depth);
     static std::shared_ptr<Framebuffer> get_by_name(const std::string& name);
-    static std::shared_ptr<Framebuffer> get(unsigned index);
+    static std::shared_ptr<Framebuffer> Get(unsigned index);
     static void bind_default();
     bool is_loaded();
     void load();

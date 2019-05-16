@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:28
+* @Last Modified time: 2019-05-16 14:21:05
 */
 
 #pragma once
@@ -16,8 +16,8 @@ class Shader;
 
 class Render {
 	public :
-		static void update();
-		static void fixed_update();
+		static void Update();
+		static void FixedUpdate();
 		static void scene();
 		static void add_post_treatment(std::shared_ptr<Shader>);
 		static void add_post_treatment(const std::string& name, const std::string& path);

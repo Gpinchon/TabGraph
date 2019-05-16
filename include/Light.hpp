@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:54
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #pragma once
@@ -21,7 +21,7 @@ class Light : public Node {
 public:
     static std::shared_ptr<Light> create(const std::string& name, VEC3 color, VEC3 position, float power);
     static std::shared_ptr<Light> get_by_name(const std::string&);
-    static std::shared_ptr<Light> get(unsigned index);
+    static std::shared_ptr<Light> Get(unsigned index);
     static void add(std::shared_ptr<Light>);
     virtual void render_shadow();
     VEC3& color();

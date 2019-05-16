@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:23
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #pragma once
@@ -17,7 +17,7 @@ enum RenderMod {
 
 class Renderable : public Node {
 public:
-    static std::shared_ptr<Renderable> get(unsigned index);
+    static std::shared_ptr<Renderable> Get(unsigned index);
     static std::shared_ptr<Renderable> get_by_name(const std::string&);
     virtual bool render(RenderMod mod = RenderAll) = 0;
     virtual bool render_depth(RenderMod mod = RenderAll) = 0;

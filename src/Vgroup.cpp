@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:07:45
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #include "Vgroup.hpp"
@@ -30,7 +30,7 @@ std::shared_ptr<Vgroup> Vgroup::create(const std::string& name)
     return (vg);
 }
 
-std::shared_ptr<Vgroup> Vgroup::get(unsigned index)
+std::shared_ptr<Vgroup> Vgroup::Get(unsigned index)
 {
     if (index >= _vgroups.size())
         return (nullptr);

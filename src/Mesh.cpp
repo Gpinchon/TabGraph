@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:59
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #include "Mesh.hpp"
@@ -41,7 +41,7 @@ std::shared_ptr<Mesh> Mesh::get_by_name(const std::string& name) /*static*/
     return (nullptr);
 }
 
-std::shared_ptr<Mesh> Mesh::get(unsigned index) /*static*/
+std::shared_ptr<Mesh> Mesh::Get(unsigned index) /*static*/
 {
     if (index >= _meshes.size())
         return (nullptr);

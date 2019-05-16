@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:28:08
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #pragma once
@@ -49,7 +49,7 @@ private:
 
 class GameController : InputDevice {
 public:
-    static Controller* get(int index);
+    static Controller* Get(int index);
     static void remove(int index);
     static int get_controller_index(SDL_JoystickID device);
     virtual void process_event(SDL_Event* event);

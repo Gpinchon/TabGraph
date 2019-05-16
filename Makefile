@@ -213,7 +213,8 @@ $(LIBOBJ_PATH)%.o: $(SRC_PATH)%.cpp $(LIBFILES) $(HEADERS) $(SHADERS)
 	@($(CXX) $(CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-BUILD_APP_RES = $(addprefix $(APP_PATH)/build/, $(APP_RES_FILES))
+BUILD_APP_RES	= $(addprefix $(APP_PATH)/build/, $(APP_RES_FILES))
+BUILD_RES		= $(addprefix $(APP_PATH)/build/, $(RES_FILES))
 APP_RES = $(addprefix $(APP_PATH), $(APP_RES_FILES))
 APP_OBJ = $(addprefix $(APP_PATH)/obj/, $(APP_SRC:.cpp=.o))
 APP_CXXFLAGS += $(CPPFLAGS)
@@ -223,6 +224,11 @@ info:
 	@echo $(APP_RES)
 	@echo $(BUILD_APP_RES)
 	@echo $(CXXFLAGS)
+
+$(BUILD_RES): %: $(RES_FILES)
+	@(mkdir -p $(@D))
+	@(cp $(patsubst $(APP_PATH)/build/%, %,$@) $@)
+	@echo Copied $(patsubst $(APP_PATH)%,%,$@) to $@
 
 $(BUILD_APP_RES): %: $(APP_RES)
 	@(mkdir -p $(@D))
@@ -241,7 +247,7 @@ $(APP_PATH)/build/$(APP_NAME): $(APP_OBJ) $(LIBOBJ)
 	@$(CXX) $(APP_CXXFLAGS) $(LIBOBJ) $(APP_OBJ) $(APP_LDLIBS) $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
 	@echo $@ compilation "$(OK_STRING)"
 
-application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES)
+application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES) $(BUILD_RES)
 	./scripts/copyDlls.sh $(APP_PATH)/build/$(APP_NAME)
 
 libraries: $(LIBFILES)

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:46
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #pragma once
@@ -15,7 +15,7 @@ class Mesh : public Renderable {
 public:
     static std::shared_ptr<Mesh> create(const std::string&);
     static std::shared_ptr<Mesh> get_by_name(const std::string&);
-    static std::shared_ptr<Mesh> get(unsigned index);
+    static std::shared_ptr<Mesh> Get(unsigned index);
     static void add(std::shared_ptr<Mesh>);
     void load();
     bool render(RenderMod mod = RenderAll);

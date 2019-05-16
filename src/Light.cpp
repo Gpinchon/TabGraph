@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:44
+* @Last Modified time: 2019-05-16 14:14:33
 */
 
 #include "Light.hpp"
@@ -38,7 +38,7 @@ std::shared_ptr<Light> Light::get_by_name(const std::string& name)
     return (nullptr);
 }
 
-std::shared_ptr<Light> Light::get(unsigned index)
+std::shared_ptr<Light> Light::Get(unsigned index)
 {
     if (index >= _lights.size())
         return (nullptr);

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:07:49
+* @Last Modified time: 2019-05-16 14:37:28
 */
 
 #include "Window.hpp"
@@ -23,7 +23,7 @@ Window::Window()
 void Window::process_event(SDL_Event* event)
 {
     if (event->window.event == SDL_WINDOWEVENT_CLOSE) {
-        Engine::stop();
+        Engine::Stop();
     } else if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
         //Window::resize();
     }
@@ -96,7 +96,7 @@ GLbitfield& Window::clear_mask()
 
 VEC2 Window::internal_resolution()
 {
-    return (vec2_scale(Window::size(), Engine::internal_quality()));
+    return (vec2_scale(Window::size(), Engine::InternalQuality()));
 }
 
 VEC2 Window::size()

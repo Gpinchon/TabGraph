@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:07:04
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #include "Renderable.hpp"
@@ -17,7 +17,7 @@ Renderable::Renderable(const std::string& name)
 {
 }
 
-std::shared_ptr<Renderable> Renderable::get(unsigned index)
+std::shared_ptr<Renderable> Renderable::Get(unsigned index)
 {
     if (index >= _renderables.size())
         return (nullptr);

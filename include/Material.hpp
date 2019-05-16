@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:50
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #pragma once
@@ -17,7 +17,7 @@ class Shader;
 class Material : public Object {
 public:
     static std::shared_ptr<Material> create(const std::string&);
-    static std::shared_ptr<Material> get(unsigned index);
+    static std::shared_ptr<Material> Get(unsigned index);
     static std::shared_ptr<Material> get_by_name(const std::string&);
     virtual void bind_values();
     virtual void bind_textures();

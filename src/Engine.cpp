@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:14
+* @Last Modified time: 2019-05-16 14:47:17
 */
 
 #include "Engine.hpp"
@@ -28,39 +28,48 @@
 #define _getcwd getcwd
 #endif //_getcwd
 
-/*
-** engine is a singleton
-*/
-
-Engine* Engine::_instance = nullptr;
-
-Engine::Engine()
+struct EnginePrivate
 {
-    _loop = true;
-    _swap_interval = 1;
-    _internal_quality = 0.5;
-    _exec_path = convert_backslash(_getcwd(nullptr, 4096)) + "/";
-    _program_path = convert_backslash(SDL_GetBasePath());
-    _program_path = _program_path.substr(0, _program_path.find_last_of('/'));
-    _program_path += "/";
+    EnginePrivate();
+    static EnginePrivate& Get();
+    static void LoadRes(void);
+    static void Update(void);
+    static void FixedUpdate(void);
+    bool loop{ false };
+    int8_t swapInterval{ 1 };
+    double deltaTime{ 0 };
+    std::string programPath{ "" };
+    std::string execPath{ "" };
+    float internalQuality{ 1 };
+    std::mutex updateMutex;
+};
+
+EnginePrivate::EnginePrivate()
+{
+    loop = true;
+    swapInterval = 1;
+    internalQuality = 0.5;
+    execPath = convert_backslash(_getcwd(nullptr, 4096)) + "/";
+    programPath = convert_backslash(SDL_GetBasePath());
+    programPath = programPath.substr(0, programPath.find_last_of('/'));
+    programPath += "/";
 }
 
-Engine::~Engine() = default;
-
-Engine& Engine::_get()
+EnginePrivate& EnginePrivate::Get()
 {
+    static EnginePrivate* _instance = nullptr;
     if (_instance == nullptr)
-        _instance = new Engine();
+        _instance = new EnginePrivate();
     return (*_instance);
 }
 
-void Engine::_load_res()
+void EnginePrivate::LoadRes()
 {
     DIR* dir;
     struct dirent* e;
     std::string folder;
 
-    folder = Engine::program_path() + "res/hdr/";
+    folder = Engine::ProgramPath() + "res/hdr/";
     dir = opendir(folder.c_str());
     while (dir != nullptr && (e = readdir(dir)) != nullptr) {
         if (e->d_name[0] == '.') {
@@ -71,7 +80,7 @@ void Engine::_load_res()
         newEnv->set_diffuse(Cubemap::create(name + "Cube", TextureParser::parse(name, folder + name + "/environment.hdr")));
         newEnv->set_irradiance(Cubemap::create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", folder + name + "/diffuse.hdr")));
     }
-    folder = Engine::program_path() + "res/skybox/";
+    folder = Engine::ProgramPath() + "res/skybox/";
     dir = opendir(folder.c_str());
     while (dir != nullptr && (e = readdir(dir)) != nullptr) {
         if (e->d_name[0] == '.') {
@@ -92,10 +101,30 @@ void Engine::_load_res()
         }
     }
     closedir(dir);
-    Environment::set_current(Environment::get(0));
+    Environment::set_current(Environment::Get(0));
 }
 
-void Engine::init()
+void EnginePrivate::Update()
+{
+    for (auto i = 0; Node::Get(i); i++) {
+        auto node = Node::Get(i);
+        node->Update();
+    }
+}
+
+void EnginePrivate::FixedUpdate()
+{
+    for (auto i = 0; Node::Get(i); i++) {
+        auto node = Node::Get(i);
+        node->transform_update();
+    }
+    for (auto i = 0; Node::Get(i); i++) {
+        auto node = Node::Get(i);
+        node->FixedUpdate();
+    }
+}
+
+void Engine::Init()
 {
     Window::init(Config::WindowName(), Config::WindowSize());
     static auto SSAOShaderCode =
@@ -103,33 +132,7 @@ void Engine::init()
         ;
     static auto SSAOShader = GLSL::compile("SSAO", SSAOShaderCode, PostShader);
     Render::add_post_treatment(SSAOShader);
-    _get()._load_res();
-}
-
-double Engine::delta_time()
-{
-    return (_get()._delta_time);
-}
-
-int8_t& Engine::swap_interval()
-{
-    return (_get()._swap_interval);
-}
-
-std::string& Engine::program_path()
-{
-    return (_get()._program_path);
-}
-
-std::string& Engine::execution_path()
-{
-    return (_get()._exec_path);
-}
-
-const std::string& Engine::resource_path()
-{
-    static auto path = program_path() + "/res/";
-    return (path);
+    EnginePrivate::Get().LoadRes();
 }
 
 int event_filter(void* arg, SDL_Event* event)
@@ -137,66 +140,81 @@ int event_filter(void* arg, SDL_Event* event)
     return (Events::filter(arg, event));
 }
 
-void Engine::update()
-{
-    for (auto i = 0; Node::get(i); i++) {
-        auto node = Node::get(i);
-        node->update();
-    }
-}
-
-void Engine::fixed_update()
-{
-    for (auto i = 0; Node::get(i); i++) {
-        auto node = Node::get(i);
-        node->transform_update();
-    }
-    for (auto i = 0; Node::get(i); i++) {
-        auto node = Node::get(i);
-        node->fixed_update();
-    }
-}
-
-std::mutex &Engine::update_mutex(void)
-{
-    return _get()._update_mutex;
-}
-
-bool Engine::loop(void)
-{
-    return _get()._loop;
-}
-
-void Engine::run()
+void Engine::Start()
 {
     float ticks;
-    float last_ticks;
-    float fixed_timing;
+    float lastTicks;
+    float fixedTiming;
 
-    fixed_timing = last_ticks = SDL_GetTicks() / 1000.f;
+    fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
     SDL_SetEventFilter(event_filter, nullptr);
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr); 
     Render::start_rendering_thread();
-    while (_get()._loop) {
+    while (EnginePrivate::Get().loop) {
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        Engine::update_mutex().lock();
+        EnginePrivate::Get().updateMutex.lock();
         ticks = SDL_GetTicks() / 1000.f;
-        _get()._delta_time = ticks - last_ticks;
-        last_ticks = ticks;
+        EnginePrivate::Get().deltaTime = ticks - lastTicks;
+        lastTicks = ticks;
         SDL_PumpEvents();
         Events::refresh();
-        if (ticks - fixed_timing >= 0.015) {
-            fixed_timing = ticks;
-            Engine::fixed_update();
+        if (ticks - fixedTiming >= 0.015) {
+            fixedTiming = ticks;
+            EnginePrivate::FixedUpdate();
         }
-        Engine::update();
-        Engine::update_mutex().unlock();
+        EnginePrivate::Update();
+        EnginePrivate::Get().updateMutex.unlock();
         Render::request_redraw();
     }
     Render::stop_rendering_thread();
 }
 
-float& Engine::internal_quality()
+void Engine::Stop(void)
 {
-    return (_get()._internal_quality);
+    EnginePrivate::Get().loop = false;
+}
+
+void Engine::SetInternalQuality(float q)
+{
+    EnginePrivate::Get().internalQuality = q;
+}
+
+float Engine::InternalQuality()
+{
+    return (EnginePrivate::Get().internalQuality);
+}
+
+void Engine::SetSwapInterval(int8_t i)
+{
+    EnginePrivate::Get().swapInterval = i;
+}
+
+int8_t Engine::SwapInterval()
+{
+    return (EnginePrivate::Get().swapInterval);
+}
+
+double Engine::DeltaTime()
+{
+    return (EnginePrivate::Get().deltaTime);
+}
+
+const std::string& Engine::ProgramPath()
+{
+    return (EnginePrivate::Get().programPath);
+}
+
+const std::string& Engine::ExecutionPath()
+{
+    return (EnginePrivate::Get().execPath);
+}
+
+const std::string Engine::ResourcePath()
+{
+    return (Engine::ProgramPath() + "/res/");
+}
+
+std::mutex &Engine::UpdateMutex(void)
+{
+    return EnginePrivate::Get().updateMutex;
 }

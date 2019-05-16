@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:07:09
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #include "Shader.hpp"
@@ -24,7 +24,7 @@ std::shared_ptr<Shader> Shader::create(const std::string& name)
     return (shader);
 }
 
-std::shared_ptr<Shader> Shader::get(unsigned index)
+std::shared_ptr<Shader> Shader::Get(unsigned index)
 {
     if (index >= _shaders.size())
         return (nullptr);

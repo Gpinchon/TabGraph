@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
-* @Date:   2019-03-27 13:38:46
+* @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:33:49
+* @Last Modified time: 2019-05-16 14:51:36
 */
 
 #include "scop.hpp"
@@ -19,7 +19,7 @@ static auto	cameraRotation = new_vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 
 void				callback_camera(SDL_Event *)
 {
-	auto	controller = GameController::get(0);
+	auto	controller = GameController::Get(0);
 	VEC2	raxis = new_vec2(0, 0);
 	VEC2	laxis = new_vec2(0, 0);
 	float	ltrigger = 0;
@@ -80,13 +80,13 @@ void	switch_background()
 {
 	static int	b = 0;
 	b++;
-	auto	env = Environment::get(b);
+	auto	env = Environment::Get(b);
 	if (env != nullptr) {
 		Environment::set_current(env);
 	}
 	else {
 		b = 0;
-		env = Environment::get(b);
+		env = Environment::Get(b);
 		Environment::set_current(env);
 	}
 }
@@ -112,9 +112,8 @@ void	controller_callback_quality(SDL_ControllerButtonEvent *event)
 	if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN)) {
 		return ;
 	}
-	GameController::get(0)->rumble(0.5, 100);
-	Engine::internal_quality() += 0.25;
-	Engine::internal_quality() = CYCLE(Engine::internal_quality(), 0.5, 1.5);
+	GameController::Get(0)->rumble(0.5, 100);
+	Engine::SetInternalQuality(CYCLE(Engine::InternalQuality() + 0.25, 0.5, 1.5));
 }
 
 void	callback_quality(SDL_KeyboardEvent *event)
@@ -122,8 +121,7 @@ void	callback_quality(SDL_KeyboardEvent *event)
 	if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u))) {
 		return ;
 	}
-	Engine::internal_quality() += 0.25;
-	Engine::internal_quality() = CYCLE(Engine::internal_quality(), 0.5, 1.5);
+	Engine::SetInternalQuality(CYCLE(Engine::InternalQuality() + 0.25, 0.5, 1.5));
 }
 
 bool	rotate_model = true;
@@ -147,7 +145,7 @@ void	keyboard_callback_rotation(SDL_KeyboardEvent *event)
 void	callback_refresh(SDL_Event */*unused*/)
 {
 	static float	rotation = 0;
-	auto	mesh = Renderable::get(0);
+	auto	mesh = Renderable::Get(0);
 	if (mesh == nullptr) {
 		return ;
 	}
@@ -162,7 +160,7 @@ void	callback_refresh(SDL_Event */*unused*/)
 
 void	callback_exit(SDL_KeyboardEvent */*unused*/)
 {
-	Engine::stop();
+	Engine::Stop();
 }
 
 void	callback_fullscreen(SDL_KeyboardEvent *event)
@@ -209,6 +207,14 @@ void	MouseMoveCallback(SDL_MouseMotionEvent *event)
 	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }
 
+#include <csignal>
+
+void callback_crash(SDL_KeyboardEvent *)
+{
+	std::cout << "CRASH !!!" << std::endl;
+	std::raise(SIGSEGV);
+}
+
 void	setup_callbacks()
 {
 	Keyboard::set_callback(SDL_SCANCODE_KP_PLUS, callback_scale);
@@ -218,11 +224,12 @@ void	setup_callbacks()
 	Keyboard::set_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
 	Keyboard::set_callback(SDL_SCANCODE_Q, callback_quality);
 	Keyboard::set_callback(SDL_SCANCODE_R, keyboard_callback_rotation);
-	Mouse::set_relative(SDL_TRUE);
+	Keyboard::set_callback(SDL_SCANCODE_C, callback_crash);
+	//Mouse::set_relative(SDL_TRUE);
 	Mouse::set_move_callback(MouseMoveCallback);
 	Mouse::set_wheel_callback(MouseWheelCallback);
 	Events::set_refresh_callback(callback_refresh);
-	auto controller = GameController::get(0);
+	auto controller = GameController::Get(0);
 	if (controller == nullptr)
 		return ;
 	controller->set_button_callback(SDL_CONTROLLER_BUTTON_A, controller_callback_quality);

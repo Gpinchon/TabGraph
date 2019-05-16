@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:58:45
+* @Last Modified time: 2019-05-16 14:20:09
 */
 
 #include "Camera.hpp"
@@ -28,7 +28,7 @@ std::shared_ptr<Camera> Camera::create(const std::string& name, float ifov, Came
     return (camera);
 }
 
-std::shared_ptr<Camera> Camera::get(unsigned index)
+std::shared_ptr<Camera> Camera::Get(unsigned index)
 {
     if (index >= _cameras.size())
         return (nullptr);
@@ -56,7 +56,7 @@ void Camera::set_current(std::shared_ptr<Camera> camera)
 
 void Camera::transform_update()
 {
-    //Node::update();
+    //Node::Update();
     if (nullptr != target()) {
         transform() = mat4_lookat(position(), target()->position(), UP);
     }

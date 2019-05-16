@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:20
+* @Last Modified time: 2019-05-16 14:14:35
 */
 
 #pragma once
@@ -26,7 +26,7 @@ struct ShaderVariable {
 class Shader : public Object {
 public:
     static std::shared_ptr<Shader> create(const std::string&);
-    static std::shared_ptr<Shader> get(unsigned index);
+    static std::shared_ptr<Shader> Get(unsigned index);
     static std::shared_ptr<Shader> get_by_name(const std::string&);
     static bool check_shader(const GLuint id);
     static bool check_program(const GLuint id);

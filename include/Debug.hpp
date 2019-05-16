@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:28:30
+* @Last Modified time: 2019-05-16 14:14:34
 */
 
 #pragma once
@@ -63,8 +63,110 @@ inline auto glCheckError()
 #undef MAT2
 #include <windows.h>
 #include <DbgHelp.h>
+#include <tlhelp32.h>
+/*
+inline void stackWalkPrint(HANDLE process, HANDLE thread)
+{
+    DWORD image;
+    CONTEXT     context;
+    STACKFRAME  stackframe;
 
-inline void stack_trace(void)
+    ZeroMemory(&stackframe, sizeof(stackframe));
+    ZeroMemory(&context,    sizeof(context));
+    context.ContextFlags = CONTEXT_FULL;
+    SuspendThread(thread);
+    if (!GetThreadContext(thread, &context)) {
+        debugLog("Couldn't Get thread context");
+        return;
+    }
+
+#ifdef _M_IX86
+    image = IMAGE_FILE_MACHINE_I386;
+    stackframe.AddrPC.Offset = context.Eip;
+    stackframe.AddrPC.Mode = AddrModeFlat;
+    stackframe.AddrFrame.Offset = context.Ebp;
+    stackframe.AddrFrame.Mode = AddrModeFlat;
+    stackframe.AddrStack.Offset = context.Esp;
+    stackframe.AddrStack.Mode = AddrModeFlat;
+#elif _M_X64
+    image = IMAGE_FILE_MACHINE_AMD64;
+    stackframe.AddrPC.Offset = context.Rip;
+    stackframe.AddrPC.Mode = AddrModeFlat;
+    stackframe.AddrFrame.Offset = context.Rsp;
+    stackframe.AddrFrame.Mode = AddrModeFlat;
+    stackframe.AddrStack.Offset = context.Rsp;
+    stackframe.AddrStack.Mode = AddrModeFlat;
+#elif _M_IA64
+    image = IMAGE_FILE_MACHINE_IA64;
+    stackframe.AddrPC.Offset = context.StIIP;
+    stackframe.AddrPC.Mode = AddrModeFlat;
+    stackframe.AddrFrame.Offset = context.IntSp;
+    stackframe.AddrFrame.Mode = AddrModeFlat;
+    stackframe.AddrBStore.Offset = context.RsBSP;
+    stackframe.AddrBStore.Mode = AddrModeFlat;
+    stackframe.AddrStack.Offset = context.IntSp;
+    stackframe.AddrStack.Mode = AddrModeFlat;
+#endif
+
+    while (StackWalk(
+      image, process, thread,
+      &stackframe, &context, nullptr, 
+      SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
+    {
+        std::string         moduleName = "???";
+        std::string         functionName = "???";
+        std::string         fileName = "???";
+        unsigned int        lineNumber = 0u;
+        char                moduleBuff[MAX_PATH];
+        char                symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + MAX_SYM_NAME];
+        DWORD               offset = 0;
+        PIMAGEHLP_SYMBOL    symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
+        HINSTANCE           moduleBase = (HINSTANCE)SymGetModuleBase(process, stackframe.AddrPC.Offset);
+        IMAGEHLP_LINE       line;
+
+        line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
+        symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL) + MAX_SYM_NAME;
+        symbol->MaxNameLength = MAX_SYM_NAME;
+        if (moduleBase && GetModuleFileNameA(moduleBase, moduleBuff , MAX_PATH))
+            moduleName = moduleBuff ;
+        if (SymGetSymFromAddr(process, stackframe.AddrPC.Offset, NULL, symbol))
+            functionName = symbol->Name;
+        if (SymGetLineFromAddr(process, stackframe.AddrPC.Offset, &offset, &line))
+        {
+            fileName = line.FileName;
+            lineNumber = line.LineNumber;
+        }
+        std::cerr << "\t[" << moduleName << "] " << functionName << " in file : " << fileName << " at line " << lineNumber << std::endl;
+    }
+}
+
+inline void stack_trace(int)
+{
+    HANDLE process = GetCurrentProcess();
+    SymInitialize(process, nullptr, true);
+    SymSetOptions(SYMOPT_LOAD_LINES);
+    HANDLE shapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+    if (shapshot == INVALID_HANDLE_VALUE)
+        exit(-42);
+    THREADENTRY32 threadEntry;
+    threadEntry.dwSize = sizeof(threadEntry);
+    if (Thread32First(shapshot, &threadEntry)) {
+        do {
+            if (threadEntry.dwSize >= FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(threadEntry.th32OwnerProcessID)) {
+                auto hThread = OpenThread(THREAD_QUERY_INFORMATION|THREAD_SUSPEND_RESUME|THREAD_GET_CONTEXT, false, threadEntry.th32ThreadID);
+                if (hThread == nullptr)
+                    debugLog("Couldn't Get thread handle");
+                else
+                    stackWalkPrint(process, hThread);
+            }
+            threadEntry.dwSize = sizeof(threadEntry);
+        } while (Thread32Next(shapshot, &threadEntry));
+    }
+    SymCleanup(process);
+}
+*/
+inline void stack_trace(int)
 {
 
     HANDLE process = GetCurrentProcess();
@@ -174,6 +276,6 @@ inline void stack_trace(void)
 inline void sigHandler(int signum) {
     std::cerr << "Received interuption signal(" << signum << ")" << std::endl;
     std::cerr << "Print Stack :" << std::endl;
-    stack_trace();
+    stack_trace(signum);
     exit(signum);
 }

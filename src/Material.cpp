@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:52
+* @Last Modified time: 2019-05-16 14:14:33
 */
 
 #include "Material.hpp"
@@ -45,7 +45,7 @@ std::shared_ptr<Material> Material::create(const std::string& name)
     return (mtl);
 }
 
-std::shared_ptr<Material> Material::get(unsigned index)
+std::shared_ptr<Material> Material::Get(unsigned index)
 {
     if (index >= _materials.size())
         return (nullptr);

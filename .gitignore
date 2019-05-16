@@ -40,6 +40,9 @@
 # Build folder
 build/
 
+# Manual folder
+man/
+
 # Project executable
 Test
 Scop
