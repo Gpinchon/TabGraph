@@ -43,6 +43,9 @@ build/
 # Manual folder
 man/
 
+# Sublime Text workspace file
+*.sublime-workspace
+
 # Project executable
 Test
 Scop
