@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:26:38
+* @Last Modified time: 2019-05-17 13:02:19
 */
 
 #include "Render.hpp"
@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <vector>
 #include <thread>
+#include <mutex>
 
 static auto passthrough_vertex_code =
 #include "passthrough.vert"

@@ -2,22 +2,22 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:47:28
+* @Last Modified time: 2019-05-17 13:01:38
 */
 
 #pragma once
 
-#include "GLIncludes.hpp"
-#include "Object.hpp"
-#include <memory>
 #include <string>
-#include <vector>
-#include <mutex>
 
 #ifndef M_PI
 #define M_PI 3.14159265359f
 #endif // M_PI
 #define UP new_vec3(0, 1, 0)
+
+namespace std
+{
+    class mutex;
+}
 
 /** @brief This class orchestrates the rendering loop and logics around it
 */
