@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-21 13:53:49
+* @Last Modified time: 2019-05-21 14:09:28
 */
 
 #pragma once
@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <atomic>
 
 class VertexArray;
 class Shader;
@@ -36,10 +37,10 @@ class Render {
 		static void _thread();
 		static Render &_get();
 		static Render *_instance;
-		double _delta_time {0};
-		bool _needs_update {true};
-		bool _loop {true};
+		std::atomic<double> _delta_time {0};
+		std::atomic<float> _internalQuality{ 1 };
+		std::atomic<bool> _needs_update {true};
+		std::atomic<bool> _loop {true};
 		uint64_t _frame_nbr{ 0 };
-		float _internalQuality{ 1 };
 		std::thread _rendering_thread;
 };
