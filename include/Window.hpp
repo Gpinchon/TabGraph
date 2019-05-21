@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:26:48
+* @Last Modified time: 2019-05-21 13:55:02
 */
 
 #pragma once
@@ -15,7 +15,6 @@ class Window : InputDevice {
 public:
     static void resize(const VEC2&);
     static VEC2 size();
-    static VEC2 internal_resolution();
     static void init(const std::string& name, VEC2 resolution);
     static void fullscreen(const bool& fullscreen);
     static void swap();

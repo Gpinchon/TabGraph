@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-17 13:02:19
+* @Last Modified time: 2019-05-21 13:57:30
 */
 
 #include "Render.hpp"
@@ -165,7 +165,7 @@ void Render::FixedUpdate()
 {
     auto InvViewMatrix = mat4_inverse(Camera::current()->view());
     auto InvProjMatrix = mat4_inverse(Camera::current()->projection());
-    auto res = Window::internal_resolution();
+    auto res = vec2_scale(Window::size(), Render::InternalQuality());
     auto index = 0;
 
     shadowLights.reserve(1000);
@@ -195,6 +195,16 @@ void Render::FixedUpdate()
         shader->use(false);
         index++;
     }
+}
+
+void Render::SetInternalQuality(float q)
+{
+    Render::_get()._internalQuality = q;
+}
+
+float Render::InternalQuality()
+{
+    return Render::_get()._internalQuality;
 }
 
 void Render::request_redraw(void)
@@ -330,13 +340,14 @@ void Render::scene()
         brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
+    auto res = vec2_scale(Window::size(), Render::InternalQuality());
     
-    static auto temp_buffer = create_render_buffer("temp_buffer", Window::internal_resolution());
-    static auto temp_buffer1 = create_render_buffer("temp_buffer1", Window::internal_resolution());
-    static auto back_buffer = create_back_buffer("back_buffer", Window::internal_resolution());
-    static auto back_buffer1 = create_back_buffer("back_buffer1", Window::internal_resolution());
-    static auto back_buffer2 = create_back_buffer("back_buffer2", Window::internal_resolution());
-    static auto final_back_buffer = create_back_buffer("final_back_buffer", Window::internal_resolution());
+    static auto temp_buffer = create_render_buffer("temp_buffer", res);
+    static auto temp_buffer1 = create_render_buffer("temp_buffer1", res);
+    static auto back_buffer = create_back_buffer("back_buffer", res);
+    static auto back_buffer1 = create_back_buffer("back_buffer1", res);
+    static auto back_buffer2 = create_back_buffer("back_buffer2", res);
+    static auto final_back_buffer = create_back_buffer("final_back_buffer", res);
     static auto elighting_shader = GLSL::compile("lighting_env", lightingEnvFragmentCode, LightingShader,
         std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::ReflexionSteps()) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::ReflexionSamples()) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) + std::string("\n"));
     static auto telighting_shader = GLSL::compile("lighting_env_transparent", lightingEnvFragmentCode, LightingShader,
@@ -349,12 +360,12 @@ void Render::scene()
         return;
     }
 
-    temp_buffer->resize(Window::internal_resolution());
-    temp_buffer1->resize(Window::internal_resolution());
-    back_buffer->resize(Window::internal_resolution());
-    back_buffer1->resize(Window::internal_resolution());
-    back_buffer2->resize(Window::internal_resolution());
-    final_back_buffer->resize(Window::internal_resolution());
+    temp_buffer->resize(res);
+    temp_buffer1->resize(res);
+    back_buffer->resize(res);
+    back_buffer1->resize(res);
+    back_buffer2->resize(res);
+    final_back_buffer->resize(res);
 
     auto current_tbuffer = temp_buffer;
     auto current_tbuffertex = temp_buffer1;

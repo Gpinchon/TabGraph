@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:21:05
+* @Last Modified time: 2019-05-21 13:53:49
 */
 
 #pragma once
@@ -30,7 +30,8 @@ class Render {
 		static uint64_t frame_nbr(void);
 		static const std::shared_ptr<VertexArray> display_quad();
 		static std::vector<std::weak_ptr<Shader>>& post_treatments();
-
+		static void		SetInternalQuality(float);
+		static float	InternalQuality();
 	private:
 		static void _thread();
 		static Render &_get();
@@ -39,5 +40,6 @@ class Render {
 		bool _needs_update {true};
 		bool _loop {true};
 		uint64_t _frame_nbr{ 0 };
+		float _internalQuality{ 1 };
 		std::thread _rendering_thread;
 };

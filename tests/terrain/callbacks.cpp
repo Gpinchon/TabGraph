@@ -2,18 +2,19 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:51:36
+* @Last Modified time: 2019-05-21 14:01:24
 */
 
 #include "scop.hpp"
-#include "Camera.hpp"
-#include "Engine.hpp"
-#include "Mesh.hpp"
-#include "Window.hpp"
-#include "Mouse.hpp"
-#include "Keyboard.hpp"
-#include "GameController.hpp"
-#include "Environment.hpp"
+#include <Camera.hpp>
+#include <Render.hpp>
+#include <Engine.hpp>
+#include <Mesh.hpp>
+#include <Window.hpp>
+#include <Mouse.hpp>
+#include <Keyboard.hpp>
+#include <GameController.hpp>
+#include <Environment.hpp>
 
 static auto	cameraRotation = new_vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 
@@ -113,7 +114,7 @@ void	controller_callback_quality(SDL_ControllerButtonEvent *event)
 		return ;
 	}
 	GameController::Get(0)->rumble(0.5, 100);
-	Engine::SetInternalQuality(CYCLE(Engine::InternalQuality() + 0.25, 0.5, 1.5));
+	Render::SetInternalQuality(CYCLE(Render::InternalQuality() + 0.25, 0.5, 1.5));
 }
 
 void	callback_quality(SDL_KeyboardEvent *event)
@@ -121,7 +122,7 @@ void	callback_quality(SDL_KeyboardEvent *event)
 	if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u))) {
 		return ;
 	}
-	Engine::SetInternalQuality(CYCLE(Engine::InternalQuality() + 0.25, 0.5, 1.5));
+	Render::SetInternalQuality(CYCLE(Render::InternalQuality() + 0.25, 0.5, 1.5));
 }
 
 bool	rotate_model = true;

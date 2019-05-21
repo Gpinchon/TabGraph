@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-17 13:00:57
+* @Last Modified time: 2019-05-21 13:53:22
 */
 
 #include "Engine.hpp"
@@ -24,6 +24,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <mutex>
+#include <atomic>
 
 #ifndef _getcwd
 #define _getcwd getcwd
@@ -36,12 +37,11 @@ struct EnginePrivate
     static void LoadRes(void);
     static void Update(void);
     static void FixedUpdate(void);
-    bool loop{ false };
+    std::atomic<bool> loop{ false };
     int8_t swapInterval{ 1 };
     double deltaTime{ 0 };
     std::string programPath{ "" };
     std::string execPath{ "" };
-    float internalQuality{ 1 };
     std::mutex updateMutex;
 };
 
@@ -49,7 +49,6 @@ EnginePrivate::EnginePrivate()
 {
     loop = true;
     swapInterval = 1;
-    internalQuality = 0.5;
     execPath = convert_backslash(_getcwd(nullptr, 4096)) + "/";
     programPath = convert_backslash(SDL_GetBasePath());
     programPath = programPath.substr(0, programPath.find_last_of('/'));
@@ -173,16 +172,6 @@ void Engine::Start()
 void Engine::Stop(void)
 {
     EnginePrivate::Get().loop = false;
-}
-
-void Engine::SetInternalQuality(float q)
-{
-    EnginePrivate::Get().internalQuality = q;
-}
-
-float Engine::InternalQuality()
-{
-    return (EnginePrivate::Get().internalQuality);
 }
 
 void Engine::SetSwapInterval(int8_t i)

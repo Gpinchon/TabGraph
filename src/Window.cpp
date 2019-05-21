@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:37:28
+* @Last Modified time: 2019-05-21 13:54:56
 */
 
 #include "Window.hpp"
@@ -92,11 +92,6 @@ void Window::init(const std::string& name, VEC2 resolution)
 GLbitfield& Window::clear_mask()
 {
     return (_get()._clear_mask);
-}
-
-VEC2 Window::internal_resolution()
-{
-    return (vec2_scale(Window::size(), Engine::InternalQuality()));
 }
 
 VEC2 Window::size()

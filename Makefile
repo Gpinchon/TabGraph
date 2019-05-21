@@ -235,13 +235,13 @@ $(BUILD_APP_RES): %: $(APP_RES)
 	@(cp $(patsubst $(APP_PATH)/build/%, $(APP_PATH)%,$@) $@)
 	@echo Copied $(patsubst $(APP_PATH)%,%,$@) to $@
 
-$(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(APP_HEADERS) $(APP_SHADERS)
+$(APP_PATH)/obj/%.o: $(APP_PATH)$(APP_SRCPATH)%.cpp $(LIBOBJ) $(APP_HEADERS) $(APP_SHADERS)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@($(CXX) $(APP_CXXFLAGS) -o $@ -c $<)
 	@echo $@ compilation "$(OK_STRING)"
 
-$(APP_PATH)/build/$(APP_NAME): $(APP_OBJ) $(LIBOBJ)
+$(APP_PATH)/build/$(APP_NAME): $(APP_OBJ)
 	@(mkdir -p $(@D))
 	@echo Compiling $@...
 	@$(CXX) $(APP_CXXFLAGS) $(LIBOBJ) $(APP_OBJ) $(APP_LDLIBS) $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)

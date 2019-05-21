@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-17 13:01:38
+* @Last Modified time: 2019-05-21 13:54:26
 */
 
 #pragma once
@@ -25,10 +25,8 @@ namespace Engine {
     void    Init(void);
     void    Start(void);
     void    Stop(void);
-    void    SetInternalQuality(float);
     void    SetSwapInterval(int8_t);
 
-    float   InternalQuality(void);
     int8_t  SwapInterval(void);
     double  DeltaTime(void);
     double  FixedDeltaTime(void);
