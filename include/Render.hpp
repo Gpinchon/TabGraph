@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-21 14:09:28
+* @Last Modified time: 2019-05-21 14:26:56
 */
 
 #pragma once
@@ -15,32 +15,27 @@
 class VertexArray;
 class Shader;
 
-class Render {
-	public :
-		static void Update();
-		static void FixedUpdate();
-		static void scene();
-		static void add_post_treatment(std::shared_ptr<Shader>);
-		static void add_post_treatment(const std::string& name, const std::string& path);
-		static void remove_post_treatment(std::shared_ptr<Shader>);
-		static void start_rendering_thread();
-		static void stop_rendering_thread();
-		static void request_redraw();
-		static double delta_time();
-		static bool needs_update();
-		static uint64_t frame_nbr(void);
-		static const std::shared_ptr<VertexArray> display_quad();
-		static std::vector<std::weak_ptr<Shader>>& post_treatments();
-		static void		SetInternalQuality(float);
-		static float	InternalQuality();
-	private:
-		static void _thread();
-		static Render &_get();
-		static Render *_instance;
-		std::atomic<double> _delta_time {0};
-		std::atomic<float> _internalQuality{ 1 };
-		std::atomic<bool> _needs_update {true};
-		std::atomic<bool> _loop {true};
-		uint64_t _frame_nbr{ 0 };
-		std::thread _rendering_thread;
+namespace Render {
+	void RequestRedraw();
+	void AddPostTreatment(std::shared_ptr<Shader>);
+	void RemovePostTreatment(std::shared_ptr<Shader>);
+	void Start();
+	void Stop();
+
+	void Update();
+	void FixedUpdate();
+	void scene();
+	void add_post_treatment(std::shared_ptr<Shader>);
+	void add_post_treatment(const std::string& name, const std::string& path);
+	void remove_post_treatment(std::shared_ptr<Shader>);
+	void start_rendering_thread();
+	void stop_rendering_thread();
+	void request_redraw();
+	double delta_time();
+	bool needs_update();
+	uint64_t frame_nbr(void);
+	void		SetInternalQuality(float);
+	float	InternalQuality();
+	const std::shared_ptr<VertexArray> display_quad();
+	std::vector<std::weak_ptr<Shader>>& post_treatments();
 };

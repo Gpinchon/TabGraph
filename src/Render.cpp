@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-21 13:57:30
+* @Last Modified time: 2019-05-21 14:24:52
 */
 
 #include "Render.hpp"
@@ -24,6 +24,43 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+
+class RenderPrivate {
+    public :
+        static void Update();
+        static void FixedUpdate();
+        static void scene();
+        static void add_post_treatment(std::shared_ptr<Shader>);
+        static void add_post_treatment(const std::string& name, const std::string& path);
+        static void remove_post_treatment(std::shared_ptr<Shader>);
+        static void start_rendering_thread();
+        static void stop_rendering_thread();
+        static void request_redraw();
+        static double delta_time();
+        static bool needs_update();
+        static uint64_t frame_nbr(void);
+        static const std::shared_ptr<VertexArray> display_quad();
+        static std::vector<std::weak_ptr<Shader>>& post_treatments();
+        static void     SetInternalQuality(float);
+        static float    InternalQuality();
+    private:
+        static void _thread();
+        static RenderPrivate &_get();
+        std::atomic<double> _delta_time {0};
+        std::atomic<float> _internalQuality {1};
+        std::atomic<bool> _needs_update {true};
+        std::atomic<bool> _loop {true};
+        uint64_t _frame_nbr {0};
+        std::thread _rendering_thread;
+};
+
+RenderPrivate::_get()
+{
+    static RenderPrivate *instance = nullptr;
+    if (instance == nullptr)
+        instance = new RenderPrivate;
+    return instance;
+}
 
 static auto passthrough_vertex_code =
 #include "passthrough.vert"
@@ -48,7 +85,7 @@ static auto refractionFragmentCode =
 ** quad is a singleton
 */
 
-const std::shared_ptr<VertexArray> Render::display_quad()
+const std::shared_ptr<VertexArray> RenderPrivate::display_quad()
 {
     static std::shared_ptr<VertexArray> vao;
     if (vao != nullptr) {
@@ -72,7 +109,7 @@ const std::shared_ptr<VertexArray> Render::display_quad()
 ** Render is a singleton
 */
 
-Render* Render::_instance = nullptr;
+Render* RenderPrivate::_instance = nullptr;
 
 
 #include "parser/GLSL.hpp"
@@ -112,7 +149,7 @@ void present(std::shared_ptr<Framebuffer> back_buffer)
     presentShader->bind_texture("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
     presentShader->bind_texture("in_Texture_Emitting", back_buffer->attachement(1), GL_TEXTURE1);
     presentShader->bind_texture("in_Texture_Depth", back_buffer->depth(), GL_TEXTURE2);
-    Render::display_quad()->draw();
+    RenderPrivate::display_quad()->draw();
     presentShader->use(false);
     Window::swap();
 }
@@ -161,11 +198,11 @@ void render_shadows()
     Camera::set_current(camera);
 }
 
-void Render::FixedUpdate()
+void RenderPrivate::FixedUpdate()
 {
     auto InvViewMatrix = mat4_inverse(Camera::current()->view());
     auto InvProjMatrix = mat4_inverse(Camera::current()->projection());
-    auto res = vec2_scale(Window::size(), Render::InternalQuality());
+    auto res = vec2_scale(Window::size(), RenderPrivate::InternalQuality());
     auto index = 0;
 
     shadowLights.reserve(1000);
@@ -197,34 +234,34 @@ void Render::FixedUpdate()
     }
 }
 
-void Render::SetInternalQuality(float q)
+void RenderPrivate::SetInternalQuality(float q)
 {
-    Render::_get()._internalQuality = q;
+    RenderPrivate::_get()._internalQuality = q;
 }
 
-float Render::InternalQuality()
+float RenderPrivate::InternalQuality()
 {
-    return Render::_get()._internalQuality;
+    return RenderPrivate::_get()._internalQuality;
 }
 
-void Render::request_redraw(void)
+void RenderPrivate::request_redraw(void)
 {
     _get()._needs_update = true;
 }
 
-void Render::start_rendering_thread(void)
+void RenderPrivate::start_rendering_thread(void)
 {
     _get()._loop = true;
     _get()._rendering_thread = std::thread(_thread);
 }
 
-void Render::stop_rendering_thread(void)
+void RenderPrivate::stop_rendering_thread(void)
 {
     _get()._loop = false;
     _get()._rendering_thread.join();
 }
 
-void Render::_thread(void)
+void RenderPrivate::_thread(void)
 {
     float ticks;
     float fixed_timing;
@@ -234,29 +271,29 @@ void Render::_thread(void)
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
     while (_get()._loop)
     {
-        if (Render::needs_update() && Engine::UpdateMutex().try_lock()) {
+        if (RenderPrivate::needs_update() && Engine::UpdateMutex().try_lock()) {
             _get()._frame_nbr++;
             ticks = SDL_GetTicks() / 1000.f;
             if (ticks - fixed_timing >= 0.015) {
                 fixed_timing = ticks;
-                Render::FixedUpdate();
+                RenderPrivate::FixedUpdate();
             }
-            Render::Update();
-            Render::scene();
+            RenderPrivate::Update();
+            RenderPrivate::scene();
             _get()._needs_update = false;
             Engine::UpdateMutex().unlock();
         }
         else
-            Render::scene();
+            RenderPrivate::scene();
     }
 }
 
-uint64_t Render::frame_nbr()
+uint64_t RenderPrivate::frame_nbr()
 {
     return (_get()._frame_nbr);
 }
 
-void Render::Update()
+void RenderPrivate::Update()
 {
 }
 
@@ -314,25 +351,25 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
         shader->bind_texture("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE7);
         shader->bind_texture("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE8);
         shader->bind_texture("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE8);
-        Render::display_quad()->draw();
+        RenderPrivate::display_quad()->draw();
         std::swap(current_backTexture, current_backBuffer);
     }
     shader->use(false);
 }
 
-Render &Render::_get()
+Render &RenderPrivate::_get()
 {
     if (_instance == nullptr)
         _instance = new Render;
     return (*_instance);
 }
 
-bool Render::needs_update()
+bool RenderPrivate::needs_update()
 {
     return (_get()._needs_update);
 }
 
-void Render::scene()
+void RenderPrivate::scene()
 {
     static std::shared_ptr<Texture> brdf;
     if (brdf == nullptr) {
@@ -340,7 +377,7 @@ void Render::scene()
         brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
-    auto res = vec2_scale(Window::size(), Render::InternalQuality());
+    auto res = vec2_scale(Window::size(), RenderPrivate::InternalQuality());
     
     static auto temp_buffer = create_render_buffer("temp_buffer", res);
     static auto temp_buffer1 = create_render_buffer("temp_buffer1", res);
@@ -355,7 +392,7 @@ void Render::scene()
     static auto refraction_shader = GLSL::compile("refraction", refractionFragmentCode, LightingShader);
     static auto passthrough_shader = GLSL::compile("passthrough", emptyShaderCode, LightingShader);
 
-    if (!Render::needs_update()) {
+    if (!RenderPrivate::needs_update()) {
         present(final_back_buffer);
         return;
     }
@@ -399,7 +436,7 @@ void Render::scene()
         passthrough_shader->bind_texture("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
         passthrough_shader->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
         passthrough_shader->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
-        Render::display_quad()->draw();
+        RenderPrivate::display_quad()->draw();
         passthrough_shader->use(false);
     }
     for (auto shader : post_treatments()) {
@@ -419,7 +456,7 @@ void Render::scene()
             shaderPtr->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE8);
             shaderPtr->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE9);
         }
-        Render::display_quad()->draw();
+        RenderPrivate::display_quad()->draw();
         shaderPtr->use(false);
 
         std::swap(current_tbuffer, current_tbuffertex);
@@ -461,7 +498,7 @@ void Render::scene()
         elighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
         elighting_shader->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
     }
-    Render::display_quad()->draw();
+    RenderPrivate::display_quad()->draw();
     elighting_shader->use(false);
     std::swap(current_backTexture, current_backBuffer);
 
@@ -521,7 +558,7 @@ void Render::scene()
         telighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
         telighting_shader->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
     }
-    Render::display_quad()->draw();
+    RenderPrivate::display_quad()->draw();
     telighting_shader->use(false);
     std::swap(current_backTexture, current_backBuffer);
 
@@ -539,7 +576,7 @@ void Render::scene()
     refraction_shader->bind_texture("opaqueBackColor", opaqueBackBuffer->attachement(0), GL_TEXTURE0 + (++i));
     refraction_shader->bind_texture("opaqueBackEmitting", opaqueBackBuffer->attachement(1), GL_TEXTURE0 + (++i));
     refraction_shader->bind_texture("opaqueBackNormal", opaqueBackBuffer->attachement(2), GL_TEXTURE0 + (++i));
-    Render::display_quad()->draw();
+    RenderPrivate::display_quad()->draw();
     refraction_shader->use(false);
 
     final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -554,19 +591,19 @@ void Render::scene()
     present(final_back_buffer);
 }
 
-std::vector<std::weak_ptr<Shader>>& Render::post_treatments()
+std::vector<std::weak_ptr<Shader>>& RenderPrivate::post_treatments()
 {
     static std::vector<std::weak_ptr<Shader>> ptVector;
     return (ptVector);
 }
 
-void Render::add_post_treatment(std::shared_ptr<Shader> shader)
+void RenderPrivate::add_post_treatment(std::shared_ptr<Shader> shader)
 {
     if (shader != nullptr)
         post_treatments().push_back(shader);
 }
 
-void Render::add_post_treatment(const std::string& name, const std::string& path)
+void RenderPrivate::add_post_treatment(const std::string& name, const std::string& path)
 {
     auto shader = GLSL::parse(name, path, PostShader);
 
@@ -574,7 +611,7 @@ void Render::add_post_treatment(const std::string& name, const std::string& path
         post_treatments().push_back(shader);
 }
 
-void Render::remove_post_treatment(std::shared_ptr<Shader> shader)
+void RenderPrivate::remove_post_treatment(std::shared_ptr<Shader> shader)
 {
     if (shader != nullptr) {
         post_treatments().erase(std::remove_if(
