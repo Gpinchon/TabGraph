@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-22 14:06:04
+* @Last Modified time: 2019-05-22 15:49:10
 */
 
 #include "Render.hpp"
@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <vector>
 #include <thread>
+#include <atomic>
 #include <mutex>
 
 class RenderPrivate {

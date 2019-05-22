@@ -2,21 +2,17 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-22 15:41:29
+* @Last Modified time: 2019-05-22 15:48:05
 */
 
 #pragma once
 #include <memory>
-#include <string>
 #include <vector>
-#include <thread>
-#include <atomic>
 
 class VertexArray;
 class Shader;
 
-/** @brief Render manages the graphical rendering and frame pacing
-*/
+/** @brief Render manages the graphical rendering and frame pacing */
 namespace Render {
 	/** @brief Initiates rendering loop */
 	void 	Start();
@@ -25,20 +21,20 @@ namespace Render {
 	/** @brief Asks for a redraw on next loop */
 	void 	RequestRedraw();
 	/**
-	*	@brief Adds a post treatment to be applied after rasterization path
-	*	@param s The post-treatment shader to add
+	*	@brief Adds a post-treatment Shader to be applied after rasterization path
+	*	@param shader The post-treatment Shader to add
 	*/
-	void 	AddPostTreatment(std::shared_ptr<Shader> s);
+	void 	AddPostTreatment(std::shared_ptr<Shader> shader);
 	/**
-	*	@brief Removes a post treatment from the list
-	*	@param s The post-treatment shader to remove
+	*	@brief Removes a post-treatment Shader from the list
+	*	@param shader The post-treatment Shader to remove
 	*/
-	void 	RemovePostTreatment(std::shared_ptr<Shader> s);
+	void 	RemovePostTreatment(std::shared_ptr<Shader> shader);
 	/**
 	*	@brief Set the rendering scale factor
-	*	@param q The new rendering scale factor
+	*	@param quality The new rendering scale factor
 	*/
-	void	SetInternalQuality(float q);
+	void	SetInternalQuality(float quality);
 	/**
 	*	@brief Returns the rendering scale factor
 	*	@return The current rendering scale factor
