@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-21 13:53:22
+* @Last Modified time: 2019-05-22 14:02:28
 */
 
 #include "Engine.hpp"
@@ -131,7 +131,7 @@ void Engine::Init()
 #include "ssao.frag"
         ;
     static auto SSAOShader = GLSL::compile("SSAO", SSAOShaderCode, PostShader);
-    Render::add_post_treatment(SSAOShader);
+    Render::AddPostTreatment(SSAOShader);
     EnginePrivate::Get().LoadRes();
 }
 
@@ -149,7 +149,7 @@ void Engine::Start()
     fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
     SDL_SetEventFilter(event_filter, nullptr);
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr); 
-    Render::start_rendering_thread();
+    Render::Start();
     while (EnginePrivate::Get().loop) {
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
         EnginePrivate::Get().updateMutex.lock();
@@ -164,9 +164,9 @@ void Engine::Start()
         }
         EnginePrivate::Update();
         EnginePrivate::Get().updateMutex.unlock();
-        Render::request_redraw();
+        Render::RequestRedraw();
     }
-    Render::stop_rendering_thread();
+    Render::Stop();
 }
 
 void Engine::Stop(void)

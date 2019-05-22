@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-09 15:40:58
+* @Last Modified time: 2019-05-22 14:03:36
 */
 
 #include "Texture.hpp"
@@ -413,7 +413,7 @@ void Texture::blur(const int& pass, const float& radius)
         cbuffer->bind();
         blurShader->set_uniform("in_Direction", direction);
         blurShader->bind_texture("in_Texture_Color", ctexture, GL_TEXTURE0);
-        Render::display_quad()->draw();
+        Render::DisplayQuad()->draw();
         angle = CYCLE(angle + (M_PI / 4.f), 0, M_PI);
         if (totalPass == 1)
             cbuffer->set_attachement(0, attachement);

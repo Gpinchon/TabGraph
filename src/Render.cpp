@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-21 14:24:52
+* @Last Modified time: 2019-05-22 14:06:04
 */
 
 #include "Render.hpp"
@@ -54,14 +54,6 @@ class RenderPrivate {
         std::thread _rendering_thread;
 };
 
-RenderPrivate::_get()
-{
-    static RenderPrivate *instance = nullptr;
-    if (instance == nullptr)
-        instance = new RenderPrivate;
-    return instance;
-}
-
 static auto passthrough_vertex_code =
 #include "passthrough.vert"
     ;
@@ -109,7 +101,7 @@ const std::shared_ptr<VertexArray> RenderPrivate::display_quad()
 ** Render is a singleton
 */
 
-Render* RenderPrivate::_instance = nullptr;
+//Render* RenderPrivate::_instance = nullptr;
 
 
 #include "parser/GLSL.hpp"
@@ -357,11 +349,12 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
     shader->use(false);
 }
 
-Render &RenderPrivate::_get()
+RenderPrivate &RenderPrivate::_get()
 {
-    if (_instance == nullptr)
-        _instance = new Render;
-    return (*_instance);
+    static RenderPrivate *instance = nullptr;
+    if (instance == nullptr)
+        instance = new RenderPrivate;
+    return *instance;
 }
 
 bool RenderPrivate::needs_update()
@@ -620,4 +613,45 @@ void RenderPrivate::remove_post_treatment(std::shared_ptr<Shader> shader)
                                     [shader](std::weak_ptr<Shader> p) { return !(p.owner_before(shader) || shader.owner_before(p)); }),
             post_treatments().end()); //post_treatments.erase(shader);
     }
+}
+
+
+void    Render::RequestRedraw()
+{
+    RenderPrivate::request_redraw();
+}
+
+void    Render::AddPostTreatment(std::shared_ptr<Shader> shader)
+{
+    RenderPrivate::add_post_treatment(shader);
+}
+
+void    Render::RemovePostTreatment(std::shared_ptr<Shader> shader)
+{
+    RenderPrivate::remove_post_treatment(shader);
+}
+
+void    Render::Start()
+{
+    RenderPrivate::start_rendering_thread();
+}
+
+void    Render::Stop()
+{
+    RenderPrivate::stop_rendering_thread();
+}
+
+void    Render::SetInternalQuality(float q)
+{
+    RenderPrivate::SetInternalQuality(q);
+}
+
+float   Render::InternalQuality()
+{
+    return RenderPrivate::InternalQuality();
+}
+
+const std::shared_ptr<VertexArray> Render::DisplayQuad()
+{
+    return RenderPrivate::display_quad();
 }
