@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-22 15:49:10
+* @Last Modified time: 2019-06-04 10:46:07
 */
 
 #include "Render.hpp"
@@ -252,6 +252,7 @@ void RenderPrivate::stop_rendering_thread(void)
 {
     _get()._loop = false;
     _get()._rendering_thread.join();
+    SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
 }
 
 void RenderPrivate::_thread(void)
@@ -279,6 +280,7 @@ void RenderPrivate::_thread(void)
         else
             RenderPrivate::scene();
     }
+    SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
 }
 
 uint64_t RenderPrivate::frame_nbr()
