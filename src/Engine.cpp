@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-22 15:48:48
+* @Last Modified time: 2019-06-04 10:45:01
 */
 
 #include "Engine.hpp"
@@ -149,7 +149,7 @@ void Engine::Start()
 
     fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
     SDL_SetEventFilter(event_filter, nullptr);
-    SDL_GL_MakeCurrent(Window::sdl_window(), nullptr); 
+    SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
     Render::Start();
     while (EnginePrivate::Get().loop) {
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
