@@ -84,6 +84,7 @@ HEADERS_FILES	=	\
 					Render.hpp					\
 					Renderable.hpp				\
 					Shader.hpp					\
+					StackTracer.hpp				\
 					Terrain.hpp					\
 					Texture.hpp					\
 					TextureArray.hpp			\
@@ -123,6 +124,7 @@ SRC_FILES		=	\
 					Render.cpp			\
 					Renderable.cpp		\
 					Shader.cpp			\
+					StackTracer.cpp		\
 					Texture.cpp			\
 					TextureArray.cpp	\
 					TextureParser.cpp	\
