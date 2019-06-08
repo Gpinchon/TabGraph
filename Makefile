@@ -72,7 +72,6 @@ HEADERS_FILES	=	\
 					Mouse.hpp					\
 					Node.hpp					\
 					Object.hpp					\
-					parser						\
 					parser/BMP.hpp				\
 					parser/FBX.hpp				\
 					parser/GLSL.hpp				\
@@ -81,9 +80,11 @@ HEADERS_FILES	=	\
 					parser/MTLLIB.hpp			\
 					parser/OBJ.hpp				\
 					parser/TABSCENE.hpp			\
+					Quadtree.hpp				\
 					Render.hpp					\
 					Renderable.hpp				\
 					Shader.hpp					\
+					StackTracer.hpp				\
 					Terrain.hpp					\
 					Texture.hpp					\
 					TextureArray.hpp			\
@@ -120,9 +121,11 @@ SRC_FILES		=	\
 					parser/MTLLIB.cpp	\
 					parser/OBJ.cpp		\
 					parser/tools.cpp	\
+					Quadtree.cpp		\
 					Render.cpp			\
 					Renderable.cpp		\
 					Shader.cpp			\
+					StackTracer.cpp		\
 					Texture.cpp			\
 					TextureArray.cpp	\
 					TextureParser.cpp	\
