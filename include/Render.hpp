@@ -40,5 +40,11 @@ namespace Render {
 	*	@return The current rendering scale factor
 	*/
 	float	InternalQuality();
+	/**
+	*	@brief Returns the delta time between the last two frames
+	*	@return The delta time between the two ast frames
+	*/
+	double	DeltaTime();
+
 	const std::shared_ptr<VertexArray> DisplayQuad();
 };
