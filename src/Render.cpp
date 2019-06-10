@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-04 10:46:07
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-06-08 11:46:41
 */
 
 #include "Render.hpp"
@@ -189,6 +189,11 @@ void render_shadows()
         light->render_buffer()->bind(false);
     }
     Camera::set_current(camera);
+}
+
+double RenderPrivate::DeltaTime()
+{
+    return _get()._deltaTime;
 }
 
 void RenderPrivate::FixedUpdate()
