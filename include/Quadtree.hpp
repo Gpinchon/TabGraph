@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-06-07 13:35:27
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-07 14:22:21
+* @Last Modified time: 2019-06-11 16:11:52
 */
 
 #pragma once
@@ -15,19 +15,21 @@ template<typename T>
 class Quadtree
 {
 public:
-	Quadtree(T data, VEC2 min, VEC2 max) : _data(data), _min(min), _max(max) {};
+	Quadtree(VEC2 min, VEC2 max, int maxLevel = -1) : _min(min), _max(max), _size(vec2_sub(max, min)), _maxLevel(maxLevel) {};
 	Quadtree() = delete;
-	~Quadtree();
+	~Quadtree() = default;
 	Quadtree<T>		*Get(int childIndex);
 	bool			Insert(T data, VEC2 min, VEC2 max);
 	std::vector<T>	&Data();
 
 private:
-	std::array<Quadtree<T> *, 4>	_children;
+	std::array<Quadtree<T> *, 4>	_children {nullptr};
 	std::vector<T>	_data;
 	VEC2	_min {0, 0};
 	VEC2	_max {0, 0};
 	VEC2	_size{0, 0};
+	int		_maxLevel {0};
+	int		_level {0};
 };
 
 template<typename T>
@@ -78,12 +80,13 @@ inline bool				Quadtree<T>::Insert(T data, VEC2 min, VEC2 max)
 		else if (right)
 			index = 3;
 	}
-	if (index == -1) {
+	if (index == -1 || _level > _maxLevel) {
 		_data.push_back(data);
 		return true;
 	}
-	_children.at(index) = new Quadtree<T>(data, childMin, childMax);
-	return _children.at(index)->insert(data, min, max);
+	_children.at(index) = new Quadtree<T>(childMin, childMax, _maxLevel);
+	_children.at(index)->_level = _level + 1;
+	return _children.at(index)->Insert(data, min, max);
 
 }
 

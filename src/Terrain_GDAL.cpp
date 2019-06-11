@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-11 16:33:34
 */
 
 #include "Terrain.hpp"
@@ -11,6 +11,7 @@
 #include "Material.hpp"
 #include "Debug.hpp"
 #include "TextureParser.hpp"
+#include "Quadtree.hpp"
 #include "parser/InternalTools.hpp"
 #include <gdal_priv.h>
 
@@ -19,9 +20,25 @@ Terrain::Terrain(const std::string &name) : Mesh(name)
 
 }
 
-#include <fstream>
-
 #include <limits>
+
+template <typename T>
+void    Subdivide(Quadtree<T> *tree)
+{
+    if (tree == nullptr)
+        return;
+    auto med = 0.0;
+    for (auto &v : tree->Data())
+        med += v.y;
+    med /= tree->Data().size();
+    auto delta = 0.0f;
+    for (auto &v : tree->Data())
+        delta += abs(v.y - med);
+    std::cout << delta << std::endl;
+    for (auto i = 0; i < 4; i++) {
+        Subdivide(tree->Get(i));
+    }
+}
 
 std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     VEC2 resolution, VEC3 scale, std::shared_ptr<Texture> texture)
@@ -32,21 +49,19 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     Mesh::add(terrain);
     Renderable::add(terrain);
     Node::add(terrain);
-    auto vg = Vgroup::create(name + "vgroup");
+    /*auto vg = Vgroup::create(name + "vgroup");
     vg->v.resize(uint32_t(resolution.x * resolution.y));
     vg->vn.resize(vg->v.size());
-    vg->vt.resize(vg->v.size());
+    vg->vt.resize(vg->v.size());*/
+    std::vector<VEC3>       v;
+    std::vector<unsigned>   i;
     float minZ = std::numeric_limits<float>::max();
     float maxZ = std::numeric_limits<float>::lowest();
-    std::ofstream myfile;
-    myfile.open(name + ".txt");
     for (auto y = 0.f; y < resolution.y; y++) {
         for (auto x = 0.f; x < resolution.x; x++) {
             auto uv = new_vec2(x / resolution.x, y / resolution.y);
             auto z = 0.f;
             if (texture) {
-                //z = texture->sample(uv).x;
-               
                 VEC2    texUV;
                 texUV.x = uv.x * texture->size().x;
                 texUV.y = uv.y * texture->size().y;
@@ -54,33 +69,44 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
                 
                 minZ = z < minZ ? z : minZ;
                 maxZ = z > maxZ ? z : maxZ;
-                myfile << z << " ";
             }
-            vg->vt.at(uint32_t(x + y * resolution.x)) = uv;
-            auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
-            v3 = new_vec3(uv.x * scale.x - scale.x / 2.f, z * scale.y, uv.y * scale.z - scale.z / 2.f);
-
+            //vg->vt.at(uint32_t(x + y * resolution.x)) = uv;
+            //auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
+            auto v3 = new_vec3(uv.x * scale.x - scale.x / 2.f, z * scale.y, uv.y * scale.z - scale.z / 2.f);
+            v.push_back(v3);
             if (x < resolution.x - 1 && y < resolution.y - 1) {
-                vg->i.push_back(uint32_t(x + y * resolution.x));
-                vg->i.push_back(uint32_t(x + (y + 1) * resolution.x));
-                vg->i.push_back(uint32_t((x + 1) + (y + 1) * resolution.x));
-
-                vg->i.push_back(uint32_t(x + y * resolution.x));
-                vg->i.push_back(uint32_t((x + 1) + (y + 1) * resolution.x));
-                vg->i.push_back(uint32_t((x + 1) + y * resolution.x));
+                i.push_back(uint32_t(x + y * resolution.x));
+                i.push_back(uint32_t(x + (y + 1) * resolution.x));
+                i.push_back(uint32_t((x + 1) + (y + 1) * resolution.x));
+                i.push_back(uint32_t((x + 1) + y * resolution.x));
             }
         }
-        myfile << std::endl;
     }
-    myfile.close();
-    auto medZ = (maxZ + minZ) / 2.f * scale.y;
+    Quadtree<VEC3> quadTree(new_vec2(-scale.x / 2.f, -scale.y / 2.f), new_vec2(scale.x / 2.f, scale.y / 2.f), 10);
+    for (auto index = 0u; index < i.size() - 4; index += 4) {
+        auto i0 = i.at(index + 0);
+        auto i1 = i.at(index + 1);
+        auto i2 = i.at(index + 2);
+        auto i3 = i.at(index + 3);
+        auto v0 = v.at(i0);
+        auto v1 = v.at(i1);
+        auto v2 = v.at(i2);
+        auto v3 = v.at(i3);
+        quadTree.Insert(v0, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
+        quadTree.Insert(v1, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
+        quadTree.Insert(v2, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
+        quadTree.Insert(v3, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
+    }
+    Subdivide(&quadTree);
+    /*auto medZ = (maxZ + minZ) / 2.f * scale.y;
     for (auto &v : vg->v)
-        v.y -= medZ;
-    for (auto i = 0u; i * 3 < vg->i.size(); i++)
+        v.y -= medZ;*/
+    /*
+    for (auto index = 0u; index * 3 < vg->i.size(); index++)
     {
-        auto i0 = vg->i.at(i * 3 + 0);
-        auto i1 = vg->i.at(i * 3 + 1);
-        auto i2 = vg->i.at(i * 3 + 2);
+        auto i0 = vg->i.at(index * 3 + 0);
+        auto i1 = vg->i.at(index * 3 + 1);
+        auto i2 = vg->i.at(index * 3 + 2);
         auto v0 = vg->v.at(i0);
         auto v1 = vg->v.at(i1);
         auto v2 = vg->v.at(i2);
@@ -128,13 +154,14 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         n2.y = ((N2.y + 1) * 0.5) * 255.f;
         n2.z = ((N2.z + 1) * 0.5) * 255.f;
     }
+    */
     auto mtl = Material::create("default_terrain");
     //mtl->set_texture_albedo(texture);
     //mtl->set_texture_roughness(texture);
     mtl->albedo = new_vec3(0.5, 0.5, 0.5);
     mtl->roughness = 0.5;
-    vg->set_material(mtl);
-    terrain->add(vg);
+    //vg->set_material(mtl);
+    //terrain->add(vg);
     return terrain;
 }
 
