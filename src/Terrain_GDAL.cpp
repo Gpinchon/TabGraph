@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-06-11 22:54:42
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-06-12 16:39:48
 */
 
 #include "Terrain.hpp"
@@ -22,18 +22,32 @@ Terrain::Terrain(const std::string &name) : Mesh(name)
 
 #include <limits>
 
-template <typename T>
-void    Subdivide(Quadtree<T> *tree)
+void    Subdivide(Quadtree<VEC3> *tree)
 {
     if (tree == nullptr)
         return;
-    auto med = 0.0;
-    for (auto &v : tree->Data()) {
-        std::cout << v.y << std::endl;
-        med += v.y;
+    
+    if (tree->Data().size() > 0) {
+        auto medX = 0.0;
+        auto medY = 0.0;
+        for (auto &v : tree->Data()) {
+            medX += v.x;
+            medY += v.z;
+        }
+        medX /= float(tree->Data().size());
+        medY /= float(tree->Data().size());
+        std::cout
+        << "Level : " << tree->Level() << "\n"
+        << "\t" << tree->Min().x << " " << tree->Min().y << "\n"
+        << "\t" << tree->Max().x << " " << tree->Max().y << "\n"
+        << "\t" << medX << " " << medY << " " << tree->Data().size() << std::endl;
     }
-    med /= float(tree->Data().size());
-    //std::cout << med << std::endl;
+    else {
+        std::cout
+        << "Level : " << tree->Level() << "\n"
+        << "\t" << tree->Min().x << " " << tree->Min().y << "\n"
+        << "\t" << tree->Max().x << " " << tree->Max().y << std::endl;
+    }
     //auto delta = 0.0f;
     //for (auto &v : tree->Data())
     //    delta += abs(v.y - med);
@@ -46,6 +60,18 @@ void    Subdivide(Quadtree<T> *tree)
 std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     VEC2 resolution, VEC3 scale, std::shared_ptr<Texture> texture)
 {
+    Quadtree<VEC3> quadTest(new_vec2(-10, -10), new_vec2(10, 10), 10);
+    for (auto x = 0; x < 10; x++)
+    {
+        for (auto y = 0; y < 10; y++)
+        {
+            quadTest.Insert(new_vec3(x, 0, y), new_vec2(x, y), new_vec2(x, y));
+        }
+    }
+    Subdivide(&quadTest);
+    return nullptr;
+    resolution.x = 1024;
+    resolution.y = 1024;
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
@@ -60,6 +86,8 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     std::vector<unsigned>   i;
     float minZ = std::numeric_limits<float>::max();
     float maxZ = std::numeric_limits<float>::lowest();
+    std::cout << scale.x / 2.f << " " << scale.z / 2.f << std::endl;
+    Quadtree<VEC3> quadTree(new_vec2(-scale.x / 2.f, -scale.z / 2.f), new_vec2(scale.x / 2.f, scale.z / 2.f), 1);
     for (auto y = 0.f; y < resolution.y; y++) {
         for (auto x = 0.f; x < resolution.x; x++) {
             auto uv = new_vec2(x / resolution.x, y / resolution.y);
@@ -77,17 +105,18 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
             //auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
             auto v3 = new_vec3(uv.x * scale.x - scale.x / 2.f, z * scale.y, uv.y * scale.z - scale.z / 2.f);
             v.push_back(v3);
-            if (x < resolution.x - 1 && y < resolution.y - 1) {
+            //VEC2    pointSize = new_vec2(scale.x / resolution.x, scale.y / resolution.y);
+            quadTree.Insert(v3, new_vec2(v3.x, v3.z), new_vec2(v3.x, v3.z));
+/*            if (x < resolution.x - 1 && y < resolution.y - 1) {
                 i.push_back(uint32_t(x + y * resolution.x));
                 i.push_back(uint32_t(x + (y + 1) * resolution.x));
                 i.push_back(uint32_t((x + 1) + (y + 1) * resolution.x));
                 i.push_back(uint32_t((x + 1) + y * resolution.x));
-            }
+            }*/
         }
     }
-    std::cout << scale.x / 2.f << " " << scale.z / 2.f << std::endl;
-    Quadtree<VEC3> quadTree(new_vec2(-scale.x / 2.f, -scale.z / 2.f), new_vec2(scale.x / 2.f, scale.z / 2.f), 10);
-    for (auto index = 0u; index < i.size() - 4; index += 4) {
+    
+    /*for (auto index = 0u; index < i.size() - 4; index += 4) {
         auto i0 = i.at(index + 0);
         auto i1 = i.at(index + 1);
         auto i2 = i.at(index + 2);
@@ -97,12 +126,14 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         auto v2 = v.at(i2);
         auto v3 = v.at(i3);
         if (v0.x > v2.x)
-            std::cout << "ERROR" << std::endl;
+            std::cout << "X_ERROR" << std::endl;
+        if (v0.z > v2.z)
+            std::cout << "Y_ERROR" << std::endl;
         quadTree.Insert(v0, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
         quadTree.Insert(v1, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
         quadTree.Insert(v2, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
         quadTree.Insert(v3, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
-    }
+    }*/
     Subdivide(&quadTree);
     /*auto medZ = (maxZ + minZ) / 2.f * scale.y;
     for (auto &v : vg->v)
