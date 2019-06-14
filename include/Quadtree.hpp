@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-06-07 13:35:27
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-12 15:17:19
+* @Last Modified time: 2019-06-14 13:12:27
 */
 
 #pragma once
@@ -51,22 +51,22 @@ inline bool				Quadtree<T>::Insert(T data, VEC2 min, VEC2 max)
 	auto	childMax = new_vec2(-1, -1);
 	if (!inside)
 		return false;
-	if (min.y > _mid.y) {
+	if (min.y >= _mid.y) {
 		top = true;
 		childMin.y = _mid.y;
 		childMax.y = _max.y;
 	}
-	else if (max.y < _mid.y) {
+	else if (max.y <= _mid.y) {
 		bottom = true;
 		childMin.y = _min.y;
 		childMax.y = _mid.y;
 	}
-	if (max.x < _mid.x) {
+	if (max.x <= _mid.x) {
 		left = true;
 		childMin.x = _min.x;
 		childMax.x = _mid.x;
 	}
-	else if (min.x > _mid.x) {
+	else if (min.x >= _mid.x) {
 		right = true;
 		childMin.x = _mid.x;
 		childMax.x = _max.x;
@@ -88,8 +88,10 @@ inline bool				Quadtree<T>::Insert(T data, VEC2 min, VEC2 max)
 		_data.push_back(data);
 		return true;
 	}
-	_children.at(index) = new Quadtree<T>(childMin, childMax, _maxLevel);
-	_children.at(index)->_level = _level + 1;
+	if (_children.at(index) == nullptr) {
+		_children.at(index) = new Quadtree<T>(childMin, childMax, _maxLevel);
+		_children.at(index)->_level = _level + 1;
+	}
 	return _children.at(index)->Insert(data, min, max);
 
 }
