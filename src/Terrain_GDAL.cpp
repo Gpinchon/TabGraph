@@ -94,7 +94,6 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
             auto v3 = new_vec3(uv.x * scale.x - scale.x / 2.f, z * scale.y, uv.y * scale.z - scale.z / 2.f);
             v.push_back(v3);
             //VEC2    pointSize = new_vec2(scale.x / resolution.x, scale.y / resolution.y);
-            quadTree.Insert(v3, new_vec2(v3.x, v3.z), new_vec2(v3.x, v3.z));
             if (x < resolution.x - 1 && y < resolution.y - 1) {
                 i.push_back(uint32_t(x + y * resolution.x));
                 i.push_back(uint32_t(x + (y + 1) * resolution.x));
