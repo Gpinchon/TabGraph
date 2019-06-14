@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-14 14:03:33
+* @Last Modified time: 2019-06-14 14:19:39
 */
 
 #include "Terrain.hpp"
@@ -47,7 +47,7 @@ void    Subdivide(Quadtree<VEC3> *tree)
         delta += (v2.y - minY) / (maxY - minY);
         delta += (v3.y - minY) / (maxY - minY);
         delta /= 4;
-        if (delta)
+        if (delta > 0.5)
             std::cout << delta << std::endl;
     }
     for (auto i = 0; i < 4; i++) {
