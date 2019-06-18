@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-14 14:19:39
+* @Last Modified time: 2019-06-17 17:09:44
 */
 
 #include "Terrain.hpp"
@@ -22,36 +22,58 @@ Terrain::Terrain(const std::string &name) : Mesh(name)
 
 #include <limits>
 
-void    Subdivide(Quadtree<VEC3> *tree)
+void    Subdivide(Quadtree<std::array<VEC3, 4>> *tree, std::shared_ptr<Texture> texture, VEC3 scale)
 {
     if (tree == nullptr)
         return;
-    for (auto index = 0u; index < tree->Data().size() / 4; index++) {
+    bool subdivided = false;
+    for (auto index = 0u; index < tree->Data().size(); index++) {
+        if (subdivided)
+            index--;
         float minY = std::numeric_limits<float>::max();
         float maxY = std::numeric_limits<float>::lowest();
         float delta = 0;
-        auto v0 = tree->Data().at(index * 4 + 0);
-        auto v1 = tree->Data().at(index * 4 + 1);
-        auto v2 = tree->Data().at(index * 4 + 2);
-        auto v3 = tree->Data().at(index * 4 + 3);
-        minY = v0.y < minY ? v0.y : minY;
-        minY = v1.y < minY ? v1.y : minY;
-        minY = v2.y < minY ? v2.y : minY;
-        minY = v3.y < minY ? v3.y : minY;
-        maxY = v0.y > maxY ? v0.y : maxY;
-        maxY = v1.y > maxY ? v1.y : maxY;
-        maxY = v2.y > maxY ? v2.y : maxY;
-        maxY = v3.y > maxY ? v3.y : maxY;
-        delta += (v0.y - minY) / (maxY - minY);
-        delta += (v1.y - minY) / (maxY - minY);
-        delta += (v2.y - minY) / (maxY - minY);
-        delta += (v3.y - minY) / (maxY - minY);
-        delta /= 4;
-        if (delta > 0.5)
-            std::cout << delta << std::endl;
+        for (auto v : tree->Data().at(index)) {
+            minY = v.y < minY ? v.y : minY;
+            maxY = v.y > maxY ? v.y : maxY;
+        }
+        if (abs(maxY - minY) < 0.01)
+            continue;
+        for (auto v : tree->Data().at(index))
+            delta += abs(v.y - minY) / abs(maxY - minY) / 4.0;
+        if (delta < 0.5) {
+            subdivided = false;
+            continue;
+        }
+        std::cout << delta << std::endl;
+        auto uv4 = new_vec2(tree->Mid().x, tree->Max().y);
+        auto uv5 = new_vec2(tree->Max().x, tree->Mid().y);
+        auto uv6 = new_vec2(tree->Mid().x, tree->Min().y);
+        auto uv7 = new_vec2(tree->Min().x, tree->Mid().y);
+        auto uv8 = new_vec2(tree->Mid().x, tree->Mid().y);
+        auto v0 = tree->Data().at(index).at(0);
+        auto v1 = tree->Data().at(index).at(1);
+        auto v2 = tree->Data().at(index).at(2);
+        auto v3 = tree->Data().at(index).at(3);
+        auto v4 = new_vec3(uv4.x, ((float*)texture->texelfetch(new_vec2(uv4.x / scale.x * 0.5 + 1, uv4.y / scale.z * 0.5 + 1)))[0], uv4.y);
+        auto v5 = new_vec3(uv5.x, ((float*)texture->texelfetch(new_vec2(uv5.x / scale.x * 0.5 + 1, uv5.y / scale.z * 0.5 + 1)))[0], uv5.y);
+        auto v6 = new_vec3(uv6.x, ((float*)texture->texelfetch(new_vec2(uv6.x / scale.x * 0.5 + 1, uv6.y / scale.z * 0.5 + 1)))[0], uv6.y);
+        auto v7 = new_vec3(uv7.x, ((float*)texture->texelfetch(new_vec2(uv7.x / scale.x * 0.5 + 1, uv7.y / scale.z * 0.5 + 1)))[0], uv7.y);
+        auto v8 = new_vec3(uv8.x, ((float*)texture->texelfetch(new_vec2(uv8.x / scale.x * 0.5 + 1, uv8.y / scale.z * 0.5 + 1)))[0], uv8.y);
+        tree->Data().erase(tree->Data().begin() + index);
+        std::cout << "v4 " << v4.x << " " << v4.y << " " << v4.z << std::endl;
+        std::cout << "v5 " << v5.x << " " << v5.y << " " << v5.z << std::endl;
+        std::cout << "v6 " << v6.x << " " << v6.y << " " << v6.z << std::endl;
+        std::cout << "v7 " << v7.x << " " << v7.y << " " << v7.z << std::endl;
+        std::cout << "v8 " << v8.x << " " << v8.y << " " << v8.z << std::endl;
+        tree->Insert(std::array<VEC3, 4>{v0, v4, v8, v7}, new_vec2(v0.x, v0.z), new_vec2(v8.x, v8.z));
+        tree->Insert(std::array<VEC3, 4>{v4, v1, v5, v8}, new_vec2(v4.x, v4.z), new_vec2(v5.x, v5.z));
+        tree->Insert(std::array<VEC3, 4>{v8, v5, v2, v6}, new_vec2(v8.x, v8.z), new_vec2(v2.x, v2.z));
+        tree->Insert(std::array<VEC3, 4>{v7, v8, v6, v3}, new_vec2(v7.x, v7.z), new_vec2(v6.x, v6.z));
+        subdivided = true;
     }
     for (auto i = 0; i < 4; i++) {
-        Subdivide(tree->Get(i));
+        Subdivide(tree->Get(i), texture, scale);
     }
 }
 
@@ -75,7 +97,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     float minZ = std::numeric_limits<float>::max();
     float maxZ = std::numeric_limits<float>::lowest();
     std::cout << scale.x / 2.f << " " << scale.z / 2.f << std::endl;
-    Quadtree<VEC3> quadTree(new_vec2(-scale.x / 2.f, -scale.z / 2.f), new_vec2(scale.x / 2.f, scale.z / 2.f));
+    Quadtree<std::array<VEC3, 4>> quadTree(new_vec2(-scale.x / 2.f, -scale.z / 2.f), new_vec2(scale.x / 2.f, scale.z / 2.f), 10);
     for (auto y = 0.f; y < resolution.y; y++) {
         for (auto x = 0.f; x < resolution.x; x++) {
             auto uv = new_vec2(x / resolution.x, y / resolution.y);
@@ -112,12 +134,13 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         auto v1 = v.at(i1);
         auto v2 = v.at(i2);
         auto v3 = v.at(i3);
-        quadTree.Insert(v0, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
-        quadTree.Insert(v1, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
-        quadTree.Insert(v2, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
-        quadTree.Insert(v3, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
+        auto patch = std::array<VEC3, 4>{v0, v1, v2, v3};
+        quadTree.Insert(patch, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
+        //quadTree.Insert(v1, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
+        //quadTree.Insert(v2, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
+        //quadTree.Insert(v3, new_vec2(v0.x, v0.z), new_vec2(v2.x, v2.z));
     }
-    Subdivide(&quadTree);
+    Subdivide(&quadTree, texture, scale);
     /*auto medZ = (maxZ + minZ) / 2.f * scale.y;
     for (auto &v : vg->v)
         v.y -= medZ;*/

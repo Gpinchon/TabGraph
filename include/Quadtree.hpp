@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-06-07 13:35:27
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-14 13:12:27
+* @Last Modified time: 2019-06-17 13:49:19
 */
 
 #pragma once
@@ -25,6 +25,7 @@ public:
 	std::vector<T>	&Data();
 	VEC2			Min() {return _min;}
 	VEC2			Max() {return _max;}
+	VEC2			Mid() {return _mid;}
 	int				Level() {return _level;}
 
 private:
