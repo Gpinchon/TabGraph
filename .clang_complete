@@ -1,0 +1,5 @@
+-Iinclude/
+-Ilibs/vml/include/
+-Ilibs/gdal/gdal/gcore
+-Ilibs/gdal/gdal/port
+-Ilibs/gdal/gdal/ogr
