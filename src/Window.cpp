@@ -2,16 +2,19 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-04 18:01:40
+* @Last Modified time: 2019-06-24 16:25:09
 */
 
 #include "Window.hpp"
-#include "Config.hpp"
-#include "Debug.hpp"
-#include "Engine.hpp"
-#include "Events.hpp"
-#include "Framebuffer.hpp"
-#include <unistd.h>
+#include <SDL2/SDL.h>                 // for SDL_Init, SDL_INIT_EVERYTHING
+#include <SDL2/SDL_error.h>           // for SDL_GetError
+#include <SDL2/SDL_gamecontroller.h>  // for SDL_GameControllerEventState
+#include <SDL2/SDL_joystick.h>        // for SDL_JoystickEventState
+#include <stdexcept>                  // for runtime_error
+#include "Config.hpp"                 // for Config
+#include "Debug.hpp"                  // for glCheckError
+#include "Engine.hpp"                 // for Stop
+#include "Events.hpp"                 // for Events
 
 Window* Window::_instance = nullptr;
 

@@ -2,12 +2,20 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:35
+* @Last Modified time: 2019-06-24 16:28:47
 */
 
 #pragma once
 
-#include "Renderable.hpp"
+#include <GL/glew.h>       // for GLubyte
+#include <memory>          // for shared_ptr, weak_ptr
+#include <string>          // for string
+#include <vector>          // for vector
+#include "Renderable.hpp"  // for RenderAll, RenderMod, Renderable
+#include "vml.h"           // for VEC2, s_vec2, s_vec3, VEC3
+
+class Material;  // lines 20-20
+class VertexArray;  // lines 19-19
 
 struct CVEC4 {
     GLubyte x;
@@ -15,9 +23,6 @@ struct CVEC4 {
     GLubyte z;
     GLubyte w;
 };
-
-class VertexArray;
-class Material;
 
 class Vgroup : public Renderable {
 public:
@@ -27,9 +32,9 @@ public:
     std::shared_ptr<Material> material();
     void set_material(std::shared_ptr<Material>);
     void bind();
-    void load();
-    bool render(RenderMod mod = RenderAll);
-    bool render_depth(RenderMod mod = RenderAll);
+    void load() override;
+    bool render(RenderMod mod = RenderAll) override;
+    bool render_depth(RenderMod mod = RenderAll) override;
     void center(VEC3& center);
     VEC2 uvmin;
     VEC2 uvmax;

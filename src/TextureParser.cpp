@@ -1,17 +1,29 @@
 /*
 * @Author: gpi
 * @Date:   2019-04-04 13:53:19
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-05-08 13:03:49
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-06-24 16:41:10
 */
 
-#include "GLIncludes.hpp"
-#include "Texture.hpp"
-#include "TextureParser.hpp"
-#include "parser/InternalTools.hpp"
-#include <SDL2/SDL_image.h>
-
-#include "Debug.hpp"
+#include <GL/glew.h>                 // for GL_COMPRESSED_RGB, GL_COMPRESSED...
+#include <SDL2/SDL_error.h>          // for SDL_GetError
+#include <SDL2/SDL_image.h>          // for IMG_Load
+#include <SDL2/SDL_pixels.h>         // for SDL_PixelFormat, SDL_PIXELFORMAT...
+#include <SDL2/SDL_stdinc.h>         // for Uint8, Uint16
+#include <SDL2/SDL_surface.h>        // for SDL_Surface, SDL_UnlockSurface
+#include <intrin.h>                  // for memcpy
+#include <stdlib.h>                  // for free, malloc, NULL
+#include <string.h>                  // for memmove
+#include <map>                       // for map
+#include <memory>                    // for allocator, shared_ptr
+#include <sstream>                   // for char_traits, basic_ostream::oper...
+#include <stdexcept>                 // for runtime_error
+#include <string>                    // for string, operator+
+#include "Debug.hpp"                 // for debugLog
+#include "Texture.hpp"               // for Texture
+#include "TextureParser.hpp"         // for TextureParser, TextureParsingFun...
+#include "parser/InternalTools.hpp"  // for fileFormat
+#include "vml.h"                     // for new_vec2
 
 #define SDL_LOCKIFMUST(s) (SDL_MUSTLOCK(s) ? SDL_LockSurface(s) : 0)
 #define SDL_UNLOCKIFMUST(s) { if(SDL_MUSTLOCK(s)) SDL_UnlockSurface(s); }
@@ -52,8 +64,6 @@ int invert_surface_vertical(SDL_Surface *surface)
 
     return 0;
 }
-
-#include <sstream>
 
 std::string hexToString(int hex)
 {

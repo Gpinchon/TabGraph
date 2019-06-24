@@ -2,12 +2,15 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-24 16:54:51
 */
 
 #pragma once
 
-#include "Node.hpp"
+#include <memory>    // for shared_ptr
+#include <string>    // for string
+#include <vector>    // for vector
+#include "Node.hpp"  // for Node
 
 enum RenderMod {
     RenderAll,

@@ -2,22 +2,19 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-04 14:08:59
+* @Last Modified time: 2019-06-24 15:59:51
 */
 
 #pragma once
 
-#include <string>
+#include <sys/types.h>  // for int8_t
+#include <mutex>        // for mutex
+#include <string>       // for string
 
 #ifndef M_PI
 #define M_PI 3.14159265359f
 #endif // M_PI
 #define UP new_vec3(0, 1, 0)
-
-namespace std
-{
-    class mutex;
-}
 
 /** @brief This class orchestrates the rendering loop and logics around it
 */

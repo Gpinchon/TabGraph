@@ -2,14 +2,18 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-24 17:55:15
 */
 
 #pragma once
 
-#include "Events.hpp"
-#include "InputDevice.hpp"
-#include <map>
+#include <SDL2/SDL_events.h>          // for SDL_Event, SDL_ControllerAxisEvent
+#include <SDL2/SDL_gamecontroller.h>  // for SDL_GameController, SDL_GameCon...
+#include <SDL2/SDL_haptic.h>          // for SDL_Haptic
+#include <SDL2/SDL_joystick.h>        // for SDL_JoystickID
+#include <SDL2/SDL_stdinc.h>          // for Uint8
+#include <map>                        // for map
+#include "InputDevice.hpp"            // for InputDevice
 
 typedef void (*controller_axis_callback)(SDL_ControllerAxisEvent* event);
 typedef void (*controller_button_callback)(SDL_ControllerButtonEvent* event);
@@ -25,7 +29,7 @@ public:
     bool is_connected();
     void open(SDL_JoystickID device);
     void close();
-    void process_event(SDL_Event* event);
+    void process_event(SDL_Event* event) override;
     void set_axis_callback(Uint8 type, controller_axis_callback callback);
     void set_button_callback(Uint8 type, controller_button_callback callback);
     void set_connection_callback(controller_callback callback);
@@ -52,7 +56,7 @@ public:
     static Controller* Get(int index);
     static void remove(int index);
     static int get_controller_index(SDL_JoystickID device);
-    virtual void process_event(SDL_Event* event);
+    virtual void process_event(SDL_Event* event) override;
 
 private:
     std::map<SDL_JoystickID, Controller*> _controllers;

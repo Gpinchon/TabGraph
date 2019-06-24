@@ -2,13 +2,16 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-24 17:57:32
 */
 
 #pragma once
 
-#include "Node.hpp"
-#include "TextureArray.hpp"
+#include <memory>    // for shared_ptr, weak_ptr
+#include <string>    // for string
+#include <vector>    // for vector
+#include "Node.hpp"  // for Node
+#include "vml.h"     // for VEC3
 
 class Framebuffer;
 

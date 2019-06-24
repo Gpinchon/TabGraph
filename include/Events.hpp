@@ -2,15 +2,15 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:28:16
+* @Last Modified time: 2019-06-24 17:52:04
 */
 
 #pragma once
 
-#include "GLIncludes.hpp"
-#include <SDL2/SDL.h>
-#include <map>
-#include <set>
+#include <SDL2/SDL_events.h>  // for SDL_Event, SDL_EventType
+#include <SDL2/SDL_stdinc.h>  // for Uint32
+#include <map>                // for map
+#include <set>                // for set
 
 #define EVENT_REFRESH 0
 

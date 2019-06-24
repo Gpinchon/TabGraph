@@ -2,13 +2,13 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:20:09
+* @Last Modified time: 2019-06-24 15:52:29
 */
 
 #include "Camera.hpp"
-#include "Engine.hpp"
-#include "Window.hpp"
-#include <iostream>
+#include <math.h>      // for sin, cos
+#include "Engine.hpp"  // for UP
+#include "Window.hpp"  // for Window
 
 std::vector<std::shared_ptr<Camera>> Camera::_cameras;
 std::weak_ptr<Camera> Camera::_current;
@@ -22,7 +22,7 @@ Camera::Camera(const std::string& name, float ifov, CameraProjection proj)
 
 std::shared_ptr<Camera> Camera::create(const std::string& name, float ifov, CameraProjection proj)
 {
-    auto camera = std::shared_ptr<Camera>(new Camera(name, ifov, proj));
+    std::shared_ptr<Camera> camera(new Camera(name, ifov, proj));
     Node::add(camera);
     _cameras.push_back(camera);
     return (camera);
@@ -97,7 +97,7 @@ OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float 
 
 std::shared_ptr<OrbitCamera> OrbitCamera::create(const std::string& iname, float ifov, float phi, float theta, float radius)
 {
-    auto camera = std::shared_ptr<OrbitCamera>(new OrbitCamera(iname, ifov, phi, theta, radius));
+    std::shared_ptr<OrbitCamera> camera(new OrbitCamera(iname, ifov, phi, theta, radius));
     Node::add(camera);
     _cameras.push_back(std::static_pointer_cast<Camera>(camera));
     return (camera);

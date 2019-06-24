@@ -1,30 +1,37 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-06-08 11:46:41
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-06-24 16:59:51
 */
 
 #include "Render.hpp"
-#include "Camera.hpp"
-#include "Config.hpp"
+#include <GL/glew.h>         // for GL_TEXTURE0, glDepthFunc, glClear, glDis...
+#include <SDL2/SDL_timer.h>  // for SDL_GetTicks
+#include <SDL2/SDL_video.h>  // for SDL_GL_MakeCurrent, SDL_GL_SetSwapInterval
+#include <stdint.h>          // for uint64_t, uint16_t
+#include <algorithm>         // for max, remove_if
+#include <atomic>            // for atomic
+#include <iostream>          // for char_traits, endl, cout, operator<<, ost...
+#include <mutex>             // for mutex
+#include <string>            // for operator+, to_string, string
+#include <thread>            // for thread
+#include <vector>            // for vector<>::iterator, vector
+#include "Camera.hpp"        // for Camera
+#include "Config.hpp"        // for Config
+#include "Engine.hpp"        // for UpdateMutex, SwapInterval
+#include "Environment.hpp"   // for Environment
+#include "Framebuffer.hpp"   // for Framebuffer
+#include "Light.hpp"         // for Light, Directionnal, Point
+#include "Renderable.hpp"    // for Renderable, RenderOpaque, RenderTransparent
+#include "Shader.hpp"        // for Shader
+#include "Texture.hpp"       // for Texture
 #include "Cubemap.hpp"
-#include "Engine.hpp"
-#include "Environment.hpp"
-#include "Framebuffer.hpp"
-#include "Light.hpp"
-#include "Renderable.hpp"
-#include "Shader.hpp"
-#include "VertexArray.hpp"
-#include "Window.hpp"
-#include "parser/BMP.hpp"
-#include "parser/InternalTools.hpp"
-#include "brdfLUT.hpp"
-#include <algorithm>
-#include <vector>
-#include <thread>
-#include <atomic>
-#include <mutex>
+#include "VertexArray.hpp"   // for VertexArray
+#include "Window.hpp"        // for Window
+#include "brdfLUT.hpp"       // for brdfLUT
+#include "parser/GLSL.hpp"   // for GLSL, LightingShader, PostShader
+#include "vml.h"             // for mat4_inverse, vec2_scale, vec3_scale
 
 class RenderPrivate {
     public :
@@ -104,9 +111,6 @@ const std::shared_ptr<VertexArray> RenderPrivate::DisplayQuad()
 
 //Render* RenderPrivate::_instance = nullptr;
 
-
-#include "parser/GLSL.hpp"
-
 std::shared_ptr<Framebuffer> create_render_buffer(const std::string& name, const VEC2& size)
 {
     auto buffer = Framebuffer::create(name, size, 0, 1);
@@ -146,9 +150,6 @@ void present(std::shared_ptr<Framebuffer> back_buffer)
     presentShader->use(false);
     Window::swap();
 }
-
-#include "Material.hpp"
-#include <iostream>
 
 void print_mat4(MAT4 mat)
 {

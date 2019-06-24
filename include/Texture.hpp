@@ -2,18 +2,22 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:35
+* @Last Modified time: 2019-06-24 16:50:50
 */
 
 #pragma once
 
-#include "GLIncludes.hpp"
-#include "Object.hpp"
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include <GL/glew.h>      // for GLenum, GLubyte, GL_UNSIGNED_BYTE, GLuint
+#include <math.h>         // for round
+#include <stddef.h>       // for size_t
+#include <memory>         // for shared_ptr
+#include <string>         // for string
+#include <unordered_map>  // for unordered_map
+#include <vector>         // for vector
+#include "Object.hpp"     // for Object
+#include "vml.h"          // for s_vec2, VEC2, new_vec2, CLAMP, VEC4, s_vec4
 
-class Framebuffer;
+class Framebuffer;  // lines 16-16
 
 class Texture : public Object {
 public:

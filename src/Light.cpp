@@ -2,13 +2,15 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:33
+* @Last Modified time: 2019-06-24 17:57:48
 */
 
 #include "Light.hpp"
-#include "Config.hpp"
-#include "Engine.hpp"
-#include "Framebuffer.hpp"
+#include <GL/glew.h>        // for GL_COMPARE_REF_TO_TEXTURE, GL_DEPTH_COMPO...
+#include "Config.hpp"       // for Config
+#include "Engine.hpp"       // for UP
+#include "Framebuffer.hpp"  // for Framebuffer
+#include "Texture.hpp"      // for Texture
 
 //TextureArray	*Light::_shadow_array = nullptr;
 std::vector<std::shared_ptr<Light>> Light::_lights;

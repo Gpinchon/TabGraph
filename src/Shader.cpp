@@ -2,13 +2,16 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-24 16:53:37
 */
 
 #include "Shader.hpp"
-#include "Debug.hpp"
-#include "Engine.hpp"
-#include "Texture.hpp"
+#include <bits/exception.h>  // for exception
+#include <string.h>          // for memset
+#include <stdexcept>         // for runtime_error
+#include <utility>           // for pair, make_pair
+#include "Debug.hpp"         // for glCheckError, debugLog
+#include "Texture.hpp"       // for Texture
 
 std::vector<std::shared_ptr<Shader>> Shader::_shaders;
 

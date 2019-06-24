@@ -2,10 +2,13 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:39
+* @Last Modified time: 2019-06-24 17:57:07
 */
 
 #include "Keyboard.hpp"
+#include <SDL2/SDL_keyboard.h>  // for SDL_GetKeyboardState, SDL_Keysym
+#include <utility>              // for pair
+#include "Events.hpp"           // for Events
 
 Keyboard* Keyboard::_instance = new Keyboard();
 

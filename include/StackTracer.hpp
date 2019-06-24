@@ -1,6 +1,8 @@
 #pragma once
 
+#ifndef _WIN32
 #include <csignal>
+#endif
 
 namespace StackTracer
 {

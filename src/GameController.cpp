@@ -2,10 +2,13 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:33
+* @Last Modified time: 2019-06-24 17:55:38
 */
 
 #include "GameController.hpp"
+#include <iostream>    // for basic_ostream::operator<<, operator<<, endl
+#include <utility>     // for pair
+#include "Events.hpp"  // for Events
 
 Controller::Controller(SDL_JoystickID device)
 {
@@ -16,7 +19,6 @@ Controller::~Controller()
 {
     close();
 }
-#include <iostream>
 
 bool Controller::is(SDL_JoystickID device)
 {

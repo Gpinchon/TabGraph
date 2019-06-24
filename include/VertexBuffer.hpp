@@ -2,14 +2,15 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:00
+* @Last Modified time: 2019-06-24 16:29:25
 */
 
 #pragma once
 
-#include "Debug.hpp"
-#include "GLIncludes.hpp"
-#include <vector>
+#include <GL/glew.h>  // for GLuint, GL_ARRAY_BUFFER, GLenum, glBindBuffer
+#include <stddef.h>   // for size_t
+#include <vector>     // for vector
+#include "Debug.hpp"  // for glCheckError
 
 class VertexBuffer {
 public:

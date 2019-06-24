@@ -2,14 +2,17 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-21 13:55:02
+* @Last Modified time: 2019-06-24 16:25:36
 */
 
 #pragma once
 
-#include "GLIncludes.hpp"
-#include "InputDevice.hpp"
-#include <string>
+#include <GL/glew.h>          // for GLbitfield
+#include <SDL2/SDL_events.h>  // for SDL_Event
+#include <SDL2/SDL_video.h>   // for SDL_GLContext, SDL_Window
+#include <string>             // for string
+#include "InputDevice.hpp"    // for InputDevice
+#include "vml.h"              // for VEC2, VEC4, s_vec2
 
 class Window : InputDevice {
 public:
@@ -21,7 +24,7 @@ public:
     static GLbitfield& clear_mask();
     static VEC4& clear_color();
     //static Framebuffer	&render_buffer();
-    void process_event(SDL_Event*);
+    void process_event(SDL_Event*) override;
     static SDL_GLContext   context();
     static SDL_Window      *sdl_window();
 

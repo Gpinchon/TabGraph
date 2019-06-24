@@ -2,14 +2,19 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:01
+* @Last Modified time: 2019-06-24 17:28:31
 */
 
 #include "Cubemap.hpp"
-#include "Debug.hpp"
-#include "Engine.hpp"
-#include "TextureParser.hpp"
-#include <thread>
+#include <GL/glew.h>          // for GLenum, GL_TEXTURE_CUBE_MAP_POSITIVE_X
+#include <bits/exception.h>   // for exception
+#include <math.h>             // for atan2, cos, sqrt, sin
+#include <iostream>           // for operator<<, basic_ostream, cout, ostream
+#include <stdexcept>          // for runtime_error
+#include <thread>             // for thread
+#include "Engine.hpp"         // for M_PI
+#include "TextureParser.hpp"  // for TextureParser
+#include "vml.h"              // for new_vec3, new_vec2, s_vec2, s_vec3, vec...
 
 std::vector<std::shared_ptr<Cubemap>> Cubemap::_cubemaps;
 

@@ -2,13 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:33
+* @Last Modified time: 2019-06-24 17:54:06
 */
 
 #include "Framebuffer.hpp"
-#include "Engine.hpp"
-#include "Shader.hpp"
-#include "Window.hpp"
+#include <ext/alloc_traits.h>  // for __alloc_traits<>::value_type
+#include <stdexcept>           // for runtime_error
+#include "Debug.hpp"           // for glCheckError
+#include "Window.hpp"          // for Window
 
 std::vector<std::shared_ptr<Framebuffer>> Framebuffer::_framebuffers;
 
@@ -52,9 +53,6 @@ GLenum get_data_format(GLenum internal_format)
         return (GL_UNSIGNED_BYTE);
     }
 }
-
-#include "Debug.hpp"
-#include <iostream>
 
 std::shared_ptr<Attachement> Attachement::create(const std::string& iname, VEC2 s, GLenum target, GLenum f, GLenum fi)
 {

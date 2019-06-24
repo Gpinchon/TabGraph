@@ -2,13 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:28:41
+* @Last Modified time: 2019-06-24 15:55:05
 */
 
 #pragma once
 
-#include "GLIncludes.hpp"
-#include <string>
+#include <stdint.h>  // for uint16_t, int16_t
+#include <string>    // for allocator, string
+#include "vml.h"     // for VEC2
 
 class Config {
 public:

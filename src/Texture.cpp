@@ -2,21 +2,23 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-22 14:03:36
+* @Last Modified time: 2019-06-24 16:50:10
 */
 
 #include "Texture.hpp"
-#include "Config.hpp"
-#include "Debug.hpp"
-#include "Engine.hpp"
-#include "Framebuffer.hpp"
-#include "Render.hpp"
-#include "Shader.hpp"
-#include "VertexArray.hpp"
-#include "Window.hpp"
-#include "parser/GLSL.hpp"
-#include <SDL2/SDL_image.h>
-#include <cstring>
+#include <intrin.h>         // for memcpy
+#include <stdint.h>         // for int16_t, uint64_t
+#include <algorithm>        // for min
+#include <cstring>          // for size_t
+#include <utility>          // for pair
+#include "Config.hpp"       // for Config
+#include "Debug.hpp"        // for glCheckError, debugLog
+#include "Engine.hpp"       // for M_PI
+#include "Framebuffer.hpp"  // for Framebuffer
+#include "Render.hpp"       // for DisplayQuad
+#include "Shader.hpp"       // for Shader
+#include "VertexArray.hpp"  // for VertexArray
+#include "parser/GLSL.hpp"  // for GLSL
 
 std::vector<std::shared_ptr<Texture>> Texture::_textures;
 
@@ -327,8 +329,6 @@ VEC4 Texture::sample(const VEC2& uv)
 }
 
 bool Texture::is_loaded() { return (_loaded); }
-
-#include <iostream>
 
 void Texture::resize(const VEC2& ns)
 {

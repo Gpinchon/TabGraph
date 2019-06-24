@@ -2,19 +2,30 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-21 14:01:24
+* @Last Modified time: 2019-06-24 15:41:57
 */
 
-#include "scop.hpp"
-#include <Camera.hpp>
-#include <Render.hpp>
-#include <Engine.hpp>
-#include <Mesh.hpp>
-#include <Window.hpp>
-#include <Mouse.hpp>
-#include <Keyboard.hpp>
-#include <GameController.hpp>
-#include <Environment.hpp>
+#include <SDL2/SDL_events.h>          // for SDL_KeyboardEvent, SDL_Controll...
+#include <SDL2/SDL_gamecontroller.h>  // for SDL_CONTROLLER_AXIS_LEFTX, SDL_...
+#include <SDL2/SDL_scancode.h>        // for SDL_SCANCODE_KP_MINUS, SDL_SCAN...
+#include <math.h>                     // for M_PI
+#include <Camera.hpp>                 // for OrbitCamera, Camera
+#include <Engine.hpp>                 // for Stop
+#include <Environment.hpp>            // for Environment
+#include <GameController.hpp>         // for Controller, GameController
+#include <Keyboard.hpp>               // for Keyboard
+#include <Mesh.hpp>                   // for Mesh
+#include <Mouse.hpp>                  // for Mouse
+#include <Render.hpp>                 // for InternalQuality, SetInternalQua...
+#include <Window.hpp>                 // for Window
+#include <csignal>                    // for raise, SIGSEGV
+#include <iostream>                   // for operator<<, endl, basic_ostream
+#include <memory>                     // for shared_ptr, dynamic_pointer_cast
+#include "Events.hpp"                 // for Events
+#include "Node.hpp"                   // for Node
+#include "Renderable.hpp"             // for Renderable
+#include "scop.hpp"                   // for DOWNK, LEFTK, MouseMoveCallback
+#include "vml.h"                      // for s_vec3, s_vec2, new_vec3, CLAMP
 
 static auto	cameraRotation = new_vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 
@@ -207,8 +218,6 @@ void	MouseMoveCallback(SDL_MouseMotionEvent *event)
 	}
 	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }
-
-#include <csignal>
 
 void callback_crash(SDL_KeyboardEvent *)
 {

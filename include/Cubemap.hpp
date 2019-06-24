@@ -2,13 +2,16 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-24 15:57:29
 */
 
 #pragma once
 
-#include "Texture.hpp"
-#include <array>
+#include <array>        // for array
+#include <memory>       // for shared_ptr, weak_ptr
+#include <string>       // for string
+#include <vector>       // for vector
+#include "Texture.hpp"  // for Texture
 
 class Cubemap : public Texture {
 public:
@@ -17,8 +20,8 @@ public:
     static std::shared_ptr<Cubemap> parse(const std::string&, const std::string&);
     static std::shared_ptr<Cubemap> Get(unsigned index);
     static std::shared_ptr<Cubemap> get_by_name(const std::string&);
-    void load();
-    void unload();
+    void load() override;
+    void unload() override;
     std::shared_ptr<Texture> side(unsigned index);
     void set_side(unsigned index, std::shared_ptr<Texture>);
 

@@ -2,12 +2,17 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-24 17:53:42
 */
 
 #pragma once
 
-#include "Texture.hpp"
+#include <GL/glew.h>    // for GLenum
+#include <memory>       // for shared_ptr
+#include <string>       // for string
+#include <vector>       // for vector
+#include "Texture.hpp"  // for Texture
+#include "vml.h"        // for VEC2
 
 class Framebuffer : public Texture {
 public:
@@ -15,15 +20,15 @@ public:
     static std::shared_ptr<Framebuffer> get_by_name(const std::string& name);
     static std::shared_ptr<Framebuffer> Get(unsigned index);
     static void bind_default();
-    bool is_loaded();
-    void load();
+    bool is_loaded() override;
+    void load() override;
     void bind(bool to_bind = true);
     std::shared_ptr<Texture> attachement(unsigned color_attachement);
     std::shared_ptr<Texture> depth();
     void setup_attachements();
     std::shared_ptr<Texture> create_attachement(GLenum format, GLenum iformat);
     //void						destroy(void *buffer);
-    void resize(const VEC2& new_size);
+    void resize(const VEC2& new_size) override;
     void set_attachement(unsigned color_attachement, std::shared_ptr<Texture>);
 
 private:
@@ -42,9 +47,9 @@ private:
 class Attachement : public Texture {
 public:
     static std::shared_ptr<Attachement> create(const std::string& name, VEC2 s, GLenum target, GLenum f, GLenum fi);
-    bool is_loaded();
-    void load();
-    void unload();
+    bool is_loaded() override;
+    void load() override;
+    void unload() override;
 
 private:
     Attachement(const std::string& name);

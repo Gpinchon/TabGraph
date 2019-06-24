@@ -2,18 +2,21 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:35
+* @Last Modified time: 2019-06-24 16:53:58
 */
 
 #pragma once
 
-#include "GLIncludes.hpp"
-#include "Object.hpp"
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include <GL/glew.h>      // for GLuint, GLenum, GLint
+#include <stddef.h>       // for size_t
+#include <memory>         // for shared_ptr
+#include <string>         // for string
+#include <unordered_map>  // for unordered_map
+#include <vector>         // for vector
+#include "Object.hpp"     // for Object
+#include "vml.h"          // for MAT4, VEC2, VEC3
 
-class Texture;
+class Texture;  // lines 16-16
 
 struct ShaderVariable {
     size_t id;

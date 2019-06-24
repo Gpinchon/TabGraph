@@ -2,25 +2,40 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-17 17:09:44
+* @Last Modified time: 2019-06-24 17:00:15
 */
 
-#include "Terrain.hpp"
-#include "Vgroup.hpp"
-#include "Texture.hpp"
-#include "Material.hpp"
-#include "Debug.hpp"
-#include "TextureParser.hpp"
-#include "Quadtree.hpp"
-#include "parser/InternalTools.hpp"
-#include <gdal_priv.h>
+#include <GL/glew.h>           // for GL_COMPRESSED_RED, GL_FLOAT, GL_RED
+#include <ext/alloc_traits.h>  // for __alloc_traits<>::value_type
+#include <gdal_priv.h>         // for GDALRasterBand, GDALDataset
+#include <math.h>              // for abs
+#include <stdint.h>            // for uint32_t
+#include <stdlib.h>            // for abs
+#include <array>               // for array
+#include <iostream>            // for operator<<, basic_ostream<>::__ostream...
+#include <limits>              // for numeric_limits
+#include <memory>              // for shared_ptr, __shared_ptr_access, alloc...
+#include <stdexcept>           // for runtime_error
+#include <string>              // for operator+, string
+#include <vector>              // for vector
+#include "Debug.hpp"           // for debugLog
+#include "Material.hpp"        // for Material
+#include "Mesh.hpp"            // for Mesh
+#include "Node.hpp"            // for Node
+#include "Quadtree.hpp"        // for Quadtree
+#include "Renderable.hpp"      // for Renderable
+#include "Terrain.hpp"         // for Terrain
+#include "Texture.hpp"         // for Texture
+#include "TextureParser.hpp"   // for TextureParser
+#include "cpl_conv.h"          // for CPLMalloc, CPLFree
+#include "cpl_error.h"         // for CE_None
+#include "gdal.h"              // for GDALAllRegister, GDALClose, GDALOpen
+#include "vml.h"               // for s_vec3, new_vec2, s_vec2, new_vec3, VEC3
 
 Terrain::Terrain(const std::string &name) : Mesh(name)
 {
 
 }
-
-#include <limits>
 
 void    Subdivide(Quadtree<std::array<VEC3, 4>> *tree, std::shared_ptr<Texture> texture, VEC3 scale)
 {

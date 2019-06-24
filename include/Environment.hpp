@@ -2,13 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-24 17:51:30
 */
 
 #pragma once
-#include "Object.hpp"
-#include <memory>
-#include <vector>
+#include <memory>      // for shared_ptr, weak_ptr
+#include <string>      // for string
+#include <vector>      // for vector
+#include "Object.hpp"  // for Object
 
 class Cubemap;
 

@@ -2,17 +2,15 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:23:10
+* @Last Modified time: 2019-06-24 17:52:23
 */
 
 #include "Events.hpp"
-#include "Engine.hpp"
-#include "InputDevice.hpp"
-#include "Window.hpp"
-
-#include <iostream>
-
-
+#include <SDL2/SDL_timer.h>  // for SDL_GetTicks
+#include <iostream>          // for operator<<, endl, basic_ostream, cout
+#include <utility>           // for pair
+#include "Engine.hpp"        // for Stop
+#include "InputDevice.hpp"   // for InputDevice
 
 void print_event_name(SDL_Event* event)
 {

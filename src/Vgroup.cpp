@@ -2,18 +2,17 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-24 16:26:00
 */
 
 #include "Vgroup.hpp"
-#include "AABB.hpp"
-#include "Camera.hpp"
-#include "Engine.hpp"
-#include "Material.hpp"
-#include "Shader.hpp"
-#include "Texture.hpp"
-#include "VertexArray.hpp"
-#include "parser/GLSL.hpp"
+#include "AABB.hpp"             // for AABB
+#include "BoundingElement.hpp"  // for BoundingElement
+#include "Camera.hpp"           // for Camera
+#include "Material.hpp"         // for Material
+#include "Shader.hpp"           // for Shader
+#include "Texture.hpp"          // for Texture
+#include "VertexArray.hpp"      // for VertexArray
 
 std::vector<std::shared_ptr<Vgroup>> Vgroup::_vgroups;
 

@@ -2,12 +2,16 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:20:09
+* @Last Modified time: 2019-06-24 15:51:08
 */
 
 #pragma once
 
-#include "Node.hpp"
+#include <memory>    // for shared_ptr, weak_ptr
+#include <string>    // for string
+#include <vector>    // for vector
+#include "Node.hpp"  // for Node
+#include "vml.h"     // for MAT4, FRUSTUM
 
 enum CameraProjection {
     OrthoCamera,

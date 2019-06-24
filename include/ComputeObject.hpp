@@ -2,15 +2,20 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:28:44
+* @Last Modified time: 2019-06-24 15:54:21
 */
 
 #pragma once
 
-#include "Node.hpp"
+#include <GL/glew.h>  // for GLbitfield, GL_ALL_BARRIER_BITS
+#include <memory>     // for shared_ptr, weak_ptr
+#include <string>     // for string
+#include <vector>     // for vector
+#include "Node.hpp"   // for Node
+#include "vml.h"      // for VEC3, s_vec3
 
-class Shader;
-class Texture;
+class Shader;  // lines 12-12
+class Texture;  // lines 13-13
 
 class ComputeObject : public Node {
 public:

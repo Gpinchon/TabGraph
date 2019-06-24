@@ -2,15 +2,15 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-22 15:48:05
+* @Last Modified time: 2019-06-24 16:56:25
 */
 
 #pragma once
-#include <memory>
-#include <vector>
 
-class VertexArray;
-class Shader;
+#include <memory>  // for shared_ptr
+
+class Shader;  // lines 13-13
+class VertexArray;  // lines 12-12
 
 /** @brief Render manages the graphical rendering and frame pacing */
 namespace Render {

@@ -2,13 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:59:08
+* @Last Modified time: 2019-06-24 15:58:41
 */
 
 #include "CubeMesh.hpp"
-#include "Engine.hpp"
-#include "Material.hpp"
-#include "Vgroup.hpp"
+#include <vector>        // for vector
+#include "Material.hpp"  // for Material
+#include "Mesh.hpp"      // for Mesh
+#include "Vgroup.hpp"    // for CVEC4, Vgroup
 
 std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, VEC3 size)
 {

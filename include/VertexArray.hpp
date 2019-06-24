@@ -2,16 +2,16 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:03
+* @Last Modified time: 2019-06-24 16:39:35
 */
 
 #pragma once
 
-#include "Debug.hpp"
-#include "GLIncludes.hpp"
-#include "VertexBuffer.hpp"
-#include <memory>
-#include <vector>
+#include <GL/glew.h>         // for GLenum, GL_TRIANGLES, GLuint
+#include <stddef.h>          // for size_t
+#include <memory>            // for shared_ptr
+#include <vector>            // for vector
+#include "VertexBuffer.hpp"  // for VertexBuffer
 
 class VertexArray {
 public:

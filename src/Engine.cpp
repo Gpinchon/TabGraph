@@ -2,30 +2,33 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-04 10:45:01
+* @Last Modified time: 2019-06-24 17:50:56
 */
 
 #include "Engine.hpp"
-#include "Camera.hpp"
-#include "Config.hpp"
-#include "Cubemap.hpp"
-#include "Environment.hpp"
-#include "Events.hpp"
-#include "Framebuffer.hpp"
-#include "Light.hpp"
-#include "Render.hpp"
-#include "Renderable.hpp"
-#include "TextureParser.hpp"
-#include "Window.hpp"
-#include "parser/GLSL.hpp"
-//#include "parser/HDR.hpp"
-#include "parser/InternalTools.hpp"
-#include <algorithm>
-#include <dirent.h>
-#include <unistd.h>
-#include <thread>
-#include <mutex>
-#include <atomic>
+#include <SDL2/SDL_events.h>         // for SDL_PumpEvents, SDL_SetEventFilter
+#include <SDL2/SDL_filesystem.h>     // for SDL_GetBasePath
+#include <SDL2/SDL_timer.h>          // for SDL_GetTicks
+#include <SDL2/SDL_video.h>          // for SDL_GL_MakeCurrent
+#include <bits/exception.h>          // for exception
+#include <dirent.h>                  // for opendir, readdir, dirent, closedir
+#include <io.h>                      // for getcwd
+#include <atomic>                    // for atomic
+#include <chrono>                    // for milliseconds
+#include <iostream>                  // for operator<<, endl, basic_ostream
+#include <memory>                    // for shared_ptr, __shared_ptr_access
+#include <mutex>                     // for mutex
+#include <thread>                    // for sleep_for
+#include "Config.hpp"                // for Config
+#include "Cubemap.hpp"               // for Cubemap
+#include "Environment.hpp"           // for Environment
+#include "Events.hpp"                // for Events
+#include "Node.hpp"                  // for Node
+#include "Render.hpp"                // for AddPostTreatment, RequestRedraw
+#include "TextureParser.hpp"         // for TextureParser
+#include "Window.hpp"                // for Window
+#include "parser/GLSL.hpp"           // for GLSL, PostShader
+#include "parser/InternalTools.hpp"  // for convert_backslash
 
 #ifndef _getcwd
 #define _getcwd getcwd

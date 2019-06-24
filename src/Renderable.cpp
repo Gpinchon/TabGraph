@@ -2,13 +2,10 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-24 16:54:38
 */
 
 #include "Renderable.hpp"
-#include "Engine.hpp"
-#include "Material.hpp"
-#include "Texture.hpp"
 
 std::vector<std::shared_ptr<Renderable>> Renderable::_renderables;
 
