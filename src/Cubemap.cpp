@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:28:31
+* @Last Modified time: 2019-06-25 10:25:44
 */
 
 #include "Cubemap.hpp"
@@ -94,8 +94,6 @@ float faceTransform[6][2] = {
     { 0, -M_PI / 2.f },
     { 0, M_PI / 2.f }
 };
-
-#include <iostream>
 
 void generate_side(std::shared_ptr<Texture> fromTexture, std::shared_ptr<Texture> t, int side)
 {

@@ -2,14 +2,13 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:50:10
+* @Last Modified time: 2019-06-25 12:03:09
 */
 
 #include "Texture.hpp"
-#include <intrin.h>         // for memcpy
 #include <stdint.h>         // for int16_t, uint64_t
 #include <algorithm>        // for min
-#include <cstring>          // for size_t
+#include <cstring>          // for memcpy
 #include <utility>          // for pair
 #include "Config.hpp"       // for Config
 #include "Debug.hpp"        // for glCheckError, debugLog

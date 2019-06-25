@@ -2,16 +2,15 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:33
+* @Last Modified time: 2019-06-25 15:42:09
 */
 
 #include "Material.hpp"
+#include <GL/glew.h>        // for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
+#include "Environment.hpp"  // for Environment
+#include "Shader.hpp"       // for Shader
 #include "Cubemap.hpp"
-#include "Engine.hpp"
-#include "Environment.hpp"
-#include "Window.hpp"
-#include "parser/BMP.hpp"
-#include "parser/GLSL.hpp"
+#include "parser/GLSL.hpp"  // for GLSL, ForwardShader
 
 std::vector<std::shared_ptr<Material>> Material::_materials;
 

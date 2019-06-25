@@ -2,17 +2,30 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-07 14:52:09
+* @Last Modified time: 2019-06-25 12:01:20
 */
 
 #include "parser/OBJ.hpp"
-#include "MeshParser.hpp"
-#include "Engine.hpp"
-#include "Mesh.hpp"
-#include "Vgroup.hpp"
-#include "parser/InternalTools.hpp"
-#include "parser/MTLLIB.hpp"
-#include <stdexcept>
+#include <bits/exception.h>          // for exception
+#include <errno.h>                   // for errno
+#include <ext/alloc_traits.h>        // for __alloc_traits<>::value_type
+#include <io.h>                      // for access, R_OK
+#include <math.h>                    // for atan2
+#include <stdio.h>                   // for fclose, fgets, fopen
+#include <string.h>                  // for memset, strerror
+#include <algorithm>                 // for max, min
+#include <stdexcept>                 // for runtime_error
+#include <vector>                    // for vector
+#include "AABB.hpp"                  // for AABB
+#include "BoundingElement.hpp"       // for BoundingElement
+#include "Engine.hpp"                // for M_PI
+#include "Material.hpp"              // for Material
+#include "Mesh.hpp"                  // for Mesh
+#include "MeshParser.hpp"            // for MeshParser
+#include "Vgroup.hpp"                // for Vgroup, CVEC4
+#include "parser/InternalTools.hpp"  // for t_obj_parser, count_char, split_...
+#include "parser/MTLLIB.hpp"         // for parse
+#include "vml.h"                     // for s_vec3, s_vec2, new_vec2, VEC3
 
 //Add this parser to MeshParser !
 auto __objParser = MeshParser::add("obj", OBJ::parse);

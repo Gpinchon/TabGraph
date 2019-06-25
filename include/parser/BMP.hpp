@@ -2,12 +2,13 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:26:18
+* @Last Modified time: 2019-06-25 10:32:59
 */
 
 #pragma once
 
-#include <memory>
+#include <memory>  // for shared_ptr
+#include <string>  // for string
 
 class Texture;
 

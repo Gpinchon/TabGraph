@@ -2,16 +2,14 @@
 * @Author: gpi
 * @Date:   2019-06-07 13:35:27
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-17 13:49:19
+* @Last Modified time: 2019-06-25 12:02:05
 */
 
 #pragma once
 
-#include <array>
-#include <vector>
-#include <vml.h>
-
-#include <iostream>
+#include <vml.h>   // for s_vec2, VEC2, new_vec2
+#include <array>   // for array
+#include <vector>  // for vector
 
 template<typename T>
 class Quadtree

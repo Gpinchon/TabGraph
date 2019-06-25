@@ -2,11 +2,12 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:00:23
+* @Last Modified time: 2019-06-25 10:30:53
 */
 
 #include "Mouse.hpp"
-#include "Events.hpp"
+#include <SDL2/SDL_mouse.h>  // for SDL_GetMouseState, SDL_GetRelativeMouseMode
+#include "Events.hpp"        // for Events
 
 Mouse* Mouse::_instance = nullptr;
 

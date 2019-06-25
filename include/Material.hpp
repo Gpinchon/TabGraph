@@ -2,17 +2,19 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-25 10:26:41
 */
 
 #pragma once
 
-#include "Object.hpp"
-#include <string>
+#include <memory>      // for shared_ptr, weak_ptr
+#include <string>      // for string
+#include <vector>      // for vector
+#include "Object.hpp"  // for Object
+#include "vml.h"       // for VEC3, VEC2
 
-class Texture;
-class Framebuffer;
 class Shader;
+class Texture;
 
 class Material : public Object {
 public:

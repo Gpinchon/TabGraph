@@ -2,15 +2,22 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-17 12:57:49
+* @Last Modified time: 2019-06-25 15:43:20
 */
 
-#include <algorithm>
-#include <fstream>
-#include <iostream>
-#include <stdexcept>
-#include <unistd.h>
-#include <vector>
+#include <errno.h>             // for ENOENT, EACCES, ELOOP, ENAMETOOLONG
+#include <ext/alloc_traits.h>  // for __alloc_traits<>::value_type
+#include <io.h>                // for access, R_OK
+#include <stdio.h>             // for fseek, ftell, size_t, fread, FILE, SEE...
+#include <stdlib.h>            // for errno
+#include <string.h>            // for strerror
+#include <algorithm>           // for max, count, replace
+#include <iostream>            // for basic_ostream::operator<<, char_traits
+#include <iterator>            // for istreambuf_iterator, operator!=
+#include <stdexcept>           // for runtime_error
+#include <string>              // for string, operator+, basic_string<>::con...
+#include <vector>              // for allocator, vector
+#include <fstream>             // for ifstream
 
 std::string access_get_error(const int& access_result)
 {

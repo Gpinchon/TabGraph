@@ -1,14 +1,19 @@
 /*
 * @Author: gpinchon
 * @Date:   2019-05-08 11:07:22
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-05-08 22:22:01
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-06-25 10:33:53
 */
 
-#include "Texture.hpp"
-#include "TextureParser.hpp"
-#include "parser/InternalTools.hpp"
-#include <unistd.h>
+#include <GL/glew.h>                 // for GLenum, GL_FLOAT, GL_HALF_FLOAT
+#include <stdio.h>                   // for fclose, fread, size_t
+#include <memory>                    // for allocator, shared_ptr
+#include <stdexcept>                 // for runtime_error
+#include <string>                    // for operator+, char_traits, to_string
+#include "Texture.hpp"               // for Texture
+#include "TextureParser.hpp"         // for TextureParser
+#include "parser/InternalTools.hpp"  // for BTHeader, openFile
+#include "vml.h"                     // for new_vec2
 
 std::shared_ptr<Texture> BTParse(const std::string& texture_name, const std::string& path)
 {

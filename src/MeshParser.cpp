@@ -2,14 +2,16 @@
 * @Author: gpi
 * @Date:   2019-04-25 09:44:00
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-07 14:51:47
+* @Last Modified time: 2019-06-25 10:29:33
 */
 
-#include "GLIncludes.hpp"
-#include "Mesh.hpp"
-#include "MeshParser.hpp"
+#include <map>             // for map
+#include <memory>          // for shared_ptr
+#include <string>          // for string
+#include "Debug.hpp"       // for debugLog
+#include "MeshParser.hpp"  // for MeshParser, MeshParsingFunction
 
-#include "Debug.hpp"
+class Mesh;
 
 std::map<std::string, MeshParser *> *MeshParser::_parsers = nullptr;//std::map<std::string, MeshParser *>();
 

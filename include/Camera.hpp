@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 15:51:08
+* @Last Modified time: 2019-06-25 09:15:50
 */
 
 #pragma once
@@ -25,12 +25,12 @@ public:
     static std::shared_ptr<Camera> Get(unsigned index);
     static std::shared_ptr<Camera> current();
     static void set_current(std::shared_ptr<Camera>);
-    virtual void transform_update();
+    virtual void transform_update() override;
     virtual MAT4& view();
     virtual MAT4& projection();
     virtual FRUSTUM& frustum();
     virtual float& fov();
-
+    virtual ~Camera() = default;
 protected:
     Camera(const std::string& name, float fov, CameraProjection proj = PerspectiveCamera);
     CameraProjection _projection_type{ PerspectiveCamera };

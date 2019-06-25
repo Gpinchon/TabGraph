@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-04-04 13:53:19
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:41:10
+* @Last Modified time: 2019-06-25 12:03:54
 */
 
 #include <GL/glew.h>                 // for GL_COMPRESSED_RGB, GL_COMPRESSED...
@@ -13,12 +13,12 @@
 #include <SDL2/SDL_surface.h>        // for SDL_Surface, SDL_UnlockSurface
 #include <intrin.h>                  // for memcpy
 #include <stdlib.h>                  // for free, malloc, NULL
-#include <string.h>                  // for memmove
+#include <wchar.h>                   // for memmove
 #include <map>                       // for map
 #include <memory>                    // for allocator, shared_ptr
-#include <sstream>                   // for char_traits, basic_ostream::oper...
+#include <sstream>                   // for basic_ostream::operator<<, ostri...
 #include <stdexcept>                 // for runtime_error
-#include <string>                    // for string, operator+
+#include <string>                    // for string, operator+, char_traits
 #include "Debug.hpp"                 // for debugLog
 #include "Texture.hpp"               // for Texture
 #include "TextureParser.hpp"         // for TextureParser, TextureParsingFun...

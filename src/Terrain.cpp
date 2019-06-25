@@ -2,16 +2,25 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-13 14:22:26
+* @Last Modified time: 2019-06-25 15:53:29
 */
 
 #include "Terrain.hpp"
-#include "Vgroup.hpp"
-#include "Texture.hpp"
-#include "Material.hpp"
-#include "Debug.hpp"
-#include "TextureParser.hpp"
-#include "parser/InternalTools.hpp"
+#include <ext/alloc_traits.h>        // for __alloc_traits<>::value_type
+#include <stdint.h>                  // for uint32_t
+#include <stdio.h>                   // for fclose, fread, size_t
+#include <iostream>                  // for operator<<, basic_ostream, basic...
+#include <limits>                    // for numeric_limits
+#include <stdexcept>                 // for runtime_error
+#include <vector>                    // for vector
+#include "Material.hpp"              // for Material
+#include "Mesh.hpp"                  // for Mesh
+#include "Node.hpp"                  // for Node
+#include "Renderable.hpp"            // for Renderable
+#include "Texture.hpp"               // for Texture
+#include "TextureParser.hpp"         // for TextureParser
+#include "Vgroup.hpp"                // for CVEC4, Vgroup
+#include "parser/InternalTools.hpp"  // for BTHeader, fileFormat, openFile
 
 Terrain::Terrain(const std::string &name) : Mesh(name)
 {

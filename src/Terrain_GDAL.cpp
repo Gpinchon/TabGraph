@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:00:15
+* @Last Modified time: 2019-06-25 09:21:50
 */
 
 #include <GL/glew.h>           // for GL_COMPRESSED_RED, GL_FLOAT, GL_RED
@@ -100,6 +100,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
+    terrain->_terrainSize = scale;
     Mesh::add(terrain);
     Renderable::add(terrain);
     Node::add(terrain);

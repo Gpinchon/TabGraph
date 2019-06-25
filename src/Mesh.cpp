@@ -2,18 +2,18 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-25 10:29:10
 */
 
 #include "Mesh.hpp"
-#include "AABB.hpp"
-#include "Camera.hpp"
-#include "Engine.hpp"
-#include "Material.hpp"
-#include "Shader.hpp"
-#include "Texture.hpp"
-#include "Vgroup.hpp"
-#include <algorithm>
+#include "AABB.hpp"             // for AABB
+#include "BoundingElement.hpp"  // for BoundingElement
+#include "Camera.hpp"           // for Camera
+#include "Material.hpp"         // for Material
+#include "Node.hpp"             // for Node
+#include "Shader.hpp"           // for Shader
+#include "Vgroup.hpp"           // for Vgroup
+#include "vml.h"                // for mat4_combine, mat4_inverse, mat4_tran...
 
 std::vector<std::shared_ptr<Mesh>> Mesh::_meshes;
 

@@ -2,15 +2,19 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:08:25
+* @Last Modified time: 2019-06-25 11:58:26
 */
 
 #include "parser/GLSL.hpp"
-#include "Debug.hpp"
-#include "Engine.hpp"
-#include "parser/InternalTools.hpp"
-#include <iostream>
-#include <unistd.h>
+#include <GL/glew.h>                 // for GLuint, GL_FRAGMENT_SHADER, GL_V...
+#include <bits/exception.h>          // for exception
+#include <errno.h>                   // for errno
+#include <io.h>                      // for access, R_OK
+#include <string.h>                  // for strerror
+#include <stdexcept>                 // for runtime_error
+#include <unordered_map>             // for unordered_map
+#include "Debug.hpp"                 // for glCheckError
+#include "parser/InternalTools.hpp"  // for file_to_str
 
 static auto deferredVertCode =
 #include "deferred.vert"

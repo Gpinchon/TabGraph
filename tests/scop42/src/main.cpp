@@ -2,36 +2,28 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:39:23
+* @Last Modified time: 2019-06-25 15:49:21
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
 
-#include "scop.hpp"
-#include "Config.hpp"
-#include "Window.hpp"
-#include "Engine.hpp"
-#include "Camera.hpp"
-#include "Events.hpp"
-#include "GameController.hpp"
-#include "Keyboard.hpp"
-#include "Mouse.hpp"
-#include "MeshParser.hpp"
-#include "parser/HDR.hpp"
-#include "parser/FBX.hpp"
-#include "parser/GLSL.hpp"
-#include "Material.hpp"
-#include "Render.hpp"
-#include "Light.hpp"
-#include "CubeMesh.hpp"
-#include "Debug.hpp"
-#include "ComputeObject.hpp"
-#include "Vgroup.hpp"
-#include <iostream>
-#include <unistd.h>
-#include <iostream>
-#include <csignal>
+#include <SDL2/SDL.h>       // for SDL_Quit
+#include <SDL2/SDL_main.h>  // for main
+#include <math.h>           // for M_PI
+#include <Mesh.hpp>         // for Mesh
+#include <cstdlib>          // for rand, RAND_MAX
+#include <memory>           // for shared_ptr, __shared_ptr_access, operator!=
+#include <string>           // for operator+, to_string, string
+#include <vector>           // for vector
+#include "Camera.hpp"       // for OrbitCamera, Camera
+#include "Config.hpp"       // for Config
+#include "Engine.hpp"       // for ProgramPath, Init, Start
+#include "Light.hpp"        // for DirectionnalLight, Light
+#include "MeshParser.hpp"   // for MeshParser
+#include "Node.hpp"         // for Node
+#include "scop.hpp"         // for setup_callbacks
+#include "vml.h"            // for new_vec3, VEC3
 
 /*bool	alpha_compare(Renderable	*m, Renderable *m1)
 {

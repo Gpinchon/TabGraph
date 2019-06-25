@@ -2,14 +2,22 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:08:03
+* @Last Modified time: 2019-06-25 10:34:29
 */
 
 #include "parser/FBX.hpp"
-#include "parser/InternalTools.hpp"
-#include <iostream>
-#include <map>
-#include <zlib.h>
+#include <errno.h>    // for errno
+#include <io.h>       // for access, R_OK
+#include <stdint.h>   // for int32_t, int64_t, uint32_t, uint64_t, int16_t
+#include <stdio.h>    // for fread, FILE, ftell, fclose, fopen
+#include <string.h>   // for memset, strerror, strncmp
+#include <zconf.h>    // for Byte
+#include <zlib.h>     // for z_stream, Z_NULL, inflate, inflateEnd, Z_NO_FLUSH
+#include <iostream>   // for operator<<, basic_ostream, cout, ostream, char_...
+#include <map>        // for allocator, map
+#include <stdexcept>  // for runtime_error
+#include <utility>    // for pair
+#include <vector>     // for vector
 
 #pragma pack(1)
 union FBXArrayData {

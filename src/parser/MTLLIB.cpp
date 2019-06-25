@@ -2,17 +2,22 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:08:34
+* @Last Modified time: 2019-06-25 12:00:26
 */
 
 #include "parser/MTLLIB.hpp"
-#include "Engine.hpp"
-#include "Material.hpp"
-#include "TextureParser.hpp"
-//#include "parser/BMP.hpp"
-#include "parser/InternalTools.hpp"
-#include <stdexcept>
-#include <unistd.h>
+#include <ext/alloc_traits.h>        // for __alloc_traits<>::value_type
+#include <io.h>                      // for access, R_OK
+#include <stdio.h>                   // for fgets, fclose, fopen
+#include <stdlib.h>                  // for errno
+#include <string.h>                  // for strerror
+#include <memory>                    // for shared_ptr, allocator, __shared_...
+#include <stdexcept>                 // for runtime_error
+#include <vector>                    // for vector
+#include "Material.hpp"              // for Material
+#include "TextureParser.hpp"         // for TextureParser
+#include "parser/InternalTools.hpp"  // for parse_vec3, t_obj_parser, strspl...
+#include "vml.h"                     // for s_vec3, new_vec3, vec3_fdiv, CLAMP
 
 void parse_color(std::vector<std::string>& split, std::shared_ptr<Material> mtl)
 {

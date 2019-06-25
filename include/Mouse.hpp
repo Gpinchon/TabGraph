@@ -2,13 +2,15 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:38
+* @Last Modified time: 2019-06-25 10:30:37
 */
 
 #pragma once
 
-#include "InputDevice.hpp"
-#include <array>
+#include <SDL2/SDL_events.h>  // for SDL_Event, SDL_MouseButtonEvent, SDL_Mo...
+#include <SDL2/SDL_stdinc.h>  // for Sint32, Uint8, SDL_bool
+#include <array>              // for array
+#include "InputDevice.hpp"    // for InputDevice
 
 typedef void (*mouse_motion_callback)(SDL_MouseMotionEvent* event);
 typedef void (*mouse_button_callback)(SDL_MouseButtonEvent* event);

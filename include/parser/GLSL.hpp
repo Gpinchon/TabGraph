@@ -2,12 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:26:10
+* @Last Modified time: 2019-06-25 11:58:12
 */
 
 #pragma once
 
-#include "Shader.hpp"
+#include <memory>      // for shared_ptr, allocator
+#include <string>      // for string
+#include "Shader.hpp"  // for Shader
 
 enum ShaderType {
     ForwardShader,

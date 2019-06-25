@@ -2,15 +2,22 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:07:57
+* @Last Modified time: 2019-06-25 10:33:12
 */
 
 #include "parser/BMP.hpp"
-#include "Texture.hpp"
-#include "parser/InternalTools.hpp"
-#include <stdexcept>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <GL/glew.h>                 // for GLubyte, GLenum, GL_BGR, GL_BGRA
+#include <bits/exception.h>          // for exception
+#include <errno.h>                   // for errno
+#include <fcntl.h>                   // for O_BINARY, O_CREAT, O_RDWR
+#include <io.h>                      // for write, access, close, open, R_OK
+#include <stdio.h>                   // for fclose, fread, fopen, fseek, SEE...
+#include <string.h>                  // for memset, strerror
+#include <sys/stat.h>                // for S_IRWXG, S_IRWXO, S_IRWXU
+#include <stdexcept>                 // for runtime_error
+#include "Texture.hpp"               // for Texture
+#include "parser/InternalTools.hpp"  // for t_bmp_parser, t_bmp_info, t_bmp_...
+#include "vml.h"                     // for s_vec2, new_vec2
 
 static void prepare_header(t_bmp_header* header, t_bmp_info* info, std::shared_ptr<Texture> t)
 {

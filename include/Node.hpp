@@ -2,15 +2,16 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:21:05
+* @Last Modified time: 2019-06-25 10:31:20
 */
 
 #pragma once
 
-#include "Object.hpp"
-#include <iostream>
-#include <string>
-#include <vector>
+#include <memory>      // for shared_ptr, weak_ptr
+#include <string>      // for string
+#include <vector>      // for vector
+#include "Object.hpp"  // for Object
+#include "vml.h"       // for mat4_identity, mat4_zero, VEC3, MAT4
 
 class BoundingElement;
 
@@ -24,6 +25,7 @@ public:
     virtual void transform_update();
     virtual void FixedUpdate();
     virtual void Update();
+    virtual ~Node() = default;
     MAT4& transform();
     MAT4& translate();
     MAT4& rotate();

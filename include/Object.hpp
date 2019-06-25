@@ -2,18 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:27:32
+* @Last Modified time: 2019-06-25 10:32:02
 */
 
 #pragma once
 
-#include "GLIncludes.hpp"
-#include <memory>
-#include <string>
-#include <vector>
-/*#include <iostream>
-#include <memory>
-#include <string>*/
+#include <memory>  // for enable_shared_from_this, shared_ptr
+#include <string>  // for string
+#include <vector>  // for vector
 
 /*
 ** Never allocate on the stack, always of the heap !!!
@@ -24,6 +20,7 @@ class Object : public std::enable_shared_from_this<Object> {
 public:
     const std::string& name();
     void set_name(const std::string& name);
+    virtual ~Object() = default;
 
 protected:
     Object();
