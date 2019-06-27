@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 15:58:41
+* @Last Modified time: 2019-06-27 18:16:51
 */
 
 #include "CubeMesh.hpp"
@@ -11,10 +11,10 @@
 #include "Mesh.hpp"      // for Mesh
 #include "Vgroup.hpp"    // for CVEC4, Vgroup
 
-std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, VEC3 size)
+std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, glm::vec3 size)
 {
     auto m = Mesh::create(name);
-    static std::vector<VEC3> cubeVertices{
+    static std::vector<glm::vec3> cubeVertices{
         { -0.50f, -0.50f, 0.50f }, // back
         { 0.50f, -0.50f, 0.50f },
         { 0.50f, 0.50f, 0.50f },
@@ -76,7 +76,7 @@ std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, VEC3 size)
         { 127, 0, 127, 255 },
         { 127, 0, 127, 255 }
     };
-    static std::vector<VEC2> cubeTexCoords{
+    static std::vector<glm::vec2> cubeTexCoords{
         { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 },
         { 1, 0 }, { 0, 0 }, { 0, 1 }, { 1, 1 },
         { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 },
@@ -95,7 +95,7 @@ std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, VEC3 size)
     auto vg = Vgroup::create(m->name() + "_vgroup");
     auto thisCubeVertices = cubeVertices;
     for (auto& v : thisCubeVertices) {
-        v = vec3_mult(v, size);
+        v *= size;
     }
     vg->set_material(Material::create(vg->name() + "_material"));
     vg->v = thisCubeVertices;

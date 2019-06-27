@@ -2,12 +2,12 @@
 * @Author: gpi
 * @Date:   2019-06-07 13:35:27
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 12:02:05
+* @Last Modified time: 2019-06-27 17:36:57
 */
 
 #pragma once
 
-#include <vml.h>   // for s_vec2, VEC2, new_vec2
+#include <glm>   // for s_vec2, glm::vec2, glm::vec2
 #include <array>   // for array
 #include <vector>  // for vector
 
@@ -15,29 +15,29 @@ template<typename T>
 class Quadtree
 {
 public:
-	Quadtree(VEC2 min, VEC2 max, int maxLevel = -1) : _min(min), _max(max), _mid(new_vec2((max.x + min.x) / 2.f, (max.y + min.y) / 2.f)), _maxLevel(maxLevel) {};
+	Quadtree(glm::vec2 min, glm::vec2 max, int maxLevel = -1) : _min(min), _max(max), _mid(glm::vec2((max.x + min.x) / 2.f, (max.y + min.y) / 2.f)), _maxLevel(maxLevel) {};
 	Quadtree() = delete;
 	~Quadtree() = default;
 	Quadtree<T>		*Get(int childIndex);
-	bool			Insert(T data, VEC2 min, VEC2 max);
+	bool			Insert(T data, glm::vec2 min, glm::vec2 max);
 	std::vector<T>	&Data();
-	VEC2			Min() {return _min;}
-	VEC2			Max() {return _max;}
-	VEC2			Mid() {return _mid;}
+	glm::vec2			Min() {return _min;}
+	glm::vec2			Max() {return _max;}
+	glm::vec2			Mid() {return _mid;}
 	int				Level() {return _level;}
 
 private:
 	std::array<Quadtree<T> *, 4>	_children {nullptr};
 	std::vector<T>	_data;
-	VEC2	_min {0, 0};
-	VEC2	_max {0, 0};
-	VEC2	_mid {0, 0};
+	glm::vec2	_min {0, 0};
+	glm::vec2	_max {0, 0};
+	glm::vec2	_mid {0, 0};
 	int		_maxLevel {-1};
 	int		_level {0};
 };
 
 template<typename T>
-inline bool				Quadtree<T>::Insert(T data, VEC2 min, VEC2 max)
+inline bool				Quadtree<T>::Insert(T data, glm::vec2 min, glm::vec2 max)
 {
 	int		index = -1;
 	bool	top = false;
@@ -46,8 +46,8 @@ inline bool				Quadtree<T>::Insert(T data, VEC2 min, VEC2 max)
 	bool	right = false;
 	bool	inside = min.x >= _min.x && min.y >= _min.y
 			&&	max.x <= _max.x && max.y <= _max.y;
-	auto	childMin = new_vec2(-1, -1);
-	auto	childMax = new_vec2(-1, -1);
+	auto	childMin = glm::vec2(-1, -1);
+	auto	childMax = glm::vec2(-1, -1);
 	if (!inside)
 		return false;
 	if (min.y >= _mid.y) {

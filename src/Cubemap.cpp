@@ -2,19 +2,19 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:25:44
+* @Last Modified time: 2019-06-27 17:42:42
 */
 
 #include "Cubemap.hpp"
-#include <GL/glew.h>          // for GLenum, GL_TEXTURE_CUBE_MAP_POSITIVE_X
-#include <bits/exception.h>   // for exception
-#include <math.h>             // for atan2, cos, sqrt, sin
-#include <iostream>           // for operator<<, basic_ostream, cout, ostream
-#include <stdexcept>          // for runtime_error
-#include <thread>             // for thread
-#include "Engine.hpp"         // for M_PI
-#include "TextureParser.hpp"  // for TextureParser
-#include "vml.h"              // for new_vec3, new_vec2, s_vec2, s_vec3, vec...
+#include <GL/glew.h>
+#include <bits/exception.h>
+#include <math.h>
+#include <iostream>
+#include <stdexcept>
+#include <thread>
+#include "Engine.hpp"
+#include "TextureParser.hpp"
+#include "glm/glm.hpp"
 
 std::vector<std::shared_ptr<Cubemap>> Cubemap::_cubemaps;
 
@@ -65,24 +65,24 @@ std::shared_ptr<Cubemap> Cubemap::create(const std::string& name)
     return (cubemap);
 }
 
-VEC3 outImgToXYZ(float u, float v, int faceIdx)
+glm::vec3 outImgToXYZ(float u, float v, int faceIdx)
 {
-    VEC3 xyz;
+    glm::vec3 xyz;
     auto a = 2.0 * u;
     auto b = 2.0 * v;
 
     if (faceIdx == 0) // back
-        xyz = new_vec3(-1.0, 1.0 - a, 1.0 - b);
+        xyz = glm::vec3(-1.0, 1.0 - a, 1.0 - b);
     else if (faceIdx == 1) // left
-        xyz = new_vec3(a - 1.0, -1.0, 1.0 - b);
+        xyz = glm::vec3(a - 1.0, -1.0, 1.0 - b);
     else if (faceIdx == 2) // front)
-        xyz = new_vec3(1.0, a - 1.0, 1.0 - b);
+        xyz = glm::vec3(1.0, a - 1.0, 1.0 - b);
     else if (faceIdx == 3) // right)
-        xyz = new_vec3(1.0 - a, 1.0, 1.0 - b);
+        xyz = glm::vec3(1.0 - a, 1.0, 1.0 - b);
     else if (faceIdx == 4) // top
-        xyz = new_vec3(b - 1.0, a - 1.0, 1.0);
+        xyz = glm::vec3(b - 1.0, a - 1.0, 1.0);
     else if (faceIdx == 5) // bottom
-        xyz = new_vec3(1.0 - b, a - 1.0, -1.0);
+        xyz = glm::vec3(1.0 - b, a - 1.0, -1.0);
     return (xyz);
 }
 
@@ -142,9 +142,9 @@ void generate_side(std::shared_ptr<Texture> fromTexture, std::shared_ptr<Texture
             }
             u = u / 2.0f + 0.5f;
             v = v / 2.0f + 0.5f;
-            auto nuv = vec2_div(new_vec2(y, x), t->size());
-            auto val = fromTexture->sample(new_vec2(u, v));
-            t->set_pixel(new_vec2(nuv.x, nuv.y), val);
+            auto nuv = glm::vec2(y, x) / t->size();
+            auto val = fromTexture->sample(glm::vec2(u, v));
+            t->set_pixel(glm::vec2(nuv.x, nuv.y), val);
         }
     }
     std::cout << "." << std::flush;
@@ -159,7 +159,7 @@ std::shared_ptr<Cubemap> Cubemap::create(const std::string& name, std::shared_pt
     std::vector<std::thread> threads;
     for (auto i = 0; i < 6; ++i) {
         auto side_res = fromTexture->size().x / 4.f;
-        auto sideTexture = Texture::create(fromTexture->name() + "_side_" + std::to_string(i), new_vec2(side_res, side_res), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
+        auto sideTexture = Texture::create(fromTexture->name() + "_side_" + std::to_string(i), glm::vec2(side_res, side_res), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
         threads.push_back(std::thread(generate_side, fromTexture, sideTexture, i));
         cubemap->set_side(i, sideTexture);
     }

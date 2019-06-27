@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:53:37
+* @Last Modified time: 2019-06-27 17:36:56
 */
 
 #include "Shader.hpp"
@@ -121,7 +121,7 @@ void Shader::set_uniform(const std::string& name, const float& value, unsigned n
     }
 }
 
-void Shader::set_uniform(const std::string& name, const VEC2& value, unsigned nbr)
+void Shader::set_uniform(const std::string& name, const glm::vec2& value, unsigned nbr)
 {
     auto v = get_uniform(name);
     if (v == nullptr) {
@@ -138,7 +138,7 @@ void Shader::set_uniform(const std::string& name, const VEC2& value, unsigned nb
     }
 }
 
-void Shader::set_uniform(const std::string& name, const VEC3& value, unsigned nbr)
+void Shader::set_uniform(const std::string& name, const glm::vec3& value, unsigned nbr)
 {
     auto v = get_uniform(name);
     if (v == nullptr) {

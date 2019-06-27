@@ -2,12 +2,11 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:28:01
+* @Last Modified time: 2019-06-27 17:28:07
 */
 
 #pragma once
 
-//#include "GLIncludes.hpp"
 #include <SDL2/SDL.h>
 
 class InputDevice {

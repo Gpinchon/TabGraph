@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:26:41
+* @Last Modified time: 2019-06-27 18:02:54
 */
 
 #pragma once
@@ -11,7 +11,7 @@
 #include <string>      // for string
 #include <vector>      // for vector
 #include "Object.hpp"  // for Object
-#include "vml.h"       // for VEC3, VEC2
+#include "glm/glm.hpp"       // for glm::vec3, glm::vec2
 
 class Shader;
 class Texture;
@@ -41,10 +41,10 @@ public:
     void set_texture_roughness(std::shared_ptr<Texture>);
     void set_texture_metallic(std::shared_ptr<Texture>);
     void set_texture_ao(std::shared_ptr<Texture>);
-    VEC3 albedo{ 0, 0, 0 };
-    VEC3 specular{ 0.04, 0.04, 0.04 };
-    VEC3 emitting{ 0, 0, 0 };
-    VEC2 uv_scale{ 1, 1 };
+    glm::vec3 albedo{ 0, 0, 0 };
+    glm::vec3 specular{ 0.04, 0.04, 0.04 };
+    glm::vec3 emitting{ 0, 0, 0 };
+    glm::vec2 uv_scale{ 1, 1 };
     float roughness{ 0.5 };
     float metallic{ 0 };
     float alpha{ 1 };

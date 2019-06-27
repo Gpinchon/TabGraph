@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:31:20
+* @Last Modified time: 2019-06-27 17:30:35
 */
 
 #pragma once
@@ -11,13 +11,16 @@
 #include <string>      // for string
 #include <vector>      // for vector
 #include "Object.hpp"  // for Object
-#include "vml.h"       // for mat4_identity, mat4_zero, VEC3, MAT4
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
+//#include "glm"       // for mat4_identity, mat4_zero, glm::vec3, MAT4
 
 class BoundingElement;
 
 class Node : public Object {
 public:
-    static std::shared_ptr<Node> create(const std::string& name, VEC3 position, VEC3 rotation, VEC3 scale);
+    static std::shared_ptr<Node> create(const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
     static std::shared_ptr<Node> get_by_name(const std::string&);
     static std::shared_ptr<Node> Get(unsigned index);
     static void add(std::shared_ptr<Node>);
@@ -26,14 +29,14 @@ public:
     virtual void FixedUpdate();
     virtual void Update();
     virtual ~Node() = default;
-    MAT4& transform();
-    MAT4& translate();
-    MAT4& rotate();
-    MAT4& scale();
-    VEC3& position();
-    VEC3& rotation();
-    VEC3& scaling();
-    VEC3& up();
+    glm::mat4& transform();
+    glm::mat4& translate();
+    glm::mat4& rotate();
+    glm::mat4& scale();
+    glm::vec3& position();
+    glm::vec3& rotation();
+    glm::vec3& scaling();
+    glm::vec3& up();
     std::shared_ptr<Node> target();
     std::shared_ptr<Node> parent();
     void set_target(std::shared_ptr<Node>);
@@ -47,14 +50,14 @@ protected:
     std::vector<std::weak_ptr<Node>> _children;
     std::weak_ptr<Node> _target;
     std::weak_ptr<Node> _parent;
-    VEC3 _position{ 0, 0, 0 };
-    VEC3 _rotation{ 0, 0, 0 };
-    VEC3 _scaling{ 1, 1, 1 };
-    VEC3 _up{ 0, 1, 0 };
-    MAT4 _transform{ mat4_identity() };
-    MAT4 _translate{ mat4_zero() };
-    MAT4 _rotate{ mat4_zero() };
-    MAT4 _scale{ mat4_identity() };
+    glm::vec3 _position{ 0, 0, 0 };
+    glm::vec3 _rotation{ 0, 0, 0 };
+    glm::vec3 _scaling{ 1, 1, 1 };
+    glm::vec3 _up{ 0, 1, 0 };
+    glm::mat4 _transform{ glm::identity<glm::mat4>() };
+    glm::mat4 _translate{ glm::zero<glm::mat4>() };
+    glm::mat4 _rotate{ glm::zero<glm::mat4>() };
+    glm::mat4 _scale{ glm::identity<glm::mat4>() };
 
 private:
     static std::vector<std::shared_ptr<Node>> _nodes;

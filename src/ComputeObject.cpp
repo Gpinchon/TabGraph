@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 13:58:51
+* @Last Modified time: 2019-06-27 17:32:00
 */
 
 #include "ComputeObject.hpp"
@@ -22,7 +22,7 @@ std::shared_ptr<ComputeObject> ComputeObject::create(const std::string& name, st
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &workgroup_count[2]);
     auto obj = std::shared_ptr<ComputeObject>(new ComputeObject(name));
     obj->_shader = computeShader;
-    obj->_num_groups = new_vec3(workgroup_count[0], workgroup_count[1], workgroup_count[2]);
+    obj->_num_groups = glm::vec3(workgroup_count[0], workgroup_count[1], workgroup_count[2]);
     Node::add(obj);
     return (obj);
 }
@@ -94,12 +94,12 @@ void ComputeObject::set_memory_barrier(GLbitfield barrier)
     _memory_barrier = barrier;
 }
 
-VEC3 ComputeObject::num_groups()
+glm::ivec3 ComputeObject::num_groups()
 {
     return (_num_groups);
 }
 
-void ComputeObject::set_num_groups(VEC3 groups)
+void ComputeObject::set_num_groups(glm::ivec3 groups)
 {
     _num_groups = groups;
 }

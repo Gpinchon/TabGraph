@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 15:54:21
+* @Last Modified time: 2019-06-27 17:30:35
 */
 
 #pragma once
@@ -12,7 +12,7 @@
 #include <string>     // for string
 #include <vector>     // for vector
 #include "Node.hpp"   // for Node
-#include "vml.h"      // for VEC3, s_vec3
+#include "glm/glm.hpp"      // for glm::vec3, s_vec3
 
 class Shader;  // lines 12-12
 class Texture;  // lines 13-13
@@ -28,9 +28,9 @@ public:
     virtual void set_shader(std::shared_ptr<Shader>);
     virtual void load();
     virtual void run();
-    VEC3 num_groups();
+    glm::ivec3 num_groups();
     GLbitfield memory_barrier();
-    void set_num_groups(VEC3);
+    void set_num_groups(glm::ivec3);
     void set_memory_barrier(GLbitfield);
 
 protected:
@@ -39,6 +39,6 @@ protected:
     std::weak_ptr<Texture> _out_texture;
     std::weak_ptr<Shader> _shader;
     GLbitfield _memory_barrier{ GL_ALL_BARRIER_BITS };
-    VEC3 _num_groups{ 0, 0, 0 };
+    glm::ivec3 _num_groups{ 0, 0, 0 };
     ComputeObject(const std::string& name);
 };

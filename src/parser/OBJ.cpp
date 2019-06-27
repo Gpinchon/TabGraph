@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 12:01:20
+* @Last Modified time: 2019-06-27 17:36:56
 */
 
 #include "parser/OBJ.hpp"
@@ -25,12 +25,12 @@
 #include "Vgroup.hpp"                // for Vgroup, CVEC4
 #include "parser/InternalTools.hpp"  // for t_obj_parser, count_char, split_...
 #include "parser/MTLLIB.hpp"         // for parse
-#include "vml.h"                     // for s_vec3, s_vec2, new_vec2, VEC3
+#include "glm"                     // for s_vec3, s_vec2, glm::vec2, glm::vec3
 
 //Add this parser to MeshParser !
 auto __objParser = MeshParser::add("obj", OBJ::parse);
 
-static void push_values(t_obj_parser* p, VEC3* v, VEC3* vn, VEC2* vt)
+static void push_values(t_obj_parser* p, glm::vec3* v, glm::vec3* vn, glm::vec2* vt)
 {
     unsigned i;
     CVEC4 ub{ 0, 0, 0, 0 };
@@ -57,7 +57,7 @@ static void push_values(t_obj_parser* p, VEC3* v, VEC3* vn, VEC2* vt)
     }
 }
 
-static int get_vi(const std::vector<VEC2>& v, const std::string& str)
+static int get_vi(const std::vector<glm::vec2>& v, const std::string& str)
 {
     int vindex;
 
@@ -73,7 +73,7 @@ static int get_vi(const std::vector<VEC2>& v, const std::string& str)
     return (vindex);
 }
 
-static int get_vi(const std::vector<VEC3>& v, const std::string& str)
+static int get_vi(const std::vector<glm::vec3>& v, const std::string& str)
 {
     int vindex;
 
@@ -122,7 +122,7 @@ static void parse_indice(t_obj_parser* p, std::vector<std::string>& split, int v
     }
 }
 
-static void parse_vn(t_obj_parser* p, int vindex[3][3], VEC3 v[3], VEC3 vn[3])
+static void parse_vn(t_obj_parser* p, int vindex[3][3], glm::vec3 v[3], glm::vec3 vn[3])
 {
     short i;
 
@@ -137,12 +137,12 @@ static void parse_vn(t_obj_parser* p, int vindex[3][3], VEC3 v[3], VEC3 vn[3])
     }
 }
 
-void parse_v(t_obj_parser* p, std::vector<std::string>& split, VEC2* in_vt)
+void parse_v(t_obj_parser* p, std::vector<std::string>& split, glm::vec2* in_vt)
 {
     int vindex[3][3];
-    VEC3 v[3];
-    VEC3 vn[3];
-    VEC2 vt[3];
+    glm::vec3 v[3];
+    glm::vec3 vn[3];
+    glm::vec2 vt[3];
     short i;
 
     parse_indice(p, split, vindex);
@@ -154,7 +154,7 @@ void parse_v(t_obj_parser* p, std::vector<std::string>& split, VEC2* in_vt)
         v[i] = p->v[vindex[0][i]];
         if (vindex[2][i] != -1) {
             vt[i] = p->vt[vindex[2][i]];
-            in_vt = (VEC2*)0x1;
+            in_vt = (glm::vec2*)0x1;
         } else {
             vt[i] = in_vt != nullptr ? in_vt[i] : generate_vt(v[i], p->bbox.center);
         }
@@ -169,8 +169,8 @@ void parse_v(t_obj_parser* p, std::vector<std::string>& split, VEC2* in_vt)
 
 static void vt_min_max(std::shared_ptr<Vgroup> vg)
 {
-    vg->uvmin = new_vec2(100000, 100000);
-    vg->uvmax = new_vec2(-100000, -100000);
+    vg->uvmin = glm::vec2(100000, 100000);
+    vg->uvmax = glm::vec2(-100000, -100000);
     for (auto& vt : vg->vt) {
         if (vt.x < vg->uvmin.x) {
             vg->uvmin.x = vt.x;
@@ -212,10 +212,10 @@ void parse_vg(t_obj_parser* p, const std::string& name)
     }
 }
 
-void correct_vt(VEC2* vt)
+void correct_vt(glm::vec2* vt)
 {
-    VEC3 v[3];
-    VEC3 texnormal{ 0, 0, 0 };
+    glm::vec3 v[3];
+    glm::vec3 texnormal{ 0, 0, 0 };
 
     v[0] = vec2_to_vec3(vt[0], 0);
     v[1] = vec2_to_vec3(vt[1], 0);
@@ -234,10 +234,10 @@ void correct_vt(VEC2* vt)
     }
 }
 
-VEC2 generate_vt(VEC3 v, VEC3 center)
+glm::vec2 generate_vt(glm::vec3 v, glm::vec3 center)
 {
-    VEC2 vt{ 0, 0 };
-    VEC3 vec{ 0, 0, 0 };
+    glm::vec2 vt{ 0, 0 };
+    glm::vec3 vec{ 0, 0, 0 };
 
     vec = vec3_normalize(vec3_sub(center, v));
     vt.x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));
@@ -245,13 +245,13 @@ VEC2 generate_vt(VEC3 v, VEC3 center)
     return (vt);
 }
 
-VEC3 generate_vn(VEC3* v)
+glm::vec3 generate_vn(glm::vec3* v)
 {
     return (vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]),
         vec3_sub(v[2], v[0]))));
 }
 
-VEC3 parse_vec3(std::vector<std::string>& split)
+glm::vec3 parse_vec3(std::vector<std::string>& split)
 {
     float v[3];
     unsigned i;
@@ -265,10 +265,10 @@ VEC3 parse_vec3(std::vector<std::string>& split)
         v[i] = std::stof(split[i + 1]);
         i++;
     }
-    return (new_vec3(v[0], v[1], v[2]));
+    return (glm::vec3(v[0], v[1], v[2]));
 }
 
-VEC2 parse_vec2(std::vector<std::string>& split)
+glm::vec2 parse_vec2(std::vector<std::string>& split)
 {
     float v[2];
     unsigned i;
@@ -282,13 +282,13 @@ VEC2 parse_vec2(std::vector<std::string>& split)
         v[i] = std::stof(split[i + 1]);
         i++;
     }
-    return (new_vec2(v[0], v[1]));
+    return (glm::vec2(v[0], v[1]));
 }
 
 void parse_vtn(t_obj_parser* p, std::vector<std::string>& split)
 {
-    VEC3 v{ 0, 0, 0 };
-    VEC2 vt{ 0, 0 };
+    glm::vec3 v{ 0, 0, 0 };
+    glm::vec2 vt{ 0, 0 };
 
     if (split[0] == "v") {
         v = parse_vec3(split);
@@ -323,11 +323,11 @@ static void parse_f(t_obj_parser* p, std::vector<std::string>& split)
     while (i < faces) {
         if (faces == 2 && i == 0) {
             auto lesplit = std::vector<std::string>({ split[0], split[i + 1], split[i + 2] });
-            auto levector = std::vector<VEC2>({ new_vec2(0, 0), new_vec2(0, 1), new_vec2(1, 1) });
+            auto levector = std::vector<glm::vec2>({ glm::vec2(0, 0), glm::vec2(0, 1), glm::vec2(1, 1) });
             parse_v(p, lesplit, &levector[0]);
         } else if (faces == 2 && i >= 1) {
             auto lesplit = std::vector<std::string>({ split[0], split[i + 1], split[i + 2] });
-            auto levector = std::vector<VEC2>({ new_vec2(0, 0), new_vec2(1, 1), new_vec2(1, 0) });
+            auto levector = std::vector<glm::vec2>({ glm::vec2(0, 0), glm::vec2(1, 1), glm::vec2(1, 0) });
             parse_v(p, lesplit, &levector[0]);
         } else {
             auto lesplit = std::vector<std::string>({ split[0], split[i + 1], split[i + 2] });

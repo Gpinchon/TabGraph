@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:28:47
+* @Last Modified time: 2019-06-27 18:14:43
 */
 
 #pragma once
@@ -12,7 +12,7 @@
 #include <string>          // for string
 #include <vector>          // for vector
 #include "Renderable.hpp"  // for RenderAll, RenderMod, Renderable
-#include "vml.h"           // for VEC2, s_vec2, s_vec3, VEC3
+#include "glm/glm.hpp"           // for glm::vec2, s_vec2, s_vec3, glm::vec3
 
 class Material;  // lines 20-20
 class VertexArray;  // lines 19-19
@@ -35,12 +35,12 @@ public:
     void load() override;
     bool render(RenderMod mod = RenderAll) override;
     bool render_depth(RenderMod mod = RenderAll) override;
-    void center(VEC3& center);
-    VEC2 uvmin;
-    VEC2 uvmax;
-    std::vector<VEC3> v;
+    void center(glm::vec3& center);
+    glm::vec2 uvmin;
+    glm::vec2 uvmax;
+    std::vector<glm::vec3> v;
     std::vector<CVEC4> vn;
-    std::vector<VEC2> vt;
+    std::vector<glm::vec2> vt;
     std::vector<unsigned> i;
 
 protected:

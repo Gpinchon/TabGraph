@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 15:53:29
+* @Last Modified time: 2019-06-27 17:36:56
 */
 
 #include "Terrain.hpp"
@@ -32,10 +32,12 @@ Terrain::Terrain(const std::string &name) : Mesh(name)
 #include <limits>
 
 std::shared_ptr<Terrain> Terrain::create(const std::string& name,
-    VEC2 resolution, VEC3 scale, std::shared_ptr<Texture> texture)
+    glm::vec2 resolution, glm::vec3 scale, std::shared_ptr<Texture> texture)
 {
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
     terrain->_terrainData = texture;
+    terrain->_terrainResolution = resolution;
+    terrain->_terrainSize = scale;
     Mesh::add(terrain);
     Renderable::add(terrain);
     Node::add(terrain);
@@ -49,12 +51,12 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     myfile.open(name + ".txt");
     for (auto y = 0.f; y < resolution.y; y++) {
         for (auto x = 0.f; x < resolution.x; x++) {
-            auto uv = new_vec2(x / resolution.x, y / resolution.y);
+            auto uv = glm::vec2(x / resolution.x, y / resolution.y);
             auto z = 0.f;
             if (texture) {
                 z = texture->sample(uv).x;
                
-                //VEC2    texUV;
+                //glm::vec2    texUV;
                 //texUV.x = uv.x * texture->size().x;
                 //texUV.y = uv.y * texture->size().y;
                 //z = ((float*)texture->texelfetch(texUV))[0];
@@ -65,7 +67,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
             }
             vg->vt.at(uint32_t(x + y * resolution.x)) = uv;
             auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
-            v3 = new_vec3(uv.x * scale.x - scale.x / 2.f, z * scale.y, uv.y * scale.z - scale.z / 2.f);
+            v3 = glm::vec3(uv.x * scale.x - scale.x / 2.f, z * scale.y, uv.y * scale.z - scale.z / 2.f);
 
             if (x < resolution.x - 1 && y < resolution.y - 1) {
                 vg->i.push_back(uint32_t(x + y * resolution.x));
@@ -95,10 +97,10 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         auto &n1 = vg->vn.at(i1);
         auto &n2 = vg->vn.at(i2);
 
-        VEC3 N0 = new_vec3((n0.x / 255.f) * 2 - 1, (n0.y / 255.f) * 2 - 1, (n0.z / 255.f) * 2 - 1);
-        VEC3 N1 = new_vec3((n1.x / 255.f) * 2 - 1, (n1.y / 255.f) * 2 - 1, (n1.z / 255.f) * 2 - 1);
-        VEC3 N2 = new_vec3((n2.x / 255.f) * 2 - 1, (n2.y / 255.f) * 2 - 1, (n2.z / 255.f) * 2 - 1);
-        VEC3 N;
+        glm::vec3 N0 = glm::vec3((n0.x / 255.f) * 2 - 1, (n0.y / 255.f) * 2 - 1, (n0.z / 255.f) * 2 - 1);
+        glm::vec3 N1 = glm::vec3((n1.x / 255.f) * 2 - 1, (n1.y / 255.f) * 2 - 1, (n1.z / 255.f) * 2 - 1);
+        glm::vec3 N2 = glm::vec3((n2.x / 255.f) * 2 - 1, (n2.y / 255.f) * 2 - 1, (n2.z / 255.f) * 2 - 1);
+        glm::vec3 N;
         N = vec3_cross(vec3_sub(v1, v0), vec3_sub(v2, v0));
         N = vec3_normalize(N);
         if ((N0.x + N0.y + N0.z) == 0) {
@@ -136,7 +138,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         n2.z = ((N2.z + 1) * 0.5) * 255.f;
     }
     auto mtl = Material::create("default_terrain");
-    mtl->albedo = new_vec3(0.5, 0.5, 0.5);
+    mtl->albedo = glm::vec3(0.5, 0.5, 0.5);
     mtl->roughness = 0.5;
     vg->set_material(mtl);
     terrain->add(vg);
@@ -164,9 +166,9 @@ void    printBTHeader(BTHeader &header)
     " padding :       " << header.padding << "\n" << std::endl;
 }
 
-std::shared_ptr<Terrain> Terrain::create(const std::string& name, VEC2 resolution, const std::string &path)
+std::shared_ptr<Terrain> Terrain::create(const std::string& name, glm::vec2 resolution, const std::string &path)
 {
-    auto    terrainScale = new_vec3(1, 0.00001, 1);
+    auto    terrainScale = glm::vec3(1, 0.00001, 1);
     if (fileFormat(path) == "bt" || fileFormat(path) == "BT") {
         BTHeader    header;
         size_t      readSize;

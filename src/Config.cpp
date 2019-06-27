@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 15:55:50
+* @Last Modified time: 2019-06-27 17:34:01
 */
 
 #include "Config.hpp"
@@ -59,7 +59,7 @@ void Config::Load(const std::string& path)
     }
 }
 
-VEC2& Config::WindowSize()
+glm::ivec2& Config::WindowSize()
 {
     return (_get()->_windowSize);
 }

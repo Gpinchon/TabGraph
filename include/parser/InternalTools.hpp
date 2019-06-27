@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:26:03
+* @Last Modified time: 2019-06-27 17:36:55
 */
 
 #pragma once
@@ -23,9 +23,9 @@
 struct t_obj_parser {
     std::vector<std::string> path_split;
     FILE* fd{ nullptr };
-    std::vector<VEC3> v;
-    std::vector<VEC3> vn;
-    std::vector<VEC2> vt;
+    std::vector<glm::vec3> v;
+    std::vector<glm::vec3> vn;
+    std::vector<glm::vec2> vt;
     std::shared_ptr<Mesh> parent;
     std::shared_ptr<Vgroup> vg;
     AABB bbox;
@@ -91,14 +91,14 @@ struct t_bmp_parser {
 };
 
 std::string access_get_error(const int& access_result);
-VEC3 parse_vec3(std::vector<std::string>& split);
-VEC2 parse_vec2(std::vector<std::string>& split);
+glm::vec3 parse_vec3(std::vector<std::string>& split);
+glm::vec2 parse_vec2(std::vector<std::string>& split);
 void parse_vg(t_obj_parser* p, const std::string& name = "");
-void parse_v(t_obj_parser* p, std::vector<std::string>& split, VEC2* in_vt);
+void parse_v(t_obj_parser* p, std::vector<std::string>& split, glm::vec2* in_vt);
 void parse_vtn(t_obj_parser* p, std::vector<std::string>& split);
-void correct_vt(VEC2* vt);
-VEC2 generate_vt(VEC3 v, VEC3 center);
-VEC3 generate_vn(VEC3* v);
+void correct_vt(glm::vec2* vt);
+glm::vec2 generate_vt(glm::vec3 v, glm::vec3 center);
+glm::vec3 generate_vn(glm::vec3* v);
 std::string strjoin(char const* s1, char const* s2);
 std::vector<std::string> split_path(const std::string& path);
 std::vector<std::string> strsplit(const std::string& s, char c);

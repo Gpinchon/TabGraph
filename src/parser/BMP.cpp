@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:33:12
+* @Last Modified time: 2019-06-27 17:35:50
 */
 
 #include "parser/BMP.hpp"
@@ -17,7 +17,7 @@
 #include <stdexcept>                 // for runtime_error
 #include "Texture.hpp"               // for Texture
 #include "parser/InternalTools.hpp"  // for t_bmp_parser, t_bmp_info, t_bmp_...
-#include "vml.h"                     // for s_vec2, new_vec2
+#include "glm"                     // for s_vec2, glm::vec2
 
 static void prepare_header(t_bmp_header* header, t_bmp_info* info, std::shared_ptr<Texture> t)
 {
@@ -145,7 +145,7 @@ std::shared_ptr<Texture> BMP::parse(const std::string& texture_name, const std::
         throw std::runtime_error(std::string("Error parsing ") + path + " : " + e.what());
     }
     get_format(parser.info.bpp, &format[0], &format[1]);
-    auto t = Texture::create(texture_name, new_vec2(parser.info.width, parser.info.height),
+    auto t = Texture::create(texture_name, glm::vec2(parser.info.width, parser.info.height),
         GL_TEXTURE_2D, format[0], format[1], GL_UNSIGNED_BYTE, parser.data);
     t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     return (t);

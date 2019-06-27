@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:53:58
+* @Last Modified time: 2019-06-27 17:36:57
 */
 
 #pragma once
@@ -14,7 +14,7 @@
 #include <unordered_map>  // for unordered_map
 #include <vector>         // for vector
 #include "Object.hpp"     // for Object
-#include "vml.h"          // for MAT4, VEC2, VEC3
+#include "glm/glm.hpp"          // for MAT4, glm::vec2, glm::vec3
 
 class Texture;  // lines 16-16
 
@@ -46,9 +46,9 @@ public:
     void set_uniform(const std::string& uname, const int&, unsigned nbr = 1);
     void set_uniform(const std::string& uname, const unsigned&, unsigned nbr = 1);
     void set_uniform(const std::string& uname, const float&, unsigned nbr = 1);
-    void set_uniform(const std::string& uname, const VEC2&, unsigned nbr = 1);
-    void set_uniform(const std::string& uname, const VEC3&, unsigned nbr = 1);
-    void set_uniform(const std::string& uname, const MAT4&, unsigned nbr = 1);
+    void set_uniform(const std::string& uname, const glm::vec2&, unsigned nbr = 1);
+    void set_uniform(const std::string& uname, const glm::vec3&, unsigned nbr = 1);
+    void set_uniform(const std::string& uname, const glm::mat4&, unsigned nbr = 1);
     void use(const bool& use_program = true);
     ShaderVariable* get_uniform(const std::string& name);
     bool in_use();

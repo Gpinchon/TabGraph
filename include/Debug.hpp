@@ -2,12 +2,12 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:34
+* @Last Modified time: 2019-06-27 17:26:30
 */
 
 #pragma once
 
-#include "GLIncludes.hpp"
+#include <GL/glew.h>
 #include <iostream>
 
 #define consoleLog(message) std::cout << message << std::endl;

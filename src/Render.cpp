@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:59:51
+* @Last Modified time: 2019-06-27 17:36:56
 */
 
 #include "Render.hpp"
@@ -31,7 +31,7 @@
 #include "Window.hpp"        // for Window
 #include "brdfLUT.hpp"       // for brdfLUT
 #include "parser/GLSL.hpp"   // for GLSL, LightingShader, PostShader
-#include "vml.h"             // for mat4_inverse, vec2_scale, vec3_scale
+#include "glm"             // for mat4_inverse, vec2_scale, vec3_scale
 
 class RenderPrivate {
     public :
@@ -111,7 +111,7 @@ const std::shared_ptr<VertexArray> RenderPrivate::DisplayQuad()
 
 //Render* RenderPrivate::_instance = nullptr;
 
-std::shared_ptr<Framebuffer> create_render_buffer(const std::string& name, const VEC2& size)
+std::shared_ptr<Framebuffer> create_render_buffer(const std::string& name, const glm::vec2& size)
 {
     auto buffer = Framebuffer::create(name, size, 0, 1);
     buffer->create_attachement(GL_RGBA, GL_RGBA8); // Albedo;
@@ -124,7 +124,7 @@ std::shared_ptr<Framebuffer> create_render_buffer(const std::string& name, const
     return (buffer);
 }
 
-std::shared_ptr<Framebuffer> create_back_buffer(const std::string& name, const VEC2& size)
+std::shared_ptr<Framebuffer> create_back_buffer(const std::string& name, const glm::vec2& size)
 {
     auto buffer = Framebuffer::create(name, size, 0, 1);
     buffer->create_attachement(GL_RGBA, GL_RGBA8); // Color;
@@ -226,7 +226,7 @@ void RenderPrivate::FixedUpdate()
         shader->set_uniform("Camera.Matrix.Projection", Camera::current()->projection());
         shader->set_uniform("Camera.InvMatrix.View", InvViewMatrix);
         shader->set_uniform("Camera.InvMatrix.Projection", InvProjMatrix);
-        shader->set_uniform("Resolution", new_vec3(res.x, res.y, res.x / res.y));
+        shader->set_uniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));
         shader->set_uniform("Time", SDL_GetTicks() / 1000.f);
         shader->use(false);
         index++;
@@ -375,7 +375,7 @@ void RenderPrivate::Scene()
 {
     static std::shared_ptr<Texture> brdf;
     if (brdf == nullptr) {
-        brdf = Texture::create("brdf", new_vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
+        brdf = Texture::create("brdf", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
         brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:26:00
+* @Last Modified time: 2019-06-27 17:30:36
 */
 
 #include "Vgroup.hpp"
@@ -127,7 +127,7 @@ bool Vgroup::render(RenderMod mod)
     return (true);
 }
 
-void Vgroup::center(VEC3& center)
+void Vgroup::center(glm::vec3& center)
 {
     for (auto& vec : v) {
         vec = vec3_sub(vec, center);

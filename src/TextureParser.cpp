@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-04-04 13:53:19
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 12:03:54
+* @Last Modified time: 2019-06-27 17:35:50
 */
 
 #include <GL/glew.h>                 // for GL_COMPRESSED_RGB, GL_COMPRESSED...
@@ -23,7 +23,7 @@
 #include "Texture.hpp"               // for Texture
 #include "TextureParser.hpp"         // for TextureParser, TextureParsingFun...
 #include "parser/InternalTools.hpp"  // for fileFormat
-#include "vml.h"                     // for new_vec2
+#include "glm/glm.hpp"                     // for glm::vec2
 
 #define SDL_LOCKIFMUST(s) (SDL_MUSTLOCK(s) ? SDL_LockSurface(s) : 0)
 #define SDL_UNLOCKIFMUST(s) { if(SDL_MUSTLOCK(s)) SDL_UnlockSurface(s); }
@@ -103,7 +103,7 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
     debugLog(hexToString(surface->format->Bmask));
     debugLog(hexToString(surface->format->Amask));
 
-    auto texture = Texture::create(name, new_vec2(surface->w, surface->h), GL_TEXTURE_2D,
+    auto texture = Texture::create(name, glm::vec2(surface->w, surface->h), GL_TEXTURE_2D,
     textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     SDL_FreeSurface(surface);
     return (texture);

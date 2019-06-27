@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 12:03:09
+* @Last Modified time: 2019-06-27 17:37:25
 */
 
 #include "Texture.hpp"
@@ -26,7 +26,7 @@ Texture::Texture(const std::string& name)
 {
 }
 
-Texture::Texture(const std::string& iname, VEC2 s, GLenum target, GLenum f,
+Texture::Texture(const std::string& iname, glm::vec2 s, GLenum target, GLenum f,
     GLenum fi, GLenum data_format, void* data)
     : Texture(iname)
 {
@@ -45,7 +45,7 @@ Texture::Texture(const std::string& iname, VEC2 s, GLenum target, GLenum f,
     }
 }
 
-std::shared_ptr<Texture> Texture::create(const std::string& name, VEC2 s,
+std::shared_ptr<Texture> Texture::create(const std::string& name, glm::vec2 s,
     GLenum target, GLenum f, GLenum fi,
     GLenum data_format, void* data)
 {
@@ -118,7 +118,7 @@ size_t Texture::get_data_size(GLenum data_format)
 
 GLenum Texture::target() const { return (_target); }
 
-VEC2 Texture::size() const { return (_size); }
+glm::vec2 Texture::size() const { return (_size); }
 
 void* Texture::data() const { return (_data); }
 
@@ -151,7 +151,7 @@ void Texture::load()
         return;
     }
     if (Config::MaxTexRes() > 0 && _data && (_size.x > Config::MaxTexRes() || _size.y > Config::MaxTexRes())) {
-        resize(new_vec2(std::min(int16_t(_size.x), Config::MaxTexRes()),
+        resize(glm::vec2(std::min(int16_t(_size.x), Config::MaxTexRes()),
             std::min(int16_t(_size.y), Config::MaxTexRes())));
     }
     if (_glid == 0u) {
@@ -203,12 +203,12 @@ size_t Texture::values_per_pixel()
     return (_data_size ? _bpp / _data_size / 8 : 0);
 }
 
-GLubyte* Texture::texelfetch(const VEC2& uv)
+GLubyte* Texture::texelfetch(const glm::vec2& uv)
 {
     if (_data == nullptr) {
         return (nullptr);
     }
-    auto nuv = new_vec2(
+    auto nuv = glm::vec2(
         CLAMP(int(uv.x), 0, int(_size.x - 1)),
         CLAMP(int(uv.y), 0, int(_size.y - 1))
         );
@@ -216,10 +216,10 @@ GLubyte* Texture::texelfetch(const VEC2& uv)
     return (&_data[int(_size.x * nuv.y + nuv.x) * opp]);
 }
 
-void Texture::set_pixel(const VEC2& uv, const VEC4 value)
+void Texture::set_pixel(const glm::vec2& uv, const glm::vec4 value)
 {
     int opp;
-    VEC4 val{ 0, 0, 0, 1 };
+    glm::vec4 val{ 0, 0, 0, 1 };
 
     opp = _bpp / 8;
     val = value;
@@ -237,7 +237,7 @@ void Texture::set_pixel(const VEC2& uv, const VEC4 value)
     }
 }
 
-void Texture::set_pixel(const VEC2& uv, const GLubyte* value)
+void Texture::set_pixel(const glm::vec2& uv, const GLubyte* value)
 {
     int opp;
 
@@ -294,26 +294,26 @@ void Texture::restore_parameters()
     }
 }
 
-VEC4 Texture::sample(const VEC2& uv)
+glm::vec4 Texture::sample(const glm::vec2& uv)
 {
-    VEC3 vt[4];
-    VEC4 value{ 0, 0, 0, 1 };
+    glm::vec3 vt[4];
+    glm::vec4 value{ 0, 0, 0, 1 };
 
     if (_data == nullptr) {
         return (value);
     }
-    vt[0] = new_vec3(
+    vt[0] = glm::vec3(
         CLAMP(_size.x * uv.x, 0, _size.x - 1),
         CLAMP(_size.y * uv.y, 0, _size.y - 1),
         0);
-    auto nuv = new_vec2(fract(vt[0].x), fract(vt[0].y));
+    auto nuv = glm::vec2(fract(vt[0].x), fract(vt[0].y));
     vt[0].x = int(vt[0].x);
     vt[0].y = int(vt[0].y);
     vt[0].z = ((1 - nuv.x) * (1 - nuv.y));
-    vt[1] = new_vec3(std::min(_size.x - 1, vt[0].x + 1),
+    vt[1] = glm::vec3(std::min(_size.x - 1, vt[0].x + 1),
         std::min(_size.y - 1, vt[0].y + 1), (nuv.x * (1 - nuv.y)));
-    vt[2] = new_vec3(vt[0].x, vt[1].y, ((1 - nuv.x) * nuv.y));
-    vt[3] = new_vec3(vt[1].x, vt[0].y, (nuv.x * nuv.y));
+    vt[2] = glm::vec3(vt[0].x, vt[1].y, ((1 - nuv.x) * nuv.y));
+    vt[3] = glm::vec3(vt[1].x, vt[0].y, (nuv.x * nuv.y));
     auto opp = _bpp / 8;
     for (auto i = 0; i < 4; ++i) {
         auto d = &_data[int(vt[i].y * _size.x + vt[i].x) * opp];
@@ -329,7 +329,7 @@ VEC4 Texture::sample(const VEC2& uv)
 
 bool Texture::is_loaded() { return (_loaded); }
 
-void Texture::resize(const VEC2& ns)
+void Texture::resize(const glm::vec2& ns)
 {
     GLubyte* d;
 
@@ -339,7 +339,7 @@ void Texture::resize(const VEC2& ns)
         d = new GLubyte[unsigned(ns.x * ns.y * opp)];
         for (auto y = 0; y < ns.y; ++y) {
             for (auto x = 0; x < ns.x; ++x) {
-                auto uv = new_vec2(x / ns.x, y / ns.y);
+                auto uv = glm::vec2(x / ns.x, y / ns.y);
                 auto value = sample(uv);
                 auto p = &d[int(ns.x * y + x) * opp];
                 for (auto z = 0; z < int(opp / _data_size); ++z) {
@@ -402,8 +402,8 @@ void Texture::blur(const int& pass, const float& radius)
     std::shared_ptr<Texture> attachement;
     blurShader->use();
     while (totalPass > 0) {
-        VEC2 direction;
-        direction = mat2_mult_vec2(mat2_rotation(angle), new_vec2(1, 1));
+        glm::vec2 direction;
+        direction = mat2_mult_vec2(mat2_rotation(angle), glm::vec2(1, 1));
         direction = vec2_scale(direction, radius);
         if (totalPass == 1) {
             attachement = cbuffer->attachement(0);

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 12:00:26
+* @Last Modified time: 2019-06-27 17:30:13
 */
 
 #include "parser/MTLLIB.hpp"
@@ -17,7 +17,7 @@
 #include "Material.hpp"              // for Material
 #include "TextureParser.hpp"         // for TextureParser
 #include "parser/InternalTools.hpp"  // for parse_vec3, t_obj_parser, strspl...
-#include "vml.h"                     // for s_vec3, new_vec3, vec3_fdiv, CLAMP
+#include "glm"                     // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
 
 void parse_color(std::vector<std::string>& split, std::shared_ptr<Material> mtl)
 {
@@ -72,7 +72,7 @@ void parse_number(std::vector<std::string>& split, std::shared_ptr<Material> mtl
         mtl->ior = ior;
         ior = (ior - 1) / (ior + 1);
         ior *= ior;
-        mtl->specular = new_vec3(ior, ior, ior);
+        mtl->specular = glm::vec3(ior, ior, ior);
     } else if (split[0] == "Tr") {
         mtl->alpha = 1 - std::stof(split[1]);
     }

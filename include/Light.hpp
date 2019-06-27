@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:57:32
+* @Last Modified time: 2019-06-27 18:19:49
 */
 
 #pragma once
@@ -11,7 +11,7 @@
 #include <string>    // for string
 #include <vector>    // for vector
 #include "Node.hpp"  // for Node
-#include "vml.h"     // for VEC3
+#include "glm/glm.hpp"     // for glm::vec3
 
 class Framebuffer;
 
@@ -22,12 +22,12 @@ enum LightType {
 
 class Light : public Node {
 public:
-    static std::shared_ptr<Light> create(const std::string& name, VEC3 color, VEC3 position, float power);
+    static std::shared_ptr<Light> create(const std::string& name, glm::vec3 color, glm::vec3 position, float power);
     static std::shared_ptr<Light> get_by_name(const std::string&);
     static std::shared_ptr<Light> Get(unsigned index);
     static void add(std::shared_ptr<Light>);
     virtual void render_shadow();
-    VEC3& color();
+    glm::vec3& color();
     float& power();
     bool& cast_shadow();
     std::shared_ptr<Framebuffer> render_buffer();
@@ -36,7 +36,7 @@ public:
 
 protected:
     Light(const std::string& name);
-    VEC3 _color{ 0, 0, 0 };
+    glm::vec3 _color{ 0, 0, 0 };
     float _power{ 0 };
     bool _cast_shadow{ false };
     std::weak_ptr<Framebuffer> _render_buffer;
@@ -47,10 +47,10 @@ private:
 
 class DirectionnalLight : public Light {
 public:
-    static std::shared_ptr<DirectionnalLight> create(const std::string& name, VEC3 color, VEC3 position, float power, bool cast_shadow = false);
-    virtual void render_shadow();
-    virtual void transform_update();
-    virtual LightType type();
+    static std::shared_ptr<DirectionnalLight> create(const std::string& name, glm::vec3 color, glm::vec3 position, float power, bool cast_shadow = false);
+    virtual void render_shadow() override;
+    virtual void transform_update() override;
+    virtual LightType type() override;
 
 protected:
     DirectionnalLight(const std::string& name);

@@ -2,13 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 15:52:29
+* @Last Modified time: 2019-06-27 17:12:35
 */
 
 #include "Camera.hpp"
 #include <math.h>      // for sin, cos
-#include "Engine.hpp"  // for UP
-#include "Window.hpp"  // for Window
+#include <glm/ext.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include "Window.hpp"  // for Window 
 
 std::vector<std::shared_ptr<Camera>> Camera::_cameras;
 std::weak_ptr<Camera> Camera::_current;
@@ -58,33 +59,33 @@ void Camera::transform_update()
 {
     //Node::Update();
     if (nullptr != target()) {
-        transform() = mat4_lookat(position(), target()->position(), UP);
+        transform() = glm::lookAt(position(), target()->position(), up());
     }
     if (_projection_type == PerspectiveCamera) {
-        VEC2 size = Window::size();
-        _projection = mat4_perspective(_fov, size.x / size.y, _znear, _zfar);
+        auto size = Window::size();
+        _projection = glm::perspective(_fov, float(size.x) / float(size.y), _znear, _zfar);
     } else
-        _projection = mat4_orthographic(_frustum, _znear, _zfar);
+        _projection = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w);
 }
 
-MAT4& Camera::view()
+glm::mat4& Camera::view()
 {
-    return (transform());
+    return transform();
 }
 
-MAT4& Camera::projection()
+glm::mat4& Camera::projection()
 {
-    return (_projection);
+    return _projection;
 }
 
-FRUSTUM& Camera::frustum()
+glm::ivec4& Camera::frustum()
 {
-    return (_frustum);
+    return _frustum;
 }
 
 float& Camera::fov()
 {
-    return (_fov);
+    return _fov;
 }
 
 OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius)
@@ -105,19 +106,14 @@ std::shared_ptr<OrbitCamera> OrbitCamera::create(const std::string& iname, float
 
 void OrbitCamera::orbite(float phi, float theta, float radius)
 {
-    VEC3 target_position{ 0, 0, 0 };
-    VEC3 new_position = position();
+    glm::vec3 target_position(0, 0, 0);
 
     _phi = phi;
     _theta = theta;
     _radius = radius;
-    if (target() != nullptr) {
+    if (target() != nullptr)
         target_position = target()->position();
-    } else {
-        target_position = new_vec3(0, 0, 0);
-    }
-    new_position.x = target_position.x + _radius * sin(_phi) * cos(_theta);
-    new_position.z = target_position.z + _radius * sin(_phi) * sin(_theta);
-    new_position.y = target_position.y + _radius * cos(_phi);
-    position() = new_position;
+    position().x = target_position.x + _radius * sin(_phi) * cos(_theta);
+    position().z = target_position.z + _radius * sin(_phi) * sin(_theta);
+    position().y = target_position.y + _radius * cos(_phi);
 }

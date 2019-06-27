@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 15:52:09
+* @Last Modified time: 2019-06-27 17:36:55
 */
 
 #include <SDL2/SDL_events.h>          // for SDL_KeyboardEvent, SDL_Controll...
@@ -25,15 +25,15 @@
 #include "Node.hpp"                   // for Node
 #include "Renderable.hpp"             // for Renderable
 #include "scop.hpp"                   // for DOWNK, LEFTK, MouseMoveCallback
-#include "vml.h"                      // for s_vec3, s_vec2, new_vec3, CLAMP
+#include "glm"                      // for s_vec3, s_vec2, glm::vec3, CLAMP
 
-static auto	cameraRotation = new_vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
+static auto	cameraRotation = glm::vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 
 void				callback_camera(SDL_Event *)
 {
 	auto	controller = GameController::Get(0);
-	VEC2	raxis = new_vec2(0, 0);
-	VEC2	laxis = new_vec2(0, 0);
+	glm::vec2	raxis = glm::vec2(0, 0);
+	glm::vec2	laxis = glm::vec2(0, 0);
 	float	ltrigger = 0;
 	float	rtrigger = 0;
 	if (controller->is_connected()) {
@@ -53,7 +53,7 @@ void				callback_camera(SDL_Event *)
 		ltrigger = Keyboard::key(SDL_SCANCODE_PAGEDOWN);
 		rtrigger = Keyboard::key(SDL_SCANCODE_PAGEUP);
 	}
-	//static VEC3	val = (VEC3){M_PI / 2.f, M_PI / 2.f, 5.f};
+	//static glm::vec3	val = (glm::vec3){M_PI / 2.f, M_PI / 2.f, 5.f};
 	cameraRotation.x += raxis.y * Events::delta_time();
 	cameraRotation.y += raxis.x * Events::delta_time();
 	cameraRotation.z -= laxis.y * Events::delta_time();
@@ -85,7 +85,7 @@ void	callback_scale(SDL_KeyboardEvent *event)
 		scale -= (0.005 * (Keyboard::key(SDL_SCANCODE_LSHIFT) + 1));
 	}
 	scale = CLAMP(scale, 0.0001, 1000);
-	mesh->scaling() = new_vec3(scale, scale, scale);
+	mesh->scaling() = glm::vec3(scale, scale, scale);
 }
 
 void	switch_background()
@@ -165,7 +165,7 @@ void	callback_refresh(SDL_Event */*unused*/)
 	{
 		rotation += 0.2 * Events::delta_time();
 		rotation = CYCLE(rotation, 0, 2 * M_PI);
-		mesh->rotation() = new_vec3(0, rotation, 0);
+		mesh->rotation() = glm::vec3(0, rotation, 0);
 	}
 	callback_camera(nullptr);
 }
@@ -202,7 +202,7 @@ void	MouseMoveCallback(SDL_MouseMotionEvent *event)
 	/*if (Mouse::button(2))
 	{
 		auto	world_mouse_pos = mat4_mult_vec4(camera->projection(), new_vec4(event->xrel, event->yrel, 0, 1));
-		auto	world_mouse_pos3 = new_vec3(world_mouse_pos.x, world_mouse_pos.y, world_mouse_pos.z);
+		auto	world_mouse_pos3 = glm::vec3(world_mouse_pos.x, world_mouse_pos.y, world_mouse_pos.z);
 		world_mouse_pos3 = vec3_normalize(vec3_sub(camera->position(), world_mouse_pos3));
 		camera->target()->position().x += world_mouse_pos3.x;
 		camera->target()->position().y += world_mouse_pos3.y;

@@ -2,19 +2,19 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 15:55:05
+* @Last Modified time: 2019-06-27 17:36:57
 */
 
 #pragma once
 
 #include <stdint.h>  // for uint16_t, int16_t
 #include <string>    // for allocator, string
-#include "vml.h"     // for VEC2
+#include "glm/glm.hpp"     // for glm::vec2
 
 class Config {
 public:
     static void Load(const std::string&);
-    static VEC2& WindowSize();
+    static glm::ivec2& WindowSize();
     static std::string& WindowName();
     static float& Anisotropy();
     static int16_t& MaxTexRes();
@@ -30,7 +30,7 @@ public:
 private:
     static Config* _get();
     static Config* _instance;
-    VEC2 _windowSize{ 1280, 720 };
+    glm::ivec2 _windowSize{ 1280, 720 };
     std::string _windowName{ "" };
     float _anisotropy{ 16.f };
     int16_t _maxTexRes{ 0 };

@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-05-08 11:07:22
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:33:53
+* @Last Modified time: 2019-06-27 17:35:50
 */
 
 #include <GL/glew.h>                 // for GLenum, GL_FLOAT, GL_HALF_FLOAT
@@ -13,7 +13,7 @@
 #include "Texture.hpp"               // for Texture
 #include "TextureParser.hpp"         // for TextureParser
 #include "parser/InternalTools.hpp"  // for BTHeader, openFile
-#include "vml.h"                     // for new_vec2
+#include "glm"                     // for glm::vec2
 
 std::shared_ptr<Texture> BTParse(const std::string& texture_name, const std::string& path)
 {
@@ -50,7 +50,7 @@ std::shared_ptr<Texture> BTParse(const std::string& texture_name, const std::str
             "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
     }
     fclose(fd);
-    return Texture::create(texture_name, new_vec2(header.columns, header.rows), GL_TEXTURE_2D, GL_RED, internalFormat, dataFormat, data);
+    return Texture::create(texture_name, glm::vec2(header.columns, header.rows), GL_TEXTURE_2D, GL_RED, internalFormat, dataFormat, data);
 }
 
 auto __btParser = TextureParser::add("bt", BTParse);

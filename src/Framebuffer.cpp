@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:54:06
+* @Last Modified time: 2019-06-27 18:18:37
 */
 
 #include "Framebuffer.hpp"
@@ -17,7 +17,7 @@ Attachement::Attachement(const std::string& name)
     : Texture(name)
 {
 }
-Attachement::Attachement(const std::string& name, VEC2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format)
+Attachement::Attachement(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format)
     : Texture(name, s, target, f, fi, data_format){};
 
 GLenum get_data_format(GLenum internal_format)
@@ -54,7 +54,7 @@ GLenum get_data_format(GLenum internal_format)
     }
 }
 
-std::shared_ptr<Attachement> Attachement::create(const std::string& iname, VEC2 s, GLenum target, GLenum f, GLenum fi)
+std::shared_ptr<Attachement> Attachement::create(const std::string& iname, glm::vec2 s, GLenum target, GLenum f, GLenum fi)
 {
     auto t = std::shared_ptr<Attachement>(new Attachement(iname, s, target, f, fi, get_data_format(fi)));
     glGenTextures(1, &t->_glid);
@@ -89,7 +89,7 @@ Framebuffer::Framebuffer(const std::string& name)
 {
 }
 
-std::shared_ptr<Framebuffer> Framebuffer::create(const std::string& name, VEC2 size, int color_attachements, int depth)
+std::shared_ptr<Framebuffer> Framebuffer::create(const std::string& name, glm::vec2 size, int color_attachements, int depth)
 {
     int i;
 
@@ -200,7 +200,7 @@ void Framebuffer::setup_attachements()
     bind(false);
 }
 
-void Framebuffer::_resize_attachement(const int& attachement, const VEC2& ns)
+void Framebuffer::_resize_attachement(const int& attachement, const glm::vec2& ns)
 {
     auto t = Framebuffer::attachement(attachement);
     if (t == nullptr) {
@@ -211,7 +211,7 @@ void Framebuffer::_resize_attachement(const int& attachement, const VEC2& ns)
     glCheckError();
 }
 
-void Framebuffer::_resize_depth(const VEC2& ns)
+void Framebuffer::_resize_depth(const glm::vec2& ns)
 {
     if (_depth == nullptr) {
         return;
@@ -221,7 +221,7 @@ void Framebuffer::_resize_depth(const VEC2& ns)
     glCheckError();
 }
 
-void Framebuffer::resize(const VEC2& new_size)
+void Framebuffer::resize(const glm::ivec2& new_size)
 {
     unsigned i;
 

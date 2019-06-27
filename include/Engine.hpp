@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 15:59:51
+* @Last Modified time: 2019-06-27 17:14:37
 */
 
 #pragma once
@@ -14,7 +14,7 @@
 #ifndef M_PI
 #define M_PI 3.14159265359f
 #endif // M_PI
-#define UP new_vec3(0, 1, 0)
+
 
 /** @brief This class orchestrates the rendering loop and logics around it
 */

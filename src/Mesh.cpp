@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:29:10
+* @Last Modified time: 2019-06-27 17:30:12
 */
 
 #include "Mesh.hpp"
@@ -13,7 +13,7 @@
 #include "Node.hpp"             // for Node
 #include "Shader.hpp"           // for Shader
 #include "Vgroup.hpp"           // for Vgroup
-#include "vml.h"                // for mat4_combine, mat4_inverse, mat4_tran...
+#include "glm"                // for mat4_combine, mat4_inverse, mat4_tran...
 
 std::vector<std::shared_ptr<Mesh>> Mesh::_meshes;
 
@@ -78,8 +78,6 @@ void Mesh::load()
         vgPtr->load();
     }
 }
-
-#include <iostream>
 
 bool Mesh::render_depth(RenderMod mod)
 {
@@ -160,5 +158,5 @@ void Mesh::center()
     }
     bounding_element->min = vec3_sub(bounding_element->min, bounding_element->center);
     bounding_element->max = vec3_sub(bounding_element->max, bounding_element->center);
-    bounding_element->center = new_vec3(0, 0, 0);
+    bounding_element->center = glm::vec3(0, 0, 0);
 }

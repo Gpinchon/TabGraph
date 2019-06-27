@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 11:59:27
+* @Last Modified time: 2019-06-27 17:36:56
 */
 
 #include "parser/HDR.hpp"
@@ -14,7 +14,7 @@
 #include <stdexcept>          // for runtime_error
 #include "Texture.hpp"        // for Texture
 #include "TextureParser.hpp"  // for TextureParser
-#include "vml.h"              // for s_vec2, VEC2
+#include "glm"              // for s_vec2, glm::vec2
 
 typedef unsigned char RGBE[4];
 #define R 0
@@ -38,7 +38,7 @@ std::shared_ptr<Texture> HDR::parse(const std::string& texture_name, const std::
     int i;
     char str[200];
     FILE* file;
-    VEC2 size;
+    glm::vec2 size;
 
     file = fopen(path.c_str(), "rb");
     if (!file)
