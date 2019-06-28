@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:56
+* @Last Modified time: 2019-06-28 13:48:42
 */
 
 #include "Terrain.hpp"
@@ -32,7 +32,7 @@ Terrain::Terrain(const std::string &name) : Mesh(name)
 #include <limits>
 
 std::shared_ptr<Terrain> Terrain::create(const std::string& name,
-    glm::vec2 resolution, glm::vec3 scale, std::shared_ptr<Texture> texture)
+    glm::ivec2 resolution, glm::vec3 scale, std::shared_ptr<Texture> texture)
 {
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
     terrain->_terrainData = texture;
@@ -101,31 +101,31 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         glm::vec3 N1 = glm::vec3((n1.x / 255.f) * 2 - 1, (n1.y / 255.f) * 2 - 1, (n1.z / 255.f) * 2 - 1);
         glm::vec3 N2 = glm::vec3((n2.x / 255.f) * 2 - 1, (n2.y / 255.f) * 2 - 1, (n2.z / 255.f) * 2 - 1);
         glm::vec3 N;
-        N = vec3_cross(vec3_sub(v1, v0), vec3_sub(v2, v0));
-        N = vec3_normalize(N);
+        N = glm::cross(v1 - v0, v2 - v0);
+        N = glm::normalize(N);
         if ((N0.x + N0.y + N0.z) == 0) {
             N0 = N;
         }
         else {
-            N0 = vec3_add(N0, N);
-            N0 = vec3_fdiv(N0, 2);
-            N0 = vec3_normalize(N0);
+            N0 = N0 - N;
+            N0 = N0 / 2.f;
+            N0 = glm::normalize(N0);
         }
         if ((N1.x + N1.y + N1.z) == 0) {
             N1 = N;
         }
         else {
-            N1 = vec3_add(N1, N);
-            N1 = vec3_fdiv(N1, 2);
-            N1 = vec3_normalize(N1);
+            N1 = N1 - N;
+            N1 = N1 / 2.f;
+            N1 = glm::normalize(N1);
         }
         if ((N2.x + N2.y + N2.z) == 0) {
             N2 = N;
         }
         else {
-            N2 = vec3_add(N2, N);
-            N2 = vec3_fdiv(N2, 2);
-            N2 = vec3_normalize(N2);
+            N2 = N2 - N;
+            N2 = N2 / 2.f;
+            N2 = glm::normalize(N2);
         }
         n0.x = ((N0.x + 1) * 0.5) * 255.f;
         n0.y = ((N0.y + 1) * 0.5) * 255.f;
@@ -166,15 +166,14 @@ void    printBTHeader(BTHeader &header)
     " padding :       " << header.padding << "\n" << std::endl;
 }
 
-std::shared_ptr<Terrain> Terrain::create(const std::string& name, glm::vec2 resolution, const std::string &path)
+std::shared_ptr<Terrain> Terrain::create(const std::string& name, glm::ivec2 resolution, const std::string &path)
 {
     auto    terrainScale = glm::vec3(1, 0.00001, 1);
     if (fileFormat(path) == "bt" || fileFormat(path) == "BT") {
         BTHeader    header;
-        size_t      readSize;
         auto fd = openFile(path);
-
-        if ((readSize = fread(&header, 1, sizeof(BTHeader), fd) != sizeof(BTHeader))) {
+        auto readSize = fread(&header, 1, sizeof(BTHeader), fd);
+        if (readSize != sizeof(BTHeader)) {
             fclose(fd);
             throw std::runtime_error(std::string("[ERROR] ") + path + " : " +
                 "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));

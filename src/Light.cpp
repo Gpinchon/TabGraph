@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:35:49
+* @Last Modified time: 2019-06-28 08:07:29
 */
 
 #include "Light.hpp"
@@ -11,6 +11,7 @@
 #include "Engine.hpp"       // for up()
 #include "Framebuffer.hpp"  // for Framebuffer
 #include "Texture.hpp"      // for Texture
+#include <glm/ext.hpp>
 
 //TextureArray	*Light::_shadow_array = nullptr;
 std::vector<std::shared_ptr<Light>> Light::_lights;
@@ -120,8 +121,8 @@ void DirectionnalLight::render_shadow()
 
 void DirectionnalLight::transform_update()
 {
-    auto proj = mat4_orthographic(new_frustum(-10, 10, -10, 10), 0.1, 100);
-    transform() = mat4_mult_mat4(proj, mat4_lookat(position(), glm::vec3(0, 0, 0), up()));
+    auto proj = glm::ortho(-10.f, 10.f, -10.f, 10.f, 0.1f, 100.f);
+    transform() = proj * glm::lookAt(position(), glm::vec3(0, 0, 0), up());
 }
 
 LightType DirectionnalLight::type()

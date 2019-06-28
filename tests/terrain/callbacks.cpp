@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:55
+* @Last Modified time: 2019-06-28 12:53:18
 */
 
 #include <SDL2/SDL_events.h>          // for SDL_KeyboardEvent, SDL_Controll...
@@ -203,7 +203,7 @@ void	MouseMoveCallback(SDL_MouseMotionEvent *event)
 	{
 		auto	world_mouse_pos = mat4_mult_vec4(camera->projection(), new_vec4(event->xrel, event->yrel, 0, 1));
 		auto	world_mouse_pos3 = glm::vec3(world_mouse_pos.x, world_mouse_pos.y, world_mouse_pos.z);
-		world_mouse_pos3 = vec3_normalize(vec3_sub(camera->position(), world_mouse_pos3));
+		world_mouse_pos3 = glm::normalize(vec3_sub(camera->position(), world_mouse_pos3));
 		camera->target()->position().x += world_mouse_pos3.x;
 		camera->target()->position().y += world_mouse_pos3.y;
 		camera->target()->position().z += world_mouse_pos3.z;

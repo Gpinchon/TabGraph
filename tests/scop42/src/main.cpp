@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:35:51
+* @Last Modified time: 2019-06-28 13:50:49
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
@@ -23,7 +23,7 @@
 #include "MeshParser.hpp"   // for MeshParser
 #include "Node.hpp"         // for Node
 #include "scop.hpp"         // for setup_callbacks
-#include "glm"            // for glm::vec3, glm::vec3
+#include "glm/glm.hpp"            // for glm::vec3, glm::vec3
 
 /*bool	alpha_compare(Renderable	*m, Renderable *m1)
 {

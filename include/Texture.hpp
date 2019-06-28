@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:40:55
+* @Last Modified time: 2019-06-28 13:20:45
 */
 
 #pragma once
@@ -49,7 +49,7 @@ public:
     virtual glm::vec2 size() const;
     virtual void set_pixel(const glm::vec2& uv, const glm::vec4 value);
     virtual void set_pixel(const glm::vec2& uv, const GLubyte* value);
-    virtual GLubyte* texelfetch(const glm::vec2& uv);
+    virtual GLubyte* texelfetch(const glm::ivec2& uv);
     virtual glm::vec4 sample(const glm::vec2& uv);
     virtual size_t values_per_pixel();
     template <typename T>

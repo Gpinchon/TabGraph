@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:56
+* @Last Modified time: 2019-06-28 08:13:59
 */
 
 #include "parser/HDR.hpp"
@@ -14,7 +14,7 @@
 #include <stdexcept>          // for runtime_error
 #include "Texture.hpp"        // for Texture
 #include "TextureParser.hpp"  // for TextureParser
-#include "glm"              // for s_vec2, glm::vec2
+#include "glm/glm.hpp"              // for s_vec2, glm::vec2
 
 typedef unsigned char RGBE[4];
 #define R 0

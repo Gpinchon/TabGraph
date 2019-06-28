@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:55
+* @Last Modified time: 2019-06-28 16:06:25
 */
 
 #include <SDL2/SDL_events.h>          // for SDL_KeyboardEvent, SDL_Controll...
@@ -25,7 +25,8 @@
 #include "Node.hpp"                   // for Node
 #include "Renderable.hpp"             // for Renderable
 #include "scop.hpp"                   // for DOWNK, LEFTK, MouseMoveCallback
-#include "glm"                      // for s_vec3, s_vec2, glm::vec3, CLAMP
+#include "glm/glm.hpp"                      // for s_vec3, s_vec2, glm::vec3, glm::clamp
+#include "Tools.hpp"
 
 static auto	cameraRotation = glm::vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 
@@ -61,9 +62,9 @@ void				callback_camera(SDL_Event *)
 	auto	t = camera->target();
 	t->position().y += rtrigger * Events::delta_time();
 	t->position().y -= ltrigger * Events::delta_time();
-	cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
+	cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01));
 	cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-	cameraRotation.z = CLAMP(cameraRotation.z, 0.1f, 1000.f);
+	cameraRotation.z = glm::clamp(cameraRotation.z, 0.1f, 1000.f);
 	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }
 
@@ -84,7 +85,7 @@ void	callback_scale(SDL_KeyboardEvent *event)
 	else if (Keyboard::key(SDL_SCANCODE_KP_MINUS) != 0u) {
 		scale -= (0.005 * (Keyboard::key(SDL_SCANCODE_LSHIFT) + 1));
 	}
-	scale = CLAMP(scale, 0.0001, 1000);
+	scale = glm::clamp(scale, 0.0001f, 1000.f);
 	mesh->scaling() = glm::vec3(scale, scale, scale);
 }
 
@@ -156,16 +157,17 @@ void	keyboard_callback_rotation(SDL_KeyboardEvent *event)
 
 void	callback_refresh(SDL_Event */*unused*/)
 {
-	static float	rotation = 0;
+	
 	auto	mesh = Renderable::Get(0);
 	if (mesh == nullptr) {
 		return ;
 	}
 	if (rotate_model)
 	{
+		static float	rotation = 0;
 		rotation += 0.2 * Events::delta_time();
 		rotation = CYCLE(rotation, 0, 2 * M_PI);
-		mesh->rotation() = glm::vec3(0, rotation, 0);
+		mesh->rotation() = glm::vec3(0.f, rotation, 0.f);
 	}
 	callback_camera(nullptr);
 }
@@ -177,9 +179,8 @@ void	callback_exit(SDL_KeyboardEvent */*unused*/)
 
 void	callback_fullscreen(SDL_KeyboardEvent *event)
 {
-	static bool	fullscreen = false;
-
 	if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u)) {
+		static bool	fullscreen = false;
 		fullscreen = !fullscreen;
 		Window::fullscreen(fullscreen);
 	}
@@ -190,9 +191,9 @@ void	MouseWheelCallback(SDL_MouseWheelEvent *event)
 {
 	static auto	camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
 	cameraRotation.z -= event->y;
-	cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
+	cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01));
 	cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-	cameraRotation.z = CLAMP(cameraRotation.z, 0.01, 1000.f);
+	cameraRotation.z = glm::clamp(cameraRotation.z, 0.01f, 1000.f);
 	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }
 
@@ -203,7 +204,7 @@ void	MouseMoveCallback(SDL_MouseMotionEvent *event)
 	{
 		auto	world_mouse_pos = mat4_mult_vec4(camera->projection(), new_vec4(event->xrel, event->yrel, 0, 1));
 		auto	world_mouse_pos3 = glm::vec3(world_mouse_pos.x, world_mouse_pos.y, world_mouse_pos.z);
-		world_mouse_pos3 = vec3_normalize(vec3_sub(camera->position(), world_mouse_pos3));
+		world_mouse_pos3 = glm::normalize(vec3_sub(camera->position(), world_mouse_pos3));
 		camera->target()->position().x += world_mouse_pos3.x;
 		camera->target()->position().y += world_mouse_pos3.y;
 		camera->target()->position().z += world_mouse_pos3.z;
@@ -212,9 +213,9 @@ void	MouseMoveCallback(SDL_MouseMotionEvent *event)
 	if (Mouse::button(1)) {
 		cameraRotation.x += event->yrel * Events::delta_time();
 		cameraRotation.y -= event->xrel * Events::delta_time();
-		cameraRotation.x = CLAMP(cameraRotation.x, 0.01, M_PI - 0.01);
+		cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01));
 		cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-		cameraRotation.z = CLAMP(cameraRotation.z, 0.01, 1000.f);
+		cameraRotation.z = glm::clamp(cameraRotation.z, 0.01f, 1000.f);
 	}
 	camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }

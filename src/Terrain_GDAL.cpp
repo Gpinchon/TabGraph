@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:56
+* @Last Modified time: 2019-06-28 12:53:31
 */
 
 #include <GL/glew.h>           // for GL_COMPRESSED_RED, GL_FLOAT, GL_RED
@@ -184,15 +184,15 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         glm::vec3 N1 = glm::vec3((n1.x / 255.f) * 2 - 1, (n1.y / 255.f) * 2 - 1, (n1.z / 255.f) * 2 - 1);
         glm::vec3 N2 = glm::vec3((n2.x / 255.f) * 2 - 1, (n2.y / 255.f) * 2 - 1, (n2.z / 255.f) * 2 - 1);
         glm::vec3 N;
-        N = vec3_cross(vec3_sub(v1, v0), vec3_sub(v2, v0));
-        N = vec3_normalize(N);
+        N = glm::cross(vec3_sub(v1, v0), vec3_sub(v2, v0));
+        N = glm::normalize(N);
         if ((N0.x + N0.y + N0.z) == 0) {
             N0 = N;
         }
         else {
             N0 = vec3_add(N0, N);
             N0 = vec3_fdiv(N0, 2);
-            N0 = vec3_normalize(N0);
+            N0 = glm::normalize(N0);
         }
         if ((N1.x + N1.y + N1.z) == 0) {
             N1 = N;
@@ -200,7 +200,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         else {
             N1 = vec3_add(N1, N);
             N1 = vec3_fdiv(N1, 2);
-            N1 = vec3_normalize(N1);
+            N1 = glm::normalize(N1);
         }
         if ((N2.x + N2.y + N2.z) == 0) {
             N2 = N;
@@ -208,7 +208,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         else {
             N2 = vec3_add(N2, N);
             N2 = vec3_fdiv(N2, 2);
-            N2 = vec3_normalize(N2);
+            N2 = glm::normalize(N2);
         }
         n0.x = ((N0.x + 1) * 0.5) * 255.f;
         n0.y = ((N0.y + 1) * 0.5) * 255.f;

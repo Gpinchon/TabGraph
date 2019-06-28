@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:14:46
+* @Last Modified time: 2019-06-28 13:09:59
 */
 
 #pragma once
@@ -11,7 +11,7 @@
 #include <string>    // for string
 #include <vector>    // for vector
 #include "Node.hpp"  // for Node
-//#include "glm"     // for MAT4, FRUSTUM
+//#include "glm"     // for glm::mat4, FRUSTUM
 #include <glm/glm.hpp>
 
 enum CameraProjection {

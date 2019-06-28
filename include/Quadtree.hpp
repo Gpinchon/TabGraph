@@ -2,12 +2,12 @@
 * @Author: gpi
 * @Date:   2019-06-07 13:35:27
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:57
+* @Last Modified time: 2019-06-28 12:57:09
 */
 
 #pragma once
 
-#include <glm>   // for s_vec2, glm::vec2, glm::vec2
+#include <glm/glm.hpp>   // for s_vec2, glm::vec2, glm::vec2
 #include <array>   // for array
 #include <vector>  // for vector
 

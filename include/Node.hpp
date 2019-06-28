@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:30:35
+* @Last Modified time: 2019-06-28 13:16:58
 */
 
 #pragma once
@@ -14,7 +14,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-//#include "glm"       // for mat4_identity, mat4_zero, glm::vec3, MAT4
+//#include "glm"       // for glm::identity, mat4_zero, glm::vec3, glm::mat4
 
 class BoundingElement;
 
@@ -54,10 +54,10 @@ protected:
     glm::vec3 _rotation{ 0, 0, 0 };
     glm::vec3 _scaling{ 1, 1, 1 };
     glm::vec3 _up{ 0, 1, 0 };
-    glm::mat4 _transform{ glm::identity<glm::mat4>() };
-    glm::mat4 _translate{ glm::zero<glm::mat4>() };
-    glm::mat4 _rotate{ glm::zero<glm::mat4>() };
-    glm::mat4 _scale{ glm::identity<glm::mat4>() };
+    glm::mat4 _transform{ glm::mat4(1.f) };
+    glm::mat4 _translate{ glm::mat4(0.f) };
+    glm::mat4 _rotate{ glm::mat4(0.f) };
+    glm::mat4 _scale{ glm::mat4(1.f) };
 
 private:
     static std::vector<std::shared_ptr<Node>> _nodes;

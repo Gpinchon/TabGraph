@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:30:36
+* @Last Modified time: 2019-06-28 13:44:30
 */
 
 #include "Vgroup.hpp"
@@ -130,12 +130,12 @@ bool Vgroup::render(RenderMod mod)
 void Vgroup::center(glm::vec3& center)
 {
     for (auto& vec : v) {
-        vec = vec3_sub(vec, center);
+        vec = vec - center;
     }
-    bounding_element->min = vec3_sub(bounding_element->min, center);
-    bounding_element->max = vec3_sub(bounding_element->max, center);
-    bounding_element->center = vec3_sub(bounding_element->center, center);
-    position() = vec3_sub(bounding_element->center, center);
+    bounding_element->min = bounding_element->min - center;
+    bounding_element->max = bounding_element->max - center;
+    bounding_element->center = bounding_element->center - center;
+    position() = bounding_element->center - center;
 }
 
 void Vgroup::set_material(std::shared_ptr<Material> mtl)

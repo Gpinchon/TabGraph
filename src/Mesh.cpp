@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:30:12
+* @Last Modified time: 2019-06-28 08:12:07
 */
 
 #include "Mesh.hpp"
@@ -13,7 +13,7 @@
 #include "Node.hpp"             // for Node
 #include "Shader.hpp"           // for Shader
 #include "Vgroup.hpp"           // for Vgroup
-#include "glm"                // for mat4_combine, mat4_inverse, mat4_tran...
+#include <glm/gtc/matrix_inverse.hpp>
 
 std::vector<std::shared_ptr<Mesh>> Mesh::_meshes;
 
@@ -82,8 +82,8 @@ void Mesh::load()
 bool Mesh::render_depth(RenderMod mod)
 {
     bool ret = false;
-    auto mvp = mat4_combine(Camera::current()->projection(), Camera::current()->view(), transform());
-    auto normal_matrix = mat4_transpose(mat4_inverse(transform()));
+    auto mvp = Camera::current()->projection() * Camera::current()->view() * transform();
+    auto normal_matrix = glm::inverseTranspose(transform());
 
     load();
     std::shared_ptr<Shader> last_shader;
@@ -112,8 +112,8 @@ bool Mesh::render_depth(RenderMod mod)
 bool Mesh::render(RenderMod mod)
 {
     bool ret = false;
-    auto mvp = mat4_combine(Camera::current()->projection(), Camera::current()->view(), transform());
-    auto normal_matrix = mat4_transpose(mat4_inverse(transform()));
+    auto mvp = Camera::current()->projection() * Camera::current()->view() * transform();
+    auto normal_matrix = glm::inverseTranspose(transform());
 
     load();
     std::shared_ptr<Shader> last_shader;
@@ -156,7 +156,7 @@ void Mesh::center()
             continue;
         vgPtr->center(bounding_element->center);
     }
-    bounding_element->min = vec3_sub(bounding_element->min, bounding_element->center);
-    bounding_element->max = vec3_sub(bounding_element->max, bounding_element->center);
+    bounding_element->min = bounding_element->min - bounding_element->center;
+    bounding_element->max = bounding_element->max - bounding_element->center;
     bounding_element->center = glm::vec3(0, 0, 0);
 }

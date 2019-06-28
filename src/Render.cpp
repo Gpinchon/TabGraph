@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:56
+* @Last Modified time: 2019-06-28 13:15:39
 */
 
 #include "Render.hpp"
@@ -31,7 +31,7 @@
 #include "Window.hpp"        // for Window
 #include "brdfLUT.hpp"       // for brdfLUT
 #include "parser/GLSL.hpp"   // for GLSL, LightingShader, PostShader
-#include "glm"             // for mat4_inverse, vec2_scale, vec3_scale
+#include "glm/glm.hpp"             // for glm::inverse, vec2_scale, vec3_scale
 
 class RenderPrivate {
     public :
@@ -111,7 +111,7 @@ const std::shared_ptr<VertexArray> RenderPrivate::DisplayQuad()
 
 //Render* RenderPrivate::_instance = nullptr;
 
-std::shared_ptr<Framebuffer> create_render_buffer(const std::string& name, const glm::vec2& size)
+std::shared_ptr<Framebuffer> create_render_buffer(const std::string& name, const glm::ivec2& size)
 {
     auto buffer = Framebuffer::create(name, size, 0, 1);
     buffer->create_attachement(GL_RGBA, GL_RGBA8); // Albedo;
@@ -124,7 +124,7 @@ std::shared_ptr<Framebuffer> create_render_buffer(const std::string& name, const
     return (buffer);
 }
 
-std::shared_ptr<Framebuffer> create_back_buffer(const std::string& name, const glm::vec2& size)
+std::shared_ptr<Framebuffer> create_back_buffer(const std::string& name, const glm::ivec2& size)
 {
     auto buffer = Framebuffer::create(name, size, 0, 1);
     buffer->create_attachement(GL_RGBA, GL_RGBA8); // Color;
@@ -151,17 +151,6 @@ void present(std::shared_ptr<Framebuffer> back_buffer)
     Window::swap();
 }
 
-void print_mat4(MAT4 mat)
-{
-    std::cout << std::endl;
-    for (auto x = 0; x < 4; x++) {
-        for (auto y = 0; y < 4; y++) {
-            std::cout << mat.m[x * 4 + y] << "\t";
-        }
-        std::cout << std::endl;
-    }
-}
-
 std::vector<std::shared_ptr<Light>> normalLights;
 std::vector<std::shared_ptr<Light>> shadowLights;
 
@@ -177,7 +166,7 @@ void render_shadows()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     Camera::set_current(tempCamera);
-    tempCamera->projection() = mat4_identity();
+    tempCamera->projection() = glm::mat4(1.0);
     for (auto light : shadowLights) {
         light->render_buffer()->bind();
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -199,9 +188,9 @@ double RenderPrivate::DeltaTime()
 
 void RenderPrivate::FixedUpdate()
 {
-    auto InvViewMatrix = mat4_inverse(Camera::current()->view());
-    auto InvProjMatrix = mat4_inverse(Camera::current()->projection());
-    auto res = vec2_scale(Window::size(), RenderPrivate::InternalQuality());
+    auto InvViewMatrix = glm::inverse(Camera::current()->view());
+    auto InvProjMatrix = glm::inverse(Camera::current()->projection());
+    glm::ivec2 res = glm::vec2(Window::size()) * RenderPrivate::InternalQuality();
     auto index = 0;
 
     shadowLights.reserve(1000);
@@ -322,7 +311,7 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
         while (lightIndex < Config::LightsPerPass() && i < normalLights.size()) {
             auto light = normalLights.at(i);
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", vec3_scale(light->color(), light->power()));
+            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", -1);
             i++;
@@ -332,7 +321,7 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
         while (lightIndex < Config::LightsPerPass() && shadowIndex < actualShadowNbr && j < shadowLights.size()) {
             auto light = shadowLights.at(j);
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", vec3_scale(light->color(), light->power()));
+            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Projection", light->transform());
@@ -379,7 +368,7 @@ void RenderPrivate::Scene()
         brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
-    auto res = vec2_scale(Window::size(), RenderPrivate::InternalQuality());
+    glm::ivec2 res = glm::vec2(Window::size()) * RenderPrivate::InternalQuality();
     
     static auto temp_buffer = create_render_buffer("temp_buffer", res);
     static auto temp_buffer1 = create_render_buffer("temp_buffer1", res);

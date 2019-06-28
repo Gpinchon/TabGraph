@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:37:25
+* @Last Modified time: 2019-06-28 13:39:29
 */
 
 #include "Texture.hpp"
@@ -18,6 +18,8 @@
 #include "Shader.hpp"       // for Shader
 #include "VertexArray.hpp"  // for VertexArray
 #include "parser/GLSL.hpp"  // for GLSL
+#include <Tools.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 std::vector<std::shared_ptr<Texture>> Texture::_textures;
 
@@ -45,7 +47,7 @@ Texture::Texture(const std::string& iname, glm::vec2 s, GLenum target, GLenum f,
     }
 }
 
-std::shared_ptr<Texture> Texture::create(const std::string& name, glm::vec2 s,
+std::shared_ptr<Texture> Texture::create(const std::string& name, glm::ivec2 s,
     GLenum target, GLenum f, GLenum fi,
     GLenum data_format, void* data)
 {
@@ -203,14 +205,14 @@ size_t Texture::values_per_pixel()
     return (_data_size ? _bpp / _data_size / 8 : 0);
 }
 
-GLubyte* Texture::texelfetch(const glm::vec2& uv)
+GLubyte* Texture::texelfetch(const glm::ivec2& uv)
 {
     if (_data == nullptr) {
         return (nullptr);
     }
     auto nuv = glm::vec2(
-        CLAMP(int(uv.x), 0, int(_size.x - 1)),
-        CLAMP(int(uv.y), 0, int(_size.y - 1))
+        glm::clamp(int(uv.x), 0, int(_size.x - 1)),
+        glm::clamp(int(uv.y), 0, int(_size.y - 1))
         );
     auto opp = _bpp / 8;
     return (&_data[int(_size.x * nuv.y + nuv.x) * opp]);
@@ -227,7 +229,7 @@ void Texture::set_pixel(const glm::vec2& uv, const glm::vec4 value)
         _data = new GLubyte[int(_size.x * _size.y) * opp];
     }
     GLubyte* p;
-    p = texelfetch(vec2_mult(uv, _size));
+    p = texelfetch(uv * glm::vec2(_size));
     auto valuePtr = reinterpret_cast<float*>(&val);
     for (auto i = 0, j = 0; i < int(opp / _data_size) && j < 4; ++i, ++j) {
         if (_data_size == 1)
@@ -246,7 +248,7 @@ void Texture::set_pixel(const glm::vec2& uv, const GLubyte* value)
         _data = new GLubyte[int(_size.x * _size.y) * opp];
     }
     GLubyte* p;
-    p = texelfetch(vec2_mult(uv, _size));
+    p = texelfetch(uv * glm::vec2(_size));
     for (auto i = 0; i < opp; ++i) {
         p[i] = value[i];
     }
@@ -303,15 +305,15 @@ glm::vec4 Texture::sample(const glm::vec2& uv)
         return (value);
     }
     vt[0] = glm::vec3(
-        CLAMP(_size.x * uv.x, 0, _size.x - 1),
-        CLAMP(_size.y * uv.y, 0, _size.y - 1),
+        glm::clamp(_size.x * uv.x, 0.f, float(_size.x - 1)),
+        glm::clamp(_size.y * uv.y, 0.f, float(_size.y - 1)),
         0);
-    auto nuv = glm::vec2(fract(vt[0].x), fract(vt[0].y));
+    auto nuv = glm::vec2(glm::fract(vt[0].x), glm::fract(vt[0].y));
     vt[0].x = int(vt[0].x);
     vt[0].y = int(vt[0].y);
     vt[0].z = ((1 - nuv.x) * (1 - nuv.y));
-    vt[1] = glm::vec3(std::min(_size.x - 1, vt[0].x + 1),
-        std::min(_size.y - 1, vt[0].y + 1), (nuv.x * (1 - nuv.y)));
+    vt[1] = glm::vec3(std::min(float(_size.x - 1), vt[0].x + 1),
+        std::min(float(_size.y - 1), vt[0].y + 1), (nuv.x * (1 - nuv.y)));
     vt[2] = glm::vec3(vt[0].x, vt[1].y, ((1 - nuv.x) * nuv.y));
     vt[3] = glm::vec3(vt[1].x, vt[0].y, (nuv.x * nuv.y));
     auto opp = _bpp / 8;
@@ -329,7 +331,7 @@ glm::vec4 Texture::sample(const glm::vec2& uv)
 
 bool Texture::is_loaded() { return (_loaded); }
 
-void Texture::resize(const glm::vec2& ns)
+void Texture::resize(const glm::ivec2& ns)
 {
     GLubyte* d;
 
@@ -403,8 +405,8 @@ void Texture::blur(const int& pass, const float& radius)
     blurShader->use();
     while (totalPass > 0) {
         glm::vec2 direction;
-        direction = mat2_mult_vec2(mat2_rotation(angle), glm::vec2(1, 1));
-        direction = vec2_scale(direction, radius);
+        direction = glm::rotate(glm::vec2(1), angle);
+        direction = direction * radius;
         if (totalPass == 1) {
             attachement = cbuffer->attachement(0);
             cbuffer->set_attachement(0, shared_from_this());

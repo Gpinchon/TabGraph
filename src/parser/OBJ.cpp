@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:56
+* @Last Modified time: 2019-06-28 12:56:36
 */
 
 #include "parser/OBJ.hpp"
@@ -25,7 +25,7 @@
 #include "Vgroup.hpp"                // for Vgroup, CVEC4
 #include "parser/InternalTools.hpp"  // for t_obj_parser, count_char, split_...
 #include "parser/MTLLIB.hpp"         // for parse
-#include "glm"                     // for s_vec3, s_vec2, glm::vec2, glm::vec3
+#include "glm/glm.hpp"                     // for s_vec3, s_vec2, glm::vec2, glm::vec3
 
 //Add this parser to MeshParser !
 auto __objParser = MeshParser::add("obj", OBJ::parse);
@@ -43,9 +43,7 @@ static void push_values(t_obj_parser* p, glm::vec3* v, glm::vec3* vn, glm::vec2*
         p->vg->bounding_element->max.x = std::max(v[i].x, p->vg->bounding_element->max.x);
         p->vg->bounding_element->max.y = std::max(v[i].y, p->vg->bounding_element->max.y);
         p->vg->bounding_element->max.z = std::max(v[i].z, p->vg->bounding_element->max.z);
-        p->vg->bounding_element->center = vec3_scale(vec3_add(p->vg->bounding_element->min,
-                                                         p->vg->bounding_element->max),
-            0.5);
+        p->vg->bounding_element->center = (p->vg->bounding_element->min + p->vg->bounding_element->max) * 0.5f;
         p->vg->v.push_back(v[i]);
         p->vg->vt.push_back(vt[i]);
         ub.x = (vn[i].x + 1) * 0.5 * 255;
@@ -91,18 +89,16 @@ static int get_vi(const std::vector<glm::vec3>& v, const std::string& str)
 
 static void parse_indice(t_obj_parser* p, std::vector<std::string>& split, int vindex[3][3])
 {
-    unsigned i, splitLen, slashCount;
-
-    i = 0;
     for (auto i = 0; i < 3; i++) {
         vindex[i][0] = -1;
         vindex[i][1] = -1;
         vindex[i][2] = -1;
     }
-    while (i < split.size() && i < 3) {
+    for (auto i = 0u;i < split.size() && i < 3; i++) {
+    //while (i < split.size() && i < 3) {
         auto fsplit = strsplit(split[i], '/');
-        splitLen = fsplit.size();
-        slashCount = count_char(split[i], '/');
+        auto splitLen = fsplit.size();
+        auto slashCount = count_char(split[i], '/');
         vindex[0][i] = -1;
         vindex[1][i] = -1;
         vindex[2][i] = -1;
@@ -118,7 +114,7 @@ static void parse_indice(t_obj_parser* p, std::vector<std::string>& split, int v
         } else if (splitLen == 2 && slashCount == 2) {
             vindex[1][i] = get_vi(p->vn, fsplit[1]);
         }
-        i++;
+        //i++;
     }
 }
 
@@ -197,8 +193,8 @@ static void vt_min_max(std::shared_ptr<Vgroup> vg)
 
 void parse_vg(t_obj_parser* p, const std::string& name)
 {
-    static int childNbr = 0;
     if (!p->vg->v.empty()) {
+        static int childNbr = 0;
         childNbr++;
         vt_min_max(p->vg);
         //p->parent->add_child(p->vg);
@@ -217,10 +213,10 @@ void correct_vt(glm::vec2* vt)
     glm::vec3 v[3];
     glm::vec3 texnormal{ 0, 0, 0 };
 
-    v[0] = vec2_to_vec3(vt[0], 0);
-    v[1] = vec2_to_vec3(vt[1], 0);
-    v[2] = vec2_to_vec3(vt[2], 0);
-    texnormal = vec3_cross(vec3_sub(v[1], v[0]), vec3_sub(v[2], v[0]));
+    v[0] = glm::vec3(vt[0], 0.f);
+    v[1] = glm::vec3(vt[1], 0.f);
+    v[2] = glm::vec3(vt[2], 0.f);
+    texnormal = glm::cross(v[1] - v[0], v[2] - v[0]);
     if (texnormal.z > 0) {
         if (vt[0].x < 0.25f) {
             vt[0].x += 1.f;
@@ -239,7 +235,7 @@ glm::vec2 generate_vt(glm::vec3 v, glm::vec3 center)
     glm::vec2 vt{ 0, 0 };
     glm::vec3 vec{ 0, 0, 0 };
 
-    vec = vec3_normalize(vec3_sub(center, v));
+    vec = glm::normalize(center - v);
     vt.x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));
     vt.y = 0.5f + -vec.y * 0.5f;
     return (vt);
@@ -247,8 +243,7 @@ glm::vec2 generate_vt(glm::vec3 v, glm::vec3 center)
 
 glm::vec3 generate_vn(glm::vec3* v)
 {
-    return (vec3_normalize(vec3_cross(vec3_sub(v[1], v[0]),
-        vec3_sub(v[2], v[0]))));
+    return (glm::normalize(glm::cross(v[1] - v[0], v[2] - v[0])));
 }
 
 glm::vec3 parse_vec3(std::vector<std::string>& split)
@@ -298,7 +293,7 @@ void parse_vtn(t_obj_parser* p, std::vector<std::string>& split)
         p->bbox.max.x = std::max(v.x, p->bbox.max.x);
         p->bbox.max.y = std::max(v.y, p->bbox.max.y);
         p->bbox.max.z = std::max(v.z, p->bbox.max.z);
-        p->bbox.center = vec3_fdiv(vec3_add(p->bbox.min, p->bbox.max), 2);
+        p->bbox.center = (p->bbox.min + p->bbox.max) * 0.5f;
         p->v.push_back(v);
     } else if (split[0] == "vn") {
         v = parse_vec3(split);
@@ -314,9 +309,7 @@ static void parse_f(t_obj_parser* p, std::vector<std::string>& split)
 {
     short faces;
     short i;
-    t_vec2 v[0];
 
-    (void)v;
     split.erase(split.begin());
     faces = split.size() - 3 + 1;
     i = 0;

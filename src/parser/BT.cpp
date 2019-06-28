@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-05-08 11:07:22
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:35:50
+* @Last Modified time: 2019-06-28 08:13:29
 */
 
 #include <GL/glew.h>                 // for GLenum, GL_FLOAT, GL_HALF_FLOAT
@@ -13,7 +13,7 @@
 #include "Texture.hpp"               // for Texture
 #include "TextureParser.hpp"         // for TextureParser
 #include "parser/InternalTools.hpp"  // for BTHeader, openFile
-#include "glm"                     // for glm::vec2
+#include "glm/glm.hpp"                     // for glm::vec2
 
 std::shared_ptr<Texture> BTParse(const std::string& texture_name, const std::string& path)
 {

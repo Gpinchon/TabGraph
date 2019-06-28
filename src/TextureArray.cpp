@@ -2,14 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:56
+* @Last Modified time: 2019-06-28 13:41:22
 */
 
 #include "TextureArray.hpp"
 #include <ext/alloc_traits.h>  // for __alloc_traits<>::value_type
 #include "Debug.hpp"           // for glCheckError
 
-TextureArray::TextureArray(const std::string& name, glm::vec2 s, GLenum target, GLenum fi, unsigned capacity)
+TextureArray::TextureArray(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity)
     : Texture(name)
 {
     _size = s;
@@ -19,7 +19,7 @@ TextureArray::TextureArray(const std::string& name, glm::vec2 s, GLenum target, 
     _textures.resize(capacity);
 }
 
-std::shared_ptr<TextureArray> TextureArray::create(const std::string& name, glm::vec2 s, GLenum target, GLenum fi, unsigned capacity)
+std::shared_ptr<TextureArray> TextureArray::create(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity)
 {
     auto t = std::shared_ptr<TextureArray>(new TextureArray(name, s, target, fi, capacity));
     glGenTextures(1, &t->_glid);

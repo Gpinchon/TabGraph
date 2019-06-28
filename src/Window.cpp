@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:56
+* @Last Modified time: 2019-06-28 13:45:41
 */
 
 #include "Window.hpp"
@@ -58,7 +58,7 @@ SDL_Window      *Window::sdl_window()
     return (_get()._sdl_window);
 }
 
-void Window::init(const std::string& name, glm::vec2 resolution)
+void Window::init(const std::string& name, glm::ivec2 resolution)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         throw std::runtime_error(SDL_GetError());
@@ -97,7 +97,7 @@ GLbitfield& Window::clear_mask()
     return (_get()._clear_mask);
 }
 
-glm::vec2 Window::size()
+glm::ivec2 Window::size()
 {
     int w;
     int h;
@@ -106,7 +106,7 @@ glm::vec2 Window::size()
     return (glm::vec2(w, h));
 }
 
-void Window::resize(const glm::vec2& size)
+void Window::resize(const glm::ivec2& size)
 {
     SDL_SetWindowSize(_get()._sdl_window, size.x, size.y);
 }

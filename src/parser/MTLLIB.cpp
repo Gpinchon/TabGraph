@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:30:13
+* @Last Modified time: 2019-06-28 08:16:52
 */
 
 #include "parser/MTLLIB.hpp"
@@ -17,15 +17,14 @@
 #include "Material.hpp"              // for Material
 #include "TextureParser.hpp"         // for TextureParser
 #include "parser/InternalTools.hpp"  // for parse_vec3, t_obj_parser, strspl...
-#include "glm"                     // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
+#include "glm/glm.hpp"                     // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
 
 void parse_color(std::vector<std::string>& split, std::shared_ptr<Material> mtl)
 {
     if (split[0] == "Kd") {
         mtl->albedo = parse_vec3(split);
     } else if (split[0] == "Ks") {
-        mtl->specular = vec3_fdiv(parse_vec3(split),
-            1 + (1 - mtl->metallic) * 24);
+        mtl->specular = parse_vec3(split) / (1 + (1 - mtl->metallic) * 24);
     } else if (split[0] == "Ke") {
         mtl->emitting = parse_vec3(split);
     }
@@ -61,7 +60,7 @@ void parse_number(std::vector<std::string>& split, std::shared_ptr<Material> mtl
     if (split[0] == "Np") {
         mtl->parallax = std::stof(split[1]);
     } else if (split[0] == "Ns") {
-        mtl->roughness = CLAMP(1.f / (1.f + std::stof(split[1])) * 50.f, 0, 1);
+        mtl->roughness = glm::clamp(1.f / (1.f + std::stof(split[1])) * 50.f, 0.f, 1.f);
     } else if (split[0] == "Nr") {
         mtl->roughness = std::stof(split[1]);
     } else if (split[0] == "Nm") {

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:14:29
+* @Last Modified time: 2019-06-28 16:09:19
 */
 
 #include "Node.hpp"
@@ -55,11 +55,11 @@ void Node::add(std::shared_ptr<Node> node)
 
 void Node::transform_update()
 {
-    _translate = glm::translate(glm::identity<glm::mat4>(), _position);
-    _rotate = glm::rotate(glm::identity<glm::mat4>(), _rotation.x, glm::vec3(1, 0, 0));
-    _rotate = glm::rotate(glm::identity<glm::mat4>(), _rotation.y, glm::vec3(0, 1, 0));
-    _rotate = glm::rotate(glm::identity<glm::mat4>(), _rotation.z, glm::vec3(0, 0, 1));
-    _scale = glm::scale(glm::identity<glm::mat4>(), _scaling);
+    _translate = glm::translate(glm::mat4(1.f), _position);
+    _rotate = glm::rotate(glm::mat4(1.f), _rotation.x, glm::vec3(1, 0, 0));
+    _rotate = glm::rotate(_rotate, _rotation.y, glm::vec3(0, 1, 0));
+    _rotate = glm::rotate(_rotate, _rotation.z, glm::vec3(0, 0, 1));
+    _scale = glm::scale(glm::mat4(1.f), _scaling);
     _transform = _translate * _rotate * _scale;
     auto parentPtr = parent();
     if (parentPtr != nullptr) {
