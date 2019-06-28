@@ -151,13 +151,10 @@ OBJ				=	$(SRC_FILES:.cpp=.o)
 # Files Generation End #
 
 INCLUDE_PATH	=	./include				\
-					./libs/vml/include		\
 					./libs/gdal/gdal/gcore	\
 					./libs/gdal/gdal/port	\
 					./libs/gdal/gdal/ogr
 
-LIBDIR		=	./libs/vml/
-LIBFILES	=	./libs/vml/libvml.a
 
 ifeq ($(USE_GDAL), 1)
 	LIBDIR		+=	./libs/gdal/gdal/
@@ -254,8 +251,6 @@ application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES) $(BUILD_RES)
 
 libraries: $(LIBFILES)
 
-./libs/vml/libvml.a :
-	$(MAKE) -C ./libs/vml/
 
 ./libs/gdal/gdal/libgdal.a:
 	sh ./scripts/minimalGdal.sh
