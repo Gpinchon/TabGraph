@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 12:53:31
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-06-29 08:20:29
 */
 
 #include <GL/glew.h>           // for GL_COMPRESSED_RED, GL_FLOAT, GL_RED
@@ -73,11 +73,11 @@ void    Subdivide(Quadtree<std::array<glm::vec3, 4>> *tree, std::shared_ptr<Text
         auto v1 = tree->Data().at(index).at(1);
         auto v2 = tree->Data().at(index).at(2);
         auto v3 = tree->Data().at(index).at(3);
-        auto v4 = glm::vec3(uv4.x, ((float*)texture->texelfetch(glm::vec2(uv4.x / scale.x * 0.5 + 1, uv4.y / scale.z * 0.5 + 1)))[0], uv4.y);
-        auto v5 = glm::vec3(uv5.x, ((float*)texture->texelfetch(glm::vec2(uv5.x / scale.x * 0.5 + 1, uv5.y / scale.z * 0.5 + 1)))[0], uv5.y);
-        auto v6 = glm::vec3(uv6.x, ((float*)texture->texelfetch(glm::vec2(uv6.x / scale.x * 0.5 + 1, uv6.y / scale.z * 0.5 + 1)))[0], uv6.y);
-        auto v7 = glm::vec3(uv7.x, ((float*)texture->texelfetch(glm::vec2(uv7.x / scale.x * 0.5 + 1, uv7.y / scale.z * 0.5 + 1)))[0], uv7.y);
-        auto v8 = glm::vec3(uv8.x, ((float*)texture->texelfetch(glm::vec2(uv8.x / scale.x * 0.5 + 1, uv8.y / scale.z * 0.5 + 1)))[0], uv8.y);
+        auto v4 = glm::vec3(uv4.x, ((float*)texture->texelfetch(uv4 / scale * 0.5 + 1))[0], uv4.y);
+        auto v5 = glm::vec3(uv5.x, ((float*)texture->texelfetch(uv5 / scale * 0.5 + 1))[0], uv5.y);
+        auto v6 = glm::vec3(uv6.x, ((float*)texture->texelfetch(uv6 / scale * 0.5 + 1))[0], uv6.y);
+        auto v7 = glm::vec3(uv7.x, ((float*)texture->texelfetch(uv7 / scale * 0.5 + 1))[0], uv7.y);
+        auto v8 = glm::vec3(uv8.x, ((float*)texture->texelfetch(uv8 / scale * 0.5 + 1))[0], uv8.y);
         tree->Data().erase(tree->Data().begin() + index);
         /*std::cout << "v4 " << v4.x << " " << v4.y << " " << v4.z*/std::cout << uv4.x / scale.x * 0.5 + 1 << " " << uv4.y / scale.z * 0.5 + 1 << std::endl;
         /*std::cout << "v5 " << v5.x << " " << v5.y << " " << v5.z*/std::cout << uv5.x / scale.x * 0.5 + 1 << " " << uv5.y / scale.z * 0.5 + 1 << std::endl;
