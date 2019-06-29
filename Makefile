@@ -175,11 +175,11 @@ OK_STRING	=	[OK]
 	ifeq ($(USE_GDAL), 1)
 		GDALLIBS	= -Wl,--allow-multiple-definition -Wl,-Bstatic -lgdal -lproj -lgeos -lsqlite3 -liconv -lwsock32 -lws2_32
 	endif
-LDLIBS		+= $(GDALLIBS) -static-libgcc -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -lz -ltiff -lwebp -lzstd -llzma -lmingw32 $(LDFLAGS) -lvml -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
+LDLIBS		+= $(GDALLIBS) -static-libgcc -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_image -limagehlp -ljpeg -lpng -lz -ltiff -lwebp -lzstd -llzma -lmingw32 $(LDFLAGS) -Wl,-Bdynamic -lSDL2main -lSDL2 -lglew32 -lopengl32
 else ifeq ($(shell uname -s), Darwin)
-LDLIBS		+= $(LDFLAGS) -lvml -lm -lGLEW -framework OpenGL -framework SDL2
+LDLIBS		+= $(LDFLAGS) -lm -lGLEW -framework OpenGL -framework SDL2
 else
-LDLIBS		+= $(LDFLAGS) -lvml -lstdc++ -pthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
+LDLIBS		+= $(LDFLAGS) -lstdc++ -pthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
 endif
 
 ifeq ($(USE_GDAL), 1)
