@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-27 13:38:46
-* @Last Modified by:   Guillaume
-* @Last Modified time: 2019-06-29 19:17:56
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-01 17:18:56
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
@@ -33,9 +33,9 @@ int main(int argc, char** argv)
     camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
 
     if (argc > 1)
-        Terrain::create("terrain_test", glm::vec2(1024, 1024), argv[1]);
+        Terrain::create("terrain_test", glm::vec2(50, 50), argv[1]);
     else
-        Terrain::create("terrain_test", glm::vec2(1024, 1024), Engine::ResourcePath() + "crater.bt");
+        Terrain::create("terrain_test", glm::vec2(50, 50), Engine::ResourcePath() + "crater.bt");
     setup_callbacks();
     DirectionnalLight::create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
     Engine::Start();

@@ -1,8 +1,8 @@
 /*
  * @Author: gpi
  * @Date:   2019-03-26 12:03:23
- * @Last Modified by:   Guillaume
- * @Last Modified time: 2019-07-01 00:44:47
+ * @Last Modified by:   gpi
+ * @Last Modified time: 2019-07-01 17:57:05
  */
 
 #include "Terrain_GDAL.hpp" // for Terrain
@@ -44,8 +44,11 @@ void Subdivide(Quadtree<std::array<glm::vec3, 4>>* tree,
 {
     if (tree == nullptr)
         return;
+    
     bool subdivided = false;
     auto scale2 = glm::vec2(scale.x, scale.z);
+    glm::vec2 pixelSize = glm::vec2(texture->size()) / scale2;
+    std::cout << "PixelSize " << pixelSize.x << ' ' << pixelSize.y << std::endl;
     for (auto index = 0u; index < tree->Data().size(); index++) {
         if (subdivided)
             index--;
@@ -59,58 +62,62 @@ void Subdivide(Quadtree<std::array<glm::vec3, 4>>* tree,
             maxY = v.y > maxY ? v.y : maxY;
             medY += v.y * 0.25;
         }
-        if (abs(maxY - minY) < 0.01)
-            continue;
         delta = (maxY - minY) / maxY;
-        /*for (auto v : tree->Data().at(index))
-        delta += abs(v.y - minY) / abs(maxY - minY) / 4.0;*/
         if (delta < 0.1) {
             continue;
         }
-        // std::cout << delta << std::endl;
-        std::array<glm::vec2, 5> uvs {
-            glm::vec2(tree->Mid().x, tree->Max().y),
-            glm::vec2(tree->Max().x, tree->Mid().y),
-            glm::vec2(tree->Mid().x, tree->Min().y),
-            glm::vec2(tree->Min().x, tree->Mid().y),
-            glm::vec2(tree->Mid().x, tree->Mid().y)
-        };
-        std::array<float, 5>
-            samples {
-                ((float*)texture->texelfetch((uvs.at(0) + scale2) / scale2 * texture->size()))[0] * scale.y,
-                ((float*)texture->texelfetch((uvs.at(1) + scale2) / scale2 * texture->size()))[0] * scale.y,
-                ((float*)texture->texelfetch((uvs.at(2) + scale2) / scale2 * texture->size()))[0] * scale.y,
-                ((float*)texture->texelfetch((uvs.at(3) + scale2) / scale2 * texture->size()))[0] * scale.y,
-                ((float*)texture->texelfetch((uvs.at(4) + scale2) / scale2 * texture->size()))[0] * scale.y
-            };
-        if (std::equal(samples.begin() + 1, samples.end(), samples.begin()))
-            continue;
         auto v0 = tree->Data().at(index).at(0);
         auto v1 = tree->Data().at(index).at(1);
         auto v2 = tree->Data().at(index).at(2);
         auto v3 = tree->Data().at(index).at(3);
-        auto v4 = glm::vec3(uvs.at(0).x,
+        auto vSize = glm::abs(v0 - v2);
+        if (vSize.x <= pixelSize.x && vSize.y < pixelSize.y)
+            continue;
+        glm::vec2 mid((v0 + v2) / 2.f);
+        std::array<glm::vec2, 5> uvs {
+            glm::vec2(mid.x, v2.y),
+            glm::vec2(v2.x, mid.y),
+            glm::vec2(mid.x, v0.y),
+            glm::vec2(v0.x, mid.y),
+            mid
+        };
+        std::cout << ((uvs.at(4) / scale2) + 0.5f).x << ' ' << ((uvs.at(4) / scale2) + 0.5f).y << '\n';
+        std::array<float, 5> samples {
+                (v1.y + v2.y) / 2.f,
+                (v2.y + v3.y) / 2.f,
+                (v3.y + v0.y) / 2.f,
+                (v0.y + v1.y) / 2.f,
+                ((float*)texture->texelfetch(((uvs.at(4) / scale2) + 0.5f) * texture->size()))[0] * scale.y
+            };
+        if (std::equal(samples.begin() + 1, samples.end(), samples.begin()))
+            continue;
+        auto v4 = glm::vec3(
+            uvs.at(0).x,
             samples.at(0),
             uvs.at(0).y);
-        auto v5 = glm::vec3(uvs.at(1).x,
+        auto v5 = glm::vec3(
+            uvs.at(1).x,
             samples.at(1),
             uvs.at(1).y);
-        auto v6 = glm::vec3(uvs.at(2).x,
+        auto v6 = glm::vec3(
+            uvs.at(2).x,
             samples.at(2),
             uvs.at(2).y);
-        auto v7 = glm::vec3(uvs.at(3).x,
+        auto v7 = glm::vec3(
+            uvs.at(3).x,
             samples.at(3),
             uvs.at(3).y);
-        auto v8 = glm::vec3(uvs.at(4).x,
+        auto v8 = glm::vec3(
+            uvs.at(4).x,
             samples.at(4),
             uvs.at(4).y);
-        std::cout << "----------------------------------------------------------" << '\n';
-        std::cout << v4.y << '\n';
-        std::cout << v5.y << '\n';
-        std::cout << v6.y << '\n';
-        std::cout << v7.y << '\n';
-        std::cout << v8.y << '\n';
-        std::cout << "----------------------------------------------------------" << std::endl;
+        //std::cout << "----------------------------------------------------------" << '\n';
+        //std::cout << v4.x << ' ' << v4.y << ' ' << v4.z << '\n';
+        //std::cout << v5.x << ' ' << v5.y << ' ' << v5.z << '\n';
+        //std::cout << v6.x << ' ' << v6.y << ' ' << v6.z << '\n';
+        //std::cout << v7.x << ' ' << v7.y << ' ' << v7.z << '\n';
+        //std::cout << v8.x << ' ' << v8.y << ' ' << v8.z << '\n';
+        //std::cout << "----------------------------------------------------------" << std::endl;
         tree->Data().erase(tree->Data().begin() + index);
         auto patch0 = std::array<glm::vec3, 4> { v0, v7, v8, v6 };
         auto patch1 = std::array<glm::vec3, 4> { v7, v1, v4, v8 };
@@ -127,14 +134,20 @@ void Subdivide(Quadtree<std::array<glm::vec3, 4>>* tree,
     }
 }
 
+glm::vec3 TriangleNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
+    auto u = glm::normalize(p2 - p1);
+    auto v = glm::normalize(p3 - p1);
+    return glm::cross(u, v);
+}
+
 std::shared_ptr<Terrain>
 Terrain::create(const std::string& name,
     glm::ivec2 resolution,
     glm::vec3 scale,
     std::shared_ptr<Texture> texture)
 {
-    resolution.x = 10;
-    resolution.y = 10;
+    resolution.x = resolution.x > texture->size().x ? texture->size().x : resolution.x;
+    resolution.y = resolution.y > texture->size().y ? texture->size().y : resolution.y;
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
@@ -152,7 +165,7 @@ Terrain::create(const std::string& name,
     std::cout << scale.x / 2.f << " " << scale.z / 2.f << std::endl;
     Quadtree<std::array<glm::vec3, 4>> quadTree(
         glm::vec2(-scale.x / 2.f, -scale.z / 2.f),
-        glm::vec2(scale.x / 2.f, scale.z / 2.f), 10);
+        glm::vec2(scale.x / 2.f, scale.z / 2.f));
     for (auto y = 0.f; y < resolution.y; y++) {
         for (auto x = 0.f; x < resolution.x; x++) {
             auto uv = glm::vec2(x / resolution.x, y / resolution.y);
@@ -180,13 +193,12 @@ Terrain::create(const std::string& name,
             }
         }
     }
-    for (auto index = 0u; index * 4 < i.size(); index++) {
-        auto v0 = v.at(i.at(index * 4 + 0));
-        auto v1 = v.at(i.at(index * 4 + 1));
-        auto v2 = v.at(i.at(index * 4 + 2));
-        auto v3 = v.at(i.at(index * 4 + 3));
+    for (auto index = 0u; index < i.size() - 4; index += 4) {
+        auto v0 = v.at(i.at(index + 0));
+        auto v1 = v.at(i.at(index + 1));
+        auto v2 = v.at(i.at(index + 2));
+        auto v3 = v.at(i.at(index + 3));
         auto patch = std::array<glm::vec3, 4> { v0, v1, v2, v3 };
-        std::cout << "Min " << v0.x << ' ' << v0.z << " Max " << v2.x << ' ' << v2.z << '\n';
         quadTree.Insert(patch, glm::vec2(v0.x, v0.z), glm::vec2(v2.x, v2.z));
     }
     std::cout << std::endl;
@@ -195,12 +207,28 @@ Terrain::create(const std::string& name,
     //auto medZ = (maxZ + minZ) / 2.f * scale.y;
     for (auto& data : quadTree.GetAllData()) {
         for (auto& patch : *data) {
+            glm::vec3   n;
+            CVEC4       cn;
+            n = TriangleNormal(patch.at(0), patch.at(1), patch.at(2));
+            n = (n + 1.f) / 2.f * 255.f;
+            cn = (CVEC4) {GLubyte(n.x), GLubyte(n.y), GLubyte(n.z), 1};
             vg->v.push_back(patch.at(0));
+            vg->vn.push_back(cn);
             vg->v.push_back(patch.at(1));
+            vg->vn.push_back(cn);
             vg->v.push_back(patch.at(2));
+            vg->vn.push_back(cn);
+
+            n = TriangleNormal(patch.at(2), patch.at(3), patch.at(0));
+            n = (n + 1.f) / 2.f * 255.f;
+            cn = (CVEC4) {GLubyte(n.x), GLubyte(n.y), GLubyte(n.z), 1};
             vg->v.push_back(patch.at(2));
+            vg->vn.push_back(cn);
             vg->v.push_back(patch.at(3));
+            vg->vn.push_back(cn);
             vg->v.push_back(patch.at(0));
+            vg->vn.push_back(cn);
+
             /*for (auto& v : patch) {
                 v.y -= medZ;
                 std::cout << v.x << ' ' << v.y << ' ' << v.z << '\n';
