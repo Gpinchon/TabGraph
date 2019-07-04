@@ -7,15 +7,15 @@
 
 #pragma once
 
-#include <GL/glew.h>      // for GLenum, GLubyte, GL_UNSIGNED_BYTE, GLuint
-#include <math.h>         // for round
-#include <stddef.h>       // for size_t
-#include <memory>         // for shared_ptr
-#include <string>         // for string
-#include <unordered_map>  // for unordered_map
-#include <vector>         // for vector
-#include "Object.hpp"     // for Object
-#include "glm/glm.hpp"          // for s_vec2, glm::vec2, glm::vec2, CLAMP, glm::vec4, s_vec4
+#include "Object.hpp" // for Object
+#include "glm/glm.hpp" // for s_vec2, glm::vec2, glm::vec2, CLAMP, glm::vec4, s_vec4
+#include <GL/glew.h> // for GLenum, GLubyte, GL_UNSIGNED_BYTE, GLuint
+#include <math.h> // for round
+#include <memory> // for shared_ptr
+#include <stddef.h> // for size_t
+#include <string> // for string
+#include <unordered_map> // for unordered_map
+#include <vector> // for vector
 
 class Framebuffer;
 
@@ -60,16 +60,16 @@ protected:
     Texture(const std::string& name);
     Texture(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
     static std::vector<std::shared_ptr<Texture>> _textures;
-    GLuint _glid{ 0 };
-    glm::ivec2 _size{ 0, 0 };
-    char _bpp{ 0 };
-    size_t _data_size{ 0 };
-    GLenum _data_format{ 0 };
-    GLenum _target{ 0 };
-    GLenum _format{ 0 };
-    GLenum _internal_format{ 0 };
-    GLubyte* _data{ nullptr };
-    bool _loaded{ false };
+    GLuint _glid { 0 };
+    glm::ivec2 _size { 0, 0 };
+    char _bpp { 0 };
+    size_t _data_size { 0 };
+    GLenum _data_format { 0 };
+    GLenum _target { 0 };
+    GLenum _format { 0 };
+    GLenum _internal_format { 0 };
+    GLubyte* _data { nullptr };
+    bool _loaded { false };
     std::shared_ptr<Framebuffer> _blur_buffer0;
     std::shared_ptr<Framebuffer> _blur_buffer1;
     std::shared_ptr<Framebuffer> _generate_blur_buffer(const std::string&);

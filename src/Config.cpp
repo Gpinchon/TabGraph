@@ -6,8 +6,8 @@
 */
 
 #include "Config.hpp"
-#include <stdio.h>    // for sscanf, fgets, fopen
-#include "Debug.hpp"  // for debugLog
+#include "Debug.hpp" // for debugLog
+#include <stdio.h> // for sscanf, fgets, fopen
 
 Config* Config::_instance = nullptr;
 

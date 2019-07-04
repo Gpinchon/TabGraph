@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <SDL2/SDL_events.h>  // for SDL_Event, SDL_MouseButtonEvent, SDL_Mo...
-#include <SDL2/SDL_stdinc.h>  // for Sint32, Uint8, SDL_bool
-#include <array>              // for array
-#include "InputDevice.hpp"    // for InputDevice
+#include "InputDevice.hpp" // for InputDevice
+#include <SDL2/SDL_events.h> // for SDL_Event, SDL_MouseButtonEvent, SDL_Mo...
+#include <SDL2/SDL_stdinc.h> // for Sint32, Uint8, SDL_bool
+#include <array> // for array
 
 typedef void (*mouse_motion_callback)(SDL_MouseMotionEvent* event);
 typedef void (*mouse_button_callback)(SDL_MouseButtonEvent* event);
@@ -30,7 +30,7 @@ private:
     Mouse();
     static Mouse* _get();
     static Mouse* _instance;
-    std::array<mouse_button_callback, 5> _button_callbacks{ { nullptr } };
-    mouse_motion_callback _move_callback{ nullptr };
-    mouse_wheel_callback _wheel_callback{ nullptr };
+    std::array<mouse_button_callback, 5> _button_callbacks { { nullptr } };
+    mouse_motion_callback _move_callback { nullptr };
+    mouse_wheel_callback _wheel_callback { nullptr };
 };

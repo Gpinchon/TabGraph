@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include <GL/glew.h>    // for GLenum
-#include <memory>       // for shared_ptr
-#include <string>       // for string
-#include <vector>       // for vector
-#include "Texture.hpp"  // for Texture
-#include "glm/glm.hpp"        // for glm::vec2
+#include "Texture.hpp" // for Texture
+#include "glm/glm.hpp" // for glm::vec2
+#include <GL/glew.h> // for GLenum
+#include <memory> // for shared_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 class TextureArray : public Texture {
 public:
@@ -23,6 +23,6 @@ public:
 
 protected:
     TextureArray(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity);
-    unsigned _capacity{ 0 };
+    unsigned _capacity { 0 };
     std::vector<std::shared_ptr<Texture>> _array;
 };

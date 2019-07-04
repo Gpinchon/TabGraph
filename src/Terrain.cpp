@@ -6,25 +6,25 @@
 */
 
 #include "Terrain.hpp"
-#include <ext/alloc_traits.h>        // for __alloc_traits<>::value_type
-#include <stdint.h>                  // for uint32_t
-#include <stdio.h>                   // for fclose, fread, size_t
-#include <iostream>                  // for operator<<, basic_ostream, basic...
-#include <limits>                    // for numeric_limits
-#include <stdexcept>                 // for runtime_error
-#include <vector>                    // for vector
-#include "Material.hpp"              // for Material
-#include "Mesh.hpp"                  // for Mesh
-#include "Node.hpp"                  // for Node
-#include "Renderable.hpp"            // for Renderable
-#include "Texture.hpp"               // for Texture
-#include "TextureParser.hpp"         // for TextureParser
-#include "Vgroup.hpp"                // for CVEC4, Vgroup
-#include "parser/InternalTools.hpp"  // for BTHeader, fileFormat, openFile
+#include "Material.hpp" // for Material
+#include "Mesh.hpp" // for Mesh
+#include "Node.hpp" // for Node
+#include "Renderable.hpp" // for Renderable
+#include "Texture.hpp" // for Texture
+#include "TextureParser.hpp" // for TextureParser
+#include "Vgroup.hpp" // for CVEC4, Vgroup
+#include "parser/InternalTools.hpp" // for BTHeader, fileFormat, openFile
+#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
+#include <iostream> // for operator<<, basic_ostream, basic...
+#include <limits> // for numeric_limits
+#include <stdexcept> // for runtime_error
+#include <stdint.h> // for uint32_t
+#include <stdio.h> // for fclose, fread, size_t
+#include <vector> // for vector
 
-Terrain::Terrain(const std::string &name) : Mesh(name)
+Terrain::Terrain(const std::string& name)
+    : Mesh(name)
 {
-
 }
 
 #include <fstream>
@@ -55,18 +55,18 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
             auto z = 0.f;
             if (texture) {
                 z = texture->sample(uv).x;
-               
+
                 //glm::vec2    texUV;
                 //texUV.x = uv.x * texture->size().x;
                 //texUV.y = uv.y * texture->size().y;
                 //z = ((float*)texture->texelfetch(texUV))[0];
-                
+
                 minZ = z < minZ ? z : minZ;
                 maxZ = z > maxZ ? z : maxZ;
                 myfile << z << " ";
             }
             vg->vt.at(uint32_t(x + y * resolution.x)) = uv;
-            auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
+            auto& v3 = vg->v.at(uint32_t(x + y * resolution.x));
             v3 = glm::vec3(uv.x * scale.x - scale.x / 2.f, z * scale.y, uv.y * scale.z - scale.z / 2.f);
 
             if (x < resolution.x - 1 && y < resolution.y - 1) {
@@ -83,19 +83,18 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     }
     myfile.close();
     auto medZ = (maxZ + minZ) / 2.f * scale.y;
-    for (auto &v : vg->v)
+    for (auto& v : vg->v)
         v.y -= medZ;
-    for (auto i = 0u; i * 3 < vg->i.size(); i++)
-    {
+    for (auto i = 0u; i * 3 < vg->i.size(); i++) {
         auto i0 = vg->i.at(i * 3 + 0);
         auto i1 = vg->i.at(i * 3 + 1);
         auto i2 = vg->i.at(i * 3 + 2);
         auto v0 = vg->v.at(i0);
         auto v1 = vg->v.at(i1);
         auto v2 = vg->v.at(i2);
-        auto &n0 = vg->vn.at(i0);
-        auto &n1 = vg->vn.at(i1);
-        auto &n2 = vg->vn.at(i2);
+        auto& n0 = vg->vn.at(i0);
+        auto& n1 = vg->vn.at(i1);
+        auto& n2 = vg->vn.at(i2);
 
         glm::vec3 N0 = glm::vec3((n0.x / 255.f) * 2 - 1, (n0.y / 255.f) * 2 - 1, (n0.z / 255.f) * 2 - 1);
         glm::vec3 N1 = glm::vec3((n1.x / 255.f) * 2 - 1, (n1.y / 255.f) * 2 - 1, (n1.z / 255.f) * 2 - 1);
@@ -105,24 +104,21 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         N = glm::normalize(N);
         if ((N0.x + N0.y + N0.z) == 0) {
             N0 = N;
-        }
-        else {
+        } else {
             N0 = N0 - N;
             N0 = N0 / 2.f;
             N0 = glm::normalize(N0);
         }
         if ((N1.x + N1.y + N1.z) == 0) {
             N1 = N;
-        }
-        else {
+        } else {
             N1 = N1 - N;
             N1 = N1 / 2.f;
             N1 = glm::normalize(N1);
         }
         if ((N2.x + N2.y + N2.z) == 0) {
             N2 = N;
-        }
-        else {
+        } else {
             N2 = N2 - N;
             N2 = N2 / 2.f;
             N2 = glm::normalize(N2);
@@ -145,41 +141,40 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
     return terrain;
 }
 
-void    printBTHeader(BTHeader &header)
+void printBTHeader(BTHeader& header)
 {
-    std::cout <<
-    "BTHeader :\n" <<
-    " Marker :        " << header.marker << "\n" <<
-    " columns :       " << header.columns << "\n" <<
-    " rows :          " << header.rows << "\n" <<
-    " dataSize :      " << header.dataSize << "\n" <<
-    " fPoint :        " << header.fPoint << "\n" <<
-    " hUnits :        " << header.hUnits << "\n" <<
-    " UTMZone :       " << header.UTMZone << "\n" <<
-    " datum :         " << header.datum << "\n" <<
-    " leftExtent :    " << header.leftExtent << "\n" <<
-    " rightExtent :   " << header.rightExtent << "\n" <<
-    " bottomExtent :  " << header.bottomExtent << "\n" <<
-    " topExtent :     " << header.topExtent << "\n" <<
-    " projection :    " << header.projection << "\n" <<
-    " verticalScale : " << header.verticalScale << "\n" <<
-    " padding :       " << header.padding << "\n" << std::endl;
+    std::cout << "BTHeader :\n"
+              << " Marker :        " << header.marker << "\n"
+              << " columns :       " << header.columns << "\n"
+              << " rows :          " << header.rows << "\n"
+              << " dataSize :      " << header.dataSize << "\n"
+              << " fPoint :        " << header.fPoint << "\n"
+              << " hUnits :        " << header.hUnits << "\n"
+              << " UTMZone :       " << header.UTMZone << "\n"
+              << " datum :         " << header.datum << "\n"
+              << " leftExtent :    " << header.leftExtent << "\n"
+              << " rightExtent :   " << header.rightExtent << "\n"
+              << " bottomExtent :  " << header.bottomExtent << "\n"
+              << " topExtent :     " << header.topExtent << "\n"
+              << " projection :    " << header.projection << "\n"
+              << " verticalScale : " << header.verticalScale << "\n"
+              << " padding :       " << header.padding << "\n"
+              << std::endl;
 }
 
-std::shared_ptr<Terrain> Terrain::create(const std::string& name, glm::ivec2 resolution, const std::string &path)
+std::shared_ptr<Terrain> Terrain::create(const std::string& name, glm::ivec2 resolution, const std::string& path)
 {
-    auto    terrainScale = glm::vec3(1, 0.00001, 1);
+    auto terrainScale = glm::vec3(1, 0.00001, 1);
     if (fileFormat(path) == "bt" || fileFormat(path) == "BT") {
-        BTHeader    header;
+        BTHeader header;
         auto fd = openFile(path);
         auto readSize = fread(&header, 1, sizeof(BTHeader), fd);
         if (readSize != sizeof(BTHeader)) {
             fclose(fd);
-            throw std::runtime_error(std::string("[ERROR] ") + path + " : " +
-                "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));
+            throw std::runtime_error(std::string("[ERROR] ") + path + " : " + "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));
         }
         fclose(fd);
-        printBTHeader(header);        
+        printBTHeader(header);
         //terrainScale.x = measureHaversine(header.leftExtent, )
         terrainScale.x = header.topExtent - header.bottomExtent;
         terrainScale.y = header.verticalScale == 0 ? 1.0 : header.verticalScale;
@@ -188,8 +183,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name, glm::ivec2 res
             terrainScale.x *= 0.3048;
             terrainScale.y *= 0.3048;
             terrainScale.z *= 0.3048;
-        }
-        else if (header.hUnits == 3) {
+        } else if (header.hUnits == 3) {
             terrainScale.x *= 1200.0 / 3937.0;
             terrainScale.y *= 1200.0 / 3937.0;
             terrainScale.z *= 1200.0 / 3937.0;
@@ -197,4 +191,3 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name, glm::ivec2 res
     }
     return (Terrain::create(name, resolution, terrainScale, TextureParser::parse(name + "_heightMap", path)));
 }
-

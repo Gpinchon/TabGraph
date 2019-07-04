@@ -6,12 +6,12 @@
 */
 
 #include "Shader.hpp"
-#include <bits/exception.h>  // for exception
-#include <string.h>          // for memset
-#include <stdexcept>         // for runtime_error
-#include <utility>           // for pair, make_pair
-#include "Debug.hpp"         // for glCheckError, debugLog
-#include "Texture.hpp"       // for Texture
+#include "Debug.hpp" // for glCheckError, debugLog
+#include "Texture.hpp" // for Texture
+#include <bits/exception.h> // for exception
+#include <stdexcept> // for runtime_error
+#include <string.h> // for memset
+#include <utility> // for pair, make_pair
 
 std::vector<std::shared_ptr<Shader>> Shader::_shaders;
 

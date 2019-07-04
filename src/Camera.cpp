@@ -6,10 +6,10 @@
 */
 
 #include "Camera.hpp"
-#include <math.h>      // for sin, cos
+#include "Window.hpp" // for Window
 #include <glm/ext.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Window.hpp"  // for Window 
+#include <math.h> // for sin, cos
 
 std::vector<std::shared_ptr<Camera>> Camera::_cameras;
 std::weak_ptr<Camera> Camera::_current;

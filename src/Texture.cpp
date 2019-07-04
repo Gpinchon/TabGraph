@@ -6,20 +6,20 @@
 */
 
 #include "Texture.hpp"
-#include <stdint.h>         // for int16_t, uint64_t
-#include <algorithm>        // for min
-#include <cstring>          // for memcpy
-#include <utility>          // for pair
-#include "Config.hpp"       // for Config
-#include "Debug.hpp"        // for glCheckError, debugLog
-#include "Engine.hpp"       // for M_PI
-#include "Framebuffer.hpp"  // for Framebuffer
-#include "Render.hpp"       // for DisplayQuad
-#include "Shader.hpp"       // for Shader
-#include "VertexArray.hpp"  // for VertexArray
-#include "parser/GLSL.hpp"  // for GLSL
+#include "Config.hpp" // for Config
+#include "Debug.hpp" // for glCheckError, debugLog
+#include "Engine.hpp" // for M_PI
+#include "Framebuffer.hpp" // for Framebuffer
+#include "Render.hpp" // for DisplayQuad
+#include "Shader.hpp" // for Shader
+#include "VertexArray.hpp" // for VertexArray
+#include "parser/GLSL.hpp" // for GLSL
 #include <Tools.hpp>
+#include <algorithm> // for min
+#include <cstring> // for memcpy
 #include <glm/gtx/rotate_vector.hpp>
+#include <stdint.h> // for int16_t, uint64_t
+#include <utility> // for pair
 
 std::vector<std::shared_ptr<Texture>> Texture::_textures;
 
@@ -212,8 +212,7 @@ GLubyte* Texture::texelfetch(const glm::ivec2& uv)
     }
     auto nuv = glm::vec2(
         glm::clamp(int(uv.x), 0, int(_size.x - 1)),
-        glm::clamp(int(uv.y), 0, int(_size.y - 1))
-        );
+        glm::clamp(int(uv.y), 0, int(_size.y - 1)));
     auto opp = _bpp / 8;
     return (&_data[int(_size.x * nuv.y + nuv.x) * opp]);
 }
@@ -221,7 +220,7 @@ GLubyte* Texture::texelfetch(const glm::ivec2& uv)
 void Texture::set_pixel(const glm::vec2& uv, const glm::vec4 value)
 {
     int opp;
-    glm::vec4 val{ 0, 0, 0, 1 };
+    glm::vec4 val { 0, 0, 0, 1 };
 
     opp = _bpp / 8;
     val = value;
@@ -299,7 +298,7 @@ void Texture::restore_parameters()
 glm::vec4 Texture::sample(const glm::vec2& uv)
 {
     glm::vec3 vt[4];
-    glm::vec4 value{ 0, 0, 0, 1 };
+    glm::vec4 value { 0, 0, 0, 1 };
 
     if (_data == nullptr) {
         return (value);

@@ -6,18 +6,18 @@
 */
 
 #include "parser/FBX.hpp"
-#include <errno.h>    // for errno
-#include <io.h>       // for access, R_OK
-#include <stdint.h>   // for int32_t, int64_t, uint32_t, uint64_t, int16_t
-#include <stdio.h>    // for fread, FILE, ftell, fclose, fopen
-#include <string.h>   // for memset, strerror, strncmp
-#include <zconf.h>    // for Byte
-#include <zlib.h>     // for z_stream, Z_NULL, inflate, inflateEnd, Z_NO_FLUSH
-#include <iostream>   // for operator<<, basic_ostream, cout, ostream, char_...
-#include <map>        // for allocator, map
-#include <stdexcept>  // for runtime_error
-#include <utility>    // for pair
-#include <vector>     // for vector
+#include <errno.h> // for errno
+#include <io.h> // for access, R_OK
+#include <iostream> // for operator<<, basic_ostream, cout, ostream, char_...
+#include <map> // for allocator, map
+#include <stdexcept> // for runtime_error
+#include <stdint.h> // for int32_t, int64_t, uint32_t, uint64_t, int16_t
+#include <stdio.h> // for fread, FILE, ftell, fclose, fopen
+#include <string.h> // for memset, strerror, strncmp
+#include <utility> // for pair
+#include <vector> // for vector
+#include <zconf.h> // for Byte
+#include <zlib.h> // for z_stream, Z_NULL, inflate, inflateEnd, Z_NO_FLUSH
 
 #pragma pack(1)
 union FBXArrayData {

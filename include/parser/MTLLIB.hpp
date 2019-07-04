@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <string>  // for string
+#include <string> // for string
 
 /*
 ** .MTLLIB parsing interface

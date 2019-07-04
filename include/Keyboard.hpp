@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <SDL2/SDL_events.h>    // for SDL_Event, SDL_KeyboardEvent
-#include <SDL2/SDL_scancode.h>  // for SDL_Scancode
-#include <SDL2/SDL_stdinc.h>    // for Uint8
-#include <map>                  // for map
-#include "InputDevice.hpp"      // for InputDevice
+#include "InputDevice.hpp" // for InputDevice
+#include <SDL2/SDL_events.h> // for SDL_Event, SDL_KeyboardEvent
+#include <SDL2/SDL_scancode.h> // for SDL_Scancode
+#include <SDL2/SDL_stdinc.h> // for Uint8
+#include <map> // for map
 
 typedef void (*keyboard_callback)(SDL_KeyboardEvent* event);
 

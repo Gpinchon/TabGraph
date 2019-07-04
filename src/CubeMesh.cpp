@@ -6,15 +6,15 @@
 */
 
 #include "CubeMesh.hpp"
-#include <vector>        // for vector
-#include "Material.hpp"  // for Material
-#include "Mesh.hpp"      // for Mesh
-#include "Vgroup.hpp"    // for CVEC4, Vgroup
+#include "Material.hpp" // for Material
+#include "Mesh.hpp" // for Mesh
+#include "Vgroup.hpp" // for CVEC4, Vgroup
+#include <vector> // for vector
 
 std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, glm::vec3 size)
 {
     auto m = Mesh::create(name);
-    static std::vector<glm::vec3> cubeVertices{
+    static std::vector<glm::vec3> cubeVertices {
         { -0.50f, -0.50f, 0.50f }, // back
         { 0.50f, -0.50f, 0.50f },
         { 0.50f, 0.50f, 0.50f },
@@ -45,7 +45,7 @@ std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, glm::vec3 size)
         { 0.50f, -0.50f, -0.50f },
         { -0.50f, -0.50f, -0.50f }
     };
-    static std::vector<CVEC4> cubeNormals{
+    static std::vector<CVEC4> cubeNormals {
         { 127, 127, 255, 255 },
         { 127, 127, 255, 255 },
         { 127, 127, 255, 255 },
@@ -76,7 +76,7 @@ std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, glm::vec3 size)
         { 127, 0, 127, 255 },
         { 127, 0, 127, 255 }
     };
-    static std::vector<glm::vec2> cubeTexCoords{
+    static std::vector<glm::vec2> cubeTexCoords {
         { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 },
         { 1, 0 }, { 0, 0 }, { 0, 1 }, { 1, 1 },
         { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 },
@@ -84,7 +84,7 @@ std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, glm::vec3 size)
         { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 },
         { 1, 0 }, { 0, 0 }, { 0, 1 }, { 1, 1 }
     };
-    static std::vector<unsigned> cubeIndices{
+    static std::vector<unsigned> cubeIndices {
         0, 1, 2, 0, 2, 3, // front
         4, 6, 5, 4, 7, 6, // back
         8, 9, 10, 8, 10, 11, // left

@@ -6,15 +6,15 @@
 */
 
 #include "Window.hpp"
-#include <SDL2/SDL.h>                 // for SDL_Init, SDL_INIT_EVERYTHING
-#include <SDL2/SDL_error.h>           // for SDL_GetError
-#include <SDL2/SDL_gamecontroller.h>  // for SDL_GameControllerEventState
-#include <SDL2/SDL_joystick.h>        // for SDL_JoystickEventState
-#include <stdexcept>                  // for runtime_error
-#include "Config.hpp"                 // for Config
-#include "Debug.hpp"                  // for glCheckError
-#include "Engine.hpp"                 // for Stop
-#include "Events.hpp"                 // for Events
+#include "Config.hpp" // for Config
+#include "Debug.hpp" // for glCheckError
+#include "Engine.hpp" // for Stop
+#include "Events.hpp" // for Events
+#include <SDL2/SDL.h> // for SDL_Init, SDL_INIT_EVERYTHING
+#include <SDL2/SDL_error.h> // for SDL_GetError
+#include <SDL2/SDL_gamecontroller.h> // for SDL_GameControllerEventState
+#include <SDL2/SDL_joystick.h> // for SDL_JoystickEventState
+#include <stdexcept> // for runtime_error
 
 Window* Window::_instance = nullptr;
 
@@ -48,12 +48,12 @@ void Window::swap()
     SDL_GL_SwapWindow(_get()._sdl_window);
 }
 
-SDL_GLContext   Window::context()
+SDL_GLContext Window::context()
 {
     return (_get()._gl_context);
 }
 
-SDL_Window      *Window::sdl_window()
+SDL_Window* Window::sdl_window()
 {
     return (_get()._sdl_window);
 }

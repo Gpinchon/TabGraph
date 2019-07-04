@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include <memory>      // for shared_ptr, weak_ptr
-#include <string>      // for string
-#include <vector>      // for vector
-#include "Object.hpp"  // for Object
-#include <glm/glm.hpp>
+#include "Object.hpp" // for Object
 #include <glm/ext.hpp>
+#include <glm/glm.hpp>
+#include <memory> // for shared_ptr, weak_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 //#include "glm"       // for glm::identity, mat4_zero, glm::vec3, glm::mat4
 
@@ -43,21 +43,21 @@ public:
     void set_parent(std::shared_ptr<Node>);
     void add_child(std::shared_ptr<Node>);
     std::shared_ptr<Node> child(unsigned index);
-    BoundingElement* bounding_element{ nullptr };
+    BoundingElement* bounding_element { nullptr };
 
 protected:
     Node(const std::string& name);
     std::vector<std::weak_ptr<Node>> _children;
     std::weak_ptr<Node> _target;
     std::weak_ptr<Node> _parent;
-    glm::vec3 _position{ 0, 0, 0 };
-    glm::vec3 _rotation{ 0, 0, 0 };
-    glm::vec3 _scaling{ 1, 1, 1 };
-    glm::vec3 _up{ 0, 1, 0 };
-    glm::mat4 _transform{ glm::mat4(1.f) };
-    glm::mat4 _translate{ glm::mat4(0.f) };
-    glm::mat4 _rotate{ glm::mat4(0.f) };
-    glm::mat4 _scale{ glm::mat4(1.f) };
+    glm::vec3 _position { 0, 0, 0 };
+    glm::vec3 _rotation { 0, 0, 0 };
+    glm::vec3 _scaling { 1, 1, 1 };
+    glm::vec3 _up { 0, 1, 0 };
+    glm::mat4 _transform { glm::mat4(1.f) };
+    glm::mat4 _translate { glm::mat4(0.f) };
+    glm::mat4 _rotate { glm::mat4(0.f) };
+    glm::mat4 _scale { glm::mat4(1.f) };
 
 private:
     static std::vector<std::shared_ptr<Node>> _nodes;

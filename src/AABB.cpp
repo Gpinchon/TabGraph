@@ -7,12 +7,12 @@
 
 #include "AABB.hpp"
 
-AABB::AABB() : BoundingElement()
+AABB::AABB()
+    : BoundingElement()
 {
-
 }
 
 bool AABB::collides(const BoundingElement&)
 {
-	return (false);
+    return (false);
 }

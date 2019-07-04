@@ -6,15 +6,15 @@
 */
 
 #include "parser/HDR.hpp"
-#include <GL/glew.h>          // for GLubyte, GL_FLOAT, GL_R11F_G11F_B10F
-#include <math.h>             // for pow
-#include <stdio.h>            // for getc, fclose, fread, feof, fseek, FILE
-#include <string.h>           // for memcmp, memcpy
-#include <iostream>           // for operator<<, flush, basic_ostream, cout
-#include <stdexcept>          // for runtime_error
-#include "Texture.hpp"        // for Texture
-#include "TextureParser.hpp"  // for TextureParser
-#include "glm/glm.hpp"              // for s_vec2, glm::vec2
+#include "Texture.hpp" // for Texture
+#include "TextureParser.hpp" // for TextureParser
+#include "glm/glm.hpp" // for s_vec2, glm::vec2
+#include <GL/glew.h> // for GLubyte, GL_FLOAT, GL_R11F_G11F_B10F
+#include <iostream> // for operator<<, flush, basic_ostream, cout
+#include <math.h> // for pow
+#include <stdexcept> // for runtime_error
+#include <stdio.h> // for getc, fclose, fread, feof, fseek, FILE
+#include <string.h> // for memcmp, memcpy
 
 typedef unsigned char RGBE[4];
 #define R 0
@@ -58,7 +58,7 @@ std::shared_ptr<Texture> HDR::parse(const std::string& texture_name, const std::
             break;
     }
     std::cout << "." << std::flush;
-    char reso[200]{ 0 };
+    char reso[200] { 0 };
     i = 0;
     while (true) {
         c = getc(file);

@@ -6,10 +6,10 @@
 */
 
 #pragma once
-#include <memory>      // for shared_ptr, weak_ptr
-#include <string>      // for string
-#include <vector>      // for vector
-#include "Object.hpp"  // for Object
+#include "Object.hpp" // for Object
+#include <memory> // for shared_ptr, weak_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 class Cubemap;
 

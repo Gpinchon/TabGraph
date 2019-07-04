@@ -5,19 +5,19 @@
 * @Last Modified time: 2019-06-25 15:43:20
 */
 
-#include <errno.h>             // for ENOENT, EACCES, ELOOP, ENAMETOOLONG
-#include <ext/alloc_traits.h>  // for __alloc_traits<>::value_type
-#include <io.h>                // for access, R_OK
-#include <stdio.h>             // for fseek, ftell, size_t, fread, FILE, SEE...
-#include <stdlib.h>            // for errno
-#include <string.h>            // for strerror
-#include <algorithm>           // for max, count, replace
-#include <iostream>            // for basic_ostream::operator<<, char_traits
-#include <iterator>            // for istreambuf_iterator, operator!=
-#include <stdexcept>           // for runtime_error
-#include <string>              // for string, operator+, basic_string<>::con...
-#include <vector>              // for allocator, vector
-#include <fstream>             // for ifstream
+#include <algorithm> // for max, count, replace
+#include <errno.h> // for ENOENT, EACCES, ELOOP, ENAMETOOLONG
+#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
+#include <fstream> // for ifstream
+#include <io.h> // for access, R_OK
+#include <iostream> // for basic_ostream::operator<<, char_traits
+#include <iterator> // for istreambuf_iterator, operator!=
+#include <stdexcept> // for runtime_error
+#include <stdio.h> // for fseek, ftell, size_t, fread, FILE, SEE...
+#include <stdlib.h> // for errno
+#include <string.h> // for strerror
+#include <string> // for string, operator+, basic_string<>::con...
+#include <vector> // for allocator, vector
 
 std::string access_get_error(const int& access_result)
 {
@@ -154,14 +154,14 @@ unsigned count_char(const std::string& str, char c)
     return (std::count(str.begin(), str.end(), c));
 }
 
-std::string fileFormat(const std::string &path)
+std::string fileFormat(const std::string& path)
 {
     return path.substr(path.find_last_of(".") + 1);
 }
 
-FILE    *openFile(const std::string &path, const std::string &mod)
+FILE* openFile(const std::string& path, const std::string& mod)
 {
-    FILE    *fd;
+    FILE* fd;
     if (access(path.c_str(), R_OK) != 0) {
         throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
     }

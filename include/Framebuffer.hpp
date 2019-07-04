@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include <GL/glew.h>    // for GLenum
-#include <memory>       // for shared_ptr
-#include <string>       // for string
-#include <vector>       // for vector
-#include "Texture.hpp"  // for Texture
-#include "glm/glm.hpp"        // for glm::vec2
+#include "Texture.hpp" // for Texture
+#include "glm/glm.hpp" // for glm::vec2
+#include <GL/glew.h> // for GLenum
+#include <memory> // for shared_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 class Framebuffer : public Texture {
 public:

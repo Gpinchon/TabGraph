@@ -6,8 +6,8 @@
 */
 
 #include "Mouse.hpp"
-#include <SDL2/SDL_mouse.h>  // for SDL_GetMouseState, SDL_GetRelativeMouseMode
-#include "Events.hpp"        // for Events
+#include "Events.hpp" // for Events
+#include <SDL2/SDL_mouse.h> // for SDL_GetMouseState, SDL_GetRelativeMouseMode
 
 Mouse* Mouse::_instance = nullptr;
 

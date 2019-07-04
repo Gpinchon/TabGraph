@@ -7,25 +7,25 @@
 
 #pragma once
 
-#include <string>
 #include <map>
 #include <memory>
+#include <string>
 
 class Texture;
 
 typedef std::shared_ptr<Texture> (*TextureParsingFunction)(const std::string&, const std::string&);
 
-class TextureParser
-{
+class TextureParser {
 public:
-	static TextureParser			*add(const std::string &format, TextureParsingFunction);
-	static std::shared_ptr<Texture> parse(const std::string& name, const std::string& path);
+    static TextureParser* add(const std::string& format, TextureParsingFunction);
+    static std::shared_ptr<Texture> parse(const std::string& name, const std::string& path);
+
 private:
-	TextureParser() = delete;
-	TextureParser(const std::string &format, TextureParsingFunction);
-	static TextureParsingFunction			_get(const std::string &format);
-	static std::map<std::string, TextureParser *> &_getParsers();
-	static std::map<std::string, TextureParser *> *_parsers;
-	std::string		_format;
-	TextureParsingFunction _parsingFunction;
+    TextureParser() = delete;
+    TextureParser(const std::string& format, TextureParsingFunction);
+    static TextureParsingFunction _get(const std::string& format);
+    static std::map<std::string, TextureParser*>& _getParsers();
+    static std::map<std::string, TextureParser*>* _parsers;
+    std::string _format;
+    TextureParsingFunction _parsingFunction;
 };

@@ -7,16 +7,16 @@
 
 #pragma once
 
-#include <GL/glew.h>      // for GLuint, GLenum, GLint
-#include <stddef.h>       // for size_t
-#include <memory>         // for shared_ptr
-#include <string>         // for string
-#include <unordered_map>  // for unordered_map
-#include <vector>         // for vector
-#include "Object.hpp"     // for Object
-#include "glm/glm.hpp"          // for glm::mat4, glm::vec2, glm::vec3
+#include "Object.hpp" // for Object
+#include "glm/glm.hpp" // for glm::mat4, glm::vec2, glm::vec3
+#include <GL/glew.h> // for GLuint, GLenum, GLint
+#include <memory> // for shared_ptr
+#include <stddef.h> // for size_t
+#include <string> // for string
+#include <unordered_map> // for unordered_map
+#include <vector> // for vector
 
-class Texture;  // lines 16-16
+class Texture; // lines 16-16
 
 struct ShaderVariable {
     size_t id;
@@ -55,8 +55,8 @@ public:
 
 protected:
     static std::vector<std::shared_ptr<Shader>> _shaders;
-    GLuint _program{ 0 };
-    bool _in_use{ false };
+    GLuint _program { 0 };
+    bool _in_use { false };
     std::unordered_map<std::string, ShaderVariable> _get_variables(GLenum type);
     std::unordered_map<std::string, ShaderVariable> _uniforms;
     std::unordered_map<std::string, ShaderVariable> _attributes;

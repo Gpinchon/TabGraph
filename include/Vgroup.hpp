@@ -7,15 +7,15 @@
 
 #pragma once
 
-#include <GL/glew.h>       // for GLubyte
-#include <memory>          // for shared_ptr, weak_ptr
-#include <string>          // for string
-#include <vector>          // for vector
-#include "Renderable.hpp"  // for RenderAll, RenderMod, Renderable
-#include "glm/glm.hpp"           // for glm::vec2, s_vec2, s_vec3, glm::vec3
+#include "Renderable.hpp" // for RenderAll, RenderMod, Renderable
+#include "glm/glm.hpp" // for glm::vec2, s_vec2, s_vec3, glm::vec3
+#include <GL/glew.h> // for GLubyte
+#include <memory> // for shared_ptr, weak_ptr
+#include <string> // for string
+#include <vector> // for vector
 
-class Material;  // lines 20-20
-class VertexArray;  // lines 19-19
+class Material; // lines 20-20
+class VertexArray; // lines 19-19
 
 struct CVEC4 {
     GLubyte x;

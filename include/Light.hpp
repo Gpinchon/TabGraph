@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <memory>    // for shared_ptr, weak_ptr
-#include <string>    // for string
-#include <vector>    // for vector
-#include "Node.hpp"  // for Node
-#include "glm/glm.hpp"     // for glm::vec3
+#include "Node.hpp" // for Node
+#include "glm/glm.hpp" // for glm::vec3
+#include <memory> // for shared_ptr, weak_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 class Framebuffer;
 
@@ -36,9 +36,9 @@ public:
 
 protected:
     Light(const std::string& name);
-    glm::vec3 _color{ 0, 0, 0 };
-    float _power{ 0 };
-    bool _cast_shadow{ false };
+    glm::vec3 _color { 0, 0, 0 };
+    float _power { 0 };
+    bool _cast_shadow { false };
     std::weak_ptr<Framebuffer> _render_buffer;
 
 private:

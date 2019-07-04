@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <GL/glew.h>         // for GLenum, GL_TRIANGLES, GLuint
-#include <stddef.h>          // for size_t
-#include <memory>            // for shared_ptr
-#include <vector>            // for vector
-#include "VertexBuffer.hpp"  // for VertexBuffer
+#include "VertexBuffer.hpp" // for VertexBuffer
+#include <GL/glew.h> // for GLenum, GL_TRIANGLES, GLuint
+#include <memory> // for shared_ptr
+#include <stddef.h> // for size_t
+#include <vector> // for vector
 
 class VertexArray {
 public:
@@ -28,10 +28,10 @@ private:
     static std::vector<std::shared_ptr<VertexArray>> _vertexArrays;
     std::vector<VertexBuffer*> _buffers;
     VertexBuffer* _indices;
-    bool _indexed{ false };
-    size_t _vertex_nbr{ 0 };
-    GLuint _GLid{ 0 };
-    GLenum _GLDrawType{ GL_TRIANGLES };
+    bool _indexed { false };
+    size_t _vertex_nbr { 0 };
+    GLuint _GLid { 0 };
+    GLenum _GLDrawType { GL_TRIANGLES };
     VertexArray() = default;
 };
 

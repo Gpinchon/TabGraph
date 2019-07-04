@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <memory>  // for enable_shared_from_this, shared_ptr
-#include <string>  // for string
-#include <vector>  // for vector
+#include <memory> // for enable_shared_from_this, shared_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 /*
 ** Never allocate on the stack, always of the heap !!!

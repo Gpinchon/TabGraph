@@ -6,15 +6,15 @@
 */
 
 #include "Cubemap.hpp"
-#include <GL/glew.h>
-#include <bits/exception.h>
-#include <math.h>
-#include <iostream>
-#include <stdexcept>
-#include <thread>
 #include "Engine.hpp"
 #include "TextureParser.hpp"
 #include "glm/glm.hpp"
+#include <GL/glew.h>
+#include <bits/exception.h>
+#include <iostream>
+#include <math.h>
+#include <stdexcept>
+#include <thread>
 
 std::vector<std::shared_ptr<Cubemap>> Cubemap::_cubemaps;
 

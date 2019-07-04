@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:26:30
+* @Last Modified time: 2019-07-04 17:43:18
 */
 
 #pragma once
@@ -24,25 +24,25 @@ inline auto _glCheckError(const char* func, const int line)
         errorRet |= errorCode;
         std::string error;
         switch (errorCode) {
-            case GL_INVALID_ENUM:
+        case GL_INVALID_ENUM:
             error = "GL_INVALID_ENUM";
             break;
-            case GL_INVALID_VALUE:
+        case GL_INVALID_VALUE:
             error = "GL_INVALID_VALUE";
             break;
-            case GL_INVALID_OPERATION:
+        case GL_INVALID_OPERATION:
             error = "GL_INVALID_OPERATION";
             break;
-            case GL_STACK_OVERFLOW:
+        case GL_STACK_OVERFLOW:
             error = "GL_STACK_OVERFLOW";
             break;
-            case GL_STACK_UNDERFLOW:
+        case GL_STACK_UNDERFLOW:
             error = "GL_STACK_UNDERFLOW";
             break;
-            case GL_OUT_OF_MEMORY:
+        case GL_OUT_OF_MEMORY:
             error = "GL_OUT_OF_MEMORY";
             break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION:
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
             error = "GL_INVALID_FRAMEBUFFER_OPERATION";
             break;
         }
@@ -60,10 +60,10 @@ inline auto glCheckError()
 
 #ifdef _WIN32
 
-#undef MAT2
 #include <windows.h>
 #include <DbgHelp.h>
 #include <tlhelp32.h>
+
 /*
 inline void stackWalkPrint(HANDLE process, HANDLE thread)
 {
@@ -212,12 +212,10 @@ inline void stack_trace(int)
     stackframe.AddrStack.Mode = AddrModeFlat;
 #endif
 
-
     while (StackWalk(
-          image, process, thread,
-          &stackframe, &context, nullptr, 
-          SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
-    {
+        image, process, thread,
+        &stackframe, &context, nullptr,
+        SymFunctionTableAccess64, SymGetModuleBase64, nullptr)) {
         std::string moduleName = "???";
         std::string functionName = "???";
         std::string fileName = "???";
@@ -225,8 +223,8 @@ inline void stack_trace(int)
 
         HINSTANCE moduleBase = (HINSTANCE)SymGetModuleBase(process, stackframe.AddrPC.Offset);
         char moduleBuff[MAX_PATH];
-        if (moduleBase && GetModuleFileNameA(moduleBase, moduleBuff , MAX_PATH))
-            moduleName = moduleBuff ;
+        if (moduleBase && GetModuleFileNameA(moduleBase, moduleBuff, MAX_PATH))
+            moduleName = moduleBuff;
 
         char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + MAX_SYM_NAME];
         PIMAGEHLP_SYMBOL symbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
@@ -236,12 +234,11 @@ inline void stack_trace(int)
         if (SymGetSymFromAddr(process, stackframe.AddrPC.Offset, NULL, symbol))
             functionName = symbol->Name;
 
-        DWORD  offset = 0;
+        DWORD offset = 0;
         IMAGEHLP_LINE line;
         line.SizeOfStruct = sizeof(IMAGEHLP_LINE);
 
-        if (SymGetLineFromAddr(process, stackframe.AddrPC.Offset, &offset, &line))
-        {
+        if (SymGetLineFromAddr(process, stackframe.AddrPC.Offset, &offset, &line)) {
             fileName = line.FileName;
             lineNumber = line.LineNumber;
         }
@@ -257,9 +254,9 @@ inline void stack_trace(int)
 
 inline void stack_trace(void)
 {
-    void *array[1024];
+    void* array[1024];
     size_t size;
-    char **strings;
+    char** strings;
     size_t i;
 
     size = backtrace(array, 1024);
@@ -268,12 +265,13 @@ inline void stack_trace(void)
     for (i = 0; i < size; i++) {
         std::cerr << strings[i] << std::endl;
     }
-    free (strings);
+    free(strings);
 }
 
 #endif //_WIN32
 
-inline void sigHandler(int signum) {
+inline void sigHandler(int signum)
+{
     std::cerr << "Received interuption signal(" << signum << ")" << std::endl;
     std::cerr << "Print Stack :" << std::endl;
     stack_trace(signum);

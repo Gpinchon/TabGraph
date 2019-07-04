@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <memory>    // for shared_ptr
-#include <string>    // for string
-#include <vector>    // for vector
-#include "Node.hpp"  // for Node
+#include "Node.hpp" // for Node
+#include <memory> // for shared_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 enum RenderMod {
     RenderAll,
@@ -28,7 +28,7 @@ public:
     bool is_loaded();
 
 protected:
-    bool _is_loaded{ false };
+    bool _is_loaded { false };
     static void add(std::shared_ptr<Renderable>);
     Renderable(const std::string& name);
 

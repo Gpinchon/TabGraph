@@ -16,7 +16,7 @@
 */
 class AABB : public BoundingElement {
 public:
-	/** Default constructor.
+    /** Default constructor.
 	*/
     AABB();
     /** Returns true if a collision if found with the provided BoundingElement

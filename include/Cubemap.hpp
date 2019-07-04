@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <array>        // for array
-#include <memory>       // for shared_ptr, weak_ptr
-#include <string>       // for string
-#include <vector>       // for vector
-#include "Texture.hpp"  // for Texture
+#include "Texture.hpp" // for Texture
+#include <array> // for array
+#include <memory> // for shared_ptr, weak_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 class Cubemap : public Texture {
 public:

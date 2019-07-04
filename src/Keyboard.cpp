@@ -6,9 +6,9 @@
 */
 
 #include "Keyboard.hpp"
-#include <SDL2/SDL_keyboard.h>  // for SDL_GetKeyboardState, SDL_Keysym
-#include <utility>              // for pair
-#include "Events.hpp"           // for Events
+#include "Events.hpp" // for Events
+#include <SDL2/SDL_keyboard.h> // for SDL_GetKeyboardState, SDL_Keysym
+#include <utility> // for pair
 
 Keyboard* Keyboard::_instance = new Keyboard();
 

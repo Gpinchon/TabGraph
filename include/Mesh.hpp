@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <GL/glew.h>       // for GLenum, GL_BACK
-#include <memory>          // for shared_ptr, weak_ptr
-#include <string>          // for string
-#include <vector>          // for vector
-#include "Renderable.hpp"  // for RenderAll, RenderMod, Renderable
+#include "Renderable.hpp" // for RenderAll, RenderMod, Renderable
+#include <GL/glew.h> // for GLenum, GL_BACK
+#include <memory> // for shared_ptr, weak_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 class Vgroup;
 
@@ -35,7 +35,7 @@ protected:
 private:
     static std::vector<std::shared_ptr<Mesh>> _meshes;
     std::vector<std::weak_ptr<Vgroup>> _vgroups;
-    GLenum _cull_mod{ GL_BACK };
+    GLenum _cull_mod { GL_BACK };
 };
 
 bool alpha_compare(Renderable* m, Renderable* m1);

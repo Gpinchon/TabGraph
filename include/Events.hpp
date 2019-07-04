@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <SDL2/SDL_events.h>  // for SDL_Event, SDL_EventType
-#include <SDL2/SDL_stdinc.h>  // for Uint32
-#include <map>                // for map
-#include <set>                // for set
+#include <SDL2/SDL_events.h> // for SDL_Event, SDL_EventType
+#include <SDL2/SDL_stdinc.h> // for Uint32
+#include <map> // for map
+#include <set> // for set
 
 #define EVENT_REFRESH 0
 
@@ -33,8 +33,8 @@ private:
     static void window(SDL_Event* event);
     static Events& _get();
     static Events* _instance;
-    double _delta_time {0};
-    t_callback _rcallback{ nullptr };
+    double _delta_time { 0 };
+    t_callback _rcallback { nullptr };
     std::map<Uint32, std::set<InputDevice*>> _input_devices;
     Events();
 };

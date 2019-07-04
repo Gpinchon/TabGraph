@@ -6,11 +6,11 @@
 */
 
 #include "Events.hpp"
-#include <SDL2/SDL_timer.h>  // for SDL_GetTicks
-#include <iostream>          // for operator<<, endl, basic_ostream, cout
-#include <utility>           // for pair
-#include "Engine.hpp"        // for Stop
-#include "InputDevice.hpp"   // for InputDevice
+#include "Engine.hpp" // for Stop
+#include "InputDevice.hpp" // for InputDevice
+#include <SDL2/SDL_timer.h> // for SDL_GetTicks
+#include <iostream> // for operator<<, endl, basic_ostream, cout
+#include <utility> // for pair
 
 void print_event_name(SDL_Event* event)
 {

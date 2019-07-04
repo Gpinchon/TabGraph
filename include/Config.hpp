@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <stdint.h>  // for uint16_t, int16_t
-#include <string>    // for allocator, string
-#include "glm/glm.hpp"     // for glm::vec2
+#include "glm/glm.hpp" // for glm::vec2
+#include <stdint.h> // for uint16_t, int16_t
+#include <string> // for allocator, string
 
 class Config {
 public:
@@ -30,18 +30,18 @@ public:
 private:
     static Config* _get();
     static Config* _instance;
-    glm::ivec2 _windowSize{ 1280, 720 };
-    std::string _windowName{ "" };
-    float _anisotropy{ 16.f };
-    int16_t _maxTexRes{ 0 };
-    uint16_t _shadowRes{ 2048 };
-    uint16_t _msaa{ 0 };
-    uint16_t _bloomPass{ 1 };
-    uint16_t _lightsPerPass{ 32 };
-    uint16_t _shadowsPerPass{ 16 };
-    uint16_t _ReflexionSteps{ 10 };
-    uint16_t _reflexionSamples{ 9 };
-    uint16_t _reflexionBorderFactor{ 10 };
+    glm::ivec2 _windowSize { 1280, 720 };
+    std::string _windowName { "" };
+    float _anisotropy { 16.f };
+    int16_t _maxTexRes { 0 };
+    uint16_t _shadowRes { 2048 };
+    uint16_t _msaa { 0 };
+    uint16_t _bloomPass { 1 };
+    uint16_t _lightsPerPass { 32 };
+    uint16_t _shadowsPerPass { 16 };
+    uint16_t _ReflexionSteps { 10 };
+    uint16_t _reflexionSamples { 9 };
+    uint16_t _reflexionBorderFactor { 10 };
     Config() = default;
     ~Config() = default;
 };

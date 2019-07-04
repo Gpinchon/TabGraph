@@ -2,20 +2,20 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:30:35
+* @Last Modified time: 2019-07-04 17:42:48
 */
 
 #pragma once
 
-#include <GL/glew.h>  // for GLbitfield, GL_ALL_BARRIER_BITS
-#include <memory>     // for shared_ptr, weak_ptr
-#include <string>     // for string
-#include <vector>     // for vector
-#include "Node.hpp"   // for Node
-#include "glm/glm.hpp"      // for glm::vec3, s_vec3
+#include "Node.hpp" // for Node
+#include "glm/glm.hpp" // for glm::vec3, s_vec3
+#include <GL/glew.h> // for GLbitfield, GL_ALL_BARRIER_BITS
+#include <memory> // for shared_ptr, weak_ptr
+#include <string> // for string
+#include <vector> // for vector
 
-class Shader;  // lines 12-12
-class Texture;  // lines 13-13
+class Shader; // lines 12-12
+class Texture; // lines 13-13
 
 class ComputeObject : public Node {
 public:
@@ -38,7 +38,7 @@ protected:
     std::weak_ptr<Texture> _in_texture;
     std::weak_ptr<Texture> _out_texture;
     std::weak_ptr<Shader> _shader;
-    GLbitfield _memory_barrier{ GL_ALL_BARRIER_BITS };
-    glm::ivec3 _num_groups{ 0, 0, 0 };
+    GLbitfield _memory_barrier { GL_ALL_BARRIER_BITS };
+    glm::ivec3 _num_groups { 0, 0, 0 };
     ComputeObject(const std::string& name);
 };

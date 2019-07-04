@@ -6,18 +6,18 @@
 */
 
 #include "parser/MTLLIB.hpp"
-#include <ext/alloc_traits.h>        // for __alloc_traits<>::value_type
-#include <io.h>                      // for access, R_OK
-#include <stdio.h>                   // for fgets, fclose, fopen
-#include <stdlib.h>                  // for errno
-#include <string.h>                  // for strerror
-#include <memory>                    // for shared_ptr, allocator, __shared_...
-#include <stdexcept>                 // for runtime_error
-#include <vector>                    // for vector
-#include "Material.hpp"              // for Material
-#include "TextureParser.hpp"         // for TextureParser
-#include "parser/InternalTools.hpp"  // for parse_vec3, t_obj_parser, strspl...
-#include "glm/glm.hpp"                     // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
+#include "Material.hpp" // for Material
+#include "TextureParser.hpp" // for TextureParser
+#include "glm/glm.hpp" // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
+#include "parser/InternalTools.hpp" // for parse_vec3, t_obj_parser, strspl...
+#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
+#include <io.h> // for access, R_OK
+#include <memory> // for shared_ptr, allocator, __shared_...
+#include <stdexcept> // for runtime_error
+#include <stdio.h> // for fgets, fclose, fopen
+#include <stdlib.h> // for errno
+#include <string.h> // for strerror
+#include <vector> // for vector
 
 void parse_color(std::vector<std::string>& split, std::shared_ptr<Material> mtl)
 {

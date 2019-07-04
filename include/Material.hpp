@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <memory>      // for shared_ptr, weak_ptr
-#include <string>      // for string
-#include <vector>      // for vector
-#include "Object.hpp"  // for Object
-#include "glm/glm.hpp"       // for glm::vec3, glm::vec2
+#include "Object.hpp" // for Object
+#include "glm/glm.hpp" // for glm::vec3, glm::vec2
+#include <memory> // for shared_ptr, weak_ptr
+#include <string> // for string
+#include <vector> // for vector
 
 class Shader;
 class Texture;
@@ -41,15 +41,15 @@ public:
     void set_texture_roughness(std::shared_ptr<Texture>);
     void set_texture_metallic(std::shared_ptr<Texture>);
     void set_texture_ao(std::shared_ptr<Texture>);
-    glm::vec3 albedo{ 0, 0, 0 };
-    glm::vec3 specular{ 0.04, 0.04, 0.04 };
-    glm::vec3 emitting{ 0, 0, 0 };
-    glm::vec2 uv_scale{ 1, 1 };
-    float roughness{ 0.5 };
-    float metallic{ 0 };
-    float alpha{ 1 };
-    float parallax{ 0.01 };
-    float ior{ 1 };
+    glm::vec3 albedo { 0, 0, 0 };
+    glm::vec3 specular { 0.04, 0.04, 0.04 };
+    glm::vec3 emitting { 0, 0, 0 };
+    glm::vec2 uv_scale { 1, 1 };
+    float roughness { 0.5 };
+    float metallic { 0 };
+    float alpha { 1 };
+    float parallax { 0.01 };
+    float ior { 1 };
 
 protected:
     static std::vector<std::shared_ptr<Material>> _materials;

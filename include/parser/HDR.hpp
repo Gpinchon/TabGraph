@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <memory>  // for shared_ptr
-#include <string>  // for string
+#include <memory> // for shared_ptr
+#include <string> // for string
 
 class Texture;
 

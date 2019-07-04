@@ -6,26 +6,26 @@
 */
 
 #include "parser/OBJ.hpp"
-#include <bits/exception.h>          // for exception
-#include <errno.h>                   // for errno
-#include <ext/alloc_traits.h>        // for __alloc_traits<>::value_type
-#include <io.h>                      // for access, R_OK
-#include <math.h>                    // for atan2
-#include <stdio.h>                   // for fclose, fgets, fopen
-#include <string.h>                  // for memset, strerror
-#include <algorithm>                 // for max, min
-#include <stdexcept>                 // for runtime_error
-#include <vector>                    // for vector
-#include "AABB.hpp"                  // for AABB
-#include "BoundingElement.hpp"       // for BoundingElement
-#include "Engine.hpp"                // for M_PI
-#include "Material.hpp"              // for Material
-#include "Mesh.hpp"                  // for Mesh
-#include "MeshParser.hpp"            // for MeshParser
-#include "Vgroup.hpp"                // for Vgroup, CVEC4
-#include "parser/InternalTools.hpp"  // for t_obj_parser, count_char, split_...
-#include "parser/MTLLIB.hpp"         // for parse
-#include "glm/glm.hpp"                     // for s_vec3, s_vec2, glm::vec2, glm::vec3
+#include "AABB.hpp" // for AABB
+#include "BoundingElement.hpp" // for BoundingElement
+#include "Engine.hpp" // for M_PI
+#include "Material.hpp" // for Material
+#include "Mesh.hpp" // for Mesh
+#include "MeshParser.hpp" // for MeshParser
+#include "Vgroup.hpp" // for Vgroup, CVEC4
+#include "glm/glm.hpp" // for s_vec3, s_vec2, glm::vec2, glm::vec3
+#include "parser/InternalTools.hpp" // for t_obj_parser, count_char, split_...
+#include "parser/MTLLIB.hpp" // for parse
+#include <algorithm> // for max, min
+#include <bits/exception.h> // for exception
+#include <errno.h> // for errno
+#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
+#include <io.h> // for access, R_OK
+#include <math.h> // for atan2
+#include <stdexcept> // for runtime_error
+#include <stdio.h> // for fclose, fgets, fopen
+#include <string.h> // for memset, strerror
+#include <vector> // for vector
 
 //Add this parser to MeshParser !
 auto __objParser = MeshParser::add("obj", OBJ::parse);
@@ -33,7 +33,7 @@ auto __objParser = MeshParser::add("obj", OBJ::parse);
 static void push_values(t_obj_parser* p, glm::vec3* v, glm::vec3* vn, glm::vec2* vt)
 {
     unsigned i;
-    CVEC4 ub{ 0, 0, 0, 0 };
+    CVEC4 ub { 0, 0, 0, 0 };
 
     i = 0;
     while (i < 3) {
@@ -94,8 +94,8 @@ static void parse_indice(t_obj_parser* p, std::vector<std::string>& split, int v
         vindex[i][1] = -1;
         vindex[i][2] = -1;
     }
-    for (auto i = 0u;i < split.size() && i < 3; i++) {
-    //while (i < split.size() && i < 3) {
+    for (auto i = 0u; i < split.size() && i < 3; i++) {
+        //while (i < split.size() && i < 3) {
         auto fsplit = strsplit(split[i], '/');
         auto splitLen = fsplit.size();
         auto slashCount = count_char(split[i], '/');
@@ -211,7 +211,7 @@ void parse_vg(t_obj_parser* p, const std::string& name)
 void correct_vt(glm::vec2* vt)
 {
     glm::vec3 v[3];
-    glm::vec3 texnormal{ 0, 0, 0 };
+    glm::vec3 texnormal { 0, 0, 0 };
 
     v[0] = glm::vec3(vt[0], 0.f);
     v[1] = glm::vec3(vt[1], 0.f);
@@ -232,8 +232,8 @@ void correct_vt(glm::vec2* vt)
 
 glm::vec2 generate_vt(glm::vec3 v, glm::vec3 center)
 {
-    glm::vec2 vt{ 0, 0 };
-    glm::vec3 vec{ 0, 0, 0 };
+    glm::vec2 vt { 0, 0 };
+    glm::vec3 vec { 0, 0, 0 };
 
     vec = glm::normalize(center - v);
     vt.x = 0.5f + (atan2(vec.z, vec.x) / (2 * M_PI));
@@ -282,8 +282,8 @@ glm::vec2 parse_vec2(std::vector<std::string>& split)
 
 void parse_vtn(t_obj_parser* p, std::vector<std::string>& split)
 {
-    glm::vec3 v{ 0, 0, 0 };
-    glm::vec2 vt{ 0, 0 };
+    glm::vec3 v { 0, 0, 0 };
+    glm::vec2 vt { 0, 0 };
 
     if (split[0] == "v") {
         v = parse_vec3(split);

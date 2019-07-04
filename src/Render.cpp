@@ -6,60 +6,61 @@
 */
 
 #include "Render.hpp"
-#include <GL/glew.h>         // for GL_TEXTURE0, glDepthFunc, glClear, glDis...
-#include <SDL2/SDL_timer.h>  // for SDL_GetTicks
-#include <SDL2/SDL_video.h>  // for SDL_GL_MakeCurrent, SDL_GL_SetSwapInterval
-#include <stdint.h>          // for uint64_t, uint16_t
-#include <algorithm>         // for max, remove_if
-#include <atomic>            // for atomic
-#include <iostream>          // for char_traits, endl, cout, operator<<, ost...
-#include <mutex>             // for mutex
-#include <string>            // for operator+, to_string, string
-#include <thread>            // for thread
-#include <vector>            // for vector<>::iterator, vector
-#include "Camera.hpp"        // for Camera
-#include "Config.hpp"        // for Config
-#include "Engine.hpp"        // for UpdateMutex, SwapInterval
-#include "Environment.hpp"   // for Environment
-#include "Framebuffer.hpp"   // for Framebuffer
-#include "Light.hpp"         // for Light, Directionnal, Point
-#include "Renderable.hpp"    // for Renderable, RenderOpaque, RenderTransparent
-#include "Shader.hpp"        // for Shader
-#include "Texture.hpp"       // for Texture
+#include "Camera.hpp" // for Camera
+#include "Config.hpp" // for Config
 #include "Cubemap.hpp"
-#include "VertexArray.hpp"   // for VertexArray
-#include "Window.hpp"        // for Window
-#include "brdfLUT.hpp"       // for brdfLUT
-#include "parser/GLSL.hpp"   // for GLSL, LightingShader, PostShader
-#include "glm/glm.hpp"             // for glm::inverse, vec2_scale, vec3_scale
+#include "Engine.hpp" // for UpdateMutex, SwapInterval
+#include "Environment.hpp" // for Environment
+#include "Framebuffer.hpp" // for Framebuffer
+#include "Light.hpp" // for Light, Directionnal, Point
+#include "Renderable.hpp" // for Renderable, RenderOpaque, RenderTransparent
+#include "Shader.hpp" // for Shader
+#include "Texture.hpp" // for Texture
+#include "VertexArray.hpp" // for VertexArray
+#include "Window.hpp" // for Window
+#include "brdfLUT.hpp" // for brdfLUT
+#include "glm/glm.hpp" // for glm::inverse, vec2_scale, vec3_scale
+#include "parser/GLSL.hpp" // for GLSL, LightingShader, PostShader
+#include <GL/glew.h> // for GL_TEXTURE0, glDepthFunc, glClear, glDis...
+#include <SDL2/SDL_timer.h> // for SDL_GetTicks
+#include <SDL2/SDL_video.h> // for SDL_GL_MakeCurrent, SDL_GL_SetSwapInterval
+#include <algorithm> // for max, remove_if
+#include <atomic> // for atomic
+#include <iostream> // for char_traits, endl, cout, operator<<, ost...
+#include <mutex> // for mutex
+#include <stdint.h> // for uint64_t, uint16_t
+#include <string> // for operator+, to_string, string
+#include <thread> // for thread
+#include <vector> // for vector<>::iterator, vector
 
 class RenderPrivate {
-    public :
-        static void Update();
-        static void FixedUpdate();
-        static void Scene();
-        static void AddPostTreatment(std::shared_ptr<Shader>);
-        static void AddPostTreatment(const std::string& name, const std::string& path);
-        static void RemovePostTreatment(std::shared_ptr<Shader>);
-        static void StartRenderingThread();
-        static void StopRenderingThread();
-        static void RequestRedraw();
-        static double DeltaTime();
-        static bool NeedsUpdate();
-        static uint64_t FrameNbr(void);
-        static const std::shared_ptr<VertexArray> DisplayQuad();
-        static std::vector<std::weak_ptr<Shader>>& PostTreatments();
-        static void     SetInternalQuality(float);
-        static float    InternalQuality();
-    private:
-        static void _thread();
-        static RenderPrivate &_get();
-        std::atomic<double> _deltaTime {0};
-        std::atomic<float> _internalQuality {1};
-        std::atomic<bool> _needsUpdate {true};
-        std::atomic<bool> _loop {true};
-        uint64_t _frame_nbr {0};
-        std::thread _rendering_thread;
+public:
+    static void Update();
+    static void FixedUpdate();
+    static void Scene();
+    static void AddPostTreatment(std::shared_ptr<Shader>);
+    static void AddPostTreatment(const std::string& name, const std::string& path);
+    static void RemovePostTreatment(std::shared_ptr<Shader>);
+    static void StartRenderingThread();
+    static void StopRenderingThread();
+    static void RequestRedraw();
+    static double DeltaTime();
+    static bool NeedsUpdate();
+    static uint64_t FrameNbr(void);
+    static const std::shared_ptr<VertexArray> DisplayQuad();
+    static std::vector<std::weak_ptr<Shader>>& PostTreatments();
+    static void SetInternalQuality(float);
+    static float InternalQuality();
+
+private:
+    static void _thread();
+    static RenderPrivate& _get();
+    std::atomic<double> _deltaTime { 0 };
+    std::atomic<float> _internalQuality { 1 };
+    std::atomic<bool> _needsUpdate { true };
+    std::atomic<bool> _loop { true };
+    uint64_t _frame_nbr { 0 };
+    std::thread _rendering_thread;
 };
 
 static auto passthrough_vertex_code =
@@ -76,10 +77,10 @@ static auto emptyShaderCode =
 
 static auto lightingEnvFragmentCode =
 #include "lighting_env.frag"
-        ;
+    ;
 static auto refractionFragmentCode =
 #include "refraction.frag"
-        ;
+    ;
 
 /*
 ** quad is a singleton
@@ -258,8 +259,7 @@ void RenderPrivate::_thread(void)
     fixed_timing = SDL_GetTicks() / 1000.f;
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
-    while (_get()._loop)
-    {
+    while (_get()._loop) {
         if (RenderPrivate::NeedsUpdate() && Engine::UpdateMutex().try_lock()) {
             _get()._frame_nbr++;
             ticks = SDL_GetTicks() / 1000.f;
@@ -271,8 +271,7 @@ void RenderPrivate::_thread(void)
             RenderPrivate::Scene();
             _get()._needsUpdate = false;
             Engine::UpdateMutex().unlock();
-        }
-        else
+        } else
             RenderPrivate::Scene();
     }
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
@@ -347,9 +346,9 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
     shader->use(false);
 }
 
-RenderPrivate &RenderPrivate::_get()
+RenderPrivate& RenderPrivate::_get()
 {
-    static RenderPrivate *instance = nullptr;
+    static RenderPrivate* instance = nullptr;
     if (instance == nullptr)
         instance = new RenderPrivate;
     return *instance;
@@ -369,7 +368,7 @@ void RenderPrivate::Scene()
         brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
     glm::ivec2 res = glm::vec2(Window::size()) * RenderPrivate::InternalQuality();
-    
+
     static auto temp_buffer = create_render_buffer("temp_buffer", res);
     static auto temp_buffer1 = create_render_buffer("temp_buffer1", res);
     static auto back_buffer = create_back_buffer("back_buffer", res);
@@ -606,50 +605,49 @@ void RenderPrivate::RemovePostTreatment(std::shared_ptr<Shader> shader)
 {
     if (shader != nullptr) {
         PostTreatments().erase(std::remove_if(
-                                    PostTreatments().begin(),
-                                    PostTreatments().end(),
-                                    [shader](std::weak_ptr<Shader> p) { return !(p.owner_before(shader) || shader.owner_before(p)); }),
+                                   PostTreatments().begin(),
+                                   PostTreatments().end(),
+                                   [shader](std::weak_ptr<Shader> p) { return !(p.owner_before(shader) || shader.owner_before(p)); }),
             PostTreatments().end()); //PostTreatments.erase(shader);
     }
 }
 
-
-void    Render::RequestRedraw()
+void Render::RequestRedraw()
 {
     RenderPrivate::RequestRedraw();
 }
 
-void    Render::AddPostTreatment(std::shared_ptr<Shader> shader)
+void Render::AddPostTreatment(std::shared_ptr<Shader> shader)
 {
     RenderPrivate::AddPostTreatment(shader);
 }
 
-void    Render::RemovePostTreatment(std::shared_ptr<Shader> shader)
+void Render::RemovePostTreatment(std::shared_ptr<Shader> shader)
 {
     RenderPrivate::RemovePostTreatment(shader);
 }
 
-void    Render::Start()
+void Render::Start()
 {
     RenderPrivate::StartRenderingThread();
 }
 
-void    Render::Stop()
+void Render::Stop()
 {
     RenderPrivate::StopRenderingThread();
 }
 
-void    Render::SetInternalQuality(float q)
+void Render::SetInternalQuality(float q)
 {
     RenderPrivate::SetInternalQuality(q);
 }
 
-float   Render::InternalQuality()
+float Render::InternalQuality()
 {
     return RenderPrivate::InternalQuality();
 }
 
-double  Render::DeltaTime()
+double Render::DeltaTime()
 {
     return RenderPrivate::DeltaTime();
 }

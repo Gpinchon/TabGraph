@@ -6,8 +6,8 @@
 */
 
 #include "TextureArray.hpp"
-#include <ext/alloc_traits.h>  // for __alloc_traits<>::value_type
-#include "Debug.hpp"           // for glCheckError
+#include "Debug.hpp" // for glCheckError
+#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 
 TextureArray::TextureArray(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity)
     : Texture(name)

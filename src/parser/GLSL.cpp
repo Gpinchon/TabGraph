@@ -6,15 +6,15 @@
 */
 
 #include "parser/GLSL.hpp"
-#include <GL/glew.h>                 // for GLuint, GL_FRAGMENT_SHADER, GL_V...
-#include <bits/exception.h>          // for exception
-#include <errno.h>                   // for errno
-#include <io.h>                      // for access, R_OK
-#include <string.h>                  // for strerror
-#include <stdexcept>                 // for runtime_error
-#include <unordered_map>             // for unordered_map
-#include "Debug.hpp"                 // for glCheckError
-#include "parser/InternalTools.hpp"  // for file_to_str
+#include "Debug.hpp" // for glCheckError
+#include "parser/InternalTools.hpp" // for file_to_str
+#include <GL/glew.h> // for GLuint, GL_FRAGMENT_SHADER, GL_V...
+#include <bits/exception.h> // for exception
+#include <errno.h> // for errno
+#include <io.h> // for access, R_OK
+#include <stdexcept> // for runtime_error
+#include <string.h> // for strerror
+#include <unordered_map> // for unordered_map
 
 static auto deferredVertCode =
 #include "deferred.vert"

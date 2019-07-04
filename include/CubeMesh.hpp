@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include <memory>  		// for shared_ptr
-#include <string>  		// for string
-#include "glm/glm.hpp"  // for glm::vec3
+#include "glm/glm.hpp" // for glm::vec3
+#include <memory> // for shared_ptr
+#include <string> // for string
 
 class Mesh;
 
 namespace CubeMesh {
-	std::shared_ptr<Mesh> create(const std::string& name, glm::vec3 size);
+std::shared_ptr<Mesh> create(const std::string& name, glm::vec3 size);
 };

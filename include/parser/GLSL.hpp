@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <memory>      // for shared_ptr, allocator
-#include <string>      // for string
-#include "Shader.hpp"  // for Shader
+#include "Shader.hpp" // for Shader
+#include <memory> // for shared_ptr, allocator
+#include <string> // for string
 
 enum ShaderType {
     ForwardShader,

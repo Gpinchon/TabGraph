@@ -6,13 +6,13 @@
 */
 
 #include "Mesh.hpp"
-#include "AABB.hpp"             // for AABB
-#include "BoundingElement.hpp"  // for BoundingElement
-#include "Camera.hpp"           // for Camera
-#include "Material.hpp"         // for Material
-#include "Node.hpp"             // for Node
-#include "Shader.hpp"           // for Shader
-#include "Vgroup.hpp"           // for Vgroup
+#include "AABB.hpp" // for AABB
+#include "BoundingElement.hpp" // for BoundingElement
+#include "Camera.hpp" // for Camera
+#include "Material.hpp" // for Material
+#include "Node.hpp" // for Node
+#include "Shader.hpp" // for Shader
+#include "Vgroup.hpp" // for Vgroup
 #include <glm/gtc/matrix_inverse.hpp>
 
 std::vector<std::shared_ptr<Mesh>> Mesh::_meshes;

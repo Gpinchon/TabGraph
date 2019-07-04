@@ -6,10 +6,10 @@
 */
 
 #include "Framebuffer.hpp"
-#include <ext/alloc_traits.h>  // for __alloc_traits<>::value_type
-#include <stdexcept>           // for runtime_error
-#include "Debug.hpp"           // for glCheckError
-#include "Window.hpp"          // for Window
+#include "Debug.hpp" // for glCheckError
+#include "Window.hpp" // for Window
+#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
+#include <stdexcept> // for runtime_error
 
 std::vector<std::shared_ptr<Framebuffer>> Framebuffer::_framebuffers;
 
@@ -18,7 +18,7 @@ Attachement::Attachement(const std::string& name)
 {
 }
 Attachement::Attachement(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format)
-    : Texture(name, s, target, f, fi, data_format){};
+    : Texture(name, s, target, f, fi, data_format) {};
 
 GLenum get_data_format(GLenum internal_format)
 {

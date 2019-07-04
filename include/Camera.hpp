@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <memory>    // for shared_ptr, weak_ptr
-#include <string>    // for string
-#include <vector>    // for vector
-#include "Node.hpp"  // for Node
+#include "Node.hpp" // for Node
+#include <memory> // for shared_ptr, weak_ptr
+#include <string> // for string
+#include <vector> // for vector
 //#include "glm"     // for glm::mat4, FRUSTUM
 #include <glm/glm.hpp>
 
@@ -32,14 +32,15 @@ public:
     virtual glm::ivec4& frustum();
     virtual float& fov();
     virtual ~Camera() = default;
+
 protected:
     Camera(const std::string& name, float fov, CameraProjection proj = PerspectiveCamera);
-    CameraProjection _projection_type{ PerspectiveCamera };
-    glm::mat4 _projection{ 0 };
-    glm::ivec4 _frustum{ -50, 50, -50, 50 };
-    float _fov{ 45 };
-    float _znear{ 0.1 };
-    float _zfar{ 1000 };
+    CameraProjection _projection_type { PerspectiveCamera };
+    glm::mat4 _projection { 0 };
+    glm::ivec4 _frustum { -50, 50, -50, 50 };
+    float _fov { 45 };
+    float _znear { 0.1 };
+    float _zfar { 1000 };
     static std::vector<std::shared_ptr<Camera>> _cameras;
     static std::weak_ptr<Camera> _current;
 };

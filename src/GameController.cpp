@@ -6,9 +6,9 @@
 */
 
 #include "GameController.hpp"
-#include <iostream>    // for basic_ostream::operator<<, operator<<, endl
-#include <utility>     // for pair
-#include "Events.hpp"  // for Events
+#include "Events.hpp" // for Events
+#include <iostream> // for basic_ostream::operator<<, operator<<, endl
+#include <utility> // for pair
 
 Controller::Controller(SDL_JoystickID device)
 {

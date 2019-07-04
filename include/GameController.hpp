@@ -7,13 +7,13 @@
 
 #pragma once
 
-#include <SDL2/SDL_events.h>          // for SDL_Event, SDL_ControllerAxisEvent
-#include <SDL2/SDL_gamecontroller.h>  // for SDL_GameController, SDL_GameCon...
-#include <SDL2/SDL_haptic.h>          // for SDL_Haptic
-#include <SDL2/SDL_joystick.h>        // for SDL_JoystickID
-#include <SDL2/SDL_stdinc.h>          // for Uint8
-#include <map>                        // for map
-#include "InputDevice.hpp"            // for InputDevice
+#include "InputDevice.hpp" // for InputDevice
+#include <SDL2/SDL_events.h> // for SDL_Event, SDL_ControllerAxisEvent
+#include <SDL2/SDL_gamecontroller.h> // for SDL_GameController, SDL_GameCon...
+#include <SDL2/SDL_haptic.h> // for SDL_Haptic
+#include <SDL2/SDL_joystick.h> // for SDL_JoystickID
+#include <SDL2/SDL_stdinc.h> // for Uint8
+#include <map> // for map
 
 typedef void (*controller_axis_callback)(SDL_ControllerAxisEvent* event);
 typedef void (*controller_button_callback)(SDL_ControllerButtonEvent* event);
@@ -40,12 +40,12 @@ public:
     Uint8 button(SDL_GameControllerButton);
 
 private:
-    SDL_GameController* _gamepad{ nullptr };
-    SDL_Haptic* _haptic{ nullptr };
-    SDL_JoystickID _instance_id{ -1 };
-    bool _is_connected{ false };
-    controller_callback _connection_callback{ nullptr };
-    controller_callback _disconnect_callback{ nullptr };
+    SDL_GameController* _gamepad { nullptr };
+    SDL_Haptic* _haptic { nullptr };
+    SDL_JoystickID _instance_id { -1 };
+    bool _is_connected { false };
+    controller_callback _connection_callback { nullptr };
+    controller_callback _disconnect_callback { nullptr };
     std::map<Uint8, controller_axis_callback> _axis_callbacks;
     std::map<Uint8, controller_button_callback> _button_callbacks;
     Controller();

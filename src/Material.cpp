@@ -6,11 +6,11 @@
 */
 
 #include "Material.hpp"
-#include <GL/glew.h>        // for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
-#include "Environment.hpp"  // for Environment
-#include "Shader.hpp"       // for Shader
 #include "Cubemap.hpp"
-#include "parser/GLSL.hpp"  // for GLSL, ForwardShader
+#include "Environment.hpp" // for Environment
+#include "Shader.hpp" // for Shader
+#include "parser/GLSL.hpp" // for GLSL, ForwardShader
+#include <GL/glew.h> // for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
 
 std::vector<std::shared_ptr<Material>> Material::_materials;
 

@@ -6,46 +6,45 @@
 */
 
 #include "Engine.hpp"
-#include <SDL2/SDL_events.h>         // for SDL_PumpEvents, SDL_SetEventFilter
-#include <SDL2/SDL_filesystem.h>     // for SDL_GetBasePath
-#include <SDL2/SDL_timer.h>          // for SDL_GetTicks
-#include <SDL2/SDL_video.h>          // for SDL_GL_MakeCurrent
-#include <bits/exception.h>          // for exception
-#include <dirent.h>                  // for opendir, readdir, dirent, closedir
-#include <io.h>                      // for getcwd
-#include <atomic>                    // for atomic
-#include <chrono>                    // for milliseconds
-#include <iostream>                  // for operator<<, endl, basic_ostream
-#include <memory>                    // for shared_ptr, __shared_ptr_access
-#include <mutex>                     // for mutex
-#include <thread>                    // for sleep_for
-#include "Config.hpp"                // for Config
-#include "Cubemap.hpp"               // for Cubemap
-#include "Environment.hpp"           // for Environment
-#include "Events.hpp"                // for Events
-#include "Node.hpp"                  // for Node
-#include "Render.hpp"                // for AddPostTreatment, RequestRedraw
-#include "TextureParser.hpp"         // for TextureParser
-#include "Window.hpp"                // for Window
-#include "parser/GLSL.hpp"           // for GLSL, PostShader
-#include "parser/InternalTools.hpp"  // for convert_backslash
+#include "Config.hpp" // for Config
+#include "Cubemap.hpp" // for Cubemap
+#include "Environment.hpp" // for Environment
+#include "Events.hpp" // for Events
+#include "Node.hpp" // for Node
+#include "Render.hpp" // for AddPostTreatment, RequestRedraw
+#include "TextureParser.hpp" // for TextureParser
+#include "Window.hpp" // for Window
+#include "parser/GLSL.hpp" // for GLSL, PostShader
+#include "parser/InternalTools.hpp" // for convert_backslash
+#include <SDL2/SDL_events.h> // for SDL_PumpEvents, SDL_SetEventFilter
+#include <SDL2/SDL_filesystem.h> // for SDL_GetBasePath
+#include <SDL2/SDL_timer.h> // for SDL_GetTicks
+#include <SDL2/SDL_video.h> // for SDL_GL_MakeCurrent
+#include <atomic> // for atomic
+#include <bits/exception.h> // for exception
+#include <chrono> // for milliseconds
+#include <dirent.h> // for opendir, readdir, dirent, closedir
+#include <io.h> // for getcwd
+#include <iostream> // for operator<<, endl, basic_ostream
+#include <memory> // for shared_ptr, __shared_ptr_access
+#include <mutex> // for mutex
+#include <thread> // for sleep_for
 
 #ifndef _getcwd
 #define _getcwd getcwd
 #endif //_getcwd
 
-struct EnginePrivate
-{
+struct EnginePrivate {
     EnginePrivate();
     static EnginePrivate& Get();
     static void LoadRes(void);
     static void Update(void);
     static void FixedUpdate(void);
-    std::atomic<bool> loop{ false };
-    int8_t swapInterval{ 1 };
-    double deltaTime{ 0 };
-    std::string programPath{ "" };
-    std::string execPath{ "" };
+    std::atomic<bool> loop { false };
+    int8_t swapInterval { 1 };
+    double deltaTime { 0 };
+    std::string programPath { "" };
+    std::string execPath { "" };
     std::mutex updateMutex;
 };
 
@@ -208,7 +207,7 @@ const std::string Engine::ResourcePath()
     return (Engine::ProgramPath() + "/res/");
 }
 
-std::mutex &Engine::UpdateMutex(void)
+std::mutex& Engine::UpdateMutex(void)
 {
     return EnginePrivate::Get().updateMutex;
 }

@@ -6,13 +6,13 @@
 */
 
 #include "Vgroup.hpp"
-#include "AABB.hpp"             // for AABB
-#include "BoundingElement.hpp"  // for BoundingElement
-#include "Camera.hpp"           // for Camera
-#include "Material.hpp"         // for Material
-#include "Shader.hpp"           // for Shader
-#include "Texture.hpp"          // for Texture
-#include "VertexArray.hpp"      // for VertexArray
+#include "AABB.hpp" // for AABB
+#include "BoundingElement.hpp" // for BoundingElement
+#include "Camera.hpp" // for Camera
+#include "Material.hpp" // for Material
+#include "Shader.hpp" // for Shader
+#include "Texture.hpp" // for Texture
+#include "VertexArray.hpp" // for VertexArray
 
 std::vector<std::shared_ptr<Vgroup>> Vgroup::_vgroups;
 

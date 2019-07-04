@@ -6,18 +6,18 @@
 */
 
 #include "parser/BMP.hpp"
-#include <GL/glew.h>                 // for GLubyte, GLenum, GL_BGR, GL_BGRA
-#include <bits/exception.h>          // for exception
-#include <errno.h>                   // for errno
-#include <fcntl.h>                   // for O_BINARY, O_CREAT, O_RDWR
-#include <io.h>                      // for write, access, close, open, R_OK
-#include <stdio.h>                   // for fclose, fread, fopen, fseek, SEE...
-#include <string.h>                  // for memset, strerror
-#include <sys/stat.h>                // for S_IRWXG, S_IRWXO, S_IRWXU
-#include <stdexcept>                 // for runtime_error
-#include "Texture.hpp"               // for Texture
-#include "parser/InternalTools.hpp"  // for t_bmp_parser, t_bmp_info, t_bmp_...
-#include "glm/glm.hpp"                     // for s_vec2, glm::vec2
+#include "Texture.hpp" // for Texture
+#include "glm/glm.hpp" // for s_vec2, glm::vec2
+#include "parser/InternalTools.hpp" // for t_bmp_parser, t_bmp_info, t_bmp_...
+#include <GL/glew.h> // for GLubyte, GLenum, GL_BGR, GL_BGRA
+#include <bits/exception.h> // for exception
+#include <errno.h> // for errno
+#include <fcntl.h> // for O_BINARY, O_CREAT, O_RDWR
+#include <io.h> // for write, access, close, open, R_OK
+#include <stdexcept> // for runtime_error
+#include <stdio.h> // for fclose, fread, fopen, fseek, SEE...
+#include <string.h> // for memset, strerror
+#include <sys/stat.h> // for S_IRWXG, S_IRWXO, S_IRWXU
 
 static void prepare_header(t_bmp_header* header, t_bmp_info* info, std::shared_ptr<Texture> t)
 {

@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include <GL/glew.h>  // for GLuint, GL_ARRAY_BUFFER, GLenum, glBindBuffer
-#include <stddef.h>   // for size_t
-#include <vector>     // for vector
-#include "Debug.hpp"  // for glCheckError
+#include "Debug.hpp" // for glCheckError
+#include <GL/glew.h> // for GLuint, GL_ARRAY_BUFFER, GLenum, glBindBuffer
+#include <stddef.h> // for size_t
+#include <vector> // for vector
 
 class VertexBuffer {
 public:
@@ -22,8 +22,8 @@ public:
     size_t size();
 
 private:
-    size_t _size{ 0 };
-    GLuint _GLid{ 0 };
+    size_t _size { 0 };
+    GLuint _GLid { 0 };
     VertexBuffer();
 };
 
