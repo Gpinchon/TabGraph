@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
-* @Last Modified by:   Guillaume
-* @Last Modified time: 2019-06-29 19:05:13
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-06 16:06:03
 */
 
 #include "Events.hpp" // for Events
@@ -153,12 +153,12 @@ void keyboard_callback_rotation(SDL_KeyboardEvent* event)
 
 void callback_refresh(SDL_Event* /*unused*/)
 {
-    static float rotation = 0;
     auto mesh = Renderable::Get(0);
     if (mesh == nullptr) {
         return;
     }
     if (rotate_model) {
+        static float rotation = 0;
         rotation += 0.2 * Events::delta_time();
         rotation = CYCLE(rotation, 0, 2 * M_PI);
         mesh->rotation() = glm::vec3(0, rotation, 0);
@@ -173,9 +173,8 @@ void callback_exit(SDL_KeyboardEvent* /*unused*/)
 
 void callback_fullscreen(SDL_KeyboardEvent* event)
 {
-    static bool fullscreen = false;
-
     if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u)) {
+        static bool fullscreen = false;
         fullscreen = !fullscreen;
         Window::fullscreen(fullscreen);
     }
