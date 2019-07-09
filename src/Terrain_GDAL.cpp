@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-03-26 12:03:23
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-07-09 14:37:27
+ * @Last Modified time: 2019-07-09 17:18:18
  */
 
 #include "Terrain_GDAL.hpp" // for Terrain
@@ -51,7 +51,7 @@ void Subdivide(Quadtree<std::array<glm::vec3, 4>>* tree,
     //std::cout << "PixelSize " << pixelSize.x << ' ' << pixelSize.y << std::endl;
     for (auto index = 0u; index < tree->Data().size(); index++) {
         if (subdivided)
-            index--;
+            index = 0;
         subdivided = false;
         float minY = std::numeric_limits<float>::max();
         float maxY = std::numeric_limits<float>::lowest();
