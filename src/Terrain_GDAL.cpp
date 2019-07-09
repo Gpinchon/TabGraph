@@ -1,8 +1,8 @@
 /*
  * @Author: gpi
  * @Date:   2019-03-26 12:03:23
- * @Last Modified by:   gpinchon
- * @Last Modified time: 2019-07-07 17:43:29
+ * @Last Modified by:   gpi
+ * @Last Modified time: 2019-07-09 14:37:27
  */
 
 #include "Terrain_GDAL.hpp" // for Terrain
@@ -70,16 +70,14 @@ void Subdivide(Quadtree<std::array<glm::vec3, 4>>* tree,
         auto v1 = tree->Data().at(index).at(1);
         auto v2 = tree->Data().at(index).at(2);
         auto v3 = tree->Data().at(index).at(3);
-        auto vSize = glm::abs(v0 - v2);
-        //std::cout << vSize.x << ' ' << vSize.z << std::endl;
-        if (vSize.x <= pixelSize.x || vSize.z <= pixelSize.y)
+        if (glm::abs(v0.x - v2.x) <= pixelSize.x || glm::abs(v0.z - v2.z) <= pixelSize.y)
             continue;
-        glm::vec2 mid((v0 + v2) / 2.f);
+        auto mid = (v0 + v2) / 2.f;
         std::array<glm::vec2, 5> uvs {
-            glm::vec2(mid.x, v2.y),
-            glm::vec2(v2.x, mid.y),
-            glm::vec2(mid.x, v0.y),
-            glm::vec2(v0.x, mid.y),
+            glm::vec2(mid.x, v2.z),
+            glm::vec2(v2.x, mid.z),
+            glm::vec2(mid.x, v0.z),
+            glm::vec2(v0.x, mid.z),
             mid
         };
         //std::cout << ((uvs.at(4) / scale2) + 0.5f).x << ' ' << ((uvs.at(4) / scale2) + 0.5f).y << '\n';
@@ -162,8 +160,8 @@ Terrain::create(const std::string& name,
     //std::vector<glm::vec<3, uint8_t>> vn;
 
     std::vector<uint32_t> i;
-    float minZ = std::numeric_limits<float>::max();
-    float maxZ = std::numeric_limits<float>::lowest();
+    //float minDepth = std::numeric_limits<float>::max();
+    //float maxDepth = std::numeric_limits<float>::lowest();
     std::cout << scale.x / 2.f << " " << scale.z / 2.f << std::endl;
     Quadtree<std::array<glm::vec3, 4>> quadTree(
         glm::vec2(-scale.x / 2.f, -scale.z / 2.f),
@@ -171,21 +169,23 @@ Terrain::create(const std::string& name,
     for (auto y = 0.f; y < resolution.y; y++) {
         for (auto x = 0.f; x < resolution.x; x++) {
             auto uv = glm::vec2(x / resolution.x, y / resolution.y);
-            auto z = 0.f;
+            auto depth = 0.f;
             if (texture) {
                 glm::vec2 texUV;
                 texUV.x = uv.x * texture->size().x;
                 texUV.y = uv.y * texture->size().y;
-                z = ((float*)texture->texelfetch(texUV))[0];
+                depth = ((float*)texture->texelfetch(texUV))[0];
 
-                minZ = z < minZ ? z : minZ;
-                maxZ = z > maxZ ? z : maxZ;
+                //minDepth = depth < minDepth ? depth : minDepth;
+                //maxDepth = depth > maxDepth ? depth : maxDepth;
             }
             // vg->vt.at(uint32_t(x + y * resolution.x)) = uv;
             // auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
-            auto v3 = glm::vec3(uv.x * scale.x - scale.x / 2.f,
-                z * scale.y,
-                uv.y * scale.z - scale.z / 2.f);
+            auto v3 = glm::vec3(
+                uv.x * scale.x - scale.x / 2.f,
+                depth * scale.y,
+                uv.y * scale.z - scale.z / 2.f
+                );
             v.push_back(v3);
             if (x < resolution.x - 1 && y < resolution.y - 1) {
                 i.push_back(uint32_t(x + y * resolution.x));
@@ -205,8 +205,8 @@ Terrain::create(const std::string& name,
     }
     std::cout << std::endl;
     Subdivide(&quadTree, texture, scale);
-    auto vg = Vgroup::create(name + "vgroup");
-    //auto medZ = (maxZ + minZ) / 2.f * scale.y;
+    auto vg = Vgroup::create(name + "_vgroup");
+    //auto medZ = (maxDepth + minDepth) / 2.f * scale.y;
     for (auto& data : quadTree.GetAllData()) {
         for (auto& patch : *data) {
             glm::vec3 n;
