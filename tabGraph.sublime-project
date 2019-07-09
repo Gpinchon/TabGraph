@@ -2,8 +2,13 @@
 	"folders":
 	[
 		{
+			"path":".",
+			"name":"Project's Folder",
+			"follow_symlinks": true
+		},
+		{
 			"path":"src",
-			"name":"Source",
+			"name":"Sources",
 			"follow_symlinks": true
 		},
 		{
@@ -26,12 +31,12 @@
 			"name":"Tests",
 			"follow_symlinks": true
 		},
-		{
+/*		{
 			"path": ".",
 			"folder_include_patterns": ["tabGraph", "scripts"],
 			"name": "Build System",
 			"file_include_patterns": ["Makefile", "*.sh"]
-		},
+		},*/
 		{
 			"path": "man",
 			"name": "Manual",
@@ -53,10 +58,13 @@
 		    "OBJECTIVE_C": ["-std=c11"],
 		    "OBJECTIVE_CPP": ["-std=c++11"],
 		},
-    	"common_flags" : [
-    		"-Wall -Werror -Wextra",
+    	"ecc_common_flags" : [
+    		"-Wall -Werror -Wextra -std=c++17",
 	    	"-I${project_path}/include",
-	    	"-I${project_path}/libs/vml/include",
+	    	"-I${project_path}/libs/*/include",
+			"-I${project_path}/libs/gdal/gdal/gcore",
+			"-I${project_path}/libs/gdal/gdal/port",
+			"-I${project_path}/libs/gdal/gdal/ogr",
 		],
 			"flags_sources": [
 				{"file": "Makefile"},
