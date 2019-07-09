@@ -31,12 +31,6 @@
 			"name":"Tests",
 			"follow_symlinks": true
 		},
-/*		{
-			"path": ".",
-			"folder_include_patterns": ["tabGraph", "scripts"],
-			"name": "Build System",
-			"file_include_patterns": ["Makefile", "*.sh"]
-		},*/
 		{
 			"path": "man",
 			"name": "Manual",
