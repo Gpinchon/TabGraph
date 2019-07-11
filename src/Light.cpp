@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 08:07:29
+* @Last Modified time: 2019-07-11 17:14:55
 */
 
 #include "Light.hpp"
@@ -102,7 +102,7 @@ std::shared_ptr<DirectionnalLight> DirectionnalLight::create(const std::string& 
     light->power() = power;
     light->cast_shadow() = cast_shadow;
     if (cast_shadow) {
-        light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", glm::vec2(Config::ShadowRes(), Config::ShadowRes()), 0, 0);
+        light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", glm::vec2(Config::Get<float>("ShadowRes")), 0, 0);
         auto renderBuffer = light->_render_buffer.lock();
         renderBuffer->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
         renderBuffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);

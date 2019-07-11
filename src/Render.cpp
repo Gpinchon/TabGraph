@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:15:39
+* @Last Modified time: 2019-07-11 17:52:33
 */
 
 #include "Render.hpp"
@@ -288,26 +288,26 @@ void RenderPrivate::Update()
 
 void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_ptr<Framebuffer>& current_backTexture, std::shared_ptr<Framebuffer>& current_tbuffertex)
 {
-    if (Config::LightsPerPass() == 0)
+    if (Config::Get<int>("LightsPerPass") == 0)
         return;
     static auto lightingFragmentCode =
 #include "lighting.frag"
         ;
     static auto lighting_shader = GLSL::compile("lighting", lightingFragmentCode, LightingShader,
-        std::string("\n#define LIGHTNBR				") + std::to_string(Config::LightsPerPass()) + std::string("\n#define PointLight			") + std::to_string(Point) + std::string("\n#define DirectionnalLight	") + std::to_string(Directionnal) + std::string("\n"));
+        std::string("\n#define LIGHTNBR				") + std::to_string(Config::Get<int>("LightsPerPass")) + std::string("\n#define PointLight			") + std::to_string(Point) + std::string("\n#define DirectionnalLight	") + std::to_string(Directionnal) + std::string("\n"));
     static auto slighting_shader = GLSL::compile("shadow_lighting", lightingFragmentCode, LightingShader,
-        (Config::ShadowsPerPass() > 0 ? std::string("\n#define SHADOW") : std::string("\n")) + std::string("\n#define SHADOWNBR			") + std::to_string(Config::ShadowsPerPass()) + std::string("\n#define LIGHTNBR				") + std::to_string(Config::LightsPerPass()) + std::string("\n#define PointLight			") + std::to_string(Point) + std::string("\n#define DirectionnalLight	") + std::to_string(Directionnal) + std::string("\n"));
-    auto actualShadowNbr = std::max(uint16_t(1), Config::ShadowsPerPass());
+        (Config::Get<int>("ShadowsPerPass") > 0 ? std::string("\n#define SHADOW") : std::string("\n")) + std::string("\n#define SHADOWNBR			") + std::to_string(Config::Get<int>("ShadowsPerPass")) + std::string("\n#define LIGHTNBR				") + std::to_string(Config::Get<int>("LightsPerPass")) + std::string("\n#define PointLight			") + std::to_string(Point) + std::string("\n#define DirectionnalLight	") + std::to_string(Directionnal) + std::string("\n"));
+    auto actualShadowNbr = std::max(1u, Config::Get<unsigned>("ShadowsPerPass"));
     auto shader = lighting_shader;
     for (auto i = 0u, j = 0u; i < normalLights.size() || j < shadowLights.size();) {
-        if (normalLights.size() - i < Config::LightsPerPass() && shadowLights.size() - j != 0)
+        if (normalLights.size() - i < Config::Get<unsigned>("LightsPerPass") && shadowLights.size() - j != 0)
             shader = slighting_shader;
         else
             shader = lighting_shader;
         current_backBuffer->bind();
         shader->use();
         auto lightIndex = 0u;
-        while (lightIndex < Config::LightsPerPass() && i < normalLights.size()) {
+        while (lightIndex < Config::Get<unsigned>("LightsPerPass") && i < normalLights.size()) {
             auto light = normalLights.at(i);
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
@@ -317,7 +317,7 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
             lightIndex++;
         }
         auto shadowIndex = 0u;
-        while (lightIndex < Config::LightsPerPass() && shadowIndex < actualShadowNbr && j < shadowLights.size()) {
+        while (lightIndex < Config::Get<unsigned>("LightsPerPass") && shadowIndex < actualShadowNbr && j < shadowLights.size()) {
             auto light = shadowLights.at(j);
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
@@ -376,9 +376,9 @@ void RenderPrivate::Scene()
     static auto back_buffer2 = create_back_buffer("back_buffer2", res);
     static auto final_back_buffer = create_back_buffer("final_back_buffer", res);
     static auto elighting_shader = GLSL::compile("lighting_env", lightingEnvFragmentCode, LightingShader,
-        std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::ReflexionSteps()) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::ReflexionSamples()) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) + std::string("\n"));
+        std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::Get<int>("ReflexionSteps")) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::Get<int>("ReflexionSamples")) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::Get<int>("ReflexionBorderFactor")) + std::string("\n"));
     static auto telighting_shader = GLSL::compile("lighting_env_transparent", lightingEnvFragmentCode, LightingShader,
-        std::string("\n#define TRANSPARENT") + std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::ReflexionSteps()) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::ReflexionSamples()) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::ReflexionBorderFactor()) + std::string("\n"));
+        std::string("\n#define TRANSPARENT") + std::string("\n#define REFLEXION_STEPS		") + std::to_string(Config::Get<int>("ReflexionSteps")) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(Config::Get<int>("ReflexionSamples")) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(Config::Get<int>("ReflexionBorderFactor")) + std::string("\n"));
     static auto refraction_shader = GLSL::compile("refraction", refractionFragmentCode, LightingShader);
     static auto passthrough_shader = GLSL::compile("passthrough", emptyShaderCode, LightingShader);
 
@@ -577,7 +577,7 @@ void RenderPrivate::Scene()
     opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     // GENERATE BLOOM FROM out_Brightness
-    final_back_buffer->attachement(1)->blur(Config::BloomPass(), 3.5);
+    final_back_buffer->attachement(1)->blur(Config::Get<int>("BloomPass"), 3.5);
     present(final_back_buffer);
 }
 

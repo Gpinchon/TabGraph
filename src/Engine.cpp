@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:50:56
+* @Last Modified time: 2019-07-11 17:09:48
 */
 
 #include "Engine.hpp"
@@ -129,7 +129,7 @@ void EnginePrivate::FixedUpdate()
 
 void Engine::Init()
 {
-    Window::init(Config::WindowName(), Config::WindowSize());
+    Window::init(Config::Get<std::string>("WindowName"), Config::Get<glm::vec2>("WindowSize"));
     static auto SSAOShaderCode =
 #include "ssao.frag"
         ;

@@ -7,6 +7,11 @@
 			"follow_symlinks": true
 		},
 		{
+			"path":"include",
+			"name":"Includes",
+			"follow_symlinks": true
+		},
+		{
 			"path":"src",
 			"name":"Sources",
 			"follow_symlinks": true
@@ -14,11 +19,6 @@
 		{
 			"path":"./src/shaders",
 			"name":"Shaders",
-			"follow_symlinks": true
-		},
-		{
-			"path":"include",
-			"name":"Includes",
 			"follow_symlinks": true
 		},
 		{
@@ -53,7 +53,10 @@
 		    "OBJECTIVE_CPP": ["-std=c++11"],
 		},
     	"ecc_common_flags" : [
-    		"-Wall -Werror -Wextra -std=c++17",
+    		"-Wall",
+    		"-Werror",
+    		"-Wextra",
+    		"-std=c++17",
 	    	"-I${project_path}/include",
 	    	"-I${project_path}/libs/*/include",
 			"-I${project_path}/libs/gdal/gdal/gcore",

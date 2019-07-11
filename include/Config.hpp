@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:57
+* @Last Modified time: 2019-07-11 16:16:45
 */
 
 #pragma once
@@ -11,7 +11,30 @@
 #include <stdint.h> // for uint16_t, int16_t
 #include <string> // for allocator, string
 
-class Config {
+/**
+* @brief Loads/Saves a config file
+* The Config is shared accross the whole program
+* @summary The Config file might contains values formated as such :
+* WindowSize = 1024 768
+* WindowName = "Window Name"
+*/
+namespace Config {
+    /**
+    * Loads the Config from the specified file
+    * Invalid values will be ignored (set to default value) but setting keys will still be registered
+    */
+    void    Load(const std::string &path);
+    /** Saves the Config to the specified file */
+    void    Save(const std::string &path);
+    /** Tries to get the specified setting, throws on failure */
+    template <typename T>
+    T       Get(const std::string &name);
+    /** Sets the specified setting to the specified value */
+    template <typename T>
+    void    Set(const std::string &name, const T value);
+}
+
+/*class Config {
 public:
     static void Load(const std::string&);
     static glm::ivec2& WindowSize();
@@ -44,4 +67,4 @@ private:
     uint16_t _reflexionBorderFactor { 10 };
     Config() = default;
     ~Config() = default;
-};
+};*/
