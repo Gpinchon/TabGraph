@@ -1,76 +1,77 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-11 17:02:54
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-11 20:59:41
 */
 
 #include "Config.hpp"
 #include "Debug.hpp" // for debugLog
-#include <stdio.h> // for sscanf, fgets, fopen
 #include <exception>
-#include <variant>
 #include <map>
+#include <stdio.h> // for sscanf, fgets, fopen
+#include <variant>
 
 namespace Config {
-    class Private
-    {
-    public:
-        static void     Load(const std::string &path);
-        static void     Save(const std::string &path);
-        template <typename T>
-        static T        Get(const std::string &name);
-        template <typename T>
-        static void     Set(const std::string &name, T value);
-    private: 
-        static Config::Private &_instance();
-        std::map<std::string, std::variant<int, float, glm::vec2, glm::vec3, std::string>>  _configMap;
-    };
+class Private {
+public:
+    static void Load(const std::string& path);
+    static void Save(const std::string& path);
+    template <typename T>
+    static T Get(const std::string& name, T defaultValue);
+    template <typename T>
+    static T Set(const std::string& name, T value);
+
+private:
+    static Config::Private& _instance();
+    std::map<std::string, std::variant<float, glm::vec2, glm::vec3, std::string>> _configMap;
+};
 }
 
-Config::Private &Config::Private::_instance()
+Config::Private& Config::Private::_instance()
 {
-    static Config::Private  *instance = nullptr;
+    static Config::Private* instance = nullptr;
     if (instance == nullptr)
         instance = new Config::Private;
     return *instance;
 }
 
-template<typename T>
-void Config::Private::Set(const std::string &name, T value)
+template <typename T>
+T Config::Private::Set(const std::string& name, T value)
 {
-    _instance()._configMap[name] = value;
+    return _instance()._configMap[name] = value;
 }
 
-template<typename T>
-T    Config::Private::Get(const std::string &name)
+template <typename T>
+T Config::Private::Get(const std::string& name, T defaultValue)
 {
     auto it = _instance()._configMap.find(name);
     if (it != _instance()._configMap.end())
         return *it;
-    throw std::exception("Could not find " + name + " in Config");
+    else
+        return Config::Private::Set(name, defaultValue);
 }
 
-void            Config::Load(const std::string &path)
+void Config::Load(const std::string& path)
 {
     Config::Private::Load(path);
 }
 
-void            Config::Save(const std::string &path)
+void Config::Save(const std::string& path)
 {
     Config::Private::Save(path);
 }
 
 template <typename T>
-T    Config::Get(const std::string &name)
+T Config::Get(const std::string& name, const T defaultValue)
 {
-    return Config::Private::Get<T>(name);
+    return Config::Private::Get<T>(name, defaultValue);
 }
 
 template <typename T>
-void            Config::Set(const std::string &name, T value)
+T Config::Set(const std::string& name, const T value)
 {
-    Config::Private::Set(name, value);
+    return Config::Private::Set(name, value);
 }
 
 /*

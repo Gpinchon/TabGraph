@@ -19,19 +19,19 @@
 * WindowName = "Window Name"
 */
 namespace Config {
-    /**
+/**
     * Loads the Config from the specified file
     * Invalid values will be ignored (set to default value) but setting keys will still be registered
     */
-    void    Load(const std::string &path);
-    /** Saves the Config to the specified file */
-    void    Save(const std::string &path);
-    /** Tries to get the specified setting, throws on failure */
-    template <typename T>
-    T       Get(const std::string &name);
-    /** Sets the specified setting to the specified value */
-    template <typename T>
-    void    Set(const std::string &name, const T value);
+void Load(const std::string& path);
+/** Saves the Config to the specified file */
+void Save(const std::string& path);
+/** Tries to get the specified setting, set it to the default value if not found */
+template <typename T>
+T Get(const std::string& name, const T defaultValue);
+/** Sets the specified setting to the specified value */
+template <typename T>
+T Set(const std::string& name, const T value);
 }
 
 /*class Config {
