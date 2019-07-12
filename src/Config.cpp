@@ -1,78 +1,32 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-11 20:59:41
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-12 11:43:31
 */
 
 #include "Config.hpp"
 #include "Debug.hpp" // for debugLog
 #include <exception>
-#include <map>
 #include <stdio.h> // for sscanf, fgets, fopen
-#include <variant>
 
-namespace Config {
-class Private {
-public:
-    static void Load(const std::string& path);
-    static void Save(const std::string& path);
-    template <typename T>
-    static T Get(const std::string& name, T defaultValue);
-    template <typename T>
-    static T Set(const std::string& name, T value);
-
-private:
-    static Config::Private& _instance();
-    std::map<std::string, std::variant<float, glm::vec2, glm::vec3, std::string>> _configMap;
-};
-}
-
-Config::Private& Config::Private::_instance()
+Config& Config::_instance()
 {
-    static Config::Private* instance = nullptr;
+    static Config* instance = nullptr;
     if (instance == nullptr)
-        instance = new Config::Private;
+        instance = new Config;
     return *instance;
 }
 
-template <typename T>
-T Config::Private::Set(const std::string& name, T value)
+
+void Config::Load(const std::string& /*path*/)
 {
-    return _instance()._configMap[name] = value;
 }
 
-template <typename T>
-T Config::Private::Get(const std::string& name, T defaultValue)
+void Config::Save(const std::string& /*path*/)
 {
-    auto it = _instance()._configMap.find(name);
-    if (it != _instance()._configMap.end())
-        return *it;
-    else
-        return Config::Private::Set(name, defaultValue);
 }
 
-void Config::Load(const std::string& path)
-{
-    Config::Private::Load(path);
-}
-
-void Config::Save(const std::string& path)
-{
-    Config::Private::Save(path);
-}
-
-template <typename T>
-T Config::Get(const std::string& name, const T defaultValue)
-{
-    return Config::Private::Get<T>(name, defaultValue);
-}
-
-template <typename T>
-T Config::Set(const std::string& name, const T value)
-{
-    return Config::Private::Set(name, value);
-}
 
 /*
 Config* Config::_instance = nullptr;

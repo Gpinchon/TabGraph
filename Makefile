@@ -162,9 +162,10 @@ ifeq ($(USE_GDAL), 1)
 endif
 
 LDFLAGS		+=	$(addprefix -L , $(LIBDIR))
+CPPFLAGS	+=	-std=c++17
 CPPFLAGS	+=	$(addprefix -I, $(INCLUDE_PATH))
 CPPFLAGS	+=	$(addprefix -I, $(SHADERS_PATH))
-CXXFLAGS	+=	-std=c++17 -Wall -Wextra -Werror $(CPPFLAGS)
+CXXFLAGS	+=	-Wall -Wextra -Werror $(CPPFLAGS)
 
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-11 17:57:18
+* @Last Modified time: 2019-07-12 09:28:04
 */
 
 #include "Texture.hpp"
@@ -55,7 +55,7 @@ std::shared_ptr<Texture> Texture::create(const std::string& name, glm::ivec2 s,
         new Texture(name, s, target, f, fi, data_format, data));
     t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Get<float>("Anisotropy"));
+    t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Get("Anisotropy", 16.f));
     if (t->values_per_pixel() < 4) {
         t->set_parameteri(GL_TEXTURE_SWIZZLE_A, GL_ONE);
     }
@@ -152,10 +152,11 @@ void Texture::load()
     if (_loaded) {
         return;
     }
-    if (Config::Get<float>("MaxTexRes") > 0 && _data && (_size.x > Config::Get<float>("MaxTexRes") || _size.y > Config::Get<float>("MaxTexRes"))) {
+    auto maxTexRes = Config::Get("MaxTexRes", -1);
+    if (maxTexRes > 0 && _data && (_size.x > maxTexRes || _size.y > maxTexRes)) {
         resize(glm::ivec2(
-            std::min(_size.x, Config::Get<int>("MaxTexRes")),
-            std::min(_size.y, Config::Get<int>("MaxTexRes"))));
+            std::min(_size.x, maxTexRes),
+            std::min(_size.y, maxTexRes)));
     }
     if (_glid == 0u) {
         glGenTextures(1, &_glid);

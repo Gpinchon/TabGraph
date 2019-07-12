@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:45:41
+* @Last Modified time: 2019-07-12 09:30:07
 */
 
 #include "Window.hpp"
@@ -68,7 +68,7 @@ void Window::init(const std::string& name, glm::ivec2 resolution)
     //SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, Config::Msaa());
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, Config::Get("MSAA", 4));
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     if (nullptr == _get()._sdl_window)
         _get()._sdl_window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED,
