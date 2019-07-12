@@ -2,13 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-12 11:43:31
+* @Last Modified time: 2019-07-12 16:56:26
 */
 
 #include "Config.hpp"
 #include "Debug.hpp" // for debugLog
 #include <exception>
 #include <stdio.h> // for sscanf, fgets, fopen
+#include <fstream>
 
 Config& Config::_instance()
 {
@@ -19,12 +20,33 @@ Config& Config::_instance()
 }
 
 
-void Config::Load(const std::string& /*path*/)
+void Config::Parse(const std::string& /*path*/)
 {
 }
 
-void Config::Save(const std::string& /*path*/)
+void Config::Save(const std::string& path)
 {
+    std::ofstream   configFile;
+    configFile.open(path);
+    for (const auto &v : _instance()._configMap)
+    {
+        configFile << v.first << " = ";
+        switch (v.second.index()) {
+            case 0:
+                configFile << std::get<0>(v.second);
+                break;
+            case 1:
+                configFile << std::get<1>(v.second).x << ' ' << std::get<1>(v.second).y;
+                break;
+            case 2:
+                configFile << std::get<2>(v.second).x << ' ' << std::get<2>(v.second).y << ' ' << std::get<2>(v.second).z;
+                break;
+            case 3:
+                configFile << std::get<3>(v.second);
+                break;
+        }
+        configFile << '\n';
+    }
 }
 
 

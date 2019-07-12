@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-12 11:21:02
+* @Last Modified time: 2019-07-12 16:32:56
 */
 
 #pragma once
@@ -26,7 +26,7 @@ public:
         * Loads the Config from the specified file
         * Invalid values will be ignored (set to default value) but setting keys will still be registered
         */
-    static void Load(const std::string& path);
+    static void Parse(const std::string& path);
     /** Saves the Config to the specified file */
     static void Save(const std::string& path);
     /** Tries to get the specified setting, set it to the default value if not found */
