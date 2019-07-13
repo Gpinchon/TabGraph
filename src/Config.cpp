@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-13 12:49:34
+* @Last Modified time: 2019-07-13 13:31:13
 */
 
 #include "Config.hpp"
@@ -31,7 +31,6 @@ void Config::Parse(const std::string& path)
             std::istream_iterator<std::string> { iss },
             std::istream_iterator<std::string>());
         if (words.size() > 2 && words.at(1) == "=") {
-            std::cout << words.at(2) << std::endl;
             switch (words.size() - 2) {
             case 1:
                 try {
