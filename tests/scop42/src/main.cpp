@@ -1,29 +1,29 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:50:49
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-13 11:28:24
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
 
-#include <SDL2/SDL.h>       // for SDL_Quit
-#include <SDL2/SDL_main.h>  // for main
-#include <math.h>           // for M_PI
-#include <Mesh.hpp>         // for Mesh
-#include <cstdlib>          // for rand, RAND_MAX
-#include <memory>           // for shared_ptr, __shared_ptr_access, operator!=
-#include <string>           // for operator+, to_string, string
-#include <vector>           // for vector
-#include "Camera.hpp"       // for OrbitCamera, Camera
-#include "Config.hpp"       // for Config
-#include "Engine.hpp"       // for ProgramPath, Init, Start
-#include "Light.hpp"        // for DirectionnalLight, Light
-#include "MeshParser.hpp"   // for MeshParser
-#include "Node.hpp"         // for Node
-#include "scop.hpp"         // for setup_callbacks
-#include "glm/glm.hpp"            // for glm::vec3, glm::vec3
+#include "Camera.hpp" // for OrbitCamera, Camera
+#include "Config.hpp" // for Config
+#include "Engine.hpp" // for ProgramPath, Init, Start
+#include "Light.hpp" // for DirectionnalLight, Light
+#include "MeshParser.hpp" // for MeshParser
+#include "Node.hpp" // for Node
+#include "glm/glm.hpp" // for glm::vec3, glm::vec3
+#include "scop.hpp" // for setup_callbacks
+#include <Mesh.hpp> // for Mesh
+#include <SDL2/SDL.h> // for SDL_Quit
+#include <SDL2/SDL_main.h> // for main
+#include <cstdlib> // for rand, RAND_MAX
+#include <math.h> // for M_PI
+#include <memory> // for shared_ptr, __shared_ptr_access, operator!=
+#include <string> // for operator+, to_string, string
+#include <vector> // for vector
 
 /*bool	alpha_compare(Renderable	*m, Renderable *m1)
 {
@@ -49,21 +49,20 @@
 
 std::vector<std::shared_ptr<Light>> create_random_lights(unsigned i)
 {
-	std::vector<std::shared_ptr<Light>> v;
-	for (auto index = 0u; index < i; index++)
-	{
-		glm::vec3	Position = glm::vec3(
-			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
-			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
-			(std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i);
-		glm::vec3	Color = glm::vec3(
-			std::rand() / float(RAND_MAX),
-			std::rand() / float(RAND_MAX),
-			std::rand() / float(RAND_MAX));
-		auto	light = Light::create("Light" + std::to_string(i), Color, Position, 1 / float(i));
-		v.push_back(light);
-	}
-	return (v);
+    std::vector<std::shared_ptr<Light>> v;
+    for (auto index = 0u; index < i; index++) {
+        glm::vec3 Position = glm::vec3(
+            (std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
+            (std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
+            (std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i);
+        glm::vec3 Color = glm::vec3(
+            std::rand() / float(RAND_MAX),
+            std::rand() / float(RAND_MAX),
+            std::rand() / float(RAND_MAX));
+        auto light = Light::create("Light" + std::to_string(i), Color, Position, 1 / float(i));
+        v.push_back(light);
+    }
+    return (v);
 }
 
 /*
@@ -77,33 +76,33 @@ compute_object->Start();
 cube->vgroup(0)->material()->set_texture_albedo(texture);
 */
 
-int		main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-	std::shared_ptr<Mesh>	obj;
+    std::shared_ptr<Mesh> obj;
 
-	Config::Load(Engine::ProgramPath() + "./res/config.ini");
-	Engine::Init();
-	auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
-	Camera::set_current(camera);
-	camera->set_target(Node::create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
-	camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
-	obj = nullptr;
-	if (argc >= 2) {
-		obj = MeshParser::parse("main_mesh", argv[1]);
-	}
-	if (argc > 2 || obj == nullptr) {
-		obj = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/obj/chart.obj");
-	}
-	if (obj != nullptr) {
-		obj->center();
-		obj->load();
-	}
-	//FBX::parseBin(Engine::ProgramPath() + "./mug.fbx");
-	setup_callbacks();
-	//create_random_lights(250);
-	DirectionnalLight::create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
-	//DirectionnalLight::create("BackLight", glm::vec3(0.3, 0.3, 0.3), glm::vec3(-10, -10, 0), 1, false);
-	Engine::Start();
-	SDL_Quit();
-	return (0);
+    Config::Parse(Engine::ProgramPath() + "./res/config.ini");
+    Engine::Init();
+    auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
+    Camera::set_current(camera);
+    camera->set_target(Node::create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
+    camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
+    obj = nullptr;
+    if (argc >= 2) {
+        obj = MeshParser::parse("main_mesh", argv[1]);
+    }
+    if (argc > 2 || obj == nullptr) {
+        obj = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/obj/chart.obj");
+    }
+    if (obj != nullptr) {
+        obj->center();
+        obj->load();
+    }
+    //FBX::parseBin(Engine::ProgramPath() + "./mug.fbx");
+    setup_callbacks();
+    //create_random_lights(250);
+    DirectionnalLight::create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
+    //DirectionnalLight::create("BackLight", glm::vec3(0.3, 0.3, 0.3), glm::vec3(-10, -10, 0), 1, false);
+    Engine::Start();
+    SDL_Quit();
+    return (0);
 }

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-11 21:37:49
+* @Last Modified time: 2019-07-13 13:07:42
 */
 
 #include "Render.hpp"
@@ -301,7 +301,7 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
     static auto lighting_shader = GLSL::compile("lighting", lightingFragmentCode, LightingShader,
         std::string("\n#define LIGHTNBR ") + std::to_string(lightsPerPass) + std::string("\n#define PointLight ") + std::to_string(Point) + std::string("\n#define DirectionnalLight ") + std::to_string(Directionnal) + std::string("\n"));
     static auto slighting_shader = GLSL::compile("shadow_lighting", lightingFragmentCode, LightingShader,
-        (shadowsPerPass > 0 ? std::string("\n#define SHADOW") : std::string("\n")) + std::string("\n#define SHADOWNBR ") + std::to_string(shadowsPerPass) + std::string("\n#define LIGHTNBR				") + std::to_string(lightsPerPass) + std::string("\n#define PointLight			") + std::to_string(Point) + std::string("\n#define DirectionnalLight	") + std::to_string(Directionnal) + std::string("\n"));
+        (shadowsPerPass > 0 ? std::string("\n#define SHADOW") : std::string("\n")) + std::string("\n#define SHADOWNBR ") + std::to_string(shadowsPerPass) + std::string("\n#define LIGHTNBR ") + std::to_string(lightsPerPass) + std::string("\n#define PointLight ") + std::to_string(Point) + std::string("\n#define DirectionnalLight ") + std::to_string(Directionnal) + std::string("\n"));
     auto actualShadowNbr = std::max(1u, shadowsPerPass);
     auto shader = lighting_shader;
     for (auto i = 0u, j = 0u; i < normalLights.size() || j < shadowLights.size();) {
