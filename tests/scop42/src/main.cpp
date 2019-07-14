@@ -2,15 +2,15 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-13 11:28:24
+* @Last Modified time: 2019-07-13 21:41:58
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
 
-#include "Camera.hpp" // for OrbitCamera, Camera
 #include "Config.hpp" // for Config
 #include "Engine.hpp" // for ProgramPath, Init, Start
+#include "FPSCamera.hpp" // for FPSCamera
 #include "Light.hpp" // for DirectionnalLight, Light
 #include "MeshParser.hpp" // for MeshParser
 #include "Node.hpp" // for Node
@@ -82,10 +82,10 @@ int main(int argc, char* argv[])
 
     Config::Parse(Engine::ProgramPath() + "./res/config.ini");
     Engine::Init();
-    auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
+    auto camera = FPSCamera::create("main_camera", 45);
     Camera::set_current(camera);
-    camera->set_target(Node::create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
-    camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
+    //camera->set_target(Node::create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
+    //camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
     obj = nullptr;
     if (argc >= 2) {
         obj = MeshParser::parse("main_mesh", argv[1]);

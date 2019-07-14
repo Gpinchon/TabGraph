@@ -2,9 +2,10 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-06 16:06:03
+* @Last Modified time: 2019-07-13 15:52:22
 */
 
+#include "Common.hpp"
 #include "Events.hpp" // for Events
 #include "Node.hpp" // for Node
 #include "Renderable.hpp" // for Renderable
@@ -29,6 +30,18 @@
 #include <memory> // for shared_ptr, dynamic_pointer_cast
 
 static auto cameraRotation = glm::vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
+bool orbit = false;
+
+void FPSCameraUpdate()
+{
+    static auto camera = Camera::get_by_name("main_camera");
+    glm::vec3 front;
+    front.x = cos(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x));
+    front.y = sin(glm::radians(cameraRotation.y));
+    front.z = cos(glm::radians(cameraRotation.y)) * sin(glm::radians(cameraRotation.x));
+    camera->target()->position() = glm::normalize(front);
+    camera->target()->position() += camera->position();
+}
 
 void callback_camera(SDL_Event*)
 {
@@ -56,14 +69,30 @@ void callback_camera(SDL_Event*)
     cameraRotation.x += raxis.y * Events::delta_time();
     cameraRotation.y += raxis.x * Events::delta_time();
     cameraRotation.z -= laxis.y * Events::delta_time();
-    auto camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::current());
-    auto t = camera->target();
-    t->position().y += rtrigger * Events::delta_time();
-    t->position().y -= ltrigger * Events::delta_time();
-    cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
-    cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-    cameraRotation.z = glm::clamp(cameraRotation.z, 0.1f, 1000.f);
-    camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+
+    if (orbit) {
+        Mouse::set_relative(SDL_FALSE);
+        auto camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::current());
+        auto t = camera->target();
+        cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
+        cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
+        cameraRotation.z = glm::clamp(cameraRotation.z, 0.1f, 1000.f);
+        t->position().y += rtrigger * Events::delta_time();
+        t->position().y -= ltrigger * Events::delta_time();
+
+        camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+    } else {
+        Mouse::set_relative(SDL_TRUE);
+        auto camera = Camera::current();
+        auto camTarget = camera->target()->position();
+        auto cameDirection = glm::normalize(camera->position() - camTarget);
+        auto camRight = glm::normalize(glm::cross(Common::up(), cameDirection));
+        auto camUp = glm::cross(cameDirection, camRight);
+        camera->Up() = camUp;
+        camera->position() -= float(raxis.x * Events::delta_time()) * camRight;
+        camera->position() += float(raxis.y * Events::delta_time()) * cameDirection;
+        FPSCameraUpdate();
+    }
 }
 
 void callback_scale(SDL_KeyboardEvent* event)
@@ -184,34 +213,26 @@ void callback_fullscreen(SDL_KeyboardEvent* event)
 void MouseWheelCallback(SDL_MouseWheelEvent* event)
 {
     static auto camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
-    cameraRotation.z -= event->y;
-    cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
-    cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-    cameraRotation.z = glm::clamp(cameraRotation.z, 0.01f, 1000.f);
-    camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+    camera->fov() -= event->y * 0.01;
+    camera->fov() = glm::clamp(camera->fov(), 1.0f, 45.f);
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent* event)
 {
-    static auto camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
-    /*if (Mouse::button(2))
-	{
-		auto	world_mouse_pos = mat4_mult_vec4(camera->projection(), new_vec4(event->xrel, event->yrel, 0, 1));
-		auto	world_mouse_pos3 = glm::vec3(world_mouse_pos.x, world_mouse_pos.y, world_mouse_pos.z);
-		world_mouse_pos3 = glm::normalize(vec3_sub(camera->position(), world_mouse_pos3));
-		camera->target()->position().x += world_mouse_pos3.x;
-		camera->target()->position().y += world_mouse_pos3.y;
-		camera->target()->position().z += world_mouse_pos3.z;
-		std::cout << world_mouse_pos.x << " " << world_mouse_pos.y << " " << world_mouse_pos.z << std::endl;
-	}*/
-    if (Mouse::button(1)) {
-        cameraRotation.x += event->yrel * Events::delta_time();
-        cameraRotation.y -= event->xrel * Events::delta_time();
-        cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
-        cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-        cameraRotation.z = glm::clamp(cameraRotation.z, 0.01f, 1000.f);
+    if (orbit) {
+        static auto camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
+        if (Mouse::button(1)) {
+            cameraRotation.x += event->yrel * Events::delta_time();
+            cameraRotation.y -= event->xrel * Events::delta_time();
+            cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
+            cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
+            cameraRotation.z = glm::clamp(cameraRotation.z, 0.01f, 1000.f);
+        }
+        camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+    } else {
+        cameraRotation.x += event->xrel * Events::delta_time();
+        cameraRotation.y -= event->yrel * Events::delta_time();
     }
-    camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
 }
 
 void callback_crash(SDL_KeyboardEvent*)

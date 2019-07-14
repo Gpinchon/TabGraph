@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-27 13:38:46
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-09 17:14:33
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-13 14:32:16
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
@@ -25,7 +25,7 @@
 
 int main(int argc, char** argv)
 {
-    Config::Load(Engine::ResourcePath() + "config.ini");
+    Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
     auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
     Camera::set_current(camera);

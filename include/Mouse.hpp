@@ -19,7 +19,8 @@ typedef void (*mouse_wheel_callback)(SDL_MouseWheelEvent* event);
 class Mouse : InputDevice {
 public:
     void process_event(SDL_Event*);
-    static bool set_relative(SDL_bool relative);
+    static bool relative();
+    static void set_relative(bool relative);
     static bool button(Uint8 button);
     static void position(Sint32& x, Sint32& y);
     static void set_move_callback(mouse_motion_callback);

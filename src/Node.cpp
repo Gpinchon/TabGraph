@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 16:09:19
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-14 22:49:53
 */
 
 #include "Node.hpp"
@@ -64,7 +64,7 @@ void Node::transform_update()
     auto parentPtr = parent();
     if (parentPtr != nullptr) {
         parentPtr->transform_update();
-        _transform = parentPtr->transform() * _transform;
+        _transform = parentPtr->TransformMatrix() * _transform;
     }
 }
 
@@ -112,42 +112,42 @@ void Node::set_parent(std::shared_ptr<Node> prt)
     prt->add_child(shared_from_this());
 }
 
-glm::vec3& Node::up()
+glm::vec3 Node::Position() const
 {
-    return (_up);
+    return _position;
 }
 
-glm::vec3& Node::position()
+void Node::SetPosition(glm::vec3 position)
 {
-    return (_position);
+    _position = position;
 }
 
-glm::vec3& Node::rotation()
+glm::vec3 Node::Rotation() const
 {
     return (_rotation);
 }
 
-glm::vec3& Node::scaling()
+glm::vec3 Node::Scale() const
 {
     return (_scaling);
 }
 
-glm::mat4& Node::transform()
+glm::mat4 Node::TransformMatrix() const
 {
     return (_transform);
 }
 
-glm::mat4& Node::translate()
+glm::mat4 Node::TranslationMatrix() const
 {
     return (_translate);
 }
 
-glm::mat4& Node::rotate()
+glm::mat4 Node::RotationMatrix() const
 {
     return (_rotate);
 }
 
-glm::mat4& Node::scale()
+glm::mat4 Node::ScaleMatrix() const
 {
     return (_scale);
 }

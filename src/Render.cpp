@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-13 13:07:42
+* @Last Modified time: 2019-07-14 23:01:37
 */
 
 #include "Render.hpp"
@@ -174,7 +174,7 @@ void render_shadows()
     for (auto light : shadowLights) {
         light->render_buffer()->bind();
         glClear(GL_DEPTH_BUFFER_BIT);
-        tempCamera->position() = light->position();
+        tempCamera->SetPosition(light->Position());
         tempCamera->view() = light->transform();
         for (auto index = 0; Renderable::Get(index) != nullptr; index++) {
             auto node = Renderable::Get(index);

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 08:12:07
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-14 22:47:46
 */
 
 #include "Mesh.hpp"
@@ -82,8 +82,8 @@ void Mesh::load()
 bool Mesh::render_depth(RenderMod mod)
 {
     bool ret = false;
-    auto mvp = Camera::current()->projection() * Camera::current()->view() * transform();
-    auto normal_matrix = glm::inverseTranspose(transform());
+    auto mvp = Camera::current()->projection() * Camera::current()->view() * TransformMatrix();
+    auto normal_matrix = glm::inverseTranspose(TransformMatrix());
 
     load();
     std::shared_ptr<Shader> last_shader;
@@ -97,7 +97,7 @@ bool Mesh::render_depth(RenderMod mod)
         auto depthShader = vgMaterial->depth_shader();
         depthShader->use();
         if (last_shader != depthShader) {
-            depthShader->set_uniform("Matrix.Model", transform());
+            depthShader->set_uniform("Matrix.Model", TransformMatrix());
             depthShader->set_uniform("Matrix.ModelViewProjection", mvp);
             depthShader->set_uniform("Matrix.Normal", normal_matrix);
         }
@@ -112,8 +112,8 @@ bool Mesh::render_depth(RenderMod mod)
 bool Mesh::render(RenderMod mod)
 {
     bool ret = false;
-    auto mvp = Camera::current()->projection() * Camera::current()->view() * transform();
-    auto normal_matrix = glm::inverseTranspose(transform());
+    auto mvp = Camera::current()->projection() * Camera::current()->view() * TransformMatrix();
+    auto normal_matrix = glm::inverseTranspose(TransformMatrix());
 
     load();
     std::shared_ptr<Shader> last_shader;
@@ -127,7 +127,7 @@ bool Mesh::render(RenderMod mod)
         auto vgShader = vgMaterial->shader();
         vgShader->use();
         if (last_shader != vgShader) {
-            vgShader->set_uniform("Matrix.Model", transform());
+            vgShader->set_uniform("Matrix.Model", TransformMatrix());
             vgShader->set_uniform("Matrix.ModelViewProjection", mvp);
             vgShader->set_uniform("Matrix.Normal", normal_matrix);
         }

@@ -12,5 +12,6 @@ all:
 	cd ../.. && $(MAKE) application
 
 debug: APP_NAME = ScopD.exe
+debug: APP_CXXFLAGS = -g
 debug:
 	cd ../.. && $(MAKE) application DEBUG=1

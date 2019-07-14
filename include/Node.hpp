@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:16:58
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-14 12:20:19
 */
 
 #pragma once
@@ -29,14 +29,22 @@ public:
     virtual void FixedUpdate();
     virtual void Update();
     virtual ~Node() = default;
-    glm::mat4& transform();
-    glm::mat4& translate();
-    glm::mat4& rotate();
-    glm::mat4& scale();
-    glm::vec3& position();
-    glm::vec3& rotation();
-    glm::vec3& scaling();
-    glm::vec3& up();
+    glm::mat4 TransformMatrix() const;
+    void SetTransformMatrix(glm::mat4) const;
+    glm::mat4 TranslationMatrix() const;
+    void SetTranslationMatrix(glm::mat4) const;
+    glm::mat4 RotationMatrix() const;
+    void SetRotationMatrix(glm::mat4) const;
+    glm::mat4 ScaleMatrix() const;
+    void SetScaleMatrix(glm::mat4) const;
+    glm::vec3 Position() const;
+    void Position(glm::mat4) const;
+    void SetPosition(glm::vec3);
+    glm::vec3 Rotation() const;
+    void SetRotation(glm::vec3);
+    glm::vec3 Scale() const;
+    void SetScale(glm::vec3);
+    //glm::vec3& up();
     std::shared_ptr<Node> target();
     std::shared_ptr<Node> parent();
     void set_target(std::shared_ptr<Node>);
@@ -53,7 +61,7 @@ protected:
     glm::vec3 _position { 0, 0, 0 };
     glm::vec3 _rotation { 0, 0, 0 };
     glm::vec3 _scaling { 1, 1, 1 };
-    glm::vec3 _up { 0, 1, 0 };
+    //glm::vec3 _up { 0, 1, 0 };
     glm::mat4 _transform { glm::mat4(1.f) };
     glm::mat4 _translate { glm::mat4(0.f) };
     glm::mat4 _rotate { glm::mat4(0.f) };

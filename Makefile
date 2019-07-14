@@ -51,6 +51,7 @@ HEADERS_FILES	=	\
 					AABB.hpp					\
 					BoundingElement.hpp			\
 					Camera.hpp					\
+					Common.hpp					\
 					ComputeObject.hpp			\
 					Config.hpp					\
 					Cubemap.hpp					\
@@ -60,6 +61,7 @@ HEADERS_FILES	=	\
 					Engine.hpp					\
 					Environment.hpp				\
 					Events.hpp					\
+					FPSCamera.hpp				\
 					Framebuffer.hpp				\
 					GameController.hpp			\
 					InputDevice.hpp				\
@@ -96,12 +98,14 @@ SRC_FILES		=	\
 					AABB.cpp			\
 					Camera.cpp			\
 					ComputeObject.cpp	\
+					Common.cpp			\
 					Config.cpp			\
 					Cubemap.cpp			\
 					CubeMesh.cpp		\
 					Engine.cpp			\
 					Environment.cpp		\
 					Events.cpp			\
+					FPSCamera.cpp		\
 					Framebuffer.cpp		\
 					GameController.cpp	\
 					Keyboard.cpp		\

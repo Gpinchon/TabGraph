@@ -2,10 +2,11 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-11 20:59:10
+* @Last Modified time: 2019-07-14 22:47:15
 */
 
 #include "Light.hpp"
+#include "Common.hpp"
 #include "Config.hpp" // for Config
 #include "Engine.hpp" // for up()
 #include "Framebuffer.hpp" // for Framebuffer
@@ -25,7 +26,7 @@ std::shared_ptr<Light> Light::create(const std::string& name, glm::vec3 color, g
 {
     auto light = std::shared_ptr<Light>(new Light(name));
     light->color() = color;
-    light->position() = position;
+    light->Position() = position;
     light->power() = power;
     Light::add(light);
     Node::add(light);
@@ -98,7 +99,7 @@ std::shared_ptr<DirectionnalLight> DirectionnalLight::create(const std::string& 
 {
     auto light = std::shared_ptr<DirectionnalLight>(new DirectionnalLight(name));
     light->color() = color;
-    light->position() = position;
+    light->Position() = position;
     light->power() = power;
     light->cast_shadow() = cast_shadow;
     if (cast_shadow) {
@@ -122,7 +123,7 @@ void DirectionnalLight::render_shadow()
 void DirectionnalLight::transform_update()
 {
     auto proj = glm::ortho(-10.f, 10.f, -10.f, 10.f, 0.1f, 100.f);
-    transform() = proj * glm::lookAt(position(), glm::vec3(0, 0, 0), up());
+    SetTransformMatrix(proj * glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::up()));
 }
 
 LightType DirectionnalLight::type()

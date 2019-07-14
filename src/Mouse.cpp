@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:30:53
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-13 15:38:50
 */
 
 #include "Mouse.hpp"
@@ -41,10 +41,14 @@ void Mouse::process_event(SDL_Event* event)
     }
 }
 
-bool Mouse::set_relative(SDL_bool value)
+bool Mouse::relative()
 {
-    SDL_SetRelativeMouseMode(value);
-    return (SDL_GetRelativeMouseMode());
+    return SDL_GetRelativeMouseMode();
+}
+
+void Mouse::set_relative(bool value)
+{
+    SDL_SetRelativeMouseMode(SDL_bool(value));
 }
 
 void Mouse::set_move_callback(mouse_motion_callback callback)

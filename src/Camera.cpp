@@ -1,11 +1,12 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:12:35
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-14 22:43:35
 */
 
 #include "Camera.hpp"
+#include "Common.hpp"
 #include "Window.hpp" // for Window
 #include <glm/ext.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,6 +20,16 @@ Camera::Camera(const std::string& name, float ifov, CameraProjection proj)
 {
     _fov = ifov;
     _projection_type = proj;
+}
+
+glm::vec3 Camera::Up()
+{
+    return _up;
+}
+
+void Camera::SetUp(glm::vec3 up)
+{
+    _up = up;
 }
 
 std::shared_ptr<Camera> Camera::create(const std::string& name, float ifov, CameraProjection proj)
@@ -59,7 +70,7 @@ void Camera::transform_update()
 {
     //Node::Update();
     if (nullptr != target()) {
-        transform() = glm::lookAt(position(), target()->position(), up());
+        SetTransformMatrix(glm::lookAt(Position(), target()->Position(), Up()));
     }
     if (_projection_type == PerspectiveCamera) {
         auto size = Window::size();
@@ -68,9 +79,9 @@ void Camera::transform_update()
         _projection = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w);
 }
 
-glm::mat4& Camera::view()
+glm::mat4 Camera::view()
 {
-    return transform();
+    return TransformMatrix();
 }
 
 glm::mat4& Camera::projection()
@@ -112,8 +123,6 @@ void OrbitCamera::orbite(float phi, float theta, float radius)
     _theta = theta;
     _radius = radius;
     if (target() != nullptr)
-        target_position = target()->position();
-    position().x = target_position.x + _radius * sin(_phi) * cos(_theta);
-    position().z = target_position.z + _radius * sin(_phi) * sin(_theta);
-    position().y = target_position.y + _radius * cos(_phi);
+        target_position = target()->Position();
+    SetPosition(target_position + _radius * glm::vec3(sin(_phi) * cos(_theta), sin(_phi) * sin(_theta), cos(_phi)));
 }
