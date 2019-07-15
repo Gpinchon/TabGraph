@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-14 22:47:46
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-15 14:02:32
 */
 
 #include "Mesh.hpp"
@@ -82,7 +82,7 @@ void Mesh::load()
 bool Mesh::render_depth(RenderMod mod)
 {
     bool ret = false;
-    auto mvp = Camera::current()->projection() * Camera::current()->view() * TransformMatrix();
+    auto mvp = Camera::current()->ProjectionMatrix() * Camera::current()->ViewMatrix() * TransformMatrix();
     auto normal_matrix = glm::inverseTranspose(TransformMatrix());
 
     load();
@@ -112,7 +112,7 @@ bool Mesh::render_depth(RenderMod mod)
 bool Mesh::render(RenderMod mod)
 {
     bool ret = false;
-    auto mvp = Camera::current()->projection() * Camera::current()->view() * TransformMatrix();
+    auto mvp = Camera::current()->ProjectionMatrix() * Camera::current()->ViewMatrix() * TransformMatrix();
     auto normal_matrix = glm::inverseTranspose(TransformMatrix());
 
     load();

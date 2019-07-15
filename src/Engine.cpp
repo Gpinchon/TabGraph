@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-11 20:56:49
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-15 14:42:40
 */
 
 #include "Engine.hpp"
@@ -119,7 +119,7 @@ void EnginePrivate::FixedUpdate()
 {
     for (auto i = 0; Node::Get(i); i++) {
         auto node = Node::Get(i);
-        node->transform_update();
+        node->UpdateTransformMatrix();
     }
     for (auto i = 0; Node::Get(i); i++) {
         auto node = Node::Get(i);

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 10:48:30
+* @Last Modified time: 2019-07-15 14:09:44
 */
 
 #include "Render.hpp"
@@ -170,12 +170,12 @@ void render_shadows()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     Camera::set_current(tempCamera);
-    tempCamera->projection() = glm::mat4(1.0);
+    tempCamera->SetProjectionMatrix(glm::mat4(1.0));
     for (auto light : shadowLights) {
         light->render_buffer()->bind();
         glClear(GL_DEPTH_BUFFER_BIT);
         tempCamera->SetPosition(light->Position());
-        tempCamera->view() = light->TransformMatrix();
+        tempCamera->SetViewMatrix(light->TransformMatrix());
         for (auto index = 0; Renderable::Get(index) != nullptr; index++) {
             auto node = Renderable::Get(index);
             node->render_depth(RenderOpaque);
@@ -192,8 +192,8 @@ double Render::Private::DeltaTime()
 
 void Render::Private::FixedUpdate()
 {
-    auto InvViewMatrix = glm::inverse(Camera::current()->view());
-    auto InvProjMatrix = glm::inverse(Camera::current()->projection());
+    auto InvViewMatrix = glm::inverse(Camera::current()->ViewMatrix());
+    auto InvProjMatrix = glm::inverse(Camera::current()->ProjectionMatrix());
     glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
     auto index = 0;
 
@@ -215,8 +215,8 @@ void Render::Private::FixedUpdate()
     while (auto shader = Shader::Get(index)) {
         shader->use();
         shader->set_uniform("Camera.Position", Camera::current()->Position());
-        shader->set_uniform("Camera.Matrix.View", Camera::current()->view());
-        shader->set_uniform("Camera.Matrix.Projection", Camera::current()->projection());
+        shader->set_uniform("Camera.Matrix.View", Camera::current()->ViewMatrix());
+        shader->set_uniform("Camera.Matrix.Projection", Camera::current()->ProjectionMatrix());
         shader->set_uniform("Camera.InvMatrix.View", InvViewMatrix);
         shader->set_uniform("Camera.InvMatrix.Projection", InvProjMatrix);
         shader->set_uniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 11:27:25
+* @Last Modified time: 2019-07-15 14:55:39
 */
 
 #pragma once
@@ -14,8 +14,6 @@
 #include <string> // for string
 #include <vector> // for vector
 
-//#include "glm"       // for glm::identity, mat4_zero, glm::vec3, glm::mat4
-
 class BoundingElement;
 
 class Node : public Object {
@@ -25,25 +23,27 @@ public:
     static std::shared_ptr<Node> Get(unsigned index);
     static void add(std::shared_ptr<Node>);
     virtual std::shared_ptr<Node> shared_from_this();
-    virtual void transform_update();
     virtual void FixedUpdate();
     virtual void Update();
-    virtual ~Node() = default;
-    glm::mat4 TransformMatrix() const;
-    void SetTransformMatrix(glm::mat4);
-    glm::mat4 TranslationMatrix() const;
-    void SetTranslationMatrix(glm::mat4);
-    glm::mat4 RotationMatrix() const;
-    void SetRotationMatrix(glm::mat4);
-    glm::mat4 ScaleMatrix() const;
-    void SetScaleMatrix(glm::mat4);
-    glm::vec3 Position() const;
-    void Position(glm::mat4) const;
-    void SetPosition(glm::vec3);
-    glm::vec3 Rotation() const;
-    void SetRotation(glm::vec3);
-    glm::vec3 Scale() const;
-    void SetScale(glm::vec3);
+    /** Updates all matrix and sets the final transformation matrix */
+    virtual void UpdateTransformMatrix();
+    virtual void UpdateTranslationMatrix();
+    virtual void UpdateRotationMatrix();
+    virtual void UpdateScaleMatrix();
+    virtual glm::mat4 TransformMatrix() const;
+    virtual void SetTransformMatrix(glm::mat4);
+    virtual glm::mat4 TranslationMatrix() const;
+    virtual void SetTranslationMatrix(glm::mat4);
+    virtual glm::mat4 RotationMatrix() const;
+    virtual void SetRotationMatrix(glm::mat4);
+    virtual glm::mat4 ScaleMatrix() const;
+    virtual void SetScaleMatrix(glm::mat4);
+    virtual glm::vec3 Position() const;
+    virtual void SetPosition(glm::vec3);
+    virtual glm::vec3 Rotation() const;
+    virtual void SetRotation(glm::vec3);
+    virtual glm::vec3 Scale() const;
+    virtual void SetScale(glm::vec3);
     //glm::vec3& up();
     std::shared_ptr<Node> target();
     std::shared_ptr<Node> parent();
@@ -52,9 +52,13 @@ public:
     void add_child(std::shared_ptr<Node>);
     std::shared_ptr<Node> child(unsigned index);
     BoundingElement* bounding_element { nullptr };
+    virtual ~Node() = default;
 
 protected:
     Node(const std::string& name);
+
+private:
+    static std::vector<std::shared_ptr<Node>> _nodes;
     std::vector<std::weak_ptr<Node>> _children;
     std::weak_ptr<Node> _target;
     std::weak_ptr<Node> _parent;
@@ -66,7 +70,4 @@ protected:
     glm::mat4 _translationMatrix { glm::mat4(0.f) };
     glm::mat4 _rotationMatrix { glm::mat4(0.f) };
     glm::mat4 _scaleMatrix { glm::mat4(1.f) };
-
-private:
-    static std::vector<std::shared_ptr<Node>> _nodes;
 };

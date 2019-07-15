@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 12:07:31
+* @Last Modified time: 2019-07-15 14:48:00
 */
 
 #include "Common.hpp"
@@ -72,7 +72,7 @@ void callback_camera(SDL_Event*)
     //} else {
     //}
     Mouse::set_relative(SDL_TRUE);
-    auto camera = FPSCamera::current();
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
     camera->SetYaw(cameraRotation.x);
     camera->SetPitch(cameraRotation.y);
     camera->SetPosition(camera->Position() + float(raxis.x * Events::delta_time()) * camera->Right());
@@ -198,8 +198,8 @@ void callback_fullscreen(SDL_KeyboardEvent* event)
 void MouseWheelCallback(SDL_MouseWheelEvent* event)
 {
     static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
-    camera->fov() -= event->y * 0.01;
-    camera->fov() = glm::clamp(camera->fov(), 1.0f, 45.f);
+    camera->SetFov(event->y * 0.01);
+    camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 45.f));
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent* event)

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 11:26:52
+* @Last Modified time: 2019-07-15 14:45:05
 */
 
 #include "Node.hpp"
@@ -53,27 +53,43 @@ void Node::add(std::shared_ptr<Node> node)
     _nodes.push_back(node);
 }
 
-void Node::transform_update()
-{
-    _translationMatrix = glm::translate(glm::mat4(1.f), _position);
-    _rotationMatrix = glm::rotate(glm::mat4(1.f), _rotation.x, glm::vec3(1, 0, 0));
-    _rotationMatrix = glm::rotate(_rotationMatrix, _rotation.y, glm::vec3(0, 1, 0));
-    _rotationMatrix = glm::rotate(_rotationMatrix, _rotation.z, glm::vec3(0, 0, 1));
-    _scaleMatrix = glm::scale(glm::mat4(1.f), _scale);
-    _transformMatrix = _translationMatrix * _rotationMatrix * _scaleMatrix;
-    auto parentPtr = parent();
-    if (parentPtr != nullptr) {
-        parentPtr->transform_update();
-        _transformMatrix = parentPtr->TransformMatrix() * _transformMatrix;
-    }
-}
-
 void Node::FixedUpdate()
 {
 }
 
 void Node::Update()
 {
+}
+
+void Node::UpdateTransformMatrix()
+{
+    UpdateTranslationMatrix();
+    UpdateRotationMatrix();
+    UpdateScaleMatrix();
+    SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
+    auto parentPtr = parent();
+    if (parentPtr != nullptr) {
+        parentPtr->UpdateTransformMatrix();
+        SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
+    }
+}
+
+void Node::UpdateTranslationMatrix()
+{
+    _translationMatrix = glm::translate(glm::mat4(1.f), Position());
+}
+
+void Node::UpdateRotationMatrix()
+{
+    auto rotationMatrix = glm::rotate(glm::mat4(1.f), Rotation().x, glm::vec3(1, 0, 0));
+    rotationMatrix = glm::rotate(rotationMatrix, Rotation().y, glm::vec3(0, 1, 0));
+    rotationMatrix = glm::rotate(rotationMatrix, Rotation().z, glm::vec3(0, 0, 1));
+    SetRotationMatrix(rotationMatrix);
+}
+
+void Node::UpdateScaleMatrix()
+{
+    SetScaleMatrix(glm::scale(glm::mat4(1.f), Scale()));
 }
 
 void Node::add_child(std::shared_ptr<Node> childNode)

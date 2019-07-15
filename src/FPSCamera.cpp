@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-07-15 10:36:36
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 12:10:33
+* @Last Modified time: 2019-07-15 14:39:06
 */
 
 #include "FPSCamera.hpp"
@@ -16,16 +16,11 @@ std::shared_ptr<FPSCamera> FPSCamera::create(const std::string& name, float ifov
 {
     std::shared_ptr<FPSCamera> camera(new FPSCamera(name, ifov, proj));
     Node::add(camera);
-    _cameras.push_back(camera);
+    Camera::add(camera);
     return (camera);
 }
 
-std::shared_ptr<FPSCamera> FPSCamera::current()
-{
-	return std::dynamic_pointer_cast<FPSCamera>(Camera::current());
-}
-
-float FPSCamera::Yaw()
+float FPSCamera::Yaw() const
 {
 	return _yaw;
 }
@@ -35,7 +30,7 @@ void FPSCamera::SetYaw(float yaw)
 	_yaw = yaw;
 }
 
-float FPSCamera::Pitch()
+float FPSCamera::Pitch() const
 {
 	return _pitch;
 }
@@ -45,7 +40,7 @@ void FPSCamera::SetPitch(float pitch)
 	_pitch = pitch;
 }
 
-float FPSCamera::Roll()
+float FPSCamera::Roll() const
 {
 	return _roll;
 }
@@ -55,7 +50,7 @@ void FPSCamera::SetRoll(float roll)
 	_roll = roll;
 }
 
-glm::vec3 FPSCamera::Forward()
+glm::vec3 FPSCamera::Forward() const
 {
 	glm::vec3 direction;
 	direction.x = cos(glm::radians(Pitch())) * cos(glm::radians(Yaw()));
@@ -64,8 +59,10 @@ glm::vec3 FPSCamera::Forward()
 	return direction;
 }
 
-void FPSCamera::transform_update()
+void FPSCamera::UpdateViewMatrix()
 {
-	//SetForward(direction);
-	Camera::transform_update();
+	if (target() != nullptr)
+        SetTransformMatrix(glm::lookAt(Position(), target()->Position(), Up()));
+    else
+        SetTransformMatrix(glm::lookAt(Position(), Position() + Forward(), Up()));
 }

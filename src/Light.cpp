@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 10:46:22
+* @Last Modified time: 2019-07-15 14:42:40
 */
 
 #include "Light.hpp"
@@ -120,7 +120,7 @@ void DirectionnalLight::render_shadow()
 {
 }
 
-void DirectionnalLight::transform_update()
+void DirectionnalLight::UpdateTransformMatrix()
 {
     auto proj = glm::ortho(-10.f, 10.f, -10.f, 10.f, 0.1f, 100.f);
     SetTransformMatrix(proj * glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up()));

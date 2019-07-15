@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 18:19:49
+* @Last Modified time: 2019-07-15 14:42:39
 */
 
 #pragma once
@@ -49,7 +49,7 @@ class DirectionnalLight : public Light {
 public:
     static std::shared_ptr<DirectionnalLight> create(const std::string& name, glm::vec3 color, glm::vec3 position, float power, bool cast_shadow = false);
     virtual void render_shadow() override;
-    virtual void transform_update() override;
+    virtual void UpdateTransformMatrix() override;
     virtual LightType type() override;
 
 protected:
