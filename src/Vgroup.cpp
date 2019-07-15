@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:44:30
+* @Last Modified time: 2019-07-15 10:50:24
 */
 
 #include "Vgroup.hpp"
@@ -135,7 +135,7 @@ void Vgroup::center(glm::vec3& center)
     bounding_element->min = bounding_element->min - center;
     bounding_element->max = bounding_element->max - center;
     bounding_element->center = bounding_element->center - center;
-    position() = bounding_element->center - center;
+    SetPosition(bounding_element->center - center);
 }
 
 void Vgroup::set_material(std::shared_ptr<Material> mtl)

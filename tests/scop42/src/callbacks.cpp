@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-13 21:41:33
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-15 12:07:31
 */
 
 #include "Common.hpp"
@@ -31,17 +31,6 @@
 
 static auto cameraRotation = glm::vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 bool orbit = false;
-
-void FPSCameraUpdate()
-{
-    static auto camera = FPSCamera::get_by_name("main_camera");
-    glm::vec3 front;
-    front.x = cos(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x));
-    front.y = sin(glm::radians(cameraRotation.y));
-    front.z = cos(glm::radians(cameraRotation.y)) * sin(glm::radians(cameraRotation.x));
-    camera->target()->position() = glm::normalize(front);
-    camera->target()->position() += camera->position();
-}
 
 void callback_camera(SDL_Event*)
 {
@@ -77,20 +66,17 @@ void callback_camera(SDL_Event*)
     //    cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
     //    cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
     //    cameraRotation.z = glm::clamp(cameraRotation.z, 0.1f, 1000.f);
-    //    t->position().y += rtrigger * Events::delta_time();
-    //    t->position().y -= ltrigger * Events::delta_time();
+    //    t->Position().y += rtrigger * Events::delta_time();
+    //    t->Position().y -= ltrigger * Events::delta_time();
     //    camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
     //} else {
     //}
     Mouse::set_relative(SDL_TRUE);
     auto camera = FPSCamera::current();
-    auto camTarget = camera->target()->position();
-    auto cameDirection = glm::normalize(camera->position() - camTarget);
-    auto camRight = glm::normalize(glm::cross(Common::up(), cameDirection));
-    auto camUp = glm::cross(cameDirection, camRight);
-    camera->SetUp(camUp);
-    camera->position() -= float(raxis.x * Events::delta_time()) * camRight;
-    camera->position() += float(raxis.y * Events::delta_time()) * cameDirection;
+    camera->SetYaw(cameraRotation.x);
+    camera->SetPitch(cameraRotation.y);
+    camera->SetPosition(camera->Position() + float(raxis.x * Events::delta_time()) * camera->Right());
+    camera->SetPosition(camera->Position() - float(raxis.y * Events::delta_time()) * camera->Forward());
     //FPSCameraUpdate();
 }
 
@@ -111,7 +97,7 @@ void callback_scale(SDL_KeyboardEvent* event)
         scale -= (0.005 * (Keyboard::key(SDL_SCANCODE_LSHIFT) + 1));
     }
     scale = glm::clamp(scale, 0.0001f, 1000.f);
-    mesh->scaling() = glm::vec3(scale, scale, scale);
+    mesh->SetScale(glm::vec3(scale));
 }
 
 void switch_background()
@@ -189,7 +175,7 @@ void callback_refresh(SDL_Event* /*unused*/)
         static float rotation = 0;
         rotation += 0.2 * Events::delta_time();
         rotation = CYCLE(rotation, 0, 2 * M_PI);
-        mesh->rotation() = glm::vec3(0, rotation, 0);
+        mesh->SetRotation(glm::vec3(0, rotation, 0));
     }
     callback_camera(nullptr);
 }

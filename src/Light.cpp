@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-14 22:47:15
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-15 10:46:22
 */
 
 #include "Light.hpp"
@@ -123,7 +123,7 @@ void DirectionnalLight::render_shadow()
 void DirectionnalLight::transform_update()
 {
     auto proj = glm::ortho(-10.f, 10.f, -10.f, 10.f, 0.1f, 100.f);
-    SetTransformMatrix(proj * glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::up()));
+    SetTransformMatrix(proj * glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up()));
 }
 
 LightType DirectionnalLight::type()

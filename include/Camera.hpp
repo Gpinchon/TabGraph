@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-14 22:43:11
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-15 12:04:25
 */
 
 #pragma once
@@ -32,15 +32,18 @@ public:
     virtual glm::ivec4& frustum();
     virtual float& fov();
     virtual ~Camera() = default;
-    glm::vec3 Up();
-    void SetUp(glm::vec3);
-    glm::vec3 Right();
-    void SetRight(glm::vec3);
+    /** Alias for Rotation */
+    virtual glm::vec3 Forward();
+    /** Alias for SetRotation */
+    virtual void SetForward(glm::vec3);
+    /** READONLY : Computed on demand */
+    virtual glm::vec3 Up();
+    /** READONLY : Computed on demand */
+    virtual glm::vec3 Right();
 
 protected:
     Camera(const std::string& name, float fov, CameraProjection proj = PerspectiveCamera);
     CameraProjection _projection_type { PerspectiveCamera };
-    glm::vec3 _up { Common::up() };
     glm::mat4 _projection { 0 };
     glm::ivec4 _frustum { -50, 50, -50, 50 };
     float _fov { 45 };

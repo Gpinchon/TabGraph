@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-14 23:01:37
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-15 10:48:30
 */
 
 #include "Render.hpp"
@@ -175,7 +175,7 @@ void render_shadows()
         light->render_buffer()->bind();
         glClear(GL_DEPTH_BUFFER_BIT);
         tempCamera->SetPosition(light->Position());
-        tempCamera->view() = light->transform();
+        tempCamera->view() = light->TransformMatrix();
         for (auto index = 0; Renderable::Get(index) != nullptr; index++) {
             auto node = Renderable::Get(index);
             node->render_depth(RenderOpaque);
@@ -214,7 +214,7 @@ void Render::Private::FixedUpdate()
     index = 0;
     while (auto shader = Shader::Get(index)) {
         shader->use();
-        shader->set_uniform("Camera.Position", Camera::current()->position());
+        shader->set_uniform("Camera.Position", Camera::current()->Position());
         shader->set_uniform("Camera.Matrix.View", Camera::current()->view());
         shader->set_uniform("Camera.Matrix.Projection", Camera::current()->projection());
         shader->set_uniform("Camera.InvMatrix.View", InvViewMatrix);
@@ -314,7 +314,7 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
         auto lightIndex = 0u;
         while (lightIndex < lightsPerPass && i < normalLights.size()) {
             auto light = normalLights.at(i);
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
+            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", -1);
@@ -324,11 +324,11 @@ void light_pass(std::shared_ptr<Framebuffer>& current_backBuffer, std::shared_pt
         auto shadowIndex = 0u;
         while (lightIndex < lightsPerPass && shadowIndex < actualShadowNbr && j < shadowLights.size()) {
             auto light = shadowLights.at(j);
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->position());
+            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
             shader->set_uniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Projection", light->transform());
+            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Projection", light->TransformMatrix());
             shader->bind_texture("Shadow[" + std::to_string(shadowIndex) + "]", light->render_buffer()->depth(), GL_TEXTURE9 + shadowIndex);
             j++;
             lightIndex++;

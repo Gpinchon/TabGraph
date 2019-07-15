@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-14 22:49:53
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-15 11:26:52
 */
 
 #include "Node.hpp"
@@ -20,8 +20,8 @@ std::shared_ptr<Node> Node::create(const std::string& name, glm::vec3 position, 
     auto t = std::shared_ptr<Node>(new Node(name));
     t->_position = position;
     t->_rotation = rotation;
-    t->_scaling = scale;
-    //t->_transform = new_transform(position, rotation, scale, up());
+    t->_scale = scale;
+    //t->_transformMatrix = new_transform(position, rotation, scale, up());
     t->Update();
     add(t);
     return (t);
@@ -55,16 +55,16 @@ void Node::add(std::shared_ptr<Node> node)
 
 void Node::transform_update()
 {
-    _translate = glm::translate(glm::mat4(1.f), _position);
-    _rotate = glm::rotate(glm::mat4(1.f), _rotation.x, glm::vec3(1, 0, 0));
-    _rotate = glm::rotate(_rotate, _rotation.y, glm::vec3(0, 1, 0));
-    _rotate = glm::rotate(_rotate, _rotation.z, glm::vec3(0, 0, 1));
-    _scale = glm::scale(glm::mat4(1.f), _scaling);
-    _transform = _translate * _rotate * _scale;
+    _translationMatrix = glm::translate(glm::mat4(1.f), _position);
+    _rotationMatrix = glm::rotate(glm::mat4(1.f), _rotation.x, glm::vec3(1, 0, 0));
+    _rotationMatrix = glm::rotate(_rotationMatrix, _rotation.y, glm::vec3(0, 1, 0));
+    _rotationMatrix = glm::rotate(_rotationMatrix, _rotation.z, glm::vec3(0, 0, 1));
+    _scaleMatrix = glm::scale(glm::mat4(1.f), _scale);
+    _transformMatrix = _translationMatrix * _rotationMatrix * _scaleMatrix;
     auto parentPtr = parent();
     if (parentPtr != nullptr) {
         parentPtr->transform_update();
-        _transform = parentPtr->TransformMatrix() * _transform;
+        _transformMatrix = parentPtr->TransformMatrix() * _transformMatrix;
     }
 }
 
@@ -127,27 +127,57 @@ glm::vec3 Node::Rotation() const
     return (_rotation);
 }
 
+void Node::SetRotation(glm::vec3 rotation)
+{
+    _rotation = rotation;
+}
+
 glm::vec3 Node::Scale() const
 {
-    return (_scaling);
+    return (_scale);
+}
+
+void Node::SetScale(glm::vec3 scale)
+{
+    _scale = scale;
 }
 
 glm::mat4 Node::TransformMatrix() const
 {
-    return (_transform);
+    return (_transformMatrix);
+}
+
+void Node::SetTransformMatrix(glm::mat4 transform)
+{
+    _transformMatrix = transform;
 }
 
 glm::mat4 Node::TranslationMatrix() const
 {
-    return (_translate);
+    return (_translationMatrix);
+}
+
+void Node::SetTranslationMatrix(glm::mat4 translation)
+{
+    _translationMatrix = translation;
 }
 
 glm::mat4 Node::RotationMatrix() const
 {
-    return (_rotate);
+    return (_rotationMatrix);
+}
+
+void Node::SetRotationMatrix(glm::mat4 rotation)
+{
+    _rotationMatrix = rotation;
 }
 
 glm::mat4 Node::ScaleMatrix() const
 {
-    return (_scale);
+    return (_scaleMatrix);
+}
+
+void Node::SetScaleMatrix(glm::mat4 scale)
+{
+    _scaleMatrix = scale;
 }

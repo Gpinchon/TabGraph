@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-14 22:43:35
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-07-15 11:34:47
 */
 
 #include "Camera.hpp"
@@ -20,16 +20,6 @@ Camera::Camera(const std::string& name, float ifov, CameraProjection proj)
 {
     _fov = ifov;
     _projection_type = proj;
-}
-
-glm::vec3 Camera::Up()
-{
-    return _up;
-}
-
-void Camera::SetUp(glm::vec3 up)
-{
-    _up = up;
 }
 
 std::shared_ptr<Camera> Camera::create(const std::string& name, float ifov, CameraProjection proj)
@@ -61,6 +51,26 @@ std::shared_ptr<Camera> Camera::current()
     return (_current.lock());
 }
 
+glm::vec3 Camera::Forward()
+{
+    return Rotation();
+}
+
+void Camera::SetForward(glm::vec3 forward)
+{
+    SetRotation(forward);
+}
+
+glm::vec3 Camera::Right()
+{
+    return glm::cross(Common::Up(), Forward());
+}
+
+glm::vec3 Camera::Up()
+{
+    return glm::cross(Forward(), Right());
+}
+
 void Camera::set_current(std::shared_ptr<Camera> camera)
 {
     _current = camera;
@@ -69,9 +79,10 @@ void Camera::set_current(std::shared_ptr<Camera> camera)
 void Camera::transform_update()
 {
     //Node::Update();
-    if (nullptr != target()) {
+    if (target() != nullptr)
         SetTransformMatrix(glm::lookAt(Position(), target()->Position(), Up()));
-    }
+    else
+        SetTransformMatrix(glm::lookAt(Position(), Position() + Forward(), Up()));
     if (_projection_type == PerspectiveCamera) {
         auto size = Window::size();
         _projection = glm::perspective(_fov, float(size.x) / float(size.y), _znear, _zfar);
