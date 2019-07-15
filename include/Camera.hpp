@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:46:52
+* @Last Modified time: 2019-07-15 16:51:03
 */
 
 #pragma once
@@ -50,7 +50,7 @@ protected:
     Camera(const std::string& name, float fov, CameraProjection proj = PerspectiveCamera);
 
 private:
-    virtual void UpdateTransformMatrix() override;
+    virtual void UpdateTransformMatrix() final override;
     CameraProjection _projection_type { PerspectiveCamera };
     static std::vector<std::shared_ptr<Camera>> _cameras;
     static std::weak_ptr<Camera> _current;

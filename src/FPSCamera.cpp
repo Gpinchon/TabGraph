@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-07-15 10:36:36
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:39:06
+* @Last Modified time: 2019-07-15 16:53:51
 */
 
 #include "FPSCamera.hpp"
@@ -62,7 +62,7 @@ glm::vec3 FPSCamera::Forward() const
 void FPSCamera::UpdateViewMatrix()
 {
 	if (target() != nullptr)
-        SetTransformMatrix(glm::lookAt(Position(), target()->Position(), Up()));
+        SetViewMatrix(glm::lookAt(Position(), target()->Position(), Up()));
     else
-        SetTransformMatrix(glm::lookAt(Position(), Position() + Forward(), Up()));
+        SetViewMatrix(glm::lookAt(Position(), Position() + Forward(), Up()));
 }

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:56:05
+* @Last Modified time: 2019-07-15 16:56:30
 */
 
 #include "Camera.hpp"
@@ -84,10 +84,9 @@ void Camera::set_current(std::shared_ptr<Camera> camera)
 
 void Camera::UpdateViewMatrix()
 {
-    if (target() != nullptr)
-        SetTransformMatrix(glm::lookAt(Position(), target()->Position(), Up()));
-    else
-        SetTransformMatrix(glm::lookAt(Position(), Position() + Forward(), Up()));
+    UpdateTranslationMatrix();
+    UpdateRotationMatrix();
+    SetViewMatrix(TranslationMatrix() * RotationMatrix());
 }
 
 void Camera::UpdateProjectionMatrix()
@@ -100,7 +99,6 @@ void Camera::UpdateProjectionMatrix()
 
 void Camera::UpdateTransformMatrix()
 {
-    //Node::Update();
     UpdateViewMatrix();
     UpdateProjectionMatrix();
 }
