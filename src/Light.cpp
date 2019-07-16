@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:42:40
+* @Last Modified time: 2019-07-16 14:18:03
 */
 
 #include "Light.hpp"
@@ -26,7 +26,7 @@ std::shared_ptr<Light> Light::create(const std::string& name, glm::vec3 color, g
 {
     auto light = std::shared_ptr<Light>(new Light(name));
     light->color() = color;
-    light->Position() = position;
+    light->SetPosition(position);
     light->power() = power;
     Light::add(light);
     Node::add(light);
@@ -99,7 +99,7 @@ std::shared_ptr<DirectionnalLight> DirectionnalLight::create(const std::string& 
 {
     auto light = std::shared_ptr<DirectionnalLight>(new DirectionnalLight(name));
     light->color() = color;
-    light->Position() = position;
+    light->SetPosition(position);
     light->power() = power;
     light->cast_shadow() = cast_shadow;
     if (cast_shadow) {
