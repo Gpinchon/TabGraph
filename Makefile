@@ -73,6 +73,7 @@ HEADERS_FILES	=	\
 					Mouse.hpp					\
 					Node.hpp					\
 					Object.hpp					\
+					OrbitCamera.hpp				\
 					parser/BMP.hpp				\
 					parser/FBX.hpp				\
 					parser/GLSL.hpp				\
@@ -116,6 +117,7 @@ SRC_FILES		=	\
 					Mouse.cpp			\
 					Node.cpp			\
 					Object.cpp			\
+					OrbitCamera.cpp		\
 					parser/BMP.cpp		\
 					parser/BT.cpp		\
 					parser/FBX.cpp		\

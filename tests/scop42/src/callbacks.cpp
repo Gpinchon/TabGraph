@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:48:00
+* @Last Modified time: 2019-07-16 14:03:12
 */
 
 #include "Common.hpp"
@@ -11,6 +11,7 @@
 #include "Renderable.hpp" // for Renderable
 #include "glm/glm.hpp" // for s_vec3, s_vec2, glm::vec3, glm::clamp
 #include "scop.hpp" // for DOWNK, LEFTK, MouseMoveCallback
+#include <Config.hpp>
 #include <Engine.hpp> // for Stop
 #include <Environment.hpp> // for Environment
 #include <FPSCamera.hpp> // for FPSCamera
@@ -55,8 +56,8 @@ void callback_camera(SDL_Event*)
         //rtrigger = Keyboard::key(SDL_SCANCODE_PAGEUP);
     }
     //static glm::vec3	val = (glm::vec3){M_PI / 2.f, M_PI / 2.f, 5.f};
-    cameraRotation.x += raxis.y * Events::delta_time();
-    cameraRotation.y += raxis.x * Events::delta_time();
+    cameraRotation.x += raxis.y * Events::delta_time() * Config::Get("LookSensitivity", 2.f);
+    cameraRotation.y += raxis.x * Events::delta_time() * Config::Get("LookSensitivity", 2.f);
     cameraRotation.z -= laxis.y * Events::delta_time();
 
     //if (orbit) {
@@ -87,7 +88,7 @@ void callback_scale(SDL_KeyboardEvent* event)
     if (event == nullptr || event->type == SDL_KEYUP) {
         return;
     }
-    auto mesh = Mesh::get_by_name("terrain_test");
+    auto mesh = Mesh::get_by_name("main_mesh");
     if (Keyboard::key(SDL_SCANCODE_LCTRL) == 0u) {
         return;
     }

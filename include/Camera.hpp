@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 16:51:03
+* @Last Modified time: 2019-07-16 08:53:40
 */
 
 #pragma once
@@ -27,7 +27,9 @@ public:
     static std::shared_ptr<Camera> current();
     static void set_current(std::shared_ptr<Camera>);
     static void add(std::shared_ptr<Camera>);
+    /** Overload this to change Camera's behavior */
     virtual void UpdateViewMatrix();
+    /** Overload this to change Camera's behavior */
     virtual void UpdateProjectionMatrix();
     virtual glm::mat4 ViewMatrix() const;
     virtual void SetViewMatrix(glm::mat4);
@@ -50,6 +52,7 @@ protected:
     Camera(const std::string& name, float fov, CameraProjection proj = PerspectiveCamera);
 
 private:
+    /** Calls UpdateViewMatrix and UpdateProjectionMatrix */
     virtual void UpdateTransformMatrix() final override;
     CameraProjection _projection_type { PerspectiveCamera };
     static std::vector<std::shared_ptr<Camera>> _cameras;
@@ -59,17 +62,4 @@ private:
     float _fov { 45 };
     float _znear { 0.1 };
     float _zfar { 1000 };
-};
-
-class OrbitCamera : public Camera {
-public:
-    static std::shared_ptr<OrbitCamera> create(const std::string&, float fov, float phi, float theta, float radius);
-    //virtual void	Update();
-    void orbite(float phi, float theta, float radius);
-
-private:
-    OrbitCamera(const std::string&, float fov, float phi, float theta, float radius);
-    float _phi;
-    float _theta;
-    float _radius;
 };

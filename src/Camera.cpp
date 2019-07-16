@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 16:56:30
+* @Last Modified time: 2019-07-16 08:56:14
 */
 
 #include "Camera.hpp"
@@ -136,32 +136,4 @@ float Camera::Fov() const
 void Camera::SetFov(float fov)
 {
     _fov = fov;
-}
-
-OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius)
-    : Camera(iname, ifov)
-{
-    _phi = phi;
-    _theta = theta;
-    _radius = radius;
-}
-
-std::shared_ptr<OrbitCamera> OrbitCamera::create(const std::string& iname, float ifov, float phi, float theta, float radius)
-{
-    std::shared_ptr<OrbitCamera> camera(new OrbitCamera(iname, ifov, phi, theta, radius));
-    Node::add(camera);
-    Camera::add(camera);
-    return (camera);
-}
-
-void OrbitCamera::orbite(float phi, float theta, float radius)
-{
-    glm::vec3 target_position(0, 0, 0);
-
-    _phi = phi;
-    _theta = theta;
-    _radius = radius;
-    if (target() != nullptr)
-        target_position = target()->Position();
-    SetPosition(target_position + _radius * glm::vec3(sin(_phi) * cos(_theta), sin(_phi) * sin(_theta), cos(_phi)));
 }

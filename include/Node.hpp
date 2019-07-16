@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:55:39
+* @Last Modified time: 2019-07-16 09:31:18
 */
 
 #pragma once
@@ -44,7 +44,6 @@ public:
     virtual void SetRotation(glm::vec3);
     virtual glm::vec3 Scale() const;
     virtual void SetScale(glm::vec3);
-    //glm::vec3& up();
     std::shared_ptr<Node> target();
     std::shared_ptr<Node> parent();
     void set_target(std::shared_ptr<Node>);
@@ -65,7 +64,6 @@ private:
     glm::vec3 _position { 0, 0, 0 };
     glm::vec3 _rotation { 0, 0, 0 };
     glm::vec3 _scale { 1, 1, 1 };
-    //glm::vec3 _up { 0, 1, 0 };
     glm::mat4 _transformMatrix { glm::mat4(1.f) };
     glm::mat4 _translationMatrix { glm::mat4(0.f) };
     glm::mat4 _rotationMatrix { glm::mat4(0.f) };
