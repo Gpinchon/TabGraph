@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-13 15:52:22
+* @Last Modified time: 2019-07-21 20:42:38
 */
 
 #include "Common.hpp"
@@ -11,9 +11,10 @@
 #include "Renderable.hpp" // for Renderable
 #include "glm/glm.hpp" // for s_vec3, s_vec2, glm::vec3, glm::clamp
 #include "scop.hpp" // for DOWNK, LEFTK, MouseMoveCallback
-#include <Camera.hpp> // for OrbitCamera, Camera
+#include <Config.hpp>
 #include <Engine.hpp> // for Stop
 #include <Environment.hpp> // for Environment
+#include <FPSCamera.hpp> // for FPSCamera
 #include <GameController.hpp> // for Controller, GameController
 #include <Keyboard.hpp> // for Keyboard
 #include <Mesh.hpp> // for Mesh
@@ -32,67 +33,52 @@
 static auto cameraRotation = glm::vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 bool orbit = false;
 
-void FPSCameraUpdate()
-{
-    static auto camera = Camera::get_by_name("main_camera");
-    glm::vec3 front;
-    front.x = cos(glm::radians(cameraRotation.y)) * cos(glm::radians(cameraRotation.x));
-    front.y = sin(glm::radians(cameraRotation.y));
-    front.z = cos(glm::radians(cameraRotation.y)) * sin(glm::radians(cameraRotation.x));
-    camera->target()->position() = glm::normalize(front);
-    camera->target()->position() += camera->position();
-}
-
 void callback_camera(SDL_Event*)
 {
     auto controller = GameController::Get(0);
     glm::vec2 raxis = glm::vec2(0, 0);
     glm::vec2 laxis = glm::vec2(0, 0);
-    float ltrigger = 0;
-    float rtrigger = 0;
+    //float ltrigger = 0;
+    //float rtrigger = 0;
     if (controller->is_connected()) {
         raxis.x = -controller->axis(SDL_CONTROLLER_AXIS_RIGHTX);
         raxis.y = -controller->axis(SDL_CONTROLLER_AXIS_RIGHTY);
         laxis.x = -controller->axis(SDL_CONTROLLER_AXIS_LEFTX);
         laxis.y = -controller->axis(SDL_CONTROLLER_AXIS_LEFTY);
-        ltrigger = controller->axis(SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-        rtrigger = controller->axis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+        //ltrigger = controller->axis(SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+        //rtrigger = controller->axis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
     } else {
         raxis.x = Keyboard::key(LEFTK) - Keyboard::key(RIGHTK);
         raxis.y = Keyboard::key(DOWNK) - Keyboard::key(UPK);
         laxis.x = 0;
         laxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
-        ltrigger = Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-        rtrigger = Keyboard::key(SDL_SCANCODE_PAGEUP);
+        //ltrigger = Keyboard::key(SDL_SCANCODE_PAGEDOWN);
+        //rtrigger = Keyboard::key(SDL_SCANCODE_PAGEUP);
     }
-    //static glm::vec3	val = (glm::vec3){M_PI / 2.f, M_PI / 2.f, 5.f};
-    cameraRotation.x += raxis.y * Events::delta_time();
-    cameraRotation.y += raxis.x * Events::delta_time();
+    //static glm::vec3  val = (glm::vec3){M_PI / 2.f, M_PI / 2.f, 5.f};
+    cameraRotation.x += raxis.y * Events::delta_time() * Config::Get("LookSensitivity", 2.f);
+    cameraRotation.y += raxis.x * Events::delta_time() * Config::Get("LookSensitivity", 2.f);
     cameraRotation.z -= laxis.y * Events::delta_time();
 
-    if (orbit) {
-        Mouse::set_relative(SDL_FALSE);
-        auto camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::current());
-        auto t = camera->target();
-        cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
-        cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-        cameraRotation.z = glm::clamp(cameraRotation.z, 0.1f, 1000.f);
-        t->position().y += rtrigger * Events::delta_time();
-        t->position().y -= ltrigger * Events::delta_time();
-
-        camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
-    } else {
-        Mouse::set_relative(SDL_TRUE);
-        auto camera = Camera::current();
-        auto camTarget = camera->target()->position();
-        auto cameDirection = glm::normalize(camera->position() - camTarget);
-        auto camRight = glm::normalize(glm::cross(Common::up(), cameDirection));
-        auto camUp = glm::cross(cameDirection, camRight);
-        camera->Up() = camUp;
-        camera->position() -= float(raxis.x * Events::delta_time()) * camRight;
-        camera->position() += float(raxis.y * Events::delta_time()) * cameDirection;
-        FPSCameraUpdate();
-    }
+    //if (orbit) {
+    //    Mouse::set_relative(SDL_FALSE);
+    //    auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::current());
+    //    auto t = camera->target();
+    //    cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
+    //    cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
+    //    cameraRotation.z = glm::clamp(cameraRotation.z, 0.1f, 1000.f);
+    //    t->Position().y += rtrigger * Events::delta_time();
+    //    t->Position().y -= ltrigger * Events::delta_time();
+    //    camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+    //} else {
+    //}
+    Mouse::set_relative(SDL_TRUE);
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
+    camera->SetYaw(cameraRotation.x);
+    camera->SetPitch(cameraRotation.y);
+    camera->SetPosition(camera->Position() + float(raxis.x * Events::delta_time()) * camera->Right());
+    camera->SetPosition(camera->Position() - float(raxis.y * Events::delta_time()) * camera->Forward());
+    //FPSCameraUpdate();
 }
 
 void callback_scale(SDL_KeyboardEvent* event)
@@ -112,7 +98,7 @@ void callback_scale(SDL_KeyboardEvent* event)
         scale -= (0.005 * (Keyboard::key(SDL_SCANCODE_LSHIFT) + 1));
     }
     scale = glm::clamp(scale, 0.0001f, 1000.f);
-    mesh->scaling() = glm::vec3(scale, scale, scale);
+    mesh->SetScale(glm::vec3(scale));
 }
 
 void switch_background()
@@ -190,7 +176,7 @@ void callback_refresh(SDL_Event* /*unused*/)
         static float rotation = 0;
         rotation += 0.2 * Events::delta_time();
         rotation = CYCLE(rotation, 0, 2 * M_PI);
-        mesh->rotation() = glm::vec3(0, rotation, 0);
+        mesh->SetRotation(glm::vec3(0, rotation, 0));
     }
     callback_camera(nullptr);
 }
@@ -212,27 +198,30 @@ void callback_fullscreen(SDL_KeyboardEvent* event)
 
 void MouseWheelCallback(SDL_MouseWheelEvent* event)
 {
-    static auto camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
-    camera->fov() -= event->y * 0.01;
-    camera->fov() = glm::clamp(camera->fov(), 1.0f, 45.f);
+    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
+    camera->SetFov(event->y * 0.01);
+    camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 45.f));
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent* event)
 {
-    if (orbit) {
-        static auto camera = std::dynamic_pointer_cast<OrbitCamera>(Camera::get_by_name("main_camera"));
-        if (Mouse::button(1)) {
-            cameraRotation.x += event->yrel * Events::delta_time();
-            cameraRotation.y -= event->xrel * Events::delta_time();
-            cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
-            cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-            cameraRotation.z = glm::clamp(cameraRotation.z, 0.01f, 1000.f);
-        }
-        camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
-    } else {
-        cameraRotation.x += event->xrel * Events::delta_time();
-        cameraRotation.y -= event->yrel * Events::delta_time();
-    }
+    //if (orbit) {
+    //    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
+    //    if (Mouse::button(1)) {
+    //        cameraRotation.x += event->yrel * Events::delta_time();
+    //        cameraRotation.y -= event->xrel * Events::delta_time();
+    //        cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
+    //        cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
+    //        cameraRotation.z = glm::clamp(cameraRotation.z, 0.01f, 1000.f);
+    //    }
+    //    camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+    //} else {
+    //}
+    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
+    cameraRotation.x += event->xrel * Events::delta_time();
+    cameraRotation.y -= event->yrel * Events::delta_time();
+    camera->SetYaw(cameraRotation.x);
+    camera->SetPitch(cameraRotation.y);
 }
 
 void callback_crash(SDL_KeyboardEvent*)

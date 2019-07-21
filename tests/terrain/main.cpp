@@ -2,21 +2,22 @@
 * @Author: gpi
 * @Date:   2019-03-27 13:38:46
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-13 14:32:16
+* @Last Modified time: 2019-07-21 21:56:36
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
 
-#include "Camera.hpp" // for OrbitCamera, Camera
-#include "Config.hpp" // for Config
-#include "Engine.hpp" // for ResourcePath, Init, Start
-#include "Light.hpp" // for DirectionnalLight
-#include "Node.hpp" // for Node
-#include "Terrain.hpp" // for Terrain
 #include "scop.hpp" // for setup_callbacks
+#include <Config.hpp> // for Config
+#include <Engine.hpp> // for ResourcePath, Init, Start
+#include <FPSCamera.hpp> // for OrbitCamera, Camera
+#include <Light.hpp> // for DirectionnalLight
+#include <Mouse.hpp> // for Mouse
+#include <Node.hpp> // for Node
 #include <SDL2/SDL.h> // for SDL_Quit
 #include <SDL2/SDL_main.h> // for main
+#include <Terrain.hpp> // for Terrain
 #include <glm/vec2.hpp> // for vec<>::vec<2, type-parameter-0-...
 #include <glm/vec3.hpp> // for vec<>::vec<3, type-parameter-0-...
 #include <math.h> // for M_PI
@@ -27,11 +28,9 @@ int main(int argc, char** argv)
 {
     Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
-    auto camera = OrbitCamera::create("main_camera", 45, M_PI / 2.f, M_PI / 2.f, 5.f);
+    auto camera = FPSCamera::create("main_camera", 45);
     Camera::set_current(camera);
-    camera->set_target(Node::create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
-    camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
-
+    //camera->set_target(Node::create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     if (argc > 1)
         Terrain::create("terrain_test", glm::vec2(10, 10), argv[1]);
     else

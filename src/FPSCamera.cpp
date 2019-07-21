@@ -1,14 +1,15 @@
 /*
 * @Author: gpi
 * @Date:   2019-07-15 10:36:36
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-16 13:59:40
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-07-21 21:23:28
 */
 
 #include "FPSCamera.hpp"
 #include <memory>
 
-FPSCamera::FPSCamera(const std::string& name, float fov, CameraProjection proj) : Camera(name, fov, proj)
+FPSCamera::FPSCamera(const std::string& name, float fov, CameraProjection proj)
+    : Camera(name, fov, proj)
 {
 }
 
@@ -22,46 +23,46 @@ std::shared_ptr<FPSCamera> FPSCamera::create(const std::string& name, float ifov
 
 float FPSCamera::Yaw() const
 {
-	return _yaw;
+    return _yaw;
 }
 
 void FPSCamera::SetYaw(float yaw)
 {
-	_yaw = yaw;
+    _yaw = yaw;
 }
 
 float FPSCamera::Pitch() const
 {
-	return _pitch;
+    return _pitch;
 }
 
 void FPSCamera::SetPitch(float pitch)
 {
-	_pitch = pitch;
+    _pitch = pitch;
 }
 
 float FPSCamera::Roll() const
 {
-	return _roll;
+    return _roll;
 }
 
 void FPSCamera::SetRoll(float roll)
 {
-	_roll = roll;
+    _roll = roll;
 }
 
 glm::vec3 FPSCamera::Forward() const
 {
-	glm::vec3 direction;
-	direction.x = cos(glm::radians(Pitch())) * cos(glm::radians(Yaw()));
-	direction.y = sin(glm::radians(Pitch()));
-	direction.z = cos(glm::radians(Pitch())) * sin(glm::radians(Yaw()));
-	return direction;
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(Pitch())) * cos(glm::radians(Yaw()));
+    direction.y = sin(glm::radians(Pitch()));
+    direction.z = cos(glm::radians(Pitch())) * sin(glm::radians(Yaw()));
+    return direction;
 }
 
 void FPSCamera::UpdateViewMatrix()
 {
-	if (target() != nullptr)
+    if (target() != nullptr)
         SetViewMatrix(glm::lookAt(Position(), target()->Position(), Up()));
     else
         SetViewMatrix(glm::lookAt(Position(), Position() + Forward(), Up()));
