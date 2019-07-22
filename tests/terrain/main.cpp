@@ -1,42 +1,42 @@
 /*
-* @Author: gpi
-* @Date:   2019-03-27 13:38:46
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-21 21:56:36
-*/
+ * @Author: gpi
+ * @Date:   2019-03-27 13:38:46
+ * @Last Modified by:   gpi
+ * @Last Modified time: 2019-07-22 16:55:10
+ */
 
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
 
-#include "scop.hpp" // for setup_callbacks
-#include <Config.hpp> // for Config
-#include <Engine.hpp> // for ResourcePath, Init, Start
-#include <FPSCamera.hpp> // for OrbitCamera, Camera
-#include <Light.hpp> // for DirectionnalLight
-#include <Mouse.hpp> // for Mouse
-#include <Node.hpp> // for Node
-#include <SDL2/SDL.h> // for SDL_Quit
+#include "scop.hpp"        // for setup_callbacks
+#include <Config.hpp>      // for Config
+#include <Engine.hpp>      // for ResourcePath, Init, Start
+#include <FPSCamera.hpp>   // for OrbitCamera, Camera
+#include <Light.hpp>       // for DirectionnalLight
+#include <Mouse.hpp>       // for Mouse
+#include <Node.hpp>        // for Node
+#include <SDL2/SDL.h>      // for SDL_Quit
 #include <SDL2/SDL_main.h> // for main
-#include <Terrain.hpp> // for Terrain
-#include <glm/vec2.hpp> // for vec<>::vec<2, type-parameter-0-...
-#include <glm/vec3.hpp> // for vec<>::vec<3, type-parameter-0-...
-#include <math.h> // for M_PI
-#include <memory> // for __shared_ptr_access, shared_ptr
-#include <string> // for operator+, string
+#include <Terrain.hpp>     // for Terrain
+#include <glm/vec2.hpp>    // for vec<>::vec<2, type-parameter-0-...
+#include <glm/vec3.hpp>    // for vec<>::vec<3, type-parameter-0-...
+#include <math.h>          // for M_PI
+#include <memory>          // for __shared_ptr_access, shared_ptr
+#include <string>          // for operator+, string
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
     Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
     auto camera = FPSCamera::create("main_camera", 45);
     Camera::set_current(camera);
-    //camera->set_target(Node::create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     if (argc > 1)
-        Terrain::create("terrain_test", glm::vec2(10, 10), argv[1]);
+        Terrain::create("terrain_test", glm::vec2(1024, 1024), argv[1]);
     else
-        Terrain::create("terrain_test", glm::vec2(10, 10), Engine::ResourcePath() + "crater.bt");
+        Terrain::create("terrain_test", glm::vec2(1024, 1024),
+                        Engine::ResourcePath() + "crater.bt");
     setup_callbacks();
-    DirectionnalLight::create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
+    DirectionnalLight::create("MainLight", glm::vec3(1, 1, 1),
+                              glm::vec3(10, 10, 10), 1, true);
     Engine::Start();
     SDL_Quit();
     return (0);
