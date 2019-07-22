@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-03-26 12:03:23
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-07-22 16:52:52
+ * @Last Modified time: 2019-07-22 17:14:07
  */
 
 #include "Terrain_GDAL.hpp"  // for Terrain
@@ -184,27 +184,28 @@ std::shared_ptr<Terrain> Terrain::create(const std::string &name,
     // auto medZ = (maxDepth + minDepth) / 2.f * scale.y;
     for (auto &data : quadTree.GetAllData()) {
         for (auto &patch : *data) {
-            glm::vec3 n;
-            CVEC4 cn;
-            n = TriangleNormal(patch.at(0), patch.at(1), patch.at(2));
-            n = (n + 1.f) / 2.f * 255.f;
-            cn = (CVEC4){GLubyte(n.x), GLubyte(n.y), GLubyte(n.z), 1};
+            auto n0 = TriangleNormal(patch.at(0), patch.at(1), patch.at(2));
+            auto n1 = TriangleNormal(patch.at(2), patch.at(3), patch.at(0));
+            n0 = (n0 + 1.f) / 2.f * 255.f;
+            n1 = (n1 + 1.f) / 2.f * 255.f;
+            auto n01 = (n0 + n1) / 2.f;
+            auto cn0 = (CVEC4){GLubyte(n0.x), GLubyte(n0.y), GLubyte(n0.z), 1};
+            auto cn1 = (CVEC4){GLubyte(n1.x), GLubyte(n1.y), GLubyte(n1.z), 1};
+            auto cn01 =
+                (CVEC4){GLubyte(n01.x), GLubyte(n01.y), GLubyte(n01.z), 1};
             vg->v.push_back(patch.at(0));
-            vg->vn.push_back(cn);
+            vg->vn.push_back(cn01);
             vg->v.push_back(patch.at(1));
-            vg->vn.push_back(cn);
+            vg->vn.push_back(cn0);
             vg->v.push_back(patch.at(2));
-            vg->vn.push_back(cn);
+            vg->vn.push_back(cn01);
 
-            n = TriangleNormal(patch.at(2), patch.at(3), patch.at(0));
-            n = (n + 1.f) / 2.f * 255.f;
-            cn = (CVEC4){GLubyte(n.x), GLubyte(n.y), GLubyte(n.z), 1};
             vg->v.push_back(patch.at(2));
-            vg->vn.push_back(cn);
+            vg->vn.push_back(cn01);
             vg->v.push_back(patch.at(3));
-            vg->vn.push_back(cn);
+            vg->vn.push_back(cn1);
             vg->v.push_back(patch.at(0));
-            vg->vn.push_back(cn);
+            vg->vn.push_back(cn01);
 
             /*for (auto& v : patch) {
                 v.y -= medZ;
