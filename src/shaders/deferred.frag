@@ -197,10 +197,21 @@ mat3x3	tbn_matrix()
 	return(transpose(mat3(T, B, Frag.Normal)));
 }
 
+float	random(in vec2 seed, in float freq)
+{
+	float dt = dot(floor(seed * freq), vec2(53.1215, 21.1352));
+	return fract(sin(dt) * 2105.2354);
+}
+
 float	random(in vec3 seed, in float freq)
 {
 	float dt = dot(floor(seed * freq), vec3(53.1215, 21.1352, 9.1322));
 	return fract(sin(dt) * 2105.2354);
+}
+
+float	randomAngle(in vec2 seed, in float freq)
+{
+	return random(seed, freq) * 6.283285;
 }
 
 float	randomAngle(in vec3 seed, in float freq)
