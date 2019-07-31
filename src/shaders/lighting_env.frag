@@ -159,11 +159,27 @@ void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel)
 	}
 }
 
+/* bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
+{
+	bool intersects = false;
+	for (int RayStep = 0; RayStep < REFLEXION_STEPS; RayStep++)
+	{
+		vec3 RaySample = (RayStep * 0.02) * rayDir + rayOrigin;
+		float Depth = texture(LastDepth, RaySample.xy, 0).r;
+		if (RaySample.z > Depth )
+		{
+			intersects = true;
+			rayOrigin = RaySample;
+			break;
+		}
+	}
+	return intersects;
+} */
+
 bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
 {
 	int		mipMapLevel = 0;
 	int		maxMipMaps = textureMaxLod(LastDepth);
-	float	curLength = 0.01;
 	bool	intersects = false;
 	int		tries = 0;
 	vec3	curUV = rayOrigin;
@@ -173,7 +189,9 @@ bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
 			intersects = false;
 			break;
 		}
-		float	sampleDepth = /* texelFetchLod(LastDepth, curUV.xy, mipMapLevel).r;// */texture(LastDepth, curUV.xy, mipMapLevel).r;
+		float	sampleDepth = 
+		//texelFetchLod(LastDepth, curUV.xy, mipMapLevel).r;
+		texture(LastDepth, curUV.xy, mipMapLevel).r;
 		if (curUV.z > sampleDepth) //We intersected
 		{
 			mipMapLevel--;
@@ -183,31 +201,39 @@ bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
 		{
 			mipMapLevel++;
 			intersects = false;
-			curLength = (curUV.z - sampleDepth) / rayDir.z;
-			curUV = rayDir * curLength + rayOrigin;
+			float t = (curUV.z - sampleDepth) / rayDir.z;
+			curUV -= rayDir * t;
+			//curUV = rayDir * curLength + rayOrigin;
 			//curLength = length(rayOrigin - Position(curUV.xy, sampleDepth));
 			//curUV = UVFromPosition(rayDir * curLength + rayOrigin);
 			tries++;
 		}
 		
 	}
-	while (mipMapLevel > 0 && mipMapLevel < maxMipMaps && tries < REFLEXION_STEPS);
+	while (mipMapLevel > 0 && mipMapLevel < maxMipMaps && tries < REFLEXION_STEPS * REFLEXION_STEPS);
 	rayOrigin = curUV;
 	return intersects;
 }
 
 vec4	SSR()
 {
-	vec3	WSPos = Position(Frag.UV, texture(LastDepth, Frag.UV, 0).r);
+	float	Depth = texture(LastDepth, Frag.UV, 0).r;
+	vec3	WSPos = Position(Frag.UV, Depth);
 	vec3	WSViewDir = normalize(WSPos - Camera.Position);
 	vec3	WSReflectionDir = reflect(WSViewDir, Frag.Normal);
-	vec3	SSPos = vec3(Frag.UV, texture(LastDepth, Frag.UV, 0).r);
-	vec3	SSPoint = UVFromPosition(WSReflectionDir * 10.f + WSPos);
+	vec3	SSPos = vec3(Frag.UV, Depth);
+	vec3	SSPoint = UVFromPosition(10 * WSReflectionDir + WSPos);
 	vec3	SSRDir = normalize(SSPoint - SSPos);
+	SSPos +=  (dither(ivec2(textureSize(LastDepth, 0) * Frag.UV), 0.5) + 0.001) * SSRDir;
 	if (castRay(SSPos, SSRDir))
 	{
 		float SSRParticipation = 1.f;
-		return vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness * 2).rgb * SSRParticipation, SSRParticipation);
+		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
+		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));
+		SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
+		SSRParticipation *= 1 - smoothstep(0.25, 0.5, dot(-WSViewDir, WSReflectionDir));
+		//return vec4(SSRDir, 1);
+		return vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness * 2).rgb, SSRParticipation);
 	}
 	return vec4(0);
 	
