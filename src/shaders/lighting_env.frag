@@ -78,7 +78,7 @@ vec3	UVFromPosition(in vec3 position)
 	vec4	projectedPosition = Camera.Matrix.Projection * Camera.Matrix.View * vec4(position, 1);
 	projectedPosition /= projectedPosition.w;
 	projectedPosition = projectedPosition * 0.5 + 0.5;
-	return (projectedPosition.xyz);
+	return projectedPosition.xyz;
 }
 
 vec3	DirectionFromVec2(in vec2 perturbation)
@@ -108,42 +108,6 @@ vec2 rotateUV(vec2 uv, float rotation, vec2 mid)
 		);
 }
 
-bool	castRay(in vec3 rayOrigin, in vec3 rayDir, out vec2 intersectionUV)
-{
-	int		mipMapLevel = 0;
-	float	curLength = 0.5;
-	bool	intersects = false;
-	int		tries = 0;
-	vec3	curUV = UVFromPosition(rayDir * curLength + rayOrigin);
-	do {
-		if (curUV.z > 1 || any(lessThan(curUV.xy, vec2(0))) || any(greaterThan(curUV.xy, vec2(1)))) {
-			intersects = false;
-			break;
-		}
-		float	sampleDepth = texture(LastDepth, curUV.xy, mipMapLevel).r;
-		if (sampleDepth < 1
-		&& curUV.z > sampleDepth
-		/*  && abs(curUV.z - sampleDepth) <= 0.05 */)
-		{
-			mipMapLevel--;
-			intersectionUV = curUV.xy;
-			intersects = true;
-		}
-		else
-		{
-			mipMapLevel++;
-			intersects = false;
-			//curLength += abs(curUV.z - sampleDepth) / Frag.Depth;
-			curLength = length(rayOrigin - Position(curUV.xy, sampleDepth));
-			curUV = UVFromPosition(rayDir * curLength + rayOrigin);
-			tries++;
-		}
-		
-	}
-	while (mipMapLevel > 0 && tries < REFLEXION_STEPS);
-	return intersects;
-}
-
 float dither(ivec2 position, float brightness) {
   int x = position.x % 4;
   int y = position.y % 4;
@@ -171,15 +135,85 @@ float dither(ivec2 position, float brightness) {
   return brightness < limit ? 0.0 : 1.0;
 }
 
+#define CELL_STEP_OFFSET 0.05
+
+void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel)
+{
+	ivec2 MipSize = textureSize(LastDepth, MipLevel);
+	vec2 MipCellIndex = RaySample.xy * vec2(MipSize);
+	vec2 BoundaryUV;
+	BoundaryUV.x = RayDir.x > 0 ? ceil(MipCellIndex.x) / float(MipSize.x) : 
+		floor(MipCellIndex.x) / float(MipSize.x);
+	BoundaryUV.y = RayDir.y > 0 ? ceil(MipCellIndex.y) / float(MipSize.y) : 
+		floor(MipCellIndex.y) / float(MipSize.y);
+	vec2 t;
+	t.x = (BoundaryUV.x - RaySample.x) / RayDir.x;
+	t.y = (BoundaryUV.y - RaySample.y) / RayDir.y;
+	if (abs(t.x) < abs(t.y))
+	{
+		RaySample += (t.x + CELL_STEP_OFFSET / MipSize.x) * RayDir;
+	}
+	else
+	{
+		RaySample += (t.y + CELL_STEP_OFFSET / MipSize.y) * RayDir;
+	}
+}
+
+bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
+{
+	int		mipMapLevel = 0;
+	int		maxMipMaps = textureMaxLod(LastDepth);
+	float	curLength = 0.01;
+	bool	intersects = false;
+	int		tries = 0;
+	vec3	curUV = rayOrigin;
+	do {
+		StepThroughCell(curUV, rayDir, mipMapLevel);
+		if (curUV.z > 1 || any(lessThan(curUV.xy, vec2(0))) || any(greaterThan(curUV.xy, vec2(1)))) {
+			intersects = false;
+			break;
+		}
+		float	sampleDepth = /* texelFetchLod(LastDepth, curUV.xy, mipMapLevel).r;// */texture(LastDepth, curUV.xy, mipMapLevel).r;
+		if (curUV.z > sampleDepth) //We intersected
+		{
+			mipMapLevel--;
+			intersects = true;
+		}
+		else
+		{
+			mipMapLevel++;
+			intersects = false;
+			curLength = (curUV.z - sampleDepth) / rayDir.z;
+			curUV = rayDir * curLength + rayOrigin;
+			//curLength = length(rayOrigin - Position(curUV.xy, sampleDepth));
+			//curUV = UVFromPosition(rayDir * curLength + rayOrigin);
+			tries++;
+		}
+		
+	}
+	while (mipMapLevel > 0 && mipMapLevel < maxMipMaps && tries < REFLEXION_STEPS);
+	rayOrigin = curUV;
+	return intersects;
+}
+
 vec4	SSR()
 {
-	vec3	curPos = Position(Frag.UV, texture(LastDepth, Frag.UV, 0).r);
-	vec3	V = normalize(curPos - Camera.Position);
-	vec3	R = (vec4(reflect(V, Frag.Normal), 1) * Camera.Matrix.View * Camera.Matrix.Projection).xyz;
-	int		sampleNbr = min(63, REFLEXION_SAMPLES + 1);
-	vec3	RSDirs[REFLEXION_SAMPLES + 1];
-
-	RSDirs[0] = R;
+	vec3	WSPos = Position(Frag.UV, texture(LastDepth, Frag.UV, 0).r);
+	vec3	WSViewDir = normalize(WSPos - Camera.Position);
+	vec3	WSReflectionDir = reflect(WSViewDir, Frag.Normal);
+	vec3	SSPos = vec3(Frag.UV, texture(LastDepth, Frag.UV, 0).r);
+	vec3	SSPoint = UVFromPosition(WSReflectionDir * 10.f + WSPos);
+	vec3	SSRDir = normalize(SSPoint - SSPos);
+	if (castRay(SSPos, SSRDir))
+	{
+		float SSRParticipation = 1.f;
+		return vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness * 2).rgb * SSRParticipation, SSRParticipation);
+	}
+	return vec4(0);
+	
+	/*int		sampleNbr = min(63, REFLEXION_SAMPLES + 1);
+	vec3	SSRDirs[REFLEXION_SAMPLES + 1];
+	SSRDirs[0] = R;
 	float	offsetRotation = randomAngle(Frag.UV, 1024);
 	float	ditherFactor = dither(ivec2(textureSize(LastDepth, 0) * Frag.UV), (Frag.Material.Roughness * Frag.Material.Roughness + 0.0001));
 	for (uint i = 0; i < sampleNbr; i++) {
@@ -187,40 +221,40 @@ vec4	SSR()
 		offset *= ditherFactor;
 		//offset *= (Frag.Material.Roughness * Frag.Material.Roughness + 0.0001);
 		offset = rotateUV(offset, offsetRotation, vec2(0));
-		RSDirs[i] = reflect(V, DirectionFromVec2(offset));
+		SSRDirs[i] = reflect(WSViewDir, DirectionFromVec2(offset));
 	}
 	vec4	ret = vec4(0);
 	float	hits = 0;
 	for (uint j = 0; j < sampleNbr; j++)
 	{
 		vec2	intersectionUV;
-		bool	intersected = castRay(curPos, RSDirs[j], intersectionUV);
+		bool	intersected = castRay(WSPos, SSRDirs[j], intersectionUV);
 		if (!intersected)
 			continue;
 		
 		//return vec4(ReflectionNormalColor, 1);
-		//float DirectionBasedAttenuation = smoothstep(-0.17, 0.0, dot(RSNormal.xyz, -RSDirs[j]));
+		//float DirectionBasedAttenuation = smoothstep(-0.17, 0.0, dot(RSNormal.xyz, -SSRDirs[j]));
 		
 		vec3 RSNormal = texture(LastNormal, intersectionUV).xyz;
-		float	screenEdgeFactor = 1;
-		screenEdgeFactor -= smoothstep(0, 1, pow(abs(intersectionUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
-		screenEdgeFactor -= smoothstep(0, 1, pow(abs(intersectionUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
-		screenEdgeFactor = max(0, screenEdgeFactor);
-		//screenEdgeFactor *= dot(V, RSDirs[j]);
-		screenEdgeFactor *= 1 - smoothstep(0.25, 0.5, dot(-V, RSDirs[j]));
-		screenEdgeFactor *= step(0.17, -dot(RSNormal.xyz, RSDirs[j]));
-		//screenEdgeFactor *= max(0, -dot(RSNormal.xyz, RSDirs[j]));
-		//screenEdgeFactor *= smoothstep(0.0, 1.0, max(0, 1 - dot(RSNormal.xyz, RSDirs[j])));
-		if (screenEdgeFactor <= 0)
+		float	RSParticipation = 1;
+		RSParticipation -= smoothstep(0, 1, pow(abs(intersectionUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
+		RSParticipation -= smoothstep(0, 1, pow(abs(intersectionUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
+		RSParticipation = max(0, RSParticipation);
+		//RSParticipation *= dot(WSViewDir, SSRDirs[j]);
+		RSParticipation *= 1 - smoothstep(0.25, 0.5, dot(-WSViewDir, SSRDirs[j]));
+		RSParticipation *= smoothstep(-0.17, 0.0, dot(RSNormal.xyz, -SSRDirs[j]));//step(0.17, -dot(RSNormal.xyz, SSRDirs[j]));
+		//RSParticipation *= max(0, -dot(RSNormal.xyz, SSRDirs[j]));
+		//RSParticipation *= smoothstep(0.0, 1.0, max(0, 1 - dot(RSNormal.xyz, SSRDirs[j])));
+		if (RSParticipation <= 0)
 			continue;
-		ret.xyz += sampleLod(LastColor, intersectionUV.xy, Frag.Material.Roughness * 2).rgb * screenEdgeFactor;
-		ret.w += screenEdgeFactor;
+		ret.xyz += sampleLod(LastColor, intersectionUV.xy, Frag.Material.Roughness * 2).rgb * RSParticipation;
+		ret.w += RSParticipation;
 		hits++;
 	}
 	if (hits > 0) {
 		ret /= hits; //Compute average color and attenuation
 	}
-	return (ret);
+	return (ret);*/
 }
 
 float	Env_Specular(in float NdV, in float roughness)
