@@ -108,6 +108,32 @@ vec2 rotateUV(vec2 uv, float rotation, vec2 mid)
 		);
 }
 
+float dither(ivec2 position) {
+  int x = position.x % 4;
+  int y = position.y % 4;
+  int index = x + y * 4;
+  float value = 0.0;
+  if (x < 8) {
+    if (index == 0) value = 0.00;
+    else if (index == 1) value = 0.08;
+    else if (index == 2) value = 0.02;
+    else if (index == 3) value = 0.10;
+    else if (index == 4) value = 0.12;
+    else if (index == 5) value = 0.04;
+    else if (index == 6) value = 0.14;
+    else if (index == 7) value = 0.06;
+    else if (index == 8) value = 0.03;
+    else if (index == 9) value = 0.11;
+    else if (index == 10) value = 0.01;
+    else if (index == 11) value = 0.09;
+    else if (index == 12) value = 0.15;
+    else if (index == 13) value = 0.07;
+    else if (index == 14) value = 0.13;
+    else if (index == 15) value = 0.05;
+  }
+  return value;
+}
+
 float dither(ivec2 position, float brightness) {
   int x = position.x % 4;
   int y = position.y % 4;
@@ -178,41 +204,38 @@ void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel)
 
 bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
 {
-	int		mipMapLevel = 0;
+	int		mipLevel = 0;
 	int		maxMipMaps = textureMaxLod(LastDepth);
-	bool	intersects = false;
 	int		tries = 0;
 	vec3	curUV = rayOrigin;
-	do {
-		StepThroughCell(curUV, rayDir, mipMapLevel);
-		if (curUV.z > 1 || any(lessThan(curUV.xy, vec2(0))) || any(greaterThan(curUV.xy, vec2(1)))) {
+	bool	intersects = false;
+	StepThroughCell(curUV, rayDir, mipLevel);
+	while (mipLevel >= 0 && mipLevel < maxMipMaps - 1)// && tries < 1024)
+	{
+		if (!intersects) StepThroughCell(curUV, rayDir, mipLevel);
+		vec2 UVSamplingAttenuation = smoothstep(0.05, 0.1, curUV.xy) * (1.f-smoothstep(0.95, 1.0, curUV.xy));
+		if (curUV.z > 1 || curUV.z < 0 || any(lessThan(curUV.xy, vec2(0))) || any(greaterThan(curUV.xy, vec2(1)))) {
+		//if (any(equal(UVSamplingAttenuation, vec2(0)))) {
 			intersects = false;
 			break;
 		}
-		float	sampleDepth = 
-		//texelFetchLod(LastDepth, curUV.xy, mipMapLevel).r;
-		texture(LastDepth, curUV.xy, mipMapLevel).r;
+		float	sampleDepth = texture(LastDepth, curUV.xy, mipLevel).r;
 		if (curUV.z > sampleDepth) //We intersected
 		{
-			mipMapLevel--;
+			//float t = (curUV.z - sampleDepth) / rayDir.z;
+			//curUV -= rayDir * t;
+			rayOrigin = curUV;
 			intersects = true;
+			mipLevel--;
 		}
 		else
 		{
-			mipMapLevel++;
 			intersects = false;
-			float t = (curUV.z - sampleDepth) / rayDir.z;
-			curUV -= rayDir * t;
-			//curUV = rayDir * curLength + rayOrigin;
-			//curLength = length(rayOrigin - Position(curUV.xy, sampleDepth));
-			//curUV = UVFromPosition(rayDir * curLength + rayOrigin);
+			mipLevel++;
 			tries++;
 		}
-		
 	}
-	while (mipMapLevel > 0 && mipMapLevel < maxMipMaps && tries < REFLEXION_STEPS * REFLEXION_STEPS);
-	rayOrigin = curUV;
-	return intersects;
+	return mipLevel < 0;
 }
 
 vec4	SSR()
@@ -224,14 +247,14 @@ vec4	SSR()
 	vec3	SSPos = vec3(Frag.UV, Depth);
 	vec3	SSPoint = UVFromPosition(10 * WSReflectionDir + WSPos);
 	vec3	SSRDir = normalize(SSPoint - SSPos);
-	SSPos +=  (dither(ivec2(textureSize(LastDepth, 0) * Frag.UV), 0.5) + 0.001) * SSRDir;
-	if (castRay(SSPos, SSRDir))
+	float	SSRDither = dither(ivec2(textureSize(LastDepth, 0) * Frag.UV));
+	SSPos += (SSRDither + 0.001) * SSRDir;
+	float SSRParticipation = 1 - smoothstep(0.25, 0.5, dot(-WSViewDir, WSReflectionDir));
+	if (SSRParticipation > 0 && castRay(SSPos, SSRDir))
 	{
-		float SSRParticipation = 1.f;
+		SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
 		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
 		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));
-		SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
-		SSRParticipation *= 1 - smoothstep(0.25, 0.5, dot(-WSViewDir, WSReflectionDir));
 		//return vec4(SSRDir, 1);
 		return vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness * 2).rgb, SSRParticipation);
 	}
@@ -358,12 +381,7 @@ void	ApplyTechnique()
 	if (Frag.Material.Roughness < 1) {
 		ssrResult = SSR();
 	}
-	if (ssrResult.w > 0) {
-		Out.Color.rgb += mix(envReflection, ssrResult.xyz * fresnel, ssrResult.w);
-	}
-	else {
-		Out.Color.rgb += envReflection;
-	}
+	Out.Color.rgb += mix(envReflection, ssrResult.xyz * fresnel, ssrResult.w);
 	Out.Color.rgb += (diffuse + Frag.Material.Emitting) * alpha;
 	Out.Color.a = 1;
 	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
