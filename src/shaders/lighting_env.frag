@@ -210,7 +210,7 @@ bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
 	vec3	curUV = rayOrigin;
 	bool	intersects = false;
 	StepThroughCell(curUV, rayDir, mipLevel);
-	while (mipLevel >= 0 && mipLevel < maxMipMaps - 1)// && tries < 1024)
+	while (mipLevel >= 0 && mipLevel < maxMipMaps - 1 && tries < 1024)
 	{
 		if (!intersects) StepThroughCell(curUV, rayDir, mipLevel);
 		vec2 UVSamplingAttenuation = smoothstep(0.05, 0.1, curUV.xy) * (1.f-smoothstep(0.95, 1.0, curUV.xy));
@@ -219,7 +219,9 @@ bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
 			intersects = false;
 			break;
 		}
-		float	sampleDepth = texture(LastDepth, curUV.xy, mipLevel).r;
+		float	sampleDepth = 
+		texelFetchLod(LastDepth, curUV.xy, mipLevel).r;
+		//texture(LastDepth, curUV.xy, mipLevel).r;
 		if (curUV.z > sampleDepth) //We intersected
 		{
 			//float t = (curUV.z - sampleDepth) / rayDir.z;
