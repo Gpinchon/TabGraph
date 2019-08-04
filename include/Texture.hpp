@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-01 14:24:54
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-04 20:01:25
 */
 
 #pragma once
@@ -70,6 +70,7 @@ protected:
     GLenum _internal_format { 0 };
     GLubyte* _data { nullptr };
     bool _loaded { false };
+    bool _mipMapsGenerated { false };
     std::shared_ptr<Framebuffer> _blur_buffer0;
     std::shared_ptr<Framebuffer> _blur_buffer1;
     std::shared_ptr<Framebuffer> _generate_blur_buffer(const std::string&);

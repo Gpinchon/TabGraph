@@ -108,57 +108,18 @@ vec2 rotateUV(vec2 uv, float rotation, vec2 mid)
 		);
 }
 
-float dither(ivec2 position) {
+int ditherMatrix[] = int[16](
+	0,	8,	2,	10,
+	12,	4,	14,	6,
+	3,	11,	1,	9,
+	15,	7,	13,	5
+);
+
+int dither(ivec2 position) {
   int x = position.x % 4;
   int y = position.y % 4;
   int index = x + y * 4;
-  float value = 0.0;
-  if (x < 8) {
-    if (index == 0) value = 0.00;
-    else if (index == 1) value = 0.08;
-    else if (index == 2) value = 0.02;
-    else if (index == 3) value = 0.10;
-    else if (index == 4) value = 0.12;
-    else if (index == 5) value = 0.04;
-    else if (index == 6) value = 0.14;
-    else if (index == 7) value = 0.06;
-    else if (index == 8) value = 0.03;
-    else if (index == 9) value = 0.11;
-    else if (index == 10) value = 0.01;
-    else if (index == 11) value = 0.09;
-    else if (index == 12) value = 0.15;
-    else if (index == 13) value = 0.07;
-    else if (index == 14) value = 0.13;
-    else if (index == 15) value = 0.05;
-  }
-  return value;
-}
-
-float dither(ivec2 position, float brightness) {
-  int x = position.x % 4;
-  int y = position.y % 4;
-  int index = x + y * 4;
-  float limit = 0.0;
-
-  if (x < 8) {
-    if (index == 0) limit = 0.0625;
-    else if (index == 1) limit = 0.5625;
-    else if (index == 2) limit = 0.1875;
-    else if (index == 3) limit = 0.6875;
-    else if (index == 4) limit = 0.8125;
-    else if (index == 5) limit = 0.3125;
-    else if (index == 6) limit = 0.9375;
-    else if (index == 7) limit = 0.4375;
-    else if (index == 8) limit = 0.25;
-    else if (index == 9) limit = 0.75;
-    else if (index == 10) limit = 0.125;
-    else if (index == 11) limit = 0.625;
-    else if (index == 12) limit = 1.0;
-    else if (index == 13) limit = 0.5;
-    else if (index == 14) limit = 0.875;
-    else if (index == 15) limit = 0.375;
-  }
-  return brightness < limit ? 0.0 : 1.0;
+  return ditherMatrix[index % 16];
 }
 
 #define CELL_STEP_OFFSET 0.05
@@ -168,95 +129,80 @@ void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel)
 	ivec2 MipSize = textureSize(LastDepth, MipLevel);
 	vec2 MipCellIndex = RaySample.xy * vec2(MipSize);
 	vec2 BoundaryUV;
-	BoundaryUV.x = RayDir.x > 0 ? ceil(MipCellIndex.x) / float(MipSize.x) : 
+	BoundaryUV.x = RayDir.x > 0 ?
+		ceil(MipCellIndex.x) / float(MipSize.x) : 
 		floor(MipCellIndex.x) / float(MipSize.x);
-	BoundaryUV.y = RayDir.y > 0 ? ceil(MipCellIndex.y) / float(MipSize.y) : 
+	BoundaryUV.y = RayDir.y > 0 ?
+		ceil(MipCellIndex.y) / float(MipSize.y) : 
 		floor(MipCellIndex.y) / float(MipSize.y);
 	vec2 t;
 	t.x = (BoundaryUV.x - RaySample.x) / RayDir.x;
 	t.y = (BoundaryUV.y - RaySample.y) / RayDir.y;
 	if (abs(t.x) < abs(t.y))
 	{
-		RaySample += (t.x + CELL_STEP_OFFSET / MipSize.x) * RayDir;
+		RaySample += (t.x + CELL_STEP_OFFSET / float(MipSize.x)) * RayDir;
 	}
 	else
 	{
-		RaySample += (t.y + CELL_STEP_OFFSET / MipSize.y) * RayDir;
+		RaySample += (t.y + CELL_STEP_OFFSET / float(MipSize.y)) * RayDir;
 	}
 }
 
-/* bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
-{
-	bool intersects = false;
-	for (int RayStep = 0; RayStep < REFLEXION_STEPS; RayStep++)
-	{
-		vec3 RaySample = (RayStep * 0.02) * rayDir + rayOrigin;
-		float Depth = texture(LastDepth, RaySample.xy, 0).r;
-		if (RaySample.z > Depth )
-		{
-			intersects = true;
-			rayOrigin = RaySample;
-			break;
-		}
-	}
-	return intersects;
-} */
-
 bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
 {
-	int		mipLevel = 0;
+	
 	int		maxMipMaps = textureMaxLod(LastDepth);
+	int		minMipMaps = 0;
+	int		MipLevel = minMipMaps;
 	int		tries = 0;
 	vec3	curUV = rayOrigin;
-	bool	intersects = false;
-	StepThroughCell(curUV, rayDir, mipLevel);
-	while (mipLevel >= 0 && mipLevel < maxMipMaps - 1)// && tries < 1024)
+	while (MipLevel >= minMipMaps && MipLevel < maxMipMaps - 1 && tries < 512)
 	{
-		if (!intersects) StepThroughCell(curUV, rayDir, mipLevel);
-		vec2 UVSamplingAttenuation = smoothstep(0.05, 0.1, curUV.xy) * (1.f-smoothstep(0.95, 1.0, curUV.xy));
-		if (curUV.z > 1 || curUV.z < 0 || any(lessThan(curUV.xy, vec2(0))) || any(greaterThan(curUV.xy, vec2(1)))) {
-		//if (any(equal(UVSamplingAttenuation, vec2(0)))) {
-			intersects = false;
+		//vec2 UVSamplingAttenuation = smoothstep(0.05, 0.1, curUV.xy) * (1.f-smoothstep(0.95, 1.0, curUV.xy));
+		StepThroughCell(curUV, rayDir, MipLevel);
+		if (curUV.z >= 1 || curUV.z <= 0 || any(lessThan(curUV.xy, vec2(0))) || any(greaterThan(curUV.xy, vec2(1)))) {
+		//if (curUV.z >= 1 || curUV.z <= 0 || any(equal(UVSamplingAttenuation, vec2(0)))) {
 			break;
 		}
-		float	sampleDepth = texture(LastDepth, curUV.xy, mipLevel).r;
+		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, MipLevel).r;
 		if (curUV.z > sampleDepth) //We intersected
 		{
-			//float t = (curUV.z - sampleDepth) / rayDir.z;
-			//curUV -= rayDir * t;
-			rayOrigin = curUV;
-			intersects = true;
-			mipLevel--;
+			float t = (curUV.z - sampleDepth) / rayDir.z;
+			curUV -= rayDir * t;
+			MipLevel--;
 		}
 		else
 		{
-			intersects = false;
-			mipLevel++;
+			MipLevel++;
 			tries++;
 		}
+		
 	}
-	return mipLevel < 0;
+	rayOrigin = curUV;
+	return MipLevel < minMipMaps;
 }
 
 vec4	SSR()
 {
-	float	Depth = texture(LastDepth, Frag.UV, 0).r;
+	float	Depth = texelFetchLod(LastDepth, Frag.UV, 0).r;
 	vec3	WSPos = Position(Frag.UV, Depth);
 	vec3	WSViewDir = normalize(WSPos - Camera.Position);
 	vec3	WSReflectionDir = reflect(WSViewDir, Frag.Normal);
 	vec3	SSPos = vec3(Frag.UV, Depth);
 	vec3	SSPoint = UVFromPosition(10 * WSReflectionDir + WSPos);
 	vec3	SSRDir = normalize(SSPoint - SSPos);
-	float	SSRDither = dither(ivec2(textureSize(LastDepth, 0) * Frag.UV));
-	SSPos += (SSRDither + 0.001) * SSRDir;
-	float SSRParticipation = 1 - smoothstep(0.25, 0.5, dot(-WSViewDir, WSReflectionDir));
-	if (SSRParticipation > 0 && castRay(SSPos, SSRDir))
+	float	SSRDither = dither(ivec2(textureSize(LastDepth, 0) * Frag.UV)) * 0.01f + 0.001f;
+	SSPos += (SSRDither) * SSRDir;
+	
+	if (/* SSRParticipation > 0 && */ castRay(SSPos, SSRDir))
 	{
+		float SSRParticipation = max(0, dot(WSViewDir, WSReflectionDir));
+		//SSRParticipation *= 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));
 		SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
 		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
 		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));
-		//return vec4(SSRDir, 1);
-		return vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness * 2).rgb, SSRParticipation);
+		SSRParticipation = clamp(SSRParticipation, 0, 1);
+		return vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness * 2).rgb * SSRParticipation, SSRParticipation);
 	}
 	return vec4(0);
 	
@@ -325,6 +271,9 @@ vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
 
 void	ApplyTechnique()
 {
+	Out.Color.rgb = vec3(texture(LastDepth, Frag.UV).r);
+	Out.Color.a = 1;
+	return;
 	vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, Frag.CubeUV).rgb;
 
 	Frag.Material.AO = 1 - Frag.Material.AO;

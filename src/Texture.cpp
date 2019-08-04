@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-12 09:28:04
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-04 22:23:26
 */
 
 #include "Texture.hpp"
@@ -178,10 +178,13 @@ void Texture::load()
 
 void Texture::generate_mipmap()
 {
+    //if (_mipMapsGenerated)
+    //    return;
     glBindTexture(_target, _glid);
     glGenerateMipmap(_target);
     glCheckError();
     glBindTexture(_target, 0);
+    _mipMapsGenerated = true;
 }
 
 void Texture::format(GLenum* format, GLenum* internal_format)

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 18:18:37
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-04 21:57:39
 */
 
 #include "Framebuffer.hpp"
@@ -89,7 +89,7 @@ Framebuffer::Framebuffer(const std::string& name)
 {
 }
 
-std::shared_ptr<Framebuffer> Framebuffer::create(const std::string& name, glm::vec2 size, int color_attachements, int depth)
+std::shared_ptr<Framebuffer> Framebuffer::create(const std::string& name, glm::ivec2 size, int color_attachements, int depth)
 {
     int i;
 
@@ -239,22 +239,29 @@ void Framebuffer::resize(const glm::ivec2& new_size)
     bind(false);
 }
 
-void Framebuffer::set_attachement(unsigned color_attachement, std::shared_ptr<Texture> texture)
+void Framebuffer::set_attachement(unsigned color_attachement, std::shared_ptr<Texture> texture, unsigned mipLevel)
 {
     if (color_attachement >= _color_attachements.size())
         throw std::runtime_error(name() + " : Color attachement index is out of bound");
-    _color_attachements[color_attachement] = texture;
+    _color_attachements.at(color_attachement) = texture;
     bind();
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture->glid(), 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture->glid(), mipLevel);
+    glCheckError();
+    bind(false);
+}
+
+void Framebuffer::SetDepthBuffer(std::shared_ptr<Texture> depth, unsigned mipLevel)
+{
+    _depth = depth;
+    bind();
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth ? depth->glid() : 0, mipLevel);
     glCheckError();
     bind(false);
 }
 
 std::shared_ptr<Texture> Framebuffer::attachement(unsigned color_attachement)
 {
-    if (unsigned(color_attachement) >= _color_attachements.size())
-        return (nullptr);
-    return (_color_attachements[color_attachement]);
+    return _color_attachements.at(color_attachement);
 }
 
 std::shared_ptr<Texture> Framebuffer::depth()
