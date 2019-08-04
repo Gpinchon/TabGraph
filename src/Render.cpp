@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-04 22:34:58
+* @Last Modified time: 2019-08-04 22:39:24
 */
 
 #include "Render.hpp"
@@ -387,8 +387,8 @@ void HZBPass(std::shared_ptr<Texture> depthTexture)
         currentSize.x = currentSize.x > 0 ? currentSize.x : 1;
         currentSize.y = currentSize.y > 0 ? currentSize.y : 1;
         framebuffer->resize(currentSize);
-        //framebuffer->set_attachement(0, depthTexture, i);
-        framebuffer->SetDepthBuffer(depthTexture, i);
+        framebuffer->set_attachement(0, depthTexture, i);
+        //framebuffer->SetDepthBuffer(depthTexture, i);
         framebuffer->bind();
         HZBShader->use();
         HZBShader->bind_texture("in_Texture_Color", depthTexture, GL_TEXTURE0);
