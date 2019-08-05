@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:09:44
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-04 22:39:24
 */
 
 #include "Render.hpp"
@@ -364,6 +364,43 @@ bool Render::Private::NeedsUpdate()
     return (_instance()._needsUpdate);
 }
 
+#include <Debug.hpp>
+
+void HZBPass(std::shared_ptr<Texture> depthTexture)
+{
+    static auto HZBVertexCode =
+#include "passthrough.vert"
+        ;
+    static auto HZBFragmentCode =
+#include "HZB.frag"
+        ;
+    static auto HZBShader = GLSL::compile("HZB", HZBVertexCode, HZBFragmentCode);
+    static auto framebuffer = Framebuffer::create("HZB", depthTexture->size(), 1, 0);
+    depthTexture->generate_mipmap();
+    depthTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    auto numLevels = 1 + unsigned(floorf(log2f(fmaxf(depthTexture->size().x, depthTexture->size().y))));
+    auto currentSize = depthTexture->size();
+    for (auto i = 1u; i < numLevels; i++) {
+        depthTexture->set_parameteri(GL_TEXTURE_BASE_LEVEL, i - 1);
+        depthTexture->set_parameteri(GL_TEXTURE_MAX_LEVEL, i - 1);
+        currentSize /= 2;
+        currentSize.x = currentSize.x > 0 ? currentSize.x : 1;
+        currentSize.y = currentSize.y > 0 ? currentSize.y : 1;
+        framebuffer->resize(currentSize);
+        framebuffer->set_attachement(0, depthTexture, i);
+        //framebuffer->SetDepthBuffer(depthTexture, i);
+        framebuffer->bind();
+        HZBShader->use();
+        HZBShader->bind_texture("in_Texture_Color", depthTexture, GL_TEXTURE0);
+        Render::Private::DisplayQuad()->draw();
+        HZBShader->use(false);
+        framebuffer->SetDepthBuffer(nullptr);
+    }
+    depthTexture->set_parameteri(GL_TEXTURE_BASE_LEVEL, 0);
+    depthTexture->set_parameteri(GL_TEXTURE_MAX_LEVEL, numLevels - 1);
+    framebuffer->bind(false);
+}
+
 void Render::Private::Scene()
 {
     static std::shared_ptr<Texture> brdf;
@@ -470,8 +507,10 @@ void Render::Private::Scene()
 
     final_back_buffer->attachement(0)->generate_mipmap();
     final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    final_back_buffer->depth()->generate_mipmap();
-    final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+    HZBPass(final_back_buffer->depth());
+    //final_back_buffer->depth()->generate_mipmap();
+    //final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     // APPLY LIGHTING SHADER
     // OUTPUT : out_Color, out_Brightness

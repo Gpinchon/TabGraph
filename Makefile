@@ -40,6 +40,7 @@ SHADERS_FILES	=	\
 					forward.frag			\
 					forward.vert			\
 					forward_default.frag	\
+					hzb.frag				\
 					lighting.frag			\
 					lighting_env.frag		\
 					passthrough.frag		\

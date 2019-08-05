@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-21 21:56:49
+* @Last Modified time: 2019-08-04 15:11:50
 */
 
 #include "Common.hpp"
@@ -57,8 +57,8 @@ void callback_camera(SDL_Event*)
         laxis.y = Keyboard::key(DOWNK) - Keyboard::key(UPK);
         raxis.x = 0;
         raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
-        taxis += Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-        taxis -= Keyboard::key(SDL_SCANCODE_PAGEUP);
+        taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
+        taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
     }
     cameraRotation.z -= laxis.y * Events::delta_time();
 
