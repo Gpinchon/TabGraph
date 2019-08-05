@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-07-26 14:10:06
+* @Last Modified time: 2019-08-05 14:45:12
 */
 
 #include "Cubemap.hpp"
@@ -156,7 +156,7 @@ void generate_side(std::shared_ptr<Texture> fromTexture, std::shared_ptr<Texture
             }
             u = u / 2.0f + 0.5f;
             v = v / 2.0f + 0.5f;
-            auto nuv = glm::vec2(y, x) / t->size();
+            auto nuv = glm::vec2(y, x) / glm::vec2(t->size());
             auto val = fromTexture->sample(glm::vec2(u, v));
             t->set_pixel(glm::vec2(nuv.x, nuv.y), val);
         }

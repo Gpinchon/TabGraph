@@ -1,72 +1,4 @@
 R""(
-#define	KERNEL_SIZE				64
-
-vec2 poissonDisk[] = vec2[KERNEL_SIZE] (
-	vec2(-0.613392, 0.617481),
-	vec2(0.170019, -0.040254),
-	vec2(-0.299417, 0.791925),
-	vec2(0.645680, 0.493210),
-	vec2(-0.651784, 0.717887),
-	vec2(0.421003, 0.027070),
-	vec2(-0.817194, -0.271096),
-	vec2(-0.705374, -0.668203),
-	vec2(0.977050, -0.108615),
-	vec2(0.063326, 0.142369),
-	vec2(0.203528, 0.214331),
-	vec2(-0.667531, 0.326090),
-	vec2(-0.098422, -0.295755),
-	vec2(-0.885922, 0.215369),
-	vec2(0.566637, 0.605213),
-	vec2(0.039766, -0.396100),
-	vec2(0.751946, 0.453352),
-	vec2(0.078707, -0.715323),
-	vec2(-0.075838, -0.529344),
-	vec2(0.724479, -0.580798),
-	vec2(0.222999, -0.215125),
-	vec2(-0.467574, -0.405438),
-	vec2(-0.248268, -0.814753),
-	vec2(0.354411, -0.887570),
-	vec2(0.175817, 0.382366),
-	vec2(0.487472, -0.063082),
-	vec2(-0.084078, 0.898312),
-	vec2(0.488876, -0.783441),
-	vec2(0.470016, 0.217933),
-	vec2(-0.696890, -0.549791),
-	vec2(-0.149693, 0.605762),
-	vec2(0.034211, 0.979980),
-	vec2(0.503098, -0.308878),
-	vec2(-0.016205, -0.872921),
-	vec2(0.385784, -0.393902),
-	vec2(-0.146886, -0.859249),
-	vec2(0.643361, 0.164098),
-	vec2(0.634388, -0.049471),
-	vec2(-0.688894, 0.007843),
-	vec2(0.464034, -0.188818),
-	vec2(-0.440840, 0.137486),
-	vec2(0.364483, 0.511704),
-	vec2(0.034028, 0.325968),
-	vec2(0.099094, -0.308023),
-	vec2(0.693960, -0.366253),
-	vec2(0.678884, -0.204688),
-	vec2(0.001801, 0.780328),
-	vec2(0.145177, -0.898984),
-	vec2(0.062655, -0.611866),
-	vec2(0.315226, -0.604297),
-	vec2(-0.780145, 0.486251),
-	vec2(-0.371868, 0.882138),
-	vec2(0.200476, 0.494430),
-	vec2(-0.494552, -0.711051),
-	vec2(0.612476, 0.705252),
-	vec2(-0.578845, -0.768792),
-	vec2(-0.772454, -0.090976),
-	vec2(0.504440, 0.372295),
-	vec2(0.155736, 0.065157),
-	vec2(0.391522, 0.849605),
-	vec2(-0.620106, -0.328104),
-	vec2(0.789239, -0.419965),
-	vec2(-0.545396, 0.538133),
-	vec2(-0.178564, -0.596057));
-
 uniform vec3		brightnessDotValue = vec3(0.299, 0.587, 0.114);
 uniform vec3		envGammaCorrection = vec3(2.2);
 uniform sampler2D	LastColor;
@@ -123,6 +55,13 @@ int dither(ivec2 position) {
 }
 
 #define CELL_STEP_OFFSET 0.05
+/* 
+void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel)
+{
+	ivec2	MipSize = textureSize(LastDepth, MipLevel);
+	vec2	CellSize = 1 / vec2(MipSize);
+	RaySample += RayDir * (CellSize.x * CellSize.y);
+} */
 
 void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel)
 {
@@ -148,37 +87,37 @@ void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel)
 	}
 }
 
-bool	castRay(inout vec3 rayOrigin, in vec3 rayDir)
+bool	castRay(inout vec3 RayOrigin, in vec3 RayDir)
 {
-	
+	if (length(RayDir) < 0.01)
+		return false;
 	int		maxMipMaps = textureMaxLod(LastDepth);
 	int		minMipMaps = 0;
 	int		MipLevel = minMipMaps;
 	int		tries = 0;
-	vec3	curUV = rayOrigin;
-	while (MipLevel >= minMipMaps && MipLevel < maxMipMaps - 1 && tries < 512)
+	vec3	curUV = RayOrigin;
+	StepThroughCell(curUV, RayDir, MipLevel);
+	while (MipLevel >= minMipMaps && MipLevel < maxMipMaps - 1 && tries < 1024)
 	{
 		//vec2 UVSamplingAttenuation = smoothstep(0.05, 0.1, curUV.xy) * (1.f-smoothstep(0.95, 1.0, curUV.xy));
-		StepThroughCell(curUV, rayDir, MipLevel);
 		if (curUV.z >= 1 || curUV.z <= 0 || any(lessThan(curUV.xy, vec2(0))) || any(greaterThan(curUV.xy, vec2(1)))) {
 		//if (curUV.z >= 1 || curUV.z <= 0 || any(equal(UVSamplingAttenuation, vec2(0)))) {
 			break;
 		}
-float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, MipLevel).r;		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, MipLevel).r;
+		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, MipLevel).r;
 		if (curUV.z > sampleDepth) //We intersected
 		{
-			float t = (curUV.z - sampleDepth) / rayDir.z;
-			curUV -= rayDir * t;
 			MipLevel--;
 		}
 		else
 		{
 			MipLevel++;
 			tries++;
+			StepThroughCell(curUV, RayDir, MipLevel);
 		}
 		
 	}
-	rayOrigin = curUV;
+	RayOrigin = curUV;
 	return MipLevel < minMipMaps;
 }
 
@@ -205,51 +144,6 @@ vec4	SSR()
 		return vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness * 2).rgb * SSRParticipation, SSRParticipation);
 	}
 	return vec4(0);
-	
-	/*int		sampleNbr = min(63, REFLEXION_SAMPLES + 1);
-	vec3	SSRDirs[REFLEXION_SAMPLES + 1];
-	SSRDirs[0] = R;
-	float	offsetRotation = randomAngle(Frag.UV, 1024);
-	float	ditherFactor = dither(ivec2(textureSize(LastDepth, 0) * Frag.UV), (Frag.Material.Roughness * Frag.Material.Roughness + 0.0001));
-	for (uint i = 0; i < sampleNbr; i++) {
-		vec2 offset = poissonDisk[i % KERNEL_SIZE];
-		offset *= ditherFactor;
-		//offset *= (Frag.Material.Roughness * Frag.Material.Roughness + 0.0001);
-		offset = rotateUV(offset, offsetRotation, vec2(0));
-		SSRDirs[i] = reflect(WSViewDir, DirectionFromVec2(offset));
-	}
-	vec4	ret = vec4(0);
-	float	hits = 0;
-	for (uint j = 0; j < sampleNbr; j++)
-	{
-		vec2	intersectionUV;
-		bool	intersected = castRay(WSPos, SSRDirs[j], intersectionUV);
-		if (!intersected)
-			continue;
-		
-		//return vec4(ReflectionNormalColor, 1);
-		//float DirectionBasedAttenuation = smoothstep(-0.17, 0.0, dot(RSNormal.xyz, -SSRDirs[j]));
-		
-		vec3 RSNormal = texture(LastNormal, intersectionUV).xyz;
-		float	RSParticipation = 1;
-		RSParticipation -= smoothstep(0, 1, pow(abs(intersectionUV.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
-		RSParticipation -= smoothstep(0, 1, pow(abs(intersectionUV.y * 2 - 1), SCREEN_BORDER_FACTOR));
-		RSParticipation = max(0, RSParticipation);
-		//RSParticipation *= dot(WSViewDir, SSRDirs[j]);
-		RSParticipation *= 1 - smoothstep(0.25, 0.5, dot(-WSViewDir, SSRDirs[j]));
-		RSParticipation *= smoothstep(-0.17, 0.0, dot(RSNormal.xyz, -SSRDirs[j]));//step(0.17, -dot(RSNormal.xyz, SSRDirs[j]));
-		//RSParticipation *= max(0, -dot(RSNormal.xyz, SSRDirs[j]));
-		//RSParticipation *= smoothstep(0.0, 1.0, max(0, 1 - dot(RSNormal.xyz, SSRDirs[j])));
-		if (RSParticipation <= 0)
-			continue;
-		ret.xyz += sampleLod(LastColor, intersectionUV.xy, Frag.Material.Roughness * 2).rgb * RSParticipation;
-		ret.w += RSParticipation;
-		hits++;
-	}
-	if (hits > 0) {
-		ret /= hits; //Compute average color and attenuation
-	}
-	return (ret);*/
 }
 
 float	Env_Specular(in float NdV, in float roughness)
@@ -271,9 +165,6 @@ vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
 
 void	ApplyTechnique()
 {
-	Out.Color.rgb = vec3(texture(LastDepth, Frag.UV).r);
-	Out.Color.a = 1;
-	return;
 	vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, Frag.CubeUV).rgb;
 
 	Frag.Material.AO = 1 - Frag.Material.AO;
