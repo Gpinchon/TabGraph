@@ -97,7 +97,7 @@ bool	castRay(inout vec3 RayOrigin, in vec3 RayDir)
 	int		tries = 0;
 	vec3	curUV = RayOrigin;
 	StepThroughCell(curUV, RayDir, MipLevel);
-	while (MipLevel >= minMipMaps && MipLevel < maxMipMaps - 1 && tries < 1024)
+	while (MipLevel >= minMipMaps && MipLevel < maxMipMaps - 1 && tries < 512)
 	{
 		//vec2 UVSamplingAttenuation = smoothstep(0.05, 0.1, curUV.xy) * (1.f-smoothstep(0.95, 1.0, curUV.xy));
 		if (curUV.z >= 1 || curUV.z <= 0 || any(lessThan(curUV.xy, vec2(0))) || any(greaterThan(curUV.xy, vec2(1)))) {
