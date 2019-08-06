@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-05 14:42:38
+* @Last Modified time: 2019-08-06 10:51:38
 */
 
 #include "Render.hpp"
@@ -70,6 +70,10 @@ private:
 
 static auto passthrough_vertex_code =
 #include "passthrough.vert"
+    ;
+
+static auto passthrough_fragment_code =
+#include "passthrough.frag"
     ;
 
 static auto present_fragment_code =
@@ -421,6 +425,11 @@ void HZBPass(std::shared_ptr<Texture> depthTexture)
 
 void Render::Private::Scene()
 {
+    if (!Render::Private::NeedsUpdate())
+    {
+        //present(final_back_buffer);
+        return;
+    }
     static std::shared_ptr<Texture> brdf;
     if (brdf == nullptr)
     {
@@ -439,18 +448,12 @@ void Render::Private::Scene()
     static auto back_buffer1 = create_back_buffer("back_buffer1", res);
     static auto back_buffer2 = create_back_buffer("back_buffer2", res);
     static auto final_back_buffer = create_back_buffer("final_back_buffer", res);
+    static auto last_render = create_back_buffer("last_render", res);
     static auto elighting_shader = GLSL::compile("lighting_env", lightingEnvFragmentCode, LightingShader,
                                                  std::string("\n#define REFLEXION_STEPS		") + std::to_string(reflectionSteps) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(reflectionSamples) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(reflectionBorderFactor) + std::string("\n"));
     static auto telighting_shader = GLSL::compile("lighting_env_transparent", lightingEnvFragmentCode, LightingShader,
                                                   std::string("\n#define TRANSPARENT") + std::string("\n#define REFLEXION_STEPS		") + std::to_string(reflectionSteps) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(reflectionSamples) + std::string("\n#define SCREEN_BORDER_FACTOR ") + std::to_string(reflectionBorderFactor) + std::string("\n"));
     static auto refraction_shader = GLSL::compile("refraction", refractionFragmentCode, LightingShader);
-    static auto passthrough_shader = GLSL::compile("passthrough", emptyShaderCode, LightingShader);
-
-    if (!Render::Private::NeedsUpdate())
-    {
-        present(final_back_buffer);
-        return;
-    }
 
     temp_buffer->resize(res);
     temp_buffer1->resize(res);
@@ -458,6 +461,7 @@ void Render::Private::Scene()
     back_buffer1->resize(res);
     back_buffer2->resize(res);
     final_back_buffer->resize(res);
+    last_render->resize(res / 2);
 
     auto current_tbuffer = temp_buffer;
     auto current_tbuffertex = temp_buffer1;
@@ -484,6 +488,7 @@ void Render::Private::Scene()
     glDisable(GL_CULL_FACE);
     if (PostTreatments().size() == 0u)
     {
+        static auto passthrough_shader = GLSL::compile("passthrough", emptyShaderCode, LightingShader);
         current_tbuffer->bind();
         passthrough_shader->use();
         passthrough_shader->bind_texture("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
@@ -529,12 +534,12 @@ void Render::Private::Scene()
     glClear(GL_COLOR_BUFFER_BIT);
     light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
-    final_back_buffer->attachement(0)->generate_mipmap();
-    final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    last_render->attachement(0)->generate_mipmap();
+    last_render->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-    HZBPass(final_back_buffer->depth());
-    //final_back_buffer->depth()->generate_mipmap();
-    //final_back_buffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    HZBPass(last_render->depth());
+    //last_render->depth()->generate_mipmap();
+    //last_render->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     // APPLY LIGHTING SHADER
     // OUTPUT : out_Color, out_Brightness
@@ -552,9 +557,9 @@ void Render::Private::Scene()
     elighting_shader->bind_texture("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
     elighting_shader->bind_texture("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
     elighting_shader->bind_texture("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("LastColor", final_back_buffer->attachement(0), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("LastNormal", final_back_buffer->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("LastDepth", final_back_buffer->depth(), GL_TEXTURE0 + (++i));
+    elighting_shader->bind_texture("LastColor", last_render->attachement(0), GL_TEXTURE0 + (++i));
+    elighting_shader->bind_texture("LastNormal", last_render->attachement(2), GL_TEXTURE0 + (++i));
+    elighting_shader->bind_texture("LastDepth", last_render->depth(), GL_TEXTURE0 + (++i));
     if (Environment::current() != nullptr)
     {
         elighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
@@ -615,9 +620,9 @@ void Render::Private::Scene()
     //telighting_shader->bind_texture("opaqueBackColor", opaqueBackBuffer->attachement(0), GL_TEXTURE0 + (++i));
     //telighting_shader->bind_texture("opaqueBackEmitting", opaqueBackBuffer->attachement(1), GL_TEXTURE0 + (++i));
     //telighting_shader->bind_texture("opaqueBackNormal", opaqueBackBuffer->attachement(2), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("LastColor", final_back_buffer->attachement(0), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("LastNormal", final_back_buffer->attachement(2), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("LastDepth", final_back_buffer->depth(), GL_TEXTURE0 + (++i));
+    telighting_shader->bind_texture("LastColor", last_render->attachement(0), GL_TEXTURE0 + (++i));
+    telighting_shader->bind_texture("LastNormal", last_render->attachement(2), GL_TEXTURE0 + (++i));
+    telighting_shader->bind_texture("LastDepth", last_render->depth(), GL_TEXTURE0 + (++i));
     if (Environment::current() != nullptr)
     {
         telighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
@@ -653,6 +658,16 @@ void Render::Private::Scene()
 
     // GENERATE BLOOM FROM out_Brightness
     final_back_buffer->attachement(1)->blur(Config::Get("BloomPass", 1), 3.5);
+
+    static auto passthrough_shader = GLSL::compile("passthrough", passthrough_vertex_code, passthrough_fragment_code);
+    passthrough_shader->use();
+    last_render->bind();
+    passthrough_shader->bind_texture("in_Buffer0", final_back_buffer->attachement(0), GL_TEXTURE0);
+    passthrough_shader->bind_texture("in_Buffer1", final_back_buffer->attachement(1), GL_TEXTURE1);
+    passthrough_shader->bind_texture("in_Buffer2", final_back_buffer->attachement(2), GL_TEXTURE2);
+    passthrough_shader->bind_texture("in_Texture_Depth", final_back_buffer->depth(), GL_TEXTURE6);
+    Render::Private::DisplayQuad()->draw();
+    passthrough_shader->use(false);
     present(final_back_buffer);
 }
 
