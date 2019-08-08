@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-08-08 15:53:13
+ * @Last Modified time: 2019-08-08 17:30:52
  */
 
 #include "parser/FBX.hpp"
@@ -47,17 +47,20 @@ struct FBXArray
     operator std::string() { return std::get<char *>(data); };
 };
 
-typedef std::variant<Byte, char, bool, float, double, int16_t, int32_t, int64_t, FBXArray>
+typedef std::variant<Byte, float, double, int16_t, int32_t, int64_t, FBXArray>
     FBXPropertyData;
 
 struct FBXProperty
 {
     unsigned char typeCode;
     FBXPropertyData data;
-    void Print() const;
+    void Print();
+    template <typename T>
+    operator T() { return std::get<T>(data); }
+    operator std::string() { return std::get<FBXArray>(data); }
 };
 
-void FBXProperty::Print() const
+void FBXProperty::Print()
 {
     std::cout << "  Property(";
     switch (typeCode)
@@ -81,9 +84,7 @@ void FBXProperty::Print() const
         std::cout << "double, " << std::get<double>(data);
         break;
     case ('S'):
-        std::cout << "string, \""
-                  << std::get<char *>(std::get<FBXArray>(data).data)
-                  << "\"";
+        std::cout << "string, \"" << std::string(FBXArray(*this)) << "\"";
         break;
     case ('R'):
         std::cout << "Byte *, " << std::get<FBXArray>(data).length;
@@ -116,8 +117,7 @@ struct FBXNode
     std::vector<FBXNode *> &Nodes(const std::string &name);
     /** @return the first node named with this name */
     FBXNode *Node(const std::string &name);
-    template <typename T>
-    T &PropertyData(const size_t index);
+    /** @return the property at this index */
     FBXProperty &Property(const size_t index);
     virtual void Print() const;
 };
@@ -138,20 +138,14 @@ FBXNode *FBXNode::Node(const std::string &name)
 void FBXNode::Print() const
 {
     std::cout << "Node (\"" << name << "\", " << properties.size() << ") {\n";
-    for (const auto property : properties)
+    for (auto property : properties)
         property.Print();
     for (const auto subNodes : nodes)
     {
-        for (const auto subNode : subNodes.second)
+        for (const auto &subNode : subNodes.second)
             subNode->Print();
     }
     std::cout << "};" << std::endl;
-}
-
-template <typename T>
-T &FBXNode::PropertyData(const size_t index)
-{
-    return std::get<T>(properties.at(index).data);
 }
 
 FBXProperty &FBXNode::Property(const size_t index)
@@ -251,7 +245,7 @@ FBXProperty ParseProperty(FILE *fd)
     case ('Y'):
     {
         int16_t data;
-        fread(&data, sizeof(short), 1, fd);
+        fread(&data, sizeof(int16_t), 1, fd);
         property.data = data;
         break;
     }
@@ -319,7 +313,6 @@ FBXProperty ParseProperty(FILE *fd)
 
 FBXNode *ParseNode(FILE *fd)
 {
-    //FBXNode n;
     uint64_t length64bits;
     uint32_t length32bits;
     uint64_t endOffset = 0;
@@ -327,6 +320,7 @@ FBXNode *ParseNode(FILE *fd)
     uint64_t propertyListLen = 0;
     uint64_t nameLen = 0;
     char *name = nullptr;
+
     if (is64bits)
     {
         fread(&length64bits, sizeof(uint64_t), 1, fd);
@@ -347,13 +341,9 @@ FBXNode *ParseNode(FILE *fd)
     }
     fread(&nameLen, sizeof(unsigned char), 1, fd);
     if (endOffset == 0 && numProperties == 0 && propertyListLen == 0 && nameLen == 0)
-    {
         return (nullptr);
-    }
     if (nameLen == 0)
-    {
         return (ParseNode(fd)); // this is top/invalid node, ignore it
-    }
 
     auto node = new FBXNode;
     name = new char[int(nameLen + 1)];
@@ -415,7 +405,7 @@ static inline std::vector<glm::vec2> parseUV(FBXNode *layerElementUV)
     auto UV = layerElementUV->Node("UV");
     if (UV == nullptr)
         return uv;
-    auto UVArray = UV->PropertyData<FBXArray>(0);
+    FBXArray UVArray(UV->Property(0));
     for (auto i = 0u; i < UVArray.length / 2; i++)
     {
         auto vec2 = glm::vec2(
@@ -427,7 +417,7 @@ static inline std::vector<glm::vec2> parseUV(FBXNode *layerElementUV)
     if (UVIndex != nullptr)
     {
         std::vector<glm::vec2> realUV;
-        auto UVIndexArray = UVIndex->PropertyData<FBXArray>(0);
+        FBXArray UVIndexArray(UVIndex->Property(0));
         for (auto i = 0u; i < UVIndexArray.length; i++)
         {
             auto index = std::get<int32_t *>(UVIndexArray.data)[i];
@@ -443,9 +433,9 @@ static inline auto parseNormals(FBXNode *layerElementNormal)
     std::vector<CVEC4> vn;
     if (layerElementNormal == nullptr)
         return vn;
-    std::cout << std::string(layerElementNormal->Node("MappingInformationType")->PropertyData<FBXArray>(0)) << std::endl;
+    std::cout << std::string(layerElementNormal->Node("MappingInformationType")->Property(0)) << std::endl;
     auto normals(layerElementNormal->Node("Normals"));
-    auto vnArray(normals->PropertyData<FBXArray>(0)); //std::get<FBXArray>(normals->properties.at(0)->data));
+    FBXArray vnArray(normals->Property(0));
     std::cout << normals->properties.at(0).typeCode << std::endl;
     std::cout << normals->properties.at(0).data.index() << std::endl;
     std::cout << vnArray.data.index() << std::endl;
@@ -467,7 +457,7 @@ static inline auto parseVertices(FBXNode *vertices, FBXNode *polygonVertexIndex)
     std::vector<glm::vec3> v;
     if (vertices == nullptr)
         return v;
-    auto vArray = vertices->PropertyData<FBXArray>(0); //std::get<FBXArray>(vertices->properties.at(0)->data);
+    FBXArray vArray(vertices->Property(0));
     for (auto i = 0u; i < vArray.length; i++)
     {
         auto vec3 = glm::vec3(
@@ -479,7 +469,7 @@ static inline auto parseVertices(FBXNode *vertices, FBXNode *polygonVertexIndex)
     if (polygonVertexIndex == nullptr)
         return v;
     std::vector<int32_t> vi;
-    auto viArray = polygonVertexIndex->PropertyData<FBXArray>(0); //std::get<FBXArray>(polygonVertexIndex->properties.at(0)->data);
+    FBXArray viArray(polygonVertexIndex->Property(0));
     std::cout << "viArray " << viArray.data.index() << std::endl;
     for (auto i = 0u; i < viArray.length; i++)
     {
@@ -528,15 +518,15 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
         {
             if (geometry == nullptr)
                 continue;
-
-            auto vgroup(Vgroup::create(std::to_string(geometry->PropertyData<int64_t>(0)))); //first property is Geometry ID
+            auto geometryId(std::to_string(int64_t(geometry->Property(0))));
+            auto vgroup(Vgroup::create(geometryId)); //first property is Geometry ID
 
             vgroup->vt = parseUV(geometry->Node("layerElementUV"));
             vgroup->vn = parseNormals(geometry->Node("LayerElementNormal"));
             vgroup->v = parseVertices(geometry->Node("Vertices"),
                                       geometry->Node("PolygonVertexIndex"));
             vgroup->set_material(mtl);
-            auto meshChild(Mesh::create(std::to_string(geometry->PropertyData<int64_t>(0))));
+            auto meshChild(Mesh::create(geometryId));
             meshChild->add(vgroup);
             mesh->add_child(meshChild);
             //mesh->add(vgroup);
