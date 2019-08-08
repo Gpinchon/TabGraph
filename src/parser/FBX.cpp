@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-08-07 14:15:01
+ * @Last Modified time: 2019-08-08 15:53:13
  */
 
 #include "parser/FBX.hpp"
@@ -42,15 +42,12 @@ struct FBXArray
     uint32_t encoding;
     uint32_t compressedLength;
     FBXArrayData data;
+    template <typename T>
+    operator T() { return std::get<T>(data); }
+    operator std::string() { return std::get<char *>(data); };
 };
 
-struct FBXRawData
-{
-    uint32_t length;
-    FBXArrayData data;
-};
-
-typedef std::variant<Byte, char, bool, float, double, int16_t, int32_t, int64_t, FBXArray, FBXRawData>
+typedef std::variant<Byte, char, bool, float, double, int16_t, int32_t, int64_t, FBXArray>
     FBXPropertyData;
 
 struct FBXProperty
@@ -85,11 +82,11 @@ void FBXProperty::Print() const
         break;
     case ('S'):
         std::cout << "string, \""
-                  << std::get<char *>(std::get<FBXRawData>(data).data)
+                  << std::get<char *>(std::get<FBXArray>(data).data)
                   << "\"";
         break;
     case ('R'):
-        std::cout << "Byte *, " << std::get<FBXRawData>(data).length;
+        std::cout << "Byte *, " << std::get<FBXArray>(data).length;
         break;
     case ('b'):
         std::cout << "bool *, " << std::get<FBXArray>(data).length;
@@ -112,11 +109,7 @@ void FBXProperty::Print() const
 
 struct FBXNode
 {
-    uint64_t endOffset;
-    uint64_t numProperties;
-    uint64_t propertyListLen;
-    unsigned char nameLen;
-    char *name;
+    std::string name{""};
     std::vector<FBXProperty> properties;
     std::map<std::string, std::vector<FBXNode *>> nodes;
     /** @return a vector containing all nodes with this name */
@@ -144,8 +137,7 @@ FBXNode *FBXNode::Node(const std::string &name)
 
 void FBXNode::Print() const
 {
-    std::cout << "Node (\"" << name << "\", " << numProperties
-              << ") {\n";
+    std::cout << "Node (\"" << name << "\", " << properties.size() << ") {\n";
     for (const auto property : properties)
         property.Print();
     for (const auto subNodes : nodes)
@@ -208,75 +200,40 @@ void DecompressArray(FBXArray *array)
     array->compressedLength = 0;
 }
 
-FBXArray ParseArray(unsigned char typeCode, FILE *fd)
+template <typename T>
+FBXArray ParseArray(FILE *fd)
 {
     FBXArray array;
 
-    fread(&array, 12, 1, fd);
+    fread(&array.length, sizeof(array.length), 1, fd);
+    fread(&array.encoding, sizeof(array.encoding), 1, fd);
+    fread(&array.compressedLength, sizeof(array.compressedLength), 1, fd);
     if (array.encoding == 0)
     {
-        switch (typeCode)
-        {
-        case ('f'):
-            array.data = new float[array.length];
-            fread(std::get<float *>(array.data), array.length, sizeof(float), fd);
-            break;
-        case ('d'):
-            array.data = new double[array.length];
-            fread(std::get<double *>(array.data), array.length, sizeof(double), fd);
-            break;
-        case ('l'):
-            array.data = new int64_t[array.length];
-            fread(std::get<int64_t *>(array.data), array.length, sizeof(int64_t), fd);
-            break;
-        case ('i'):
-            array.data = new int32_t[array.length];
-            fread(std::get<int32_t *>(array.data), array.length, sizeof(int32_t), fd);
-            break;
-        case ('b'):
-            array.data = new Byte[array.length];
-            fread(std::get<Byte *>(array.data), array.length, sizeof(Byte), fd);
-            break;
-        }
+        array.data = new T[array.length];
+        fread(std::get<T *>(array.data), array.length, sizeof(T), fd);
     }
     else
     {
         array.data = new Byte[array.compressedLength];
         fread(std::get<Byte *>(array.data), array.compressedLength, 1, fd);
-        switch (typeCode)
-        {
-        case ('f'):
-            DecompressArray<float>(&array);
-            break;
-        case ('d'):
-            DecompressArray<double>(&array);
-            break;
-        case ('l'):
-            DecompressArray<int64_t>(&array);
-            break;
-        case ('i'):
-            DecompressArray<int32_t>(&array);
-            break;
-        case ('b'):
-            DecompressArray<Byte>(&array);
-            break;
-        }
+        DecompressArray<T>(&array);
     }
     return (array);
 }
 
-FBXRawData parseRawData(FILE *fd)
+FBXArray parseRawData(FILE *fd)
 {
-    FBXRawData rawData;
+    FBXArray rawData;
     fread(&rawData.length, sizeof(unsigned), 1, fd);
     rawData.data = new Byte[rawData.length];
     fread(std::get<Byte *>(rawData.data), rawData.length, 1, fd);
     return rawData;
 }
 
-FBXRawData parseString(FILE *fd)
+FBXArray parseString(FILE *fd)
 {
-    FBXRawData rawString;
+    FBXArray rawString;
     fread(&rawString.length, sizeof(unsigned), 1, fd);
     rawString.data = new char[rawString.length + 1];
     memset(std::get<char *>(rawString.data), 0, rawString.length + 1);
@@ -340,11 +297,19 @@ FBXProperty ParseProperty(FILE *fd)
         property.data = parseString(fd);
         break;
     case ('f'):
+        property.data = ParseArray<float>(fd);
+        break;
     case ('d'):
+        property.data = ParseArray<double>(fd);
+        break;
     case ('l'):
+        property.data = ParseArray<int64_t>(fd);
+        break;
     case ('i'):
+        property.data = ParseArray<int32_t>(fd);
+        break;
     case ('b'):
-        property.data = ParseArray(property.typeCode, fd);
+        property.data = ParseArray<Byte>(fd);
         break;
     default:
         throw std::runtime_error(std::string("Unknown FBX property type at ") + std::to_string(ftell(fd)));
@@ -354,50 +319,52 @@ FBXProperty ParseProperty(FILE *fd)
 
 FBXNode *ParseNode(FILE *fd)
 {
-    FBXNode n;
+    //FBXNode n;
     uint64_t length64bits;
     uint32_t length32bits;
-
-    n.endOffset = 0;
-    n.numProperties = 0;
-    n.propertyListLen = 0;
+    uint64_t endOffset = 0;
+    uint64_t numProperties = 0;
+    uint64_t propertyListLen = 0;
+    uint64_t nameLen = 0;
+    char *name = nullptr;
     if (is64bits)
     {
         fread(&length64bits, sizeof(uint64_t), 1, fd);
-        n.endOffset = length64bits;
+        endOffset = length64bits;
         fread(&length64bits, sizeof(uint64_t), 1, fd);
-        n.numProperties = length64bits;
+        numProperties = length64bits;
         fread(&length64bits, sizeof(uint64_t), 1, fd);
-        n.propertyListLen = length64bits;
+        propertyListLen = length64bits;
     }
     else
     {
         fread(&length32bits, sizeof(uint32_t), 1, fd);
-        n.endOffset = length32bits;
+        endOffset = length32bits;
         fread(&length32bits, sizeof(uint32_t), 1, fd);
-        n.numProperties = length32bits;
+        numProperties = length32bits;
         fread(&length32bits, sizeof(uint32_t), 1, fd);
-        n.propertyListLen = length32bits;
+        propertyListLen = length32bits;
     }
-    fread(&n.nameLen, sizeof(unsigned char), 1, fd);
-    if (n.endOffset == 0 && n.numProperties == 0 && n.propertyListLen == 0 && n.nameLen == 0)
+    fread(&nameLen, sizeof(unsigned char), 1, fd);
+    if (endOffset == 0 && numProperties == 0 && propertyListLen == 0 && nameLen == 0)
     {
         return (nullptr);
     }
-    if (n.nameLen == 0)
+    if (nameLen == 0)
     {
         return (ParseNode(fd)); // this is top/invalid node, ignore it
     }
 
-    auto *node = new FBXNode(n);
-    node->name = new char[int(node->nameLen + 1)];
-    memset(node->name, 0, node->nameLen + 1);
-    fread(node->name, 1, node->nameLen, fd);
-    for (unsigned i = 0; i < node->numProperties; i++)
+    auto node = new FBXNode;
+    name = new char[int(nameLen + 1)];
+    memset(name, 0, nameLen + 1);
+    fread(name, 1, nameLen, fd);
+    node->name = name;
+    for (unsigned i = 0; i < numProperties; i++)
     {
         node->properties.push_back(ParseProperty(fd));
     }
-    while (ftell(fd) != long(n.endOffset))
+    while (ftell(fd) != long(endOffset))
     {
         FBXNode *subNode = ParseNode(fd);
         if (subNode == nullptr)
@@ -421,7 +388,7 @@ FBXDocument parseBin(const std::string &path)
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
     document.path = path;
-    fread(&document.header, sizeof(FBXHeader), 1, fd);
+    fread(&document.header, 27, 1, fd);
     if (strncmp(document.header.fileMagic, "Kaydara FBX Binary  ", 20))
     {
         fclose(fd);
@@ -476,6 +443,7 @@ static inline auto parseNormals(FBXNode *layerElementNormal)
     std::vector<CVEC4> vn;
     if (layerElementNormal == nullptr)
         return vn;
+    std::cout << std::string(layerElementNormal->Node("MappingInformationType")->PropertyData<FBXArray>(0)) << std::endl;
     auto normals(layerElementNormal->Node("Normals"));
     auto vnArray(normals->PropertyData<FBXArray>(0)); //std::get<FBXArray>(normals->properties.at(0)->data));
     std::cout << normals->properties.at(0).typeCode << std::endl;
@@ -523,15 +491,15 @@ static inline auto parseVertices(FBXNode *vertices, FBXNode *polygonVertexIndex)
     {
         if (i < 0)
         {
-            polygonIndex.push_back(abs(i - 1));
+            polygonIndex.push_back(abs(i) - 1);
             realV.push_back(v.at(polygonIndex.at(0)));
             realV.push_back(v.at(polygonIndex.at(1)));
             realV.push_back(v.at(polygonIndex.at(2)));
             if (polygonIndex.size() == 4)
             {
-                realV.push_back(v.at(polygonIndex.at(0)));
-                realV.push_back(v.at(polygonIndex.at(1)));
+                realV.push_back(v.at(polygonIndex.at(2)));
                 realV.push_back(v.at(polygonIndex.at(3)));
+                realV.push_back(v.at(polygonIndex.at(0)));
             }
             polygonIndex.clear();
         }
@@ -547,7 +515,7 @@ static inline auto parseVertices(FBXNode *vertices, FBXNode *polygonVertexIndex)
 std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string &path)
 {
     auto document = parseBin(path);
-    //document.Print();
+    document.Print();
     auto mesh(Mesh::create(name));
     auto mtl = Material::create("default_fbx");
     mtl->albedo = glm::vec3(0.5);
@@ -560,13 +528,18 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
         {
             if (geometry == nullptr)
                 continue;
+
             auto vgroup(Vgroup::create(std::to_string(geometry->PropertyData<int64_t>(0)))); //first property is Geometry ID
+
             vgroup->vt = parseUV(geometry->Node("layerElementUV"));
             vgroup->vn = parseNormals(geometry->Node("LayerElementNormal"));
             vgroup->v = parseVertices(geometry->Node("Vertices"),
                                       geometry->Node("PolygonVertexIndex"));
             vgroup->set_material(mtl);
-            mesh->add(vgroup);
+            auto meshChild(Mesh::create(std::to_string(geometry->PropertyData<int64_t>(0))));
+            meshChild->add(vgroup);
+            mesh->add_child(meshChild);
+            //mesh->add(vgroup);
         }
     }
     return mesh;
