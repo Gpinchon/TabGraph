@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-08-08 17:30:52
+ * @Last Modified time: 2019-08-09 14:15:14
  */
 
 #include "parser/FBX.hpp"
@@ -43,8 +43,8 @@ struct FBXArray
     uint32_t compressedLength;
     FBXArrayData data;
     template <typename T>
-    operator T() { return std::get<T>(data); }
-    operator std::string() { return std::get<char *>(data); };
+    operator T() const { return std::get<T>(data); }
+    operator std::string() const { return std::get<char *>(data); };
 };
 
 typedef std::variant<Byte, float, double, int16_t, int32_t, int64_t, FBXArray>
@@ -54,13 +54,13 @@ struct FBXProperty
 {
     unsigned char typeCode;
     FBXPropertyData data;
-    void Print();
+    virtual void Print() const;
     template <typename T>
     operator T() { return std::get<T>(data); }
     operator std::string() { return std::get<FBXArray>(data); }
 };
 
-void FBXProperty::Print()
+void FBXProperty::Print() const
 {
     std::cout << "  Property(";
     switch (typeCode)
