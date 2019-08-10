@@ -77,6 +77,9 @@ HEADERS_FILES	=	\
 					OrbitCamera.hpp				\
 					parser/BMP.hpp				\
 					parser/FBX.hpp				\
+					parser/FBX/FBXNode.hpp		\
+					parser/FBX/FBXProperty.hpp	\
+					parser/FBX/FBXDocument.hpp	\
 					parser/GLSL.hpp				\
 					parser/HDR.hpp				\
 					parser/InternalTools.hpp	\
