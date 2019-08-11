@@ -77,9 +77,10 @@ HEADERS_FILES	=	\
 					OrbitCamera.hpp				\
 					parser/BMP.hpp				\
 					parser/FBX.hpp				\
-					parser/FBX/FBXNode.hpp		\
-					parser/FBX/FBXProperty.hpp	\
 					parser/FBX/FBXDocument.hpp	\
+					parser/FBX/FBXNode.hpp		\
+					parser/FBX/FBXObject.hpp	\
+					parser/FBX/FBXProperty.hpp	\
 					parser/GLSL.hpp				\
 					parser/HDR.hpp				\
 					parser/InternalTools.hpp	\
@@ -125,9 +126,10 @@ SRC_FILES		=	\
 					parser/BMP.cpp				\
 					parser/BT.cpp				\
 					parser/FBX.cpp				\
-					parser/FBX/FBXNode.cpp		\
-					parser/FBX/FBXProperty.cpp	\
 					parser/FBX/FBXDocument.cpp	\
+					parser/FBX/FBXNode.cpp		\
+					parser/FBX/FBXObject.cpp	\
+					parser/FBX/FBXProperty.cpp	\
 					parser/GLSL.cpp				\
 					parser/HDR.cpp				\
 					parser/MTLLIB.cpp			\
