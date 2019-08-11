@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:55:38
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:28:34
 */
 
 #include "GameController.hpp"
@@ -150,16 +150,16 @@ GameController* GameController::_instance = nullptr;
 
 GameController::GameController()
 {
-    Events::add(this, SDL_CONTROLLERAXISMOTION);
-    Events::add(this, SDL_JOYAXISMOTION);
-    Events::add(this, SDL_CONTROLLERBUTTONDOWN);
-    Events::add(this, SDL_CONTROLLERBUTTONUP);
-    Events::add(this, SDL_JOYBUTTONDOWN);
-    Events::add(this, SDL_JOYBUTTONUP);
-    Events::add(this, SDL_CONTROLLERDEVICEADDED);
-    Events::add(this, SDL_JOYDEVICEADDED);
-    Events::add(this, SDL_CONTROLLERDEVICEREMOVED);
-    Events::add(this, SDL_JOYDEVICEREMOVED);
+    Events::Add(this, SDL_CONTROLLERAXISMOTION);
+    Events::Add(this, SDL_JOYAXISMOTION);
+    Events::Add(this, SDL_CONTROLLERBUTTONDOWN);
+    Events::Add(this, SDL_CONTROLLERBUTTONUP);
+    Events::Add(this, SDL_JOYBUTTONDOWN);
+    Events::Add(this, SDL_JOYBUTTONUP);
+    Events::Add(this, SDL_CONTROLLERDEVICEADDED);
+    Events::Add(this, SDL_JOYDEVICEADDED);
+    Events::Add(this, SDL_CONTROLLERDEVICEREMOVED);
+    Events::Add(this, SDL_JOYDEVICEREMOVED);
 }
 
 GameController* GameController::_get()

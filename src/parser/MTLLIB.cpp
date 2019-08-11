@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 08:16:52
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:07
 */
 
 #include "parser/MTLLIB.hpp"
@@ -79,11 +79,11 @@ void parse_number(std::vector<std::string>& split, std::shared_ptr<Material> mtl
 
 void parse_mtl(t_obj_parser* p, std::string& name)
 {
-    if (Material::get_by_name(name) != nullptr) {
+    if (Material::GetByName(name) != nullptr) {
         return;
     }
     char line[4096];
-    auto mtl = Material::create(name);
+    auto mtl = Material::Create(name);
     while (fgets(line, 4096, p->fd) != nullptr) {
         auto msplit = strsplitwspace(line);
         if (msplit.size() > 1 && msplit[0][0] != '#') {

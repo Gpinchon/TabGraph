@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 12:56:36
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:51:01
 */
 
 #include "parser/OBJ.hpp"
@@ -28,7 +28,7 @@
 #include <vector> // for vector
 
 //Add this parser to MeshParser !
-auto __objParser = MeshParser::add("obj", OBJ::parse);
+auto __objParser = MeshParser::Add("obj", OBJ::parse);
 
 static void push_values(t_obj_parser* p, glm::vec3* v, glm::vec3* vn, glm::vec2* vt)
 {
@@ -198,13 +198,13 @@ void parse_vg(t_obj_parser* p, const std::string& name)
         childNbr++;
         vt_min_max(p->vg);
         //p->parent->add_child(p->vg);
-        p->parent->add(p->vg);
+        p->parent->Add(p->vg);
         if (name == "") {
-            p->vg = Vgroup::create(p->parent->name() + "_Vgroup_" + std::to_string(childNbr));
+            p->vg = Vgroup::Create(p->parent->Name() + "_vgroup_" + std::to_string(childNbr));
         } else {
-            p->vg = Vgroup::create(name);
+            p->vg = Vgroup::Create(name);
         }
-        p->vg->set_material(Material::get_by_name("default"));
+        p->vg->set_material(Material::GetByName("default"));
     }
 }
 
@@ -351,7 +351,7 @@ static void parse_line(t_obj_parser* p, const char* line)
     } else if (split[0] == "usemtl") {
         if (!p->vg->v.empty())
             parse_vg(p);
-        auto mtl = Material::get_by_name(split[1]);
+        auto mtl = Material::GetByName(split[1]);
         if (mtl != nullptr)
             p->vg->set_material(mtl);
     } else if (split[0] == "mtllib") {
@@ -369,9 +369,9 @@ static void start_obj_parsing(t_obj_parser* p, const std::string& name, const st
     if ((p->fd = fopen(path.c_str(), "r")) == nullptr) {
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
-    p->parent = Mesh::create(name);
-    p->vg = Vgroup::create(name + "_child 0");
-    p->vg->set_material(Material::get_by_name("default"));
+    p->parent = Mesh::Create(name);
+    p->vg = Vgroup::Create(name + "_child 0");
+    p->vg->set_material(Material::GetByName("default"));
     p->vg->bounding_element = new AABB(p->bbox);
     while (fgets(line, 4096, p->fd) != nullptr) {
         parse_line(p, line);

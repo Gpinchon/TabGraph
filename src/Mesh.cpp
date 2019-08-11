@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:02:32
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:53:12
 */
 
 #include "Mesh.hpp"
@@ -23,19 +23,19 @@ Mesh::Mesh(const std::string& name)
     bounding_element = new AABB;
 }
 
-std::shared_ptr<Mesh> Mesh::create(const std::string& name) /*static*/
+std::shared_ptr<Mesh> Mesh::Create(const std::string& name) /*static*/
 {
     auto m = std::shared_ptr<Mesh>(new Mesh(name));
-    Mesh::add(m);
-    Renderable::add(m);
-    Node::add(m);
+    Mesh::Add(m);
+    Renderable::Add(m);
+    Node::Add(m);
     return (m);
 }
 
-std::shared_ptr<Mesh> Mesh::get_by_name(const std::string& name) /*static*/
+std::shared_ptr<Mesh> Mesh::GetByName(const std::string& name) /*static*/
 {
     for (auto n : _meshes) {
-        if (name == n->name())
+        if (name == n->Name())
             return (n);
     }
     return (nullptr);
@@ -48,8 +48,9 @@ std::shared_ptr<Mesh> Mesh::Get(unsigned index) /*static*/
     return (_meshes.at(index));
 }
 
-void Mesh::add(std::shared_ptr<Mesh> mesh) /*static*/
+void Mesh::Add(std::shared_ptr<Mesh> mesh) /*static*/
 {
+    Renderable::Add(mesh);
     _meshes.push_back(mesh);
 }
 
@@ -60,7 +61,7 @@ std::shared_ptr<Vgroup> Mesh::vgroup(unsigned index)
     return (_vgroups.at(index).lock());
 }
 
-void Mesh::add(std::shared_ptr<Vgroup> group)
+void Mesh::Add(std::shared_ptr<Vgroup> group)
 {
     if (nullptr == group)
         return;

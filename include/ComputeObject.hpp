@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-04 17:42:48
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:08
 */
 
 #pragma once
@@ -19,7 +19,7 @@ class Texture; // lines 13-13
 
 class ComputeObject : public Node {
 public:
-    static std::shared_ptr<ComputeObject> create(const std::string& name, std::shared_ptr<Shader> computeShader = nullptr);
+    static std::shared_ptr<ComputeObject> Create(const std::string& name, std::shared_ptr<Shader> computeShader = nullptr);
     virtual std::shared_ptr<Shader> shader();
     virtual std::shared_ptr<Texture> in_texture();
     virtual std::shared_ptr<Texture> out_texture();

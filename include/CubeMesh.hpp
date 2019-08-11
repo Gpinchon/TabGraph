@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:59:34
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:08
 */
 
 #pragma once
@@ -14,5 +14,5 @@
 class Mesh;
 
 namespace CubeMesh {
-std::shared_ptr<Mesh> create(const std::string& name, glm::vec3 size);
+std::shared_ptr<Mesh> Create(const std::string& name, glm::vec3 size);
 };

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:51:30
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:08
 */
 
 #pragma once
@@ -15,7 +15,7 @@ class Cubemap;
 
 class Environment : public Object {
 public:
-    static std::shared_ptr<Environment> create(const std::string& name);
+    static std::shared_ptr<Environment> Create(const std::string& name);
     static std::shared_ptr<Environment> Get(unsigned index);
     static std::shared_ptr<Environment> current();
     static void set_current(std::shared_ptr<Environment>);

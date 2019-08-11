@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:28:18
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:09
 */
 
 #pragma once
@@ -17,16 +17,16 @@ class Vgroup;
 
 class Mesh : public Renderable {
 public:
-    static std::shared_ptr<Mesh> create(const std::string&);
-    static std::shared_ptr<Mesh> get_by_name(const std::string&);
+    static std::shared_ptr<Mesh> Create(const std::string&);
+    static std::shared_ptr<Mesh> GetByName(const std::string&);
     static std::shared_ptr<Mesh> Get(unsigned index);
-    static void add(std::shared_ptr<Mesh>);
+    static void Add(std::shared_ptr<Mesh>);
     void load() override;
     bool render(RenderMod mod = RenderAll) override;
     bool render_depth(RenderMod mod = RenderAll) override;
     void center();
     void set_cull_mod(GLenum);
-    void add(std::shared_ptr<Vgroup>);
+    void Add(std::shared_ptr<Vgroup>);
     std::shared_ptr<Vgroup> vgroup(unsigned index);
 
 protected:

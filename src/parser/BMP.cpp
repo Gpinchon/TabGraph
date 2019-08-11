@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 08:13:09
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:06
 */
 
 #include "parser/BMP.hpp"
@@ -145,7 +145,7 @@ std::shared_ptr<Texture> BMP::parse(const std::string& texture_name, const std::
         throw std::runtime_error(std::string("Error parsing ") + path + " : " + e.what());
     }
     get_format(parser.info.bpp, &format[0], &format[1]);
-    auto t = Texture::create(texture_name, glm::ivec2(parser.info.width, parser.info.height),
+    auto t = Texture::Create(texture_name, glm::ivec2(parser.info.width, parser.info.height),
         GL_TEXTURE_2D, format[0], format[1], GL_UNSIGNED_BYTE, parser.data);
     t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     return (t);

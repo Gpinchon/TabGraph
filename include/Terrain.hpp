@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:46:56
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:09
 */
 
 #pragma once
@@ -16,8 +16,8 @@ class Texture;
 
 class Terrain : public Mesh {
 public:
-    static std::shared_ptr<Terrain> create(const std::string& name, glm::ivec2 resolution, glm::vec3 scale, std::shared_ptr<Texture> = nullptr);
-    static std::shared_ptr<Terrain> create(const std::string& name, glm::ivec2 resolution, const std::string& path);
+    static std::shared_ptr<Terrain> Create(const std::string& name, glm::ivec2 resolution, glm::vec3 scale, std::shared_ptr<Texture> = nullptr);
+    static std::shared_ptr<Terrain> Create(const std::string& name, glm::ivec2 resolution, const std::string& path);
 
 private:
     Terrain(const std::string& name);

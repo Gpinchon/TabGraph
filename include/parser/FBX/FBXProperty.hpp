@@ -2,11 +2,12 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 11:23:20
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-10 12:40:40
+* @Last Modified time: 2019-08-10 20:21:45
 */
 
 #pragma once
 
+#include "parser/FBX/FBXObject.hpp"
 #include <stdint.h>
 #include <string>
 #include <variant>
@@ -29,12 +30,16 @@ struct Array {
 typedef std::variant<Byte, float, double, int16_t, int32_t, int64_t, Array>
     PropertyData;
 
-struct Property {
+struct Property : public Object {
+    static std::shared_ptr<Property> Create();
     unsigned char typeCode;
     PropertyData data;
     virtual void Print() const;
     template <typename T>
     operator T() const { return std::get<T>(data); }
     operator std::string() const { return std::get<Array>(data); }
+
+protected:
+    Property() = default;
 };
 }

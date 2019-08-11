@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-04 20:36:58
+* @Last Modified time: 2019-08-11 12:25:53
 */
 
 #pragma once
@@ -20,12 +20,13 @@ public:
     * @brief Creates a framebuffer
     * @argument name : name of the framebuffer
     * @argument size : base resolution of the framebuffer
-    * @argument color_attachements : number of color attachements to be created
+    * @argument color_attachements : number of color attachements to be Created
     * @argument depth : set to 1 to enable depth buffer
     */
-    static std::shared_ptr<Framebuffer> create(const std::string& name, glm::ivec2 size, int color_attachements, int depth);
-    static std::shared_ptr<Framebuffer> get_by_name(const std::string& name);
+    static std::shared_ptr<Framebuffer> Create(const std::string& name, glm::ivec2 size, int color_attachements, int depth);
+    static std::shared_ptr<Framebuffer> GetByName(const std::string& name);
     static std::shared_ptr<Framebuffer> Get(unsigned index);
+    static void Add(std::shared_ptr<Framebuffer>);
     static void bind_default();
     bool is_loaded() override;
     void load() override;
@@ -36,7 +37,7 @@ public:
     std::shared_ptr<Texture> depth();
     void setup_attachements();
     /** @brief Adds a new attachement to the current buffer and returns it */
-    std::shared_ptr<Texture> create_attachement(GLenum format, GLenum iformat);
+    std::shared_ptr<Texture> Create_attachement(GLenum format, GLenum iformat);
     void resize(const glm::ivec2& new_size) override;
     /** @brief Sets the texture to the specified index */
     void set_attachement(unsigned color_attachement, std::shared_ptr<Texture>, unsigned mipLevel = 0);
@@ -60,7 +61,7 @@ private:
 */
 class Attachement : public Texture {
 public:
-    static std::shared_ptr<Attachement> create(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi);
+    static std::shared_ptr<Attachement> Create(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi);
     bool is_loaded() override;
     void load() override;
     void unload() override;

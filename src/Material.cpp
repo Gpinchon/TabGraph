@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 13:10:54
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:04
 */
 
 #include "Material.hpp"
@@ -29,15 +29,15 @@ static auto default_depth_fragment_code =
 Material::Material(const std::string& name)
     : Object(name)
 {
-    if ((_shader = Shader::get_by_name("shader_default")).lock() == nullptr) {
+    if ((_shader = Shader::GetByName("shader_default")).lock() == nullptr) {
         _shader = GLSL::compile("shader_default", default_fragment_code, ForwardShader);
     }
-    if ((_depth_shader = Shader::get_by_name("default_depth")).lock() == nullptr) {
+    if ((_depth_shader = Shader::GetByName("default_depth")).lock() == nullptr) {
         _depth_shader = GLSL::compile("default_depth", default_depth_vertex_code, default_depth_fragment_code);
     }
 }
 
-std::shared_ptr<Material> Material::create(const std::string& name)
+std::shared_ptr<Material> Material::Create(const std::string& name)
 {
     auto mtl = std::shared_ptr<Material>(new Material(name));
     _materials.push_back(mtl);
@@ -51,10 +51,10 @@ std::shared_ptr<Material> Material::Get(unsigned index)
     return (_materials.at(index));
 }
 
-std::shared_ptr<Material> Material::get_by_name(const std::string& name)
+std::shared_ptr<Material> Material::GetByName(const std::string& name)
 {
     for (auto m : _materials) {
-        if (name == m->name()) {
+        if (name == m->Name()) {
             return (m);
         }
     }

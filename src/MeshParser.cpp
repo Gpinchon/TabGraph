@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-04-25 09:44:00
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:29:33
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:31:04
 */
 
 #include "MeshParser.hpp" // for MeshParser, MeshParsingFunction
@@ -22,7 +22,7 @@ MeshParser::MeshParser(const std::string& format, MeshParsingFunction parsingFun
     debugLog(format);
 }
 
-MeshParser* MeshParser::add(const std::string& format, MeshParsingFunction parsingFunction)
+MeshParser* MeshParser::Add(const std::string& format, MeshParsingFunction parsingFunction)
 {
     auto parser = new MeshParser(format, parsingFunction);
     _getParsers()[format] = parser;

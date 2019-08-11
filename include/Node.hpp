@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-16 09:31:18
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:34:03
 */
 
 #pragma once
@@ -18,10 +18,11 @@ class BoundingElement;
 
 class Node : public Object {
 public:
-    static std::shared_ptr<Node> create(const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
-    static std::shared_ptr<Node> get_by_name(const std::string&);
+    static std::shared_ptr<Node> Create(const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+    static std::shared_ptr<Node> GetByName(const std::string&);
     static std::shared_ptr<Node> Get(unsigned index);
-    static void add(std::shared_ptr<Node>);
+    /** Adds the Node to the Node list */
+    static void Add(std::shared_ptr<Node>);
     virtual std::shared_ptr<Node> shared_from_this();
     virtual void FixedUpdate();
     virtual void Update();

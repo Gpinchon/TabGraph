@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:48:42
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:53:40
 */
 
 #include "Terrain.hpp"
@@ -31,17 +31,17 @@ Terrain::Terrain(const std::string& name)
 
 #include <limits>
 
-std::shared_ptr<Terrain> Terrain::create(const std::string& name,
+std::shared_ptr<Terrain> Terrain::Create(const std::string& name,
     glm::ivec2 resolution, glm::vec3 scale, std::shared_ptr<Texture> texture)
 {
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
     terrain->_terrainSize = scale;
-    Mesh::add(terrain);
-    Renderable::add(terrain);
-    Node::add(terrain);
-    auto vg = Vgroup::create(name + "vgroup");
+    Mesh::Add(terrain);
+    Renderable::Add(terrain);
+    Node::Add(terrain);
+    auto vg = Vgroup::Create(name + "vgroup");
     vg->v.resize(uint32_t(resolution.x * resolution.y));
     vg->vn.resize(vg->v.size());
     vg->vt.resize(vg->v.size());
@@ -133,11 +133,11 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name,
         n2.y = ((N2.y + 1) * 0.5) * 255.f;
         n2.z = ((N2.z + 1) * 0.5) * 255.f;
     }
-    auto mtl = Material::create("default_terrain");
+    auto mtl = Material::Create("default_terrain");
     mtl->albedo = glm::vec3(0.5, 0.5, 0.5);
     mtl->roughness = 0.5;
     vg->set_material(mtl);
-    terrain->add(vg);
+    terrain->Add(vg);
     return terrain;
 }
 
@@ -162,7 +162,7 @@ void printBTHeader(BTHeader& header)
               << std::endl;
 }
 
-std::shared_ptr<Terrain> Terrain::create(const std::string& name, glm::ivec2 resolution, const std::string& path)
+std::shared_ptr<Terrain> Terrain::Create(const std::string& name, glm::ivec2 resolution, const std::string& path)
 {
     auto terrainScale = glm::vec3(1, 0.00001, 1);
     if (fileFormat(path) == "bt" || fileFormat(path) == "BT") {
@@ -189,5 +189,5 @@ std::shared_ptr<Terrain> Terrain::create(const std::string& name, glm::ivec2 res
             terrainScale.z *= 1200.0 / 3937.0;
         }
     }
-    return (Terrain::create(name, resolution, terrainScale, TextureParser::parse(name + "_heightMap", path)));
+    return (Terrain::Create(name, resolution, terrainScale, TextureParser::parse(name + "_heightMap", path)));
 }

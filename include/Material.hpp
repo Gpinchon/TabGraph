@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 18:02:54
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:09
 */
 
 #pragma once
@@ -18,9 +18,9 @@ class Texture;
 
 class Material : public Object {
 public:
-    static std::shared_ptr<Material> create(const std::string&);
+    static std::shared_ptr<Material> Create(const std::string&);
     static std::shared_ptr<Material> Get(unsigned index);
-    static std::shared_ptr<Material> get_by_name(const std::string&);
+    static std::shared_ptr<Material> GetByName(const std::string&);
     virtual void bind_values();
     virtual void bind_textures();
     std::shared_ptr<Shader> shader();

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:52:04
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:07:19
 */
 
 #pragma once
@@ -22,7 +22,7 @@ typedef void (*t_callback)(SDL_Event* event);
 */
 class Events {
 public:
-    static void add(InputDevice* device, SDL_EventType event_type);
+    static void Add(InputDevice* device, SDL_EventType event_type);
     static void remove(InputDevice* device, SDL_EventType event_type);
     static int filter(void* e, SDL_Event* event);
     static int refresh(void);

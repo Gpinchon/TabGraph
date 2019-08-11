@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 18:16:51
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:20:30
 */
 
 #include "CubeMesh.hpp"
@@ -11,9 +11,9 @@
 #include "Vgroup.hpp" // for CVEC4, Vgroup
 #include <vector> // for vector
 
-std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, glm::vec3 size)
+std::shared_ptr<Mesh> CubeMesh::Create(const std::string& name, glm::vec3 size)
 {
-    auto m = Mesh::create(name);
+    auto m = Mesh::Create(name);
     static std::vector<glm::vec3> cubeVertices {
         { -0.50f, -0.50f, 0.50f }, // back
         { 0.50f, -0.50f, 0.50f },
@@ -92,16 +92,16 @@ std::shared_ptr<Mesh> CubeMesh::create(const std::string& name, glm::vec3 size)
         16, 17, 18, 16, 18, 19, // top
         20, 22, 21, 20, 23, 22 // bottom
     };
-    auto vg = Vgroup::create(m->name() + "_vgroup");
+    auto vg = Vgroup::Create(m->Name() + "_vgroup");
     auto thisCubeVertices = cubeVertices;
     for (auto& v : thisCubeVertices) {
         v *= size;
     }
-    vg->set_material(Material::create(vg->name() + "_material"));
+    vg->set_material(Material::Create(vg->Name() + "_material"));
     vg->v = thisCubeVertices;
     vg->vn = cubeNormals;
     vg->vt = cubeTexCoords;
     vg->i = cubeIndices;
-    m->add(vg);
+    m->Add(vg);
     return (m);
 }

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 14:07:34
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:06
 */
 
 #include "VertexArray.hpp"
@@ -10,7 +10,7 @@
 
 std::vector<std::shared_ptr<VertexArray>> VertexArray::_vertexArrays;
 
-std::shared_ptr<VertexArray> VertexArray::create(size_t vertex_nbr, GLenum GLDrawType)
+std::shared_ptr<VertexArray> VertexArray::Create(size_t vertex_nbr, GLenum GLDrawType)
 {
     auto vao = std::shared_ptr<VertexArray>(new VertexArray());
     vao->_vertex_nbr = vertex_nbr;

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:39:35
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:02
 */
 
 #pragma once
@@ -15,7 +15,7 @@
 
 class VertexArray {
 public:
-    static std::shared_ptr<VertexArray> create(size_t vertex_nbr, GLenum GLDrawType = GL_TRIANGLES);
+    static std::shared_ptr<VertexArray> Create(size_t vertex_nbr, GLenum GLDrawType = GL_TRIANGLES);
     void bind(bool tobind = true) const;
     void draw() const;
     GLuint glid() const;

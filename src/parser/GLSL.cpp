@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 11:58:26
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:07
 */
 
 #include "parser/GLSL.hpp"
@@ -56,7 +56,7 @@ GLuint compile_shader(const std::string& path, GLenum type)
 std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     const std::string& vertex_code, const std::string& fragment_code)
 {
-    auto shader = std::static_pointer_cast<GLSL>(Shader::create(name));
+    auto shader = std::static_pointer_cast<GLSL>(Shader::Create(name));
     GLuint vertexid = 0;
     GLuint fragmentid = 0;
 
@@ -87,7 +87,7 @@ std::shared_ptr<Shader> GLSL::parse(const std::string& name,
 std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     const std::string& vertex_code, const std::string& fragment_code, ShaderType type, const std::string& defines)
 {
-    auto shader = std::static_pointer_cast<GLSL>(Shader::create(name));
+    auto shader = std::static_pointer_cast<GLSL>(Shader::Create(name));
     GLuint vertexid = 0;
     GLuint fragmentid = 0;
     try {
@@ -127,7 +127,7 @@ std::shared_ptr<Shader> GLSL::parse(const std::string& name,
 std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     const std::string& shader_code, ShaderType type, const std::string& defines)
 {
-    auto shader = std::static_pointer_cast<GLSL>(Shader::create(name));
+    auto shader = std::static_pointer_cast<GLSL>(Shader::Create(name));
     static auto emptyShaderCode =
 #include "empty.glsl"
         ;

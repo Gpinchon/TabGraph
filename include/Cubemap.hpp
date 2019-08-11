@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 15:57:29
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:15:11
 */
 
 #pragma once
@@ -15,11 +15,12 @@
 
 class Cubemap : public Texture {
 public:
-    static std::shared_ptr<Cubemap> create(const std::string&);
-    static std::shared_ptr<Cubemap> create(const std::string&, std::shared_ptr<Texture> fromTexture);
+    static std::shared_ptr<Cubemap> Create(const std::string&);
+    static std::shared_ptr<Cubemap> Create(const std::string&, std::shared_ptr<Texture> fromTexture);
     static std::shared_ptr<Cubemap> parse(const std::string&, const std::string&);
     static std::shared_ptr<Cubemap> Get(unsigned index);
-    static std::shared_ptr<Cubemap> get_by_name(const std::string&);
+    static std::shared_ptr<Cubemap> GetByName(const std::string&);
+    static void Add(std::shared_ptr<Cubemap>);
     void load() override;
     void unload() override;
     std::shared_ptr<Texture> side(unsigned index);

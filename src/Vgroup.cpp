@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 10:50:24
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:06
 */
 
 #include "Vgroup.hpp"
@@ -22,7 +22,7 @@ Vgroup::Vgroup(const std::string& name)
     bounding_element = new AABB;
 }
 
-std::shared_ptr<Vgroup> Vgroup::create(const std::string& name)
+std::shared_ptr<Vgroup> Vgroup::Create(const std::string& name)
 {
     auto vg = std::shared_ptr<Vgroup>(new Vgroup(name));
     _vgroups.push_back(vg);
@@ -36,10 +36,10 @@ std::shared_ptr<Vgroup> Vgroup::Get(unsigned index)
     return (_vgroups.at(index));
 }
 
-std::shared_ptr<Vgroup> Vgroup::get_by_name(const std::string& name)
+std::shared_ptr<Vgroup> Vgroup::GetByName(const std::string& name)
 {
     for (auto n : _vgroups) {
-        if (name == n->name())
+        if (name == n->Name())
             return (n);
     }
     return (nullptr);
@@ -50,7 +50,7 @@ void Vgroup::load()
     if (is_loaded()) {
         return;
     }
-    _vao = VertexArray::create(v.size());
+    _vao = VertexArray::Create(v.size());
     auto vaoPtr = _vao.lock();
     vaoPtr->add_buffer(GL_FLOAT, 3, v);
     vaoPtr->add_buffer(GL_UNSIGNED_BYTE, 4, vn);

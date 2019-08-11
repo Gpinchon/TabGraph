@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-13 21:41:58
+* @Last Modified time: 2019-08-11 12:18:07
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
@@ -47,7 +47,7 @@
 		mat->texture_albedo->bpp() <= 24 && mat1->texture_albedo->bpp() >= 32);
 }*/
 
-std::vector<std::shared_ptr<Light>> create_random_lights(unsigned i)
+std::vector<std::shared_ptr<Light>> Create_random_lights(unsigned i)
 {
     std::vector<std::shared_ptr<Light>> v;
     for (auto index = 0u; index < i; index++) {
@@ -59,17 +59,17 @@ std::vector<std::shared_ptr<Light>> create_random_lights(unsigned i)
             std::rand() / float(RAND_MAX),
             std::rand() / float(RAND_MAX),
             std::rand() / float(RAND_MAX));
-        auto light = Light::create("Light" + std::to_string(i), Color, Position, 1 / float(i));
+        auto light = Light::Create("Light" + std::to_string(i), Color, Position, 1 / float(i));
         v.push_back(light);
     }
     return (v);
 }
 
 /*
-auto	cube = CubeMesh::create("cube", glm::vec3(1, 1, 1));
+auto	cube = CubeMesh::Create("cube", glm::vec3(1, 1, 1));
 auto	compute_shader = GLSL::parse("CheckerBoard", "./compute/checkerboard.compute", ComputeShader);
-auto	compute_object = ComputeObject::create("computeObject", compute_shader);
-auto	texture = Texture::create("checkerBoardTexture", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RGBA, GL_RGBA32F, GL_FLOAT);
+auto	compute_object = ComputeObject::Create("computeObject", compute_shader);
+auto	texture = Texture::Create("checkerBoardTexture", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RGBA, GL_RGBA32F, GL_FLOAT);
 //compute_object->set_in_texture(texture);
 compute_object->set_out_texture(texture);
 compute_object->Start();
@@ -82,9 +82,9 @@ int main(int argc, char* argv[])
 
     Config::Parse(Engine::ProgramPath() + "./res/config.ini");
     Engine::Init();
-    auto camera = FPSCamera::create("main_camera", 45);
+    auto camera = FPSCamera::Create("main_camera", 45);
     Camera::set_current(camera);
-    //camera->set_target(Node::create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
+    //camera->set_target(Node::Create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     //camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
     obj = nullptr;
     if (argc >= 2) {
@@ -99,9 +99,9 @@ int main(int argc, char* argv[])
     }
     //FBX::parseBin(Engine::ProgramPath() + "./mug.fbx");
     setup_callbacks();
-    //create_random_lights(250);
-    DirectionnalLight::create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
-    //DirectionnalLight::create("BackLight", glm::vec3(0.3, 0.3, 0.3), glm::vec3(-10, -10, 0), 1, false);
+    //Create_random_lights(250);
+    DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
+    //DirectionnalLight::Create("BackLight", glm::vec3(0.3, 0.3, 0.3), glm::vec3(-10, -10, 0), 1, false);
     Engine::Start();
     SDL_Quit();
     return (0);

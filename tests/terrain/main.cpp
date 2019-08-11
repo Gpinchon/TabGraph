@@ -1,8 +1,8 @@
 /*
  * @Author: gpi
  * @Date:   2019-03-27 13:38:46
- * @Last Modified by:   gpi
- * @Last Modified time: 2019-07-26 13:52:19
+ * @Last Modified by:   gpinchon
+ * @Last Modified time: 2019-08-11 12:18:07
  */
 
 #define USE_HIGH_PERFORMANCE_GPU
@@ -24,18 +24,18 @@
 #include <memory> // for __shared_ptr_access, shared_ptr
 #include <string> // for operator+, string
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
-    auto camera = FPSCamera::create("main_camera", 45);
+    auto camera = FPSCamera::Create("main_camera", 45);
     Camera::set_current(camera);
     if (argc > 1)
-        Terrain::create("terrain_test", glm::vec2(1024, 1024), argv[1]);
+        Terrain::Create("terrain_test", glm::vec2(1024, 1024), argv[1]);
     else
-        Terrain::create("terrain_test", glm::vec2(1024, 1024), Engine::ResourcePath() + "crater.bt");
+        Terrain::Create("terrain_test", glm::vec2(1024, 1024), Engine::ResourcePath() + "crater.bt");
     setup_callbacks();
-    DirectionnalLight::create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
+    DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
     Engine::Start();
     SDL_Quit();
     return (0);

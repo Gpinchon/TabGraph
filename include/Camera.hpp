@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-16 08:53:40
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:33:45
 */
 
 #pragma once
@@ -21,12 +21,13 @@ enum CameraProjection {
 
 class Camera : public Node {
 public:
-    static std::shared_ptr<Camera> create(const std::string&, float fov, CameraProjection proj = PerspectiveCamera);
-    static std::shared_ptr<Camera> get_by_name(const std::string&);
+    static std::shared_ptr<Camera> Create(const std::string&, float fov, CameraProjection proj = PerspectiveCamera);
+    static std::shared_ptr<Camera> GetByName(const std::string&);
     static std::shared_ptr<Camera> Get(unsigned index);
     static std::shared_ptr<Camera> current();
     static void set_current(std::shared_ptr<Camera>);
-    static void add(std::shared_ptr<Camera>);
+    /** Adds the camera to the Node list and to Camera list */
+    static void Add(std::shared_ptr<Camera>);
     /** Overload this to change Camera's behavior */
     virtual void UpdateViewMatrix();
     /** Overload this to change Camera's behavior */

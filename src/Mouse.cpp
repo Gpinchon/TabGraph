@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-07-13 15:38:50
+* @Last Modified time: 2019-08-11 12:32:56
 */
 
 #include "Mouse.hpp"
@@ -13,10 +13,10 @@ Mouse* Mouse::_instance = nullptr;
 
 Mouse::Mouse()
 {
-    Events::add(this, SDL_MOUSEMOTION);
-    Events::add(this, SDL_MOUSEBUTTONDOWN);
-    Events::add(this, SDL_MOUSEBUTTONUP);
-    Events::add(this, SDL_MOUSEWHEEL);
+    Events::Add(this, SDL_MOUSEMOTION);
+    Events::Add(this, SDL_MOUSEBUTTONDOWN);
+    Events::Add(this, SDL_MOUSEBUTTONUP);
+    Events::Add(this, SDL_MOUSEWHEEL);
 }
 
 void Mouse::process_event(SDL_Event* event)

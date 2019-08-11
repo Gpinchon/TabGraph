@@ -1,8 +1,8 @@
 /*
 * @Author: gpinchon
 * @Date:   2019-05-08 11:07:22
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 08:13:29
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:51:02
 */
 
 #include "Texture.hpp" // for Texture
@@ -45,8 +45,8 @@ std::shared_ptr<Texture> BTParse(const std::string& texture_name, const std::str
         throw std::runtime_error(std::string("[ERROR] ") + path + " : " + "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
     }
     fclose(fd);
-    return Texture::create(texture_name, glm::vec2(header.columns, header.rows), GL_TEXTURE_2D, GL_RED, internalFormat, dataFormat, data);
+    return Texture::Create(texture_name, glm::vec2(header.columns, header.rows), GL_TEXTURE_2D, GL_RED, internalFormat, dataFormat, data);
 }
 
-auto __btParser = TextureParser::add("bt", BTParse);
-auto __BTParser = TextureParser::add("BT", BTParse);
+auto __btParser = TextureParser::Add("bt", BTParse);
+auto __BTParser = TextureParser::Add("BT", BTParse);

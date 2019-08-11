@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-16 08:56:14
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:25:02
 */
 
 #include "Camera.hpp"
@@ -22,12 +22,10 @@ Camera::Camera(const std::string& name, float ifov, CameraProjection proj)
     _projection_type = proj;
 }
 
-std::shared_ptr<Camera> Camera::create(const std::string& name, float ifov, CameraProjection proj)
+std::shared_ptr<Camera> Camera::Create(const std::string& name, float ifov, CameraProjection proj)
 {
     std::shared_ptr<Camera> camera(new Camera(name, ifov, proj));
-    Node::add(camera);
-    Camera::add(camera);
-    //_cameras.push_back(camera);
+    Camera::Add(camera);
     return (camera);
 }
 
@@ -38,15 +36,16 @@ std::shared_ptr<Camera> Camera::Get(unsigned index)
     return (_cameras.at(index));
 }
 
-void Camera::add(std::shared_ptr<Camera> camera)
+void Camera::Add(std::shared_ptr<Camera> camera)
 {
+    Node::Add(camera);
     _cameras.push_back(camera);
 }
 
-std::shared_ptr<Camera> Camera::get_by_name(const std::string& name)
+std::shared_ptr<Camera> Camera::GetByName(const std::string& name)
 {
     for (auto n : _cameras) {
-        if (name == n->name())
+        if (name == n->Name())
             return (n);
     }
     return (nullptr);

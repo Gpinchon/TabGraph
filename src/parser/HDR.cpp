@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 08:13:59
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:51:01
 */
 
 #include "parser/HDR.hpp"
@@ -30,7 +30,7 @@ static bool decrunch(RGBE* scanline, int len, FILE* file);
 static bool oldDecrunch(RGBE* scanline, int len, FILE* file);
 
 //Add this parser to TextureParser !
-auto __hdrParser = TextureParser::add("hdr", HDR::parse);
+auto __hdrParser = TextureParser::Add("hdr", HDR::parse);
 
 std::shared_ptr<Texture> HDR::parse(const std::string& texture_name, const std::string& path)
 {
@@ -93,7 +93,7 @@ std::shared_ptr<Texture> HDR::parse(const std::string& texture_name, const std::
 
     delete[] scanline;
     fclose(file);
-    auto t = Texture::create(texture_name, size, GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data);
+    auto t = Texture::Create(texture_name, size, GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data);
     std::cout << " Done." << std::endl;
     return (t);
 }

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:39:58
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:02
 */
 
 #pragma once
@@ -16,9 +16,9 @@
 
 class TextureArray : public Texture {
 public:
-    static std::shared_ptr<TextureArray> create(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity);
+    static std::shared_ptr<TextureArray> Create(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity);
     virtual void set(std::shared_ptr<Texture>, int index);
-    //virtual int		add(Texture *texture);
+    //virtual int		AddTexture *texture);
     virtual void load() override;
 
 protected:

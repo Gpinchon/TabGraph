@@ -2,22 +2,29 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 11:21:46
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-10 12:40:42
+* @Last Modified time: 2019-08-10 20:47:25
 */
 
 #include "parser/FBX/FBXNode.hpp"
+#include "parser/FBX/FBXObject.hpp"
 #include "parser/FBX/FBXProperty.hpp"
 #include <iostream>
 #include <vector>
 
 using namespace FBX;
 
-std::vector<Node*>& Node::SubNodes(const std::string& name)
+std::shared_ptr<Node> Node::Create()
+{
+    auto ptr = std::shared_ptr<Node>(new Node());
+    return ptr;
+}
+
+std::vector<std::shared_ptr<Node>>& Node::SubNodes(const std::string& name)
 {
     return nodes[name];
 }
 
-Node* Node::SubNode(const std::string& name)
+std::shared_ptr<Node> Node::SubNode(const std::string& name)
 {
     auto nodesVector = SubNodes(name);
     if (nodesVector.size() > 0)
@@ -27,7 +34,7 @@ Node* Node::SubNode(const std::string& name)
 
 void Node::Print() const
 {
-    std::cout << "Node (\"" << name << "\", " << properties.size() << ") {\n";
+    std::cout << "Node (\"" << Name() << "\", " << properties.size() << ") {\n";
     for (const auto property : properties)
         property->Print();
     for (const auto subNodes : nodes) {

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 10:32:02
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:56:19
 */
 
 #pragma once
@@ -18,15 +18,22 @@
 
 class Object : public std::enable_shared_from_this<Object> {
 public:
-    const std::string& name();
-    void set_name(const std::string& name);
+    int64_t Id() const;
+    void SetId(int64_t);
+    std::string Name() const;
+    void SetName(const std::string& name);
     virtual ~Object() = default;
 
+    static std::shared_ptr<Object> GetByName(const std::string&);
+    static std::shared_ptr<Object> GetById(int64_t);
+    static void Add(const std::shared_ptr<Object>);
+
 protected:
-    Object();
+    Object() = delete;
     Object(const std::string& name);
 
 private:
-    std::string _name;
+    std::string _name { "" };
+    int64_t _id { 0 };
     static std::vector<std::shared_ptr<Object>> _objects;
 };

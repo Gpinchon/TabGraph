@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-04 15:11:50
+* @Last Modified time: 2019-08-11 11:51:46
 */
 
 #include "Common.hpp"
@@ -35,7 +35,7 @@ bool orbit = false;
 
 void callback_camera(SDL_Event*)
 {
-    auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::GetByName("main_camera"));
     auto controller = GameController::Get(0);
     glm::vec2 raxis = glm::vec2(0, 0);
     glm::vec2 laxis = glm::vec2(0, 0);
@@ -87,7 +87,7 @@ void callback_scale(SDL_KeyboardEvent* event)
     if (event == nullptr || event->type == SDL_KEYUP) {
         return;
     }
-    auto mesh = Mesh::get_by_name("main_mesh");
+    auto mesh = Mesh::GetByName("main_mesh");
     if (Keyboard::key(SDL_SCANCODE_LCTRL) == 0u) {
         return;
     }
@@ -197,9 +197,9 @@ void callback_fullscreen(SDL_KeyboardEvent* event)
 
 void MouseWheelCallback(SDL_MouseWheelEvent* event)
 {
-    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
-    camera->SetFov(event->y * 0.01);
-    camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 45.f));
+    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::GetByName("main_camera"));
+    camera->SetFov(camera->Fov() - event->y * 0.01);
+    camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 70.f));
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent* event)
@@ -207,7 +207,7 @@ void MouseMoveCallback(SDL_MouseMotionEvent* event)
     if (GameController::Get(0)->is_connected())
         return;
     //if (orbit) {
-    //    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
+    //    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::GetByName("main_camera"));
     //    if (Mouse::button(1)) {
     //        cameraRotation.x += event->yrel * Events::delta_time();
     //        cameraRotation.y -= event->xrel * Events::delta_time();
@@ -218,7 +218,7 @@ void MouseMoveCallback(SDL_MouseMotionEvent* event)
     //    camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
     //} else {
     //}
-    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::get_by_name("main_camera"));
+    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::GetByName("main_camera"));
     cameraRotation.x += event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
     cameraRotation.y -= event->yrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
     camera->SetYaw(cameraRotation.x);

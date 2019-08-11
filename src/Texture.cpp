@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-08-05 14:44:02
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 13:01:25
 */
 
 #include "Texture.hpp"
@@ -23,13 +23,13 @@
 
 std::vector<std::shared_ptr<Texture>> Texture::_textures;
 
-Texture::Texture(const std::string &name)
+Texture::Texture(const std::string& name)
     : Object(name)
 {
 }
 
-Texture::Texture(const std::string &iname, glm::vec2 s, GLenum target, GLenum f,
-                 GLenum fi, GLenum data_format, void *data)
+Texture::Texture(const std::string& iname, glm::vec2 s, GLenum target, GLenum f,
+    GLenum fi, GLenum data_format, void* data)
     : Texture(iname)
 {
     _target = target;
@@ -40,39 +40,42 @@ Texture::Texture(const std::string &iname, glm::vec2 s, GLenum target, GLenum f,
     _bpp = get_bpp(f, data_format);
     _size = s;
     //_data = static_cast<GLubyte*>(data);
-    if (data != nullptr)
-    {
+    if (data != nullptr) {
         uint64_t dataTotalSize = _size.x * _size.y * _bpp / 8;
         _data = new GLubyte[dataTotalSize];
         std::memcpy(_data, data, dataTotalSize);
     }
 }
 
-std::shared_ptr<Texture> Texture::create(const std::string &name, glm::ivec2 s,
-                                         GLenum target, GLenum f, GLenum fi,
-                                         GLenum data_format, void *data)
+std::shared_ptr<Texture> Texture::Create(const std::string& name, glm::ivec2 s,
+    GLenum target, GLenum f, GLenum fi,
+    GLenum data_format, void* data)
 {
     auto t = std::shared_ptr<Texture>(
         new Texture(name, s, target, f, fi, data_format, data));
     t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Get("Anisotropy", 16.f));
-    if (t->values_per_pixel() < 4)
-    {
+    if (t->values_per_pixel() < 4) {
         t->set_parameteri(GL_TEXTURE_SWIZZLE_A, GL_ONE);
     }
     _textures.push_back(t);
     return (t);
 }
 
-std::shared_ptr<Texture> Texture::get_by_name(const std::string &name)
+std::shared_ptr<Texture> Texture::GetByName(const std::string& name)
 {
-    for (auto t : _textures)
-    {
-        if (name == t->name())
+    for (auto t : _textures) {
+        if (name == t->Name())
             return (t);
     }
     return (nullptr);
+}
+
+void Texture::Add(std::shared_ptr<Texture> texture)
+{
+    Object::Add(texture);
+    _textures.push_back(texture);
 }
 
 std::shared_ptr<Texture> Texture::shared_from_this()
@@ -83,8 +86,7 @@ std::shared_ptr<Texture> Texture::shared_from_this()
 size_t Texture::get_bpp(GLenum texture_format, GLenum data_format)
 {
     auto data_size = Texture::get_data_size(data_format);
-    switch (texture_format)
-    {
+    switch (texture_format) {
     case GL_RED:
         return (1 * 8 * data_size);
     case GL_RG:
@@ -102,8 +104,7 @@ size_t Texture::get_bpp(GLenum texture_format, GLenum data_format)
 
 size_t Texture::get_data_size(GLenum data_format)
 {
-    switch (data_format)
-    {
+    switch (data_format) {
     case GL_FLOAT:
     case GL_FIXED:
     case GL_INT:
@@ -127,25 +128,24 @@ GLenum Texture::target() const { return (_target); }
 
 glm::ivec2 Texture::size() const { return (_size); }
 
-void *Texture::data() const { return (_data); }
+void* Texture::data() const { return (_data); }
 
-void Texture::assign(Texture &dest_texture, GLenum target)
+void Texture::assign(Texture& dest_texture, GLenum target)
 {
     if (!_loaded)
         load();
     glBindTexture(_target, _glid);
     glBindTexture(dest_texture._target, dest_texture._glid);
     glTexImage2D(target, 0, dest_texture._internal_format, dest_texture._size.x,
-                 dest_texture._size.y, 0, dest_texture._format,
-                 dest_texture._data_format, dest_texture._data);
+        dest_texture._size.y, 0, dest_texture._format,
+        dest_texture._data_format, dest_texture._data);
     glBindTexture(_target, 0);
     glBindTexture(dest_texture._target, 0);
 }
 
 void Texture::unload()
 {
-    if (!_loaded)
-    {
+    if (!_loaded) {
         return;
     }
     glDeleteTextures(1, &_glid);
@@ -155,29 +155,25 @@ void Texture::unload()
 
 void Texture::load()
 {
-    if (_loaded)
-    {
+    if (_loaded) {
         return;
     }
     auto maxTexRes = Config::Get("MaxTexRes", -1);
-    if (maxTexRes > 0 && _data && (_size.x > maxTexRes || _size.y > maxTexRes))
-    {
+    if (maxTexRes > 0 && _data && (_size.x > maxTexRes || _size.y > maxTexRes)) {
         resize(glm::ivec2(
             std::min(_size.x, maxTexRes),
             std::min(_size.y, maxTexRes)));
     }
-    if (_glid == 0u)
-    {
+    if (_glid == 0u) {
         glGenTextures(1, &_glid);
         glBindTexture(_target, _glid);
-        glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
+        glObjectLabel(GL_TEXTURE, _glid, -1, Name().c_str());
         glBindTexture(_target, 0);
     }
-    if (_size.x > 0 && _size.y > 0)
-    {
+    if (_size.x > 0 && _size.y > 0) {
         glBindTexture(_target, _glid);
         glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format,
-                     _data_format, _data);
+            _data_format, _data);
         glBindTexture(_target, 0);
     }
     glCheckError();
@@ -197,7 +193,7 @@ void Texture::generate_mipmap()
     _mipMapsGenerated = true;
 }
 
-void Texture::format(GLenum *format, GLenum *internal_format)
+void Texture::format(GLenum* format, GLenum* internal_format)
 {
     *format = _format;
     *internal_format = _internal_format;
@@ -220,10 +216,9 @@ size_t Texture::values_per_pixel()
     return (_data_size ? _bpp / _data_size / 8 : 0);
 }
 
-GLubyte *Texture::texelfetch(const glm::ivec2 &uv)
+GLubyte* Texture::texelfetch(const glm::ivec2& uv)
 {
-    if (_data == nullptr)
-    {
+    if (_data == nullptr) {
         return (nullptr);
     }
     auto nuv = glm::vec2(
@@ -233,42 +228,38 @@ GLubyte *Texture::texelfetch(const glm::ivec2 &uv)
     return (&_data[int(_size.x * nuv.y + nuv.x) * opp]);
 }
 
-void Texture::set_pixel(const glm::vec2 &uv, const glm::vec4 value)
+void Texture::set_pixel(const glm::vec2& uv, const glm::vec4 value)
 {
     int opp;
-    glm::vec4 val{0, 0, 0, 1};
+    glm::vec4 val { 0, 0, 0, 1 };
 
     opp = _bpp / 8;
     val = value;
-    if (_data == nullptr)
-    {
+    if (_data == nullptr) {
         _data = new GLubyte[int(_size.x * _size.y) * opp];
     }
-    GLubyte *p;
+    GLubyte* p;
     p = texelfetch(uv * glm::vec2(_size));
-    auto valuePtr = reinterpret_cast<float *>(&val);
-    for (auto i = 0, j = 0; i < int(opp / _data_size) && j < 4; ++i, ++j)
-    {
+    auto valuePtr = reinterpret_cast<float*>(&val);
+    for (auto i = 0, j = 0; i < int(opp / _data_size) && j < 4; ++i, ++j) {
         if (_data_size == 1)
             p[i] = valuePtr[j] * 255.f;
         else if (_data_size == sizeof(GLfloat))
-            static_cast<GLfloat *>((void *)p)[i] = valuePtr[j];
+            static_cast<GLfloat*>((void*)p)[i] = valuePtr[j];
     }
 }
 
-void Texture::set_pixel(const glm::vec2 &uv, const GLubyte *value)
+void Texture::set_pixel(const glm::vec2& uv, const GLubyte* value)
 {
     int opp;
 
     opp = _bpp / 8;
-    if (_data == nullptr)
-    {
+    if (_data == nullptr) {
         _data = new GLubyte[int(_size.x * _size.y) * opp];
     }
-    GLubyte *p;
+    GLubyte* p;
     p = texelfetch(uv * glm::vec2(_size));
-    for (auto i = 0; i < opp; ++i)
-    {
+    for (auto i = 0; i < opp; ++i) {
         p[i] = value[i];
     }
 }
@@ -278,14 +269,11 @@ void Texture::set_parameterf(GLenum p, float v)
     _parametersf[p] = v;
     if (_glid == 0u)
         return;
-    if (glTextureParameterf == nullptr)
-    {
+    if (glTextureParameterf == nullptr) {
         glBindTexture(_target, _glid);
         glTexParameterf(_target, p, v);
         glBindTexture(_target, 0);
-    }
-    else
-    {
+    } else {
         glTextureParameterf(_glid, p, v);
     }
     glCheckError();
@@ -296,41 +284,34 @@ void Texture::set_parameteri(GLenum p, int v)
     _parametersi[p] = v;
     if (_glid == 0u)
         return;
-    if (glTextureParameteri == nullptr)
-    {
+    if (glTextureParameteri == nullptr) {
         glBindTexture(_target, _glid);
         glTexParameteri(_target, p, v);
         glBindTexture(_target, 0);
-    }
-    else
-    {
+    } else {
         glTextureParameteri(_glid, p, v);
     }
-    if (glCheckError() != GL_NO_ERROR)
-    {
-        debugLog(name());
+    if (glCheckError() != GL_NO_ERROR) {
+        debugLog(Name());
     }
 }
 
 void Texture::restore_parameters()
 {
-    for (auto p : _parametersi)
-    {
+    for (auto p : _parametersi) {
         set_parameteri(p.first, p.second);
     }
-    for (auto p : _parametersf)
-    {
+    for (auto p : _parametersf) {
         set_parameterf(p.first, p.second);
     }
 }
 
-glm::vec4 Texture::sample(const glm::vec2 &uv)
+glm::vec4 Texture::sample(const glm::vec2& uv)
 {
     glm::vec3 vt[4];
-    glm::vec4 value{0, 0, 0, 1};
+    glm::vec4 value { 0, 0, 0, 1 };
 
-    if (_data == nullptr)
-    {
+    if (_data == nullptr) {
         return (value);
     }
     vt[0] = glm::vec3(
@@ -342,19 +323,17 @@ glm::vec4 Texture::sample(const glm::vec2 &uv)
     vt[0].y = int(vt[0].y);
     vt[0].z = ((1 - nuv.x) * (1 - nuv.y));
     vt[1] = glm::vec3(std::min(float(_size.x - 1), vt[0].x + 1),
-                      std::min(float(_size.y - 1), vt[0].y + 1), (nuv.x * (1 - nuv.y)));
+        std::min(float(_size.y - 1), vt[0].y + 1), (nuv.x * (1 - nuv.y)));
     vt[2] = glm::vec3(vt[0].x, vt[1].y, ((1 - nuv.x) * nuv.y));
     vt[3] = glm::vec3(vt[1].x, vt[0].y, (nuv.x * nuv.y));
     auto opp = _bpp / 8;
-    for (auto i = 0; i < 4; ++i)
-    {
+    for (auto i = 0; i < 4; ++i) {
         auto d = &_data[int(vt[i].y * _size.x + vt[i].x) * opp];
-        for (auto j = 0; j < int(opp / _data_size); ++j)
-        {
+        for (auto j = 0; j < int(opp / _data_size); ++j) {
             if (_data_size == 1)
-                reinterpret_cast<float *>(&value)[j] += (d[j] * vt[i].z) / 255.f;
+                reinterpret_cast<float*>(&value)[j] += (d[j] * vt[i].z) / 255.f;
             else if (_data_size == sizeof(GLfloat))
-                reinterpret_cast<float *>(&value)[j] += static_cast<float *>((void *)d)[j] * vt[i].z;
+                reinterpret_cast<float*>(&value)[j] += static_cast<float*>((void*)d)[j] * vt[i].z;
         }
     }
     return (value);
@@ -362,28 +341,24 @@ glm::vec4 Texture::sample(const glm::vec2 &uv)
 
 bool Texture::is_loaded() { return (_loaded); }
 
-void Texture::resize(const glm::ivec2 &ns)
+void Texture::resize(const glm::ivec2& ns)
 {
-    GLubyte *d;
+    GLubyte* d;
 
     _loaded = false;
-    if (_data != nullptr)
-    {
+    if (_data != nullptr) {
         auto opp = _bpp / 8;
         d = new GLubyte[unsigned(ns.x * ns.y * opp)];
-        for (auto y = 0; y < ns.y; ++y)
-        {
-            for (auto x = 0; x < ns.x; ++x)
-            {
+        for (auto y = 0; y < ns.y; ++y) {
+            for (auto x = 0; x < ns.x; ++x) {
                 auto uv = glm::vec2(x / ns.x, y / ns.y);
                 auto value = sample(uv);
                 auto p = &d[int(ns.x * y + x) * opp];
-                for (auto z = 0; z < int(opp / _data_size); ++z)
-                {
+                for (auto z = 0; z < int(opp / _data_size); ++z) {
                     if (_data_size == 1)
-                        p[z] = reinterpret_cast<float *>(&value)[z] * 255.f;
+                        p[z] = reinterpret_cast<float*>(&value)[z] * 255.f;
                     else if (_data_size == sizeof(GLfloat))
-                        reinterpret_cast<float *>(p)[z] = reinterpret_cast<float *>(&value)[z];
+                        reinterpret_cast<float*>(p)[z] = reinterpret_cast<float*>(&value)[z];
                 }
             }
         }
@@ -391,14 +366,13 @@ void Texture::resize(const glm::ivec2 &ns)
         _data = d;
     }
     _size = ns;
-    if (_glid != 0u)
-    {
+    if (_glid != 0u) {
         glDeleteTextures(1, &_glid);
         glGenTextures(1, &_glid);
         glBindTexture(_target, _glid);
-        glObjectLabel(GL_TEXTURE, _glid, -1, name().c_str());
+        glObjectLabel(GL_TEXTURE, _glid, -1, Name().c_str());
         glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format,
-                     _data_format, _data);
+            _data_format, _data);
         glBindTexture(_target, 0);
         glCheckError();
         restore_parameters();
@@ -406,22 +380,22 @@ void Texture::resize(const glm::ivec2 &ns)
 }
 
 std::shared_ptr<Framebuffer>
-Texture::_generate_blur_buffer(const std::string &bname)
+Texture::_generate_blur_buffer(const std::string& bname)
 {
-    auto buffer = Framebuffer::create(bname, size(), 0, 0);
-    buffer->create_attachement(_format, _internal_format);
+    auto buffer = Framebuffer::Create(bname, size(), 0, 0);
+    buffer->Create_attachement(_format, _internal_format);
     buffer->setup_attachements();
     return (buffer);
 }
 
-void Texture::blur(const int &pass, const float &radius)
+void Texture::blur(const int& pass, const float& radius)
 {
     if (pass == 0)
         return;
     if (_blur_buffer0 == nullptr)
-        _blur_buffer0 = _generate_blur_buffer(name() + "_blur0");
+        _blur_buffer0 = _generate_blur_buffer(Name() + "_blur0");
     if (_blur_buffer1 == nullptr)
-        _blur_buffer1 = _generate_blur_buffer(name() + "_blur1");
+        _blur_buffer1 = _generate_blur_buffer(Name() + "_blur1");
     _blur_buffer0->resize(size());
     _blur_buffer1->resize(size());
 
@@ -439,13 +413,11 @@ void Texture::blur(const int &pass, const float &radius)
     float angle = 0;
     std::shared_ptr<Texture> attachement;
     blurShader->use();
-    while (totalPass > 0)
-    {
+    while (totalPass > 0) {
         glm::vec2 direction;
         direction = glm::rotate(glm::vec2(1), angle);
         direction = direction * radius;
-        if (totalPass == 1)
-        {
+        if (totalPass == 1) {
             attachement = cbuffer->attachement(0);
             cbuffer->set_attachement(0, shared_from_this());
         }
@@ -456,13 +428,10 @@ void Texture::blur(const int &pass, const float &radius)
         angle = CYCLE(angle + (M_PI / 4.f), 0, M_PI);
         if (totalPass == 1)
             cbuffer->set_attachement(0, attachement);
-        if (totalPass % 2 == 0)
-        {
+        if (totalPass % 2 == 0) {
             cbuffer = _blur_buffer1;
             ctexture = _blur_buffer0->attachement(0);
-        }
-        else
-        {
+        } else {
             cbuffer = _blur_buffer0;
             ctexture = _blur_buffer1->attachement(0);
         }

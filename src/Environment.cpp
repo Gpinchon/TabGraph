@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-05-16 14:14:33
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:03
 */
 
 #include "Environment.hpp"
@@ -16,7 +16,7 @@ Environment::Environment(const std::string& name)
 {
 }
 
-std::shared_ptr<Environment> Environment::create(const std::string& name)
+std::shared_ptr<Environment> Environment::Create(const std::string& name)
 {
     auto e = std::shared_ptr<Environment>(new Environment(name));
     _environments.push_back(e);

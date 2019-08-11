@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:42:40
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:03
 */
 
 #include "Engine.hpp"
@@ -79,9 +79,9 @@ void EnginePrivate::LoadRes()
             continue;
         }
         std::string name = e->d_name;
-        auto newEnv = Environment::create(name);
-        newEnv->set_diffuse(Cubemap::create(name + "Cube", TextureParser::parse(name, folder + name + "/environment.hdr")));
-        newEnv->set_irradiance(Cubemap::create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", folder + name + "/diffuse.hdr")));
+        auto newEnv = Environment::Create(name);
+        newEnv->set_diffuse(Cubemap::Create(name + "Cube", TextureParser::parse(name, folder + name + "/environment.hdr")));
+        newEnv->set_irradiance(Cubemap::Create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", folder + name + "/diffuse.hdr")));
     }
     folder = Engine::ProgramPath() + "res/skybox/";
     dir = opendir(folder.c_str());
@@ -90,7 +90,7 @@ void EnginePrivate::LoadRes()
             continue;
         }
         std::string name = e->d_name;
-        auto newEnv = Environment::create(name);
+        auto newEnv = Environment::Create(name);
         try {
             newEnv->set_diffuse(Cubemap::parse(name, folder));
         } catch (std::exception& e) {

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:41:22
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:49:48
 */
 
 #include "TextureArray.hpp"
@@ -16,14 +16,14 @@ TextureArray::TextureArray(const std::string& name, glm::ivec2 s, GLenum target,
     _target = target;
     _internal_format = fi;
     _capacity = capacity;
-    _textures.resize(capacity);
+    _array.resize(capacity);
 }
 
-std::shared_ptr<TextureArray> TextureArray::create(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity)
+std::shared_ptr<TextureArray> TextureArray::Create(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity)
 {
     auto t = std::shared_ptr<TextureArray>(new TextureArray(name, s, target, fi, capacity));
     glGenTextures(1, &t->_glid);
-    glObjectLabel(GL_TEXTURE, t->_glid, -1, t->name().c_str());
+    glObjectLabel(GL_TEXTURE, t->_glid, -1, t->Name().c_str());
     glBindTexture(t->_target, t->_glid);
     glTexStorage3D(t->_target, 1, t->_internal_format, t->_size.x, t->_size.y, t->_capacity);
     glBindTexture(t->_target, 0);
@@ -32,12 +32,12 @@ std::shared_ptr<TextureArray> TextureArray::create(const std::string& name, glm:
     t->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     t->_array.resize(capacity);
-    _textures.push_back(std::static_pointer_cast<Texture>(t));
+    Texture::Add(t);
     glCheckError();
     return (t);
 }
 
-/*int			TextureArray::add(Texture *texture)
+/*int			TextureArray::AddTexture *texture)
 {
 	auto	search = std::find(_textures.begin(), _textures.end(), texture);
 	if (search != _textures.end())
@@ -58,8 +58,8 @@ void TextureArray::load()
     if (_loaded)
         return;
     glBindTexture(_target, _glid);
-    for (auto index = 0u; index < _textures.size(); index++) {
-        auto t = _textures.at(index);
+    for (auto index = 0u; index < _array.size(); index++) {
+        auto t = _array.at(index);
         if (nullptr == t || nullptr == t->data())
             continue;
         GLint level = 0; // Which mipmap is to be used in texture ?

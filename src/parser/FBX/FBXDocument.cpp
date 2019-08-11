@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 11:52:02
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-10 12:40:26
+* @Last Modified time: 2019-08-11 11:31:49
 */
 
 #include "parser/FBX/FBXDocument.hpp"
@@ -113,9 +113,9 @@ Array parseString(FILE* fd)
     return rawString;
 }
 
-Property* ParseProperty(FILE* fd)
+static inline auto ParseProperty(FILE* fd)
 {
-    auto property(new Property);
+    auto property(Property::Create());
 
     fread(&property->typeCode, 1, 1, fd);
     switch (property->typeCode) {
@@ -182,7 +182,7 @@ Property* ParseProperty(FILE* fd)
     return (property);
 }
 
-Node* ParseNode(FILE* fd)
+std::shared_ptr<Node> ParseNode(FILE* fd)
 {
     uint64_t length64bits;
     uint32_t length32bits;
@@ -213,21 +213,42 @@ Node* ParseNode(FILE* fd)
     if (nameLen == 0)
         return (ParseNode(fd)); // this is top/invalid node, ignore it
 
-    auto node = new Node;
+    auto node = Node::Create();
     name = new char[int(nameLen + 1)];
     memset(name, 0, nameLen + 1);
     fread(name, 1, nameLen, fd);
-    node->name = name;
+    node->SetName(name);
     for (unsigned i = 0; i < numProperties; i++) {
         node->properties.push_back(ParseProperty(fd));
     }
     while (ftell(fd) != long(endOffset)) {
-        Node* subNode = ParseNode(fd);
+        auto subNode = ParseNode(fd);
         if (subNode == nullptr)
             break;
-        node->nodes[subNode->name].push_back(subNode);
+        node->SubNodes(subNode->Name()).push_back(subNode);
     }
+    if (node->Name() == "Geometry")
+        Object::Add(node->Property(0), node);
     return (node);
+}
+
+void SetupParenting(FBX::Document& document)
+{
+    auto connections(document.SubNodes("Connection"));
+    for (const auto& connection : connections) {
+        auto cs(connection->SubNodes("C"));
+        for (const auto& c : cs) {
+            if (std::string(c->Property(0)) == "OO") {
+                int64_t source(c->Property(1));
+                int64_t destination(c->Property(1));
+                auto sourceObject(Object::Get(source));
+                auto destinationObject(Object::Get(destination));
+                if (sourceObject && destinationObject) {
+                    destinationObject->AddChild(sourceObject);
+                }
+            }
+        }
+    }
 }
 
 Document* Document::Parse(const std::string& path)
@@ -248,8 +269,8 @@ Document* Document::Parse(const std::string& path)
         throw std::runtime_error("Invalid FBX header at : " + path);
     }
     is64bits = document->header->version >= 7500;
-    for (Node* node = nullptr; (node = ParseNode(fd)) != nullptr;)
-        document->SubNodes(node->name).push_back(node);
+    for (std::shared_ptr<Node> node = nullptr; (node = ParseNode(fd)) != nullptr;)
+        document->SubNodes(node->Name()).push_back(node);
     fclose(fd);
     return document;
 }

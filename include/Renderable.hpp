@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:54:51
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:55:19
 */
 
 #pragma once
@@ -21,7 +21,7 @@ enum RenderMod {
 class Renderable : public Node {
 public:
     static std::shared_ptr<Renderable> Get(unsigned index);
-    static std::shared_ptr<Renderable> get_by_name(const std::string&);
+    static std::shared_ptr<Renderable> GetByName(const std::string&);
     virtual bool render(RenderMod mod = RenderAll) = 0;
     virtual bool render_depth(RenderMod mod = RenderAll) = 0;
     virtual void load() = 0;
@@ -29,7 +29,8 @@ public:
 
 protected:
     bool _is_loaded { false };
-    static void add(std::shared_ptr<Renderable>);
+    /** Adds the Renderable to Renderable and Node lists */
+    static void Add(std::shared_ptr<Renderable>);
     Renderable(const std::string& name);
 
 private:

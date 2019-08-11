@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpinchon
- * @Last Modified time: 2019-08-10 12:39:48
+ * @Last Modified time: 2019-08-11 12:51:41
  */
 
 #include "parser/FBX.hpp"
@@ -13,7 +13,7 @@
 #include <iostream>
 
 //Add this parser to MeshParser !
-auto __fbxParser = MeshParser::add("fbx", FBX::parseMesh);
+auto __fbxParser = MeshParser::Add("fbx", FBX::parseMesh);
 
 #include "Material.hpp"
 #include "Mesh.hpp"
@@ -49,53 +49,65 @@ static inline std::vector<glm::vec2> parseUV(FBX::Node* layerElementUV)
     return uv;
 }
 
-static inline auto parseNormals(FBX::Node* layerElementNormal)
+static inline auto getNormals(std::shared_ptr<FBX::Node> layerElementNormal)
 {
     std::vector<CVEC4> vn;
     if (layerElementNormal == nullptr)
         return vn;
-    std::cout << std::string(layerElementNormal->SubNode("MappingInformationType")->Property(0)) << std::endl;
     auto normals(layerElementNormal->SubNode("Normals"));
+
     FBX::Array vnArray(normals->Property(0));
-    std::cout << normals->Property(0).typeCode << std::endl;
-    std::cout << normals->Property(0).data.index() << std::endl;
-    std::cout << vnArray.data.index() << std::endl;
     for (auto i = 0u; i < vnArray.length / 3; i++) {
-        CVEC4 n;
-        n.x = std::get<double*>(vnArray.data)[i * 3 + 0];
-        n.y = std::get<double*>(vnArray.data)[i * 3 + 1];
-        n.z = std::get<double*>(vnArray.data)[i * 3 + 2];
-        n.w = 255;
+        glm::vec3 nd(
+            std::get<double*>(vnArray.data)[i * 3 + 0],
+            std::get<double*>(vnArray.data)[i * 3 + 1],
+            std::get<double*>(vnArray.data)[i * 3 + 2]);
+        nd = (nd + 1.f) * 0.5f * 255.f;
+        CVEC4 n(nd, 255);
         vn.push_back(n);
     }
-    //layerElementNormal->nodes["MappingInformationType"]
-    return vn;
+    auto referenceInformationType(layerElementNormal->SubNode("ReferenceInformationType"));
+    std::string referenceType(referenceInformationType ? std::string(referenceInformationType->Property(0)) : "");
+    if (referenceType == "" || referenceType == "Direct")
+        return vn;
+    auto normalsIndex(layerElementNormal->SubNode("NormalsIndex"));
+    if (normalsIndex == nullptr)
+        throw std::runtime_error("Node(" + layerElementNormal->Name() + ") missing NormalsIndex.");
+    auto normalsIndexArray(FBX::Array(normalsIndex->Property(0)));
+    std::vector<CVEC4> vnUnindexed;
+    vnUnindexed.reserve(vn.size());
+    for (auto i = 0u; i < normalsIndexArray.length; i++) {
+        auto index = ((int32_t*)normalsIndexArray)[i];
+        vnUnindexed.push_back(vn.at(index));
+    }
+    return vnUnindexed;
+    /*std::string mappingInformationType(layerElementNormal->SubNode("MappingInformationType")->Property(0));
+    std::string referenceInformationType(layerElementNormal->SubNode("ReferenceInformationType")->Property(0));
+    if (mappingInformationType == "ByPolygonVertex") {
+        if (referenceInformationType == "Direct") {
+            return vn;
+        }
+    }
+    return vn;*/
 }
 
-static inline auto parseVertices(FBX::Node* vertices, FBX::Node* polygonVertexIndex)
+static inline auto getVertices(std::shared_ptr<FBX::Node> vertices)
 {
     std::vector<glm::vec3> v;
     if (vertices == nullptr)
         return v;
     FBX::Array vArray(vertices->Property(0));
-    for (auto i = 0u; i < vArray.length; i++) {
+    for (auto i = 0u; i < vArray.length / 3; i++) {
         auto vec3 = glm::vec3(
             std::get<double*>(vArray.data)[i * 3 + 0],
             std::get<double*>(vArray.data)[i * 3 + 1],
             std::get<double*>(vArray.data)[i * 3 + 2]);
         v.push_back(vec3);
     }
-    if (polygonVertexIndex == nullptr)
-        return v;
-    std::vector<int32_t> vi;
-    FBX::Array viArray(polygonVertexIndex->Property(0));
-    std::cout << "viArray " << viArray.data.index() << std::endl;
-    for (auto i = 0u; i < viArray.length; i++) {
-        vi.push_back(std::get<int32_t*>(viArray.data)[i]);
-    }
-    std::vector<glm::vec3> realV;
+    return v;
+    /*    std::vector<glm::vec3> realV;
     std::vector<int32_t> polygonIndex;
-    for (const auto i : vi) {
+    for (const auto i : indices) {
         if (i < 0) {
             polygonIndex.push_back(abs(i) - 1);
             realV.push_back(v.at(polygonIndex.at(0)));
@@ -112,15 +124,100 @@ static inline auto parseVertices(FBX::Node* vertices, FBX::Node* polygonVertexIn
         }
     }
     std::cout << "Parsing Done ! " << realV.size() << std::endl;
-    return realV;
+    return realV;*/
+}
+
+static inline auto getVerticesIndices(std::shared_ptr<FBX::Node> polygonVertexIndex)
+{
+    std::vector<int32_t> vi;
+    if (polygonVertexIndex == nullptr)
+        return vi;
+    FBX::Array viArray(polygonVertexIndex->Property(0));
+    for (auto i = 0u; i < viArray.length; i++) {
+        vi.push_back(std::get<int32_t*>(viArray.data)[i]);
+    }
+    return vi;
+
+    /*    std::vector<int32_t> polygonIndex;
+    for (const auto i : vi) {
+        if (i < 0) {
+            polygonIndex.push_back(abs(i) - 1);
+            indices.push_back(polygonIndex.at(0));
+            indices.push_back(polygonIndex.at(1));
+            indices.push_back(polygonIndex.at(2));
+            if (polygonIndex.size() == 4) {
+                indices.push_back(polygonIndex.at(2));
+                indices.push_back(polygonIndex.at(3));
+                indices.push_back(polygonIndex.at(0));
+            }
+            polygonIndex.clear();
+        } else {
+            polygonIndex.push_back(i);
+        }
+    }*/
+}
+
+static inline auto triangulateIndices(const std::vector<int32_t>& vi)
+{
+    std::vector<unsigned> indices;
+    std::vector<int32_t> polygonIndex;
+    for (const auto i : vi) {
+        if (i < 0) {
+            polygonIndex.push_back(abs(i) - 1);
+            indices.push_back(polygonIndex.at(0));
+            indices.push_back(polygonIndex.at(1));
+            indices.push_back(polygonIndex.at(2));
+            if (polygonIndex.size() == 4) {
+                indices.push_back(polygonIndex.at(2));
+                indices.push_back(polygonIndex.at(3));
+                indices.push_back(polygonIndex.at(0));
+            }
+            polygonIndex.clear();
+        } else {
+            polygonIndex.push_back(i);
+        }
+    }
+    return indices;
+}
+
+static inline auto getMappedIndices(const std::string& mappingInformationType, const std::vector<int32_t>& polygonIndices)
+{
+    std::vector<unsigned> normalsIndices;
+    if (mappingInformationType == "ByPolygonVertex") {
+        normalsIndices.resize(polygonIndices.size());
+        for (auto i = 0u; i < polygonIndices.size(); i++) {
+            normalsIndices.at(i) = i;
+        }
+    } else if (mappingInformationType == "ByVertex" || mappingInformationType == "ByVertice") {
+        normalsIndices.resize(polygonIndices.size());
+        std::cout << "Generate Normal Indice" << std::endl;
+        for (auto i = 0u; i < polygonIndices.size(); i++) {
+            auto index = polygonIndices.at(i);
+            index = index >= 0 ? index : abs(index) - 1;
+            normalsIndices.at(i) = index;
+            //normalsIndices.at(index) = i / 3;
+        }
+    } else if (mappingInformationType == "ByPolygon") {
+        int normalIndex = 0;
+        normalsIndices.resize(polygonIndices.size());
+        for (auto i = 0u; i < polygonIndices.size(); i++) {
+            auto index = polygonIndices.at(i);
+            normalsIndices.at(i) = normalIndex;
+            if (index < 0) {
+                normalIndex++;
+            }
+        }
+    }
+    std::cout << "Generate Normal Indice DONE" << std::endl;
+    return normalsIndices;
 }
 
 std::shared_ptr<Mesh> FBX::parseMesh(const std::string& name, const std::string& path)
 {
     auto document = FBX::Document::Parse(path);
-    //document.Print();
-    auto mesh(Mesh::create(name));
-    auto mtl = Material::create("default_fbx");
+    //document->Print();
+    auto mesh(Mesh::Create(name));
+    auto mtl = Material::Create("default_fbx");
     mtl->albedo = glm::vec3(0.5);
     mtl->roughness = 0.5;
     for (const auto& objects : document->SubNodes("Objects")) {
@@ -129,19 +226,66 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string& name, const std::string&
         for (const auto& geometry : objects->SubNodes("Geometry")) {
             if (geometry == nullptr)
                 continue;
-            auto geometryId(std::to_string(int64_t(geometry->Property(0))));
-            auto vgroup(Vgroup::create(geometryId)); //first property is Geometry ID
+            auto layerElementNormal(geometry->SubNode("LayerElementNormal"));
+            if (layerElementNormal == nullptr)
+                continue;
+            auto geometryId(std::to_string(int64_t(geometry->Property(0)))); //first property is Geometry ID
+            auto vgroup(Vgroup::Create(geometryId));
+            auto vertices = getVertices(geometry->SubNode("Vertices"));
+            auto verticesIndices = getVerticesIndices(geometry->SubNode("PolygonVertexIndex"));
+            auto normals = getNormals(layerElementNormal);
+            auto normalsIndices = getMappedIndices(layerElementNormal->SubNode("MappingInformationType")->Property(0), verticesIndices);
+            /*std::string mappingInformationType(layerElementNormal->SubNode("MappingInformationType")->Property(0));
+            std::vector<unsigned> normalsIndices;
+            if (mappingInformationType == "ByPolygonVertex") {
+                for (auto i = 0u; i < verticesIndices.size(); i++) {
+                    normalsIndices.push_back(i);
+                }
+            }*/
 
-            vgroup->vt = parseUV(geometry->SubNode("layerElementUV"));
-            vgroup->vn = parseNormals(geometry->SubNode("LayerElementNormal"));
-            vgroup->v = parseVertices(geometry->SubNode("Vertices"),
-                geometry->SubNode("PolygonVertexIndex"));
+            std::cout << "normals" << normals.size() << std::endl;
+            std::cout << "normalsIndices" << normalsIndices.size() << std::endl;
+            std::cout << "vertices" << vertices.size() << std::endl;
+            std::cout << "verticesIndices" << verticesIndices.size() << std::endl;
+            std::vector<int32_t> polygonIndex;
+            std::vector<int32_t> polygonIndexNormal;
+            for (auto i = 0u; i < verticesIndices.size(); i++) {
+                auto index = verticesIndices.at(i);
+                polygonIndex.push_back(index >= 0 ? index : abs(index) - 1);
+                polygonIndexNormal.push_back(normalsIndices.at(i));
+                if (index < 0) {
+                    vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
+                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
+                    vgroup->v.push_back(vertices.at(polygonIndex.at(1)));
+                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(1)));
+                    vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
+                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
+                    if (polygonIndex.size() == 4) {
+                        vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
+                        vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
+                        vgroup->v.push_back(vertices.at(polygonIndex.at(3)));
+                        vgroup->vn.push_back(normals.at(polygonIndexNormal.at(3)));
+                        vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
+                        vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
+                    }
+                    polygonIndex.clear();
+                    polygonIndexNormal.clear();
+                    continue;
+                }
+            }
+
+            //vgroup->i = getVerticesIndices(geometry->SubNode("PolygonVertexIndex"));
+            //vgroup->v = getVertices(geometry->SubNode("Vertices"), vgroup->i);
+            //vgroup->vn = getNormals(geometry->SubNode("LayerElementNormal"), vgroup->i);
+            //vgroup->vt = parseUV(geometry->SubNode("layerElementUV"));
+
             vgroup->set_material(mtl);
-            auto meshChild(Mesh::create(geometryId));
-            meshChild->add(vgroup);
+            auto meshChild(Mesh::Create(geometryId));
+            meshChild->Add(vgroup);
             mesh->add_child(meshChild);
-            //mesh->add(vgroup);
+            //mesh->Addvgroup);
         }
     }
+
     return mesh;
 }

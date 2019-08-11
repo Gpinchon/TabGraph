@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:42:39
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:08
 */
 
 #pragma once
@@ -22,10 +22,10 @@ enum LightType {
 
 class Light : public Node {
 public:
-    static std::shared_ptr<Light> create(const std::string& name, glm::vec3 color, glm::vec3 position, float power);
-    static std::shared_ptr<Light> get_by_name(const std::string&);
+    static std::shared_ptr<Light> Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power);
+    static std::shared_ptr<Light> GetByName(const std::string&);
     static std::shared_ptr<Light> Get(unsigned index);
-    static void add(std::shared_ptr<Light>);
+    static void Add(std::shared_ptr<Light>);
     virtual void render_shadow();
     glm::vec3& color();
     float& power();
@@ -47,7 +47,7 @@ private:
 
 class DirectionnalLight : public Light {
 public:
-    static std::shared_ptr<DirectionnalLight> create(const std::string& name, glm::vec3 color, glm::vec3 position, float power, bool cast_shadow = false);
+    static std::shared_ptr<DirectionnalLight> Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power, bool cast_shadow = false);
     virtual void render_shadow() override;
     virtual void UpdateTransformMatrix() override;
     virtual LightType type() override;

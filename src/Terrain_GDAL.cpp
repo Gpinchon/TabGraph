@@ -1,42 +1,46 @@
 /*
  * @Author: gpi
  * @Date:   2019-03-26 12:03:23
- * @Last Modified by:   gpi
- * @Last Modified time: 2019-07-22 17:14:07
+ * @Last Modified by:   gpinchon
+ * @Last Modified time: 2019-08-11 12:54:17
  */
 
-#include "Terrain_GDAL.hpp"  // for Terrain
-#include "Debug.hpp"         // for debugLog
-#include "Material.hpp"      // for Material
-#include "Mesh.hpp"          // for Mesh
-#include "Node.hpp"          // for Node
-#include "Quadtree.hpp"      // for Quadtree
-#include "Renderable.hpp"    // for Renderable
-#include "Texture.hpp"       // for Texture
+#include "Terrain_GDAL.hpp" // for Terrain
+#include "Debug.hpp" // for debugLog
+#include "Material.hpp" // for Material
+#include "Mesh.hpp" // for Mesh
+#include "Node.hpp" // for Node
+#include "Quadtree.hpp" // for Quadtree
+#include "Renderable.hpp" // for Renderable
+#include "Texture.hpp" // for Texture
 #include "TextureParser.hpp" // for TextureParser
 #include "Vgroup.hpp"
-#include "cpl_conv.h"  // for CPLMalloc, CPLFree
+#include "cpl_conv.h" // for CPLMalloc, CPLFree
 #include "cpl_error.h" // for CE_None
-#include "gdal.h"      // for GDALAllRegister, GDALClose, GDALOpen
+#include "gdal.h" // for GDALAllRegister, GDALClose, GDALOpen
 #include "glm/glm.hpp" // for s_vec3, glm::vec2, s_vec2, glm::vec3, glm::vec3
-#include <GL/glew.h>   // for GL_COMPRESSED_RED, GL_FLOAT, GL_RED
-#include <array>       // for array
+#include <GL/glew.h> // for GL_COMPRESSED_RED, GL_FLOAT, GL_RED
+#include <array> // for array
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
-#include <gdal_priv.h>        // for GDALRasterBand, GDALDataset
-#include <iostream>           // for operator<<, basic_ostream<>::__ostream...
-#include <limits>             // for numeric_limits
-#include <math.h>             // for abs
-#include <memory>             // for shared_ptr, __shared_ptr_access, alloc...
-#include <stdexcept>          // for runtime_error
-#include <stdint.h>           // for uint32_t
-#include <stdlib.h>           // for abs
-#include <string>             // for operator+, string
-#include <vector>             // for vector
+#include <gdal_priv.h> // for GDALRasterBand, GDALDataset
+#include <iostream> // for operator<<, basic_ostream<>::__ostream...
+#include <limits> // for numeric_limits
+#include <math.h> // for abs
+#include <memory> // for shared_ptr, __shared_ptr_access, alloc...
+#include <stdexcept> // for runtime_error
+#include <stdint.h> // for uint32_t
+#include <stdlib.h> // for abs
+#include <string> // for operator+, string
+#include <vector> // for vector
 
-Terrain::Terrain(const std::string &name) : Mesh(name) {}
+Terrain::Terrain(const std::string& name)
+    : Mesh(name)
+{
+}
 
-void Subdivide(Quadtree<std::array<glm::vec3, 4>> *tree,
-               std::shared_ptr<Texture> texture, glm::vec3 scale) {
+void Subdivide(Quadtree<std::array<glm::vec3, 4>>* tree,
+    std::shared_ptr<Texture> texture, glm::vec3 scale)
+{
     if (tree == nullptr)
         return;
 
@@ -66,20 +70,19 @@ void Subdivide(Quadtree<std::array<glm::vec3, 4>> *tree,
         auto v1 = tree->Data().at(index).at(1);
         auto v2 = tree->Data().at(index).at(2);
         auto v3 = tree->Data().at(index).at(3);
-        if (glm::abs(v0.x - v2.x) <= pixelSize.x ||
-            glm::abs(v0.z - v2.z) <= pixelSize.y)
+        if (glm::abs(v0.x - v2.x) <= pixelSize.x || glm::abs(v0.z - v2.z) <= pixelSize.y)
             continue;
         auto mid = (v0 + v2) / 2.f;
-        std::array<glm::vec2, 5> uvs{
+        std::array<glm::vec2, 5> uvs {
             glm::vec2(mid.x, v2.z), glm::vec2(v2.x, mid.z),
             glm::vec2(mid.x, v0.z), glm::vec2(v0.x, mid.z),
-            glm::vec2(mid.x, mid.z)};
-        std::array<float, 5> samples{
+            glm::vec2(mid.x, mid.z)
+        };
+        std::array<float, 5> samples {
             (v1.y + v2.y) / 2.f, (v2.y + v3.y) / 2.f, (v3.y + v0.y) / 2.f,
             (v0.y + v1.y) / 2.f,
-            ((float *)texture->texelfetch(((uvs.at(4) / scale2) + 0.5f) *
-                                          texture->size()))[0] *
-                scale.y};
+            ((float*)texture->texelfetch(((uvs.at(4) / scale2) + 0.5f) * texture->size()))[0] * scale.y
+        };
         if (std::equal(samples.begin() + 1, samples.end(), samples.begin()))
             continue;
         auto v4 = glm::vec3(uvs.at(0).x, samples.at(0), uvs.at(0).y);
@@ -98,10 +101,10 @@ void Subdivide(Quadtree<std::array<glm::vec3, 4>> *tree,
         // "----------------------------------------------------------" <<
         // std::endl;
         tree->Data().erase(tree->Data().begin() + index);
-        auto patch0 = std::array<glm::vec3, 4>{v0, v7, v8, v6};
-        auto patch1 = std::array<glm::vec3, 4>{v7, v1, v4, v8};
-        auto patch2 = std::array<glm::vec3, 4>{v8, v4, v2, v5};
-        auto patch3 = std::array<glm::vec3, 4>{v6, v8, v5, v3};
+        auto patch0 = std::array<glm::vec3, 4> { v0, v7, v8, v6 };
+        auto patch1 = std::array<glm::vec3, 4> { v7, v1, v4, v8 };
+        auto patch2 = std::array<glm::vec3, 4> { v8, v4, v2, v5 };
+        auto patch3 = std::array<glm::vec3, 4> { v6, v8, v5, v3 };
         tree->Insert(patch0, glm::vec2(v0.x, v0.z), glm::vec2(v8.x, v8.z));
         tree->Insert(patch1, glm::vec2(v7.x, v7.z), glm::vec2(v4.x, v4.z));
         tree->Insert(patch2, glm::vec2(v8.x, v8.z), glm::vec2(v2.x, v2.z));
@@ -113,26 +116,24 @@ void Subdivide(Quadtree<std::array<glm::vec3, 4>> *tree,
     }
 }
 
-glm::vec3 TriangleNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
+glm::vec3 TriangleNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3)
+{
     auto u = glm::normalize(p2 - p1);
     auto v = glm::normalize(p3 - p1);
     return glm::cross(u, v);
 }
 
-std::shared_ptr<Terrain> Terrain::create(const std::string &name,
-                                         glm::ivec2 resolution, glm::vec3 scale,
-                                         std::shared_ptr<Texture> texture) {
-    resolution.x =
-        resolution.x > texture->size().x ? texture->size().x : resolution.x;
-    resolution.y =
-        resolution.y > texture->size().y ? texture->size().y : resolution.y;
+std::shared_ptr<Terrain> Terrain::Create(const std::string& name,
+    glm::ivec2 resolution, glm::vec3 scale,
+    std::shared_ptr<Texture> texture)
+{
+    resolution.x = resolution.x > texture->size().x ? texture->size().x : resolution.x;
+    resolution.y = resolution.y > texture->size().y ? texture->size().y : resolution.y;
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
     terrain->_terrainSize = scale;
-    Mesh::add(terrain);
-    Renderable::add(terrain);
-    Node::add(terrain);
+    Mesh::Add(terrain);
     std::vector<glm::vec3> v;
     // std::vector<glm::vec2> vt;
     // std::vector<glm::vec<3, uint8_t>> vn;
@@ -152,7 +153,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string &name,
                 glm::vec2 texUV;
                 texUV.x = uv.x * texture->size().x;
                 texUV.y = uv.y * texture->size().y;
-                depth = ((float *)texture->texelfetch(texUV))[0];
+                depth = ((float*)texture->texelfetch(texUV))[0];
 
                 // minDepth = depth < minDepth ? depth : minDepth;
                 // maxDepth = depth > maxDepth ? depth : maxDepth;
@@ -160,7 +161,7 @@ std::shared_ptr<Terrain> Terrain::create(const std::string &name,
             // vg->vt.at(uint32_t(x + y * resolution.x)) = uv;
             // auto &v3 = vg->v.at(uint32_t(x + y * resolution.x));
             auto v3 = glm::vec3(uv.x * scale.x - scale.x / 2.f, depth * scale.y,
-                                uv.y * scale.z - scale.z / 2.f);
+                uv.y * scale.z - scale.z / 2.f);
             v.push_back(v3);
             if (x < resolution.x - 1 && y < resolution.y - 1) {
                 i.push_back(uint32_t(x + y * resolution.x));
@@ -175,24 +176,23 @@ std::shared_ptr<Terrain> Terrain::create(const std::string &name,
         auto v1 = v.at(i.at(index + 1));
         auto v2 = v.at(i.at(index + 2));
         auto v3 = v.at(i.at(index + 3));
-        auto patch = std::array<glm::vec3, 4>{v0, v1, v2, v3};
+        auto patch = std::array<glm::vec3, 4> { v0, v1, v2, v3 };
         quadTree.Insert(patch, glm::vec2(v0.x, v0.z), glm::vec2(v2.x, v2.z));
     }
     std::cout << std::endl;
     Subdivide(&quadTree, texture, scale);
-    auto vg = Vgroup::create(name + "_vgroup");
+    auto vg = Vgroup::Create(name + "_vgroup");
     // auto medZ = (maxDepth + minDepth) / 2.f * scale.y;
-    for (auto &data : quadTree.GetAllData()) {
-        for (auto &patch : *data) {
+    for (auto& data : quadTree.GetAllData()) {
+        for (auto& patch : *data) {
             auto n0 = TriangleNormal(patch.at(0), patch.at(1), patch.at(2));
             auto n1 = TriangleNormal(patch.at(2), patch.at(3), patch.at(0));
             n0 = (n0 + 1.f) / 2.f * 255.f;
             n1 = (n1 + 1.f) / 2.f * 255.f;
             auto n01 = (n0 + n1) / 2.f;
-            auto cn0 = (CVEC4){GLubyte(n0.x), GLubyte(n0.y), GLubyte(n0.z), 1};
-            auto cn1 = (CVEC4){GLubyte(n1.x), GLubyte(n1.y), GLubyte(n1.z), 1};
-            auto cn01 =
-                (CVEC4){GLubyte(n01.x), GLubyte(n01.y), GLubyte(n01.z), 1};
+            auto cn0 = (CVEC4) { GLubyte(n0.x), GLubyte(n0.y), GLubyte(n0.z), 1 };
+            auto cn1 = (CVEC4) { GLubyte(n1.x), GLubyte(n1.y), GLubyte(n1.z), 1 };
+            auto cn01 = (CVEC4) { GLubyte(n01.x), GLubyte(n01.y), GLubyte(n01.z), 1 };
             vg->v.push_back(patch.at(0));
             vg->vn.push_back(cn01);
             vg->v.push_back(patch.at(1));
@@ -267,21 +267,22 @@ std::shared_ptr<Terrain> Terrain::create(const std::string &name,
       n2.z = ((N2.z + 1) * 0.5) * 255.f;
   }
   */
-    auto mtl = Material::create("default_terrain");
+    auto mtl = Material::Create("default_terrain");
     // mtl->set_texture_albedo(texture);
     // mtl->set_texture_roughness(texture);
     mtl->albedo = glm::vec3(0.5);
     mtl->roughness = 0.5;
     vg->set_material(mtl);
-    terrain->add(vg);
+    terrain->Addvg);
     return terrain;
 }
 
-std::shared_ptr<Terrain> Terrain::create(const std::string &name,
-                                         glm::ivec2 resolution,
-                                         const std::string &path) {
+std::shared_ptr<Terrain> Terrain::Create(const std::string& name,
+    glm::ivec2 resolution,
+    const std::string& path)
+{
     GDALAllRegister();
-    auto data = (GDALDataset *)GDALOpen(path.c_str(), GA_ReadOnly);
+    auto data = (GDALDataset*)GDALOpen(path.c_str(), GA_ReadOnly);
     if (data == nullptr) {
         throw std::runtime_error(path + " : Could not open");
     }
@@ -291,22 +292,22 @@ std::shared_ptr<Terrain> Terrain::create(const std::string &name,
     }
     double gt[6];
     auto err1 = data->GetGeoTransform(gt);
-    glm::vec2 size{float(band->GetXSize()), float(band->GetYSize())};
-    float *scanLine = (float *)CPLMalloc(sizeof(float) * size.x * size.y);
+    glm::vec2 size { float(band->GetXSize()), float(band->GetYSize()) };
+    float* scanLine = (float*)CPLMalloc(sizeof(float) * size.x * size.y);
     auto err = band->RasterIO(GF_Read, 0, 0, size.x, size.y, scanLine, size.x,
-                              size.y, GDT_Float32, 0, 0);
+        size.y, GDT_Float32, 0, 0);
     if (err1 != CE_None || err != CE_None) {
         debugLog("Something went wrong with : " + path);
-        return Terrain::create(
+        return Terrain::Create(
             name, resolution, glm::vec3(1, 1, 1),
             TextureParser::parse(name + "_terrainData", path));
     }
     std::string proj = data->GetProjectionRef();
     debugLog(proj);
     GDALClose(data);
-    auto t = Texture::create(name + "_terrainData", size, GL_TEXTURE_2D, GL_RED,
-                             GL_COMPRESSED_RED, GL_FLOAT, scanLine);
+    auto t = Texture::Create(name + "_terrainData", size, GL_TEXTURE_2D, GL_RED,
+        GL_COMPRESSED_RED, GL_FLOAT, scanLine);
     CPLFree(scanLine);
-    return Terrain::create(name, resolution,
-                           glm::vec3(size.x * gt[1], 1, size.y * -gt[5]), t);
+    return Terrain::Create(name, resolution,
+        glm::vec3(size.x * gt[1], 1, size.y * -gt[5]), t);
 }

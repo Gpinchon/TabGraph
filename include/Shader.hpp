@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-28 13:09:59
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:09
 */
 
 #pragma once
@@ -28,9 +28,9 @@ struct ShaderVariable {
 
 class Shader : public Object {
 public:
-    static std::shared_ptr<Shader> create(const std::string&);
+    static std::shared_ptr<Shader> Create(const std::string&);
     static std::shared_ptr<Shader> Get(unsigned index);
-    static std::shared_ptr<Shader> get_by_name(const std::string&);
+    static std::shared_ptr<Shader> GetByName(const std::string&);
     static bool check_shader(const GLuint id);
     static bool check_program(const GLuint id);
     void attach(const GLuint shaderid);

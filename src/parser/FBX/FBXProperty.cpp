@@ -2,13 +2,19 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 11:26:57
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-10 12:40:42
+* @Last Modified time: 2019-08-10 20:29:43
 */
 
 #include "parser/FBX/FBXProperty.hpp"
 #include <iostream>
 
 using namespace FBX;
+
+std::shared_ptr<Property> Property::Create()
+{
+    auto ptr = std::shared_ptr<Property>(new Property());
+    return ptr;
+}
 
 void Property::Print() const
 {

@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:32:00
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:03
 */
 
 #include "ComputeObject.hpp"
@@ -14,7 +14,7 @@ ComputeObject::ComputeObject(const std::string& name)
 {
 }
 
-std::shared_ptr<ComputeObject> ComputeObject::create(const std::string& name, std::shared_ptr<Shader> computeShader)
+std::shared_ptr<ComputeObject> ComputeObject::Create(const std::string& name, std::shared_ptr<Shader> computeShader)
 {
     int workgroup_count[3];
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &workgroup_count[0]);
@@ -23,7 +23,7 @@ std::shared_ptr<ComputeObject> ComputeObject::create(const std::string& name, st
     auto obj = std::shared_ptr<ComputeObject>(new ComputeObject(name));
     obj->_shader = computeShader;
     obj->_num_groups = glm::vec3(workgroup_count[0], workgroup_count[1], workgroup_count[2]);
-    Node::add(obj);
+    Node::Add(obj);
     return (obj);
 }
 

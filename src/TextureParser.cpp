@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-04-04 13:53:19
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:35:50
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:47:50
 */
 
 #include "TextureParser.hpp" // for TextureParser, TextureParsingFun...
@@ -107,7 +107,7 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
     debugLog(hexToString(surface->format->Bmask));
     debugLog(hexToString(surface->format->Amask));
 
-    auto texture = Texture::create(name, glm::vec2(surface->w, surface->h), GL_TEXTURE_2D,
+    auto texture = Texture::Create(name, glm::vec2(surface->w, surface->h), GL_TEXTURE_2D,
         textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     SDL_FreeSurface(surface);
     return (texture);
@@ -122,7 +122,7 @@ TextureParser::TextureParser(const std::string& format, TextureParsingFunction p
     debugLog(format);
 }
 
-TextureParser* TextureParser::add(const std::string& format, TextureParsingFunction parsingFunction)
+TextureParser* TextureParser::Add(const std::string& format, TextureParsingFunction parsingFunction)
 {
     auto parser = new TextureParser(format, parsingFunction);
     _getParsers()[format] = parser;

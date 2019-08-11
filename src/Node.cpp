@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 14:45:05
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:18:04
 */
 
 #include "Node.hpp"
@@ -15,7 +15,7 @@ Node::Node(const std::string& name)
 {
 }
 
-std::shared_ptr<Node> Node::create(const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+std::shared_ptr<Node> Node::Create(const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
     auto t = std::shared_ptr<Node>(new Node(name));
     t->_position = position;
@@ -23,14 +23,14 @@ std::shared_ptr<Node> Node::create(const std::string& name, glm::vec3 position, 
     t->_scale = scale;
     //t->_transformMatrix = new_transform(position, rotation, scale, up());
     t->Update();
-    add(t);
+    Node::Add(t);
     return (t);
 }
 
-std::shared_ptr<Node> Node::get_by_name(const std::string& name)
+std::shared_ptr<Node> Node::GetByName(const std::string& name)
 {
     for (auto n : _nodes) {
-        if (name == n->name())
+        if (name == n->Name())
             return (n);
     }
     return (nullptr);
@@ -48,8 +48,9 @@ std::shared_ptr<Node> Node::shared_from_this()
     return (std::static_pointer_cast<Node>(Object::shared_from_this()));
 }
 
-void Node::add(std::shared_ptr<Node> node)
+void Node::Add(std::shared_ptr<Node> node)
 {
+    Object::Add(node);
     _nodes.push_back(node);
 }
 

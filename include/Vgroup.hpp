@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-10 10:47:19
+* @Last Modified time: 2019-08-11 12:18:03
 */
 
 #pragma once
@@ -28,9 +28,9 @@ typedef glm::vec<4, uint8_t, glm::defaultp> CVEC4;
 
 class Vgroup : public Renderable {
 public:
-    static std::shared_ptr<Vgroup> create(const std::string&);
+    static std::shared_ptr<Vgroup> Create(const std::string&);
     static std::shared_ptr<Vgroup> Get(unsigned index);
-    static std::shared_ptr<Vgroup> get_by_name(const std::string& name);
+    static std::shared_ptr<Vgroup> GetByName(const std::string& name);
     std::shared_ptr<Material> material();
     void set_material(std::shared_ptr<Material>);
     void bind();

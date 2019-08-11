@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:57:07
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:28:56
 */
 
 #include "Keyboard.hpp"
@@ -14,8 +14,8 @@ Keyboard* Keyboard::_instance = new Keyboard();
 
 Keyboard::Keyboard()
 {
-    Events::add(this, SDL_KEYUP);
-    Events::add(this, SDL_KEYDOWN);
+    Events::Add(this, SDL_KEYUP);
+    Events::Add(this, SDL_KEYDOWN);
 }
 
 Keyboard& Keyboard::_get()

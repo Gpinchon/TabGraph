@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-16 14:18:03
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:30:15
 */
 
 #include "Light.hpp"
@@ -22,21 +22,20 @@ Light::Light(const std::string& name)
 {
 }
 
-std::shared_ptr<Light> Light::create(const std::string& name, glm::vec3 color, glm::vec3 position, float power)
+std::shared_ptr<Light> Light::Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power)
 {
     auto light = std::shared_ptr<Light>(new Light(name));
     light->color() = color;
     light->SetPosition(position);
     light->power() = power;
-    Light::add(light);
-    Node::add(light);
+    Light::Add(light);
     return (light);
 }
 
-std::shared_ptr<Light> Light::get_by_name(const std::string& name)
+std::shared_ptr<Light> Light::GetByName(const std::string& name)
 {
     for (auto n : _lights) {
-        if (name == n->name())
+        if (name == n->Name())
             return (n);
     }
     return (nullptr);
@@ -49,15 +48,16 @@ std::shared_ptr<Light> Light::Get(unsigned index)
     return (_lights.at(index));
 }
 
-void Light::add(std::shared_ptr<Light> light)
+void Light::Add(std::shared_ptr<Light> light)
 {
+    Node::Add(light);
     _lights.push_back(light);
 }
 
 /*TextureArray	*Light::shadow_array()
 {
 	if (nullptr == _shadow_array)
-		_shadow_array = TextureArray::create("ShadowArray", glm::vec2(Config::ShadowRes(), Config::ShadowRes()), GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, 128);
+		_shadow_array = TextureArray::Create("ShadowArray", glm::vec2(Config::ShadowRes(), Config::ShadowRes()), GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, 128);
 	return (_shadow_array);
 }*/
 
@@ -95,7 +95,7 @@ DirectionnalLight::DirectionnalLight(const std::string& name)
 {
 }
 
-std::shared_ptr<DirectionnalLight> DirectionnalLight::create(const std::string& name, glm::vec3 color, glm::vec3 position, float power, bool cast_shadow)
+std::shared_ptr<DirectionnalLight> DirectionnalLight::Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power, bool cast_shadow)
 {
     auto light = std::shared_ptr<DirectionnalLight>(new DirectionnalLight(name));
     light->color() = color;
@@ -103,16 +103,15 @@ std::shared_ptr<DirectionnalLight> DirectionnalLight::create(const std::string& 
     light->power() = power;
     light->cast_shadow() = cast_shadow;
     if (cast_shadow) {
-        light->_render_buffer = Framebuffer::create(light->name() + "_shadowMap", glm::vec2(Config::Get("ShadowRes", 1024)), 0, 0);
+        light->_render_buffer = Framebuffer::Create(light->Name() + "_shadowMap", glm::vec2(Config::Get("ShadowRes", 1024)), 0, 0);
         auto renderBuffer = light->_render_buffer.lock();
-        renderBuffer->create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
+        renderBuffer->Create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
         renderBuffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
         renderBuffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-        //shadow_array()->add(light->_render_buffer->depth());
+        //shadow_array()->Add(light->_render_buffer->depth());
         //shadow_array()->load();
     }
-    Light::add(light);
-    Node::add(light);
+    Light::Add(light);
     return (light);
 }
 

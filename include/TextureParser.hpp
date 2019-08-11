@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-04-04 13:38:31
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-05-06 17:10:28
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-08-11 12:16:55
 */
 
 #pragma once
@@ -17,7 +17,7 @@ typedef std::shared_ptr<Texture> (*TextureParsingFunction)(const std::string&, c
 
 class TextureParser {
 public:
-    static TextureParser* add(const std::string& format, TextureParsingFunction);
+    static TextureParser* Add(const std::string& format, TextureParsingFunction);
     static std::shared_ptr<Texture> parse(const std::string& name, const std::string& path);
 
 private:
