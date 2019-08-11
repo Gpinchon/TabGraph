@@ -2,10 +2,11 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 20:03:15
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-10 20:49:46
+* @Last Modified time: 2019-08-11 15:14:52
 */
 
 #include "parser/FBX/FBXObject.hpp"
+#include <iostream>
 
 using namespace FBX;
 
@@ -21,9 +22,10 @@ void Object::SetName(const std::string& name)
     _name = name;
 }
 
-void Object::AddChild(std::shared_ptr<Object> child)
+void Object::Print() const
 {
-    children.push_back(child);
+    std::cout << "Object (\"" << Name() + ") {\n";
+    std::cout << "};" << std::endl;
 }
 
 std::shared_ptr<Object> Object::Get(int64_t id)

@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 11:52:02
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 11:31:49
+* @Last Modified time: 2019-08-11 15:42:09
 */
 
 #include "parser/FBX/FBXDocument.hpp"
@@ -227,12 +227,16 @@ std::shared_ptr<Node> ParseNode(FILE* fd)
             break;
         node->SubNodes(subNode->Name()).push_back(subNode);
     }
-    if (node->Name() == "Geometry")
+    if (node->Name() == "Geometry"
+        || node->Name() == "Material"
+        || node->Name() == "Model"
+        || node->Name() == "NodeAttribute"
+        || node->Name() == "Document")
         Object::Add(node->Property(0), node);
     return (node);
 }
 
-void SetupParenting(FBX::Document& document)
+/*void SetupParenting(FBX::Document& document)
 {
     auto connections(document.SubNodes("Connection"));
     for (const auto& connection : connections) {
@@ -249,7 +253,7 @@ void SetupParenting(FBX::Document& document)
             }
         }
     }
-}
+}*/
 
 Document* Document::Parse(const std::string& path)
 {

@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 11:23:20
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-10 20:21:45
+* @Last Modified time: 2019-08-11 13:43:18
 */
 
 #pragma once
@@ -38,8 +38,5 @@ struct Property : public Object {
     template <typename T>
     operator T() const { return std::get<T>(data); }
     operator std::string() const { return std::get<Array>(data); }
-
-protected:
-    Property() = default;
 };
 }

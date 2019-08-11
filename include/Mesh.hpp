@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:09
+* @Last Modified time: 2019-08-11 13:16:10
 */
 
 #pragma once
@@ -19,6 +19,7 @@ class Mesh : public Renderable {
 public:
     static std::shared_ptr<Mesh> Create(const std::string&);
     static std::shared_ptr<Mesh> GetByName(const std::string&);
+    static std::shared_ptr<Mesh> GetById(int64_t id);
     static std::shared_ptr<Mesh> Get(unsigned index);
     static void Add(std::shared_ptr<Mesh>);
     void load() override;

@@ -2,13 +2,14 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpinchon
- * @Last Modified time: 2019-08-11 12:51:41
+ * @Last Modified time: 2019-08-11 16:33:00
  */
 
 #include "parser/FBX.hpp"
 #include "MeshParser.hpp"
 #include "parser/FBX/FBXDocument.hpp"
 #include "parser/FBX/FBXNode.hpp"
+#include "parser/FBX/FBXObject.hpp"
 #include "parser/FBX/FBXProperty.hpp"
 #include <iostream>
 
@@ -212,29 +213,50 @@ static inline auto getMappedIndices(const std::string& mappingInformationType, c
     return normalsIndices;
 }
 
+static inline auto extractConnections(FBX::Document& document)
+{
+    std::map<int64_t, int64_t> connectionMap;
+    for (const auto& connection : document.SubNodes("Connection")) {
+        auto cs(connection->SubNodes("C"));
+        for (const auto& c : cs) {
+            if (std::string(c->Property(0)) == "OO") {
+                int64_t sourceId(c->Property(1));
+                int64_t destinationId(c->Property(2));
+                connectionMap[destinationId] = sourceId;
+            }
+        }
+    }
+    return connectionMap;
+}
+
 std::shared_ptr<Mesh> FBX::parseMesh(const std::string& name, const std::string& path)
 {
-    auto document = FBX::Document::Parse(path);
-    //document->Print();
-    auto mesh(Mesh::Create(name));
+    auto document(FBX::Document::Parse(path));
+    auto mainMesh(Mesh::Create(name));
     auto mtl = Material::Create("default_fbx");
     mtl->albedo = glm::vec3(0.5);
     mtl->roughness = 0.5;
+    auto connections(extractConnections(*document));
     for (const auto& objects : document->SubNodes("Objects")) {
         if (objects == nullptr)
             continue;
         for (const auto& geometry : objects->SubNodes("Geometry")) {
             if (geometry == nullptr)
                 continue;
-            auto layerElementNormal(geometry->SubNode("LayerElementNormal"));
-            if (layerElementNormal == nullptr)
-                continue;
             auto geometryId(std::to_string(int64_t(geometry->Property(0)))); //first property is Geometry ID
+            auto meshChild(Mesh::Create(geometryId));
             auto vgroup(Vgroup::Create(geometryId));
-            auto vertices = getVertices(geometry->SubNode("Vertices"));
-            auto verticesIndices = getVerticesIndices(geometry->SubNode("PolygonVertexIndex"));
+            meshChild->SetId(int64_t(geometry->Property(0)));
+            meshChild->Add(vgroup);
+            auto vertices(getVertices(geometry->SubNode("Vertices")));
+            if (vertices.empty())
+                continue;
+            auto verticesIndices(getVerticesIndices(geometry->SubNode("PolygonVertexIndex")));
+            auto layerElementNormal(geometry->SubNode("LayerElementNormal"));
             auto normals = getNormals(layerElementNormal);
-            auto normalsIndices = getMappedIndices(layerElementNormal->SubNode("MappingInformationType")->Property(0), verticesIndices);
+            std::vector<unsigned> normalsIndices;
+            if (layerElementNormal != nullptr)
+                normalsIndices = getMappedIndices(layerElementNormal->SubNode("MappingInformationType")->Property(0), verticesIndices);
             /*std::string mappingInformationType(layerElementNormal->SubNode("MappingInformationType")->Property(0));
             std::vector<unsigned> normalsIndices;
             if (mappingInformationType == "ByPolygonVertex") {
@@ -278,14 +300,45 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string& name, const std::string&
             //vgroup->v = getVertices(geometry->SubNode("Vertices"), vgroup->i);
             //vgroup->vn = getNormals(geometry->SubNode("LayerElementNormal"), vgroup->i);
             //vgroup->vt = parseUV(geometry->SubNode("layerElementUV"));
-
             vgroup->set_material(mtl);
-            auto meshChild(Mesh::Create(geometryId));
-            meshChild->Add(vgroup);
-            mesh->add_child(meshChild);
+            mainMesh->add_child(meshChild);
             //mesh->Addvgroup);
         }
+        for (const auto& model : objects->SubNodes("Model")) {
+            auto meshId = connections[model->Property(0)];
+            auto mesh(Mesh::GetById(meshId));
+            std::cout << meshId << " " << int64_t(model->Property(0)) << std::endl;
+            if (mesh == nullptr)
+                continue;
+            auto properties(model->SubNode("Properties70"));
+            for (auto property : properties->SubNodes("P")) {
+                std::string propertyName(property->Property(0));
+                if (propertyName == "Lcl Translation")
+                    mesh->SetPosition(glm::vec3(
+                        double(property->Property(5)),
+                        double(property->Property(6)),
+                        double(property->Property(7))));
+                std::cout
+                    << mesh->Position().x << " "
+                    << mesh->Position().y << " "
+                    << mesh->Position().z << std::endl;
+            }
+        }
     }
-
-    return mesh;
+    std::cout << "Setting up parenting" << std::endl;
+    for (const auto& connection : document->SubNodes("Connection")) {
+        auto cs(connection->SubNodes("C"));
+        for (const auto& c : cs) {
+            if (std::string(c->Property(0)) == "OO") {
+                int64_t sourceId(c->Property(1));
+                int64_t destinationId(c->Property(2));
+                auto source = Mesh::GetById(sourceId);
+                auto destination = Mesh::GetById(destinationId);
+                if (source && destination)
+                    destination->add_child(source);
+            }
+        }
+    }
+    document->Print();
+    return mainMesh;
 }

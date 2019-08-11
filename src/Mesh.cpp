@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:53:12
+* @Last Modified time: 2019-08-11 13:17:09
 */
 
 #include "Mesh.hpp"
@@ -34,9 +34,18 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& name) /*static*/
 
 std::shared_ptr<Mesh> Mesh::GetByName(const std::string& name) /*static*/
 {
-    for (auto n : _meshes) {
-        if (name == n->Name())
-            return (n);
+    for (auto m : _meshes) {
+        if (name == m->Name())
+            return (m);
+    }
+    return (nullptr);
+}
+
+std::shared_ptr<Mesh> Mesh::GetById(int64_t id)
+{
+    for (auto m : _meshes) {
+        if (id == m->Id())
+            return (m);
     }
     return (nullptr);
 }

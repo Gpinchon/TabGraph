@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 11:21:46
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-10 20:47:25
+* @Last Modified time: 2019-08-11 15:13:49
 */
 
 #include "parser/FBX/FBXNode.hpp"
@@ -34,14 +34,17 @@ std::shared_ptr<Node> Node::SubNode(const std::string& name)
 
 void Node::Print() const
 {
-    std::cout << "Node (\"" << Name() << "\", " << properties.size() << ") {\n";
-    for (const auto property : properties)
+    if (Name().empty())
+        std::cout << "{\n";
+    else
+        std::cout << "\"" + Name() + "\": {\n";
+    for (const auto& property : properties)
         property->Print();
     for (const auto subNodes : nodes) {
         for (const auto& subNode : subNodes.second)
             subNode->Print();
     }
-    std::cout << "};" << std::endl;
+    std::cout << "}," << std::endl;
 }
 
 Property& Node::Property(const size_t index)
