@@ -1,8 +1,8 @@
 /*
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
- * @Last Modified by:   gpinchon
- * @Last Modified time: 2019-08-11 16:33:00
+ * @Last Modified by:   gpi
+ * @Last Modified time: 2019-08-12 17:17:16
  */
 
 #include "parser/FBX.hpp"
@@ -21,7 +21,7 @@ auto __fbxParser = MeshParser::Add("fbx", FBX::parseMesh);
 #include "Vgroup.hpp"
 #include <glm/glm.hpp>
 
-static inline std::vector<glm::vec2> parseUV(FBX::Node* layerElementUV)
+static inline std::vector<glm::vec2> parseUV(FBX::Node *layerElementUV)
 {
     std::vector<glm::vec2> uv;
     if (layerElementUV == nullptr)
@@ -31,18 +31,21 @@ static inline std::vector<glm::vec2> parseUV(FBX::Node* layerElementUV)
     if (UV == nullptr)
         return uv;
     FBX::Array UVArray(UV->Property(0));
-    for (auto i = 0u; i < UVArray.length / 2; i++) {
+    for (auto i = 0u; i < UVArray.length / 2; i++)
+    {
         auto vec2 = glm::vec2(
-            std::get<double*>(UVArray.data)[i * 2 + 0],
-            std::get<double*>(UVArray.data)[i * 2 + 1]);
+            std::get<double *>(UVArray.data)[i * 2 + 0],
+            std::get<double *>(UVArray.data)[i * 2 + 1]);
         uv.push_back(vec2);
     }
     auto UVIndex = layerElementUV->SubNode("UVIndex");
-    if (UVIndex != nullptr) {
+    if (UVIndex != nullptr)
+    {
         std::vector<glm::vec2> realUV;
         FBX::Array UVIndexArray(UVIndex->Property(0));
-        for (auto i = 0u; i < UVIndexArray.length; i++) {
-            auto index = std::get<int32_t*>(UVIndexArray.data)[i];
+        for (auto i = 0u; i < UVIndexArray.length; i++)
+        {
+            auto index = std::get<int32_t *>(UVIndexArray.data)[i];
             realUV.push_back(uv.at(index));
         }
         return realUV;
@@ -58,11 +61,12 @@ static inline auto getNormals(std::shared_ptr<FBX::Node> layerElementNormal)
     auto normals(layerElementNormal->SubNode("Normals"));
 
     FBX::Array vnArray(normals->Property(0));
-    for (auto i = 0u; i < vnArray.length / 3; i++) {
+    for (auto i = 0u; i < vnArray.length / 3; i++)
+    {
         glm::vec3 nd(
-            std::get<double*>(vnArray.data)[i * 3 + 0],
-            std::get<double*>(vnArray.data)[i * 3 + 1],
-            std::get<double*>(vnArray.data)[i * 3 + 2]);
+            std::get<double *>(vnArray.data)[i * 3 + 0],
+            std::get<double *>(vnArray.data)[i * 3 + 1],
+            std::get<double *>(vnArray.data)[i * 3 + 2]);
         nd = (nd + 1.f) * 0.5f * 255.f;
         CVEC4 n(nd, 255);
         vn.push_back(n);
@@ -77,8 +81,9 @@ static inline auto getNormals(std::shared_ptr<FBX::Node> layerElementNormal)
     auto normalsIndexArray(FBX::Array(normalsIndex->Property(0)));
     std::vector<CVEC4> vnUnindexed;
     vnUnindexed.reserve(vn.size());
-    for (auto i = 0u; i < normalsIndexArray.length; i++) {
-        auto index = ((int32_t*)normalsIndexArray)[i];
+    for (auto i = 0u; i < normalsIndexArray.length; i++)
+    {
+        auto index = ((int32_t *)normalsIndexArray)[i];
         vnUnindexed.push_back(vn.at(index));
     }
     return vnUnindexed;
@@ -98,11 +103,12 @@ static inline auto getVertices(std::shared_ptr<FBX::Node> vertices)
     if (vertices == nullptr)
         return v;
     FBX::Array vArray(vertices->Property(0));
-    for (auto i = 0u; i < vArray.length / 3; i++) {
+    for (auto i = 0u; i < vArray.length / 3; i++)
+    {
         auto vec3 = glm::vec3(
-            std::get<double*>(vArray.data)[i * 3 + 0],
-            std::get<double*>(vArray.data)[i * 3 + 1],
-            std::get<double*>(vArray.data)[i * 3 + 2]);
+            std::get<double *>(vArray.data)[i * 3 + 0],
+            std::get<double *>(vArray.data)[i * 3 + 1],
+            std::get<double *>(vArray.data)[i * 3 + 2]);
         v.push_back(vec3);
     }
     return v;
@@ -134,8 +140,9 @@ static inline auto getVerticesIndices(std::shared_ptr<FBX::Node> polygonVertexIn
     if (polygonVertexIndex == nullptr)
         return vi;
     FBX::Array viArray(polygonVertexIndex->Property(0));
-    for (auto i = 0u; i < viArray.length; i++) {
-        vi.push_back(std::get<int32_t*>(viArray.data)[i]);
+    for (auto i = 0u; i < viArray.length; i++)
+    {
+        vi.push_back(std::get<int32_t *>(viArray.data)[i]);
     }
     return vi;
 
@@ -158,53 +165,67 @@ static inline auto getVerticesIndices(std::shared_ptr<FBX::Node> polygonVertexIn
     }*/
 }
 
-static inline auto triangulateIndices(const std::vector<int32_t>& vi)
+static inline auto triangulateIndices(const std::vector<int32_t> &vi)
 {
     std::vector<unsigned> indices;
     std::vector<int32_t> polygonIndex;
-    for (const auto i : vi) {
-        if (i < 0) {
+    for (const auto i : vi)
+    {
+        if (i < 0)
+        {
             polygonIndex.push_back(abs(i) - 1);
             indices.push_back(polygonIndex.at(0));
             indices.push_back(polygonIndex.at(1));
             indices.push_back(polygonIndex.at(2));
-            if (polygonIndex.size() == 4) {
+            if (polygonIndex.size() == 4)
+            {
                 indices.push_back(polygonIndex.at(2));
                 indices.push_back(polygonIndex.at(3));
                 indices.push_back(polygonIndex.at(0));
             }
             polygonIndex.clear();
-        } else {
+        }
+        else
+        {
             polygonIndex.push_back(i);
         }
     }
     return indices;
 }
 
-static inline auto getMappedIndices(const std::string& mappingInformationType, const std::vector<int32_t>& polygonIndices)
+static inline auto getMappedIndices(const std::string &mappingInformationType, const std::vector<int32_t> &polygonIndices)
 {
     std::vector<unsigned> normalsIndices;
-    if (mappingInformationType == "ByPolygonVertex") {
+    if (mappingInformationType == "ByPolygonVertex")
+    {
         normalsIndices.resize(polygonIndices.size());
-        for (auto i = 0u; i < polygonIndices.size(); i++) {
+        for (auto i = 0u; i < polygonIndices.size(); i++)
+        {
             normalsIndices.at(i) = i;
         }
-    } else if (mappingInformationType == "ByVertex" || mappingInformationType == "ByVertice") {
+    }
+    else if (mappingInformationType == "ByVertex" || mappingInformationType == "ByVertice")
+    {
         normalsIndices.resize(polygonIndices.size());
         std::cout << "Generate Normal Indice" << std::endl;
-        for (auto i = 0u; i < polygonIndices.size(); i++) {
+        for (auto i = 0u; i < polygonIndices.size(); i++)
+        {
             auto index = polygonIndices.at(i);
             index = index >= 0 ? index : abs(index) - 1;
             normalsIndices.at(i) = index;
             //normalsIndices.at(index) = i / 3;
         }
-    } else if (mappingInformationType == "ByPolygon") {
+    }
+    else if (mappingInformationType == "ByPolygon")
+    {
         int normalIndex = 0;
         normalsIndices.resize(polygonIndices.size());
-        for (auto i = 0u; i < polygonIndices.size(); i++) {
+        for (auto i = 0u; i < polygonIndices.size(); i++)
+        {
             auto index = polygonIndices.at(i);
             normalsIndices.at(i) = normalIndex;
-            if (index < 0) {
+            if (index < 0)
+            {
                 normalIndex++;
             }
         }
@@ -213,23 +234,27 @@ static inline auto getMappedIndices(const std::string& mappingInformationType, c
     return normalsIndices;
 }
 
-static inline auto extractConnections(FBX::Document& document)
+static inline auto extractConnections(FBX::Document &document)
 {
-    std::map<int64_t, int64_t> connectionMap;
-    for (const auto& connection : document.SubNodes("Connection")) {
+    std::map<int64_t, std::vector<int64_t>> connectionMap;
+    for (const auto &connection : document.SubNodes("Connections"))
+    {
         auto cs(connection->SubNodes("C"));
-        for (const auto& c : cs) {
-            if (std::string(c->Property(0)) == "OO") {
+        for (const auto &c : cs)
+        {
+            if (std::string(c->Property(0)) == "OO")
+            {
                 int64_t sourceId(c->Property(1));
                 int64_t destinationId(c->Property(2));
-                connectionMap[destinationId] = sourceId;
+                std::cout << sourceId << " " << destinationId << std::endl;
+                connectionMap[destinationId].push_back(sourceId);
             }
         }
     }
     return connectionMap;
 }
 
-std::shared_ptr<Mesh> FBX::parseMesh(const std::string& name, const std::string& path)
+std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string &path)
 {
     auto document(FBX::Document::Parse(path));
     auto mainMesh(Mesh::Create(name));
@@ -237,15 +262,18 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string& name, const std::string&
     mtl->albedo = glm::vec3(0.5);
     mtl->roughness = 0.5;
     auto connections(extractConnections(*document));
-    for (const auto& objects : document->SubNodes("Objects")) {
+    for (const auto &objects : document->SubNodes("Objects"))
+    {
         if (objects == nullptr)
             continue;
-        for (const auto& geometry : objects->SubNodes("Geometry")) {
+        for (const auto &geometry : objects->SubNodes("Geometry"))
+        {
             if (geometry == nullptr)
                 continue;
             auto geometryId(std::to_string(int64_t(geometry->Property(0)))); //first property is Geometry ID
             auto meshChild(Mesh::Create(geometryId));
             auto vgroup(Vgroup::Create(geometryId));
+            std::cout << "Mesh ID " << int64_t(geometry->Property(0)) << std::endl;
             meshChild->SetId(int64_t(geometry->Property(0)));
             meshChild->Add(vgroup);
             auto vertices(getVertices(geometry->SubNode("Vertices")));
@@ -271,18 +299,21 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string& name, const std::string&
             std::cout << "verticesIndices" << verticesIndices.size() << std::endl;
             std::vector<int32_t> polygonIndex;
             std::vector<int32_t> polygonIndexNormal;
-            for (auto i = 0u; i < verticesIndices.size(); i++) {
+            for (auto i = 0u; i < verticesIndices.size(); i++)
+            {
                 auto index = verticesIndices.at(i);
                 polygonIndex.push_back(index >= 0 ? index : abs(index) - 1);
                 polygonIndexNormal.push_back(normalsIndices.at(i));
-                if (index < 0) {
+                if (index < 0)
+                {
                     vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
                     vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
                     vgroup->v.push_back(vertices.at(polygonIndex.at(1)));
                     vgroup->vn.push_back(normals.at(polygonIndexNormal.at(1)));
                     vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
                     vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
-                    if (polygonIndex.size() == 4) {
+                    if (polygonIndex.size() == 4)
+                    {
                         vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
                         vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
                         vgroup->v.push_back(vertices.at(polygonIndex.at(3)));
@@ -304,32 +335,41 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string& name, const std::string&
             mainMesh->add_child(meshChild);
             //mesh->Addvgroup);
         }
-        for (const auto& model : objects->SubNodes("Model")) {
-            auto meshId = connections[model->Property(0)];
-            auto mesh(Mesh::GetById(meshId));
-            std::cout << meshId << " " << int64_t(model->Property(0)) << std::endl;
-            if (mesh == nullptr)
-                continue;
-            auto properties(model->SubNode("Properties70"));
-            for (auto property : properties->SubNodes("P")) {
-                std::string propertyName(property->Property(0));
-                if (propertyName == "Lcl Translation")
-                    mesh->SetPosition(glm::vec3(
-                        double(property->Property(5)),
-                        double(property->Property(6)),
-                        double(property->Property(7))));
-                std::cout
-                    << mesh->Position().x << " "
-                    << mesh->Position().y << " "
-                    << mesh->Position().z << std::endl;
+        for (const auto &model : objects->SubNodes("Model"))
+        {
+            for (const auto &id : connections[model->Property(0)])
+            {
+                auto mesh(Mesh::GetById(id));
+                std::cout << id << " " << int64_t(model->Property(0)) << std::endl;
+                if (mesh == nullptr)
+                    continue;
+                auto properties(model->SubNode("Properties70"));
+                for (auto property : properties->SubNodes("P"))
+                {
+                    std::string propertyName(property->Property(0));
+                    std::cout << propertyName << std::endl;
+                    if (propertyName == "Lcl Translation")
+                        mesh->SetPosition(glm::vec3(
+                            double(property->Property(4)),
+                            double(property->Property(5)),
+                            double(property->Property(6))));
+                    else if (propertyName == "Lcl Rotation")
+                        mesh->SetRotation(glm::vec3(
+                            glm::radians(double(property->Property(4))),
+                            glm::radians(double(property->Property(5))),
+                            glm::radians(double(property->Property(6)))));
+                }
             }
         }
     }
     std::cout << "Setting up parenting" << std::endl;
-    for (const auto& connection : document->SubNodes("Connection")) {
+    for (const auto &connection : document->SubNodes("Connection"))
+    {
         auto cs(connection->SubNodes("C"));
-        for (const auto& c : cs) {
-            if (std::string(c->Property(0)) == "OO") {
+        for (const auto &c : cs)
+        {
+            if (std::string(c->Property(0)) == "OO")
+            {
                 int64_t sourceId(c->Property(1));
                 int64_t destinationId(c->Property(2));
                 auto source = Mesh::GetById(sourceId);
@@ -339,6 +379,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string& name, const std::string&
             }
         }
     }
-    document->Print();
+    //document->Print();
     return mainMesh;
 }
