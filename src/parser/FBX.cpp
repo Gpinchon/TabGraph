@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-08-12 17:41:50
+ * @Last Modified time: 2019-08-13 09:57:34
  */
 
 #include "parser/FBX.hpp"
@@ -355,14 +355,14 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                             double(property->Property(6))));
                     /*else if (propertyName == "Lcl Rotation")
                         mesh->SetRotation(glm::vec3(
-                            glm::radians(double(property->Property(4))),
-                            glm::radians(double(property->Property(5))),
-                            glm::radians(double(property->Property(6)))));*/
+                            double(property->Property(4)),
+                            double(property->Property(5)),
+                            double(property->Property(6))));*/
                     else if (propertyName == "Lcl Scaling")
                         mesh->SetScale(glm::vec3(
-                            glm::radians(double(property->Property(4))),
-                            glm::radians(double(property->Property(5))),
-                            glm::radians(double(property->Property(6)))));
+                            double(property->Property(4)),
+                            double(property->Property(5)),
+                            double(property->Property(6))));
                 }
             }
         }
