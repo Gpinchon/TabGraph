@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-08-13 09:57:34
+ * @Last Modified time: 2019-08-13 16:50:43
  */
 
 #include "parser/FBX.hpp"
@@ -266,16 +266,14 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
     {
         if (objects == nullptr)
             continue;
+        std::map<int64_t, std::shared_ptr<Vgroup>> vgroups;
         for (const auto &geometry : objects->SubNodes("Geometry"))
         {
             if (geometry == nullptr)
                 continue;
             auto geometryId(std::to_string(int64_t(geometry->Property(0)))); //first property is Geometry ID
-            auto meshChild(Mesh::Create(geometryId));
             auto vgroup(Vgroup::Create(geometryId));
-            std::cout << "Mesh ID " << int64_t(geometry->Property(0)) << std::endl;
-            meshChild->SetId(int64_t(geometry->Property(0)));
-            meshChild->Add(vgroup);
+            std::cout << "Geometry ID " << int64_t(geometry->Property(0)) << std::endl;
             auto vertices(getVertices(geometry->SubNode("Vertices")));
             if (vertices.empty())
                 continue;
@@ -285,14 +283,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             std::vector<unsigned> normalsIndices;
             if (layerElementNormal != nullptr)
                 normalsIndices = getMappedIndices(layerElementNormal->SubNode("MappingInformationType")->Property(0), verticesIndices);
-            /*std::string mappingInformationType(layerElementNormal->SubNode("MappingInformationType")->Property(0));
-            std::vector<unsigned> normalsIndices;
-            if (mappingInformationType == "ByPolygonVertex") {
-                for (auto i = 0u; i < verticesIndices.size(); i++) {
-                    normalsIndices.push_back(i);
-                }
-            }*/
-
             std::cout << "normals" << normals.size() << std::endl;
             std::cout << "normalsIndices" << normalsIndices.size() << std::endl;
             std::cout << "vertices" << vertices.size() << std::endl;
@@ -326,49 +316,58 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                     continue;
                 }
             }
-
-            //vgroup->i = getVerticesIndices(geometry->SubNode("PolygonVertexIndex"));
-            //vgroup->v = getVertices(geometry->SubNode("Vertices"), vgroup->i);
-            //vgroup->vn = getNormals(geometry->SubNode("LayerElementNormal"), vgroup->i);
-            //vgroup->vt = parseUV(geometry->SubNode("layerElementUV"));
             vgroup->set_material(mtl);
-            mainMesh->add_child(meshChild);
-            //mesh->Addvgroup);
+            vgroups[geometry->Property(0)] = vgroup;
         }
         for (const auto &model : objects->SubNodes("Model"))
         {
+            auto mesh(Mesh::GetById(model->Property(0)));
+            if (mesh == nullptr)
+            {
+                mesh = Mesh::Create(model->Property(1));
+                mesh->SetId(model->Property(0));
+            }
             for (const auto &id : connections[model->Property(0)])
             {
-                auto mesh(Mesh::GetById(id));
-                std::cout << id << " " << int64_t(model->Property(0)) << std::endl;
-                if (mesh == nullptr)
+                auto vgroup = vgroups[id];
+                if (vgroup == nullptr)
                     continue;
+                mesh->Add(vgroup);
                 auto properties(model->SubNode("Properties70"));
                 for (auto property : properties->SubNodes("P"))
                 {
                     std::string propertyName(property->Property(0));
                     std::cout << propertyName << std::endl;
                     if (propertyName == "Lcl Translation")
+                    {
                         mesh->SetPosition(glm::vec3(
                             double(property->Property(4)),
                             double(property->Property(5)),
                             double(property->Property(6))));
-                    /*else if (propertyName == "Lcl Rotation")
+                        std::cout << mesh->Position().x << " " << mesh->Position().y << " " << mesh->Position().z << std::endl;
+                    }
+                    else if (propertyName == "Lcl Rotation")
+                    {
                         mesh->SetRotation(glm::vec3(
                             double(property->Property(4)),
                             double(property->Property(5)),
-                            double(property->Property(6))));*/
+                            double(property->Property(6))));
+                        std::cout << mesh->Rotation().x << " " << mesh->Rotation().y << " " << mesh->Rotation().z << std::endl;
+                    }
                     else if (propertyName == "Lcl Scaling")
+                    {
                         mesh->SetScale(glm::vec3(
                             double(property->Property(4)),
                             double(property->Property(5)),
                             double(property->Property(6))));
+                        std::cout << mesh->Scale().x << " " << mesh->Scale().y << " " << mesh->Scale().z << std::endl;
+                    }
                 }
             }
         }
     }
     std::cout << "Setting up parenting" << std::endl;
-    for (const auto &connection : document->SubNodes("Connection"))
+    for (const auto &connection : document->SubNodes("Connections"))
     {
         auto cs(connection->SubNodes("C"));
         for (const auto &c : cs)
@@ -377,10 +376,20 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             {
                 int64_t sourceId(c->Property(1));
                 int64_t destinationId(c->Property(2));
+                std::cout << sourceId << " : IS CONNECTED TO : " << destinationId << std::endl;
                 auto source = Mesh::GetById(sourceId);
                 auto destination = Mesh::GetById(destinationId);
                 if (source && destination)
+                {
+                    std::cout << source->Name() << " : IS CHILD OF : " << destination->Name() << std::endl;
                     destination->add_child(source);
+                }
+                else if (source && destination == 0)
+                {
+                    std::cout << source->Name() << " : IS CHILD OF : "
+                              << "*ROOT*" << std::endl;
+                    mainMesh->add_child(source);
+                }
             }
         }
     }
