@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-08-13 16:50:43
+ * @Last Modified time: 2019-08-13 17:50:42
  */
 
 #include "parser/FBX.hpp"
@@ -266,13 +266,12 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
     {
         if (objects == nullptr)
             continue;
-        std::map<int64_t, std::shared_ptr<Vgroup>> vgroups;
         for (const auto &geometry : objects->SubNodes("Geometry"))
         {
             if (geometry == nullptr)
                 continue;
-            auto geometryId(std::to_string(int64_t(geometry->Property(0)))); //first property is Geometry ID
-            auto vgroup(Vgroup::Create(geometryId));
+            auto vgroup(Vgroup::Create(""));
+            vgroup->SetId(int64_t(geometry->Property(0))); //first property is Geometry ID
             std::cout << "Geometry ID " << int64_t(geometry->Property(0)) << std::endl;
             auto vertices(getVertices(geometry->SubNode("Vertices")));
             if (vertices.empty())
@@ -317,7 +316,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                 }
             }
             vgroup->set_material(mtl);
-            vgroups[geometry->Property(0)] = vgroup;
         }
         for (const auto &model : objects->SubNodes("Model"))
         {
@@ -329,7 +327,7 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             }
             for (const auto &id : connections[model->Property(0)])
             {
-                auto vgroup = vgroups[id];
+                auto vgroup = Vgroup::GetById(id);
                 if (vgroup == nullptr)
                     continue;
                 mesh->Add(vgroup);

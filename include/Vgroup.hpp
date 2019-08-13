@@ -2,11 +2,12 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 17:29:07
+* @Last Modified time: 2019-08-13 17:44:55
 */
 
 #pragma once
 
+#include "Object.hpp"
 #include "Renderable.hpp" // for RenderAll, RenderMod, Renderable
 #include "glm/glm.hpp" // for glm::vec2, s_vec2, s_vec3, glm::vec3
 #include <GL/glew.h> // for GLubyte
@@ -26,7 +27,7 @@ typedef glm::vec<4, uint8_t, glm::defaultp> CVEC4;
     GLubyte w;
 };*/
 
-class Vgroup : public Renderable
+class Vgroup : public Object
 {
 public:
     static std::shared_ptr<Vgroup> Create(const std::string & = "");
@@ -36,19 +37,21 @@ public:
     std::shared_ptr<Material> material();
     void set_material(std::shared_ptr<Material>);
     void bind();
-    void Load() override;
-    bool Draw(RenderMod mod = RenderAll) override;
-    bool DrawDepth(RenderMod mod = RenderAll) override;
-    bool Drawable() const override;
-    void center(glm::vec3 &center);
+    void Load();
+    bool Draw(RenderMod mod = RenderAll);
+    bool DrawDepth(RenderMod mod = RenderAll);
+    bool IsLoaded() const;
+    //void center(glm::vec3 &center);
     glm::vec2 uvmin;
     glm::vec2 uvmax;
     std::vector<glm::vec3> v;
     std::vector<CVEC4> vn;
     std::vector<glm::vec2> vt;
     std::vector<unsigned> i;
+    BoundingElement *boundingElement;
 
 protected:
+    bool _isLoaded{false};
     static std::vector<std::shared_ptr<Vgroup>> _vgroups;
     std::weak_ptr<Material> _material;
     std::weak_ptr<VertexArray> _vao;

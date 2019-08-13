@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 17:17:33
+* @Last Modified time: 2019-08-13 17:54:20
 */
 
 #include "Mesh.hpp"
@@ -65,18 +65,18 @@ void Mesh::Add(std::shared_ptr<Mesh> mesh) /*static*/
     _meshes.push_back(mesh);
 }
 
-std::shared_ptr<Vgroup> Mesh::vgroup(unsigned index)
+/*std::shared_ptr<Vgroup> Mesh::vgroup(unsigned index)
 {
     if (index >= _vgroups.size())
         return (nullptr);
     return (_vgroups.at(index).lock());
-}
+}*/
 
 void Mesh::Add(std::shared_ptr<Vgroup> group)
 {
     if (nullptr == group)
         return;
-    _vgroups.push_back(group);
+    _vgroups.insert(group);
 }
 
 void Mesh::Load()
@@ -172,7 +172,8 @@ void Mesh::set_cull_mod(GLenum mod)
 
 void Mesh::center()
 {
-    for (auto vg : _vgroups)
+    //TODO : FIX THE CENTER FUNCTION
+    /*for (auto vg : _vgroups)
     {
         auto vgPtr = vg.lock();
         if (nullptr == vgPtr)
@@ -181,5 +182,5 @@ void Mesh::center()
     }
     bounding_element->min = bounding_element->min - bounding_element->center;
     bounding_element->max = bounding_element->max - bounding_element->center;
-    bounding_element->center = glm::vec3(0, 0, 0);
+    bounding_element->center = glm::vec3(0, 0, 0);*/
 }
