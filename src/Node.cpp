@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:04
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-08-13 09:19:30
 */
 
 #include "Node.hpp"
@@ -10,12 +10,12 @@
 
 std::vector<std::shared_ptr<Node>> Node::_nodes;
 
-Node::Node(const std::string& name)
+Node::Node(const std::string &name)
     : Object(name)
 {
 }
 
-std::shared_ptr<Node> Node::Create(const std::string& name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+std::shared_ptr<Node> Node::Create(const std::string &name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
     auto t = std::shared_ptr<Node>(new Node(name));
     t->_position = position;
@@ -27,9 +27,10 @@ std::shared_ptr<Node> Node::Create(const std::string& name, glm::vec3 position, 
     return (t);
 }
 
-std::shared_ptr<Node> Node::GetByName(const std::string& name)
+std::shared_ptr<Node> Node::GetByName(const std::string &name)
 {
-    for (auto n : _nodes) {
+    for (auto n : _nodes)
+    {
         if (name == n->Name())
             return (n);
     }
@@ -69,7 +70,8 @@ void Node::UpdateTransformMatrix()
     UpdateScaleMatrix();
     SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
     auto parentPtr = parent();
-    if (parentPtr != nullptr) {
+    if (parentPtr != nullptr)
+    {
         parentPtr->UpdateTransformMatrix();
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
     }
@@ -82,9 +84,9 @@ void Node::UpdateTranslationMatrix()
 
 void Node::UpdateRotationMatrix()
 {
-    auto rotationMatrix = glm::rotate(glm::mat4(1.f), Rotation().x, glm::vec3(1, 0, 0));
-    rotationMatrix = glm::rotate(rotationMatrix, Rotation().y, glm::vec3(0, 1, 0));
-    rotationMatrix = glm::rotate(rotationMatrix, Rotation().z, glm::vec3(0, 0, 1));
+    auto rotationMatrix = glm::rotate(glm::mat4(1.f), glm::radians(Rotation().x), glm::vec3(1, 0, 0));
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(Rotation().y), glm::vec3(0, 1, 0));
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(Rotation().z), glm::vec3(0, 0, 1));
     SetRotationMatrix(rotationMatrix);
 }
 
@@ -95,7 +97,8 @@ void Node::UpdateScaleMatrix()
 
 void Node::add_child(std::shared_ptr<Node> childNode)
 {
-    if (childNode == shared_from_this()) {
+    if (childNode == shared_from_this())
+    {
         return;
     }
     _children.push_back(childNode);
@@ -122,7 +125,8 @@ std::shared_ptr<Node> Node::parent()
 */
 void Node::set_parent(std::shared_ptr<Node> prt)
 {
-    if (prt == shared_from_this() || _parent.lock() == prt) {
+    if (prt == shared_from_this() || _parent.lock() == prt)
+    {
         return;
     }
     _parent = prt;
