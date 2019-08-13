@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:06
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-08-13 17:29:13
 */
 
 #include "Vgroup.hpp"
@@ -16,13 +16,13 @@
 
 std::vector<std::shared_ptr<Vgroup>> Vgroup::_vgroups;
 
-Vgroup::Vgroup(const std::string& name)
+Vgroup::Vgroup(const std::string &name)
     : Renderable(name)
 {
     bounding_element = new AABB;
 }
 
-std::shared_ptr<Vgroup> Vgroup::Create(const std::string& name)
+std::shared_ptr<Vgroup> Vgroup::Create(const std::string &name)
 {
     auto vg = std::shared_ptr<Vgroup>(new Vgroup(name));
     _vgroups.push_back(vg);
@@ -36,18 +36,20 @@ std::shared_ptr<Vgroup> Vgroup::Get(unsigned index)
     return (_vgroups.at(index));
 }
 
-std::shared_ptr<Vgroup> Vgroup::GetByName(const std::string& name)
+std::shared_ptr<Vgroup> Vgroup::GetByName(const std::string &name)
 {
-    for (auto n : _vgroups) {
+    for (auto n : _vgroups)
+    {
         if (name == n->Name())
             return (n);
     }
     return (nullptr);
 }
 
-void Vgroup::load()
+void Vgroup::Load()
 {
-    if (is_loaded()) {
+    if (is_loaded())
+    {
         return;
     }
     _vao = VertexArray::Create(v.size());
@@ -61,26 +63,30 @@ void Vgroup::load()
 
 void Vgroup::bind()
 {
-    if ((material() == nullptr) || (material()->shader() == nullptr) || (Camera::current() == nullptr)) {
+    if ((material() == nullptr) || (material()->shader() == nullptr) || (Camera::current() == nullptr))
+    {
         return;
     }
 }
 
-bool Vgroup::render_depth(RenderMod mod)
+bool Vgroup::DrawDepth(RenderMod mod)
 {
     auto mtl = material();
-    if ((mtl == nullptr)) {
+    if ((mtl == nullptr))
+    {
         return (false);
     }
     auto depthShader = mtl->depth_shader();
-    if (depthShader == nullptr) {
+    if (depthShader == nullptr)
+    {
         return (false);
     }
     if (mod == RenderOpaque
         && (mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
         return (false);
     else if (mod == RenderTransparent
-        && !(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4))) {
+             && !(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
+    {
         return (false);
     }
     auto vaoPtr = _vao.lock();
@@ -98,21 +104,24 @@ bool Vgroup::render_depth(RenderMod mod)
     return (true);
 }
 
-bool Vgroup::render(RenderMod mod)
+bool Vgroup::Draw(RenderMod mod)
 {
     auto mtl = material();
-    if ((mtl == nullptr)) {
+    if ((mtl == nullptr))
+    {
         return (false);
     }
     auto cShader = mtl->shader();
-    if (cShader == nullptr) {
+    if (cShader == nullptr)
+    {
         return (false);
     }
     if (mod == RenderOpaque
         && (mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
         return (false);
     else if (mod == RenderTransparent
-        && !(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4))) {
+             && !(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
+    {
         return (false);
     }
     auto vaoPtr = _vao.lock();
@@ -127,9 +136,15 @@ bool Vgroup::render(RenderMod mod)
     return (true);
 }
 
-void Vgroup::center(glm::vec3& center)
+bool Vgroup::Drawable() const
 {
-    for (auto& vec : v) {
+    return false;
+}
+
+void Vgroup::center(glm::vec3 &center)
+{
+    for (auto &vec : v)
+    {
         vec = vec - center;
     }
     bounding_element->min = bounding_element->min - center;

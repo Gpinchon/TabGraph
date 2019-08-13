@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 09:19:30
+* @Last Modified time: 2019-08-13 12:01:11
 */
 
 #include "Node.hpp"
@@ -84,9 +84,10 @@ void Node::UpdateTranslationMatrix()
 
 void Node::UpdateRotationMatrix()
 {
-    auto rotationMatrix = glm::rotate(glm::mat4(1.f), glm::radians(Rotation().x), glm::vec3(1, 0, 0));
+    auto rotationMatrix(glm::mat4(1.f));
     rotationMatrix = glm::rotate(rotationMatrix, glm::radians(Rotation().y), glm::vec3(0, 1, 0));
     rotationMatrix = glm::rotate(rotationMatrix, glm::radians(Rotation().z), glm::vec3(0, 0, 1));
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(Rotation().x), glm::vec3(1, 0, 0));
     SetRotationMatrix(rotationMatrix);
 }
 

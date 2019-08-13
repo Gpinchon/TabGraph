@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:07
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-08-13 17:20:58
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
@@ -50,7 +50,8 @@
 std::vector<std::shared_ptr<Light>> Create_random_lights(unsigned i)
 {
     std::vector<std::shared_ptr<Light>> v;
-    for (auto index = 0u; index < i; index++) {
+    for (auto index = 0u; index < i; index++)
+    {
         glm::vec3 Position = glm::vec3(
             (std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
             (std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
@@ -76,7 +77,7 @@ compute_object->Start();
 cube->vgroup(0)->material()->set_texture_albedo(texture);
 */
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     std::shared_ptr<Mesh> obj;
 
@@ -87,15 +88,18 @@ int main(int argc, char* argv[])
     //camera->set_target(Node::Create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     //camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
     obj = nullptr;
-    if (argc >= 2) {
+    if (argc >= 2)
+    {
         obj = MeshParser::parse("main_mesh", argv[1]);
     }
-    if (argc > 2 || obj == nullptr) {
+    if (argc > 2 || obj == nullptr)
+    {
         obj = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/obj/chart.obj");
     }
-    if (obj != nullptr) {
-        obj->center();
-        obj->load();
+    if (obj != nullptr)
+    {
+        //obj->center();
+        obj->Load();
     }
     //FBX::parseBin(Engine::ProgramPath() + "./mug.fbx");
     setup_callbacks();
