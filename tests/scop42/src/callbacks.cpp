@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 11:51:46
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-08-13 09:56:18
 */
 
 #include "Common.hpp"
@@ -33,7 +33,7 @@
 static auto cameraRotation = glm::vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 bool orbit = false;
 
-void callback_camera(SDL_Event*)
+void callback_camera(SDL_Event *)
 {
     auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::GetByName("main_camera"));
     auto controller = GameController::Get(0);
@@ -41,7 +41,8 @@ void callback_camera(SDL_Event*)
     glm::vec2 laxis = glm::vec2(0, 0);
     float taxis = 0;
     Mouse::set_relative(SDL_TRUE);
-    if (controller->is_connected()) {
+    if (controller->is_connected())
+    {
         raxis.x = controller->axis(SDL_CONTROLLER_AXIS_RIGHTX);
         raxis.y = -controller->axis(SDL_CONTROLLER_AXIS_RIGHTY);
         laxis.x = -controller->axis(SDL_CONTROLLER_AXIS_LEFTX);
@@ -52,7 +53,9 @@ void callback_camera(SDL_Event*)
         cameraRotation.y += raxis.y * Events::delta_time() * Config::Get("GamePadSensitivity", 100.f);
         camera->SetYaw(cameraRotation.x);
         camera->SetPitch(cameraRotation.y);
-    } else {
+    }
+    else
+    {
         laxis.x = Keyboard::key(LEFTK) - Keyboard::key(RIGHTK);
         laxis.y = Keyboard::key(DOWNK) - Keyboard::key(UPK);
         raxis.x = 0;
@@ -80,20 +83,25 @@ void callback_camera(SDL_Event*)
     //camera->SetPosition(camera->Position() + ()).y -=  * Events::delta_time();
 }
 
-void callback_scale(SDL_KeyboardEvent* event)
+void callback_scale(SDL_KeyboardEvent *event)
 {
     static float scale = 1;
 
-    if (event == nullptr || event->type == SDL_KEYUP) {
+    if (event == nullptr || event->type == SDL_KEYUP)
+    {
         return;
     }
     auto mesh = Mesh::GetByName("main_mesh");
-    if (Keyboard::key(SDL_SCANCODE_LCTRL) == 0u) {
+    if (Keyboard::key(SDL_SCANCODE_LCTRL) == 0u)
+    {
         return;
     }
-    if (Keyboard::key(SDL_SCANCODE_KP_PLUS) != 0u) {
+    if (Keyboard::key(SDL_SCANCODE_KP_PLUS) != 0u)
+    {
         scale += (0.005 * (Keyboard::key(SDL_SCANCODE_LSHIFT) + 1));
-    } else if (Keyboard::key(SDL_SCANCODE_KP_MINUS) != 0u) {
+    }
+    else if (Keyboard::key(SDL_SCANCODE_KP_MINUS) != 0u)
+    {
         scale -= (0.005 * (Keyboard::key(SDL_SCANCODE_LSHIFT) + 1));
     }
     scale = glm::clamp(scale, 0.0001f, 1000.f);
@@ -105,43 +113,50 @@ void switch_background()
     static int b = 0;
     b++;
     auto env = Environment::Get(b);
-    if (env != nullptr) {
+    if (env != nullptr)
+    {
         Environment::set_current(env);
-    } else {
+    }
+    else
+    {
         b = 0;
         env = Environment::Get(b);
         Environment::set_current(env);
     }
 }
 
-void callback_background(SDL_KeyboardEvent* event)
+void callback_background(SDL_KeyboardEvent *event)
 {
-    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u))) {
+    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
+    {
         return;
     }
     switch_background();
 }
 
-void controller_callback_background(SDL_ControllerButtonEvent* event)
+void controller_callback_background(SDL_ControllerButtonEvent *event)
 {
-    if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN)) {
+    if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN))
+    {
         return;
     }
     switch_background();
 }
 
-void controller_callback_quality(SDL_ControllerButtonEvent* event)
+void controller_callback_quality(SDL_ControllerButtonEvent *event)
 {
-    if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN)) {
+    if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN))
+    {
         return;
     }
     GameController::Get(0)->rumble(0.5, 100);
     Render::SetInternalQuality(CYCLE(Render::InternalQuality() + 0.25, 0.5, 1.5));
 }
 
-void callback_quality(SDL_KeyboardEvent* event)
+void callback_quality(SDL_KeyboardEvent *event)
 {
-    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u))) {
+    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
+    {
         return;
     }
     Render::SetInternalQuality(CYCLE(Render::InternalQuality() + 0.25, 0.5, 1.5));
@@ -149,45 +164,50 @@ void callback_quality(SDL_KeyboardEvent* event)
 
 bool rotate_model = true;
 
-void controller_callback_rotation(SDL_ControllerButtonEvent* event)
+void controller_callback_rotation(SDL_ControllerButtonEvent *event)
 {
-    if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN)) {
+    if (event == nullptr || (event->type != SDL_CONTROLLERBUTTONDOWN && event->type != SDL_JOYBUTTONDOWN))
+    {
         return;
     }
     rotate_model = !rotate_model;
 }
 
-void keyboard_callback_rotation(SDL_KeyboardEvent* event)
+void keyboard_callback_rotation(SDL_KeyboardEvent *event)
 {
-    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u))) {
+    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
+    {
         return;
     }
     rotate_model = !rotate_model;
 }
 
-void callback_refresh(SDL_Event* /*unused*/)
+void callback_refresh(SDL_Event * /*unused*/)
 {
     auto mesh = Renderable::Get(0);
-    if (mesh == nullptr) {
+    if (mesh == nullptr)
+    {
         return;
     }
-    if (rotate_model) {
+    if (rotate_model)
+    {
         static float rotation = 0;
-        rotation += 0.2 * Events::delta_time();
-        rotation = CYCLE(rotation, 0, 2 * M_PI);
+        rotation += Events::delta_time() * 10;
+        rotation = CYCLE(rotation, 0, 360);
         mesh->SetRotation(glm::vec3(0, rotation, 0));
     }
     callback_camera(nullptr);
 }
 
-void callback_exit(SDL_KeyboardEvent* /*unused*/)
+void callback_exit(SDL_KeyboardEvent * /*unused*/)
 {
     Engine::Stop();
 }
 
-void callback_fullscreen(SDL_KeyboardEvent* event)
+void callback_fullscreen(SDL_KeyboardEvent *event)
 {
-    if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u)) {
+    if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u))
+    {
         static bool fullscreen = false;
         fullscreen = !fullscreen;
         Window::fullscreen(fullscreen);
@@ -195,14 +215,14 @@ void callback_fullscreen(SDL_KeyboardEvent* event)
     (void)event;
 }
 
-void MouseWheelCallback(SDL_MouseWheelEvent* event)
+void MouseWheelCallback(SDL_MouseWheelEvent *event)
 {
     static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::GetByName("main_camera"));
     camera->SetFov(camera->Fov() - event->y * 0.01);
     camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 70.f));
 }
 
-void MouseMoveCallback(SDL_MouseMotionEvent* event)
+void MouseMoveCallback(SDL_MouseMotionEvent *event)
 {
     if (GameController::Get(0)->is_connected())
         return;
@@ -225,7 +245,7 @@ void MouseMoveCallback(SDL_MouseMotionEvent* event)
     camera->SetPitch(cameraRotation.y);
 }
 
-void callback_crash(SDL_KeyboardEvent*)
+void callback_crash(SDL_KeyboardEvent *)
 {
     std::cout << "CRASH !!!" << std::endl;
     std::raise(SIGSEGV);
