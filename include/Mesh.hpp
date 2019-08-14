@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 17:53:35
+* @Last Modified time: 2019-08-14 08:38:33
 */
 
 #pragma once
@@ -38,7 +38,7 @@ protected:
 
 private:
     static std::vector<std::shared_ptr<Mesh>> _meshes;
-    std::set<std::weak_ptr<Vgroup>> _vgroups;
+    std::set<std::shared_ptr<Vgroup>> _vgroups;
     GLenum _cull_mod{GL_BACK};
 };
 

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 17:54:20
+* @Last Modified time: 2019-08-14 08:39:24
 */
 
 #include "Mesh.hpp"
@@ -27,8 +27,6 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string &name) /*static*/
 {
     auto m = std::shared_ptr<Mesh>(new Mesh(name));
     Mesh::Add(m);
-    Renderable::Add(m);
-    Node::Add(m);
     return (m);
 }
 
@@ -85,10 +83,9 @@ void Mesh::Load()
         return;
     for (auto vg : _vgroups)
     {
-        auto vgPtr = vg.lock();
-        if (nullptr == vgPtr)
+        if (nullptr == vg)
             continue;
-        vgPtr->Load();
+        vg->Load();
     }
 }
 
@@ -102,10 +99,9 @@ bool Mesh::DrawDepth(RenderMod mod)
     std::shared_ptr<Shader> last_shader;
     for (auto vg : _vgroups)
     {
-        auto vgPtr = vg.lock();
-        if (nullptr == vgPtr)
+        if (nullptr == vg)
             continue;
-        auto vgMaterial = vgPtr->material();
+        auto vgMaterial = vg->material();
         if (vgMaterial == nullptr)
             continue;
         auto depthShader = vgMaterial->depth_shader();
@@ -117,7 +113,7 @@ bool Mesh::DrawDepth(RenderMod mod)
             depthShader->set_uniform("Matrix.Normal", normal_matrix);
         }
         //depthShader->use(false);
-        if (vgPtr->DrawDepth(mod))
+        if (vg->DrawDepth(mod))
             ret = true;
         last_shader = depthShader;
     }
@@ -134,10 +130,9 @@ bool Mesh::Draw(RenderMod mod)
     std::shared_ptr<Shader> last_shader;
     for (auto vg : _vgroups)
     {
-        auto vgPtr = vg.lock();
-        if (nullptr == vgPtr)
+        if (nullptr == vg)
             continue;
-        auto vgMaterial = vgPtr->material();
+        auto vgMaterial = vg->material();
         if (vgMaterial == nullptr)
             continue;
         auto vgShader = vgMaterial->shader();
@@ -148,7 +143,7 @@ bool Mesh::Draw(RenderMod mod)
             vgShader->set_uniform("Matrix.ModelViewProjection", mvp);
             vgShader->set_uniform("Matrix.Normal", normal_matrix);
         }
-        if (vgPtr->Draw(mod))
+        if (vg->Draw(mod))
             ret = true;
         last_shader = vgShader;
     }
@@ -175,10 +170,10 @@ void Mesh::center()
     //TODO : FIX THE CENTER FUNCTION
     /*for (auto vg : _vgroups)
     {
-        auto vgPtr = vg.lock();
-        if (nullptr == vgPtr)
+        auto vg = vg.lock();
+        if (nullptr == vg)
             continue;
-        vgPtr->center(bounding_element->center);
+        vg->center(bounding_element->center);
     }
     bounding_element->min = bounding_element->min - bounding_element->center;
     bounding_element->max = bounding_element->max - bounding_element->center;
