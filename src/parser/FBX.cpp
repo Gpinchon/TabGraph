@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-08-13 17:50:42
+ * @Last Modified time: 2019-08-14 11:29:23
  */
 
 #include "parser/FBX.hpp"
@@ -266,6 +266,82 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
     {
         if (objects == nullptr)
             continue;
+        for (const auto &fbxMaterial : objects->SubNodes("Material"))
+        {
+            int64_t id(fbxMaterial->Property(0));
+            std::string name(fbxMaterial->Property(1));
+            auto material(Material::Create(name));
+            material->SetId(id);
+            for (const auto &P70 : fbxMaterial->SubNodes("Properties70"))
+            {
+                std::string propertyName(P70->Property(0));
+                std::string propertyType(P70->Property(1));
+                if ("DiffuseColor" == propertyName)
+                {
+                    if ("Color" == propertyType)
+                        material->albedo = glm::vec3(
+                            double(P70->Property(4)),
+                            double(P70->Property(5)),
+                            double(P70->Property(6)));
+                }
+                else if ("EmissiveColor" == propertyName)
+                {
+                    if ("Color" == propertyType)
+                        material->emitting = glm::vec3(
+                            double(P70->Property(4)),
+                            double(P70->Property(5)),
+                            double(P70->Property(6)));
+                }
+                else if ("AmbientColor" == propertyName)
+                {
+                    if ("Color" == propertyType)
+                        continue;
+                }
+                else if ("SpecularColor" == propertyName)
+                {
+                    if ("Color" == propertyType)
+                        material->specular = glm::vec3(
+                            double(P70->Property(4)),
+                            double(P70->Property(5)),
+                            double(P70->Property(6)));
+                }
+                else if ("ReflectionColor" == propertyName)
+                {
+                    if ("Color" == propertyType)
+                        continue;
+                }
+                else if ("EmissiveFactor" == propertyName)
+                {
+                    if ("Number" == propertyType)
+                        continue;
+                }
+                else if ("AmbientFactor" == propertyName)
+                {
+                    if ("Number" == propertyType)
+                        continue;
+                }
+                else if ("SpecularFactor" == propertyName)
+                {
+                    if ("Number" == propertyType)
+                        material->roughness = glm::clamp(1.f / (1.f + double(P70->Property(4))) * 50.f, 0.0, 1.0);
+                }
+                else if ("Shininess" == propertyName)
+                {
+                    if ("Number" == propertyType)
+                        continue;
+                }
+                else if ("ShininessExponent" == propertyName)
+                {
+                    if ("Number" == propertyType)
+                        continue;
+                }
+                else if ("ReflectionFactor" == propertyName)
+                {
+                    if ("Number" == propertyType)
+                        material->metallic = double(P70->Property(4));
+                }
+            }
+        }
         for (const auto &geometry : objects->SubNodes("Geometry"))
         {
             if (geometry == nullptr)
@@ -391,6 +467,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             }
         }
     }
-    //document->Print();
+    document->Print();
     return mainMesh;
 }

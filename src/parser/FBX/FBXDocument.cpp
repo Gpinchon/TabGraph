@@ -1,8 +1,8 @@
 /*
 * @Author: gpinchon
 * @Date:   2019-08-10 11:52:02
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 15:42:09
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-08-14 11:07:15
 */
 
 #include "parser/FBX/FBXDocument.hpp"
@@ -24,15 +24,17 @@
 #include <zconf.h> // for Byte
 #include <zlib.h> // for z_stream, Z_NULL, inflate, inflateEnd, Z_NO_FLUSH
 
-namespace FBX {
+namespace FBX
+{
 #pragma pack(1)
-struct Header {
+struct Header
+{
     char fileMagic[21];
     unsigned char hex[2];
     uint32_t version;
 };
 #pragma pack()
-}
+} // namespace FBX
 
 using namespace FBX;
 
@@ -56,7 +58,7 @@ void Document::Print() const
 }
 
 template <typename T>
-void DecompressArray(Array* array)
+void DecompressArray(Array *array)
 {
     auto data = new T[array->length];
     z_stream infstream;
@@ -64,92 +66,102 @@ void DecompressArray(Array* array)
     infstream.zfree = Z_NULL;
     infstream.opaque = Z_NULL;
     infstream.avail_in = array->compressedLength; // size of input
-    infstream.next_in = std::get<Byte*>(array->data); // input char array
+    infstream.next_in = std::get<Byte *>(array->data); // input char array
     infstream.avail_out = array->length * sizeof(T); // size of output
-    infstream.next_out = (Byte*)data; // output char array
+    infstream.next_out = (Byte *)data; // output char array
     inflateInit(&infstream);
     inflate(&infstream, Z_NO_FLUSH);
     inflateEnd(&infstream);
-    array->data = (T*)data;
+    array->data = (T *)data;
     array->encoding = 0;
     array->compressedLength = 0;
 }
 
 template <typename T>
-Array ParseArray(FILE* fd)
+Array ParseArray(FILE *fd)
 {
     Array array;
 
     fread(&array.length, sizeof(array.length), 1, fd);
     fread(&array.encoding, sizeof(array.encoding), 1, fd);
     fread(&array.compressedLength, sizeof(array.compressedLength), 1, fd);
-    if (array.encoding == 0) {
+    if (array.encoding == 0)
+    {
         array.data = new T[array.length];
-        fread(std::get<T*>(array.data), array.length, sizeof(T), fd);
-    } else {
+        fread(std::get<T *>(array.data), array.length, sizeof(T), fd);
+    }
+    else
+    {
         array.data = new Byte[array.compressedLength];
-        fread(std::get<Byte*>(array.data), array.compressedLength, 1, fd);
+        fread(std::get<Byte *>(array.data), array.compressedLength, 1, fd);
         DecompressArray<T>(&array);
     }
     return (array);
 }
 
-Array parseRawData(FILE* fd)
+Array parseRawData(FILE *fd)
 {
     Array rawData;
     fread(&rawData.length, sizeof(unsigned), 1, fd);
     rawData.data = new Byte[rawData.length];
-    fread(std::get<Byte*>(rawData.data), rawData.length, 1, fd);
+    fread(std::get<Byte *>(rawData.data), rawData.length, 1, fd);
     return rawData;
 }
 
-Array parseString(FILE* fd)
+Array parseString(FILE *fd)
 {
     Array rawString;
     fread(&rawString.length, sizeof(unsigned), 1, fd);
     rawString.data = new char[rawString.length + 1];
-    memset(std::get<char*>(rawString.data), 0, rawString.length + 1);
-    fread(std::get<char*>(rawString.data), rawString.length, 1, fd);
+    memset(std::get<char *>(rawString.data), 0, rawString.length + 1);
+    fread(std::get<char *>(rawString.data), rawString.length, 1, fd);
     return rawString;
 }
 
-static inline auto ParseProperty(FILE* fd)
+static inline auto ParseProperty(FILE *fd)
 {
     auto property(Property::Create());
 
     fread(&property->typeCode, 1, 1, fd);
-    switch (property->typeCode) {
-    case ('Y'): {
+    switch (property->typeCode)
+    {
+    case ('Y'):
+    {
         int16_t data;
         fread(&data, sizeof(int16_t), 1, fd);
         property->data = data;
         break;
     }
-    case ('C'): {
+    case ('C'):
+    {
         Byte data;
         fread(&data, sizeof(Byte), 1, fd);
         property->data = data;
         break;
     }
-    case ('I'): {
+    case ('I'):
+    {
         int32_t data;
         fread(&data, sizeof(int32_t), 1, fd);
         property->data = data;
         break;
     }
-    case ('F'): {
+    case ('F'):
+    {
         float data;
         fread(&data, sizeof(float), 1, fd);
         property->data = data;
         break;
     }
-    case ('D'): {
+    case ('D'):
+    {
         double data;
         fread(&data, sizeof(double), 1, fd);
         property->data = data;
         break;
     }
-    case ('L'): {
+    case ('L'):
+    {
         int64_t data;
         fread(&data, sizeof(int64_t), 1, fd);
         property->data = data;
@@ -182,7 +194,7 @@ static inline auto ParseProperty(FILE* fd)
     return (property);
 }
 
-std::shared_ptr<Node> ParseNode(FILE* fd)
+std::shared_ptr<Node> ParseNode(FILE *fd)
 {
     uint64_t length64bits;
     uint32_t length32bits;
@@ -190,16 +202,19 @@ std::shared_ptr<Node> ParseNode(FILE* fd)
     uint64_t numProperties = 0;
     uint64_t propertyListLen = 0;
     uint64_t nameLen = 0;
-    char* name = nullptr;
+    char *name = nullptr;
 
-    if (is64bits) {
+    if (is64bits)
+    {
         fread(&length64bits, sizeof(uint64_t), 1, fd);
         endOffset = length64bits;
         fread(&length64bits, sizeof(uint64_t), 1, fd);
         numProperties = length64bits;
         fread(&length64bits, sizeof(uint64_t), 1, fd);
         propertyListLen = length64bits;
-    } else {
+    }
+    else
+    {
         fread(&length32bits, sizeof(uint32_t), 1, fd);
         endOffset = length32bits;
         fread(&length32bits, sizeof(uint32_t), 1, fd);
@@ -218,10 +233,12 @@ std::shared_ptr<Node> ParseNode(FILE* fd)
     memset(name, 0, nameLen + 1);
     fread(name, 1, nameLen, fd);
     node->SetName(name);
-    for (unsigned i = 0; i < numProperties; i++) {
+    for (unsigned i = 0; i < numProperties; i++)
+    {
         node->properties.push_back(ParseProperty(fd));
     }
-    while (ftell(fd) != long(endOffset)) {
+    while (ftell(fd) != long(endOffset))
+    {
         auto subNode = ParseNode(fd);
         if (subNode == nullptr)
             break;
@@ -236,39 +253,29 @@ std::shared_ptr<Node> ParseNode(FILE* fd)
     return (node);
 }
 
-/*void SetupParenting(FBX::Document& document)
-{
-    auto connections(document.SubNodes("Connection"));
-    for (const auto& connection : connections) {
-        auto cs(connection->SubNodes("C"));
-        for (const auto& c : cs) {
-            if (std::string(c->Property(0)) == "OO") {
-                int64_t source(c->Property(1));
-                int64_t destination(c->Property(1));
-                auto sourceObject(Object::Get(source));
-                auto destinationObject(Object::Get(destination));
-                if (sourceObject && destinationObject) {
-                    destinationObject->AddChild(sourceObject);
-                }
-            }
-        }
-    }
+/*static inline auto GetTypePaterns(FBX::Document &document) {
+    std::map<std::string, 
+    auto definitions(document.SubNodes("Definitions"));
+
 }*/
 
-Document* Document::Parse(const std::string& path)
+Document *Document::Parse(const std::string &path)
 {
-    FILE* fd;
+    FILE *fd;
     auto document(new Document);
 
-    if (access(path.c_str(), R_OK) != 0) {
+    if (access(path.c_str(), R_OK) != 0)
+    {
         throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
     }
-    if ((fd = fopen(path.c_str(), "rb")) == nullptr) {
+    if ((fd = fopen(path.c_str(), "rb")) == nullptr)
+    {
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
     document->path = path;
     fread(document->header, 27, 1, fd);
-    if (strncmp(document->header->fileMagic, "Kaydara FBX Binary  ", 20)) {
+    if (strncmp(document->header->fileMagic, "Kaydara FBX Binary  ", 20))
+    {
         fclose(fd);
         throw std::runtime_error("Invalid FBX header at : " + path);
     }
