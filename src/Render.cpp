@@ -276,8 +276,9 @@ void Render::Private::_thread(void)
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
     while (_instance()._loop)
     {
-        if (Render::Private::NeedsUpdate() && Engine::UpdateMutex().try_lock())
+        if (Render::Private::NeedsUpdate())
         {
+            Engine::UpdateMutex().lock();
             _instance()._frame_nbr++;
             ticks = SDL_GetTicks() / 1000.f;
             if (ticks - fixed_timing >= 0.015)
@@ -290,8 +291,8 @@ void Render::Private::_thread(void)
             _instance()._needsUpdate = false;
             Engine::UpdateMutex().unlock();
         }
-        else
-            Render::Private::Scene();
+        //else
+        //    Render::Private::Scene();
     }
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
 }
