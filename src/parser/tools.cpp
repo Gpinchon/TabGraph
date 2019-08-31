@@ -5,6 +5,7 @@
 * @Last Modified time: 2019-06-25 15:43:20
 */
 
+#include <sstream>
 #include <algorithm> // for max, count, replace
 #include <errno.h> // for ENOENT, EACCES, ELOOP, ENAMETOOLONG
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
@@ -126,7 +127,14 @@ std::vector<std::string> strsplit(const std::string& s, char c)
     return (ret);
 }
 
-std::vector<std::string> strsplitwspace(const std::string& s)
+std::vector<std::string> strsplitwspace(std::string const &input) { 
+    std::istringstream buffer(input);
+    std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)), 
+                                 std::istream_iterator<std::string>());
+    return ret;
+}
+
+/*std::vector<std::string> strsplitwspace(const std::string& s)
 {
     size_t pos = 0;
     size_t needle = 0;
@@ -148,7 +156,7 @@ std::vector<std::string> strsplitwspace(const std::string& s)
     }
     return (ret);
 }
-
+*/
 unsigned count_char(const std::string& str, char c)
 {
     return (std::count(str.begin(), str.end(), c));

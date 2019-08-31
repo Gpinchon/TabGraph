@@ -442,9 +442,16 @@ static void start_obj_parsing(t_obj_parser *p, const std::string &name, const st
     p->vg = Vgroup::Create(name + "_child 0");
     p->vg->set_material(Material::GetByName("default"));
     p->vg->boundingElement = new AABB(p->bbox);
+    auto l = 1;
     while (fgets(line, 4096, p->fd) != nullptr)
     {
-        parse_line(p, line);
+        try {
+            parse_line(p, line);
+        }
+        catch (std::exception &e) {
+            throw std::runtime_error("Error at line : " + std::to_string(l) + " " + e.what());
+        }
+        l++;
     }
     fclose(p->fd);
     if (!p->vg->v.empty() != 0u)

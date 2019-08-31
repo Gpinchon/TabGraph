@@ -41,9 +41,16 @@ Texture::Texture(const std::string& iname, glm::vec2 s, GLenum target, GLenum f,
     _size = s;
     //_data = static_cast<GLubyte*>(data);
     if (data != nullptr) {
-        uint64_t dataTotalSize = _size.x * _size.y * _bpp / 8;
+        debugLog(iname);
+        debugLog(_size.x);
+        debugLog(_size.y);
+        debugLog(int(_bpp));
+
+        uint64_t dataTotalSize = _size.x * _size.y * (_bpp / 8);
+        debugLog(dataTotalSize);
         _data = new GLubyte[dataTotalSize];
         std::memcpy(_data, data, dataTotalSize);
+        
     }
 }
 

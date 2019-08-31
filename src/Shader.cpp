@@ -185,7 +185,7 @@ void Shader::use(const bool& use_program)
     }
     glUseProgram(_program);
     if (glCheckError()) {
-        debugLog(name());
+        debugLog(Name());
     }
     _in_use = true;
 }
@@ -379,7 +379,7 @@ std::unordered_map<std::string, ShaderVariable> Shader::_get_variables(GLenum ty
     glGetProgramiv(_program, type, &ivcount);
     glCheckError();
     std::unordered_map<std::string, ShaderVariable> variables;
-    debugLog(this->name());
+    debugLog(this->Name());
     debugLog(ivcount);
     debugLog((type == GL_ACTIVE_UNIFORMS ? "GL_ACTIVE_UNIFORMS" : "GL_ACTIVE_ATTRIBUTES"));
     while (--ivcount >= 0) {

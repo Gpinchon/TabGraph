@@ -77,6 +77,9 @@ void parse_number(std::vector<std::string>& split, std::shared_ptr<Material> mtl
     }
 }
 
+#include <iostream>
+
+
 void parse_mtl(t_obj_parser* p, std::string& name)
 {
     if (Material::GetByName(name) != nullptr) {
@@ -85,7 +88,8 @@ void parse_mtl(t_obj_parser* p, std::string& name)
     char line[4096];
     auto mtl = Material::Create(name);
     while (fgets(line, 4096, p->fd) != nullptr) {
-        auto msplit = strsplitwspace(line);
+        try {
+            auto msplit = strsplitwspace(line);
         if (msplit.size() > 1 && msplit[0][0] != '#') {
             if (msplit[0][0] == 'K') {
                 parse_color(msplit, mtl);
@@ -97,8 +101,13 @@ void parse_mtl(t_obj_parser* p, std::string& name)
                 parse_mtl(p, msplit[1]);
             }
         }
+        }
+        catch (std::exception &e) {
+            throw std::runtime_error("Error while parsing " + name + " at line \"" + line + "\" : " + e.what());
+        }
     }
 }
+
 
 bool MTLLIB::parse(const std::string& path)
 {
@@ -112,13 +121,20 @@ bool MTLLIB::parse(const std::string& path)
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
     p.path_split = split_path(path);
+    auto l = 1;
     while (fgets(line, 4096, p.fd) != nullptr) {
-        auto split = strsplitwspace(line);
-        if (split.size() > 1 && split[0][0] != '#') {
-            if (split[0] == "newmtl") {
-                parse_mtl(&p, split[1]);
+        try {
+            auto split = strsplitwspace(line);
+            if (split.size() > 1 && split[0][0] != '#') {
+                if (split[0] == "newmtl") {
+                    parse_mtl(&p, split[1]);
+                }
             }
         }
+        catch (std::exception &e) {
+            throw std::runtime_error("Error while parsing " + path + " at line " + std::to_string(l) + " : " + e.what());
+        }
+        l++;
     }
     fclose(p.fd);
     return (true);
