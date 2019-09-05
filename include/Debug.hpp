@@ -252,7 +252,7 @@ inline void stack_trace(int)
 
 #include <execinfo.h>
 
-inline void stack_trace(void)
+inline void stack_trace(int /*signum*/)
 {
     void* array[1024];
     size_t size;

@@ -10,7 +10,7 @@
 #include <errno.h> // for ENOENT, EACCES, ELOOP, ENAMETOOLONG
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <fstream> // for ifstream
-#include <io.h> // for access, R_OK
+#include <unistd.h> // for access
 #include <iostream> // for basic_ostream::operator<<, char_traits
 #include <iterator> // for istreambuf_iterator, operator!=
 #include <stdexcept> // for runtime_error

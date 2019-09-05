@@ -195,7 +195,7 @@ LDLIBS		+= $(GDALLIBS) -static-libgcc -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_ima
 else ifeq ($(shell uname -s), Darwin)
 LDLIBS		+= $(LDFLAGS) -lm -lGLEW -framework OpenGL -framework SDL2
 else
-LDLIBS		+= $(LDFLAGS) -lstdc++ -pthread -lz -lm -lSDL2main -lSDL2 -lGLEW -lGL 
+LDLIBS		+= $(LDFLAGS) -lstdc++ -pthread -lz -lm -lSDL2main -lSDL2 -lSDL2_image -lGLEW -lGL 
 endif
 
 ifeq ($(USE_GDAL), 1)
@@ -262,8 +262,13 @@ $(APP_PATH)/build/$(APP_NAME): $(APP_OBJ)
 	@$(CXX) $(APP_CXXFLAGS) $(LIBOBJ) $(APP_OBJ) $(APP_LDLIBS) $(LDLIBS) -o $(APP_PATH)/build/$(APP_NAME)
 	@echo $@ compilation "$(OK_STRING)"
 
+ifeq ($(OS), Windows_NT)
 application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES) $(BUILD_RES)
 	./scripts/copyDlls.sh $(APP_PATH)/build/$(APP_NAME)
+else
+application: $(APP_PATH)/build/$(APP_NAME) $(BUILD_APP_RES) $(BUILD_RES)
+endif
+
 
 libraries: $(LIBFILES)
 

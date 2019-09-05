@@ -11,7 +11,7 @@
 #include <GL/glew.h> // for GLuint, GL_FRAGMENT_SHADER, GL_V...
 #include <bits/exception.h> // for exception
 #include <errno.h> // for errno
-#include <io.h> // for access, R_OK
+#include <sys/io.h> // for access, R_OK
 #include <stdexcept> // for runtime_error
 #include <string.h> // for strerror
 #include <unordered_map> // for unordered_map

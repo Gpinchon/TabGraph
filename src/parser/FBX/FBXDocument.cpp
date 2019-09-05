@@ -11,7 +11,7 @@
 #include "parser/FBX/FBXNode.hpp"
 #include "parser/FBX/FBXProperty.hpp"
 #include <errno.h> // for errno
-#include <io.h> // for access, R_OK
+#include <sys/io.h> // for access, R_OK
 #include <iostream> // for operator<<, basic_ostream, cout, ostream, char_...
 #include <map> // for allocator, map
 #include <stdexcept> // for runtime_error

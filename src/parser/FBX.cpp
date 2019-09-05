@@ -5,21 +5,21 @@
  * @Last Modified time: 2019-08-14 11:29:23
  */
 
+#include <iostream>
+#include <memory>
+#include <glm/glm.hpp>
 #include "parser/FBX.hpp"
 #include "MeshParser.hpp"
 #include "parser/FBX/FBXDocument.hpp"
 #include "parser/FBX/FBXNode.hpp"
 #include "parser/FBX/FBXObject.hpp"
 #include "parser/FBX/FBXProperty.hpp"
-#include <iostream>
-
-//Add this parser to MeshParser !
-auto __fbxParser = MeshParser::Add("fbx", FBX::parseMesh);
-
 #include "Material.hpp"
 #include "Mesh.hpp"
 #include "Vgroup.hpp"
-#include <glm/glm.hpp>
+
+//Add this parser to MeshParser !
+auto __fbxParser = MeshParser::Add("fbx", FBX::parseMesh);
 
 static inline std::vector<glm::vec2> parseUV(FBX::Node *layerElementUV)
 {
@@ -72,7 +72,7 @@ static inline auto getNormals(std::shared_ptr<FBX::Node> layerElementNormal)
         vn.push_back(n);
     }
     auto referenceInformationType(layerElementNormal->SubNode("ReferenceInformationType"));
-    std::string referenceType(referenceInformationType ? std::string(referenceInformationType->Property(0)) : "");
+    std::string referenceType(referenceInformationType ? std::string(referenceInformationType->Property(0)) : std::string(""));
     if (referenceType == "" || referenceType == "Direct")
         return vn;
     auto normalsIndex(layerElementNormal->SubNode("NormalsIndex"));

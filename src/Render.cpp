@@ -394,7 +394,7 @@ void HZBPass(std::shared_ptr<Texture> depthTexture)
 #include "passthrough.vert"
         ;
     static auto HZBFragmentCode =
-#include "HZB.frag"
+#include "hzb.frag"
         ;
     static auto HZBShader = GLSL::compile("HZB", HZBVertexCode, HZBFragmentCode);
     static auto framebuffer = Framebuffer::Create("HZB", depthTexture->size(), 0, 0);

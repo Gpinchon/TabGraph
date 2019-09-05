@@ -11,7 +11,7 @@
 #include "glm/glm.hpp" // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
 #include "parser/InternalTools.hpp" // for parse_vec3, t_obj_parser, strspl...
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
-#include <io.h> // for access, R_OK
+#include <sys/io.h> // for access, R_OK
 #include <memory> // for shared_ptr, allocator, __shared_...
 #include <stdexcept> // for runtime_error
 #include <stdio.h> // for fgets, fclose, fopen

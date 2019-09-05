@@ -16,7 +16,7 @@
 #include <SDL2/SDL_pixels.h> // for SDL_PixelFormat, SDL_PIXELFORMAT...
 #include <SDL2/SDL_stdinc.h> // for Uint8, Uint16
 #include <SDL2/SDL_surface.h> // for SDL_Surface, SDL_UnlockSurface
-#include <intrin.h> // for memcpy
+#include <string.h> // for memcpy
 #include <map> // for map
 #include <memory> // for allocator, shared_ptr
 #include <sstream> // for basic_ostream::operator<<, ostri...
