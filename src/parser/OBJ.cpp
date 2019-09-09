@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 17:42:47
+* @Last Modified time: 2019-09-09 17:39:29
 */
 
 #include "parser/OBJ.hpp"
@@ -20,12 +20,17 @@
 #include <bits/exception.h> // for exception
 #include <errno.h> // for errno
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
-#include <sys/io.h> // for access, R_OK
 #include <math.h> // for atan2
 #include <stdexcept> // for runtime_error
 #include <stdio.h> // for fclose, fgets, fopen
 #include <string.h> // for memset, strerror
 #include <vector> // for vector
+
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <sys/io.h>
+#endif // for access, R_OK
 
 //Add this parser to MeshParser !
 auto __objParser = MeshParser::Add("obj", OBJ::parse);
@@ -445,10 +450,12 @@ static void start_obj_parsing(t_obj_parser *p, const std::string &name, const st
     auto l = 1;
     while (fgets(line, 4096, p->fd) != nullptr)
     {
-        try {
+        try
+        {
             parse_line(p, line);
         }
-        catch (std::exception &e) {
+        catch (std::exception &e)
+        {
             throw std::runtime_error("Error at line : " + std::to_string(l) + " " + e.what());
         }
         l++;

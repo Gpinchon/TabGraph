@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:03
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-09-09 17:10:59
 */
 
 #include "Engine.hpp"
@@ -24,27 +24,33 @@
 #include <bits/exception.h> // for exception
 #include <chrono> // for milliseconds
 #include <dirent.h> // for opendir, readdir, dirent, closedir
-#include <sys/io.h> // for getcwd
 #include <iostream> // for operator<<, endl, basic_ostream
 #include <memory> // for shared_ptr, __shared_ptr_access
 #include <mutex> // for mutex
 #include <thread> // for sleep_for
 
+#ifdef _WIN32
+#include <io.h> // for getcwd
+#else
+#include <sys/io.h> // for getcwd
+#endif
+
 #ifndef _getcwd
 #define _getcwd getcwd
 #endif //_getcwd
 
-struct EnginePrivate {
+struct EnginePrivate
+{
     EnginePrivate();
-    static EnginePrivate& Get();
+    static EnginePrivate &Get();
     static void LoadRes(void);
     static void Update(void);
     static void FixedUpdate(void);
-    std::atomic<bool> loop { false };
-    int8_t swapInterval { 1 };
-    double deltaTime { 0 };
-    std::string programPath { "" };
-    std::string execPath { "" };
+    std::atomic<bool> loop{false};
+    int8_t swapInterval{1};
+    double deltaTime{0};
+    std::string programPath{""};
+    std::string execPath{""};
     std::mutex updateMutex;
 };
 
@@ -58,9 +64,9 @@ EnginePrivate::EnginePrivate()
     programPath += "/";
 }
 
-EnginePrivate& EnginePrivate::Get()
+EnginePrivate &EnginePrivate::Get()
 {
-    static EnginePrivate* _instance = nullptr;
+    static EnginePrivate *_instance = nullptr;
     if (_instance == nullptr)
         _instance = new EnginePrivate();
     return (*_instance);
@@ -68,14 +74,16 @@ EnginePrivate& EnginePrivate::Get()
 
 void EnginePrivate::LoadRes()
 {
-    DIR* dir;
-    struct dirent* e;
+    DIR *dir;
+    struct dirent *e;
     std::string folder;
 
     folder = Engine::ProgramPath() + "res/hdr/";
     dir = opendir(folder.c_str());
-    while (dir != nullptr && (e = readdir(dir)) != nullptr) {
-        if (e->d_name[0] == '.') {
+    while (dir != nullptr && (e = readdir(dir)) != nullptr)
+    {
+        if (e->d_name[0] == '.')
+        {
             continue;
         }
         std::string name = e->d_name;
@@ -85,21 +93,29 @@ void EnginePrivate::LoadRes()
     }
     folder = Engine::ProgramPath() + "res/skybox/";
     dir = opendir(folder.c_str());
-    while (dir != nullptr && (e = readdir(dir)) != nullptr) {
-        if (e->d_name[0] == '.') {
+    while (dir != nullptr && (e = readdir(dir)) != nullptr)
+    {
+        if (e->d_name[0] == '.')
+        {
             continue;
         }
         std::string name = e->d_name;
         auto newEnv = Environment::Create(name);
-        try {
+        try
+        {
             newEnv->set_diffuse(Cubemap::parse(name, folder));
-        } catch (std::exception& e) {
+        }
+        catch (std::exception &e)
+        {
             std::cout << e.what() << std::endl;
             continue;
         }
-        try {
+        try
+        {
             newEnv->set_irradiance(Cubemap::parse(name + "/light", folder));
-        } catch (std::exception& e) {
+        }
+        catch (std::exception &e)
+        {
             std::cout << e.what() << std::endl;
         }
     }
@@ -109,7 +125,8 @@ void EnginePrivate::LoadRes()
 
 void EnginePrivate::Update()
 {
-    for (auto i = 0; Node::Get(i); i++) {
+    for (auto i = 0; Node::Get(i); i++)
+    {
         auto node = Node::Get(i);
         node->Update();
     }
@@ -117,11 +134,13 @@ void EnginePrivate::Update()
 
 void EnginePrivate::FixedUpdate()
 {
-    for (auto i = 0; Node::Get(i); i++) {
+    for (auto i = 0; Node::Get(i); i++)
+    {
         auto node = Node::Get(i);
         node->UpdateTransformMatrix();
     }
-    for (auto i = 0; Node::Get(i); i++) {
+    for (auto i = 0; Node::Get(i); i++)
+    {
         auto node = Node::Get(i);
         node->FixedUpdate();
     }
@@ -138,7 +157,7 @@ void Engine::Init()
     EnginePrivate::Get().LoadRes();
 }
 
-int event_filter(void* arg, SDL_Event* event)
+int event_filter(void *arg, SDL_Event *event)
 {
     return (Events::filter(arg, event));
 }
@@ -153,7 +172,8 @@ void Engine::Start()
     SDL_SetEventFilter(event_filter, nullptr);
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
     Render::Start();
-    while (EnginePrivate::Get().loop) {
+    while (EnginePrivate::Get().loop)
+    {
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
         EnginePrivate::Get().updateMutex.lock();
         ticks = SDL_GetTicks() / 1000.f;
@@ -161,7 +181,8 @@ void Engine::Start()
         lastTicks = ticks;
         SDL_PumpEvents();
         Events::refresh();
-        if (ticks - fixedTiming >= 0.015) {
+        if (ticks - fixedTiming >= 0.015)
+        {
             fixedTiming = ticks;
             EnginePrivate::FixedUpdate();
         }
@@ -192,12 +213,12 @@ double Engine::DeltaTime()
     return (EnginePrivate::Get().deltaTime);
 }
 
-const std::string& Engine::ProgramPath()
+const std::string &Engine::ProgramPath()
 {
     return (EnginePrivate::Get().programPath);
 }
 
-const std::string& Engine::ExecutionPath()
+const std::string &Engine::ExecutionPath()
 {
     return (EnginePrivate::Get().execPath);
 }
@@ -207,7 +228,7 @@ const std::string Engine::ResourcePath()
     return (Engine::ProgramPath() + "/res/");
 }
 
-std::mutex& Engine::UpdateMutex(void)
+std::mutex &Engine::UpdateMutex(void)
 {
     return EnginePrivate::Get().updateMutex;
 }

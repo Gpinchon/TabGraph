@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 11:52:02
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-14 11:07:15
+* @Last Modified time: 2019-09-09 17:38:30
 */
 
 #include "parser/FBX/FBXDocument.hpp"
@@ -11,7 +11,6 @@
 #include "parser/FBX/FBXNode.hpp"
 #include "parser/FBX/FBXProperty.hpp"
 #include <errno.h> // for errno
-#include <sys/io.h> // for access, R_OK
 #include <iostream> // for operator<<, basic_ostream, cout, ostream, char_...
 #include <map> // for allocator, map
 #include <stdexcept> // for runtime_error
@@ -23,6 +22,12 @@
 #include <vector> // for vector
 #include <zconf.h> // for Byte
 #include <zlib.h> // for z_stream, Z_NULL, inflate, inflateEnd, Z_NO_FLUSH
+
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <sys/io.h>
+#endif // for access, R_OK
 
 namespace FBX
 {

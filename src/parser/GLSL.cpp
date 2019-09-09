@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:07
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-09-09 17:38:51
 */
 
 #include "parser/GLSL.hpp"
@@ -11,10 +11,15 @@
 #include <GL/glew.h> // for GLuint, GL_FRAGMENT_SHADER, GL_V...
 #include <bits/exception.h> // for exception
 #include <errno.h> // for errno
-#include <sys/io.h> // for access, R_OK
 #include <stdexcept> // for runtime_error
 #include <string.h> // for strerror
 #include <unordered_map> // for unordered_map
+
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <sys/io.h>
+#endif // for access, R_OK
 
 static auto deferredVertCode =
 #include "deferred.vert"
@@ -29,10 +34,10 @@ static auto forwardFragCode =
 #include "forward.frag"
     ;
 
-GLuint compile_shader_code(const std::string& code, GLenum type)
+GLuint compile_shader_code(const std::string &code, GLenum type)
 {
     GLuint shaderid;
-    static auto glslVersionString = std::string((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    static auto glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
     static auto glslVersionNbr = int(std::stof(glslVersionString) * 100);
 
     auto fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n" + code;
@@ -45,26 +50,30 @@ GLuint compile_shader_code(const std::string& code, GLenum type)
     return (shaderid);
 }
 
-GLuint compile_shader(const std::string& path, GLenum type)
+GLuint compile_shader(const std::string &path, GLenum type)
 {
-    if (access(path.c_str(), R_OK) != 0) {
+    if (access(path.c_str(), R_OK) != 0)
+    {
         throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
     }
     return (compile_shader_code(file_to_str(path), type));
 }
 
-std::shared_ptr<Shader> GLSL::compile(const std::string& name,
-    const std::string& vertex_code, const std::string& fragment_code)
+std::shared_ptr<Shader> GLSL::compile(const std::string &name,
+                                      const std::string &vertex_code, const std::string &fragment_code)
 {
     auto shader = std::static_pointer_cast<GLSL>(Shader::Create(name));
     GLuint vertexid = 0;
     GLuint fragmentid = 0;
 
-    try {
+    try
+    {
         vertexid = compile_shader_code(vertex_code, GL_VERTEX_SHADER);
         fragmentid = compile_shader_code(fragment_code, GL_FRAGMENT_SHADER);
         shader->link(vertexid, fragmentid);
-    } catch (std::exception& e) {
+    }
+    catch (std::exception &e)
+    {
         throw std::runtime_error(std::string("Error compiling ") + name + " :\n" + e.what());
     }
     shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
@@ -75,34 +84,42 @@ std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     return (shader);
 }
 
-std::shared_ptr<Shader> GLSL::parse(const std::string& name,
-    const std::string& vertex_file_path,
-    const std::string& fragment_file_path)
+std::shared_ptr<Shader> GLSL::parse(const std::string &name,
+                                    const std::string &vertex_file_path,
+                                    const std::string &fragment_file_path)
 {
     return (GLSL::compile(name,
-        file_to_str(vertex_file_path),
-        file_to_str(fragment_file_path)));
+                          file_to_str(vertex_file_path),
+                          file_to_str(fragment_file_path)));
 }
 
-std::shared_ptr<Shader> GLSL::compile(const std::string& name,
-    const std::string& vertex_code, const std::string& fragment_code, ShaderType type, const std::string& defines)
+std::shared_ptr<Shader> GLSL::compile(const std::string &name,
+                                      const std::string &vertex_code, const std::string &fragment_code, ShaderType type, const std::string &defines)
 {
     auto shader = std::static_pointer_cast<GLSL>(Shader::Create(name));
     GLuint vertexid = 0;
     GLuint fragmentid = 0;
-    try {
-        if (ForwardShader == type) {
+    try
+    {
+        if (ForwardShader == type)
+        {
             vertexid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardVertCode + vertex_code, GL_VERTEX_SHADER);
             fragmentid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardFragCode + fragment_code, GL_FRAGMENT_SHADER);
-        } else if (LightingShader == type) {
+        }
+        else if (LightingShader == type)
+        {
             vertexid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredVertCode + vertex_code, GL_VERTEX_SHADER);
             fragmentid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredFragCode + fragment_code, GL_FRAGMENT_SHADER);
-        } else if (PostShader == type) {
+        }
+        else if (PostShader == type)
+        {
             vertexid = compile_shader_code("#define POSTSHADER\n" + defines + deferredVertCode + vertex_code, GL_VERTEX_SHADER);
             fragmentid = compile_shader_code("#define POSTSHADER\n" + defines + deferredFragCode + fragment_code, GL_FRAGMENT_SHADER);
         }
         shader->link(vertexid, fragmentid);
-    } catch (std::exception& e) {
+    }
+    catch (std::exception &e)
+    {
         throw std::runtime_error(std::string("Error parsing ") + name + " :\n" + e.what());
     }
     shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
@@ -113,19 +130,19 @@ std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     return (shader);
 }
 
-std::shared_ptr<Shader> GLSL::parse(const std::string& name,
-    const std::string& vertex_file_path,
-    const std::string& fragment_file_path,
-    ShaderType type,
-    const std::string& defines)
+std::shared_ptr<Shader> GLSL::parse(const std::string &name,
+                                    const std::string &vertex_file_path,
+                                    const std::string &fragment_file_path,
+                                    ShaderType type,
+                                    const std::string &defines)
 {
     auto vertex_code = file_to_str(vertex_file_path);
     auto fragment_code = file_to_str(fragment_file_path);
     return (GLSL::compile(name, vertex_code, fragment_code, type, defines));
 }
 
-std::shared_ptr<Shader> GLSL::compile(const std::string& name,
-    const std::string& shader_code, ShaderType type, const std::string& defines)
+std::shared_ptr<Shader> GLSL::compile(const std::string &name,
+                                      const std::string &shader_code, ShaderType type, const std::string &defines)
 {
     auto shader = std::static_pointer_cast<GLSL>(Shader::Create(name));
     static auto emptyShaderCode =
@@ -135,25 +152,34 @@ std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     GLuint vertexid = 0;
     GLuint fragmentid = 0;
     GLuint computeid = 0;
-    try {
-        if (ForwardShader == type) {
+    try
+    {
+        if (ForwardShader == type)
+        {
             vertexid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardVertCode + emptyShaderCode, GL_VERTEX_SHADER);
             fragmentid = compile_shader_code("#define FORWARDSHADER\n" + defines + forwardFragCode + shader_code, GL_FRAGMENT_SHADER);
             shader->link(vertexid, fragmentid);
-        } else if (LightingShader == type) {
+        }
+        else if (LightingShader == type)
+        {
             vertexid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredVertCode + emptyShaderCode, GL_VERTEX_SHADER);
             fragmentid = compile_shader_code("#define LIGHTSHADER\n" + defines + deferredFragCode + shader_code, GL_FRAGMENT_SHADER);
             shader->link(vertexid, fragmentid);
-        } else if (PostShader == type) {
+        }
+        else if (PostShader == type)
+        {
             vertexid = compile_shader_code("#define POSTSHADER\n" + defines + deferredVertCode + emptyShaderCode, GL_VERTEX_SHADER);
             fragmentid = compile_shader_code("#define POSTSHADER\n" + defines + deferredFragCode + shader_code, GL_FRAGMENT_SHADER);
             shader->link(vertexid, fragmentid);
-        } else if (ComputeShader == type) {
+        }
+        else if (ComputeShader == type)
+        {
             computeid = compile_shader_code(defines + shader_code, GL_COMPUTE_SHADER);
             shader->link(computeid);
         }
-
-    } catch (std::exception& e) {
+    }
+    catch (std::exception &e)
+    {
         throw std::runtime_error(std::string("Error parsing ") + name + " :\n" + e.what());
     }
     shader->_uniforms = shader->_get_variables(GL_ACTIVE_UNIFORMS);
@@ -165,8 +191,8 @@ std::shared_ptr<Shader> GLSL::compile(const std::string& name,
     return (shader);
 }
 
-std::shared_ptr<Shader> GLSL::parse(const std::string& name,
-    const std::string& shader_file_path, ShaderType type, const std::string& defines)
+std::shared_ptr<Shader> GLSL::parse(const std::string &name,
+                                    const std::string &shader_file_path, ShaderType type, const std::string &defines)
 {
     auto shader_code = file_to_str(shader_file_path);
     return (GLSL::compile(name, shader_code, type, defines));
