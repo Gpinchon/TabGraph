@@ -94,16 +94,35 @@ float cross(in vec2 a, in vec2 b)
 
 bool lineSegmentIntersection(out float intersection, in vec2 o, in vec2 d, in vec2 a, in vec2 b)
 {
-	vec2 v1 = o - a;
-	vec2 v2 = b - a;
-	vec2 v3 = vec2(-d.y, d.x);
-	float t1 = cross(v2, v1) / dot(v2, v3);
-	float t2 = dot(v1, v3) / dot(v2, v3);
+	vec2	v1 = o - a;
+	vec2	v2 = b - a;
+	vec2	v3 = vec2(-d.y, d.x);
+	float	t1 = cross(v2, v1) / dot(v2, v3);
+	float	t2 = dot(v1, v3) / dot(v2, v3);
 	bool	hit = t1 >= 0 && t2 >= 0 && t2 <= 1;
 	if (hit)
 		intersection = t1;
 	return hit;
 }
+
+/* bool lineSegmentIntersection(out float intersection, in vec2 o, in vec2 d, in vec2 a, in vec2 b)
+{
+	vec2 v1 = o - a;
+	vec2 v2 = b - a;
+	vec2 v3;
+	if (cross(normalize(v2), d) > 0) {
+		v3 = vec2(d.y, -d.x);
+	}
+	else {
+		v3 = vec2(-d.y, d.x);
+	}
+	float t1 = abs(cross(v2, v1)) / dot(v2, v3);
+	float t2 = dot(v1, v3) / dot(v2, v3);
+	bool intersected = (t1 > 0 && t2 < 1);
+	if (intersected)
+		intersection = t1;
+	return intersected;
+} */
 
 vec4 sides[] = vec4[4](
 	vec4(0, 0, 0, 1),
@@ -115,8 +134,35 @@ vec4 sides[] = vec4[4](
 
 bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset)
 {
-	float	distanceToBorder;
-	vec2	rayDir2D = normalize(RayOrigin.xy - (RayOrigin.xy + RayDir.xy));
+	float	distanceToBorder = 1.0;
+	//vec2	rayDir2D = normalize(RayOrigin.xy - (RayOrigin + RayDir).xy);
+	for (int side = 0; side < 4; side++)
+	{
+		lineSegmentIntersection(distanceToBorder, RayOrigin.xy, RayDir.xy,
+			vec2(sides[side].x, sides[side].y), vec2(sides[side].z, sides[side].w));
+	}
+	int		maxTries = 128;
+	float	step = distanceToBorder / float(maxTries);
+	float 	compareTolerance = abs(RayOrigin.z) * step * 2;
+	float	sampleDist = stepOffset * step + step;
+	for (int tries = 0; tries < maxTries; tries++)
+	{
+		vec3	curUV = RayOrigin + RayDir * sampleDist;
+		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, 0).r;
+		float	depthDiff = curUV.z - sampleDepth;
+		bool	hit = abs(depthDiff) < compareTolerance;
+		if (hit && sampleDepth < curUV.z) {
+			RayOrigin = curUV;
+			return curUV.z < 1;
+		}
+		sampleDist += step;
+	}
+}
+
+/* bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset)
+{
+	float	distanceToBorder = 1.0;
+	vec2	rayDir2D = normalize(RayOrigin.xy - (RayOrigin + RayDir).xy);
 	for (int side = 0; side < 4; side++)
 	{
 		lineSegmentIntersection(distanceToBorder, RayOrigin.xy, rayDir2D,
@@ -126,36 +172,28 @@ bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset)
 	int		maxMipMaps = textureMaxLod(LastDepth);
 	int		minMipMaps = 0;
 	int		MipLevel = minMipMaps;
-	int		tries = 0;
 	float	step = distanceToBorder / float(maxTries);
-	//float	step = 1.0 / (maxTries + 1);
 	float 	compareTolerance = abs(RayOrigin.z) * step * 2;
 	float	minHit = 1;
-	float	lastDiff = 0;
-	float	sampleDist = stepOffset * step + step + 0.001;
+	float	lastDepthDiff = 0;
+	float	sampleDist = stepOffset * step + step + 0.1f;
 	for (int tries = 0; tries < maxTries; tries++)
 	{
 		vec3	curUV = RayOrigin + RayDir * sampleDist;
-		//float	factor = tries / float(maxTries);
-		MipLevel = int(Frag.Material.Roughness * (tries * 4.0 / maxTries) + minMipMaps);
-		//MipLevel = int(mix(minMipMaps, maxMipMaps, factor));
-		//int mipOffset = 0;//int(MipLevel * Frag.Material.Roughness * factor);
+		MipLevel = int(Frag.Material.Roughness * (tries * 4.0 / float(maxTries)) + minMipMaps);
 		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, MipLevel).r;
 		float	depthDiff = curUV.z - sampleDepth;
 		bool	hit = abs(depthDiff + compareTolerance) < compareTolerance;
-		float	TimeLerp = clamp(0, 1, lastDiff / (lastDiff - depthDiff));
-		float	intersectDist = sampleDist + TimeLerp * step - step;
-		float	HitTime = hit ? intersectDist : 1;
-		minHit = min(minHit, HitTime);
-		/* if (curUV.z < 1 && hit) {
-			minHit = min(minHit, sampleDist);
-		} */
+		float	depthLerp = clamp(0, 1, lastDepthDiff / (lastDepthDiff - depthDiff));
+		float	intersectDist = sampleDist + depthLerp * step - step;
+		float	hitDist = hit ? intersectDist : 1;
+		minHit = min(minHit, hitDist);
 		sampleDist += step;
-		lastDiff = depthDiff;
+		lastDepthDiff = depthDiff;
 	}
-	RayOrigin = RayOrigin + RayDir * minHit;
+	RayOrigin += RayDir * minHit;
 	return minHit < 1;
-}
+} */
 
 /* bool	castRay(inout vec3 RayOrigin, in vec3 RayDir)
 {
@@ -214,8 +252,9 @@ vec4	SSR()
 	float	SSROffset = PseudoRandom(vec2(textureSize(LastDepth, 0) * Frag.UV));
 	if (castRay(SSPos, SSRDir, SSROffset))
 	{
+		float SSRParticipation = 1;
 		//float SSRParticipation = max(0, dot(WSViewDir, WSReflectionDir));
-		float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));
+		//float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));
 		SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
 		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
 		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));
