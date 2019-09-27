@@ -125,11 +125,10 @@ bool lineSegmentIntersection(out float intersection, in vec2 o, in vec2 d, in ve
 } */
 
 vec4 sides[] = vec4[4](
-	vec4(0, 0, 0, 1),
-	vec4(0, 1, 1, 1),
-	vec4(1, 1, 1, 0),
-	vec4(1, 0, 0, 0)
-
+	vec4(0, 0, 1, 0),
+	vec4(1, 0, 1, 1),
+	vec4(1, 1, 0, 1),
+	vec4(0, 1, 0, 0)
 );
 
 bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset, out int MipLevel)
@@ -137,8 +136,9 @@ bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset, out int 
 	float	distanceToBorder = 1.0;
 	for (int side = 0; side < 4; side++)
 	{
-		lineSegmentIntersection(distanceToBorder, RayOrigin.xy, RayDir.xy,
-			vec2(sides[side].x, sides[side].y), vec2(sides[side].z, sides[side].w));
+		if (lineSegmentIntersection(distanceToBorder, RayOrigin.xy, RayDir.xy,
+					vec2(sides[side].x, sides[side].y), vec2(sides[side].z, sides[side].w)))
+			break;
 	}
 	int		minMipMaps = 0;
 	int		maxTries = 64;
