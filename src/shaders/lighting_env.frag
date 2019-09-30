@@ -20,18 +20,6 @@ vec3	DirectionFromVec2(in vec2 perturbation)
 	return normalize(new_normal);
 }
 
-/*
-vec2	UVSamplingAttenuation = smoothstep(vec2(0.05), vec2(0.1), sampleUV.xy) * (1 - smoothstep(vec2(0.95),vec2 (1), sampleUV.xy));
-UVSamplingAttenuation.x *= UVSamplingAttenuation.y;
-if (UVSamplingAttenuation.x > 0)
-{
-	UVSamplingAttenuation.x = clamp(UVSamplingAttenuation.x, 0, 1);
-	ret.xyz += sampleLod(LastColor, sampleUV.xy, Frag.Material.Roughness * 2).rgb * UVSamplingAttenuation.x; //Sample last image color and accumulate it
-	ret.xyz += sampleLod(LastNormal, sampleUV.xy, Frag.Material.Roughness).rgb * UVSamplingAttenuation.x; //LastNormal is already blurred
-	ret.w += UVSamplingAttenuation.x;
-}
-*/
-
 vec2 rotateUV(vec2 uv, float rotation, vec2 mid)
 {
 	return vec2(
@@ -40,14 +28,14 @@ vec2 rotateUV(vec2 uv, float rotation, vec2 mid)
 		);
 }
 
-int ditherMatrix[] = int[16](
+uint ditherMatrix[] = uint[16](
 	0,	8,	2,	10,
 	12,	4,	14,	6,
 	3,	11,	1,	9,
 	15,	7,	13,	5
 );
 
-int dither(ivec2 position) {
+uint dither(ivec2 position) {
   int x = position.x % 4;
   int y = position.y % 4;
   int index = x + y * 4;
@@ -87,7 +75,7 @@ void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel)
 	}
 }
 
-float cross(in vec2 a, in vec2 b)
+float vec2cross(in vec2 a, in vec2 b)
 {
     return a.x * b.y - b.x * a.y;
 }
@@ -97,7 +85,7 @@ bool lineSegmentIntersection(out float intersection, in vec2 o, in vec2 d, in ve
 	vec2	v1 = o - a;
 	vec2	v2 = b - a;
 	vec2	v3 = vec2(-d.y, d.x);
-	float	t1 = cross(v2, v1) / dot(v2, v3);
+	float	t1 = vec2cross(v2, v1) / dot(v2, v3);
 	float	t2 = dot(v1, v3) / dot(v2, v3);
 	bool	hit = t1 >= 0 && t2 >= 0 && t2 <= 1;
 	if (hit)
@@ -122,7 +110,7 @@ bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset)
 			break;
 	}
 	float	minMipMaps = 0;
-	float	maxTries = 64;
+	float	maxTries = 12;
 	float	step = distanceToBorder / maxTries;
 	float 	compareTolerance = abs(RayOrigin.z) * step * 4;
 	float	sampleDist = stepOffset * step + step;
@@ -147,29 +135,131 @@ float PseudoRandom(vec2 xy)
 	return fract(dot(pos.xyx * pos.xyy, vec3(20.390625f, 60.703125f, 2.4281209f)));
 }
 
+float roughnessToSpecularPower(float r)
+{
+  return 2 / (pow(r,4)) - 2;
+}
+
+#define CNST_MAX_SPECULAR_EXP 64
+
+float specularPowerToConeAngle(float specularPower)
+{
+    // based on phong distribution model
+    if(specularPower >= exp2(CNST_MAX_SPECULAR_EXP))
+    {
+        return 0.0f;
+    }
+    const float xi = 0.244f;
+    float exponent = 1.0f / (specularPower + 1.0f);
+    return acos(pow(xi, exponent));
+}
+
+mat3 GetTangentBasis( vec3 TangentZ )
+{
+	vec3 UpVector = abs(TangentZ.z) < 0.999 ? vec3(0,0,1) : vec3(1,0,0);
+	vec3 TangentX = normalize( cross( UpVector, TangentZ ) );
+	vec3 TangentY = cross( TangentZ, TangentX );
+	return mat3 (TangentX, TangentY, TangentZ);
+}
+
+uint ReverseBits32(uint bits)
+{
+	bits = ( bits << 16) | ( bits >> 16);
+	bits = ( (bits & 0x00ff00ff) << 8 ) | ( (bits & 0xff00ff00) >> 8 );
+	bits = ( (bits & 0x0f0f0f0f) << 4 ) | ( (bits & 0xf0f0f0f0) >> 4 );
+	bits = ( (bits & 0x33333333) << 2 ) | ( (bits & 0xcccccccc) >> 2 );
+	bits = ( (bits & 0x55555555) << 1 ) | ( (bits & 0xaaaaaaaa) >> 1 );
+	return bits;
+}
+
+uint ReverseUIntBits( uint bits )
+{
+	bits = ( (bits & 0x33333333) << 2 ) | ( (bits & 0xcccccccc) >> 2 );
+	bits = ( (bits & 0x55555555) << 1 ) | ( (bits & 0xaaaaaaaa) >> 1 );
+	return bits;
+}
+
+vec3 TangentToWorld( vec3 Vec, vec3 TangentZ )
+{
+	return Vec * GetTangentBasis(TangentZ);
+}
+
+float ClampedPow(float X,float Y)
+{
+	return pow(max(abs(X),0.000001f),Y);
+}
+
+vec4 ImportanceSampleBlinn( vec2 E, float Roughness )
+{
+	float m = Roughness * Roughness;
+	float n = 2 / (m*m) - 2;
+
+	float Phi = 2 * PI * E.x;
+	float CosTheta = ClampedPow( E.y, 1 / (n + 1) );
+	float SinTheta = sqrt( 1 - CosTheta * CosTheta );
+
+	vec3 H;
+	H.x = SinTheta * cos( Phi );
+	H.y = SinTheta * sin( Phi );
+	H.z = CosTheta;
+
+	float D = (n+2)/ (2*PI) * ClampedPow( CosTheta, n );
+	float PDF = D * CosTheta;
+
+	return vec4( H, PDF );
+}
+
+vec2 Hammersley(uint Index, uint NumSamples, uvec2 Random )
+{
+	float E1 = fract( Index / float(NumSamples) + float( Random.x & 0xffff ) / (1<<16) );
+	float E2 = float( ReverseBits32(Index) ^ Random.y ) * 2.3283064365386963e-10;
+	return vec2( E1, E2 );
+}
+
 vec4	SSR()
 {
 	float	Depth = texelFetchLod(LastDepth, Frag.UV, 0).r;
 	vec3	WSPos = Position(Frag.UV, Depth);
 	vec3	WSViewDir = normalize(WSPos - Camera.Position);
-	vec3	WSReflectionDir = reflect(WSViewDir, Frag.Normal);
+	//vec3	WSReflectionDir = reflect(WSViewDir, Frag.Normal);
 	vec3	SSPos = vec3(Frag.UV, Depth);
-	vec3	SSPoint = UVFromPosition(10 * WSReflectionDir + WSPos);
-	vec3	SSRDir = SSPoint - SSPos;
-	float	SSROffset = PseudoRandom(vec2(textureSize(LastDepth, 0) * Frag.UV));
-	if (castRay(SSPos, SSRDir, SSROffset))
-	{
-		//float SSRParticipation = 1;
-		//float SSRParticipation = max(0, dot(WSViewDir, WSReflectionDir));
-		float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));
-		SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
-		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
-		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));
-		SSRParticipation = clamp(SSRParticipation, 0, 1);
-		float	maxMipMaps = float(textureMaxLod(LastDepth));
-		return vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness * 2 + abs(Depth - SSPos.z)).rgb * SSRParticipation, SSRParticipation);
+	
+	//float	SSROffset = PseudoRandom(vec2(textureSize(LastDepth, 0) * Frag.UV));
+	//uvec2 Random = uvec2(PseudoRandom(vec2(textureSize(LastDepth, 0) * Frag.UV)) * uvec2(0x3127352, 0x11229256));
+	uvec2 Random = uvec2(PseudoRandom(vec2(textureSize(LastDepth, 0) * Frag.UV)) * textureSize(LastDepth, 0));
+	//uvec2	Random = uvec2(PseudoRandom(vec2(textureSize(LastDepth, 0) * Frag.UV)) + uint(Time * 1000) % 8 * uvec2(97, 71)) * uvec2(0x3127352, 0x11229256);
+	int		NumRays = 12;
+	vec4	outColor = vec4(0);
+	float	hits = 0;
+	//float	coneAngle = specularPowerToConeAngle(roughnessToSpecularPower(Frag.Material.Roughness));
+	uint ditherOffset = dither(ivec2(textureSize(LastDepth, 0) * Frag.UV));
+	uint PixelIndex = ReverseUIntBits(ditherOffset);
+	for( int i = 0; i < NumRays; i++ ) {
+		float Offset = float((PixelIndex + ReverseUIntBits(uint(Time * 1000) + i * 117)) & 15);
+		float StepOffset = Offset / 15.0;
+		vec2 E = Hammersley( i, NumRays, uvec2(Random) );
+		vec3 H = TangentToWorld( ImportanceSampleBlinn( E, Frag.Material.Roughness).xyz, Frag.Normal);
+		vec3 WSReflectionDir = 2 * dot( WSViewDir, H ) * H - WSViewDir;
+		vec3	SSPoint = UVFromPosition(10 * WSReflectionDir + WSPos);
+		vec3	SSRDir = SSPoint - SSPos;
+
+		//StepOffset -= 0.5;
+		if (castRay(SSPos, SSRDir, StepOffset))
+		{
+			//float SSRParticipation = 1;
+			//float SSRParticipation = max(0, dot(WSViewDir, WSReflectionDir));
+			float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));
+			SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
+			SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
+			SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));
+			SSRParticipation = clamp(SSRParticipation, 0, 1);
+			outColor += vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness + abs(Depth - SSPos.z)).rgb * SSRParticipation, SSRParticipation);
+			hits++;
+			//return vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness + abs(Depth - SSPos.z)).rgb * SSRParticipation, SSRParticipation);
+			//return vec4(sampleLod(LastColor, SSPos.xy, /* Frag.Material.Roughness * 2 +  *//* Frag.Material.Roughness * 0.01 + */ exp(/* Frag.Material.Roughness *  */abs(Depth - SSPos.z))).rgb * SSRParticipation, SSRParticipation);
+		}
 	}
-	return vec4(0);
+	return hits > 0 ? outColor / hits : vec4(0);
 }
 
 float	Env_Specular(in float NdV, in float roughness)

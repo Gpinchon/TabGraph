@@ -1,5 +1,6 @@
 R""(
 #define M_PI	3.1415926535897932384626433832795
+#define PI		M_PI
 #define EPSILON	0.0001
 
 precision lowp float;
