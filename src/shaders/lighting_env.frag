@@ -105,25 +105,6 @@ bool lineSegmentIntersection(out float intersection, in vec2 o, in vec2 d, in ve
 	return hit;
 }
 
-/* bool lineSegmentIntersection(out float intersection, in vec2 o, in vec2 d, in vec2 a, in vec2 b)
-{
-	vec2 v1 = o - a;
-	vec2 v2 = b - a;
-	vec2 v3;
-	if (cross(normalize(v2), d) > 0) {
-		v3 = vec2(d.y, -d.x);
-	}
-	else {
-		v3 = vec2(-d.y, d.x);
-	}
-	float t1 = abs(cross(v2, v1)) / dot(v2, v3);
-	float t2 = dot(v1, v3) / dot(v2, v3);
-	bool intersected = (t1 > 0 && t2 < 1);
-	if (intersected)
-		intersection = t1;
-	return intersected;
-} */
-
 vec4 sides[] = vec4[4](
 	vec4(0, 0, 1, 0),
 	vec4(1, 0, 1, 1),
@@ -141,14 +122,17 @@ bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset, out int 
 			break;
 	}
 	int		minMipMaps = 0;
+	int		maxMipMaps = textureMaxLod(LastDepth);
 	int		maxTries = 64;
 	float	step = distanceToBorder / float(maxTries);
 	float 	compareTolerance = abs(RayOrigin.z) * step * 2;
 	float	sampleDist = stepOffset * step + step;
+	MipLevel = minMipMaps;
 	for (int tries = 0; tries < maxTries; tries++)
 	{
 		vec3	curUV = RayOrigin + RayDir * sampleDist;
-		MipLevel = int(Frag.Material.Roughness * (tries * 4.0 / float(maxTries)) + minMipMaps);
+		
+		//MipLevel = int(Frag.Material.Roughness * (tries * 4.0 / float(maxTries)) + minMipMaps);
 		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, MipLevel).r;
 		float	depthDiff = curUV.z - sampleDepth;
 		bool	hit = abs(depthDiff) < compareTolerance;
@@ -157,6 +141,7 @@ bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset, out int 
 			return curUV.z < 1;
 		}
 		sampleDist += step;
+		MipLevel += int(mix(minMipMaps, maxMipMaps, Frag.Material.Roughness * (sampleDist / distanceToBorder)));
 	}
 }
 
@@ -236,8 +221,6 @@ bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset, out int 
 float PseudoRandom(vec2 xy)
 {
 	vec2 pos = fract(xy / 128.0f) * 128.0f + vec2(-64.340622f, -72.465622f);
-	
-	// found by experimentation
 	return fract(dot(pos.xyx * pos.xyy, vec3(20.390625f, 60.703125f, 2.4281209f)));
 }
 
@@ -254,9 +237,9 @@ vec4	SSR()
 	int		MipLevel;
 	if (castRay(SSPos, SSRDir, SSROffset, MipLevel))
 	{
-		float SSRParticipation = 1;
+		//float SSRParticipation = 1;
 		//float SSRParticipation = max(0, dot(WSViewDir, WSReflectionDir));
-		//float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));
+		float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));
 		SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
 		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR)); //Attenuate reflection factor when getting closer to screen border
 		SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));
