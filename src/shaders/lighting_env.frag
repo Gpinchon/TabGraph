@@ -173,17 +173,28 @@ float specularPowerToConeAngle(float specularPower)
     return acos(pow(xi, exponent));
 }
 
+uint MortonCode(uint x)
+{
+	x = (x ^ (x <<  2)) & 0x33333333;
+	x = (x ^ (x <<  1)) & 0x55555555;
+	return x;
+}
+
+
 vec4	SSR()
 {
 	float	Depth = texelFetchLod(LastDepth, Frag.UV, 0).r;
 	vec3	WSPos = ScreenToWorld(Frag.UV, Depth);
 	vec3	WSViewDir = normalize(WSPos - Camera.Position);
 	vec3	SSPos = vec3(Frag.UV, Depth);
-	uint	FrameRandom = uint(smoothstep(0.0, 10000.0, mod(Time, 1)));// uint(Time);
-	uvec2	Random = ScrambleTEA(uvec2(textureSize(LastDepth, 0) * Frag.UV) ^ FrameRandom);
+	uint	FrameRandom = uint(smoothstep(0.0, 10000.0, mod(Time, 1.0)));// uint(Time);
 	vec4	outColor = vec4(0);
+	uvec2	PixelPos = ivec2(textureSize(LastDepth, 0) * Frag.UV);
 	//Get the pixel Dithering Value and reverse Bits
-	uint	PixelIndex = ReverseUIntBits(dither(ivec2(textureSize(LastDepth, 0) * Frag.UV)));
+	uint	Morton = MortonCode(PixelPos.x & 3) | ( MortonCode(PixelPos.y & 3) * 2 );
+	uint	PixelIndex = ReverseUIntBits(Morton);
+	//Scramble !
+	uvec2	Random = ScrambleTEA(PixelPos ^ FrameRandom);
 	//Compute reflection Cone Angle using Phong Distribution
 	float	ConeAngle = specularPowerToConeAngle(roughnessToSpecularPower(Frag.Material.Roughness)) * 0.5;
 	for( int i = 0; i < REFLEXION_SAMPLES; i++ ) {
