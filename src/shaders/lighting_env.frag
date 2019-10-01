@@ -187,7 +187,7 @@ vec4	SSR()
 	vec3	WSPos = ScreenToWorld(Frag.UV, Depth);
 	vec3	WSViewDir = normalize(WSPos - Camera.Position);
 	vec3	SSPos = vec3(Frag.UV, Depth);
-	uint	FrameRandom = uint(smoothstep(0.0, 10000.0, mod(Time, 1.0)));// uint(Time);
+	uint	FrameRandom = Time * 1000.f;
 	vec4	outColor = vec4(0);
 	uvec2	PixelPos = ivec2(textureSize(LastDepth, 0) * Frag.UV);
 	//Get the pixel Dithering Value and reverse Bits
