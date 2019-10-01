@@ -99,29 +99,26 @@ layout(location = 5) out vec3	out_Normal;
 
 t_Frag	Frag;
 
-vec3	Position(vec2 UV)
+float Luminance(vec3 LinearColor)
 {
-	float	linearDepth = texture(Texture.Depth, UV).r * 2.0 - 1.0;
-	vec2	coord = UV * 2.0 - 1.0;
-	vec4	projectedCoord = vec4(coord, linearDepth, 1.0);
-	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
-	return (projectedCoord.xyz / projectedCoord.w);
+	return dot(LinearColor, vec3(0.299, 0.587, 0.114));
 }
 
-vec3	Position(in vec2 UV, in float depth)
+vec3	ScreenToWorld(in vec2 UV, in float depth)
 {
 	vec4	projectedCoord = vec4(UV * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
 	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
 	return (projectedCoord.xyz / projectedCoord.w);
 }
 
-vec3	Position()
+vec3	WorldPosition(in vec2 UV)
 {
-	float	linearDepth = Frag.Depth * 2.0 - 1.0;
-	vec2	coord = frag_UV * 2.0 - 1.0;
-	vec4	projectedCoord = vec4(coord, linearDepth, 1.0);
-	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
-	return (projectedCoord.xyz / projectedCoord.w);
+	return ScreenToWorld(UV, texture(Texture.Depth, UV).r);
+}
+
+vec3	WorldPosition()
+{
+	return ScreenToWorld(Frag.UV, Frag.Depth);
 }
 
 void	FillFrag()
@@ -129,7 +126,7 @@ void	FillFrag()
 	Frag.UV = frag_UV;
 	Frag.CubeUV = frag_Cube_UV;
 	Frag.Depth = gl_FragDepth = texture(Texture.Depth, frag_UV).r;
-	Frag.Position = Position();
+	Frag.Position = WorldPosition();
 	Frag.Normal = texture(Texture.Normal, frag_UV).xyz;
 	vec4	albedo_sample = texture(Texture.Albedo, frag_UV);
 	Frag.Material.Albedo = albedo_sample.rgb;

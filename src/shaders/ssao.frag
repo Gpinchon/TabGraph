@@ -19,7 +19,7 @@ void	ApplyTechnique()
 	for (int i = 0; i < KERNEL_SIZE; i++)
 	{
 		vec2	sampleUV = Frag.UV + poissonDisk[i] * sampleRotation * sampleOffset;
-		vec3	samplePosition = Position(sampleUV);
+		vec3	samplePosition = WorldPosition(sampleUV);
 		vec3	V = samplePosition - Frag.Position.xyz;
 		float	D = length(V);
 		float	bias = D + 0.025;
