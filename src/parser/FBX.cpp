@@ -2,21 +2,21 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-08-14 11:29:23
+ * @Last Modified time: 2019-10-02 17:52:18
  */
 
-#include <iostream>
-#include <memory>
-#include <glm/glm.hpp>
 #include "parser/FBX.hpp"
+#include "Material.hpp"
+#include "Mesh.hpp"
 #include "MeshParser.hpp"
+#include "Vgroup.hpp"
 #include "parser/FBX/FBXDocument.hpp"
 #include "parser/FBX/FBXNode.hpp"
 #include "parser/FBX/FBXObject.hpp"
 #include "parser/FBX/FBXProperty.hpp"
-#include "Material.hpp"
-#include "Mesh.hpp"
-#include "Vgroup.hpp"
+#include <glm/glm.hpp>
+#include <iostream>
+#include <memory>
 
 //Add this parser to MeshParser !
 auto __fbxParser = MeshParser::Add("fbx", FBX::parseMesh);
@@ -257,6 +257,7 @@ static inline auto extractConnections(FBX::Document &document)
 std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string &path)
 {
     auto document(FBX::Document::Parse(path));
+    document->Print();
     auto mainMesh(Mesh::Create(name));
     auto mtl = Material::Create("default_fbx");
     mtl->albedo = glm::vec3(0.5);
