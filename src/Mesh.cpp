@@ -63,12 +63,10 @@ void Mesh::Add(std::shared_ptr<Mesh> mesh) /*static*/
     _meshes.push_back(mesh);
 }
 
-/*std::shared_ptr<Vgroup> Mesh::vgroup(unsigned index)
+const std::set<std::shared_ptr<Vgroup>> Mesh::vgroups()
 {
-    if (index >= _vgroups.size())
-        return (nullptr);
-    return (_vgroups.at(index).lock());
-}*/
+    return (_vgroups);
+}
 
 void Mesh::Add(std::shared_ptr<Vgroup> group)
 {

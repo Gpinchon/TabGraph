@@ -181,14 +181,13 @@ uint MortonCode(uint x)
 	return x;
 }
 
-
 vec4	SSR()
 {
 	float	Depth = texelFetchLod(LastDepth, Frag.UV, 0).r;
 	vec3	WSPos = ScreenToWorld(Frag.UV, Depth);
 	vec3	WSViewDir = normalize(WSPos - Camera.Position);
 	vec3	SSPos = vec3(Frag.UV, Depth);
-	uint	FrameRandom = Time * 1000.f;
+	uint	FrameRandom = uint(Time * 1000.f) % 7;
 	vec4	outColor = vec4(0);
 	uvec2	PixelPos = ivec2(textureSize(LastDepth, 0) * Frag.UV);
 	//Get the pixel Dithering Value and reverse Bits
@@ -206,7 +205,7 @@ vec4	SSR()
 		//TODO : Find a better way to do this
 		vec3	SSRDir = WorldToScreen(10 * WSReflectionDir + WSPos) - SSPos;
 		float	Offset = float((PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15);
-		float	StepOffset = (Offset / 15.0) - 0.5;
+		float	StepOffset = (Offset / 15.0) - 0.25;
 		if (castRay(SSPos, SSRDir, StepOffset))
 		{
 			float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));

@@ -21,6 +21,7 @@ public:
     static std::shared_ptr<Material> Create(const std::string&);
     static std::shared_ptr<Material> Get(unsigned index);
     static std::shared_ptr<Material> GetByName(const std::string&);
+    static std::shared_ptr<Material> GetById(int64_t id);
     virtual void bind_values();
     virtual void bind_textures();
     std::shared_ptr<Shader> shader();

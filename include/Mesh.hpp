@@ -31,7 +31,7 @@ public:
     void center();
     void set_cull_mod(GLenum);
     void Add(std::shared_ptr<Vgroup>);
-    //std::shared_ptr<Vgroup> vgroup(unsigned index);
+    const std::set<std::shared_ptr<Vgroup>> vgroups();
 
 protected:
     Mesh(const std::string &name);

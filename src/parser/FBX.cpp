@@ -87,14 +87,6 @@ static inline auto getNormals(std::shared_ptr<FBX::Node> layerElementNormal)
         vnUnindexed.push_back(vn.at(index));
     }
     return vnUnindexed;
-    /*std::string mappingInformationType(layerElementNormal->SubNode("MappingInformationType")->Property(0));
-    std::string referenceInformationType(layerElementNormal->SubNode("ReferenceInformationType")->Property(0));
-    if (mappingInformationType == "ByPolygonVertex") {
-        if (referenceInformationType == "Direct") {
-            return vn;
-        }
-    }
-    return vn;*/
 }
 
 static inline auto getVertices(std::shared_ptr<FBX::Node> vertices)
@@ -112,26 +104,6 @@ static inline auto getVertices(std::shared_ptr<FBX::Node> vertices)
         v.push_back(vec3);
     }
     return v;
-    /*    std::vector<glm::vec3> realV;
-    std::vector<int32_t> polygonIndex;
-    for (const auto i : indices) {
-        if (i < 0) {
-            polygonIndex.push_back(abs(i) - 1);
-            realV.push_back(v.at(polygonIndex.at(0)));
-            realV.push_back(v.at(polygonIndex.at(1)));
-            realV.push_back(v.at(polygonIndex.at(2)));
-            if (polygonIndex.size() == 4) {
-                realV.push_back(v.at(polygonIndex.at(2)));
-                realV.push_back(v.at(polygonIndex.at(3)));
-                realV.push_back(v.at(polygonIndex.at(0)));
-            }
-            polygonIndex.clear();
-        } else {
-            polygonIndex.push_back(i);
-        }
-    }
-    std::cout << "Parsing Done ! " << realV.size() << std::endl;
-    return realV;*/
 }
 
 static inline auto getVerticesIndices(std::shared_ptr<FBX::Node> polygonVertexIndex)
@@ -145,24 +117,6 @@ static inline auto getVerticesIndices(std::shared_ptr<FBX::Node> polygonVertexIn
         vi.push_back(std::get<int32_t *>(viArray.data)[i]);
     }
     return vi;
-
-    /*    std::vector<int32_t> polygonIndex;
-    for (const auto i : vi) {
-        if (i < 0) {
-            polygonIndex.push_back(abs(i) - 1);
-            indices.push_back(polygonIndex.at(0));
-            indices.push_back(polygonIndex.at(1));
-            indices.push_back(polygonIndex.at(2));
-            if (polygonIndex.size() == 4) {
-                indices.push_back(polygonIndex.at(2));
-                indices.push_back(polygonIndex.at(3));
-                indices.push_back(polygonIndex.at(0));
-            }
-            polygonIndex.clear();
-        } else {
-            polygonIndex.push_back(i);
-        }
-    }*/
 }
 
 static inline auto triangulateIndices(const std::vector<int32_t> &vi)
@@ -234,25 +188,6 @@ static inline auto getMappedIndices(const std::string &mappingInformationType, c
     return normalsIndices;
 }
 
-static inline auto extractConnections(FBX::Document &document)
-{
-    std::map<int64_t, std::vector<int64_t>> connectionMap;
-    for (const auto &connection : document.SubNodes("Connections"))
-    {
-        for (const auto &c : connection->SubNodes("C"))
-        {
-            if (std::string(c->Property(0)) == "OO")
-            {
-                int64_t sourceId(c->Property(1));
-                int64_t destinationId(c->Property(2));
-                std::cout << sourceId << " " << destinationId << std::endl;
-                connectionMap[destinationId].push_back(sourceId);
-            }
-        }
-    }
-    return connectionMap;
-}
-
 std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string &path)
 {
     auto document(FBX::Document::Parse(path));
@@ -261,7 +196,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
     auto mtl = Material::Create("default_fbx");
     mtl->albedo = glm::vec3(0.5);
     mtl->roughness = 0.5;
-    auto connections(extractConnections(*document));
     for (const auto &objects : document->SubNodes("Objects"))
     {
         if (objects == nullptr)
@@ -365,10 +299,15 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             std::vector<unsigned> normalsIndices;
             if (layerElementNormal != nullptr)
                 normalsIndices = getMappedIndices(layerElementNormal->SubNode("MappingInformationType")->Property(0), verticesIndices);
-            std::cout << "normals" << normals.size() << std::endl;
-            std::cout << "normalsIndices" << normalsIndices.size() << std::endl;
-            std::cout << "vertices" << vertices.size() << std::endl;
-            std::cout << "verticesIndices" << verticesIndices.size() << std::endl;
+            auto layerElementMaterial(geometry->SubNode("LayerElementMaterial"));
+            auto material(-1);
+            for (auto &materialIndex : getVerticesIndices(layerElementMaterial->SubNode("Materials"))) {
+                if (material != materialIndex) {
+                    std::cout << materialIndex << " ";
+                    material = materialIndex;
+                }
+            }
+            std::cout << std::endl;
             std::vector<int32_t> polygonIndex;
             std::vector<int32_t> polygonIndexNormal;
             for (auto i = 0u; i < verticesIndices.size(); i++)
@@ -440,34 +379,7 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             }
         }
     }
-    /*for (const auto &connection : connections)
-    {
-        auto connectedMesh(Mesh::GetById(connection.first));
-        if (connectedMesh != nullptr)
-        {
-            std::cout << "Got Mesh " << connectedMesh->Name() << std::endl;
-            for (const auto &id : connection.second)
-            {
-                auto connectedVgroup(Vgroup::GetById(id));
-                if (connectedVgroup != nullptr)
-                    connectedMesh->Add(connectedVgroup);
-            }
-            continue;
-        }
-        auto connectedMaterial(Material::GetById(connection.first));
-        if (connectedMaterial != nullptr)
-        {
-            std::cout << "Got Material " << connectedMaterial->Name() << std::endl;
-            for (const auto &id : connection.second)
-            {
-                auto connectedVgroup(Vgroup::GetById(id));
-                if (connectedVgroup != nullptr)
-                    connectedVgroup->set_material(std::dynamic_pointer_cast<Material>(connectedMaterial));
-            }
-            continue;
-        }
-    }*/
-    std::cout << "Setting up parenting" << std::endl;
+    std::cout << "Setting up relations" << std::endl;
     for (const auto &connection : document->SubNodes("Connections"))
     {
         for (const auto &c : connection->SubNodes("C"))
@@ -480,18 +392,17 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                     auto source(Mesh::GetById(sourceId));
                     if (source != nullptr)
                     {
-                        std::cout << "Got Mesh " << source->Name() << std::endl;
+                        std::cout << "Got Mesh " << source->Id() << std::endl;
                         {
                             auto destination(Mesh::GetById(destinationId));
                             if (destination != nullptr)
                             {
-                                std::cout << source->Name() << " : IS CHILD OF : " << destination->Name() << std::endl;
+                                std::cout << source->Id() << " : IS CHILD OF : " << destination->Id() << std::endl;
                                 destination->add_child(source);
                             }
                             else if (destinationId == 0)
                             {
-                                std::cout << source->Name() << " : IS CHILD OF : "
-                                          << "*ROOT*" << std::endl;
+                                std::cout << source->Id() << " : IS CHILD OF : " << "*ROOT*" << std::endl;
                                 mainMesh->add_child(source);
                             }
                         }
@@ -499,43 +410,45 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                     }
                 }
                 {
-                    auto source(Vgroup::GetById(destinationId));
+                    auto source(Vgroup::GetById(sourceId));
                     if (source != nullptr)
                     {
-                        std::cout << "Got Vgroup " << source->Name() << std::endl;
-                        auto destination(Mesh::GetById(destinationId));
-                        if (destination != nullptr)
-                            source->Add(destination);
-                        continue;
+                        std::cout << "Got Vgroup " << source->Id() << std::endl;
+                        {
+                            auto destination(Mesh::GetById(destinationId));
+                            if (destination != nullptr){
+                                std::cout << "Mesh " << destinationId <<  " uses Vgroup " << source->Id() << std::endl;
+                                destination->Add(source);
+                            }
+                            continue;
+                        }   
                     }
                 }
                 {
-                    auto source(std::dynamic_pointer_cast<Material>(Material::GetById(sourceId)));
+                    auto source(Material::GetById(sourceId));
                     if (source != nullptr)
                     {
-                        std::cout << "Got Material " << source->Name() << std::endl;
-                        auto destination(Vgroup::GetById(destinationId));
-                        if (destination != nullptr)
-                            destination->set_material(source);
-                        continue;
+                        std::cout << "Got Material " << source->Id() << std::endl;
+                        std::cout << "Destination ID "<< destinationId << std::endl;
+                        {
+                            auto destination(Vgroup::GetById(destinationId));
+                            if (destination != nullptr) {
+                                std::cout << "Vgroup " << destinationId << " uses Material " << source->Id() << std::endl;
+                                destination->set_material(source);
+                                continue;
+                            }
+                        }
+                        {
+                            auto destination(Mesh::GetById(destinationId));
+                            if (destination != nullptr) {
+                                std::cout << "Mesh " << destinationId << " uses Material " << source->Id() << std::endl;
+                                for (auto vg : destination->vgroups())
+                                    vg->set_material(source);
+                                continue;
+                            }
+                        }
                     }
                 }
-                /*int64_t sourceId(c->Property(1));
-                int64_t destinationId(c->Property(2));
-                std::cout << sourceId << " : IS CONNECTED TO : " << destinationId << std::endl;
-                auto source = Mesh::GetById(sourceId);
-                auto destination = Mesh::GetById(destinationId);
-                if (source && destination)
-                {
-                    std::cout << source->Name() << " : IS CHILD OF : " << destination->Name() << std::endl;
-                    destination->add_child(source);
-                }
-                else if (source && destination == 0)
-                {
-                    std::cout << source->Name() << " : IS CHILD OF : "
-                              << "*ROOT*" << std::endl;
-                    mainMesh->add_child(source);
-                }*/
             }
         }
     }

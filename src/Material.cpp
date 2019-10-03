@@ -61,6 +61,16 @@ std::shared_ptr<Material> Material::GetByName(const std::string& name)
     return (nullptr);
 }
 
+std::shared_ptr<Material> Material::GetById(int64_t id)
+{
+    for (auto m : _materials) {
+        if (id == m->Id()) {
+            return (m);
+        }
+    }
+    return (nullptr);
+}
+
 void Material::bind_textures()
 {
     auto shaderPtr = shader();
