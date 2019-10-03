@@ -130,6 +130,7 @@ vec2 Hammersley(uint Index, uint NumSamples, uvec2 Random )
 	return vec2( E1, E2 );
 }
 
+//Generate Pseudo random numbers using TEA (Tiny Encription Algorithm)
 uvec2 ScrambleTEA(uvec2 v, uint IterationCount)
 {
 	// Start with some random data (numbers can be arbitrary but those have been used by others and seem to work well)
@@ -193,7 +194,6 @@ vec4	SSR()
 	//Get the pixel Dithering Value and reverse Bits
 	uint	Morton = MortonCode(PixelPos.x & 3) | ( MortonCode(PixelPos.y & 3) * 2 );
 	uint	PixelIndex = ReverseUIntBits(Morton);
-	//Scramble !
 	uvec2	Random = ScrambleTEA(PixelPos ^ FrameRandom);
 	//Compute reflection Cone Angle using Phong Distribution
 	float	ConeAngle = specularPowerToConeAngle(roughnessToSpecularPower(Frag.Material.Roughness)) * 0.5;
