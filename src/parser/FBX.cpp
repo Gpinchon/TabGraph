@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-10-02 17:52:18
+ * @Last Modified time: 2019-10-03 17:07:48
  */
 
 #include "parser/FBX.hpp"
@@ -275,6 +275,9 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             material->SetId(id);
             for (const auto &P70 : fbxMaterial->SubNodes("Properties70"))
             {
+                //Properties70 is empty, ignore it.
+                if (P70->properties.size() < 2)
+                    continue;
                 std::string propertyName(P70->Property(0));
                 std::string propertyType(P70->Property(1));
                 if ("DiffuseColor" == propertyName)
@@ -309,12 +312,16 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                 else if ("ReflectionColor" == propertyName)
                 {
                     if ("Color" == propertyType)
-                        continue;
+                        material->specular = glm::vec3(
+                            double(P70->Property(4)),
+                            double(P70->Property(5)),
+                            double(P70->Property(6)));
                 }
                 else if ("EmissiveFactor" == propertyName)
                 {
                     if ("Number" == propertyType)
-                        continue;
+                        material->emitting *= double(P70->Property(4));
+                    continue;
                 }
                 else if ("AmbientFactor" == propertyName)
                 {
@@ -402,50 +409,69 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                 mesh = Mesh::Create(model->Property(1));
                 mesh->SetId(model->Property(0));
             }
-            for (const auto &id : connections[model->Property(0)])
+            auto properties(model->SubNode("Properties70"));
+            for (auto property : properties->SubNodes("P"))
             {
-                auto vgroup = Vgroup::GetById(id);
-                if (vgroup == nullptr)
-                    continue;
-                mesh->Add(vgroup);
-                auto properties(model->SubNode("Properties70"));
-                for (auto property : properties->SubNodes("P"))
+                std::string propertyName(property->Property(0));
+                std::cout << propertyName << std::endl;
+                if (propertyName == "Lcl Translation")
                 {
-                    std::string propertyName(property->Property(0));
-                    std::cout << propertyName << std::endl;
-                    if (propertyName == "Lcl Translation")
-                    {
-                        mesh->SetPosition(glm::vec3(
-                            double(property->Property(4)),
-                            double(property->Property(5)),
-                            double(property->Property(6))));
-                        std::cout << mesh->Position().x << " " << mesh->Position().y << " " << mesh->Position().z << std::endl;
-                    }
-                    else if (propertyName == "Lcl Rotation")
-                    {
-                        mesh->SetRotation(glm::vec3(
-                            double(property->Property(4)),
-                            double(property->Property(5)),
-                            double(property->Property(6))));
-                        std::cout << mesh->Rotation().x << " " << mesh->Rotation().y << " " << mesh->Rotation().z << std::endl;
-                    }
-                    else if (propertyName == "Lcl Scaling")
-                    {
-                        mesh->SetScale(glm::vec3(
-                            double(property->Property(4)),
-                            double(property->Property(5)),
-                            double(property->Property(6))));
-                        std::cout << mesh->Scale().x << " " << mesh->Scale().y << " " << mesh->Scale().z << std::endl;
-                    }
+                    mesh->SetPosition(glm::vec3(
+                        double(property->Property(4)),
+                        double(property->Property(5)),
+                        double(property->Property(6))));
+                    std::cout << mesh->Position().x << " " << mesh->Position().y << " " << mesh->Position().z << std::endl;
                 }
+                else if (propertyName == "Lcl Rotation")
+                {
+                    mesh->SetRotation(glm::vec3(
+                        double(property->Property(4)),
+                        double(property->Property(5)),
+                        double(property->Property(6))));
+                    std::cout << mesh->Rotation().x << " " << mesh->Rotation().y << " " << mesh->Rotation().z << std::endl;
+                }
+                else if (propertyName == "Lcl Scaling")
+                {
+                    mesh->SetScale(glm::vec3(
+                        double(property->Property(4)),
+                        double(property->Property(5)),
+                        double(property->Property(6))));
+                    std::cout << mesh->Scale().x << " " << mesh->Scale().y << " " << mesh->Scale().z << std::endl;
+                }
+            }
+        }
+        for (const auto &connection : connections)
+        {
+            auto connectedMesh(Mesh::GetById(connection.first));
+            if (connectedMesh != nullptr)
+            {
+                std::cout << "Got Mesh " << connectedMesh->Name() << std::endl;
+                for (const auto &id : connection.second)
+                {
+                    auto connectedVgroup(Vgroup::GetById(id));
+                    if (connectedVgroup != nullptr)
+                        connectedMesh->Add(connectedVgroup);
+                }
+                continue;
+            }
+            auto connectedMaterial(Material::GetById(connection.first));
+            if (connectedMaterial != nullptr)
+            {
+                std::cout << "Got Material " << connectedMaterial->Name() << std::endl;
+                for (const auto &id : connection.second)
+                {
+                    auto connectedVgroup(Vgroup::GetById(id));
+                    if (connectedVgroup != nullptr)
+                        connectedVgroup->set_material(std::dynamic_pointer_cast<Material>(connectedMaterial));
+                }
+                continue;
             }
         }
     }
     std::cout << "Setting up parenting" << std::endl;
     for (const auto &connection : document->SubNodes("Connections"))
     {
-        auto cs(connection->SubNodes("C"));
-        for (const auto &c : cs)
+        for (const auto &c : connection->SubNodes("C"))
         {
             if (std::string(c->Property(0)) == "OO")
             {
@@ -468,6 +494,5 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             }
         }
     }
-    document->Print();
     return mainMesh;
 }
