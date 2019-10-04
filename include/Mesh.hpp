@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-14 08:38:33
+* @Last Modified time: 2019-10-04 16:12:49
 */
 
 #pragma once
@@ -15,6 +15,7 @@
 #include <vector> // for vector
 
 class Vgroup;
+class Material;
 
 class Mesh : public Renderable
 {
@@ -30,7 +31,17 @@ public:
     bool Drawable() const override;
     void center();
     void set_cull_mod(GLenum);
-    void Add(std::shared_ptr<Vgroup>);
+    /** Adds the vgroup to vgroups list */
+    void AddVgroup(std::shared_ptr<Vgroup>);
+    /** Adds the material to materials list */
+    void AddMaterial(std::shared_ptr<Material>);
+    /** Removes the material from materials list */
+    void RemoveMaterial(std::shared_ptr<Material>);
+    /** Sets the material at specified index */
+    void SetMaterial(std::shared_ptr<Material>, uint32_t index);
+    /** @return the material at specified index */
+    void GetMaterial(uint32_t index);
+
     const std::set<std::shared_ptr<Vgroup>> vgroups();
 
 protected:
@@ -39,6 +50,7 @@ protected:
 private:
     static std::vector<std::shared_ptr<Mesh>> _meshes;
     std::set<std::shared_ptr<Vgroup>> _vgroups;
+    std::vector<std::shared_ptr<Material>> _materials;
     GLenum _cull_mod{GL_BACK};
 };
 

@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-10-03 18:10:48
+ * @Last Modified time: 2019-10-04 16:15:36
  */
 
 #include "parser/FBX.hpp"
@@ -301,8 +301,10 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                 normalsIndices = getMappedIndices(layerElementNormal->SubNode("MappingInformationType")->Property(0), verticesIndices);
             auto layerElementMaterial(geometry->SubNode("LayerElementMaterial"));
             auto material(-1);
-            for (auto &materialIndex : getVerticesIndices(layerElementMaterial->SubNode("Materials"))) {
-                if (material != materialIndex) {
+            for (auto &materialIndex : getVerticesIndices(layerElementMaterial->SubNode("Materials")))
+            {
+                if (material != materialIndex)
+                {
                     std::cout << materialIndex << " ";
                     material = materialIndex;
                 }
@@ -402,7 +404,8 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                             }
                             else if (destinationId == 0)
                             {
-                                std::cout << source->Id() << " : IS CHILD OF : " << "*ROOT*" << std::endl;
+                                std::cout << source->Id() << " : IS CHILD OF : "
+                                          << "*ROOT*" << std::endl;
                                 mainMesh->add_child(source);
                             }
                         }
@@ -416,12 +419,13 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                         std::cout << "Got Vgroup " << source->Id() << std::endl;
                         {
                             auto destination(Mesh::GetById(destinationId));
-                            if (destination != nullptr){
-                                std::cout << "Mesh " << destinationId <<  " uses Vgroup " << source->Id() << std::endl;
-                                destination->Add(source);
+                            if (destination != nullptr)
+                            {
+                                std::cout << "Mesh " << destinationId << " uses Vgroup " << source->Id() << std::endl;
+                                destination->AddVgroup(source);
                             }
                             continue;
-                        }   
+                        }
                     }
                 }
                 {
@@ -429,10 +433,11 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                     if (source != nullptr)
                     {
                         std::cout << "Got Material " << source->Id() << std::endl;
-                        std::cout << "Destination ID "<< destinationId << std::endl;
+                        std::cout << "Destination ID " << destinationId << std::endl;
                         {
                             auto destination(Vgroup::GetById(destinationId));
-                            if (destination != nullptr) {
+                            if (destination != nullptr)
+                            {
                                 std::cout << "Vgroup " << destinationId << " uses Material " << source->Id() << std::endl;
                                 destination->set_material(source);
                                 continue;
@@ -440,7 +445,8 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                         }
                         {
                             auto destination(Mesh::GetById(destinationId));
-                            if (destination != nullptr) {
+                            if (destination != nullptr)
+                            {
                                 std::cout << "Mesh " << destinationId << " uses Material " << source->Id() << std::endl;
                                 for (auto vg : destination->vgroups())
                                     vg->set_material(source);

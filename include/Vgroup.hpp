@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 17:44:55
+* @Last Modified time: 2019-10-04 16:56:05
 */
 
 #pragma once
@@ -20,13 +20,6 @@ class VertexArray; // lines 19-19
 
 typedef glm::vec<4, uint8_t, glm::defaultp> CVEC4;
 
-/*struct CVEC4 {
-    GLubyte x;
-    GLubyte y;
-    GLubyte z;
-    GLubyte w;
-};*/
-
 class Vgroup : public Object
 {
 public:
@@ -34,14 +27,15 @@ public:
     static std::shared_ptr<Vgroup> Get(unsigned index);
     static std::shared_ptr<Vgroup> GetByName(const std::string &name);
     static std::shared_ptr<Vgroup> GetById(int64_t);
-    std::shared_ptr<Material> material();
-    void set_material(std::shared_ptr<Material>);
+    uint32_t MaterialIndex();
+    void SetMaterialIndex(uint32_t);
     void bind();
     void Load();
-    bool Draw(RenderMod mod = RenderAll);
-    bool DrawDepth(RenderMod mod = RenderAll);
+    void AddSubVgroup(std::shared_ptr<Vgroup>);
+    void RemoveSubVgroup(std::shared_ptr<Vgroup>);
+    bool Draw(RenderMod mod, std::vector<std::shared_ptr<Material>>);
+    bool DrawDepth(RenderMod mod, std::vector<std::shared_ptr<Material>>);
     bool IsLoaded() const;
-    //void center(glm::vec3 &center);
     glm::vec2 uvmin;
     glm::vec2 uvmax;
     std::vector<glm::vec3> v;
@@ -53,7 +47,8 @@ public:
 protected:
     bool _isLoaded{false};
     static std::vector<std::shared_ptr<Vgroup>> _vgroups;
-    std::weak_ptr<Material> _material;
     std::weak_ptr<VertexArray> _vao;
+    std::vector<std::shared_ptr<Vgroup>> _subVgroups;
+    uint32_t _materialIndex{0};
     Vgroup(const std::string &);
 };

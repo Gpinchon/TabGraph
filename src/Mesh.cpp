@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-14 08:39:24
+* @Last Modified time: 2019-10-04 16:13:00
 */
 
 #include "Mesh.hpp"
@@ -68,7 +68,7 @@ const std::set<std::shared_ptr<Vgroup>> Mesh::vgroups()
     return (_vgroups);
 }
 
-void Mesh::Add(std::shared_ptr<Vgroup> group)
+void Mesh::AddVgroup(std::shared_ptr<Vgroup> group)
 {
     if (nullptr == group)
         return;

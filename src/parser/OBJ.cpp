@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-09-09 17:39:29
+* @Last Modified time: 2019-10-04 16:16:03
 */
 
 #include "parser/OBJ.hpp"
@@ -237,7 +237,7 @@ void parse_vg(t_obj_parser *p, const std::string &name)
         childNbr++;
         vt_min_max(p->vg);
         //p->parent->add_child(p->vg);
-        p->parent->Add(p->vg);
+        p->parent->AddVgroup(p->vg);
         if (name == "")
         {
             p->vg = Vgroup::Create(p->parent->Name() + "_vgroup_" + std::to_string(childNbr));
