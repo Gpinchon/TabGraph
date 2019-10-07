@@ -2,16 +2,18 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-10-04 16:13:00
+* @Last Modified time: 2019-10-07 14:28:53
 */
 
 #include "Mesh.hpp"
 #include "AABB.hpp" // for AABB
 #include "BoundingElement.hpp" // for BoundingElement
 #include "Camera.hpp" // for Camera
+#include "Debug.hpp"
 #include "Material.hpp" // for Material
 #include "Node.hpp" // for Node
 #include "Shader.hpp" // for Shader
+#include "Texture.hpp"
 #include "Vgroup.hpp" // for Vgroup
 #include <glm/gtc/matrix_inverse.hpp>
 
@@ -99,21 +101,31 @@ bool Mesh::DrawDepth(RenderMod mod)
     {
         if (nullptr == vg)
             continue;
-        auto vgMaterial = vg->material();
-        if (vgMaterial == nullptr)
+        auto material(GetMaterial(vg->MaterialIndex()));
+        if (nullptr == material)
             continue;
-        auto depthShader = vgMaterial->depth_shader();
-        depthShader->use();
-        if (last_shader != depthShader)
+        if (mod == RenderOpaque
+            && (material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
+            continue;
+        else if (mod == RenderTransparent
+                 && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
+            continue;
+        auto shader(material->depth_shader());
+        if (nullptr == shader)
+            continue;
+        shader->use();
+        if (last_shader != shader)
         {
-            depthShader->set_uniform("Matrix.Model", TransformMatrix());
-            depthShader->set_uniform("Matrix.ModelViewProjection", mvp);
-            depthShader->set_uniform("Matrix.Normal", normal_matrix);
+            shader->set_uniform("Matrix.Model", TransformMatrix());
+            shader->set_uniform("Matrix.ModelViewProjection", mvp);
+            shader->set_uniform("Matrix.Normal", normal_matrix);
+            last_shader = shader;
         }
-        //depthShader->use(false);
-        if (vg->DrawDepth(mod))
+        material->bind_textures();
+        material->bind_values();
+        if (vg->Draw())
             ret = true;
-        last_shader = depthShader;
+        shader->use(false);
     }
     return (ret);
 }
@@ -130,20 +142,34 @@ bool Mesh::Draw(RenderMod mod)
     {
         if (nullptr == vg)
             continue;
-        auto vgMaterial = vg->material();
-        if (vgMaterial == nullptr)
-            continue;
-        auto vgShader = vgMaterial->shader();
-        vgShader->use();
-        if (last_shader != vgShader)
+        auto material(GetMaterial(vg->MaterialIndex()));
+        if (nullptr == material)
         {
-            vgShader->set_uniform("Matrix.Model", TransformMatrix());
-            vgShader->set_uniform("Matrix.ModelViewProjection", mvp);
-            vgShader->set_uniform("Matrix.Normal", normal_matrix);
+            errorLog("Error : Invalid Material Index while rendering Mesh" + Name());
+            continue;
         }
-        if (vg->Draw(mod))
+        if (mod == RenderOpaque
+            && (material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
+            continue;
+        else if (mod == RenderTransparent
+                 && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
+            continue;
+        auto shader(material->shader());
+        if (nullptr == shader)
+            continue;
+        shader->use();
+        if (last_shader != shader)
+        {
+            shader->set_uniform("Matrix.Model", TransformMatrix());
+            shader->set_uniform("Matrix.ModelViewProjection", mvp);
+            shader->set_uniform("Matrix.Normal", normal_matrix);
+            last_shader = shader;
+        }
+        material->bind_textures();
+        material->bind_values();
+        if (vg->Draw())
             ret = true;
-        last_shader = vgShader;
+        shader->use(false);
     }
     return (ret);
 }
@@ -176,4 +202,40 @@ void Mesh::center()
     bounding_element->min = bounding_element->min - bounding_element->center;
     bounding_element->max = bounding_element->max - bounding_element->center;
     bounding_element->center = glm::vec3(0, 0, 0);*/
+}
+
+void Mesh::AddMaterial(std::shared_ptr<Material> material)
+{
+    _materials.push_back(material);
+}
+
+void Mesh::RemoveMaterial(std::shared_ptr<Material>)
+{
+}
+
+void Mesh::SetMaterial(std::shared_ptr<Material> material, uint32_t index)
+{
+    if (index >= _materials.size())
+        _materials.resize(index + 1);
+    _materials.at(index) = material;
+}
+
+std::shared_ptr<Material> Mesh::GetMaterial(uint32_t index)
+{
+    return index >= _materials.size() ? nullptr : _materials.at(index);
+}
+
+int64_t Mesh::GetMaterialIndex(std::shared_ptr<Material> mtl)
+{
+    for (auto i(0u); i < _materials.size(); i++)
+    {
+        if (_materials.at(i) == mtl)
+            return i;
+    }
+    return -1;
+}
+
+int64_t Mesh::GetMaterialIndex(const std::string &name)
+{
+    return GetMaterialIndex(Material::GetByName(name));
 }

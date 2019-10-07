@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-10-04 16:56:05
+* @Last Modified time: 2019-10-07 11:33:07
 */
 
 #pragma once
@@ -29,12 +29,8 @@ public:
     static std::shared_ptr<Vgroup> GetById(int64_t);
     uint32_t MaterialIndex();
     void SetMaterialIndex(uint32_t);
-    void bind();
     void Load();
-    void AddSubVgroup(std::shared_ptr<Vgroup>);
-    void RemoveSubVgroup(std::shared_ptr<Vgroup>);
-    bool Draw(RenderMod mod, std::vector<std::shared_ptr<Material>>);
-    bool DrawDepth(RenderMod mod, std::vector<std::shared_ptr<Material>>);
+    bool Draw();
     bool IsLoaded() const;
     glm::vec2 uvmin;
     glm::vec2 uvmax;
@@ -48,7 +44,6 @@ protected:
     bool _isLoaded{false};
     static std::vector<std::shared_ptr<Vgroup>> _vgroups;
     std::weak_ptr<VertexArray> _vao;
-    std::vector<std::shared_ptr<Vgroup>> _subVgroups;
     uint32_t _materialIndex{0};
     Vgroup(const std::string &);
 };

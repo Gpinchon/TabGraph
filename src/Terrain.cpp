@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-10-04 16:16:23
+* @Last Modified time: 2019-10-07 10:20:41
 */
 
 #include "Terrain.hpp"
@@ -150,8 +150,8 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string &name,
     auto mtl = Material::Create("default_terrain");
     mtl->albedo = glm::vec3(0.5, 0.5, 0.5);
     mtl->roughness = 0.5;
-    vg->set_material(mtl);
     terrain->AddVgroup(vg);
+    terrain->AddMaterial(mtl);
     return terrain;
 }
 

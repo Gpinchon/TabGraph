@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-10-04 16:12:49
+* @Last Modified time: 2019-10-07 09:03:25
 */
 
 #pragma once
@@ -40,7 +40,11 @@ public:
     /** Sets the material at specified index */
     void SetMaterial(std::shared_ptr<Material>, uint32_t index);
     /** @return the material at specified index */
-    void GetMaterial(uint32_t index);
+    std::shared_ptr<Material> GetMaterial(uint32_t index);
+    /** @return the material index in this mesh material table, -1 if not found */
+    int64_t GetMaterialIndex(std::shared_ptr<Material>);
+    /** @return the material index in this mesh material table using its name, -1 if not found */
+    int64_t GetMaterialIndex(const std::string &);
 
     const std::set<std::shared_ptr<Vgroup>> vgroups();
 

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 17:45:03
+* @Last Modified time: 2019-10-07 11:38:13
 */
 
 #include "Vgroup.hpp"
@@ -76,79 +76,22 @@ bool Vgroup::IsLoaded() const
     return _isLoaded;
 }
 
-void Vgroup::bind()
+bool Vgroup::Draw()
 {
-    if ((material() == nullptr) || (material()->shader() == nullptr) || (Camera::current() == nullptr))
-    {
-        return;
-    }
-}
-
-bool Vgroup::DrawDepth(RenderMod mod)
-{
-    auto mtl = material();
-    if ((mtl == nullptr))
-    {
-        return (false);
-    }
-    auto depthShader = mtl->depth_shader();
-    if (depthShader == nullptr)
-    {
-        return (false);
-    }
-    if (mod == RenderOpaque
-        && (mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
-        return (false);
-    else if (mod == RenderTransparent
-             && !(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
-    {
-        return (false);
-    }
     auto vaoPtr = _vao.lock();
     if (nullptr == vaoPtr)
         return (false);
-    depthShader->use();
-    depthShader->bind_texture("Texture.Albedo", mtl->texture_albedo(), GL_TEXTURE0);
-    depthShader->set_uniform("Texture.Use_Albedo", mtl->texture_albedo() != nullptr);
-    depthShader->set_uniform("Material.Alpha", mtl->alpha);
-    /*material->bind_textures();
-	material->bind_values();*/
-    //bind();
     vaoPtr->draw();
-    depthShader->use(false);
     return (true);
 }
 
-bool Vgroup::Draw(RenderMod mod)
+uint32_t Vgroup::MaterialIndex()
 {
-    auto mtl = material();
-    if ((mtl == nullptr))
-    {
-        return (false);
-    }
-    auto cShader = mtl->shader();
-    if (cShader == nullptr)
-    {
-        return (false);
-    }
-    if (mod == RenderOpaque
-        && (mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
-        return (false);
-    else if (mod == RenderTransparent
-             && !(mtl->alpha < 1 || (mtl->texture_albedo() != nullptr && mtl->texture_albedo()->values_per_pixel() == 4)))
-    {
-        return (false);
-    }
-    auto vaoPtr = _vao.lock();
-    if (nullptr == vaoPtr)
-        return (false);
-    cShader->use();
-    mtl->bind_textures();
-    mtl->bind_values();
-    bind();
-    vaoPtr->draw();
-    cShader->use(false);
-    return (true);
+    return _materialIndex;
+}
+void Vgroup::SetMaterialIndex(uint32_t index)
+{
+    _materialIndex = index;
 }
 
 /*void Vgroup::center(glm::vec3 &center)
@@ -163,7 +106,7 @@ bool Vgroup::Draw(RenderMod mod)
     SetPosition(boundingElement->center - center);
 }*/
 
-void Vgroup::set_material(std::shared_ptr<Material> mtl)
+/*void Vgroup::set_material(std::shared_ptr<Material> mtl)
 {
     if (mtl != nullptr)
         _material = mtl;
@@ -174,4 +117,4 @@ void Vgroup::set_material(std::shared_ptr<Material> mtl)
 std::shared_ptr<Material> Vgroup::material()
 {
     return (_material.lock());
-}
+}*/

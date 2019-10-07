@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-10-04 16:15:36
+ * @Last Modified time: 2019-10-07 14:01:16
  */
 
 #include "parser/FBX.hpp"
@@ -119,34 +119,6 @@ static inline auto getVerticesIndices(std::shared_ptr<FBX::Node> polygonVertexIn
     return vi;
 }
 
-static inline auto triangulateIndices(const std::vector<int32_t> &vi)
-{
-    std::vector<unsigned> indices;
-    std::vector<int32_t> polygonIndex;
-    for (const auto i : vi)
-    {
-        if (i < 0)
-        {
-            polygonIndex.push_back(abs(i) - 1);
-            indices.push_back(polygonIndex.at(0));
-            indices.push_back(polygonIndex.at(1));
-            indices.push_back(polygonIndex.at(2));
-            if (polygonIndex.size() == 4)
-            {
-                indices.push_back(polygonIndex.at(2));
-                indices.push_back(polygonIndex.at(3));
-                indices.push_back(polygonIndex.at(0));
-            }
-            polygonIndex.clear();
-        }
-        else
-        {
-            polygonIndex.push_back(i);
-        }
-    }
-    return indices;
-}
-
 static inline auto getMappedIndices(const std::string &mappingInformationType, const std::vector<int32_t> &polygonIndices)
 {
     std::vector<unsigned> normalsIndices;
@@ -193,9 +165,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
     auto document(FBX::Document::Parse(path));
     document->Print();
     auto mainMesh(Mesh::Create(name));
-    auto mtl = Material::Create("default_fbx");
-    mtl->albedo = glm::vec3(0.5);
-    mtl->roughness = 0.5;
     for (const auto &objects : document->SubNodes("Objects"))
     {
         if (objects == nullptr)
@@ -301,15 +270,18 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                 normalsIndices = getMappedIndices(layerElementNormal->SubNode("MappingInformationType")->Property(0), verticesIndices);
             auto layerElementMaterial(geometry->SubNode("LayerElementMaterial"));
             auto material(-1);
-            for (auto &materialIndex : getVerticesIndices(layerElementMaterial->SubNode("Materials")))
+            if (layerElementMaterial)
             {
-                if (material != materialIndex)
+                for (auto &materialIndex : getVerticesIndices(layerElementMaterial->SubNode("Materials")))
                 {
-                    std::cout << materialIndex << " ";
-                    material = materialIndex;
+                    if (material != materialIndex)
+                    {
+                        std::cout << materialIndex << " ";
+                        material = materialIndex;
+                    }
                 }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
             std::vector<int32_t> polygonIndex;
             std::vector<int32_t> polygonIndexNormal;
             for (auto i = 0u; i < verticesIndices.size(); i++)
@@ -339,7 +311,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                     continue;
                 }
             }
-            vgroup->set_material(mtl);
         }
         for (const auto &model : objects->SubNodes("Model"))
         {
@@ -434,7 +405,7 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                     {
                         std::cout << "Got Material " << source->Id() << std::endl;
                         std::cout << "Destination ID " << destinationId << std::endl;
-                        {
+                        /*{
                             auto destination(Vgroup::GetById(destinationId));
                             if (destination != nullptr)
                             {
@@ -442,14 +413,13 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                                 destination->set_material(source);
                                 continue;
                             }
-                        }
+                        }*/
                         {
                             auto destination(Mesh::GetById(destinationId));
                             if (destination != nullptr)
                             {
                                 std::cout << "Mesh " << destinationId << " uses Material " << source->Id() << std::endl;
-                                for (auto vg : destination->vgroups())
-                                    vg->set_material(source);
+                                destination->AddMaterial(source);
                                 continue;
                             }
                         }

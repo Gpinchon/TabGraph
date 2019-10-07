@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-10-04 16:14:37
+* @Last Modified time: 2019-10-07 08:53:00
 */
 
 #include "CubeMesh.hpp"
@@ -113,11 +113,11 @@ std::shared_ptr<Mesh> CubeMesh::Create(const std::string &name, glm::vec3 size)
     {
         v *= size;
     }
-    vg->set_material(Material::Create(m->Name() + "_material"));
     vg->v = thisCubeVertices;
     vg->vn = cubeNormals;
     vg->vt = cubeTexCoords;
     vg->i = cubeIndices;
     m->AddVgroup(vg);
+    m->AddMaterial(Material::Create(m->Name() + "_material"));
     return (m);
 }

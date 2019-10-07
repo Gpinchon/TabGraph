@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-10-04 16:16:03
+* @Last Modified time: 2019-10-07 10:03:28
 */
 
 #include "parser/OBJ.hpp"
@@ -246,7 +246,7 @@ void parse_vg(t_obj_parser *p, const std::string &name)
         {
             p->vg = Vgroup::Create(name);
         }
-        p->vg->set_material(Material::GetByName("default"));
+        //p->vg->set_material(Material::GetByName("default"));
     }
 }
 
@@ -391,6 +391,8 @@ static void parse_f(t_obj_parser *p, std::vector<std::string> &split)
     }
 }
 
+#include <Debug.hpp>
+
 static void parse_line(t_obj_parser *p, const char *line)
 {
     auto split = strsplitwspace(line);
@@ -408,22 +410,18 @@ static void parse_line(t_obj_parser *p, const char *line)
     }
     else if (split[0][0] == 'g' || split[0][0] == 'o')
     {
-        std::shared_ptr<Material> mtl;
-        if (p->vg != nullptr)
-        {
-            mtl = p->vg->material();
-        }
+        auto mtlIndex(p->vg->MaterialIndex());
         parse_vg(p, split[1]);
-        if (mtl != nullptr)
-            p->vg->set_material(mtl);
+        p->vg->SetMaterialIndex(mtlIndex);
     }
     else if (split[0] == "usemtl")
     {
         if (!p->vg->v.empty())
             parse_vg(p);
-        auto mtl = Material::GetByName(split[1]);
-        if (mtl != nullptr)
-            p->vg->set_material(mtl);
+        auto mtl(Material::GetByName(split[1]));
+        p->parent->AddMaterial(mtl);
+        auto mtlIndex(p->parent->GetMaterialIndex(mtl));
+        p->vg->SetMaterialIndex(mtlIndex);
     }
     else if (split[0] == "mtllib")
     {
@@ -445,7 +443,6 @@ static void start_obj_parsing(t_obj_parser *p, const std::string &name, const st
     }
     p->parent = Mesh::Create(name);
     p->vg = Vgroup::Create(name + "_child 0");
-    p->vg->set_material(Material::GetByName("default"));
     p->vg->boundingElement = new AABB(p->bbox);
     auto l = 1;
     while (fgets(line, 4096, p->fd) != nullptr)
