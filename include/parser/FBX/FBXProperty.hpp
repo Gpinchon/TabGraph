@@ -1,8 +1,8 @@
 /*
 * @Author: gpinchon
 * @Date:   2019-08-10 11:23:20
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 13:43:18
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-10-08 11:12:47
 */
 
 #pragma once
@@ -13,30 +13,34 @@
 #include <variant>
 #include <zconf.h>
 
-namespace FBX {
-typedef std::variant<Byte*, char*, float*, double*, int32_t*, int64_t*>
+namespace FBX
+{
+typedef std::variant<Byte *, char *, float *, double *, int32_t *, int64_t *>
     ArrayData;
 
-struct Array {
+struct Array
+{
     uint32_t length;
     uint32_t encoding;
     uint32_t compressedLength;
     ArrayData data;
     //template <typename T>
     //operator T() const { return std::get<T>(data); }
-    operator Byte*() const { return std::get<Byte*>(data); }
-    operator char*() const { return std::get<char*>(data); }
-    operator float*() const { return std::get<float*>(data); }
-    operator double*() const { return std::get<double*>(data); }
-    operator int32_t*() const { return std::get<int32_t*>(data); }
-    operator int64_t*() const { return std::get<int64_t*>(data); }
-    operator std::string() const { return std::get<char*>(data); };
+    operator Byte *() const { return std::get<Byte *>(data); }
+    operator char *() const { return std::get<char *>(data); }
+    operator float *() const { return std::get<float *>(data); }
+    operator double *() const { return std::get<double *>(data); }
+    operator int32_t *() const { return std::get<int32_t *>(data); }
+    operator int64_t *() const { return std::get<int64_t *>(data); }
+    operator std::string() const { return std::get<char *>(data); };
 };
 
 typedef std::variant<Byte, float, double, int16_t, int32_t, int64_t, Array>
     PropertyData;
 
-struct Property : public Object {
+struct Property : public Object
+{
+    virtual ~Property() = default;
     static std::shared_ptr<Property> Create();
     unsigned char typeCode;
     PropertyData data;
@@ -52,4 +56,4 @@ struct Property : public Object {
     operator Array() const { return std::get<Array>(data); }
     operator std::string() const { return std::get<Array>(data); }
 };
-}
+} // namespace FBX

@@ -1,8 +1,8 @@
 /*
 * @Author: gpinchon
 * @Date:   2019-08-10 11:50:30
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-10 12:40:47
+* @Last Modified by:   gpi
+* @Last Modified time: 2019-10-08 11:12:28
 */
 
 #pragma once
@@ -10,16 +10,19 @@
 #include "parser/FBX/FBXNode.hpp"
 #include <string>
 
-namespace FBX {
+namespace FBX
+{
 struct Header;
 
-struct Document : public Node {
-    Header* header;
+struct Document : public Node
+{
+    virtual ~Document() = default;
+    static Document *Parse(const std::string &path);
+    Header *header;
     std::string path;
     void Print() const override;
-    static Document* Parse(const std::string& path);
 
 private:
     Document();
 };
-}
+} // namespace FBX

@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-10-07 14:01:16
+ * @Last Modified time: 2019-10-08 18:07:12
  */
 
 #include "parser/FBX.hpp"
@@ -53,13 +53,42 @@ static inline std::vector<glm::vec2> parseUV(FBX::Node *layerElementUV)
     return uv;
 }
 
+static inline auto getMaterials(std::shared_ptr<FBX::Node> layerElementMaterial)
+{
+    std::vector<int32_t> materials;
+    if (layerElementMaterial == nullptr)
+        return materials;
+    auto materialsNode(layerElementMaterial->SubNode("Materials"));
+    FBX::Array materialArray(materialsNode->Property(0));
+    for (auto i = 0u; i < materialArray.length; i++)
+    {
+        int32_t index(std::get<int32_t *>(materialArray.data)[i]);
+        materials.push_back(index);
+    }
+    auto referenceInformationType(layerElementMaterial->SubNode("ReferenceInformationType"));
+    std::string referenceType(referenceInformationType ? std::string(referenceInformationType->Property(0)) : std::string(""));
+    if (referenceType == "" || referenceType == "Direct")
+        return materials;
+    auto materialsIndex(layerElementMaterial->SubNode("Materials"));
+    if (materialsIndex == nullptr)
+        throw std::runtime_error("Node(" + layerElementMaterial->Name() + ") missing Materials.");
+    auto materialsIndexArray(FBX::Array(materialsIndex->Property(0)));
+    std::vector<int32_t> materialsUnindexed;
+    materialsUnindexed.reserve(materials.size());
+    for (auto i = 0u; i < materialsIndexArray.length; i++)
+    {
+        auto index = ((int32_t *)materialsIndexArray)[i];
+        materialsUnindexed.push_back(materials.at(index));
+    }
+    return materialsUnindexed;
+}
+
 static inline auto getNormals(std::shared_ptr<FBX::Node> layerElementNormal)
 {
     std::vector<CVEC4> vn;
     if (layerElementNormal == nullptr)
         return vn;
     auto normals(layerElementNormal->SubNode("Normals"));
-
     FBX::Array vnArray(normals->Property(0));
     for (auto i = 0u; i < vnArray.length / 3; i++)
     {
@@ -89,7 +118,7 @@ static inline auto getNormals(std::shared_ptr<FBX::Node> layerElementNormal)
     return vnUnindexed;
 }
 
-static inline auto getVertices(std::shared_ptr<FBX::Node> vertices)
+static inline auto getVec3Vector(std::shared_ptr<FBX::Node> vertices)
 {
     std::vector<glm::vec3> v;
     if (vertices == nullptr)
@@ -106,7 +135,7 @@ static inline auto getVertices(std::shared_ptr<FBX::Node> vertices)
     return v;
 }
 
-static inline auto getVerticesIndices(std::shared_ptr<FBX::Node> polygonVertexIndex)
+static inline auto getIntVector(std::shared_ptr<FBX::Node> polygonVertexIndex)
 {
     std::vector<int32_t> vi;
     if (polygonVertexIndex == nullptr)
@@ -121,43 +150,122 @@ static inline auto getVerticesIndices(std::shared_ptr<FBX::Node> polygonVertexIn
 
 static inline auto getMappedIndices(const std::string &mappingInformationType, const std::vector<int32_t> &polygonIndices)
 {
-    std::vector<unsigned> normalsIndices;
+    std::vector<unsigned> indices;
     if (mappingInformationType == "ByPolygonVertex")
     {
-        normalsIndices.resize(polygonIndices.size());
+        indices.resize(polygonIndices.size());
         for (auto i = 0u; i < polygonIndices.size(); i++)
         {
-            normalsIndices.at(i) = i;
+            indices.at(i) = i;
         }
+    }
+    else if (mappingInformationType == "AllSame")
+    {
+        indices.resize(polygonIndices.size());
+        std::fill(indices.begin(), indices.end(), 0);
     }
     else if (mappingInformationType == "ByVertex" || mappingInformationType == "ByVertice")
     {
-        normalsIndices.resize(polygonIndices.size());
-        std::cout << "Generate Normal Indice" << std::endl;
+        indices.resize(polygonIndices.size());
         for (auto i = 0u; i < polygonIndices.size(); i++)
         {
             auto index = polygonIndices.at(i);
             index = index >= 0 ? index : abs(index) - 1;
-            normalsIndices.at(i) = index;
-            //normalsIndices.at(index) = i / 3;
+            indices.at(i) = index;
+            //indices.at(index) = i / 3;
         }
     }
     else if (mappingInformationType == "ByPolygon")
     {
         int normalIndex = 0;
-        normalsIndices.resize(polygonIndices.size());
+        indices.resize(polygonIndices.size());
         for (auto i = 0u; i < polygonIndices.size(); i++)
         {
             auto index = polygonIndices.at(i);
-            normalsIndices.at(i) = normalIndex;
+            indices.at(i) = normalIndex;
             if (index < 0)
             {
                 normalIndex++;
             }
         }
     }
-    std::cout << "Generate Normal Indice DONE" << std::endl;
-    return normalsIndices;
+    std::cout << "Generate Mapped Indices DONE" << std::endl;
+    return indices;
+}
+
+auto getVgroups(std::shared_ptr<FBX::Node> objects)
+{
+    std::map<int64_t, std::vector<std::shared_ptr<Vgroup>>> groupMap;
+    for (const auto &geometry : objects->SubNodes("Geometry"))
+    {
+        if (geometry == nullptr)
+            continue;
+        int64_t geometryId(int64_t(geometry->Property(0)));
+        auto vgroup(Vgroup::Create(""));
+        vgroup->SetId(geometryId);
+        std::cout << "Geometry ID " << int64_t(geometry->Property(0)) << std::endl;
+        auto vertices(getVec3Vector(geometry->SubNode("Vertices")));
+        if (vertices.empty())
+            continue;
+        auto layerElementNormal(geometry->SubNode("LayerElementNormal"));
+        auto layerElementMaterial(geometry->SubNode("LayerElementMaterial"));
+        auto verticesIndices(getIntVector(geometry->SubNode("PolygonVertexIndex")));
+        auto materials(getMaterials(layerElementMaterial));
+        auto normals(getNormals(layerElementNormal));
+        std::vector<unsigned> normalsIndices;
+        if (layerElementNormal != nullptr)
+            normalsIndices = getMappedIndices(layerElementNormal->SubNode("MappingInformationType")->Property(0), verticesIndices);
+        std::vector<unsigned> materialIndices;
+        if (layerElementMaterial != nullptr)
+            materialIndices = getMappedIndices(layerElementMaterial->SubNode("MappingInformationType")->Property(0), verticesIndices);
+        std::vector<int32_t> polygonIndex;
+        std::vector<int32_t> polygonIndexNormal;
+        auto lastMaterialIndex(vgroup->MaterialIndex());
+        groupMap[geometryId].push_back(vgroup);
+        for (auto i = 0u; i < verticesIndices.size(); i++)
+        {
+            auto index = verticesIndices.at(i);
+            polygonIndex.push_back(index >= 0 ? index : abs(index) - 1);
+            polygonIndexNormal.push_back(normalsIndices.at(i));
+            if (!materialIndices.empty())
+            {
+                auto materialIndex(materials.at(materialIndices.at(i)));
+                if (materialIndex != lastMaterialIndex)
+                {
+                    vgroup = Vgroup::Create("");
+                    vgroup->SetId(geometryId + 1);
+                    vgroup->SetMaterialIndex(materialIndex);
+                    groupMap[geometryId].push_back(vgroup);
+                    std::cout << "Material Indices : Last " << lastMaterialIndex << " New " << materialIndex << std::endl;
+                    std::cout << "Material index changed, create new Vgroup" << std::endl;
+                    lastMaterialIndex = materialIndex;
+                }
+            }
+
+            if (index < 0)
+            {
+                vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
+                vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
+                vgroup->v.push_back(vertices.at(polygonIndex.at(1)));
+                vgroup->vn.push_back(normals.at(polygonIndexNormal.at(1)));
+                vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
+                vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
+                if (polygonIndex.size() == 4)
+                {
+                    vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
+                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
+                    vgroup->v.push_back(vertices.at(polygonIndex.at(3)));
+                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(3)));
+                    vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
+                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
+                }
+                polygonIndex.clear();
+                polygonIndexNormal.clear();
+                continue;
+            }
+        }
+    }
+    return groupMap;
 }
 
 std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string &path)
@@ -165,6 +273,7 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
     auto document(FBX::Document::Parse(path));
     document->Print();
     auto mainMesh(Mesh::Create(name));
+    std::map<int64_t, std::vector<std::shared_ptr<Vgroup>>> vgroupMap;
     for (const auto &objects : document->SubNodes("Objects"))
     {
         if (objects == nullptr)
@@ -252,66 +361,7 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                 }
             }
         }
-        for (const auto &geometry : objects->SubNodes("Geometry"))
-        {
-            if (geometry == nullptr)
-                continue;
-            auto vgroup(Vgroup::Create(""));
-            vgroup->SetId(int64_t(geometry->Property(0))); //first property is Geometry ID
-            std::cout << "Geometry ID " << int64_t(geometry->Property(0)) << std::endl;
-            auto vertices(getVertices(geometry->SubNode("Vertices")));
-            if (vertices.empty())
-                continue;
-            auto verticesIndices(getVerticesIndices(geometry->SubNode("PolygonVertexIndex")));
-            auto layerElementNormal(geometry->SubNode("LayerElementNormal"));
-            auto normals = getNormals(layerElementNormal);
-            std::vector<unsigned> normalsIndices;
-            if (layerElementNormal != nullptr)
-                normalsIndices = getMappedIndices(layerElementNormal->SubNode("MappingInformationType")->Property(0), verticesIndices);
-            auto layerElementMaterial(geometry->SubNode("LayerElementMaterial"));
-            auto material(-1);
-            if (layerElementMaterial)
-            {
-                for (auto &materialIndex : getVerticesIndices(layerElementMaterial->SubNode("Materials")))
-                {
-                    if (material != materialIndex)
-                    {
-                        std::cout << materialIndex << " ";
-                        material = materialIndex;
-                    }
-                }
-                std::cout << std::endl;
-            }
-            std::vector<int32_t> polygonIndex;
-            std::vector<int32_t> polygonIndexNormal;
-            for (auto i = 0u; i < verticesIndices.size(); i++)
-            {
-                auto index = verticesIndices.at(i);
-                polygonIndex.push_back(index >= 0 ? index : abs(index) - 1);
-                polygonIndexNormal.push_back(normalsIndices.at(i));
-                if (index < 0)
-                {
-                    vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
-                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
-                    vgroup->v.push_back(vertices.at(polygonIndex.at(1)));
-                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(1)));
-                    vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
-                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
-                    if (polygonIndex.size() == 4)
-                    {
-                        vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
-                        vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
-                        vgroup->v.push_back(vertices.at(polygonIndex.at(3)));
-                        vgroup->vn.push_back(normals.at(polygonIndexNormal.at(3)));
-                        vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
-                        vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
-                    }
-                    polygonIndex.clear();
-                    polygonIndexNormal.clear();
-                    continue;
-                }
-            }
-        }
+        vgroupMap = getVgroups(objects);
         for (const auto &model : objects->SubNodes("Model"))
         {
             auto mesh(Mesh::GetById(model->Property(0)));
@@ -384,16 +434,18 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                     }
                 }
                 {
-                    auto source(Vgroup::GetById(sourceId));
-                    if (source != nullptr)
+                    //auto source(Vgroup::GetById(sourceId));
+                    auto source(vgroupMap[sourceId]);
+                    if (!source.empty())
                     {
-                        std::cout << "Got Vgroup " << source->Id() << std::endl;
+                        std::cout << "Got Vgroup " << sourceId << std::endl;
                         {
                             auto destination(Mesh::GetById(destinationId));
                             if (destination != nullptr)
                             {
-                                std::cout << "Mesh " << destinationId << " uses Vgroup " << source->Id() << std::endl;
-                                destination->AddVgroup(source);
+                                std::cout << "Mesh " << destinationId << " uses Vgroup " << sourceId << std::endl;
+                                for (auto vg : source)
+                                    destination->AddVgroup(vg);
                             }
                             continue;
                         }
@@ -405,15 +457,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                     {
                         std::cout << "Got Material " << source->Id() << std::endl;
                         std::cout << "Destination ID " << destinationId << std::endl;
-                        /*{
-                            auto destination(Vgroup::GetById(destinationId));
-                            if (destination != nullptr)
-                            {
-                                std::cout << "Vgroup " << destinationId << " uses Material " << source->Id() << std::endl;
-                                destination->set_material(source);
-                                continue;
-                            }
-                        }*/
                         {
                             auto destination(Mesh::GetById(destinationId));
                             if (destination != nullptr)
@@ -428,5 +471,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             }
         }
     }
+    delete document;
     return mainMesh;
 }
