@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-10-07 09:03:25
+* @Last Modified time: 2019-10-09 17:48:25
 */
 
 #pragma once
@@ -45,6 +45,19 @@ public:
     int64_t GetMaterialIndex(std::shared_ptr<Material>);
     /** @return the material index in this mesh material table using its name, -1 if not found */
     int64_t GetMaterialIndex(const std::string &);
+
+    /** @return a position offset not inherited by children */
+    virtual glm::vec3 GeometryPosition() const;
+    /** @argument position : vgroups position offset, not inherited by children */
+    virtual void SetGeometryPosition(glm::vec3 position);
+    /** @return a rotation offset not inherited by children */
+    virtual glm::vec3 GeometryRotation() const;
+    /** @argument rotation : vgroups rotation offset, not inherited by children */
+    virtual void SetGeometryRotation(glm::vec3 rotation);
+    /** @return a scaling offset not inherited by children */
+    virtual glm::vec3 GeometryScale() const;
+    /** @argument scale : vgroups scale offset, not inherited by children */
+    virtual void SetGeometryScale(glm::vec3 scale);
 
     const std::set<std::shared_ptr<Vgroup>> vgroups();
 

@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-10-08 18:07:12
+ * @Last Modified time: 2019-10-09 17:30:20
  */
 
 #include "parser/FBX.hpp"
@@ -67,7 +67,7 @@ static inline auto getMaterials(std::shared_ptr<FBX::Node> layerElementMaterial)
     }
     auto referenceInformationType(layerElementMaterial->SubNode("ReferenceInformationType"));
     std::string referenceType(referenceInformationType ? std::string(referenceInformationType->Property(0)) : std::string(""));
-    if (referenceType == "" || referenceType == "Direct")
+    if (referenceType == "" || referenceType == "Direct") //Else mapping is DirectToIndirect
         return materials;
     auto materialsIndex(layerElementMaterial->SubNode("Materials"));
     if (materialsIndex == nullptr)
@@ -200,10 +200,8 @@ auto getVgroups(std::shared_ptr<FBX::Node> objects)
     {
         if (geometry == nullptr)
             continue;
-        int64_t geometryId(int64_t(geometry->Property(0)));
-        auto vgroup(Vgroup::Create(""));
-        vgroup->SetId(geometryId);
-        std::cout << "Geometry ID " << int64_t(geometry->Property(0)) << std::endl;
+        int64_t geometryId(geometry->Property(0));
+        std::cout << "Geometry ID " << geometryId << std::endl;
         auto vertices(getVec3Vector(geometry->SubNode("Vertices")));
         if (vertices.empty())
             continue;
@@ -220,8 +218,10 @@ auto getVgroups(std::shared_ptr<FBX::Node> objects)
             materialIndices = getMappedIndices(layerElementMaterial->SubNode("MappingInformationType")->Property(0), verticesIndices);
         std::vector<int32_t> polygonIndex;
         std::vector<int32_t> polygonIndexNormal;
-        auto lastMaterialIndex(vgroup->MaterialIndex());
-        groupMap[geometryId].push_back(vgroup);
+        std::shared_ptr<Vgroup> vgroup;
+        //auto vgroup(Vgroup::Create(""));
+        //vgroup->SetId(geometryId);
+        //groupMap[geometryId].push_back(vgroup);
         for (auto i = 0u; i < verticesIndices.size(); i++)
         {
             auto index = verticesIndices.at(i);
@@ -229,21 +229,33 @@ auto getVgroups(std::shared_ptr<FBX::Node> objects)
             polygonIndexNormal.push_back(normalsIndices.at(i));
             if (!materialIndices.empty())
             {
-                auto materialIndex(materials.at(materialIndices.at(i)));
-                if (materialIndex != lastMaterialIndex)
+                uint32_t materialIndex(materials.at(materialIndices.at(i)));
+                if (vgroup == nullptr)
                 {
                     vgroup = Vgroup::Create("");
-                    vgroup->SetId(geometryId + 1);
+                    vgroup->SetId(geometryId);
                     vgroup->SetMaterialIndex(materialIndex);
                     groupMap[geometryId].push_back(vgroup);
-                    std::cout << "Material Indices : Last " << lastMaterialIndex << " New " << materialIndex << std::endl;
+                }
+                else if (materialIndex != vgroup->MaterialIndex())
+                {
+                    std::cout << "Material Indices : Last " << vgroup->MaterialIndex() << " New " << materialIndex << std::endl;
                     std::cout << "Material index changed, create new Vgroup" << std::endl;
-                    lastMaterialIndex = materialIndex;
+                    vgroup = Vgroup::Create("");
+                    vgroup->SetId(geometryId + materialIndex);
+                    vgroup->SetMaterialIndex(materialIndex);
+                    groupMap[geometryId].push_back(vgroup);
                 }
             }
 
             if (index < 0)
             {
+                if (vgroup == nullptr)
+                {
+                    vgroup = Vgroup::Create("");
+                    vgroup->SetId(geometryId);
+                    groupMap[geometryId].push_back(vgroup);
+                }
                 vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
                 vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
                 vgroup->v.push_back(vertices.at(polygonIndex.at(1)));
@@ -456,7 +468,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                     if (source != nullptr)
                     {
                         std::cout << "Got Material " << source->Id() << std::endl;
-                        std::cout << "Destination ID " << destinationId << std::endl;
                         {
                             auto destination(Mesh::GetById(destinationId));
                             if (destination != nullptr)
