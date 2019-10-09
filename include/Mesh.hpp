@@ -69,6 +69,9 @@ private:
     std::set<std::shared_ptr<Vgroup>> _vgroups;
     std::vector<std::shared_ptr<Material>> _materials;
     GLenum _cull_mod{GL_BACK};
+    glm::vec3 _geometryPosition{0};
+    glm::vec3 _geometryRotation{0};
+    glm::vec3 _geometryScale{1};
 };
 
 bool alpha_compare(Renderable *m, Renderable *m1);

@@ -91,9 +91,19 @@ void Mesh::Load()
 
 bool Mesh::DrawDepth(RenderMod mod)
 {
+    auto geometryTranslationMatrix(glm::translate(glm::mat4(1.f), GeometryPosition()));
+    auto geometryRotationMatrix(glm::mat4(1.f));
+    geometryRotationMatrix = glm::rotate(geometryRotationMatrix, glm::radians(GeometryRotation().y), glm::vec3(0, 1, 0));
+    geometryRotationMatrix = glm::rotate(geometryRotationMatrix, glm::radians(GeometryRotation().z), glm::vec3(0, 0, 1));
+    geometryRotationMatrix = glm::rotate(geometryRotationMatrix, glm::radians(GeometryRotation().x), glm::vec3(1, 0, 0));
+    auto geometryScalingMatrix(glm::scale(glm::mat4(1.f), Scale()));
+    auto geometryTransformMatrix(geometryTranslationMatrix * geometryRotationMatrix * geometryScalingMatrix);
+
+    auto finalTranformMatrix(geometryTransformMatrix * TransformMatrix());
+
     bool ret = false;
-    auto mvp = Camera::current()->ProjectionMatrix() * Camera::current()->ViewMatrix() * TransformMatrix();
-    auto normal_matrix = glm::inverseTranspose(TransformMatrix());
+    auto mvp = Camera::current()->ProjectionMatrix() * Camera::current()->ViewMatrix() * finalTranformMatrix;
+    auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
     Load();
     std::shared_ptr<Shader> last_shader;
@@ -116,7 +126,7 @@ bool Mesh::DrawDepth(RenderMod mod)
         shader->use();
         if (last_shader != shader)
         {
-            shader->set_uniform("Matrix.Model", TransformMatrix());
+            shader->set_uniform("Matrix.Model", finalTranformMatrix);
             shader->set_uniform("Matrix.ModelViewProjection", mvp);
             shader->set_uniform("Matrix.Normal", normal_matrix);
             last_shader = shader;
@@ -132,9 +142,18 @@ bool Mesh::DrawDepth(RenderMod mod)
 
 bool Mesh::Draw(RenderMod mod)
 {
+    auto finalTranformMatrix(TransformMatrix());
+    finalTranformMatrix = glm::translate(finalTranformMatrix, GeometryPosition());
+    finalTranformMatrix = glm::rotate(finalTranformMatrix, glm::radians(GeometryRotation().y), glm::vec3(0, 1, 0));
+    finalTranformMatrix = glm::rotate(finalTranformMatrix, glm::radians(GeometryRotation().z), glm::vec3(0, 0, 1));
+    finalTranformMatrix = glm::rotate(finalTranformMatrix, glm::radians(GeometryRotation().x), glm::vec3(1, 0, 0));
+    finalTranformMatrix = glm::scale(finalTranformMatrix, Scale());
+
     bool ret = false;
-    auto mvp = Camera::current()->ProjectionMatrix() * Camera::current()->ViewMatrix() * TransformMatrix();
-    auto normal_matrix = glm::inverseTranspose(TransformMatrix());
+    auto mvp = Camera::current()->ProjectionMatrix() * Camera::current()->ViewMatrix() * finalTranformMatrix;
+    auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
+
+    //auto geometryTransform()
 
     Load();
     std::shared_ptr<Shader> last_shader;
@@ -160,7 +179,7 @@ bool Mesh::Draw(RenderMod mod)
         shader->use();
         if (last_shader != shader)
         {
-            shader->set_uniform("Matrix.Model", TransformMatrix());
+            shader->set_uniform("Matrix.Model", finalTranformMatrix);
             shader->set_uniform("Matrix.ModelViewProjection", mvp);
             shader->set_uniform("Matrix.Normal", normal_matrix);
             last_shader = shader;
@@ -238,4 +257,35 @@ int64_t Mesh::GetMaterialIndex(std::shared_ptr<Material> mtl)
 int64_t Mesh::GetMaterialIndex(const std::string &name)
 {
     return GetMaterialIndex(Material::GetByName(name));
+}
+
+
+glm::vec3 Mesh::GeometryPosition() const 
+{
+    return _geometryPosition;
+}
+
+void Mesh::SetGeometryPosition(glm::vec3 position)
+{
+    _geometryPosition = position;
+}
+
+glm::vec3 Mesh::GeometryRotation() const 
+{
+    return _geometryRotation;
+}
+
+void Mesh::SetGeometryRotation(glm::vec3 rotation)
+{
+    _geometryRotation = rotation;
+}
+
+glm::vec3 Mesh::GeometryScale() const 
+{
+    return _geometryScale;
+}
+
+void Mesh::SetGeometryScale(glm::vec3 scale)
+{
+    _geometryScale = scale;
 }

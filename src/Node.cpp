@@ -79,7 +79,7 @@ void Node::UpdateTransformMatrix()
 
 void Node::UpdateTranslationMatrix()
 {
-    _translationMatrix = glm::translate(glm::mat4(1.f), Position());
+    SetTranslationMatrix(glm::translate(glm::mat4(1.f), Position()));
 }
 
 void Node::UpdateRotationMatrix()

@@ -411,6 +411,30 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                         double(property->Property(6))));
                     std::cout << mesh->Scale().x << " " << mesh->Scale().y << " " << mesh->Scale().z << std::endl;
                 }
+                if (propertyName == "GeometricTranslation")
+                {
+                    mesh->SetGeometryPosition(glm::vec3(
+                        double(property->Property(4)),
+                        double(property->Property(5)),
+                        double(property->Property(6))));
+                    std::cout << mesh->GeometryPosition().x << " " << mesh->GeometryPosition().y << " " << mesh->GeometryPosition().z << std::endl;
+                }
+                else if (propertyName == "GeometricRotation")
+                {
+                    mesh->SetGeometryRotation(glm::vec3(
+                        double(property->Property(4)),
+                        double(property->Property(5)),
+                        double(property->Property(6))));
+                    std::cout << mesh->GeometryRotation().x << " " << mesh->GeometryRotation().y << " " << mesh->GeometryRotation().z << std::endl;
+                }
+                else if (propertyName == "GeometricScaling")
+                {
+                    mesh->SetGeometryScale(glm::vec3(
+                        double(property->Property(4)),
+                        double(property->Property(5)),
+                        double(property->Property(6))));
+                    std::cout << mesh->GeometryScale().x << " " << mesh->GeometryScale().y << " " << mesh->GeometryScale().z << std::endl;
+                }
             }
         }
     }
