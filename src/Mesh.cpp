@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-10-07 14:28:53
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2019-10-10 09:52:02
 */
 
 #include "Mesh.hpp"
@@ -259,8 +259,7 @@ int64_t Mesh::GetMaterialIndex(const std::string &name)
     return GetMaterialIndex(Material::GetByName(name));
 }
 
-
-glm::vec3 Mesh::GeometryPosition() const 
+glm::vec3 Mesh::GeometryPosition() const
 {
     return _geometryPosition;
 }
@@ -270,7 +269,7 @@ void Mesh::SetGeometryPosition(glm::vec3 position)
     _geometryPosition = position;
 }
 
-glm::vec3 Mesh::GeometryRotation() const 
+glm::vec3 Mesh::GeometryRotation() const
 {
     return _geometryRotation;
 }
@@ -280,7 +279,7 @@ void Mesh::SetGeometryRotation(glm::vec3 rotation)
     _geometryRotation = rotation;
 }
 
-glm::vec3 Mesh::GeometryScale() const 
+glm::vec3 Mesh::GeometryScale() const
 {
     return _geometryScale;
 }
