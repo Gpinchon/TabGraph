@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpi
- * @Last Modified time: 2019-10-09 17:30:20
+ * @Last Modified time: 2019-10-10 15:33:07
  */
 
 #include "parser/FBX.hpp"
@@ -21,7 +21,7 @@
 //Add this parser to MeshParser !
 auto __fbxParser = MeshParser::Add("fbx", FBX::parseMesh);
 
-static inline std::vector<glm::vec2> parseUV(FBX::Node *layerElementUV)
+/*static inline std::vector<glm::vec2> parseUV(FBX::Node *layerElementUV)
 {
     std::vector<glm::vec2> uv;
     if (layerElementUV == nullptr)
@@ -51,7 +51,7 @@ static inline std::vector<glm::vec2> parseUV(FBX::Node *layerElementUV)
         return realUV;
     }
     return uv;
-}
+}*/
 
 static inline auto getMaterials(std::shared_ptr<FBX::Node> layerElementMaterial)
 {
@@ -62,7 +62,7 @@ static inline auto getMaterials(std::shared_ptr<FBX::Node> layerElementMaterial)
     FBX::Array materialArray(materialsNode->Property(0));
     for (auto i = 0u; i < materialArray.length; i++)
     {
-        int32_t index(std::get<int32_t *>(materialArray.data)[i]);
+        auto index(((int32_t *)materialArray)[i]);
         materials.push_back(index);
     }
     auto referenceInformationType(layerElementMaterial->SubNode("ReferenceInformationType"));
@@ -296,82 +296,65 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             std::string name(fbxMaterial->Property(1));
             auto material(Material::Create(name));
             material->SetId(id);
-            for (const auto &P70 : fbxMaterial->SubNodes("Properties70"))
+            auto P70(fbxMaterial->SubNode("Properties70"));
+            if (P70 == nullptr)
+                continue;
+            std::map<std::string, std::shared_ptr<FBX::Node>> propertiesMap;
+            for (const auto &P : P70->SubNodes("P"))
             {
-                //Properties70 is empty, ignore it.
-                if (P70->properties.size() < 2)
+                //Property is empty, ignore it.
+                if (P->properties.size() < 2)
                     continue;
-                std::string propertyName(P70->Property(0));
-                std::string propertyType(P70->Property(1));
-                if ("DiffuseColor" == propertyName)
-                {
-                    if ("Color" == propertyType)
-                        material->albedo = glm::vec3(
-                            double(P70->Property(4)),
-                            double(P70->Property(5)),
-                            double(P70->Property(6)));
-                }
-                else if ("EmissiveColor" == propertyName)
-                {
-                    if ("Color" == propertyType)
-                        material->emitting = glm::vec3(
-                            double(P70->Property(4)),
-                            double(P70->Property(5)),
-                            double(P70->Property(6)));
-                }
-                else if ("AmbientColor" == propertyName)
-                {
-                    if ("Color" == propertyType)
-                        continue;
-                }
-                else if ("SpecularColor" == propertyName)
-                {
-                    if ("Color" == propertyType)
-                        material->specular = glm::vec3(
-                            double(P70->Property(4)),
-                            double(P70->Property(5)),
-                            double(P70->Property(6)));
-                }
-                else if ("ReflectionColor" == propertyName)
-                {
-                    if ("Color" == propertyType)
-                        material->specular = glm::vec3(
-                            double(P70->Property(4)),
-                            double(P70->Property(5)),
-                            double(P70->Property(6)));
-                }
-                else if ("EmissiveFactor" == propertyName)
-                {
-                    if ("Number" == propertyType)
-                        material->emitting *= double(P70->Property(4));
-                    continue;
-                }
-                else if ("AmbientFactor" == propertyName)
-                {
-                    if ("Number" == propertyType)
-                        continue;
-                }
-                else if ("SpecularFactor" == propertyName)
-                {
-                    if ("Number" == propertyType)
-                        material->roughness = glm::clamp(1.f / (1.f + double(P70->Property(4))) * 50.f, 0.0, 1.0);
-                }
-                else if ("Shininess" == propertyName)
-                {
-                    if ("Number" == propertyType)
-                        continue;
-                }
-                else if ("ShininessExponent" == propertyName)
-                {
-                    if ("Number" == propertyType)
-                        continue;
-                }
-                else if ("ReflectionFactor" == propertyName)
-                {
-                    if ("Number" == propertyType)
-                        material->metallic = double(P70->Property(4));
-                }
+                std::string propertyName(P->Property(0));
+                std::string propertyType(P->Property(1));
+                std::cout << name << " " << propertyName << " " << propertyType << std::endl;
+                propertiesMap[P->Property(0)] = P;
             }
+            auto P(propertiesMap["DiffuseColor"]);
+            material->albedo = P ? glm::vec3(
+                                   double(P->Property(4)),
+                                   double(P->Property(5)),
+                                   double(P->Property(6)))
+                                 : glm::vec3(0.5);
+            P = propertiesMap["EmissiveColor"];
+            material->emitting = P ? glm::vec3(
+                                     double(P->Property(4)),
+                                     double(P->Property(5)),
+                                     double(P->Property(6)))
+                                   : glm::vec3(0);
+            P = propertiesMap["SpecularColor"] ? propertiesMap["SpecularColor"] : propertiesMap["ReflectionColor"];
+            material->specular = P ? glm::vec3(
+                                     double(P->Property(4)),
+                                     double(P->Property(5)),
+                                     double(P->Property(6)))
+                                   : glm::vec3(0.04);
+            P = propertiesMap["EmissiveFactor"];
+            material->emitting *= P ? double(P->Property(4)) : 1;
+            P = propertiesMap["SpecularFactor"];
+            material->roughness = P ? glm::clamp(1.f / (1.f + double(P->Property(4))) * 50.f, 0.0, 1.0) : 0.5;
+            P = propertiesMap["ReflectionFactor"];
+            material->metallic = P ? double(P->Property(4)) : 0.0;
+
+            /*else if ("AmbientColor" == propertyName)
+            {
+                if ("Color" == propertyType)
+                    continue;
+            }
+            else if ("AmbientFactor" == propertyName)
+            {
+                if ("Number" == propertyType)
+                    continue;
+            }
+            else if ("Shininess" == propertyName)
+            {
+                if ("Number" == propertyType)
+                    continue;
+            }
+            else if ("ShininessExponent" == propertyName)
+            {
+                if ("Number" == propertyType)
+                    continue;
+            }*/
         }
         vgroupMap = getVgroups(objects);
         for (const auto &model : objects->SubNodes("Model"))
