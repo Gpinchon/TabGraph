@@ -61,6 +61,7 @@
     		"-Wall",
     		"-Werror",
     		"-Wextra",
+    		"-std=c++17",
 	    	"-I${project_path}/include",
 	    	"-I${project_path}/libs/*/include",
 			"-I${project_path}/libs/gdal/gdal/gcore",

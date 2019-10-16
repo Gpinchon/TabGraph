@@ -187,7 +187,7 @@ vec4	SSR()
 	vec3	WSPos = ScreenToWorld(Frag.UV, Depth);
 	vec3	WSViewDir = normalize(WSPos - Camera.Position);
 	vec3	SSPos = vec3(Frag.UV, Depth);
-	uint	FrameRandom = uint(Time * 1000.f) % 7;
+	uint	FrameRandom = uint(Time * 1000.f) % 7 + 1;
 	vec4	outColor = vec4(0);
 	uvec2	PixelPos = ivec2(textureSize(LastDepth, 0) * Frag.UV);
 	//Get the pixel Dithering Value and reverse Bits
@@ -205,11 +205,11 @@ vec4	SSR()
 		//TODO : Find a better way to do this
 		vec3	SSRDir = WorldToScreen(10 * WSReflectionDir + WSPos) - SSPos;
 		float	Offset = float((PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15);
-		float	StepOffset = (Offset / 15.0) - 0.25;
+		float	StepOffset = (Offset / 15.0) - 0.5;
 		if (castRay(SSPos, SSRDir, StepOffset))
 		{
 			float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));
-			SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
+			//SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
 			//Attenuate reflection factor when getting closer to screen border
 			SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR));
 			SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));

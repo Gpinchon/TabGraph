@@ -131,13 +131,12 @@ bool Mesh::DrawDepth(RenderMod mod)
             shader->set_uniform("Matrix.Normal", normal_matrix);
             last_shader = shader;
         }
-        material->bind_textures();
-        material->bind_values();
-        if (vg->Draw())
-            ret = true;
+        material->bind_textures(shader);
+        material->bind_values(shader);
+        ret |= vg->Draw();
         shader->use(false);
     }
-    return (ret);
+    return ret;
 }
 
 bool Mesh::Draw(RenderMod mod)
@@ -184,13 +183,12 @@ bool Mesh::Draw(RenderMod mod)
             shader->set_uniform("Matrix.Normal", normal_matrix);
             last_shader = shader;
         }
-        material->bind_textures();
-        material->bind_values();
-        if (vg->Draw())
-            ret = true;
+        material->bind_textures(shader);
+        material->bind_values(shader);
+        ret |= vg->Draw();
         shader->use(false);
     }
-    return (ret);
+    return ret;
 }
 
 bool Mesh::Drawable() const

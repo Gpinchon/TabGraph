@@ -71,9 +71,11 @@ std::shared_ptr<Material> Material::GetById(int64_t id)
     return (nullptr);
 }
 
-void Material::bind_textures()
+void Material::bind_textures(std::shared_ptr<Shader> inShader)
 {
-    auto shaderPtr = shader();
+    auto shaderPtr = inShader ? inShader : shader();
+    if (nullptr == shaderPtr)
+        return;
     shaderPtr->bind_texture("Texture.Albedo", texture_albedo(), GL_TEXTURE1);
     shaderPtr->set_uniform("Texture.Use_Albedo", texture_albedo() != nullptr);
     shaderPtr->bind_texture("Texture.Specular", texture_specular(), GL_TEXTURE2);
@@ -95,9 +97,11 @@ void Material::bind_textures()
     }
 }
 
-void Material::bind_values()
+void Material::bind_values(std::shared_ptr<Shader> inShader)
 {
-    auto shaderPtr = shader();
+    auto shaderPtr = inShader ? inShader : shader();
+    if (nullptr == shaderPtr)
+        return;
     shaderPtr->set_uniform("Material.Albedo", albedo);
     shaderPtr->set_uniform("Material.Specular", specular);
     shaderPtr->set_uniform("Material.Emitting", emitting);

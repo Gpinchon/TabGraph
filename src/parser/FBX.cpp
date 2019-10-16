@@ -334,27 +334,6 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
             material->roughness = P ? glm::clamp(1.f / (1.f + double(P->Property(4))) * 50.f, 0.0, 1.0) : 0.5;
             P = propertiesMap["ReflectionFactor"];
             material->metallic = P ? double(P->Property(4)) : 0.0;
-
-            /*else if ("AmbientColor" == propertyName)
-            {
-                if ("Color" == propertyType)
-                    continue;
-            }
-            else if ("AmbientFactor" == propertyName)
-            {
-                if ("Number" == propertyType)
-                    continue;
-            }
-            else if ("Shininess" == propertyName)
-            {
-                if ("Number" == propertyType)
-                    continue;
-            }
-            else if ("ShininessExponent" == propertyName)
-            {
-                if ("Number" == propertyType)
-                    continue;
-            }*/
         }
         vgroupMap = getVgroups(objects);
         for (const auto &model : objects->SubNodes("Model"))

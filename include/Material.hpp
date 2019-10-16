@@ -22,8 +22,8 @@ public:
     static std::shared_ptr<Material> Get(unsigned index);
     static std::shared_ptr<Material> GetByName(const std::string&);
     static std::shared_ptr<Material> GetById(int64_t id);
-    virtual void bind_values();
-    virtual void bind_textures();
+    virtual void bind_values(std::shared_ptr<Shader> = nullptr);
+    virtual void bind_textures(std::shared_ptr<Shader> = nullptr);
     std::shared_ptr<Shader> shader();
     std::shared_ptr<Shader> depth_shader();
     std::shared_ptr<Texture> texture_albedo();
