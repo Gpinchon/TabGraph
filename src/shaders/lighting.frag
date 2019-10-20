@@ -80,6 +80,8 @@ float	SampleShadowMap(in t_Light light, in vec2 sampleRotation)
 	for (int i = 0; i < KERNEL_SIZE; i++)
 	{
 		vec2	sampleUV = projCoord.xy + poissonDisk[i] * sampleRotation * sampleOffset;
+		vec4	sampleDepth = textureGather(Shadow[light.ShadowIndex], sampleUV, projCoord.z - 0.001);
+		//shadow += (sampleDepth[0] + sampleDepth[1] + sampleDepth[2] + sampleDepth[2]) / 4.f;
 		shadow += texture(Shadow[light.ShadowIndex], vec3(sampleUV, projCoord.z - 0.001));
 	}
 	return (shadow / float(KERNEL_SIZE));
@@ -106,7 +108,7 @@ void	ApplyTechnique()
 	vec3	specular = vec3(0);
 	vec3	reflection = vec3(0);
 
-	float	sampleAngle = randomAngle(Frag.Position, 1024);
+	float	sampleAngle = randomAngle(Frag.Position);
 	float	s = sin(sampleAngle);
 	float	c = cos(sampleAngle);
 	vec2	sampleRotation = vec2(c, -s);

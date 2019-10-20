@@ -11,7 +11,7 @@ void	ApplyTechnique()
 	if (Frag.Depth == 1)
 		return ;
 	float	sampleOffset = 0.5f * (1 - Frag.Depth);
-	float	sampleAngle = randomAngle(Frag.Position, 1024);
+	float	sampleAngle = randomAngle(Frag.Position);
 	float	s = sin(sampleAngle);
 	float	c = cos(sampleAngle);
 	vec2	sampleRotation = vec2(c, -s);

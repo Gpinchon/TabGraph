@@ -4,25 +4,6 @@ uniform sampler2D	LastColor;
 uniform sampler2D	LastNormal;
 uniform sampler2D	LastDepth;
 
-vec3	WorldToScreen(in vec3 position)
-{
-	vec4	projectedPosition = Camera.Matrix.Projection * Camera.Matrix.View * vec4(position, 1);
-	projectedPosition /= projectedPosition.w;
-	projectedPosition = projectedPosition * 0.5 + 0.5;
-	return projectedPosition.xyz;
-}
-
-vec3 TangentToWorld(in vec3 vec)
-{
-	vec3	new_normal = vec * tbn_matrix();
-	return normalize(new_normal);
-}
-
-vec3	TangentToWorld(in vec2 vec)
-{
-	return TangentToWorld(vec3(vec, 1));
-}
-
 vec2 rotateUV(vec2 uv, float rotation, vec2 mid)
 {
 	return vec2(
@@ -82,28 +63,24 @@ bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset)
 	float	minMipMaps = 0;
 	float	maxTries = REFLEXION_STEPS;
 	float	step = distanceToBorder / maxTries;
-	float 	compareTolerance = abs(RayOrigin.z) * step * 2;
+	float 	compareTolerance = RayOrigin.z * step;
+	//float 	compareTolerance = abs(RayOrigin.z) * step * 2;
 	float	sampleDist = stepOffset * step + step;
+	float	mipLevel = minMipMaps;
 	for (float tries = 0; tries < maxTries; tries++)
 	{
 		vec3	curUV = RayOrigin + RayDir * sampleDist;
-		float	mipLevel = Frag.Material.Roughness * (tries * 4.0 / maxTries) + minMipMaps;
 		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, int(mipLevel)).r;
 		float	depthDiff = curUV.z - sampleDepth;
 		bool	hit = abs(depthDiff) < compareTolerance;
-		if (hit && sampleDepth < curUV.z) {
+		if (hit && sampleDepth < 1) {
 			RayOrigin = curUV;
-			return curUV.z < 1;
+			return true;
 		}
 		sampleDist += step;
+		mipLevel += Frag.Material.Roughness * (4.0 / maxTries);
 	}
 	return false;
-}
-
-float PseudoRandom(vec2 xy)
-{
-	vec2 pos = fract(xy / 128.0f) * 128.0f + vec2(-64.340622f, -72.465622f);
-	return fract(dot(pos.xyx * pos.xyy, vec3(20.390625f, 60.703125f, 2.4281209f)));
 }
 
 uint ReverseBits32(uint bits)
@@ -123,55 +100,18 @@ uint ReverseUIntBits( uint bits )
 	return bits;
 }
 
-vec2 Hammersley(uint Index, uint NumSamples, uvec2 Random )
+vec2 Hammersley(uint Index, uint NumSamples, uvec2 Random)
 {
 	float E1 = fract( Index / float(NumSamples) + float( Random.x & 0xffff ) / (1<<16) );
 	float E2 = float( ReverseBits32(Index) ^ Random.y ) * 2.3283064365386963e-10;
 	return vec2( E1, E2 );
 }
 
-//Generate Pseudo random numbers using TEA (Tiny Encription Algorithm)
-uvec2 ScrambleTEA(uvec2 v, uint IterationCount)
+vec2 Hammersley(uint SampleIdx, uint SampleCnt)
 {
-	// Start with some random data (numbers can be arbitrary but those have been used by others and seem to work well)
-	uint k[4] ={ 0xA341316Cu , 0xC8013EA4u , 0xAD90777Du , 0x7E95761Eu };
-	
-	uint y = v[0];
-	uint z = v[1];
-	uint sum = 0;
-	
-	for(uint i = 0; i < IterationCount; ++i)
-	{
-		sum += 0x9e3779b9;
-		y += (z << 4u) + k[0] ^ z + sum ^ (z >> 5u) + k[1];
-		z += (y << 4u) + k[2] ^ y + sum ^ (y >> 5u) + k[3];
-	}
-
-	return uvec2(y, z);
-}
-
-uvec2 ScrambleTEA(uvec2 v)
-{
-	return ScrambleTEA(v, 3);
-}
-
-float roughnessToSpecularPower(float r)
-{
-  return 2 / (pow(r,4)) - 2;
-}
-
-#define CNST_MAX_SPECULAR_EXP 64
-
-float specularPowerToConeAngle(float specularPower)
-{
-    // based on phong distribution model
-    if(specularPower >= exp2(CNST_MAX_SPECULAR_EXP))
-    {
-        return 0.0f;
-    }
-    const float xi = 0.244f;
-    float exponent = 1.0f / (specularPower + 1.0f);
-    return acos(pow(xi, exponent));
+    float u = float(SampleIdx) / float(SampleCnt);
+    float v = float(ReverseBits32(SampleIdx)) * 2.3283064365386963e-10;
+    return vec2(u, v);
 }
 
 uint MortonCode(uint x)
@@ -181,11 +121,31 @@ uint MortonCode(uint x)
 	return x;
 }
 
+float ClampedPow(float X, float Y)
+{
+	return pow(max(abs(X), 0.000001f), Y);
+}
+
+vec3 ImportanceSampleBlinn(vec2 E, float Roughness)
+{
+	float m = Roughness * Roughness;
+	float n = max(0, 2 / (m * m) - 2);
+	float Phi = 2 * PI * E.x;
+	float CosTheta = ClampedPow(E.y, 1 / (n + 1));
+	float SinTheta = sqrt(1 - CosTheta * CosTheta);
+	//Spherical to Cartesian
+	vec3 H;
+	H.x = SinTheta * cos(Phi);
+	H.y = SinTheta * sin(Phi);
+	H.z = CosTheta;
+	return H;
+}
+
 vec4	SSR()
 {
 	float	Depth = texelFetchLod(LastDepth, Frag.UV, 0).r;
 	vec3	WSPos = ScreenToWorld(Frag.UV, Depth);
-	vec3	WSViewDir = normalize(WSPos - Camera.Position);
+	vec3	WSViewDir = normalize(Camera.Position - WSPos);
 	vec3	SSPos = vec3(Frag.UV, Depth);
 	uint	FrameRandom = uint(Time * 1000.f) % 7 + 1;
 	vec4	outColor = vec4(0);
@@ -193,22 +153,22 @@ vec4	SSR()
 	//Get the pixel Dithering Value and reverse Bits
 	uint	Morton = MortonCode(PixelPos.x & 3) | ( MortonCode(PixelPos.y & 3) * 2 );
 	uint	PixelIndex = ReverseUIntBits(Morton);
-	uvec2	Random = ScrambleTEA(PixelPos ^ FrameRandom);
-	//Compute reflection Cone Angle using Phong Distribution
-	float	ConeAngle = specularPowerToConeAngle(roughnessToSpecularPower(Frag.Material.Roughness)) * 0.5;
+	uvec2	Random = uvec2(random(vec2(PixelPos + FrameRandom * uvec2(97, 71)))) * uvec2(0x3127352, 0x11229256);
 	for( int i = 0; i < REFLEXION_SAMPLES; i++ ) {
+		float	Offset = float((PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15);
+		float	StepOffset = (Offset / 15.0);
 		//Generate random normals using Hammersley distribution
 		vec2	E = Hammersley(i, REFLEXION_SAMPLES, Random);
-		//Project new normal from Tangent space to World space using TBN Matrix
-		vec3	WSReflectionDir = reflect(WSViewDir, TangentToWorld(ConeAngle * E));
+		//Compute Half vector using Blinn Importance Sampling
+		//Project Half vector from Tangent space to World space using TBN Matrix
+		vec3	H = TangentToWorld(ImportanceSampleBlinn(E, Frag.Material.Roughness).xyz);
+		vec3	WSReflectionDir = 2 * dot(WSViewDir, H) * H - WSViewDir;
 		//Create new Point and project it to compute screen-space ray direction
 		//TODO : Find a better way to do this
-		vec3	SSRDir = WorldToScreen(10 * WSReflectionDir + WSPos) - SSPos;
-		float	Offset = float((PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15);
-		float	StepOffset = (Offset / 15.0) - 0.5;
+		vec3	SSRDir = WorldToScreen(WSReflectionDir + WSPos).xyz - SSPos;
 		if (castRay(SSPos, SSRDir, StepOffset))
 		{
-			float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(-WSViewDir, WSReflectionDir));
+			float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(WSViewDir, WSReflectionDir));
 			//SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
 			//Attenuate reflection factor when getting closer to screen border
 			SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR));
