@@ -51,15 +51,51 @@ vec4 sides[] = vec4[4](
 	vec4(0, 1, 0, 0)
 );
 
-bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in vec3 step, in float stepOffset)
+/* bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in vec3 step, in float stepOffset)
 {
-	/* float	distanceToBorder = 1.0;
+	// float	distanceToBorder = 1.0;
+	//for (int side = 0; side < 4; side++)
+	//{
+	//	if (lineSegmentIntersection(distanceToBorder, RayOrigin.xy, RayDir.xy,
+	//				vec2(sides[side].x, sides[side].y), vec2(sides[side].z, sides[side].w)))
+	//		break;
+	//} 
+	float	maxMipMaps = textureMaxLod(LastDepth);
+	float	minMipMaps = 0;
+	float	maxTries = REFLEXION_STEPS;
+	vec2	pixelSize = 1 / vec2(textureSize(LastDepth, 0));
+	float	step = (distanceToBorder / maxTries) + max(pixelSize.x, pixelSize.y);
+	float 	compareTolerance = RayOrigin.z * step;
+	//float 	compareTolerance = abs(RayOrigin.z) * step * 2;
+	float	sampleDist = stepOffset * step + step;
+	float	mipLevel = minMipMaps;
+	for (float tries = 0; tries < maxTries && mipLevel >= minMipMaps; tries++)
+	{
+		vec3	curUV = RayOrigin + RayDir * sampleDist;
+		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, int(mipLevel)).r;
+		float	depthDiff = curUV.z - sampleDepth;
+		bool	hit = abs(depthDiff) < compareTolerance;
+		if (hit)
+			mipLevel--;
+		else {
+			if (mipLevel < maxMipMaps)
+				mipLevel++;
+			sampleDist += step;
+		}
+		//mipLevel += Frag.Material.Roughness * (4.0 / maxTries);
+	}
+	return mipLevel < minMipMaps;
+} */
+
+/* bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset)
+{
+	float	distanceToBorder = 1.0;
 	for (int side = 0; side < 4; side++)
 	{
 		if (lineSegmentIntersection(distanceToBorder, RayOrigin.xy, RayDir.xy,
 					vec2(sides[side].x, sides[side].y), vec2(sides[side].z, sides[side].w)))
 			break;
-	} */
+	}
 	float	minMipMaps = 0;
 	float	maxTries = REFLEXION_STEPS;
 	//float	step = distanceToBorder / maxTries;
@@ -83,7 +119,7 @@ bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in vec3 step, in float stepOf
 		mipLevel += Frag.Material.Roughness * (4.0 / maxTries);
 	}
 	return false;
-}
+} */
 
 uint ReverseBits32(uint bits)
 {
