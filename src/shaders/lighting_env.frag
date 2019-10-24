@@ -51,33 +51,35 @@ vec4 sides[] = vec4[4](
 	vec4(0, 1, 0, 0)
 );
 
-bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset)
+bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in vec3 step, in float stepOffset)
 {
-	float	distanceToBorder = 1.0;
+	/* float	distanceToBorder = 1.0;
 	for (int side = 0; side < 4; side++)
 	{
 		if (lineSegmentIntersection(distanceToBorder, RayOrigin.xy, RayDir.xy,
 					vec2(sides[side].x, sides[side].y), vec2(sides[side].z, sides[side].w)))
 			break;
-	}
+	} */
 	float	minMipMaps = 0;
 	float	maxTries = REFLEXION_STEPS;
-	float	step = distanceToBorder / maxTries;
-	float 	compareTolerance = RayOrigin.z * step;
-	//float 	compareTolerance = abs(RayOrigin.z) * step * 2;
-	float	sampleDist = stepOffset * step + step;
+	//float	step = distanceToBorder / maxTries;
+	//float 	compareTolerance = RayOrigin.z * step;
+	float 	compareTolerance = abs(RayOrigin.z) * step.z * 2;
+	//float	sampleDist = stepOffset * step;
 	float	mipLevel = minMipMaps;
+	step += stepOffset;
 	for (float tries = 0; tries < maxTries; tries++)
 	{
-		vec3	curUV = RayOrigin + RayDir * sampleDist;
-		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, int(mipLevel)).r;
-		float	depthDiff = curUV.z - sampleDepth;
+		RayOrigin += RayDir * step;
+		//vec3	curUV = RayOrigin + RayDir * sampleDist;
+		float	sampleDepth = texelFetchLod(LastDepth, RayOrigin.xy, int(mipLevel)).r;
+		float	depthDiff = RayOrigin.z - sampleDepth;
 		bool	hit = abs(depthDiff) < compareTolerance;
-		if (hit && sampleDepth < 1) {
-			RayOrigin = curUV;
-			return true;
+		if (hit) {
+			//RayOrigin = curUV;
+			return RayOrigin.z < 1;
 		}
-		sampleDist += step;
+		//sampleDist += step;
 		mipLevel += Frag.Material.Roughness * (4.0 / maxTries);
 	}
 	return false;
@@ -145,6 +147,7 @@ vec4	SSR()
 {
 	float	Depth = texelFetchLod(LastDepth, Frag.UV, 0).r;
 	vec3	WSPos = ScreenToWorld(Frag.UV, Depth);
+	vec4	NDCPos = WorldToClip(WSPos);
 	vec3	WSViewDir = normalize(Camera.Position - WSPos);
 	vec3	SSPos = vec3(Frag.UV, Depth);
 	uint	FrameRandom = uint(Time * 1000.f) % 7 + 1;
@@ -165,8 +168,15 @@ vec4	SSR()
 		vec3	WSReflectionDir = 2 * dot(WSViewDir, H) * H - WSViewDir;
 		//Create new Point and project it to compute screen-space ray direction
 		//TODO : Find a better way to do this
-		vec3	SSRDir = WorldToScreen(WSReflectionDir + WSPos).xyz - SSPos;
-		if (castRay(SSPos, SSRDir, StepOffset))
+		vec4	NDCFar = WorldToClip(WSReflectionDir + WSPos);
+		vec3	SSFar = ClipToScreen(NDCFar).xyz;
+		NDCFar /= NDCFar.w;
+		vec3	SSRDir = normalize(SSFar - SSPos);
+        vec3	NDCStep = (NDCFar.xyz - NDCPos.xyz);
+        vec2	dpix = abs(NDCStep.xy * 0.5 * textureSize(LastDepth,0));
+		NDCStep = NDCStep / (dpix.x > dpix.y ? dpix.x : dpix.y);
+		vec3	step = NDCStep * vec3(0.5 * textureSize(LastDepth,0).xy, 0.5);
+		if (castRay(SSPos, SSRDir, step, StepOffset))
 		{
 			float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(WSViewDir, WSReflectionDir));
 			//SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
