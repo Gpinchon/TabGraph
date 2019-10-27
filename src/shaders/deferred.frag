@@ -189,6 +189,12 @@ int		textureMaxLod(in sampler2D tex)
 #endif
 }
 
+vec4	texelFetchLod(in sampler2D tex, in vec2 uv, in float mipLevel)
+{
+	ivec2	Resolution = textureSize(tex, 0);
+	return mix(texelFetch(tex, ivec2(Resolution * uv), int(floor(mipLevel))), texelFetch(tex, ivec2(Resolution * uv), int(ceil(mipLevel))), fract(mipLevel));
+}
+
 vec4	texelFetchLod(in sampler2D tex, in vec2 uv, in int mipLevel)
 {
 	ivec2	Resolution = textureSize(tex, 0);
@@ -246,9 +252,14 @@ float Luminance(vec3 LinearColor)
 	return dot(LinearColor, vec3(0.299, 0.587, 0.114));
 }
 
-vec4	WorldToClip(in vec3 position)
+vec4	WorldToView(in vec3 position)
 {
-	return Camera.Matrix.Projection * Camera.Matrix.View * vec4(position, 1);
+	return Camera.Matrix.View * vec4(position, 1);
+}
+
+vec4	ViewToClip(in vec4 position)
+{
+	return Camera.Matrix.Projection * position;
 }
 
 vec4	ClipToScreen(in vec4 position)
@@ -261,7 +272,8 @@ vec4	ClipToScreen(in vec4 position)
 /** Returns the World position and the scene depth in world units */
 vec4	WorldToScreen(in vec3 position)
 {
-	return ClipToScreen(WorldToClip(position));
+	return ClipToScreen(ViewToClip(WorldToView(position)));
+	//return ClipToScreen(WorldToClip(position));
 }
 
 vec3 TangentToWorld(in vec3 vec)
@@ -281,9 +293,14 @@ vec3	ScreenToWorld(in vec2 UV, in float depth)
 	return (projectedCoord.xyz / projectedCoord.w);
 }
 
+float	Depth(in vec2 UV)
+{
+	return texture(Texture.Depth, UV).r;
+}
+
 vec3	WorldPosition(in vec2 UV)
 {
-	return ScreenToWorld(UV, texture(Texture.Depth, UV).r);
+	return ScreenToWorld(UV, Depth(UV));
 }
 
 vec3	WorldPosition()

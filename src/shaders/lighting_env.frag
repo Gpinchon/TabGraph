@@ -51,75 +51,97 @@ vec4 sides[] = vec4[4](
 	vec4(0, 1, 0, 0)
 );
 
-/* bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in vec3 step, in float stepOffset)
+vec4 SampleDepthTexture(float Level, vec4 SampleUV0, vec4 SampleUV1 )
 {
-	// float	distanceToBorder = 1.0;
-	//for (int side = 0; side < 4; side++)
-	//{
-	//	if (lineSegmentIntersection(distanceToBorder, RayOrigin.xy, RayDir.xy,
-	//				vec2(sides[side].x, sides[side].y), vec2(sides[side].z, sides[side].w)))
-	//		break;
-	//} 
-	float	maxMipMaps = textureMaxLod(LastDepth);
-	float	minMipMaps = 0;
-	float	maxTries = REFLEXION_STEPS;
-	vec2	pixelSize = 1 / vec2(textureSize(LastDepth, 0));
-	float	step = (distanceToBorder / maxTries) + max(pixelSize.x, pixelSize.y);
-	float 	compareTolerance = RayOrigin.z * step;
-	//float 	compareTolerance = abs(RayOrigin.z) * step * 2;
-	float	sampleDist = stepOffset * step + step;
-	float	mipLevel = minMipMaps;
-	for (float tries = 0; tries < maxTries && mipLevel >= minMipMaps; tries++)
-	{
-		vec3	curUV = RayOrigin + RayDir * sampleDist;
-		float	sampleDepth = texelFetchLod(LastDepth, curUV.xy, int(mipLevel)).r;
-		float	depthDiff = curUV.z - sampleDepth;
-		bool	hit = abs(depthDiff) < compareTolerance;
-		if (hit)
-			mipLevel--;
-		else {
-			if (mipLevel < maxMipMaps)
-				mipLevel++;
-			sampleDist += step;
-		}
-		//mipLevel += Frag.Material.Roughness * (4.0 / maxTries);
-	}
-	return mipLevel < minMipMaps;
-} */
+	vec4 SampleDepth;
+	// SampleUV{0,1}.{xy,zw} should already be in the HZB UV frame using HZBUvFactorAndInvFactor.xy
+	SampleDepth.x = texelFetchLod(LastDepth, SampleUV0.xy, (Level)).r;
+	SampleDepth.y = texelFetchLod(LastDepth, SampleUV0.zw, (Level)).r;
+	SampleDepth.z = texelFetchLod(LastDepth, SampleUV1.xy, (Level)).r;
+	SampleDepth.w = texelFetchLod(LastDepth, SampleUV1.zw, (Level)).r;
+	return SampleDepth;
+}
 
-/* bool	castRay(inout vec3 RayOrigin, in vec3 RayDir, in float stepOffset)
+bool	castRay(inout vec3 RayStartUVz, in vec3 RayDir, in float StepOffset)
 {
 	float	distanceToBorder = 1.0;
+	const vec2	UVDir = normalize(RayDir.xy);
 	for (int side = 0; side < 4; side++)
 	{
-		if (lineSegmentIntersection(distanceToBorder, RayOrigin.xy, RayDir.xy,
-					vec2(sides[side].x, sides[side].y), vec2(sides[side].z, sides[side].w)))
+		if (lineSegmentIntersection(distanceToBorder, RayStartUVz.xy, UVDir, sides[side].xy, sides[side].zw))
 			break;
 	}
-	float	minMipMaps = 0;
-	float	maxTries = REFLEXION_STEPS;
-	//float	step = distanceToBorder / maxTries;
-	//float 	compareTolerance = RayOrigin.z * step;
-	float 	compareTolerance = abs(RayOrigin.z) * step.z * 2;
-	//float	sampleDist = stepOffset * step;
+	const float	minMipMaps = 0;
+	const float	maxMipMaps = textureMaxLod(LastDepth);
+	const float	maxTries = REFLEXION_STEPS;
+	const float	Step = 1.0 / maxTries;
+	const vec3	RayEnd = RayStartUVz + RayDir * distanceToBorder;
+	const vec3	RayStepUVz = (RayEnd - RayStartUVz) * Step;
+	//const float	RayStepUVz = distanceToBorder / maxTries;
+	const float 	CompareTolerance = abs(RayStepUVz.z);
+	//const float 	CompareTolerance = min(1.0 / maxTries, RayStartUVz.z * RayStepUVz.z);
+	//const float	CompareTolerance = max(abs(RayStepUVz.z)/* 0.06 */, (RayStartUVz.z - RayEnd.z) * Step * 4);
+	//const float 	CompareTolerance = RayStartUVz.z * abs(RayStepUVz.z) * 2;
+	//const float 	CompareTolerance = abs(RayStartUVz.z) * RayStepUVz.z);
 	float	mipLevel = minMipMaps;
-	step += stepOffset;
-	for (float tries = 0; tries < maxTries; tries++)
+	vec3	RayUVz = RayStartUVz + RayStepUVz * StepOffset;
+	float	LastDiff = 0;
+	for (int tries = 0; tries < REFLEXION_STEPS; tries += 4)
 	{
-		RayOrigin += RayDir * step;
-		//vec3	curUV = RayOrigin + RayDir * sampleDist;
-		float	sampleDepth = texelFetchLod(LastDepth, RayOrigin.xy, int(mipLevel)).r;
-		float	depthDiff = RayOrigin.z - sampleDepth;
-		bool	hit = abs(depthDiff) < compareTolerance;
-		if (hit) {
-			//RayOrigin = curUV;
-			return RayOrigin.z < 1;
+		// Vectorized to group fetches
+		vec4	SampleUV0 = RayUVz.xyxy + RayStepUVz.xyxy * vec4( 1, 1, 2, 2 );
+		vec4	SampleUV1 = RayUVz.xyxy + RayStepUVz.xyxy * vec4( 3, 3, 4, 4 );
+		vec4	SampleZ   = RayUVz.zzzz + RayStepUVz.zzzz * vec4( 1, 2, 3, 4 );
+		vec4	sampleDepth = SampleDepthTexture(mipLevel * maxMipMaps, SampleUV0, SampleUV1);
+		vec4	DepthDiff = SampleZ - sampleDepth;
+		bvec4	Hit = greaterThan(SampleZ, sampleDepth);// || abs(depthDiff) < CompareTolerance;
+		if(any(Hit))
+		{
+			float DepthDiff0 = DepthDiff[2];
+			float DepthDiff1 = DepthDiff[3];
+			float MinTime = 3;
+
+			if(Hit[2])
+			{
+				DepthDiff0 = DepthDiff[1];
+				DepthDiff1 = DepthDiff[2];
+				MinTime = 2;
+			}
+			if(Hit[1])
+			{
+				DepthDiff0 = DepthDiff[0];
+				DepthDiff1 = DepthDiff[1];
+				MinTime = 1;
+			}
+			if(Hit[0])
+			{
+				DepthDiff0 = LastDiff;
+				DepthDiff1 = DepthDiff[0];
+				MinTime = 0;
+			}
+
+			// Find more accurate hit using line segment intersection
+			float	TimeLerp = clamp(DepthDiff0 / (DepthDiff0 - DepthDiff1), 0, 1);
+			float	IntersectTime = MinTime + TimeLerp;
+			vec3	HitUVz = RayUVz + RayStepUVz * IntersectTime;
+			if (texelFetchLod(LastDepth, HitUVz.xy, 0).r < 1) {
+				RayStartUVz = HitUVz;
+				return true;
+			}
 		}
-		//sampleDist += step;
-		mipLevel += Frag.Material.Roughness * (4.0 / maxTries);
+
+		//bool	hit = abs(depthDiff) <= CompareTolerance;
+		//bool	hit = abs(-depthDiff - CompareTolerance) < CompareTolerance;
+		/* if (texelFetchLod(LastDepth, sampleUVz.xy, 0).r < 1 && hit) {
+			RayStartUVz = sampleUVz;
+			return true;
+		} */
+		LastDiff = DepthDiff.w;
+		mipLevel += Frag.Material.Roughness * (16.0 / maxTries);
+		RayUVz += 4 * RayStepUVz;
 	}
 	return false;
-} */
+}
 
 uint ReverseBits32(uint bits)
 {
@@ -179,40 +201,67 @@ vec3 ImportanceSampleBlinn(vec2 E, float Roughness)
 	return H;
 }
 
+vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
+{
+    float a = roughness*roughness;
+	
+    float phi = 2.0 * PI * Xi.x;
+    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
+    float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
+	
+    // from spherical coordinates to cartesian coordinates
+    vec3 H;
+    H.x = cos(phi) * sinTheta;
+    H.y = sin(phi) * sinTheta;
+    H.z = cosTheta;
+	
+    // from tangent-space vector to world-space sample vector
+    vec3 up        = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+    vec3 tangent   = normalize(cross(up, N));
+    vec3 bitangent = cross(N, tangent);
+	
+    vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
+    return normalize(sampleVec);
+}
+
+float PseudoRandom(vec2 xy)
+{
+	vec2 pos = fract(xy / 128.0f) * 128.0f + vec2(-64.340622f, -72.465622f);
+	
+	// found by experimentation
+	return fract(dot(pos.xyx * pos.xyy, vec3(20.390625f, 60.703125f, 2.4281209f)));
+}
+
 vec4	SSR()
 {
-	float	Depth = texelFetchLod(LastDepth, Frag.UV, 0).r;
-	vec3	WSPos = ScreenToWorld(Frag.UV, Depth);
-	vec4	NDCPos = WorldToClip(WSPos);
+	float	SSDepth = texelFetchLod(LastDepth, Frag.UV, 0).r;
+	vec3	WSPos = ScreenToWorld(Frag.UV, SSDepth);
 	vec3	WSViewDir = normalize(Camera.Position - WSPos);
-	vec3	SSPos = vec3(Frag.UV, Depth);
+	vec3	SSPos = vec3(Frag.UV, SSDepth);
 	uint	FrameRandom = uint(Time * 1000.f) % 7 + 1;
 	vec4	outColor = vec4(0);
 	uvec2	PixelPos = ivec2(textureSize(LastDepth, 0) * Frag.UV);
 	//Get the pixel Dithering Value and reverse Bits
 	uint	Morton = MortonCode(PixelPos.x & 3) | ( MortonCode(PixelPos.y & 3) * 2 );
 	uint	PixelIndex = ReverseUIntBits(Morton);
-	uvec2	Random = uvec2(random(vec2(PixelPos + FrameRandom * uvec2(97, 71)))) * uvec2(0x3127352, 0x11229256);
+	uvec2	Random = uvec2(PseudoRandom(vec2(PixelPos + FrameRandom * uvec2(97, 71)))) * uvec2(0x3127352, 0x11229256);
 	for( int i = 0; i < REFLEXION_SAMPLES; i++ ) {
-		float	Offset = float((PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15);
-		float	StepOffset = (Offset / 15.0);
+		float	Offset = float((PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & REFLEXION_SAMPLES);
+		float	StepOffset = (Offset / float(REFLEXION_SAMPLES));
 		//Generate random normals using Hammersley distribution
 		vec2	E = Hammersley(i, REFLEXION_SAMPLES, Random);
 		//Compute Half vector using Blinn Importance Sampling
 		//Project Half vector from Tangent space to World space using TBN Matrix
-		vec3	H = TangentToWorld(ImportanceSampleBlinn(E, Frag.Material.Roughness).xyz);
-		vec3	WSReflectionDir = 2 * dot(WSViewDir, H) * H - WSViewDir;
+		vec3	H = ImportanceSampleGGX(E, Frag.Normal, Frag.Material.Roughness);
+		//vec3	H = TangentToWorld(ImportanceSampleBlinn(E, Frag.Material.Roughness).xyz);
+		//vec3	WSReflectionDir = reflect(WSViewDir, Frag.Normal);
+		vec3	WSReflectionDir = -reflect(WSViewDir, H);
+		//vec3	WSReflectionDir = 2 * dot(WSViewDir, H) * H - WSViewDir;
 		//Create new Point and project it to compute screen-space ray direction
 		//TODO : Find a better way to do this
-		vec4	NDCFar = WorldToClip(WSReflectionDir + WSPos);
-		vec3	SSFar = ClipToScreen(NDCFar).xyz;
-		NDCFar /= NDCFar.w;
-		vec3	SSRDir = normalize(SSFar - SSPos);
-        vec3	NDCStep = (NDCFar.xyz - NDCPos.xyz);
-        vec2	dpix = abs(NDCStep.xy * 0.5 * textureSize(LastDepth,0));
-		NDCStep = NDCStep / (dpix.x > dpix.y ? dpix.x : dpix.y);
-		vec3	step = NDCStep * vec3(0.5 * textureSize(LastDepth,0).xy, 0.5);
-		if (castRay(SSPos, SSRDir, step, StepOffset))
+		vec3	SSRDir = WorldToScreen(WSPos + WSReflectionDir).xyz - SSPos;
+		SSRDir = normalize(SSRDir);
+		if (castRay(SSPos, SSRDir, StepOffset))
 		{
 			float SSRParticipation = 1 - smoothstep(0.25, 0.50, dot(WSViewDir, WSReflectionDir));
 			//SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
@@ -220,7 +269,7 @@ vec4	SSR()
 			SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR));
 			SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));
 			SSRParticipation = clamp(SSRParticipation, 0, 1);
-			vec4 SampleColor = vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness + abs(Depth - SSPos.z)).rgb * SSRParticipation, SSRParticipation);
+			vec4 SampleColor = vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness + abs(SSDepth - SSPos.z)).rgb * SSRParticipation, SSRParticipation);
 			SampleColor.rgb /= 1 + Luminance(SampleColor.rgb);
 			outColor += SampleColor;
 		}
@@ -301,6 +350,7 @@ void	ApplyTechnique()
 
 	vec3	envReflection = (specular + reflection_spec + reflection) * alpha;
 	vec4	ssrResult = SSR();
+	//Out.Color.rgb = ssrResult.xyz;
 	Out.Color.rgb += mix(envReflection, ssrResult.xyz * fresnel, ssrResult.w);
 	Out.Color.rgb += (diffuse + Frag.Material.Emitting) * alpha;
 	Out.Color.a = 1;
