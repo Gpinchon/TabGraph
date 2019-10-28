@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 12:01:11
+* @Last Modified time: 2019-10-23 13:57:23
 */
 
 #include "Node.hpp"
@@ -21,7 +21,6 @@ std::shared_ptr<Node> Node::Create(const std::string &name, glm::vec3 position, 
     t->_position = position;
     t->_rotation = rotation;
     t->_scale = scale;
-    //t->_transformMatrix = new_transform(position, rotation, scale, up());
     t->Update();
     Node::Add(t);
     return (t);
@@ -69,8 +68,7 @@ void Node::UpdateTransformMatrix()
     UpdateRotationMatrix();
     UpdateScaleMatrix();
     SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
-    auto parentPtr = parent();
-    if (parentPtr != nullptr)
+    if (auto parentPtr = parent(); parentPtr != nullptr)
     {
         parentPtr->UpdateTransformMatrix();
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());

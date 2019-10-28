@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 17:20:26
+* @Last Modified time: 2019-10-23 10:32:30
 */
 
 #include "Render.hpp"
@@ -178,7 +178,7 @@ void render_shadows()
     glDepthFunc(GL_LESS);
     Camera::set_current(tempCamera);
     tempCamera->SetProjectionMatrix(glm::mat4(1.0));
-    for (auto light : shadowLights)
+    for (auto &light : shadowLights)
     {
         light->render_buffer()->bind();
         glClear(GL_DEPTH_BUFFER_BIT);
