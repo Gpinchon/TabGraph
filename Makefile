@@ -47,7 +47,9 @@ SHADERS_FILES	=	\
 					passthrough.vert		\
 					present.frag			\
 					refraction.frag			\
-					ssao.frag
+					ssao.frag				\
+					SSR.frag				\
+					SSRBlur.frag
 HEADERS_FILES	=	\
 					AABB.hpp					\
 					BoundingElement.hpp			\

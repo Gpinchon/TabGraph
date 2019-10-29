@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpi
-* @Last Modified time: 2019-10-23 10:32:30
+* @Last Modified time: 2019-10-29 17:27:18
 */
 
 #include "Render.hpp"
@@ -84,11 +84,20 @@ static auto emptyShaderCode =
 #include "empty.glsl"
     ;
 
+static auto lightingFragmentCode =
+#include "lighting.frag"
+    ;
 static auto lightingEnvFragmentCode =
 #include "lighting_env.frag"
     ;
 static auto refractionFragmentCode =
 #include "refraction.frag"
+    ;
+static auto SSRShaderCode =
+#include "SSR.frag"
+    ;
+static auto SSRBlurShaderCode =
+#include "SSRBlur.frag"
     ;
 
 /*
@@ -312,9 +321,6 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
     auto shadowsPerPass = Config::Get("ShadowsPerPass", 8u);
     if (lightsPerPass == 0)
         return;
-    static auto lightingFragmentCode =
-#include "lighting.frag"
-        ;
     static auto lighting_shader = GLSL::compile("lighting", lightingFragmentCode, LightingShader,
                                                 std::string("\n#define LIGHTNBR ") + std::to_string(lightsPerPass) + std::string("\n#define PointLight ") + std::to_string(Point) + std::string("\n#define DirectionnalLight ") + std::to_string(Directionnal) + std::string("\n"));
     static auto slighting_shader = GLSL::compile("shadow_lighting", lightingFragmentCode, LightingShader,
@@ -423,6 +429,36 @@ void HZBPass(std::shared_ptr<Texture> depthTexture)
     depthTexture->set_parameteri(GL_TEXTURE_MAX_LEVEL, numLevels - 1);
     depthTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     framebuffer->bind(false);
+}
+
+std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
+{
+    glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
+    static auto reflectionSteps = Config::Get("ReflexionSteps", 8);
+    static auto reflectionSamples = Config::Get("ReflexionSamples", 8);
+    static auto reflectionBorderFactor = Config::Get("ReflexionBorderFactor", 10);
+    static auto SSRFramebuffer(Framebuffer::Create("SSRFramebuffer", res, 1, 0));
+    static auto SSRShader = GLSL::compile("SSR", SSRShaderCode, LightingShader,
+                                          std::string("\n#define REFLEXION_STEPS     ") + std::to_string(reflectionSteps)
+                                              + std::string("\n#define REFLEXION_SAMPLES ") + std::to_string(reflectionSamples)
+                                              + std::string("\n#define SCREEN_BORDER_FACTOR    ") + std::to_string(reflectionBorderFactor)
+                                              + std::string("\n"));
+    static auto SSRBlurShader = GLSL::compile("SSRBlur", SSRBlurShaderCode, LightingShader);
+    SSRFramebuffer->resize(res);
+    SSRFramebuffer->bind();
+    SSRShader->use();
+    SSRShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE0);
+    SSRShader->bind_texture("LastColor", lastRender->attachement(0), GL_TEXTURE1);
+    SSRShader->bind_texture("LastNormal", lastRender->attachement(2), GL_TEXTURE2);
+    SSRShader->bind_texture("LastDepth", lastRender->depth(), GL_TEXTURE3);
+    Render::Private::DisplayQuad()->draw();
+    SSRShader->use(false);
+    SSRFramebuffer->bind(false);
+    SSRBlurShader->use();
+    SSRBlurShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
+    SSRBlurShader->use(false);
+    SSRFramebuffer->attachement(0)->blur(4, 3.5, SSRBlurShader);
+    return SSRFramebuffer->attachement(0);
 }
 
 void Render::Private::Scene()
@@ -541,6 +577,7 @@ void Render::Private::Scene()
     last_render->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     HZBPass(last_render->depth());
+    auto SSRResult(SSRPass(current_tbuffertex, last_render));
     //last_render->depth()->generate_mipmap();
     //last_render->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
@@ -560,9 +597,7 @@ void Render::Private::Scene()
     elighting_shader->bind_texture("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
     elighting_shader->bind_texture("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
     elighting_shader->bind_texture("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("LastColor", last_render->attachement(0), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("LastNormal", last_render->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("LastDepth", last_render->depth(), GL_TEXTURE0 + (++i));
+    elighting_shader->bind_texture("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
     if (Environment::current() != nullptr)
     {
         elighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
@@ -620,12 +655,7 @@ void Render::Private::Scene()
     telighting_shader->bind_texture("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
     telighting_shader->bind_texture("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
     telighting_shader->bind_texture("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
-    //telighting_shader->bind_texture("opaqueBackColor", opaqueBackBuffer->attachement(0), GL_TEXTURE0 + (++i));
-    //telighting_shader->bind_texture("opaqueBackEmitting", opaqueBackBuffer->attachement(1), GL_TEXTURE0 + (++i));
-    //telighting_shader->bind_texture("opaqueBackNormal", opaqueBackBuffer->attachement(2), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("LastColor", last_render->attachement(0), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("LastNormal", last_render->attachement(2), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("LastDepth", last_render->depth(), GL_TEXTURE0 + (++i));
+    telighting_shader->bind_texture("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
     if (Environment::current() != nullptr)
     {
         telighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
