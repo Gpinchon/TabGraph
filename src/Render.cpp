@@ -457,7 +457,7 @@ std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shar
     SSRBlurShader->use();
     SSRBlurShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
     SSRBlurShader->use(false);
-    SSRFramebuffer->attachement(0)->blur(4, 3.5, SSRBlurShader);
+    SSRFramebuffer->attachement(0)->blur(4, 1, SSRBlurShader);
     return SSRFramebuffer->attachement(0);
 }
 
