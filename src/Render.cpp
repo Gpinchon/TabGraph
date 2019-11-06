@@ -453,6 +453,7 @@ std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shar
     static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
     SSRFramebufferResult->resize(res);
     currentFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
+    auto lastFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
     currentFrameBuffer->resize(res);
     currentFrameBuffer->bind();
     SSRShader->use();
@@ -466,8 +467,8 @@ std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shar
     //Merge the current result with last result to increase sampling
     SSRFramebufferResult->bind();
     SSRMergeShader->use();
-    SSRMergeShader->bind_texture("in_Texture_Color", SSRFramebuffer->attachement(0), GL_TEXTURE1);
-    SSRMergeShader->bind_texture("in_Last_Texture_Color", SSRFramebuffer1->attachement(0), GL_TEXTURE2);
+    SSRMergeShader->bind_texture("in_Texture_Color", currentFrameBuffer->attachement(0), GL_TEXTURE1);
+    SSRMergeShader->bind_texture("in_Last_Texture_Color", lastFrameBuffer->attachement(0), GL_TEXTURE2);
     Render::DisplayQuad()->draw();
     SSRMergeShader->use(false);
     SSRFramebufferResult->bind(false);

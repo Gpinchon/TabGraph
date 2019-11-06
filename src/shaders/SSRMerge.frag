@@ -5,8 +5,9 @@ uniform vec2		in_Direction;
 
 void ApplyTechnique()
 {
-	Out.Color = vec4(0);
-	Out.Color = mix(texture2D(in_Texture_Color, frag_UV), texture2D(in_Last_Texture_Color, frag_UV), 0.5);
+	vec4 color = texture2D(in_Texture_Color, frag_UV);
+	vec4 lastColor = texture2D(in_Last_Texture_Color, frag_UV);
+	Out.Color = lastColor.a > 0 ? mix(color, lastColor, 0.5) : color;
 }
 
 )""
