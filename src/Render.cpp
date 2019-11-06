@@ -96,6 +96,9 @@ static auto refractionFragmentCode =
 static auto SSRShaderCode =
 #include "SSR.frag"
     ;
+static auto SSRMergeShaderCode =
+#include "SSRMerge.frag"
+    ;
 static auto SSRBlurShaderCode =
 #include "SSRBlur.frag"
     ;
@@ -438,14 +441,20 @@ std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shar
     static auto reflectionSamples = Config::Get("ReflexionSamples", 8);
     static auto reflectionBorderFactor = Config::Get("ReflexionBorderFactor", 10);
     static auto SSRFramebuffer(Framebuffer::Create("SSRFramebuffer", res, 1, 0));
+    static auto SSRFramebuffer1(Framebuffer::Create("SSRFramebuffer1", res, 1, 0));
+    static auto SSRFramebufferResult(Framebuffer::Create("SSRFramebufferResult", res, 1, 0));
     static auto SSRShader = GLSL::compile("SSR", SSRShaderCode, LightingShader,
                                           std::string("\n#define REFLEXION_STEPS     ") + std::to_string(reflectionSteps)
                                               + std::string("\n#define REFLEXION_SAMPLES ") + std::to_string(reflectionSamples)
                                               + std::string("\n#define SCREEN_BORDER_FACTOR    ") + std::to_string(reflectionBorderFactor)
                                               + std::string("\n"));
+    static auto SSRMergeShader = GLSL::compile("SSRMerge", SSRMergeShaderCode, LightingShader);
     static auto SSRBlurShader = GLSL::compile("SSRBlur", SSRBlurShaderCode, LightingShader);
-    SSRFramebuffer->resize(res);
-    SSRFramebuffer->bind();
+    static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
+    SSRFramebufferResult->resize(res);
+    currentFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
+    currentFrameBuffer->resize(res);
+    currentFrameBuffer->bind();
     SSRShader->use();
     SSRShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE0);
     SSRShader->bind_texture("LastColor", lastRender->attachement(0), GL_TEXTURE1);
@@ -453,12 +462,21 @@ std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shar
     SSRShader->bind_texture("LastDepth", lastRender->depth(), GL_TEXTURE3);
     Render::Private::DisplayQuad()->draw();
     SSRShader->use(false);
-    SSRFramebuffer->bind(false);
+    currentFrameBuffer->bind(false);
+    //Merge the current result with last result to increase sampling
+    SSRFramebufferResult->bind();
+    SSRMergeShader->use();
+    SSRMergeShader->bind_texture("in_Texture_Color", SSRFramebuffer->attachement(0), GL_TEXTURE1);
+    SSRMergeShader->bind_texture("in_Last_Texture_Color", SSRFramebuffer1->attachement(0), GL_TEXTURE2);
+    Render::DisplayQuad()->draw();
+    SSRMergeShader->use(false);
+    SSRFramebufferResult->bind(false);
+    //Blur the result
     SSRBlurShader->use();
     SSRBlurShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
     SSRBlurShader->use(false);
-    SSRFramebuffer->attachement(0)->blur(4, 1, SSRBlurShader);
-    return SSRFramebuffer->attachement(0);
+    SSRFramebufferResult->attachement(0)->blur(4, 1, SSRBlurShader);
+    return SSRFramebufferResult->attachement(0);
 }
 
 void Render::Private::Scene()

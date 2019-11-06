@@ -49,6 +49,7 @@ SHADERS_FILES	=	\
 					refraction.frag			\
 					ssao.frag				\
 					SSR.frag				\
+					SSRMerge.frag			\
 					SSRBlur.frag
 HEADERS_FILES	=	\
 					AABB.hpp					\
