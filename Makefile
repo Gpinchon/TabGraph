@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/04/13 19:42:53 by gpinchon         ###   ########.fr        #
+#    Updated: 2019/12/08 14:12:12 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -85,6 +85,7 @@ HEADERS_FILES	=	\
 					parser/FBX/FBXObject.hpp	\
 					parser/FBX/FBXProperty.hpp	\
 					parser/GLSL.hpp				\
+					parser/GLTF.hpp				\
 					parser/HDR.hpp				\
 					parser/InternalTools.hpp	\
 					parser/MTLLIB.hpp			\
@@ -134,6 +135,7 @@ SRC_FILES		=	\
 					parser/FBX/FBXObject.cpp	\
 					parser/FBX/FBXProperty.cpp	\
 					parser/GLSL.cpp				\
+					parser/GLTF.cpp				\
 					parser/HDR.cpp				\
 					parser/MTLLIB.cpp			\
 					parser/OBJ.cpp				\
@@ -141,6 +143,7 @@ SRC_FILES		=	\
 					Quadtree.cpp				\
 					Render.cpp					\
 					Renderable.cpp				\
+					Scene.cpp					\
 					Shader.cpp					\
 					StackTracer.cpp				\
 					Texture.cpp					\
@@ -169,6 +172,7 @@ OBJ				=	$(SRC_FILES:.cpp=.o)
 # Files Generation End #
 
 INCLUDE_PATH	=	./include				\
+					./libs/include			\
 					./libs/gdal/gdal/gcore	\
 					./libs/gdal/gdal/port	\
 					./libs/gdal/gdal/ogr
