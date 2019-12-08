@@ -118,7 +118,7 @@ bool Mesh::DrawDepth(RenderMod mod)
             && (material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
             continue;
         else if (mod == RenderTransparent
-                 && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
+            && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
             continue;
         auto shader(material->depth_shader());
         if (nullptr == shader)

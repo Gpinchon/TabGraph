@@ -460,7 +460,7 @@ std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shar
     SSRShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE0);
     SSRShader->bind_texture("LastColor", lastRender->attachement(0), GL_TEXTURE1);
     SSRShader->bind_texture("LastNormal", lastRender->attachement(2), GL_TEXTURE2);
-    SSRShader->bind_texture("LastDepth", lastRender->depth(), GL_TEXTURE3);
+    SSRShader->bind_texture("LastDepth", gBuffer->depth(), GL_TEXTURE3);
     Render::Private::DisplayQuad()->draw();
     SSRShader->use(false);
     currentFrameBuffer->bind(false);
@@ -476,7 +476,7 @@ std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shar
     SSRBlurShader->use();
     SSRBlurShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
     SSRBlurShader->use(false);
-    SSRFramebufferResult->attachement(0)->blur(4, 1, SSRBlurShader);
+    SSRFramebufferResult->attachement(0)->blur(2, 1, SSRBlurShader);
     return SSRFramebufferResult->attachement(0);
 }
 

@@ -9,6 +9,7 @@
 #include "DLLExport.hpp"
 
 #include "Config.hpp" // for Config
+#include "BoundingElement.hpp"
 #include "Engine.hpp" // for ProgramPath, Init, Start
 #include "FPSCamera.hpp" // for FPSCamera
 #include "Light.hpp" // for DirectionnalLight, Light
@@ -77,6 +78,8 @@ compute_object->Start();
 cube->vgroup(0)->material()->set_texture_albedo(texture);
 */
 
+#include <Vgroup.hpp>
+
 int main(int argc, char *argv[])
 {
     std::shared_ptr<Mesh> obj;
@@ -98,7 +101,13 @@ int main(int argc, char *argv[])
     }
     if (obj != nullptr)
     {
-        //obj->center();
+        for (auto &vg : obj->vgroups()) {
+            for (auto &v : vg->v)
+                v -= obj->bounding_element->center;
+        }
+        obj->bounding_element->min -= obj->bounding_element->center;
+        obj->bounding_element->max -= obj->bounding_element->center;
+        obj->bounding_element->center = glm::vec3(0, 0, 0);
         obj->Load();
     }
     //FBX::parseBin(Engine::ProgramPath() + "./mug.fbx");
