@@ -64,23 +64,9 @@ void callback_camera(SDL_Event *)
         taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
     }
     cameraRotation.z -= laxis.y * Events::delta_time();
-
-    //if (orbit) {
-    //    Mouse::set_relative(SDL_FALSE);
-    //    auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::current());
-    //    auto t = camera->target();
-    //    cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
-    //    cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-    //    cameraRotation.z = glm::clamp(cameraRotation.z, 0.1f, 1000.f);
-    //    t->Position().y += rtrigger * Events::delta_time();
-    //    t->Position().y -= ltrigger * Events::delta_time();
-    //    camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
-    //} else {
-    //}
     camera->SetPosition(camera->Position() + float(Events::delta_time() * laxis.x) * camera->Right());
     camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y) * camera->Forward());
     camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis) * Common::Up());
-    //camera->SetPosition(camera->Position() + ()).y -=  * Events::delta_time();
 }
 
 void callback_scale(SDL_KeyboardEvent *event)
@@ -226,18 +212,6 @@ void MouseMoveCallback(SDL_MouseMotionEvent *event)
 {
     if (GameController::Get(0)->is_connected())
         return;
-    //if (orbit) {
-    //    static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::GetByName("main_camera"));
-    //    if (Mouse::button(1)) {
-    //        cameraRotation.x += event->yrel * Events::delta_time();
-    //        cameraRotation.y -= event->xrel * Events::delta_time();
-    //        cameraRotation.x = glm::clamp(cameraRotation.x, 0.01f, float(M_PI - 0.01f));
-    //        cameraRotation.y = CYCLE(cameraRotation.y, 0, 2 * M_PI);
-    //        cameraRotation.z = glm::clamp(cameraRotation.z, 0.01f, 1000.f);
-    //    }
-    //    camera->orbite(cameraRotation.x, cameraRotation.y, cameraRotation.z);
-    //} else {
-    //}
     static auto camera = std::dynamic_pointer_cast<FPSCamera>(FPSCamera::GetByName("main_camera"));
     cameraRotation.x += event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
     cameraRotation.y -= event->yrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);

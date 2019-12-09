@@ -1,9 +1,93 @@
+#include "Engine.hpp"
+#include "Config.hpp"
+#include "FPSCamera.hpp"
+#include "Light.hpp"
+#include "Keyboard.hpp"
+#include "Mouse.hpp"
+#include "Events.hpp"
+#include "Window.hpp"
 #include "parser/GLTF.hpp"
 
-int main(int argc, char const *argv[])
+#define DOWNK SDL_SCANCODE_DOWN
+#define UPK SDL_SCANCODE_UP
+#define LEFTK SDL_SCANCODE_LEFT
+#define RIGHTK SDL_SCANCODE_RIGHT
+#define ZOOMK SDL_SCANCODE_KP_PLUS
+#define UNZOOMK SDL_SCANCODE_KP_MINUS
+
+void CameraCallback(SDL_Event *)
+{
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(Camera::current());
+    glm::vec2 raxis = glm::vec2(0, 0);
+    glm::vec2 laxis = glm::vec2(0, 0);
+    float taxis = 0;
+    //Mouse::set_relative(SDL_TRUE);
+    laxis.x = Keyboard::key(LEFTK) - Keyboard::key(RIGHTK);
+    laxis.y = Keyboard::key(DOWNK) - Keyboard::key(UPK);
+    raxis.x = 0;
+    raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
+    taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
+    taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
+    camera->SetPosition(camera->Position() + float(Events::delta_time() * laxis.x) * camera->Right());
+    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y) * camera->Forward());
+    camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis) * Common::Up());
+}
+
+void MouseMoveCallback(SDL_MouseMotionEvent *event)
+{
+    if (!Mouse::button(1))
+        return;
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(Camera::current());
+    if (camera == nullptr)
+        return;
+    static glm::vec2 cameraRotation;
+    cameraRotation.x += event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
+    cameraRotation.y -= event->yrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
+    camera->SetYaw(cameraRotation.x);
+    camera->SetPitch(cameraRotation.y);
+}
+
+void MouseWheelCallback(SDL_MouseWheelEvent *event)
+{
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(Camera::current());
+    if (camera == nullptr)
+        return;
+    camera->SetFov(camera->Fov() - event->y * 0.01);
+    camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 70.f));
+}
+
+void FullscreenCallback(SDL_KeyboardEvent* ) {
+    if (Keyboard::key(SDL_SCANCODE_LALT)) {
+        static bool fullscreen = false;
+        fullscreen = !fullscreen;
+        Window::fullscreen(fullscreen);
+    }
+}
+
+void ExitCallback(SDL_KeyboardEvent* ) {
+    Engine::Stop();
+}
+
+void SetupCallbacks()
+{
+    Keyboard::set_callback(SDL_SCANCODE_ESCAPE, ExitCallback);
+    Keyboard::set_callback(SDL_SCANCODE_RETURN, FullscreenCallback);
+    //Mouse::set_relative(SDL_TRUE);
+    Mouse::set_move_callback(MouseMoveCallback);
+    Mouse::set_wheel_callback(MouseWheelCallback);
+    Events::set_refresh_callback(CameraCallback);
+}
+
+int main(int argc, char **argv)
 {
 	if (argc <= 1)
 		return -42;
-	auto scene(GLTF::Parse(argv[1]));
+    SetupCallbacks();
+	Config::Parse(Engine::ResourcePath() + "config.ini");
+    Engine::Init();
+    Camera::set_current(FPSCamera::Create("main_camera", 45));
+    DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
+	auto scene(GLTF::Parse(Engine::ProgramPath() + std::string(argv[1])));
+	Engine::Start();
 	return 0;
 }
