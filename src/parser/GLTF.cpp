@@ -6,6 +6,7 @@
 #include "Vgroup.hpp"
 #include <iostream>
 #include <filesystem>
+#include <memory>
 
 auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 {
@@ -46,6 +47,33 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 					}
 					fclose(file);
 				}
+				else if (std::string(attribute.name.GetString()) == "NORMAL")
+				{
+					/** Get the accessor */
+					const auto &accessor(document["accessors"].GetArray()[attribute.value.GetInt()]);
+					/** Get the bufferView from "bufferView" key in accessor */
+					const auto &bufferView(bufferViews[accessor["bufferView"].GetInt()]);
+					/** Get the buffer from "buffer" key in accessor */
+					const auto &buffer(buffers[bufferView["buffer"].GetInt()]);
+					auto bufferPath(std::filesystem::path(buffer["uri"].GetString()));
+					if (!bufferPath.is_absolute())
+						bufferPath = std::filesystem::path(path).parent_path()/bufferPath;
+					std::cout << bufferPath << std::endl;
+					auto file(_wfopen(bufferPath.c_str(), L"rb"));
+					switch(accessor["componentType"].GetInt()) {
+						case GL_FLOAT :
+						{
+							if (std::string(accessor["type"].GetString()) == "VEC3") {
+								std::vector<glm::vec3> vec3Vector(accessor["count"].GetInt());
+								fseek(file, accessor["byteOffset"].GetInt() + bufferView["byteOffset"].GetInt(), 0);
+								fread(&vec3Vector.at(0), sizeof(vec3Vector.at(0)), vec3Vector.size(), file);
+								for (const auto &vn : vec3Vector) {
+									vgroup->vn.push_back(VecToCVec4(vn));
+								}
+							}
+						}
+					}
+				}
 				std::cout << attribute.name.GetString() << std::endl;
 			}
 			auto indices(primitive.FindMember("indices"));
@@ -81,21 +109,63 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 	return meshVector;
 }
 
+auto parseNodes(const std::string &path, const rapidjson::Document &document)
+{
+	std::vector<std::shared_ptr<Node>> nodeVector;
+	auto meshes(parseMeshes(path, document));
+	auto nodeItr(document.FindMember("nodes"));
+	if (nodeItr == document.MemberEnd())
+		return nodeVector;
+	for (const auto &node : nodeItr->value.GetArray())
+	{
+		std::shared_ptr<Node> newNode;
+		if (node.FindMember("mesh") != node.MemberEnd()) //This is a mesh
+		{
+			newNode = std::static_pointer_cast<Node>(meshes.at(node["mesh"].GetInt()));
+		}
+		else
+		{
+			newNode = Node::Create("");
+		}
+		if (node.FindMember("matrix") != node.MemberEnd())
+		{
+			glm::mat4 matrix;
+			for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < matrix.length() * 4; i++)
+				matrix[i / 4][i % 4] = node["matrix"].GetArray()[i].GetFloat();
+			newNode->SetNodeTransformMatrix(matrix);
+		}
+		nodeVector.push_back(newNode);
+	}
+	//Build parenting relationship
+	int nodeIndex = 0;
+	for (const auto &node : nodeItr->value.GetArray())
+	{
+		if (node.FindMember("children") != node.MemberEnd())
+		{
+			for (const auto &child : node["children"].GetArray())
+				nodeVector.at(nodeIndex)->add_child(nodeVector.at(child.GetInt()));
+		}
+		nodeIndex++;
+	}
+	return nodeVector;
+}
+
 std::vector<Scene> GLTF::Parse(const std::string &path) {
-	std::vector<Scene> scenesVector;
+	std::vector<Scene> sceneVector;
 	rapidjson::Document document;
 	document.Parse(file_to_str(path).c_str());
-	auto meshes(parseMeshes(path, document));
-	auto nodes(document["nodes"].GetArray());
+	auto nodes(parseNodes(path, document));
 	auto scenes(document["scenes"].GetArray());
 	int sceneIndex = 0;
 	for (const auto &scene : scenes) {
 		Scene newScene(std::to_string(sceneIndex));
-		auto sceneNodes(scene["nodes"].GetArray());
-		for (const auto &sceneMember : scene.GetObject()) {
-			std::string memberName(sceneMember.name.GetString());
+		for (const auto &node : scene["nodes"].GetArray()) {
+			newScene.Nodes().push_back(nodes.at(node.GetInt()));
+			//newScene.Nodes().push_back(const value_type &__x);
+			std::cout << node.GetInt() << std::endl;
 		}
+		sceneVector.push_back(newScene);
 		sceneIndex++;
 	}
-	return scenesVector;
+	return sceneVector;
 }

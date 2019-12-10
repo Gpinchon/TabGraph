@@ -28,9 +28,9 @@ void CameraCallback(SDL_Event *)
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->SetPosition(camera->Position() + float(Events::delta_time() * laxis.x) * camera->Right());
-    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y) * camera->Forward());
-    camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis) * Common::Up());
+    camera->SetPosition(camera->Position() + float(Events::delta_time() * laxis.x * 1000) * camera->Right());
+    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y * 1000) * camera->Forward());
+    camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis * 1000) * Common::Up());
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent *event)
