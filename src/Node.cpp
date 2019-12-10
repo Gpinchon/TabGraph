@@ -68,6 +68,7 @@ void Node::UpdateTransformMatrix()
     UpdateRotationMatrix();
     UpdateScaleMatrix();
     SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
+    SetTransformMatrix(NodeTransformMatrix() * TransformMatrix());
     if (auto parentPtr = parent(); parentPtr != nullptr)
     {
         parentPtr->UpdateTransformMatrix();
@@ -160,6 +161,16 @@ glm::vec3 Node::Scale() const
 void Node::SetScale(glm::vec3 scale)
 {
     _scale = scale;
+}
+
+glm::mat4 Node::NodeTransformMatrix() const
+{
+    return _nodeTranformationmatrix;
+}
+
+void Node::SetNodeTransformMatrix(glm::mat4 nodeTransform)
+{
+    _nodeTranformationmatrix = nodeTransform;
 }
 
 glm::mat4 Node::TransformMatrix() const

@@ -20,6 +20,16 @@ class VertexArray; // lines 19-19
 
 typedef glm::vec<4, uint8_t, glm::defaultp> CVEC4;
 
+static inline CVEC4 VecToCVec4(glm::vec4 v) {
+    v = ((v + 1.f) * 0.5f) * 255.f;
+    return CVEC4(v.x, v.y, v.z, v.w);
+}
+
+static inline CVEC4 VecToCVec4(glm::vec3 v) {
+    v = ((v + 1.f) * 0.5f) * 255.f;
+    return CVEC4(v.x, v.y, v.z, 255);
+}
+
 class Vgroup : public Object
 {
 public:

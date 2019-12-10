@@ -19,7 +19,7 @@ class BoundingElement;
 class Node : public Object
 {
 public:
-    static std::shared_ptr<Node> Create(const std::string &name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+    static std::shared_ptr<Node> Create(const std::string &name, glm::vec3 position = glm::vec3(), glm::vec3 rotation = glm::vec3(), glm::vec3 scale = glm::vec3(1));
     static std::shared_ptr<Node> GetByName(const std::string &);
     static std::shared_ptr<Node> Get(unsigned index);
     /** Adds the Node to the Node list */
@@ -32,6 +32,10 @@ public:
     virtual void UpdateTranslationMatrix();
     virtual void UpdateRotationMatrix();
     virtual void UpdateScaleMatrix();
+    /** @return the basic node transformation matrix, useful for "funny" effects */
+    virtual glm::mat4 NodeTransformMatrix() const;
+    /** @argument nodeTransform the node transformation matrix,  useful for "funny" effects*/
+    virtual void SetNodeTransformMatrix(glm::mat4 nodeTransform);
     virtual glm::mat4 TransformMatrix() const;
     virtual void SetTransformMatrix(glm::mat4);
     virtual glm::mat4 TranslationMatrix() const;
@@ -72,6 +76,7 @@ private:
     glm::vec3 _position{0, 0, 0};
     glm::vec3 _rotation{0, 0, 0};
     glm::vec3 _scale{1, 1, 1};
+    glm::mat4 _nodeTranformationmatrix{glm::mat4(1.f)};
     glm::mat4 _transformMatrix{glm::mat4(1.f)};
     glm::mat4 _translationMatrix{glm::mat4(0.f)};
     glm::mat4 _rotationMatrix{glm::mat4(0.f)};
