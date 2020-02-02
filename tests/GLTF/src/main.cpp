@@ -28,9 +28,9 @@ void CameraCallback(SDL_Event *)
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->SetPosition(camera->Position() + float(Events::delta_time() * laxis.x * 1000) * camera->Right());
-    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y * 1000) * camera->Forward());
-    camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis * 1000) * Common::Up());
+    camera->SetPosition(camera->Position() + float(Events::delta_time() * laxis.x * 1) * camera->Right());
+    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y * 1) * camera->Forward());
+    camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis * 1) * Common::Up());
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent *event)
@@ -86,8 +86,10 @@ int main(int argc, char **argv)
 	Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
     Camera::set_current(FPSCamera::Create("main_camera", 45));
+    Camera::current()->SetPosition(glm::vec3{10, 10, 0});
     DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
 	auto scene(GLTF::Parse(Engine::ProgramPath() + std::string(argv[1])));
+    Engine::Load(scene.at(0));
 	Engine::Start();
 	return 0;
 }

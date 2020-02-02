@@ -17,7 +17,6 @@
 #include "Vgroup.hpp" // for Vgroup
 #include <glm/gtc/matrix_inverse.hpp>
 
-std::vector<std::shared_ptr<Mesh>> Mesh::_meshes;
 
 Mesh::Mesh(const std::string &name)
     : Renderable(name)
@@ -25,44 +24,24 @@ Mesh::Mesh(const std::string &name)
     bounding_element = new AABB;
 }
 
+std::shared_ptr<Mesh> Mesh::Create(std::shared_ptr<Mesh> otherMesh) /*static*/
+{
+    return std::shared_ptr<Mesh>(new Mesh(*otherMesh));
+}
+
 std::shared_ptr<Mesh> Mesh::Create(const std::string &name) /*static*/
 {
-    auto m = std::shared_ptr<Mesh>(new Mesh(name));
-    Mesh::Add(m);
-    return (m);
+    return std::shared_ptr<Mesh>(new Mesh(name));
 }
 
 std::shared_ptr<Mesh> Mesh::GetByName(const std::string &name) /*static*/
 {
-    for (auto m : _meshes)
-    {
-        if (name == m->Name())
-            return (m);
-    }
-    return (nullptr);
+    return std::dynamic_pointer_cast<Mesh>(Node::GetByName(name));
 }
 
 std::shared_ptr<Mesh> Mesh::GetById(int64_t id)
 {
-    for (auto m : _meshes)
-    {
-        if (id == m->Id())
-            return (m);
-    }
-    return (nullptr);
-}
-
-std::shared_ptr<Mesh> Mesh::Get(unsigned index) /*static*/
-{
-    if (index >= _meshes.size())
-        return (nullptr);
-    return (_meshes.at(index));
-}
-
-void Mesh::Add(std::shared_ptr<Mesh> mesh) /*static*/
-{
-    Renderable::Add(mesh);
-    _meshes.push_back(mesh);
+    return std::dynamic_pointer_cast<Mesh>(Node::GetById(id));
 }
 
 const std::set<std::shared_ptr<Vgroup>> Mesh::vgroups()

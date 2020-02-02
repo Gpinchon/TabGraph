@@ -77,7 +77,6 @@ void callback_scale(SDL_KeyboardEvent *event)
     {
         return;
     }
-    auto mesh = Mesh::GetByName("main_mesh");
     if (Keyboard::key(SDL_SCANCODE_LCTRL) == 0u)
     {
         return;
@@ -91,7 +90,7 @@ void callback_scale(SDL_KeyboardEvent *event)
         scale -= (0.005 * (Keyboard::key(SDL_SCANCODE_LSHIFT) + 1));
     }
     scale = glm::clamp(scale, 0.0001f, 1000.f);
-    mesh->SetScale(glm::vec3(scale));
+    mainMesh->SetScale(glm::vec3(scale));
 }
 
 void switch_background()
@@ -170,8 +169,8 @@ void keyboard_callback_rotation(SDL_KeyboardEvent *event)
 
 void callback_refresh(SDL_Event * /*unused*/)
 {
-    auto mesh = Renderable::Get(0);
-    if (mesh == nullptr)
+    callback_camera(nullptr);
+    if (mainMesh == nullptr)
     {
         return;
     }
@@ -180,9 +179,8 @@ void callback_refresh(SDL_Event * /*unused*/)
         static float rotation = 0;
         rotation += Events::delta_time() * 10;
         rotation = CYCLE(rotation, 0, 360);
-        mesh->SetRotation(glm::vec3(0, rotation, 0));
+        mainMesh->SetRotation(glm::vec3(0, rotation, 0));
     }
-    callback_camera(nullptr);
 }
 
 void callback_exit(SDL_KeyboardEvent * /*unused*/)
@@ -234,8 +232,8 @@ void setup_callbacks()
     Keyboard::set_callback(SDL_SCANCODE_RETURN, callback_fullscreen);
     Keyboard::set_callback(SDL_SCANCODE_Q, callback_quality);
     Keyboard::set_callback(SDL_SCANCODE_R, keyboard_callback_rotation);
-    Keyboard::set_callback(SDL_SCANCODE_C, callback_crash);
-    //Mouse::set_relative(SDL_TRUE);
+    //Keyboard::set_callback(SDL_SCANCODE_C, callback_crash);
+    Mouse::set_relative(SDL_TRUE);
     Mouse::set_move_callback(MouseMoveCallback);
     Mouse::set_wheel_callback(MouseWheelCallback);
     Events::set_refresh_callback(callback_refresh);

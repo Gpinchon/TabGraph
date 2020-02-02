@@ -12,7 +12,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <math.h> // for sin, cos
 
-std::vector<std::shared_ptr<Camera>> Camera::_cameras;
 std::weak_ptr<Camera> Camera::_current;
 
 Camera::Camera(const std::string& name, float ifov, CameraProjection proj)
@@ -29,26 +28,19 @@ std::shared_ptr<Camera> Camera::Create(const std::string& name, float ifov, Came
     return (camera);
 }
 
-std::shared_ptr<Camera> Camera::Get(unsigned index)
+std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
 {
-    if (index >= _cameras.size())
-        return (nullptr);
-    return (_cameras.at(index));
+    return std::shared_ptr<Camera>(new Camera(*otherCamera));
 }
 
-void Camera::Add(std::shared_ptr<Camera> camera)
+std::shared_ptr<Camera> Camera::GetById(int64_t id)
 {
-    Node::Add(camera);
-    _cameras.push_back(camera);
+    return std::dynamic_pointer_cast<Camera>(Node::GetById(id));
 }
 
 std::shared_ptr<Camera> Camera::GetByName(const std::string& name)
 {
-    for (auto n : _cameras) {
-        if (name == n->Name())
-            return (n);
-    }
-    return (nullptr);
+    return std::dynamic_pointer_cast<Camera>(Node::GetByName(name));
 }
 
 std::shared_ptr<Camera> Camera::current()
@@ -91,7 +83,7 @@ void Camera::UpdateViewMatrix()
 void Camera::UpdateProjectionMatrix()
 {
     if (_projection_type == PerspectiveCamera)
-        SetProjectionMatrix(glm::perspective(_fov, float(Window::size().x) / float(Window::size().y), _znear, _zfar));
+        SetProjectionMatrix(glm::perspective(Fov(), float(Window::size().x) / float(Window::size().y), Znear(), Zfar()));
     else
         SetProjectionMatrix(glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w));
 }
@@ -100,6 +92,7 @@ void Camera::UpdateTransformMatrix()
 {
     UpdateViewMatrix();
     UpdateProjectionMatrix();
+    //Node::UpdateTransformMatrix();
 }
 
 glm::mat4 Camera::ViewMatrix() const
@@ -136,3 +129,24 @@ void Camera::SetFov(float fov)
 {
     _fov = fov;
 }
+
+float Camera::Znear() const
+{
+    return _znear;
+}
+
+void Camera::SetZnear(float znear)
+{
+    _znear = znear;
+}
+
+float Camera::Zfar() const
+{
+    return _zfar;
+}
+
+void Camera::SetZfar(float zfar)
+{
+    _zfar = zfar;
+}
+

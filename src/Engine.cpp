@@ -12,6 +12,7 @@
 #include "Events.hpp" // for Events
 #include "Node.hpp" // for Node
 #include "Render.hpp" // for AddPostTreatment, RequestRedraw
+#include "Scene.hpp"
 #include "TextureParser.hpp" // for TextureParser
 #include "Window.hpp" // for Window
 #include "parser/GLSL.hpp" // for GLSL, PostShader
@@ -155,6 +156,13 @@ void Engine::Init()
     static auto SSAOShader = GLSL::compile("SSAO", SSAOShaderCode, PostShader);
     Render::AddPostTreatment(SSAOShader);
     EnginePrivate::Get().LoadRes();
+}
+
+void Engine::Load(std::shared_ptr<Scene> scene)
+{
+    for (auto node : scene->Nodes()) {
+        Node::Add(node);
+    }
 }
 
 int event_filter(void *arg, SDL_Event *event)

@@ -7,8 +7,6 @@
 
 #include "Renderable.hpp"
 
-std::vector<std::shared_ptr<Renderable>> Renderable::_renderables;
-
 Renderable::Renderable(const std::string& name)
     : Node(name)
 {
@@ -16,27 +14,15 @@ Renderable::Renderable(const std::string& name)
 
 std::shared_ptr<Renderable> Renderable::Get(unsigned index)
 {
-    if (index >= _renderables.size())
-        return (nullptr);
-    return (_renderables.at(index));
+    return std::dynamic_pointer_cast<Renderable>(Node::Get(index));
 }
 
 std::shared_ptr<Renderable> Renderable::GetByName(const std::string& name)
 {
-    for (auto r : _renderables) {
-        if (name == r->Name())
-            return (r);
-    }
-    return (nullptr);
+    return std::dynamic_pointer_cast<Renderable>(Node::GetByName(name));
 }
 
 bool Renderable::is_loaded()
 {
     return (_is_loaded);
-}
-
-void Renderable::Add(std::shared_ptr<Renderable> renderable)
-{
-    Node::Add(renderable);
-    _renderables.push_back(renderable);
 }

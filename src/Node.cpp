@@ -95,6 +95,11 @@ void Node::UpdateScaleMatrix()
     SetScaleMatrix(glm::scale(glm::mat4(1.f), Scale()));
 }
 
+std::vector<std::shared_ptr<Node>> Node::Children() const
+{
+    return _children;
+}
+
 void Node::add_child(std::shared_ptr<Node> childNode)
 {
     if (childNode == shared_from_this())
@@ -107,7 +112,7 @@ void Node::add_child(std::shared_ptr<Node> childNode)
 
 std::shared_ptr<Node> Node::target()
 {
-    return (_target.lock());
+    return (_target);
 }
 
 void Node::set_target(std::shared_ptr<Node> tgt)
@@ -117,7 +122,7 @@ void Node::set_target(std::shared_ptr<Node> tgt)
 
 std::shared_ptr<Node> Node::parent()
 {
-    return (_parent.lock());
+    return (_parent);
 }
 
 /*
@@ -125,7 +130,7 @@ std::shared_ptr<Node> Node::parent()
 */
 void Node::set_parent(std::shared_ptr<Node> prt)
 {
-    if (prt == shared_from_this() || _parent.lock() == prt)
+    if (prt == shared_from_this() || _parent == prt)
     {
         return;
     }

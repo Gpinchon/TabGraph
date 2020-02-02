@@ -128,11 +128,33 @@ const std::shared_ptr<VertexArray> Render::Private::DisplayQuad()
     return (vao);
 }
 
-/*
-** Render is a singleton
-*/
+void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode) {
+    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode))
+        renderable->Draw(mode);
+    std::shared_ptr<Node> child;
+    for (const auto &child : rootNode->Children())
+        DrawNodes(child, mode);
+}
 
-//Render* Render::Private::_instance = nullptr;
+void DrawNodes(RenderMod mode) {
+    std::shared_ptr<Node> node(nullptr);
+    for (auto nodeIndex = 0; (node = Node::Get(nodeIndex)) != nullptr; nodeIndex++)
+        DrawNodes(node, mode);
+}
+
+void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
+    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode))
+        renderable->DrawDepth(mode);
+    std::shared_ptr<Node> child;
+    for (const auto &child : rootNode->Children())
+        DrawNodesDepth(child, mode);
+}
+
+void DrawNodesDepth(RenderMod mode) {
+    std::shared_ptr<Node> node(nullptr);
+    for (auto nodeIndex = 0; (node = Node::Get(nodeIndex)) != nullptr; nodeIndex++)
+        DrawNodesDepth(node, mode);
+}
 
 std::shared_ptr<Framebuffer> Create_render_buffer(const std::string &name, const glm::ivec2 &size)
 {
@@ -196,12 +218,7 @@ void render_shadows()
         glClear(GL_DEPTH_BUFFER_BIT);
         tempCamera->SetPosition(light->Position());
         tempCamera->SetViewMatrix(light->TransformMatrix());
-        for (auto index = 0; Renderable::Get(index) != nullptr; index++)
-        {
-            auto node = Renderable::Get(index);
-            if (node->Drawable())
-                node->DrawDepth(RenderOpaque);
-        }
+        DrawNodesDepth(RenderOpaque);
         light->render_buffer()->bind(false);
     }
     Camera::set_current(camera);
@@ -534,12 +551,7 @@ void Render::Private::Scene()
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    std::shared_ptr<Renderable> node;
-    for (auto index = 0; (node = Renderable::Get(index)) != nullptr; index++)
-    {
-        if (node->Drawable())
-            node->Draw(RenderOpaque);
-    }
+    DrawNodes(RenderOpaque);
     std::swap(current_tbuffer, current_tbuffertex);
 
     glDepthFunc(GL_ALWAYS);
@@ -632,11 +644,7 @@ void Render::Private::Scene()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     bool rendered_stuff = false;
-    for (auto index = 0; (node = Renderable::Get(index)) != nullptr; index++)
-    {
-        if (node->Drawable() && node->Draw(RenderTransparent))
-            rendered_stuff = true;
-    }
+    DrawNodes(RenderTransparent);
     std::swap(current_tbuffer, current_tbuffertex);
 
     if (!rendered_stuff)

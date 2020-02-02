@@ -23,7 +23,7 @@ class Renderable : public Node
 {
 public:
     static std::shared_ptr<Renderable> Get(unsigned index);
-    static std::shared_ptr<Renderable> GetByName(const std::string &);
+    static std::shared_ptr<Renderable> GetByName(const std::string& name);
     virtual bool Draw(RenderMod mod = RenderAll) = 0;
     virtual bool DrawDepth(RenderMod mod = RenderAll) = 0;
     virtual bool Drawable() const = 0;
@@ -32,10 +32,7 @@ public:
 
 protected:
     bool _is_loaded{false};
-    /** Adds the Renderable to Renderable and Node lists */
-    static void Add(std::shared_ptr<Renderable>);
     Renderable(const std::string &name);
 
 private:
-    static std::vector<std::shared_ptr<Renderable>> _renderables;
 };

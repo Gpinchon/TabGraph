@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <memory>
 #include <mutex> // for mutex
 #include <string> // for string
 #include <sys/types.h> // for int8_t
@@ -19,9 +20,12 @@
 #define UP glm::vec3(0, 1, 0);
 #endif
 
+class Scene;
+
 /** @brief This class orchestrates the rendering loop and logics around it
 */
 namespace Engine {
+void Load(std::shared_ptr<Scene>);
 /** @brief Initializes the Engine */
 void Init(void);
 /** @brief Starts Engine loop */

@@ -22,12 +22,11 @@ enum CameraProjection {
 class Camera : public Node {
 public:
     static std::shared_ptr<Camera> Create(const std::string&, float fov, CameraProjection proj = PerspectiveCamera);
+    static std::shared_ptr<Camera> Create(std::shared_ptr<Camera> otherCamera);
     static std::shared_ptr<Camera> GetByName(const std::string&);
-    static std::shared_ptr<Camera> Get(unsigned index);
+    static std::shared_ptr<Camera> GetById(int64_t id);
     static std::shared_ptr<Camera> current();
     static void set_current(std::shared_ptr<Camera>);
-    /** Adds the camera to the Node list and to Camera list */
-    static void Add(std::shared_ptr<Camera>);
     /** Overload this to change Camera's behavior */
     virtual void UpdateViewMatrix();
     /** Overload this to change Camera's behavior */
@@ -47,6 +46,10 @@ public:
     virtual glm::vec3 Up() const;
     /** READONLY : Computed on demand */
     virtual glm::vec3 Right() const;
+    virtual float Znear() const;
+    virtual void SetZnear(float);
+    virtual float Zfar() const;
+    virtual void SetZfar(float);
     virtual ~Camera() = default;
 
 protected:
@@ -56,7 +59,6 @@ private:
     /** Calls UpdateViewMatrix and UpdateProjectionMatrix */
     virtual void UpdateTransformMatrix() final override;
     CameraProjection _projection_type { PerspectiveCamera };
-    static std::vector<std::shared_ptr<Camera>> _cameras;
     static std::weak_ptr<Camera> _current;
     glm::mat4 _projection { 0 };
     glm::ivec4 _frustum { -50, 50, -50, 50 };

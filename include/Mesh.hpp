@@ -14,17 +14,18 @@
 #include <string> // for string
 #include <vector> // for vector
 
+#include <iostream>
+
 class Vgroup;
 class Material;
 
 class Mesh : public Renderable
 {
 public:
+    static std::shared_ptr<Mesh> Create(std::shared_ptr<Mesh> otherMesh);
     static std::shared_ptr<Mesh> Create(const std::string &);
     static std::shared_ptr<Mesh> GetByName(const std::string &);
     static std::shared_ptr<Mesh> GetById(int64_t id);
-    static std::shared_ptr<Mesh> Get(unsigned index);
-    static void Add(std::shared_ptr<Mesh>);
     void Load() override;
     bool Draw(RenderMod mod = RenderAll) override;
     bool DrawDepth(RenderMod mod = RenderAll) override;
@@ -61,11 +62,14 @@ public:
 
     const std::set<std::shared_ptr<Vgroup>> vgroups();
 
+    ~Mesh() {
+        std::cout << __FUNCTION__ << " " << Name() << std::endl;
+    }
+
 protected:
     Mesh(const std::string &name);
 
 private:
-    static std::vector<std::shared_ptr<Mesh>> _meshes;
     std::set<std::shared_ptr<Vgroup>> _vgroups;
     std::vector<std::shared_ptr<Material>> _materials;
     GLenum _cull_mod{GL_BACK};

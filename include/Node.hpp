@@ -61,7 +61,7 @@ public:
     void set_target(std::shared_ptr<Node>);
     void set_parent(std::shared_ptr<Node>);
     void add_child(std::shared_ptr<Node>);
-    std::shared_ptr<Node> child(unsigned index);
+    std::vector<std::shared_ptr<Node>> Children() const;
     BoundingElement *bounding_element{nullptr};
     virtual ~Node() = default;
 
@@ -70,9 +70,9 @@ protected:
 
 private:
     static std::vector<std::shared_ptr<Node>> _nodes;
-    std::vector<std::weak_ptr<Node>> _children;
-    std::weak_ptr<Node> _target;
-    std::weak_ptr<Node> _parent;
+    std::vector<std::shared_ptr<Node>> _children;
+    std::shared_ptr<Node> _target;
+    std::shared_ptr<Node> _parent;
     glm::vec3 _position{0, 0, 0};
     glm::vec3 _rotation{0, 0, 0};
     glm::vec3 _scale{1, 1, 1};

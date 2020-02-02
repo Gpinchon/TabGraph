@@ -80,9 +80,11 @@ cube->vgroup(0)->material()->set_texture_albedo(texture);
 
 #include <Vgroup.hpp>
 
+std::shared_ptr<Mesh> mainMesh = nullptr;
+
 int main(int argc, char *argv[])
 {
-    std::shared_ptr<Mesh> obj;
+    //std::shared_ptr<Mesh> obj;
 
     Config::Parse(Engine::ProgramPath() + "./res/config.ini");
     Engine::Init();
@@ -90,25 +92,25 @@ int main(int argc, char *argv[])
     Camera::set_current(camera);
     //camera->set_target(Node::Create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     //camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
-    obj = nullptr;
     if (argc >= 2)
     {
-        obj = MeshParser::parse("main_mesh", argv[1]);
+        mainMesh = MeshParser::parse("main_mesh", argv[1]);
     }
-    if (argc > 2 || obj == nullptr)
+    if (argc > 2 || mainMesh == nullptr)
     {
-        obj = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/obj/chart.obj");
+        mainMesh = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/mainMesh/chart.mainMesh");
     }
-    if (obj != nullptr)
+    if (mainMesh != nullptr)
     {
-        for (auto &vg : obj->vgroups()) {
+        Node::Add(mainMesh);
+        for (auto &vg : mainMesh->vgroups()) {
             for (auto &v : vg->v)
-                v -= obj->bounding_element->center;
+                v -= mainMesh->bounding_element->center;
         }
-        obj->bounding_element->min -= obj->bounding_element->center;
-        obj->bounding_element->max -= obj->bounding_element->center;
-        obj->bounding_element->center = glm::vec3(0, 0, 0);
-        obj->Load();
+        mainMesh->bounding_element->min -= mainMesh->bounding_element->center;
+        mainMesh->bounding_element->max -= mainMesh->bounding_element->center;
+        mainMesh->bounding_element->center = glm::vec3(0, 0, 0);
+        //mainMesh->Load();
     }
     //FBX::parseBin(Engine::ProgramPath() + "./mug.fbx");
     setup_callbacks();

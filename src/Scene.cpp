@@ -18,3 +18,8 @@ std::vector<std::shared_ptr<Node>> &Scene::Nodes()
 {
 	return _nodes;
 }
+
+std::vector<std::shared_ptr<Camera>> &Scene::Cameras()
+{
+	return _cameras;
+}

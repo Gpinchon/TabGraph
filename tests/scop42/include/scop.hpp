@@ -24,7 +24,9 @@ const auto HEIGHT = 720;
 #define ZOOMK SDL_SCANCODE_KP_PLUS
 #define UNZOOMK SDL_SCANCODE_KP_MINUS
 
-//bool			load_mtllib(const std::string &path);
+class Mesh;
+
+extern std::shared_ptr<Mesh> mainMesh;
 
 /*
 ** Callback functions
