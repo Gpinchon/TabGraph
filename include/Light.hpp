@@ -25,7 +25,7 @@ public:
     static std::shared_ptr<Light> Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power);
     static std::shared_ptr<Light> GetByName(const std::string&);
     static std::shared_ptr<Light> Get(unsigned index);
-    static void Add(std::shared_ptr<Light>);
+    //static void Add(std::shared_ptr<Light>);
     virtual void render_shadow();
     glm::vec3& color();
     float& power();
@@ -42,7 +42,7 @@ protected:
     std::weak_ptr<Framebuffer> _render_buffer;
 
 private:
-    static std::vector<std::shared_ptr<Light>> _lights;
+    //static std::vector<std::shared_ptr<Light>> _lights;
 };
 
 class DirectionnalLight : public Light {

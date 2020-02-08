@@ -14,6 +14,7 @@
 #include "Framebuffer.hpp" // for Framebuffer
 #include "Light.hpp" // for Light, Directionnal, Point
 #include "Renderable.hpp" // for Renderable, RenderOpaque, RenderTransparent
+#include "Scene.hpp"
 #include "Shader.hpp" // for Shader
 #include "Texture.hpp" // for Texture
 #include "VertexArray.hpp" // for VertexArray
@@ -129,21 +130,21 @@ const std::shared_ptr<VertexArray> Render::Private::DisplayQuad()
 }
 
 void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode) {
-    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode))
+    if (rootNode == nullptr)
+        return;
+    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode); renderable != nullptr)
         renderable->Draw(mode);
-    std::shared_ptr<Node> child;
     for (const auto &child : rootNode->Children())
         DrawNodes(child, mode);
 }
 
 void DrawNodes(RenderMod mode) {
-    std::shared_ptr<Node> node(nullptr);
-    for (auto nodeIndex = 0; (node = Node::Get(nodeIndex)) != nullptr; nodeIndex++)
+    for (auto node : Scene::Current()->Nodes())
         DrawNodes(node, mode);
 }
 
 void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
-    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode))
+    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode); renderable != nullptr)
         renderable->DrawDepth(mode);
     std::shared_ptr<Node> child;
     for (const auto &child : rootNode->Children())
@@ -151,8 +152,7 @@ void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
 }
 
 void DrawNodesDepth(RenderMod mode) {
-    std::shared_ptr<Node> node(nullptr);
-    for (auto nodeIndex = 0; (node = Node::Get(nodeIndex)) != nullptr; nodeIndex++)
+    for (auto node : Scene::Current()->Nodes())
         DrawNodesDepth(node, mode);
 }
 
@@ -203,14 +203,14 @@ std::vector<std::shared_ptr<Light>> shadowLights;
 void render_shadows()
 {
     static auto tempCamera = Camera::Create("light_camera", 45);
-    auto camera = Camera::current();
+    auto camera = Scene::Current()->CurrentCamera();
 
     //glEnable(GL_CULL_FACE);
     //glCullFace(GL_BACK);
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    Camera::set_current(tempCamera);
+    Scene::Current()->SetCurrentCamera(tempCamera);
     tempCamera->SetProjectionMatrix(glm::mat4(1.0));
     for (auto &light : shadowLights)
     {
@@ -221,7 +221,7 @@ void render_shadows()
         DrawNodesDepth(RenderOpaque);
         light->render_buffer()->bind(false);
     }
-    Camera::set_current(camera);
+    Scene::Current()->SetCurrentCamera(camera);
 }
 
 double Render::Private::DeltaTime()
@@ -231,8 +231,8 @@ double Render::Private::DeltaTime()
 
 void Render::Private::FixedUpdate()
 {
-    auto InvViewMatrix = glm::inverse(Camera::current()->ViewMatrix());
-    auto InvProjMatrix = glm::inverse(Camera::current()->ProjectionMatrix());
+    auto InvViewMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix());
+    auto InvProjMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix());
     glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
     auto index = 0;
 
@@ -240,7 +240,7 @@ void Render::Private::FixedUpdate()
     normalLights.reserve(1000);
     shadowLights.clear();
     normalLights.clear();
-    while (auto light = Light::Get(index))
+    for (auto light : Scene::Current()->Lights())
     {
         if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z))
             continue;
@@ -248,16 +248,15 @@ void Render::Private::FixedUpdate()
             shadowLights.push_back(light);
         else
             normalLights.push_back(light);
-        index++;
     }
     render_shadows();
     index = 0;
     while (auto shader = Shader::Get(index))
     {
         shader->use();
-        shader->set_uniform("Camera.Position", Camera::current()->Position());
-        shader->set_uniform("Camera.Matrix.View", Camera::current()->ViewMatrix());
-        shader->set_uniform("Camera.Matrix.Projection", Camera::current()->ProjectionMatrix());
+        shader->set_uniform("Camera.Position", Scene::Current()->CurrentCamera()->Position());
+        shader->set_uniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+        shader->set_uniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
         shader->set_uniform("Camera.InvMatrix.View", InvViewMatrix);
         shader->set_uniform("Camera.InvMatrix.Projection", InvProjMatrix);
         shader->set_uniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));
@@ -499,7 +498,7 @@ std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shar
 
 void Render::Private::Scene()
 {
-    if (!Render::Private::NeedsUpdate())
+    if (!Render::Private::NeedsUpdate() || Scene::Current() == nullptr || Scene::Current()->CurrentCamera() == nullptr)
     {
         //present(final_back_buffer);
         return;

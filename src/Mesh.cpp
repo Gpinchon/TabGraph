@@ -12,6 +12,7 @@
 #include "Debug.hpp"
 #include "Material.hpp" // for Material
 #include "Node.hpp" // for Node
+#include "Scene.hpp"
 #include "Shader.hpp" // for Shader
 #include "Texture.hpp"
 #include "Vgroup.hpp" // for Vgroup
@@ -70,6 +71,7 @@ void Mesh::Load()
 
 bool Mesh::DrawDepth(RenderMod mod)
 {
+    auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
     auto geometryTranslationMatrix(glm::translate(glm::mat4(1.f), GeometryPosition()));
     auto geometryRotationMatrix(glm::mat4(1.f));
     geometryRotationMatrix = glm::rotate(geometryRotationMatrix, glm::radians(GeometryRotation().y), glm::vec3(0, 1, 0));
@@ -81,7 +83,7 @@ bool Mesh::DrawDepth(RenderMod mod)
     auto finalTranformMatrix(geometryTransformMatrix * TransformMatrix());
 
     bool ret = false;
-    auto mvp = Camera::current()->ProjectionMatrix() * Camera::current()->ViewMatrix() * finalTranformMatrix;
+    auto mvp = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix() * finalTranformMatrix;
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
     Load();
@@ -120,6 +122,7 @@ bool Mesh::DrawDepth(RenderMod mod)
 
 bool Mesh::Draw(RenderMod mod)
 {
+    auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
     auto finalTranformMatrix(TransformMatrix());
     finalTranformMatrix = glm::translate(finalTranformMatrix, GeometryPosition());
     finalTranformMatrix = glm::rotate(finalTranformMatrix, glm::radians(GeometryRotation().y), glm::vec3(0, 1, 0));
@@ -128,7 +131,7 @@ bool Mesh::Draw(RenderMod mod)
     finalTranformMatrix = glm::scale(finalTranformMatrix, Scale());
 
     bool ret = false;
-    auto mvp = Camera::current()->ProjectionMatrix() * Camera::current()->ViewMatrix() * finalTranformMatrix;
+    auto mvp = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix() * finalTranformMatrix;
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
     //auto geometryTransform()

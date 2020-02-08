@@ -12,8 +12,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <math.h> // for sin, cos
 
-std::weak_ptr<Camera> Camera::_current;
-
 Camera::Camera(const std::string& name, float ifov, CameraProjection proj)
     : Node(name)
 {
@@ -23,9 +21,7 @@ Camera::Camera(const std::string& name, float ifov, CameraProjection proj)
 
 std::shared_ptr<Camera> Camera::Create(const std::string& name, float ifov, CameraProjection proj)
 {
-    std::shared_ptr<Camera> camera(new Camera(name, ifov, proj));
-    Camera::Add(camera);
-    return (camera);
+    return std::shared_ptr<Camera>(new Camera(name, ifov, proj));
 }
 
 std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
@@ -41,11 +37,6 @@ std::shared_ptr<Camera> Camera::GetById(int64_t id)
 std::shared_ptr<Camera> Camera::GetByName(const std::string& name)
 {
     return std::dynamic_pointer_cast<Camera>(Node::GetByName(name));
-}
-
-std::shared_ptr<Camera> Camera::current()
-{
-    return (_current.lock());
 }
 
 glm::vec3 Camera::Forward() const
@@ -68,22 +59,20 @@ glm::vec3 Camera::Up() const
     return glm::cross(Forward(), Right());
 }
 
-void Camera::set_current(std::shared_ptr<Camera> camera)
-{
-    _current = camera;
-}
-
 void Camera::UpdateViewMatrix()
 {
-    UpdateTranslationMatrix();
+    Node::UpdateTransformMatrix();
+    SetViewMatrix(glm::inverse(TransformMatrix()));
+    /*UpdateTranslationMatrix();
     UpdateRotationMatrix();
-    SetViewMatrix(TranslationMatrix() * RotationMatrix());
+    SetViewMatrix(TranslationMatrix() * RotationMatrix());*/
+    //SetViewMatrix(NodeTransformMatrix());
 }
 
 void Camera::UpdateProjectionMatrix()
 {
     if (_projection_type == PerspectiveCamera)
-        SetProjectionMatrix(glm::perspective(Fov(), float(Window::size().x) / float(Window::size().y), Znear(), Zfar()));
+        SetProjectionMatrix(glm::perspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear(), Zfar()));
     else
         SetProjectionMatrix(glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w));
 }

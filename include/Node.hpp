@@ -63,7 +63,7 @@ public:
     void add_child(std::shared_ptr<Node>);
     std::vector<std::shared_ptr<Node>> Children() const;
     BoundingElement *bounding_element{nullptr};
-    virtual ~Node() = default;
+    virtual ~Node() /*= default*/;
 
 protected:
     Node(const std::string &name);

@@ -124,29 +124,6 @@ void EnginePrivate::LoadRes()
     Environment::set_current(Environment::Get(0));
 }
 
-void EnginePrivate::Update()
-{
-    for (auto i = 0; Node::Get(i); i++)
-    {
-        auto node = Node::Get(i);
-        node->Update();
-    }
-}
-
-void EnginePrivate::FixedUpdate()
-{
-    for (auto i = 0; Node::Get(i); i++)
-    {
-        auto node = Node::Get(i);
-        node->UpdateTransformMatrix();
-    }
-    for (auto i = 0; Node::Get(i); i++)
-    {
-        auto node = Node::Get(i);
-        node->FixedUpdate();
-    }
-}
-
 void Engine::Init()
 {
     Window::init(Config::Get("WindowName", std::string("")), Config::Get("WindowSize", glm::vec2(1280, 720)));
@@ -156,13 +133,6 @@ void Engine::Init()
     static auto SSAOShader = GLSL::compile("SSAO", SSAOShaderCode, PostShader);
     Render::AddPostTreatment(SSAOShader);
     EnginePrivate::Get().LoadRes();
-}
-
-void Engine::Load(std::shared_ptr<Scene> scene)
-{
-    for (auto node : scene->Nodes()) {
-        Node::Add(node);
-    }
 }
 
 int event_filter(void *arg, SDL_Event *event)
@@ -192,9 +162,11 @@ void Engine::Start()
         if (ticks - fixedTiming >= 0.015)
         {
             fixedTiming = ticks;
-            EnginePrivate::FixedUpdate();
+            Scene::Current()->FixedUpdate();
+            //EnginePrivate::FixedUpdate();
         }
-        EnginePrivate::Update();
+        Scene::Current()->Update();
+        //EnginePrivate::Update();
         EnginePrivate::Get().updateMutex.unlock();
         Render::RequestRedraw();
     }

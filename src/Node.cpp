@@ -8,11 +8,17 @@
 #include "Node.hpp"
 #include <glm/ext.hpp>
 
+#include <iostream>
+
 std::vector<std::shared_ptr<Node>> Node::_nodes;
 
 Node::Node(const std::string &name)
     : Object(name)
 {
+}
+
+Node::~Node() {
+    std::cout << __FUNCTION__ << " " << Name() << std::endl;
 }
 
 std::shared_ptr<Node> Node::Create(const std::string &name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
@@ -71,7 +77,7 @@ void Node::UpdateTransformMatrix()
     SetTransformMatrix(NodeTransformMatrix() * TransformMatrix());
     if (auto parentPtr = parent(); parentPtr != nullptr)
     {
-        parentPtr->UpdateTransformMatrix();
+        //parentPtr->UpdateTransformMatrix();
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
     }
 }

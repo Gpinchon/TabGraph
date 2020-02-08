@@ -94,6 +94,7 @@ HEADERS_FILES	=	\
 					Quadtree.hpp				\
 					Render.hpp					\
 					Renderable.hpp				\
+					Scene.hpp					\
 					Shader.hpp					\
 					StackTracer.hpp				\
 					Terrain.hpp					\
@@ -175,7 +176,8 @@ INCLUDE_PATH	=	./include				\
 					./libs/include			\
 					./libs/gdal/gdal/gcore	\
 					./libs/gdal/gdal/port	\
-					./libs/gdal/gdal/ogr
+					./libs/gdal/gdal/ogr	\
+					./libs/rapidjson/include
 
 
 ifeq ($(USE_GDAL), 1)

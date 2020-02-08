@@ -14,9 +14,6 @@
 #include <GL/glew.h> // for GL_COMPARE_REF_TO_TEXTURE, GL_DEPTH_COMPO...
 #include <glm/ext.hpp>
 
-//TextureArray	*Light::_shadow_array = nullptr;
-std::vector<std::shared_ptr<Light>> Light::_lights;
-
 Light::Light(const std::string& name)
     : Node(name)
 {
@@ -34,24 +31,12 @@ std::shared_ptr<Light> Light::Create(const std::string& name, glm::vec3 color, g
 
 std::shared_ptr<Light> Light::GetByName(const std::string& name)
 {
-    for (auto n : _lights) {
-        if (name == n->Name())
-            return (n);
-    }
-    return (nullptr);
+    return std::dynamic_pointer_cast<Light>(Node::GetByName(name));
 }
 
 std::shared_ptr<Light> Light::Get(unsigned index)
 {
-    if (index >= _lights.size())
-        return (nullptr);
-    return (_lights.at(index));
-}
-
-void Light::Add(std::shared_ptr<Light> light)
-{
-    Node::Add(light);
-    _lights.push_back(light);
+    return std::dynamic_pointer_cast<Light>(Node::Get(index));
 }
 
 /*TextureArray	*Light::shadow_array()

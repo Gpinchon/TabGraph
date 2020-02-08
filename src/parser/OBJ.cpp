@@ -480,7 +480,6 @@ std::shared_ptr<Mesh> OBJ::parse(const std::string &name, const std::string &pat
     catch (std::exception &e)
     {
         throw std::runtime_error(std::string("Error parsing ") + name + " :\n" + e.what());
-        return (nullptr);
     }
     p.parent->bounding_element = new AABB(p.bbox);
     return (p.parent);

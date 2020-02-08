@@ -25,8 +25,6 @@ public:
     static std::shared_ptr<Camera> Create(std::shared_ptr<Camera> otherCamera);
     static std::shared_ptr<Camera> GetByName(const std::string&);
     static std::shared_ptr<Camera> GetById(int64_t id);
-    static std::shared_ptr<Camera> current();
-    static void set_current(std::shared_ptr<Camera>);
     /** Overload this to change Camera's behavior */
     virtual void UpdateViewMatrix();
     /** Overload this to change Camera's behavior */
@@ -59,7 +57,6 @@ private:
     /** Calls UpdateViewMatrix and UpdateProjectionMatrix */
     virtual void UpdateTransformMatrix() final override;
     CameraProjection _projection_type { PerspectiveCamera };
-    static std::weak_ptr<Camera> _current;
     glm::mat4 _projection { 0 };
     glm::ivec4 _frustum { -50, 50, -50, 50 };
     float _fov { 45 };
