@@ -5,6 +5,7 @@
 #include "Keyboard.hpp"
 #include "Mouse.hpp"
 #include "Events.hpp"
+#include "Scene.hpp"
 #include "Window.hpp"
 #include "parser/GLTF.hpp"
 
@@ -17,7 +18,9 @@
 
 void CameraCallback(SDL_Event *)
 {
-    auto camera = std::dynamic_pointer_cast<FPSCamera>(Camera::current());
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
+    if (camera == nullptr)
+        return;
     glm::vec2 raxis = glm::vec2(0, 0);
     glm::vec2 laxis = glm::vec2(0, 0);
     float taxis = 0;
@@ -37,7 +40,7 @@ void MouseMoveCallback(SDL_MouseMotionEvent *event)
 {
     if (!Mouse::button(1))
         return;
-    auto camera = std::dynamic_pointer_cast<FPSCamera>(Camera::current());
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
         return;
     static glm::vec2 cameraRotation;
@@ -49,7 +52,7 @@ void MouseMoveCallback(SDL_MouseMotionEvent *event)
 
 void MouseWheelCallback(SDL_MouseWheelEvent *event)
 {
-    auto camera = std::dynamic_pointer_cast<FPSCamera>(Camera::current());
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
         return;
     camera->SetFov(camera->Fov() - event->y * 0.01);
@@ -85,11 +88,12 @@ int main(int argc, char **argv)
     SetupCallbacks();
 	Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
-    Camera::set_current(FPSCamera::Create("main_camera", 45));
-    Camera::current()->SetPosition(glm::vec3{10, 10, 0});
-    DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
-	auto scene(GLTF::Parse(Engine::ProgramPath() + std::string(argv[1])));
-    Engine::Load(scene.at(0));
+	auto scene(GLTF::Parse(Engine::ProgramPath() + std::string(argv[1])).at(0));
+    //scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, false));
+    if (scene->CurrentCamera() == nullptr)
+        scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
+    scene->CurrentCamera()->SetPosition(glm::vec3{10, 10, 0});
+    Scene::SetCurrent(scene);
 	Engine::Start();
 	return 0;
 }
