@@ -1,6 +1,5 @@
 #include "parser/GLTF.hpp"
 #include "parser/InternalTools.hpp"
-#include "rapidjson/document.h"
 #include "Material.hpp"
 #include "Camera.hpp"
 #include "Mesh.hpp"
@@ -8,6 +7,61 @@
 #include <iostream>
 #include <filesystem>
 #include <memory>
+ #define RAPIDJSON_NOEXCEPT_ASSERT(x)
+#define RAPIDJSON_ASSERT(x) {if (x); else throw std::runtime_error("Invalid JSON format");};
+#include "rapidjson/document.h"
+
+auto ParseCameras(const rapidjson::Document &document)
+{
+	std::vector<std::shared_ptr<Camera>> cameraVector;
+	try {
+		for (const auto &camera : document["cameras"].GetArray()) {
+			std::cout << "found new camera" << std::endl;
+			auto newCamera(Camera::Create("", 45));
+			if (std::string(camera["type"].GetString()) == "perspective") {
+				auto perspective(camera["perspective"].GetObject());
+				try {
+					newCamera->SetZfar(perspective["zfar"].GetFloat());
+				}
+				catch (std::exception &) {}
+				newCamera->SetFov(glm::degrees(perspective["yfov"].GetFloat()));
+				newCamera->SetZnear(perspective["znear"].GetFloat());
+			}
+			cameraVector.push_back(newCamera);
+		}
+	}
+	catch (std::exception &) {}
+	return cameraVector;
+}
+
+auto ParseMaterials(const rapidjson::Document &document)
+{
+	std::vector<std::shared_ptr<Material>> materialVector;
+	try {
+		auto materialIndex(0);
+		for (const auto &materialValue : document["materials"].GetArray()) {
+			auto material(Material::Create("Material " + std::to_string(materialIndex)));
+			try {
+				auto pbrMetallicRoughness(materialValue["pbrMetallicRoughness"].GetObject());
+				try {
+					auto baseColor(pbrMetallicRoughness["baseColorFactor"].GetArray());
+					material->albedo.r = baseColor[0].GetFloat();
+					material->albedo.g = baseColor[1].GetFloat();
+					material->albedo.b = baseColor[2].GetFloat();
+				}
+				catch (std::exception &) {}
+				try {material->metallic = pbrMetallicRoughness["metallicFactor"].GetFloat();}
+				catch (std::exception &) {}
+				try {material->roughness = pbrMetallicRoughness["roughnessFactor"].GetFloat();}
+				catch (std::exception &) {}
+			}
+			catch(std::exception &) {}
+			materialVector.push_back(material);
+		}
+	}
+	catch(std::exception &) {}
+	return materialVector;
+}
 
 auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 {
@@ -15,15 +69,24 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 	auto meshesItr(document.FindMember("meshes"));
 	if (meshesItr == document.MemberEnd())
 		return meshVector;
+	const auto materials(ParseMaterials(document));
 	const auto &bufferViews(document["bufferViews"].GetArray());
 	const auto &buffers(document["buffers"].GetArray());
 	int meshIndex = 0;
 	for (const auto &mesh : meshesItr->value.GetArray()) {
 		auto currentMesh(Mesh::Create("Mesh " + std::to_string(meshIndex)));
-		currentMesh->AddMaterial(Material::Create(""));
+		//currentMesh->AddMaterial(Material::Create(""));
 		meshIndex++;
 		for (const auto &primitive : mesh["primitives"].GetArray()) {
 			auto vgroup(Vgroup::Create());
+			if (auto material = primitive.FindMember("material"); material != primitive.MemberEnd())
+			{
+				//std::cout << materials.at(material->value.GetInt())->albedo.r << std::endl;
+				//std::cout << materials.at(material->value.GetInt())->albedo.g << std::endl;
+				//std::cout << materials.at(material->value.GetInt())->albedo.b << std::endl;
+				currentMesh->AddMaterial(*std::find(materials.begin(), materials.end(), materials.at(material->value.GetInt())));
+				vgroup->SetMaterialIndex(currentMesh->GetMaterialIndex(materials.at(material->value.GetInt())));
+			}
 			for (const auto &attribute : primitive["attributes"].GetObject()) {
 				std::cout << attribute.name.GetString() << std::endl;
 				if (std::string(attribute.name.GetString()) == "POSITION") {
@@ -113,26 +176,6 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 	return meshVector;
 }
 
-std::vector<std::shared_ptr<Camera>> ParseCameras(const rapidjson::Document &document)
-{
-	std::vector<std::shared_ptr<Camera>> cameraVector;
-	auto cameraItr(document.FindMember("cameras"));
-	if (cameraItr == document.MemberEnd())
-		return cameraVector;
-	for (const auto &cameraValue : cameraItr->value.GetArray()) {
-		std::cout << "found new camera" << std::endl;
-		auto camera(Camera::Create("", 45));
-		if (std::string(cameraValue["type"].GetString()) == "perspective") {
-			auto perspective(cameraValue["perspective"].GetObject());
-			//camera->SetFov(perspective["yfov"].GetFloat());
-			camera->SetZfar(perspective["zfar"].GetFloat());
-			camera->SetZnear(perspective["znear"].GetFloat());
-		}
-		cameraVector.push_back(camera);
-	}
-	return cameraVector;
-}
-
 auto parseNodes(const std::string &path, const rapidjson::Document &document)
 {
 	std::vector<std::shared_ptr<Node>> nodeVector;
@@ -162,7 +205,7 @@ auto parseNodes(const std::string &path, const rapidjson::Document &document)
 		if (node.FindMember("matrix") != node.MemberEnd())
 		{
 			glm::mat4 matrix;
-			for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < matrix.length() * 4; i++)
+			for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < glm::uint(matrix.length() * 4); i++)
 				matrix[i / 4][i % 4] = node["matrix"].GetArray()[i].GetFloat();
 			newNode->SetNodeTransformMatrix(matrix);
 		}
@@ -199,11 +242,13 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 	auto scenes(document["scenes"].GetArray());
 	int sceneIndex = 0;
 	for (const auto &scene : scenes) {
-		std::shared_ptr<Scene> newScene(new Scene(std::to_string(sceneIndex)));
+		auto newScene(Scene::Create(std::to_string(sceneIndex)));
 		for (const auto &node : scene["nodes"].GetArray()) {
-			newScene->Nodes().push_back(nodes.at(node.GetInt()));
+			newScene->Add(nodes.at(node.GetInt()));
 			std::cout << nodes.at(node.GetInt())->Name() << std::endl;
 		}
+		if (!newScene->Cameras().empty())
+			newScene->SetCurrentCamera(*newScene->Cameras().begin());
 		sceneVector.push_back(newScene);
 		sceneIndex++;
 	}
