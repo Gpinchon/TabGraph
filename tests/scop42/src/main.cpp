@@ -13,11 +13,12 @@
 #include "Engine.hpp" // for ProgramPath, Init, Start
 #include "FPSCamera.hpp" // for FPSCamera
 #include "Light.hpp" // for DirectionnalLight, Light
+#include "Mesh.hpp" // for Mesh
 #include "MeshParser.hpp" // for MeshParser
 #include "Node.hpp" // for Node
+#include "Scene.hpp"
 #include "glm/glm.hpp" // for glm::vec3, glm::vec3
 #include "scop.hpp" // for setup_callbacks
-#include <Mesh.hpp> // for Mesh
 #include <SDL2/SDL.h> // for SDL_Quit
 #include <SDL2/SDL_main.h> // for main
 #include <cstdlib> // for rand, RAND_MAX
@@ -84,25 +85,23 @@ std::shared_ptr<Mesh> mainMesh = nullptr;
 
 int main(int argc, char *argv[])
 {
-    //std::shared_ptr<Mesh> obj;
-
     Config::Parse(Engine::ProgramPath() + "./res/config.ini");
     Engine::Init();
     auto camera = FPSCamera::Create("main_camera", 45);
-    Camera::set_current(camera);
+    Scene::SetCurrent(Scene::Create("Main Scene"));
+    Scene::Current()->SetCurrentCamera(camera);
     //camera->set_target(Node::Create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     //camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
     if (argc >= 2)
     {
         mainMesh = MeshParser::parse("main_mesh", argv[1]);
     }
-    if (argc > 2 || mainMesh == nullptr)
+    if (argc < 2 || mainMesh == nullptr)
     {
-        mainMesh = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/mainMesh/chart.mainMesh");
+        mainMesh = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/obj/chart.obj");
     }
     if (mainMesh != nullptr)
     {
-        Node::Add(mainMesh);
         for (auto &vg : mainMesh->vgroups()) {
             for (auto &v : vg->v)
                 v -= mainMesh->bounding_element->center;
@@ -110,12 +109,13 @@ int main(int argc, char *argv[])
         mainMesh->bounding_element->min -= mainMesh->bounding_element->center;
         mainMesh->bounding_element->max -= mainMesh->bounding_element->center;
         mainMesh->bounding_element->center = glm::vec3(0, 0, 0);
-        //mainMesh->Load();
     }
-    //FBX::parseBin(Engine::ProgramPath() + "./mug.fbx");
+    Scene::Current()->Add(mainMesh);
+    Scene::Current()->Add(camera);
+    Scene::Current()->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true));
     setup_callbacks();
     //Create_random_lights(250);
-    DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true);
+    
     //DirectionnalLight::Create("BackLight", glm::vec3(0.3, 0.3, 0.3), glm::vec3(-10, -10, 0), 1, false);
     Engine::Start();
     SDL_Quit();
