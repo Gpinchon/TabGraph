@@ -15,9 +15,7 @@ FPSCamera::FPSCamera(const std::string& name, float fov, CameraProjection proj)
 
 std::shared_ptr<FPSCamera> FPSCamera::Create(const std::string& name, float ifov, CameraProjection proj)
 {
-    std::shared_ptr<FPSCamera> camera(new FPSCamera(name, ifov, proj));
-    Camera::Add(camera);
-    return (camera);
+    return std::shared_ptr<FPSCamera>(new FPSCamera(name, ifov, proj));
 }
 
 float FPSCamera::Yaw() const

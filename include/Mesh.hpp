@@ -24,11 +24,9 @@ class Mesh : public Renderable
 public:
     static std::shared_ptr<Mesh> Create(std::shared_ptr<Mesh> otherMesh);
     static std::shared_ptr<Mesh> Create(const std::string &);
-    static std::shared_ptr<Mesh> GetByName(const std::string &);
-    static std::shared_ptr<Mesh> GetById(int64_t id);
     void Load() override;
-    bool Draw(RenderMod mod = RenderAll) override;
-    bool DrawDepth(RenderMod mod = RenderAll) override;
+    bool Draw(RenderMod mod = RenderMod::RenderAll) override;
+    bool DrawDepth(RenderMod mod = RenderMod::RenderAll) override;
     bool Drawable() const override;
     void center();
     void set_cull_mod(GLenum);

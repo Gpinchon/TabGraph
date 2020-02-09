@@ -118,3 +118,30 @@ const std::set<std::shared_ptr<Camera>> &Scene::Cameras()
 {
 	return _cameras;
 }
+
+void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode) {
+    if (rootNode == nullptr)
+        return;
+    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode); renderable != nullptr)
+        renderable->Draw(mode);
+    for (const auto &child : rootNode->Children())
+        DrawNodes(child, mode);
+}
+
+void Scene::Render(const RenderMod &mode) {
+    for (auto node : Scene::Current()->Nodes())
+        DrawNodes(node, mode);
+}
+
+void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
+    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode); renderable != nullptr)
+        renderable->DrawDepth(mode);
+    std::shared_ptr<Node> child;
+    for (const auto &child : rootNode->Children())
+        DrawNodesDepth(child, mode);
+}
+
+void Scene::RenderDepth(const RenderMod &mode) {
+    for (auto node : Scene::Current()->Nodes())
+        DrawNodesDepth(node, mode);
+}

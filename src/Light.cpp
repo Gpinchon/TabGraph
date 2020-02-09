@@ -25,18 +25,7 @@ std::shared_ptr<Light> Light::Create(const std::string& name, glm::vec3 color, g
     light->color() = color;
     light->SetPosition(position);
     light->power() = power;
-    Light::Add(light);
     return (light);
-}
-
-std::shared_ptr<Light> Light::GetByName(const std::string& name)
-{
-    return std::dynamic_pointer_cast<Light>(Node::GetByName(name));
-}
-
-std::shared_ptr<Light> Light::Get(unsigned index)
-{
-    return std::dynamic_pointer_cast<Light>(Node::Get(index));
 }
 
 /*TextureArray	*Light::shadow_array()
@@ -96,7 +85,6 @@ std::shared_ptr<DirectionnalLight> DirectionnalLight::Create(const std::string& 
         //shadow_array()->Add(light->_render_buffer->depth());
         //shadow_array()->load();
     }
-    Light::Add(light);
     return (light);
 }
 

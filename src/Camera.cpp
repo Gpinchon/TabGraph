@@ -29,16 +29,6 @@ std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
     return std::shared_ptr<Camera>(new Camera(*otherCamera));
 }
 
-std::shared_ptr<Camera> Camera::GetById(int64_t id)
-{
-    return std::dynamic_pointer_cast<Camera>(Node::GetById(id));
-}
-
-std::shared_ptr<Camera> Camera::GetByName(const std::string& name)
-{
-    return std::dynamic_pointer_cast<Camera>(Node::GetByName(name));
-}
-
 glm::vec3 Camera::Forward() const
 {
     return Rotation();

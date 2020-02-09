@@ -24,10 +24,6 @@ public:
     void SetName(const std::string& name);
     virtual ~Object() = default;
 
-    static std::shared_ptr<Object> GetByName(const std::string&);
-    static std::shared_ptr<Object> GetById(int64_t);
-    static void Add(const std::shared_ptr<Object>);
-
 protected:
     Object() = delete;
     Object(const std::string& name);
@@ -35,5 +31,4 @@ protected:
 private:
     std::string _name { "" };
     int64_t _id { 0 };
-    static std::vector<std::shared_ptr<Object>> _objects;
 };

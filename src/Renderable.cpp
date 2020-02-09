@@ -12,16 +12,6 @@ Renderable::Renderable(const std::string& name)
 {
 }
 
-std::shared_ptr<Renderable> Renderable::Get(unsigned index)
-{
-    return std::dynamic_pointer_cast<Renderable>(Node::Get(index));
-}
-
-std::shared_ptr<Renderable> Renderable::GetByName(const std::string& name)
-{
-    return std::dynamic_pointer_cast<Renderable>(Node::GetByName(name));
-}
-
 bool Renderable::is_loaded()
 {
     return (_is_loaded);

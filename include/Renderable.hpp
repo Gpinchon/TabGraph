@@ -12,7 +12,7 @@
 #include <string> // for string
 #include <vector> // for vector
 
-enum RenderMod
+enum class RenderMod
 {
     RenderAll,
     RenderOpaque,
@@ -24,8 +24,8 @@ class Renderable : public Node
 public:
     static std::shared_ptr<Renderable> Get(unsigned index);
     static std::shared_ptr<Renderable> GetByName(const std::string& name);
-    virtual bool Draw(RenderMod mod = RenderAll) = 0;
-    virtual bool DrawDepth(RenderMod mod = RenderAll) = 0;
+    virtual bool Draw(RenderMod mod = RenderMod::RenderAll) = 0;
+    virtual bool DrawDepth(RenderMod mod = RenderMod::RenderAll) = 0;
     virtual bool Drawable() const = 0;
     virtual void Load() = 0;
     bool is_loaded();

@@ -18,7 +18,6 @@ OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float 
 std::shared_ptr<OrbitCamera> OrbitCamera::Create(const std::string& iname, float ifov, float phi, float theta, float radius, CameraProjection proj)
 {
     std::shared_ptr<OrbitCamera> camera(new OrbitCamera(iname, ifov, phi, theta, radius, proj));
-    Camera::Add(camera);
     return (camera);
 }
 

@@ -23,8 +23,6 @@ class Camera : public Node {
 public:
     static std::shared_ptr<Camera> Create(const std::string&, float fov, CameraProjection proj = PerspectiveCamera);
     static std::shared_ptr<Camera> Create(std::shared_ptr<Camera> otherCamera);
-    static std::shared_ptr<Camera> GetByName(const std::string&);
-    static std::shared_ptr<Camera> GetById(int64_t id);
     /** Overload this to change Camera's behavior */
     virtual void UpdateViewMatrix();
     /** Overload this to change Camera's behavior */

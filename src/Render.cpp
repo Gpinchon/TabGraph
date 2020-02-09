@@ -13,7 +13,7 @@
 #include "Environment.hpp" // for Environment
 #include "Framebuffer.hpp" // for Framebuffer
 #include "Light.hpp" // for Light, Directionnal, Point
-#include "Renderable.hpp" // for Renderable, RenderOpaque, RenderTransparent
+#include "Renderable.hpp" // for Renderable, RenderMod::RenderOpaque, RenderMod::RenderTransparent
 #include "Scene.hpp"
 #include "Shader.hpp" // for Shader
 #include "Texture.hpp" // for Texture
@@ -129,33 +129,6 @@ const std::shared_ptr<VertexArray> Render::Private::DisplayQuad()
     return (vao);
 }
 
-void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode) {
-    if (rootNode == nullptr)
-        return;
-    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode); renderable != nullptr)
-        renderable->Draw(mode);
-    for (const auto &child : rootNode->Children())
-        DrawNodes(child, mode);
-}
-
-void DrawNodes(RenderMod mode) {
-    for (auto node : Scene::Current()->Nodes())
-        DrawNodes(node, mode);
-}
-
-void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
-    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode); renderable != nullptr)
-        renderable->DrawDepth(mode);
-    std::shared_ptr<Node> child;
-    for (const auto &child : rootNode->Children())
-        DrawNodesDepth(child, mode);
-}
-
-void DrawNodesDepth(RenderMod mode) {
-    for (auto node : Scene::Current()->Nodes())
-        DrawNodesDepth(node, mode);
-}
-
 std::shared_ptr<Framebuffer> Create_render_buffer(const std::string &name, const glm::ivec2 &size)
 {
     auto buffer = Framebuffer::Create(name, size, 0, 1);
@@ -218,7 +191,7 @@ void render_shadows()
         glClear(GL_DEPTH_BUFFER_BIT);
         tempCamera->SetPosition(light->Position());
         tempCamera->SetViewMatrix(light->TransformMatrix());
-        DrawNodesDepth(RenderOpaque);
+        Scene::Current()->RenderDepth(RenderMod::RenderOpaque);
         light->render_buffer()->bind(false);
     }
     Scene::Current()->SetCurrentCamera(camera);
@@ -550,7 +523,7 @@ void Render::Private::Scene()
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    DrawNodes(RenderOpaque);
+    Scene::Current()->Render(RenderMod::RenderOpaque);
     std::swap(current_tbuffer, current_tbuffertex);
 
     glDepthFunc(GL_ALWAYS);
@@ -643,7 +616,7 @@ void Render::Private::Scene()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     bool rendered_stuff = false;
-    DrawNodes(RenderTransparent);
+    Scene::Current()->Render(RenderMod::RenderTransparent);
     std::swap(current_tbuffer, current_tbuffertex);
 
     if (!rendered_stuff)

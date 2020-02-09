@@ -35,16 +35,6 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string &name) /*static*/
     return std::shared_ptr<Mesh>(new Mesh(name));
 }
 
-std::shared_ptr<Mesh> Mesh::GetByName(const std::string &name) /*static*/
-{
-    return std::dynamic_pointer_cast<Mesh>(Node::GetByName(name));
-}
-
-std::shared_ptr<Mesh> Mesh::GetById(int64_t id)
-{
-    return std::dynamic_pointer_cast<Mesh>(Node::GetById(id));
-}
-
 const std::set<std::shared_ptr<Vgroup>> Mesh::vgroups()
 {
     return (_vgroups);
@@ -95,10 +85,10 @@ bool Mesh::DrawDepth(RenderMod mod)
         auto material(GetMaterial(vg->MaterialIndex()));
         if (nullptr == material)
             continue;
-        if (mod == RenderOpaque
+        if (mod == RenderMod::RenderOpaque
             && (material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
             continue;
-        else if (mod == RenderTransparent
+        else if (mod == RenderMod::RenderTransparent
             && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
             continue;
         auto shader(material->depth_shader());
@@ -148,10 +138,10 @@ bool Mesh::Draw(RenderMod mod)
             errorLog("Error : Invalid Material Index while rendering Mesh" + Name());
             continue;
         }
-        if (mod == RenderOpaque
+        if (mod == RenderMod::RenderOpaque
             && (material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
             continue;
-        else if (mod == RenderTransparent
+        else if (mod == RenderMod::RenderTransparent
                  && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
             continue;
         auto shader(material->shader());

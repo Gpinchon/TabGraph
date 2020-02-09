@@ -20,10 +20,6 @@ class Node : public Object
 {
 public:
     static std::shared_ptr<Node> Create(const std::string &name, glm::vec3 position = glm::vec3(), glm::vec3 rotation = glm::vec3(), glm::vec3 scale = glm::vec3(1));
-    static std::shared_ptr<Node> GetByName(const std::string &);
-    static std::shared_ptr<Node> Get(unsigned index);
-    /** Adds the Node to the Node list */
-    static void Add(std::shared_ptr<Node>);
     virtual std::shared_ptr<Node> shared_from_this();
     virtual void FixedUpdate();
     virtual void Update();
@@ -69,7 +65,7 @@ protected:
     Node(const std::string &name);
 
 private:
-    static std::vector<std::shared_ptr<Node>> _nodes;
+    //static std::vector<std::shared_ptr<Node>> _nodes;
     std::vector<std::shared_ptr<Node>> _children;
     std::shared_ptr<Node> _target;
     std::shared_ptr<Node> _parent;

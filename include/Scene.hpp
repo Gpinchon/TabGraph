@@ -9,6 +9,7 @@ class Renderable;
 class Camera;
 class Light;
 class Node;
+enum class RenderMod;
 
 /**
  * @brief scene container
@@ -26,6 +27,8 @@ struct Scene
 	void Add(std::shared_ptr<Node>);
 	void Update();
 	void FixedUpdate();
+	void Render(const RenderMod &);
+	void RenderDepth(const RenderMod &);
 	const std::set<std::shared_ptr<Node>> &Nodes();
 	const std::set<std::shared_ptr<Light>> &Lights();
 	const std::set<std::shared_ptr<Camera>> &Cameras();

@@ -23,7 +23,6 @@ std::shared_ptr<ComputeObject> ComputeObject::Create(const std::string& name, st
     auto obj = std::shared_ptr<ComputeObject>(new ComputeObject(name));
     obj->_shader = computeShader;
     obj->_num_groups = glm::vec3(workgroup_count[0], workgroup_count[1], workgroup_count[2]);
-    Node::Add(obj);
     return (obj);
 }
 

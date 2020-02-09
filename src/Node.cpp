@@ -10,8 +10,6 @@
 
 #include <iostream>
 
-std::vector<std::shared_ptr<Node>> Node::_nodes;
-
 Node::Node(const std::string &name)
     : Object(name)
 {
@@ -28,36 +26,12 @@ std::shared_ptr<Node> Node::Create(const std::string &name, glm::vec3 position, 
     t->_rotation = rotation;
     t->_scale = scale;
     t->Update();
-    Node::Add(t);
     return (t);
-}
-
-std::shared_ptr<Node> Node::GetByName(const std::string &name)
-{
-    for (auto n : _nodes)
-    {
-        if (name == n->Name())
-            return (n);
-    }
-    return (nullptr);
-}
-
-std::shared_ptr<Node> Node::Get(unsigned index)
-{
-    if (index >= _nodes.size())
-        return (nullptr);
-    return (_nodes.at(index));
 }
 
 std::shared_ptr<Node> Node::shared_from_this()
 {
     return (std::static_pointer_cast<Node>(Object::shared_from_this()));
-}
-
-void Node::Add(std::shared_ptr<Node> node)
-{
-    Object::Add(node);
-    _nodes.push_back(node);
 }
 
 void Node::FixedUpdate()
@@ -76,10 +50,7 @@ void Node::UpdateTransformMatrix()
     SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
     SetTransformMatrix(NodeTransformMatrix() * TransformMatrix());
     if (auto parentPtr = parent(); parentPtr != nullptr)
-    {
-        //parentPtr->UpdateTransformMatrix();
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
-    }
 }
 
 void Node::UpdateTranslationMatrix()
