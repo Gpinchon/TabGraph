@@ -10,9 +10,9 @@
 #include <memory>
 #include <string> // for string
 
-class Mesh;
+class Scene;
 
 namespace FBX
 {
-std::shared_ptr<Mesh> parseMesh(const std::string &name, const std::string &path);
+std::shared_ptr<Scene> Parse(const std::string &name, const std::string &path);
 };

@@ -8,7 +8,8 @@
 #include "parser/FBX.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
-#include "MeshParser.hpp"
+#include "Scene.hpp"
+#include "SceneParser.hpp"
 #include "Vgroup.hpp"
 #include "parser/FBX/FBXDocument.hpp"
 #include "parser/FBX/FBXNode.hpp"
@@ -18,8 +19,8 @@
 #include <iostream>
 #include <memory>
 
-//Add this parser to MeshParser !
-auto __fbxParser = MeshParser::Add("fbx", FBX::parseMesh);
+//Add this parser to SceneParser !
+auto __fbxParser = SceneParser::Add("fbx", FBX::Parse);
 
 /*static inline std::vector<glm::vec2> parseUV(FBX::Node *layerElementUV)
 {
@@ -280,11 +281,11 @@ auto getVgroups(std::shared_ptr<FBX::Node> objects)
     return groupMap;
 }
 
-std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string &path)
+std::shared_ptr<Scene> FBX::Parse(const std::string &name, const std::string &path)
 {
     auto document(FBX::Document::Parse(path));
     document->Print();
-    auto mainMesh(Mesh::Create(name));
+    auto scene(Scene::Create(name));
     std::map<int64_t, std::vector<std::shared_ptr<Vgroup>>> vgroupMap;
     for (const auto &objects : document->SubNodes("Objects"))
     {
@@ -422,10 +423,10 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
                                 destination->add_child(source);
                             }
                             else if (destinationId == 0)
-                            {
+                            { 
                                 std::cout << source->Id() << " : IS CHILD OF : "
                                           << "*ROOT*" << std::endl;
-                                mainMesh->add_child(source);
+                                scene->add_child(source);
                             }
                         }
                         continue;
@@ -469,5 +470,5 @@ std::shared_ptr<Mesh> FBX::parseMesh(const std::string &name, const std::string 
         }
     }
     delete document;
-    return mainMesh;
+    return scene;
 }
