@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "Node.hpp"
 #include <set>
 #include <string>
 #include <memory>
@@ -29,6 +28,10 @@ struct Scene
 	void FixedUpdate();
 	void Render(const RenderMod &);
 	void RenderDepth(const RenderMod &);
+	std::shared_ptr<Node> GetNodeByName(const std::string &);
+	std::shared_ptr<Light> GetLightByName(const std::string &);
+	std::shared_ptr<Camera> GetCameraByName(const std::string &);
+	std::shared_ptr<Renderable> GetRenderableByName(const std::string &);
 	const std::set<std::shared_ptr<Node>> &Nodes();
 	const std::set<std::shared_ptr<Light>> &Lights();
 	const std::set<std::shared_ptr<Camera>> &Cameras();

@@ -38,9 +38,6 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string &name,
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
     terrain->_terrainSize = scale;
-    Mesh::Add(terrain);
-    Renderable::Add(terrain);
-    Node::Add(terrain);
     auto vg = Vgroup::Create(name + "vgroup");
     vg->v.resize(uint32_t(resolution.x * resolution.y));
     vg->vn.resize(vg->v.size());

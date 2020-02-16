@@ -281,11 +281,25 @@ auto getVgroups(std::shared_ptr<FBX::Node> objects)
     return groupMap;
 }
 
-std::shared_ptr<Scene> FBX::Parse(const std::string &name, const std::string &path)
+static inline auto parseMeshes(FBX::Document *document)
+{
+    std::map<int64_t, std::shared_ptr<Mesh>> meshMap;
+    for (const auto &objects : document->SubNodes("Objects")) {
+        for (const auto &model : objects->SubNodes("Model")) {
+            auto mesh = Mesh::Create(model->Property(1));
+            mesh->SetId(model->Property(0));
+            meshMap[mesh->Id()] = mesh;
+        }
+    }
+    return meshMap;
+}
+
+std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
 {
     auto document(FBX::Document::Parse(path));
     document->Print();
-    auto scene(Scene::Create(name));
+    auto scene(Scene::Create(path));
+    auto meshes(parseMeshes(document));
     std::map<int64_t, std::vector<std::shared_ptr<Vgroup>>> vgroupMap;
     for (const auto &objects : document->SubNodes("Objects"))
     {
@@ -339,7 +353,8 @@ std::shared_ptr<Scene> FBX::Parse(const std::string &name, const std::string &pa
         vgroupMap = getVgroups(objects);
         for (const auto &model : objects->SubNodes("Model"))
         {
-            auto mesh(Mesh::GetById(model->Property(0)));
+            auto mesh(meshes[model->Property(0)]);
+            //auto mesh(Mesh::GetById(model->Property(0)));
             if (mesh == nullptr)
             {
                 mesh = Mesh::Create(model->Property(1));
@@ -411,12 +426,12 @@ std::shared_ptr<Scene> FBX::Parse(const std::string &name, const std::string &pa
             if (std::string(c->Property(0)) == "OO")
             {
                 {
-                    auto source(Mesh::GetById(sourceId));
+                    auto source(meshes[sourceId]);
                     if (source != nullptr)
                     {
                         std::cout << "Got Mesh " << source->Id() << std::endl;
                         {
-                            auto destination(Mesh::GetById(destinationId));
+                            auto destination(meshes[destinationId]);
                             if (destination != nullptr)
                             {
                                 std::cout << source->Id() << " : IS CHILD OF : " << destination->Id() << std::endl;
@@ -426,7 +441,7 @@ std::shared_ptr<Scene> FBX::Parse(const std::string &name, const std::string &pa
                             { 
                                 std::cout << source->Id() << " : IS CHILD OF : "
                                           << "*ROOT*" << std::endl;
-                                scene->add_child(source);
+                                scene->Add(source);
                             }
                         }
                         continue;
@@ -439,7 +454,7 @@ std::shared_ptr<Scene> FBX::Parse(const std::string &name, const std::string &pa
                     {
                         std::cout << "Got Vgroup " << sourceId << std::endl;
                         {
-                            auto destination(Mesh::GetById(destinationId));
+                            auto destination(meshes[destinationId]);
                             if (destination != nullptr)
                             {
                                 std::cout << "Mesh " << destinationId << " uses Vgroup " << sourceId << std::endl;
@@ -456,7 +471,7 @@ std::shared_ptr<Scene> FBX::Parse(const std::string &name, const std::string &pa
                     {
                         std::cout << "Got Material " << source->Id() << std::endl;
                         {
-                            auto destination(Mesh::GetById(destinationId));
+                            auto destination(meshes[destinationId]);
                             if (destination != nullptr)
                             {
                                 std::cout << "Mesh " << destinationId << " uses Material " << source->Id() << std::endl;
@@ -470,5 +485,7 @@ std::shared_ptr<Scene> FBX::Parse(const std::string &name, const std::string &pa
         }
     }
     delete document;
-    return scene;
+    std::vector<std::shared_ptr<Scene>> v;
+    v.push_back(scene);
+    return v;
 }

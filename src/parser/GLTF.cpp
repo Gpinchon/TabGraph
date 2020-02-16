@@ -1,15 +1,19 @@
 #include "parser/GLTF.hpp"
 #include "parser/InternalTools.hpp"
+#include "Debug.hpp"
 #include "Material.hpp"
 #include "Camera.hpp"
 #include "Mesh.hpp"
+#include "SceneParser.hpp"
 #include "Vgroup.hpp"
 #include <iostream>
 #include <filesystem>
 #include <memory>
- #define RAPIDJSON_NOEXCEPT_ASSERT(x)
-#define RAPIDJSON_ASSERT(x) {if (x); else throw std::runtime_error("Invalid JSON format");};
+#define RAPIDJSON_NOEXCEPT_ASSERT(x)
+#define RAPIDJSON_ASSERT(x) {if (x); else throw std::runtime_error("JSON error in " + std::string(__FILE__) + " at " + std::to_string(__LINE__));};
 #include "rapidjson/document.h"
+
+auto __gltfParser = SceneParser::Add("gltf", GLTF::Parse);
 
 auto ParseCameras(const rapidjson::Document &document)
 {
@@ -23,7 +27,7 @@ auto ParseCameras(const rapidjson::Document &document)
 				try {
 					newCamera->SetZfar(perspective["zfar"].GetFloat());
 				}
-				catch (std::exception &) {}
+				catch (std::exception &) {debugLog("No zfar property")}
 				newCamera->SetFov(glm::degrees(perspective["yfov"].GetFloat()));
 				newCamera->SetZnear(perspective["znear"].GetFloat());
 			}
@@ -36,6 +40,7 @@ auto ParseCameras(const rapidjson::Document &document)
 
 auto ParseMaterials(const rapidjson::Document &document)
 {
+	debugLog("Start parsing materials");
 	std::vector<std::shared_ptr<Material>> materialVector;
 	try {
 		auto materialIndex(0);
@@ -49,31 +54,36 @@ auto ParseMaterials(const rapidjson::Document &document)
 					material->albedo.g = baseColor[1].GetFloat();
 					material->albedo.b = baseColor[2].GetFloat();
 				}
-				catch (std::exception &) {}
+				catch (std::exception &) {debugLog("No baseColorFactor property")}
 				try {material->metallic = pbrMetallicRoughness["metallicFactor"].GetFloat();}
-				catch (std::exception &) {}
+				catch (std::exception &) {debugLog("No metallicFactor property")}
 				try {material->roughness = pbrMetallicRoughness["roughnessFactor"].GetFloat();}
-				catch (std::exception &) {}
+				catch (std::exception &) {debugLog("No roughnessFactor property")}
 			}
-			catch(std::exception &) {}
+			catch(std::exception &) {debugLog("Not a pbrMetallicRoughness material")}
 			materialVector.push_back(material);
 		}
 	}
-	catch(std::exception &) {}
+	catch(std::exception &) {debugLog("No materials found")}
+	debugLog("Done parsing materials");
 	return materialVector;
 }
 
 auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 {
+	debugLog("Start parsing meshes");
 	std::vector<std::shared_ptr<Mesh>> meshVector;
 	auto meshesItr(document.FindMember("meshes"));
-	if (meshesItr == document.MemberEnd())
+	if (meshesItr == document.MemberEnd()) {
+		debugLog("No meshes found");
 		return meshVector;
+	}
 	const auto materials(ParseMaterials(document));
 	const auto &bufferViews(document["bufferViews"].GetArray());
 	const auto &buffers(document["buffers"].GetArray());
 	int meshIndex = 0;
 	for (const auto &mesh : meshesItr->value.GetArray()) {
+		debugLog("Found new mesh");
 		auto currentMesh(Mesh::Create("Mesh " + std::to_string(meshIndex)));
 		//currentMesh->AddMaterial(Material::Create(""));
 		meshIndex++;
@@ -88,58 +98,46 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 				vgroup->SetMaterialIndex(currentMesh->GetMaterialIndex(materials.at(material->value.GetInt())));
 			}
 			for (const auto &attribute : primitive["attributes"].GetObject()) {
-				std::cout << attribute.name.GetString() << std::endl;
-				if (std::string(attribute.name.GetString()) == "POSITION") {
-					/** Get the accessor */
-					const auto &accessor(document["accessors"].GetArray()[attribute.value.GetInt()]);
-					/** Get the bufferView from "bufferView" key in accessor */
-					const auto &bufferView(bufferViews[accessor["bufferView"].GetInt()]);
-					/** Get the buffer from "buffer" key in accessor */
-					const auto &buffer(buffers[bufferView["buffer"].GetInt()]);
-					auto bufferPath(std::filesystem::path(buffer["uri"].GetString()));
-					if (!bufferPath.is_absolute())
-						bufferPath = std::filesystem::path(path).parent_path()/bufferPath;
-					std::cout << bufferPath << std::endl;
-					auto file(_wfopen(bufferPath.c_str(), L"rb"));
-					switch(accessor["componentType"].GetInt()) {
-						case GL_FLOAT :
-						{
-							if (std::string(accessor["type"].GetString()) == "VEC3") {
-								std::vector<glm::vec3> vec3Vector(accessor["count"].GetInt());
-								fseek(file, accessor["byteOffset"].GetInt() + bufferView["byteOffset"].GetInt(), 0);
-								fread(&vec3Vector.at(0), sizeof(vec3Vector.at(0)), vec3Vector.size(), file);
-								vgroup->v = vec3Vector;
-							}
-						}
-					}
-					fclose(file);
+				debugLog(attribute.name.GetString());
+				/** Get the accessor */
+				const auto &accessor(document["accessors"].GetArray()[attribute.value.GetInt()]);
+				/** Get the bufferView from "bufferView" key in accessor */
+				const auto &bufferView(bufferViews[accessor["bufferView"].GetInt()]);
+				/** Get the buffer from "buffer" key in accessor */
+				const auto &buffer(buffers[bufferView["buffer"].GetInt()]);
+				auto bufferPath(std::filesystem::path(buffer["uri"].GetString()));
+				if (!bufferPath.is_absolute())
+					bufferPath = std::filesystem::path(path).parent_path()/bufferPath;
+				debugLog(bufferPath);
+				auto file(_wfopen(bufferPath.c_str(), L"rb"));
+				auto accessorByteOffset(0);
+				auto bufferViewByteOffset(0);
+				try {
+					accessorByteOffset = accessor["byteOffset"].GetInt();
 				}
-				else if (std::string(attribute.name.GetString()) == "NORMAL")
-				{
-					/** Get the accessor */
-					const auto &accessor(document["accessors"].GetArray()[attribute.value.GetInt()]);
-					/** Get the bufferView from "bufferView" key in accessor */
-					const auto &bufferView(bufferViews[accessor["bufferView"].GetInt()]);
-					/** Get the buffer from "buffer" key in accessor */
-					const auto &buffer(buffers[bufferView["buffer"].GetInt()]);
-					auto bufferPath(std::filesystem::path(buffer["uri"].GetString()));
-					if (!bufferPath.is_absolute())
-						bufferPath = std::filesystem::path(path).parent_path()/bufferPath;
-					std::cout << bufferPath << std::endl;
-					auto file(_wfopen(bufferPath.c_str(), L"rb"));
-					switch(accessor["componentType"].GetInt()) {
-						case GL_FLOAT :
-						{
-							if (std::string(accessor["type"].GetString()) == "VEC3") {
-								std::vector<glm::vec3> vec3Vector(accessor["count"].GetInt());
-								fseek(file, accessor["byteOffset"].GetInt() + bufferView["byteOffset"].GetInt(), 0);
-								fread(&vec3Vector.at(0), sizeof(vec3Vector.at(0)), vec3Vector.size(), file);
+				catch (std::runtime_error &) { debugLog("No accessor byteOffset"); }
+				try {
+					bufferViewByteOffset = bufferView["byteOffset"].GetInt();
+				}
+				catch (std::runtime_error &) { debugLog("No bufferView byteOffset"); }
+				switch(accessor["componentType"].GetInt()) {
+					case GL_FLOAT :
+					{
+						if (std::string(accessor["type"].GetString()) == "VEC3") {
+							std::vector<glm::vec3> vec3Vector(accessor["count"].GetInt());
+							fseek(file, accessorByteOffset + bufferViewByteOffset, 0);
+							fread(&vec3Vector.at(0), sizeof(vec3Vector.at(0)), vec3Vector.size(), file);
+							if (std::string(attribute.name.GetString()) == "POSITION")
+								vgroup->v = vec3Vector;
+							else if (std::string(attribute.name.GetString()) == "NORMAL") {
 								for (const auto &vn : vec3Vector) {
 									vgroup->vn.push_back(VecToCVec4(vn));
 								}
 							}
 						}
 					}
+					debugLog("Close file");
+					fclose(file);
 				}
 				std::cout << attribute.name.GetString() << std::endl;
 			}
@@ -173,6 +171,7 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 		}
 		meshVector.push_back(currentMesh);
 	}
+	debugLog("Done parsing meshes");
 	return meshVector;
 }
 
@@ -202,18 +201,16 @@ auto parseNodes(const std::string &path, const rapidjson::Document &document)
 		}
 		else
 			newNode = Node::Create("Node " + std::to_string(nodeIndex));
-		if (node.FindMember("matrix") != node.MemberEnd())
-		{
+		try {
 			glm::mat4 matrix;
 			for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < glm::uint(matrix.length() * 4); i++)
 				matrix[i / 4][i % 4] = node["matrix"].GetArray()[i].GetFloat();
 			newNode->SetNodeTransformMatrix(matrix);
-		}
-		if (node.FindMember("translation") != node.MemberEnd())
-		{
+		} catch (std::exception &) {}
+		try {
 			const auto &position(node["translation"].GetArray());
 			newNode->SetPosition(glm::vec3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
-		}
+		} catch (std::exception &) {}
 		nodeVector.push_back(newNode);
 		nodeIndex++;
 	}
@@ -237,11 +234,16 @@ auto parseNodes(const std::string &path, const rapidjson::Document &document)
 std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 	std::vector<std::shared_ptr<Scene>> sceneVector;
 	rapidjson::Document document;
-	document.Parse(file_to_str(path).c_str());
+	rapidjson::ParseResult parseResult(document.Parse(file_to_str(path).c_str()));
+	if (!parseResult) {
+		debugLog("Invalid file !");
+		return sceneVector;
+	}
 	auto nodes(parseNodes(path, document));
 	auto scenes(document["scenes"].GetArray());
 	int sceneIndex = 0;
 	for (const auto &scene : scenes) {
+		std::cout << "found scene" << std::endl;
 		auto newScene(Scene::Create(std::to_string(sceneIndex)));
 		for (const auto &node : scene["nodes"].GetArray()) {
 			newScene->Add(nodes.at(node.GetInt()));

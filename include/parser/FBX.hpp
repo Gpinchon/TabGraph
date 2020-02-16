@@ -8,11 +8,12 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <string> // for string
 
 class Scene;
 
 namespace FBX
 {
-std::shared_ptr<Scene> Parse(const std::string &name, const std::string &path);
+std::vector<std::shared_ptr<Scene>> Parse(const std::string &path);
 };

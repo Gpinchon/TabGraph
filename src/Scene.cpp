@@ -104,6 +104,59 @@ void Scene::SetCurrentCamera(std::shared_ptr<Camera> camera)
 	_currentCamera = camera;
 }
 
+template<typename T>
+std::shared_ptr<T> GetByName(const std::string &name, const std::shared_ptr<T> rootNode) {
+	if (rootNode == nullptr || rootNode->Name() == name)
+		return std::dynamic_pointer_cast<T>(rootNode);
+	for (const auto object : rootNode->Children()) {
+		auto result(std::dynamic_pointer_cast<T>(GetByName<Node>(name, object)));
+		if (result != nullptr)
+			return result;
+	}
+	return nullptr;
+}
+
+std::shared_ptr<Node> Scene::GetNodeByName(const std::string &name)
+{
+	for (const auto object : _nodes) {
+		auto result(GetByName(name, object));
+		if (result != nullptr)
+			return result;
+	}
+	return nullptr;
+}
+
+std::shared_ptr<Light> Scene::GetLightByName(const std::string &name)
+{
+	for (const auto object : _lights) {
+		auto result(GetByName(name, object));
+		if (result != nullptr)
+			return result;
+	}
+	return nullptr;
+}
+
+std::shared_ptr<Camera> Scene::GetCameraByName(const std::string &name)
+{
+	for (const auto object : _cameras) {
+		auto result(GetByName(name, object));
+		if (result != nullptr)
+			return result;
+	}
+	return nullptr;
+}
+
+std::shared_ptr<Renderable> Scene::GetRenderableByName(const std::string &name)
+{
+	for (const auto object : _renderables) {
+		auto result(GetByName(name, object));
+		if (result != nullptr)
+			return result;
+	}
+	return nullptr;
+}
+
+
 const std::set<std::shared_ptr<Node>> &Scene::Nodes()
 {
 	return _nodes;

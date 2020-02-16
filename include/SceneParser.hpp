@@ -9,23 +9,24 @@
 
 #include <map>
 #include <memory>
+#include <vector>
 #include <string>
 
 class Scene;
 
-typedef std::shared_ptr<Scene> (*MeshParsingFunction)(const std::string& name, const std::string& path);
+typedef std::vector<std::shared_ptr<Scene>> (*SceneParsingFunction)(const std::string& path);
 
 class SceneParser {
 public:
-    static SceneParser* Add(const std::string& format, MeshParsingFunction);
-    static std::shared_ptr<Scene> parse(const std::string& name, const std::string& path);
+    static SceneParser* Add(const std::string& format, SceneParsingFunction);
+    static std::vector<std::shared_ptr<Scene>> Parse(const std::string& path);
 
 private:
     SceneParser() = delete;
-    SceneParser(const std::string& format, MeshParsingFunction);
-    static MeshParsingFunction _get(const std::string& format);
+    SceneParser(const std::string& format, SceneParsingFunction);
+    static SceneParsingFunction _get(const std::string& format);
     static std::map<std::string, SceneParser*>& _getParsers();
     static std::map<std::string, SceneParser*>* _parsers;
     std::string _format;
-    MeshParsingFunction _parsingFunction;
+    SceneParsingFunction _parsingFunction;
 };

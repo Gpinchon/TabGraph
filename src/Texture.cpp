@@ -83,7 +83,6 @@ std::shared_ptr<Texture> Texture::GetByName(const std::string &name)
 
 void Texture::Add(std::shared_ptr<Texture> texture)
 {
-    Object::Add(texture);
     _textures.push_back(texture);
 }
 
