@@ -31,10 +31,10 @@ Terrain::Terrain(const std::string &name)
 
 #include <limits>
 
-std::shared_ptr<Terrain> Terrain::Create(const std::string &name,
-                                         glm::ivec2 resolution, glm::vec3 scale, std::shared_ptr<Texture> texture)
+std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 /*resolution*/, glm::vec3 /*scale*/, std::shared_ptr<Texture> /*texture*/)
 {
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
+    /*
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
     terrain->_terrainSize = scale;
@@ -149,6 +149,7 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string &name,
     mtl->roughness = 0.5;
     terrain->AddVgroup(vg);
     terrain->AddMaterial(mtl);
+    */
     return terrain;
 }
 

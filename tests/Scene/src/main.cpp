@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     SetupCallbacks();
 	Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
-	auto scene(SceneParser::Parse(Engine::ProgramPath() + std::string(argv[1])).at(0));
+	auto scene(SceneParser::Parse(Engine::ExecutionPath() + std::string(argv[1])).at(0));
     if (scene == nullptr) {
         return -42;
     }

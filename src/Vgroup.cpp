@@ -13,8 +13,12 @@
 #include "Shader.hpp" // for Shader
 #include "Texture.hpp" // for Texture
 #include "VertexArray.hpp" // for VertexArray
+#include "Buffer.hpp"
+#include "BufferView.hpp"
+#include "BufferAccessor.hpp"
 
-std::vector<std::shared_ptr<Vgroup>> Vgroup::_vgroups;
+
+//std::vector<std::shared_ptr<Vgroup>> Vgroup::_vgroups;
 
 Vgroup::Vgroup(const std::string &name)
     : Object(name)
@@ -25,35 +29,27 @@ Vgroup::Vgroup(const std::string &name)
 std::shared_ptr<Vgroup> Vgroup::Create(const std::string &name)
 {
     auto vg = std::shared_ptr<Vgroup>(new Vgroup(name));
-    _vgroups.push_back(vg);
     return (vg);
 }
 
-std::shared_ptr<Vgroup> Vgroup::Get(unsigned index)
-{
-    if (index >= _vgroups.size())
-        return (nullptr);
-    return (_vgroups.at(index));
-}
+#define BUFFER_OFFSET(i) (reinterpret_cast<const char*>(i))
 
-std::shared_ptr<Vgroup> Vgroup::GetByName(const std::string &name)
+static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int index)
 {
-    for (auto n : _vgroups)
-    {
-        if (name == n->Name())
-            return (n);
-    }
-    return (nullptr);
-}
-
-std::shared_ptr<Vgroup> Vgroup::GetById(int64_t id)
-{
-    for (auto n : _vgroups)
-    {
-        if (id == n->Id())
-            return (n);
-    }
-    return (nullptr);
+    if (accessor == nullptr)
+        return;
+    auto bufferView(accessor->GetBufferView());
+    auto buffer(bufferView->GetBuffer());
+    auto byteOffset(accessor->ByteOffset() + bufferView->ByteOffset());
+    glBindBuffer(bufferView->Target(), buffer->Glid());
+    glEnableVertexAttribArray(index);
+    glVertexAttribPointer(
+        index,
+        accessor->Count(),
+        accessor->ComponentType(),
+        accessor->Normalized(),
+        bufferView->ByteStride() / accessor->ComponentSize(),
+        BUFFER_OFFSET(byteOffset / accessor->ComponentSize()));
 }
 
 void Vgroup::Load()
@@ -62,12 +58,21 @@ void Vgroup::Load()
     {
         return;
     }
-    _vao = VertexArray::Create(v.size());
+    glGenVertexArrays(1, &_vaoGlid);
+    glCheckError();
+    glBindVertexArray(_vaoGlid);
+    BindAccessor(Accessor("POSITION"), 0);
+    BindAccessor(Accessor("NORMAL"), 1);
+    BindAccessor(Accessor("TEXCOORD_0"), 2);
+    glBindVertexArray(0);
+    //BindAccessor(Accessor("INDICES"), 3);
+
+    /*_vao = VertexArray::Create(v.size());
     auto vaoPtr = _vao.lock();
     vaoPtr->add_buffer(GL_FLOAT, 3, v);
     vaoPtr->add_buffer(GL_UNSIGNED_BYTE, 4, vn);
     vaoPtr->add_buffer(GL_FLOAT, 2, vt);
-    vaoPtr->add_indices(i);
+    vaoPtr->add_indices(i);*/
     _isLoaded = true;
 }
 
@@ -78,10 +83,17 @@ bool Vgroup::IsLoaded() const
 
 bool Vgroup::Draw()
 {
-    auto vaoPtr = _vao.lock();
+    /*auto vaoPtr = _vao.lock();
     if (nullptr == vaoPtr)
         return (false);
-    vaoPtr->draw();
+    vaoPtr->draw();*/
+    glBindVertexArray(_vaoGlid);
+    if (_indices != nullptr)
+        glDrawElements(Mode(), _indices->Count(), _indices->ComponentType(), nullptr);
+    else
+        glDrawArrays(Mode(), 0, Accessor("POSITION")->Count());
+    glBindVertexArray(0);
+
     return (true);
 }
 
@@ -93,6 +105,40 @@ void Vgroup::SetMaterialIndex(uint32_t index)
 {
     _materialIndex = index;
 }
+
+GLenum Vgroup::Mode() const
+{
+    return _drawingMode;
+}
+
+void Vgroup::SetMode(GLenum drawingMode)
+{
+    _drawingMode = drawingMode;
+}
+
+std::shared_ptr<BufferAccessor> Vgroup::Accessor(const std::string &key) const
+{
+    auto accessor(_accessors.find(key));
+    if (accessor != _accessors.end())
+        return _accessors.find(key)->second;
+    return nullptr;
+}
+
+void Vgroup::SetAccessor(const std::string &key, std::shared_ptr<BufferAccessor>accessor)
+{
+    _accessors[key] = accessor;
+}
+
+std::shared_ptr<BufferAccessor> Vgroup::Indices() const
+{
+    return _indices;
+}
+
+void Vgroup::SetIndices(std::shared_ptr<BufferAccessor> indices)
+{
+    _indices = indices;
+}
+
 
 /*void Vgroup::center(glm::vec3 &center)
 {

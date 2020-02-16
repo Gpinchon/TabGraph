@@ -113,10 +113,10 @@ std::shared_ptr<Mesh> CubeMesh::Create(const std::string &name, glm::vec3 size)
     {
         v *= size;
     }
-    vg->v = thisCubeVertices;
+    /*vg->v = thisCubeVertices;
     vg->vn = cubeNormals;
     vg->vt = cubeTexCoords;
-    vg->i = cubeIndices;
+    vg->i = cubeIndices;*/
     m->AddVgroup(vg);
     m->AddMaterial(Material::Create(m->Name() + "_material"));
     return (m);

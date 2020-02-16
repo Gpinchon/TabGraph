@@ -35,7 +35,7 @@
 //Add this parser to MeshParser !
 auto __objParser = MeshParser::Add("obj", OBJ::parse);
 
-static void push_values(t_obj_parser *p, glm::vec3 *v, glm::vec3 *vn, glm::vec2 *vt)
+static void push_values(t_obj_parser *p, glm::vec3 *v, glm::vec3 *vn, glm::vec2 */*vt*/)
 {
     unsigned i;
     CVEC4 ub{0, 0, 0, 0};
@@ -50,13 +50,13 @@ static void push_values(t_obj_parser *p, glm::vec3 *v, glm::vec3 *vn, glm::vec2 
         p->vg->boundingElement->max.y = std::max(v[i].y, p->vg->boundingElement->max.y);
         p->vg->boundingElement->max.z = std::max(v[i].z, p->vg->boundingElement->max.z);
         p->vg->boundingElement->center = (p->vg->boundingElement->min + p->vg->boundingElement->max) * 0.5f;
-        p->vg->v.push_back(v[i]);
-        p->vg->vt.push_back(vt[i]);
+        //p->vg->v.push_back(v[i]);
+        //p->vg->vt.push_back(vt[i]);
         ub.x = (vn[i].x + 1) * 0.5 * 255;
         ub.y = (vn[i].y + 1) * 0.5 * 255;
         ub.z = (vn[i].z + 1) * 0.5 * 255;
         ub.w = 255;
-        p->vg->vn.push_back(ub);
+        //p->vg->vn.push_back(ub);
         i++;
     }
 }
@@ -194,6 +194,7 @@ void parse_v(t_obj_parser *p, std::vector<std::string> &split, glm::vec2 *in_vt)
     push_values(p, v, vn, vt);
 }
 
+/*
 static void vt_min_max(std::shared_ptr<Vgroup> vg)
 {
     vg->uvmin = glm::vec2(100000, 100000);
@@ -228,9 +229,11 @@ static void vt_min_max(std::shared_ptr<Vgroup> vg)
         vg->uvmax.y = 1;
     }
 }
+*/
 
-void parse_vg(t_obj_parser *p, const std::string &name)
+void parse_vg(t_obj_parser */*p*/, const std::string &/*name*/)
 {
+    /*
     if (!p->vg->v.empty())
     {
         static int childNbr = 0;
@@ -248,6 +251,7 @@ void parse_vg(t_obj_parser *p, const std::string &name)
         }
         //p->vg->set_material(Material::GetByName("default"));
     }
+    */
 }
 
 void correct_vt(glm::vec2 *vt)
@@ -416,12 +420,14 @@ static void parse_line(t_obj_parser *p, const char *line)
     }
     else if (split[0] == "usemtl")
     {
+        /*
         if (!p->vg->v.empty())
             parse_vg(p);
         auto mtl(Material::GetByName(split[1]));
         p->parent->AddMaterial(mtl);
         auto mtlIndex(p->parent->GetMaterialIndex(mtl));
         p->vg->SetMaterialIndex(mtlIndex);
+        */
     }
     else if (split[0] == "mtllib")
     {
@@ -458,6 +464,7 @@ static void start_obj_parsing(t_obj_parser *p, const std::string &name, const st
         l++;
     }
     fclose(p->fd);
+    /*
     if (!p->vg->v.empty() != 0u)
     {
         parse_vg(p);
@@ -466,6 +473,7 @@ static void start_obj_parsing(t_obj_parser *p, const std::string &name, const st
     {
         throw std::runtime_error(std::string("Invalid OBJ"));
     }
+    */
 }
 
 std::shared_ptr<Mesh> OBJ::parse(const std::string &name, const std::string &path)

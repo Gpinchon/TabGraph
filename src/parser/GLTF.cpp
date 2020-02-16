@@ -1,5 +1,8 @@
 #include "parser/GLTF.hpp"
 #include "parser/InternalTools.hpp"
+#include "Buffer.hpp"
+#include "BufferView.hpp"
+#include "BufferAccessor.hpp"
 #include "Debug.hpp"
 #include "Material.hpp"
 #include "Camera.hpp"
@@ -69,6 +72,92 @@ auto ParseMaterials(const rapidjson::Document &document)
 	return materialVector;
 }
 
+auto ParseBuffers(const std::string &path, const rapidjson::Document &document)
+{
+	debugLog("Start parsing buffers");
+	std::vector<std::shared_ptr<Buffer>> bufferVector;
+	try {
+		auto bufferIndex(0);
+		for (const auto &bufferValue : document["buffers"].GetArray()) {
+			auto buffer(Buffer::Create(bufferValue["byteLength"].GetFloat()));
+			buffer->SetName("Buffer " + std::to_string(bufferIndex));
+			try {
+				auto bufferPath(std::filesystem::path(bufferValue["uri"].GetString()));
+				if (!bufferPath.is_absolute())
+					bufferPath = std::filesystem::path(path).parent_path()/bufferPath;
+				buffer->SetUri(bufferPath.string());
+			}
+			catch(std::exception &) {debugLog(buffer->Name() + " has no Uri")}
+			try {buffer->SetName(bufferValue["name"].GetString());}
+			catch(std::exception &) {debugLog(buffer->Name() + " has no name")}
+			bufferVector.push_back(buffer);
+			bufferIndex++;
+		}
+	}
+	catch(std::exception &) {debugLog("No buffers found")}
+	debugLog("Done parsing buffers");
+	return bufferVector;
+}
+
+auto ParseBufferViews(const std::string &path, const rapidjson::Document &document)
+{
+	debugLog("Start parsing bufferViews");
+	auto buffers(ParseBuffers(path, document));
+	std::vector<std::shared_ptr<BufferView>> bufferViewVector;
+	try {
+		auto bufferViewIndex(0);
+		for (const auto &bufferViewValue : document["bufferViews"].GetArray()) {
+			auto bufferView(BufferView::Create(
+				bufferViewValue["byteLength"].GetFloat(),
+				buffers.at(bufferViewValue["buffer"].GetInt())));
+			bufferView->SetName("BufferView " + std::to_string(bufferViewIndex));
+			try {bufferView->SetByteOffset(bufferViewValue["byteOffset"].GetInt());}
+			catch(std::exception &) {debugLog(bufferView->Name() + " has no byteOffset")}
+			try {bufferView->SetByteStride(bufferViewValue["byteStride"].GetInt());}
+			catch(std::exception &) {debugLog(bufferView->Name() + " has no byteStride")}
+			try {bufferView->SetTarget(bufferViewValue["target"].GetInt());}
+			catch(std::exception &) {debugLog(bufferView->Name() + " has no target")}
+			try {bufferView->SetName(bufferViewValue["name"].GetString());}
+			catch(std::exception &) {debugLog(bufferView->Name() + " has no name")}
+			bufferViewVector.push_back(bufferView);
+			bufferViewIndex++;
+		}
+	}
+	catch(std::exception &) {debugLog("No bufferViews found")}
+	debugLog("Done parsing bufferViews");
+	return bufferViewVector;
+}
+
+auto ParseBufferAccessors(const std::string &path, const rapidjson::Document &document)
+{
+	debugLog("Start parsing bufferAccessors");
+	auto bufferViews(ParseBufferViews(path, document));
+	std::vector<std::shared_ptr<BufferAccessor>> bufferAccessorVector;
+	try {
+		auto bufferAccessorIndex(0);
+		for (const auto &bufferAccessorValue : document["accessors"].GetArray()) {
+			auto bufferAccessor(BufferAccessor::Create(
+				bufferAccessorValue["componentType"].GetInt(),
+				bufferAccessorValue["count"].GetInt(),
+				bufferAccessorValue["type"].GetString()));
+			bufferAccessor->SetName("BufferAccessor " + std::to_string(bufferAccessorIndex));
+			try {bufferAccessor->SetBufferView(bufferViews.at(bufferAccessorValue["bufferView"].GetInt()));}
+			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no bufferView")}
+			try {bufferAccessor->SetNormalized(bufferAccessorValue["normalized"].GetBool());}
+			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no normalized")}
+			try {bufferAccessor->SetCount(bufferAccessorValue["count"].GetInt());}
+			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no count")}
+			try {bufferAccessor->SetName(bufferAccessorValue["name"].GetString());}
+			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no name")}
+			bufferAccessorVector.push_back(bufferAccessor);
+			bufferAccessorIndex++;
+		}
+	}
+	catch(std::exception &) {debugLog("No bufferAccessors found")}
+	debugLog("Done parsing bufferAccessors");
+	return bufferAccessorVector;
+}
+
 auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 {
 	debugLog("Start parsing meshes");
@@ -78,9 +167,8 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 		debugLog("No meshes found");
 		return meshVector;
 	}
+	const auto accessors(ParseBufferAccessors(path, document));
 	const auto materials(ParseMaterials(document));
-	const auto &bufferViews(document["bufferViews"].GetArray());
-	const auto &buffers(document["buffers"].GetArray());
 	int meshIndex = 0;
 	for (const auto &mesh : meshesItr->value.GetArray()) {
 		debugLog("Found new mesh");
@@ -91,82 +179,15 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 			auto vgroup(Vgroup::Create());
 			if (auto material = primitive.FindMember("material"); material != primitive.MemberEnd())
 			{
-				//std::cout << materials.at(material->value.GetInt())->albedo.r << std::endl;
-				//std::cout << materials.at(material->value.GetInt())->albedo.g << std::endl;
-				//std::cout << materials.at(material->value.GetInt())->albedo.b << std::endl;
 				currentMesh->AddMaterial(*std::find(materials.begin(), materials.end(), materials.at(material->value.GetInt())));
 				vgroup->SetMaterialIndex(currentMesh->GetMaterialIndex(materials.at(material->value.GetInt())));
 			}
-			for (const auto &attribute : primitive["attributes"].GetObject()) {
-				debugLog(attribute.name.GetString());
-				/** Get the accessor */
-				const auto &accessor(document["accessors"].GetArray()[attribute.value.GetInt()]);
-				/** Get the bufferView from "bufferView" key in accessor */
-				const auto &bufferView(bufferViews[accessor["bufferView"].GetInt()]);
-				/** Get the buffer from "buffer" key in accessor */
-				const auto &buffer(buffers[bufferView["buffer"].GetInt()]);
-				auto bufferPath(std::filesystem::path(buffer["uri"].GetString()));
-				if (!bufferPath.is_absolute())
-					bufferPath = std::filesystem::path(path).parent_path()/bufferPath;
-				debugLog(bufferPath);
-				auto file(_wfopen(bufferPath.c_str(), L"rb"));
-				auto accessorByteOffset(0);
-				auto bufferViewByteOffset(0);
-				try {
-					accessorByteOffset = accessor["byteOffset"].GetInt();
-				}
-				catch (std::runtime_error &) { debugLog("No accessor byteOffset"); }
-				try {
-					bufferViewByteOffset = bufferView["byteOffset"].GetInt();
-				}
-				catch (std::runtime_error &) { debugLog("No bufferView byteOffset"); }
-				switch(accessor["componentType"].GetInt()) {
-					case GL_FLOAT :
-					{
-						if (std::string(accessor["type"].GetString()) == "VEC3") {
-							std::vector<glm::vec3> vec3Vector(accessor["count"].GetInt());
-							fseek(file, accessorByteOffset + bufferViewByteOffset, 0);
-							fread(&vec3Vector.at(0), sizeof(vec3Vector.at(0)), vec3Vector.size(), file);
-							if (std::string(attribute.name.GetString()) == "POSITION")
-								vgroup->v = vec3Vector;
-							else if (std::string(attribute.name.GetString()) == "NORMAL") {
-								for (const auto &vn : vec3Vector) {
-									vgroup->vn.push_back(VecToCVec4(vn));
-								}
-							}
-						}
-					}
-					debugLog("Close file");
-					fclose(file);
-				}
-				std::cout << attribute.name.GetString() << std::endl;
-			}
-			auto indices(primitive.FindMember("indices"));
-			if (indices != primitive.MemberEnd()) /** Vgroup has indices*/
-			{ 
-				/** Get the accessor */
-				const auto &accessor(document["accessors"].GetArray()[indices->value.GetInt()]);
-				/** Get the bufferView from "bufferView" key in accessor */
-				const auto &bufferView(bufferViews[accessor["bufferView"].GetInt()]);
-				/** Get the buffer from "buffer" key in accessor */
-				const auto &buffer(buffers[bufferView["buffer"].GetInt()]);
-				auto bufferPath(std::filesystem::path(buffer["uri"].GetString()));
-				if (!bufferPath.is_absolute())
-					bufferPath = std::filesystem::path(path).parent_path()/bufferPath;
-				auto file(_wfopen(bufferPath.c_str(), L"rb"));
-				switch(accessor["componentType"].GetInt()) {
-					case GL_UNSIGNED_SHORT:
-					{
-						std::vector<unsigned short> ushortVector(accessor["count"].GetInt());
-						fseek(file, accessor["byteOffset"].GetInt() + bufferView["byteOffset"].GetInt(), 0);
-						fread(&ushortVector.at(0), sizeof(ushortVector.at(0)), ushortVector.size(), file);
-						for (const auto &i : ushortVector)
-							vgroup->i.push_back(i);
-						std::cout << "GL_UNSIGNED_SHORT" << std::endl;
-					}
-				}
-				fclose(file);
-			}
+			for (const auto &attribute : primitive["attributes"].GetObject())
+				vgroup->SetAccessor(attribute.name.GetString(), accessors.at(attribute.value.GetInt()));
+			try { vgroup->SetIndices(accessors.at(primitive["indices"].GetInt())); }
+			catch(std::exception &) {debugLog("Vgroup " + vgroup->Name() + " has no indices")}
+			try { vgroup->SetMode(primitive["mode"].GetInt()); }
+			catch(std::exception &) {debugLog("Vgroup " + vgroup->Name() + " has no mode")}
 			currentMesh->AddVgroup(vgroup);
 		}
 		meshVector.push_back(currentMesh);

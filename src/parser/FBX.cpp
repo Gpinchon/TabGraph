@@ -257,20 +257,20 @@ auto getVgroups(std::shared_ptr<FBX::Node> objects)
                     vgroup->SetId(geometryId);
                     groupMap[geometryId].push_back(vgroup);
                 }
-                vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
-                vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
-                vgroup->v.push_back(vertices.at(polygonIndex.at(1)));
-                vgroup->vn.push_back(normals.at(polygonIndexNormal.at(1)));
-                vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
-                vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
+                //vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
+                //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
+                //vgroup->v.push_back(vertices.at(polygonIndex.at(1)));
+                //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(1)));
+                //vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
+                //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
                 if (polygonIndex.size() == 4)
                 {
-                    vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
-                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
-                    vgroup->v.push_back(vertices.at(polygonIndex.at(3)));
-                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(3)));
-                    vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
-                    vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
+                    //vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
+                    //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
+                    //vgroup->v.push_back(vertices.at(polygonIndex.at(3)));
+                    //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(3)));
+                    //vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
+                    //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
                 }
                 polygonIndex.clear();
                 polygonIndexNormal.clear();

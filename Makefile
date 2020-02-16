@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2019/12/08 14:12:12 by gpinchon         ###   ########.fr        #
+#    Updated: 2020/02/16 23:15:04 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,6 +53,9 @@ SHADERS_FILES	=	\
 					SSRBlur.frag
 HEADERS_FILES	=	\
 					AABB.hpp					\
+					Buffer.hpp					\
+					BufferAccessor.hpp			\
+					BufferView.hpp				\
 					BoundingElement.hpp			\
 					Camera.hpp					\
 					Common.hpp					\
@@ -108,6 +111,9 @@ HEADERS_FILES	=	\
 					Window.hpp
 SRC_FILES		=	\
 					AABB.cpp					\
+					Buffer.cpp					\
+					BufferAccessor.cpp			\
+					BufferView.cpp				\
 					Camera.cpp					\
 					ComputeObject.cpp			\
 					Common.cpp					\

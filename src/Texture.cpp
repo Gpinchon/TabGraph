@@ -54,6 +54,11 @@ Texture::Texture(const std::string &iname, glm::vec2 s, GLenum target, GLenum f,
     }
 }
 
+std::shared_ptr<Texture> Texture::shared_from_this()
+{
+    return (std::static_pointer_cast<Texture>(Object::shared_from_this()));
+}
+
 std::shared_ptr<Texture> Texture::Create(const std::string &name, glm::ivec2 s,
                                          GLenum target, GLenum f, GLenum fi,
                                          GLenum data_format, void *data)
@@ -84,11 +89,6 @@ std::shared_ptr<Texture> Texture::GetByName(const std::string &name)
 void Texture::Add(std::shared_ptr<Texture> texture)
 {
     _textures.push_back(texture);
-}
-
-std::shared_ptr<Texture> Texture::shared_from_this()
-{
-    return (std::static_pointer_cast<Texture>(Object::shared_from_this()));
 }
 
 size_t Texture::get_bpp(GLenum texture_format, GLenum data_format)
