@@ -8,6 +8,7 @@
 #include "Camera.hpp"
 #include "Mesh.hpp"
 #include "SceneParser.hpp"
+#include "TextureParser.hpp"
 #include "Vgroup.hpp"
 #include <iostream>
 #include <filesystem>
@@ -41,14 +42,43 @@ auto ParseCameras(const rapidjson::Document &document)
 	return cameraVector;
 }
 
-auto ParseMaterials(const rapidjson::Document &document)
+auto ParseTextures(const std::string &path, const rapidjson::Document &document)
+{
+	debugLog("Start parsing textures");
+	std::vector<std::shared_ptr<Texture>> textureVector;
+	try {
+		auto textureIndex(0);
+		for (const auto &textureValue : document["images"].GetArray()) {
+			std::string uri;
+			try {
+				auto texturePath(std::filesystem::path(textureValue["uri"].GetString()));
+				if (!texturePath.is_absolute())
+					texturePath = std::filesystem::path(path).parent_path()/texturePath;
+				uri = texturePath.string();
+			}
+			catch(std::exception &) {debugLog(buffer->Name() + " has no Uri")}
+			textureVector.push_back(TextureParser::parse("Texture " + std::to_string(textureIndex), uri));
+		}
+	}
+	catch(std::exception &) {debugLog("No textures found")}
+	debugLog("Done parsing textures");
+	return textureVector;
+}
+
+auto ParseMaterials(const std::string &path, const rapidjson::Document &document)
 {
 	debugLog("Start parsing materials");
+	auto textureVector(ParseTextures(path, document));
 	std::vector<std::shared_ptr<Material>> materialVector;
 	try {
 		auto materialIndex(0);
 		for (const auto &materialValue : document["materials"].GetArray()) {
 			auto material(Material::Create("Material " + std::to_string(materialIndex)));
+			try {
+				auto textureObject(materialValue["normalTexture"].GetObject());
+				material->set_texture_normal(textureVector.at(textureObject["index"].GetInt()));
+			}
+			catch (std::exception &) {debugLog("No roughnessFactor normalTexture")}
 			try {
 				auto pbrMetallicRoughness(materialValue["pbrMetallicRoughness"].GetObject());
 				try {
@@ -62,6 +92,11 @@ auto ParseMaterials(const rapidjson::Document &document)
 				catch (std::exception &) {debugLog("No metallicFactor property")}
 				try {material->roughness = pbrMetallicRoughness["roughnessFactor"].GetFloat();}
 				catch (std::exception &) {debugLog("No roughnessFactor property")}
+				try {
+					auto textureObject(pbrMetallicRoughness["baseColorTexture"].GetObject());
+					material->set_texture_albedo(textureVector.at(textureObject["index"].GetInt()));
+				}
+				catch (std::exception &) {debugLog("No roughnessFactor baseColorTexture")}
 			}
 			catch(std::exception &) {debugLog("Not a pbrMetallicRoughness material")}
 			materialVector.push_back(material);
@@ -171,12 +206,11 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 	}
 	auto defaultMaterial(Material::Create("defaultMaterial"));
 	const auto accessors(ParseBufferAccessors(path, document));
-	const auto materials(ParseMaterials(document));
+	const auto materials(ParseMaterials(path, document));
 	int meshIndex = 0;
 	for (const auto &mesh : meshesItr->value.GetArray()) {
 		debugLog("Found new mesh");
 		auto currentMesh(Mesh::Create("Mesh " + std::to_string(meshIndex)));
-		//currentMesh->AddMaterial(Material::Create(""));
 		meshIndex++;
 		for (const auto &primitive : mesh["primitives"].GetArray()) {
 			auto vgroup(Vgroup::Create());
