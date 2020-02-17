@@ -167,6 +167,7 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 		debugLog("No meshes found");
 		return meshVector;
 	}
+	auto defaultMaterial(Material::Create("defaultMaterial"));
 	const auto accessors(ParseBufferAccessors(path, document));
 	const auto materials(ParseMaterials(document));
 	int meshIndex = 0;
@@ -190,6 +191,8 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 			catch(std::exception &) {debugLog("Vgroup " + vgroup->Name() + " has no mode")}
 			currentMesh->AddVgroup(vgroup);
 		}
+		if (currentMesh->GetMaterial(0) == nullptr)
+			currentMesh->AddMaterial(defaultMaterial);
 		meshVector.push_back(currentMesh);
 	}
 	debugLog("Done parsing meshes");
