@@ -56,7 +56,7 @@ auto ParseTextures(const std::string &path, const rapidjson::Document &document)
 					texturePath = std::filesystem::path(path).parent_path()/texturePath;
 				uri = texturePath.string();
 			}
-			catch(std::exception &) {debugLog(buffer->Name() + " has no Uri")}
+			catch(std::exception &) {debugLog("Texture " + std::to_string(textureIndex) + " has no Uri")}
 			textureVector.push_back(TextureParser::parse("Texture " + std::to_string(textureIndex), uri));
 		}
 	}
@@ -74,6 +74,7 @@ auto ParseMaterials(const std::string &path, const rapidjson::Document &document
 		auto materialIndex(0);
 		for (const auto &materialValue : document["materials"].GetArray()) {
 			auto material(Material::Create("Material " + std::to_string(materialIndex)));
+			material->albedo = glm::vec3(1, 1, 1);
 			try {
 				auto textureObject(materialValue["normalTexture"].GetObject());
 				material->set_texture_normal(textureVector.at(textureObject["index"].GetInt()));
