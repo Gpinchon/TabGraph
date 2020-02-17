@@ -33,7 +33,6 @@ protected:
 	Buffer() = delete;
 	
 private:
-	size_t _byteLength {0};
 	std::filesystem::path _uri {""};
 	std::vector<std::byte> _rawData {};
 	bool _loaded {false};

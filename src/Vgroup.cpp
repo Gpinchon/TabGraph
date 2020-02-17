@@ -41,18 +41,20 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
     auto bufferView(accessor->GetBufferView());
     auto buffer(bufferView->GetBuffer());
     auto byteOffset(accessor->ByteOffset() + bufferView->ByteOffset());
+    debugLog(byteOffset);
     glBindBuffer(bufferView->Target(), buffer->Glid());
     glCheckError();
     glEnableVertexAttribArray(index);
     glCheckError();
+    debugLog(accessor->Type());
     glVertexAttribPointer(
         index,
         accessor->ComponentSize(),
         accessor->ComponentType(),
         accessor->Normalized(),
         bufferView->ByteStride(),
-        BUFFER_OFFSET(byteOffset * accessor->ComponentByteSize())
-        );
+        BUFFER_OFFSET(byteOffset)
+    );
     glCheckError();
 }
 
@@ -64,8 +66,9 @@ void Vgroup::Load()
     }
     for (auto accessor : _accessors)
         accessor.second->Load();
-    Indices()->Load();
-    glGenVertexArrays(1, &_vaoGlid);
+    if (Indices() != nullptr)
+        Indices()->Load();
+    glCreateVertexArrays(1, &_vaoGlid);
     glCheckError();
     glBindVertexArray(_vaoGlid);
     glCheckError();
@@ -97,15 +100,26 @@ bool Vgroup::Draw()
     vaoPtr->draw();*/
     Load();
     glBindVertexArray(_vaoGlid);
-    std::cout << _indices->Count() << std::endl;
-    if (_indices != nullptr) {
-        /*for (auto data : _indices->GetBufferView()->GetBuffer()->RawData())
-            std::cout << std::to_integer<int>(data) << " ";
-        std::cout << std::endl;*/
-        glDrawElements(Mode(), _indices->Count(), _indices->ComponentType(), &_indices->GetBufferView()->GetBuffer()->RawData().at(0));
+    if (Indices() != nullptr) {
+        /*if (Indices()->ComponentByteSize() == 2)
+        {
+            auto rawData(Indices()->GetBufferView()->GetBuffer()->RawData());
+            for (auto index(0u); index < rawData.size(); index += Indices()->ComponentByteSize()) {
+                short data(*reinterpret_cast<short*>(&rawData.at(index)));
+                debugLog(data);
+            }
+        }*/
+        auto bufferView(Indices()->GetBufferView());
+        auto byteOffset(Indices()->ByteOffset() + bufferView->ByteOffset());
+        glBindBuffer(bufferView->Target(), bufferView->GetBuffer()->Glid());
+        glDrawElements(Mode(), Indices()->Count(), Indices()->ComponentType(), BUFFER_OFFSET(byteOffset));
+        glBindBuffer(bufferView->Target(), 0);
     }
-    else
-        glDrawArrays(Mode(), 0, Accessor("POSITION")->Count());
+    else {
+        auto accessor(Accessor("POSITION"));
+        auto byteOffset(accessor->ByteOffset() + accessor->GetBufferView()->ByteOffset());
+        glDrawArrays(Mode(), byteOffset / accessor->TotalComponentByteSize(), accessor->Count());
+    }
     glBindVertexArray(0);
 
     return (true);

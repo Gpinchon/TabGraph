@@ -44,6 +44,11 @@ void BufferAccessor::SetByteOffset(size_t byteOffset)
 	_byteOffset = byteOffset;
 }
 
+size_t BufferAccessor::TotalComponentByteSize()
+{
+	return ComponentSize() * ComponentByteSize();
+}
+
 size_t BufferAccessor::ComponentByteSize()
 {
 	switch (ComponentType())

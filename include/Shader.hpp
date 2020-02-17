@@ -51,6 +51,7 @@ public:
     void set_uniform(const std::string& uname, const glm::mat4&, unsigned nbr = 1);
     void use(const bool& use_program = true);
     ShaderVariable* get_uniform(const std::string& name);
+    ShaderVariable* get_attribute(const std::string& name);
     bool in_use();
 
 protected:

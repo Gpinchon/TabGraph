@@ -108,7 +108,7 @@ auto ParseBufferViews(const std::string &path, const rapidjson::Document &docume
 		auto bufferViewIndex(0);
 		for (const auto &bufferViewValue : document["bufferViews"].GetArray()) {
 			auto bufferView(BufferView::Create(
-				bufferViewValue["byteLength"].GetFloat(),
+				bufferViewValue["byteLength"].GetInt(),
 				buffers.at(bufferViewValue["buffer"].GetInt())));
 			bufferView->SetName("BufferView " + std::to_string(bufferViewIndex));
 			try {bufferView->SetByteOffset(bufferViewValue["byteOffset"].GetInt());}
@@ -143,6 +143,8 @@ auto ParseBufferAccessors(const std::string &path, const rapidjson::Document &do
 			bufferAccessor->SetName("BufferAccessor " + std::to_string(bufferAccessorIndex));
 			try {bufferAccessor->SetBufferView(bufferViews.at(bufferAccessorValue["bufferView"].GetInt()));}
 			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no bufferView")}
+			try {bufferAccessor->SetByteOffset(bufferAccessorValue["byteOffset"].GetInt());}
+			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no byteOffset")}
 			try {bufferAccessor->SetNormalized(bufferAccessorValue["normalized"].GetBool());}
 			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no normalized")}
 			try {bufferAccessor->SetCount(bufferAccessorValue["count"].GetInt());}

@@ -43,6 +43,15 @@ std::shared_ptr<Shader> Shader::GetByName(const std::string& name)
     return (nullptr);
 }
 
+ShaderVariable* Shader::get_attribute(const std::string& name)
+{
+    auto it = _attributes.find(name);
+    if (it != _attributes.end()) {
+        return (&it->second);
+    }
+    return (nullptr);
+}
+
 ShaderVariable* Shader::get_uniform(const std::string& name)
 {
     auto it = _uniforms.find(name);

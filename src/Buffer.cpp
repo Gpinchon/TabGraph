@@ -24,6 +24,9 @@ void Buffer::Load()
 		auto file(_wfopen(Uri().c_str(), L"rb"));
 		debugLog(file);
 		fread(&RawData().at(0), sizeof(std::byte), ByteLength(), file);
+		if (ferror(file)) {
+			perror ("The following error occurred");
+		}
 		fclose(file);
 	}
 	glCreateBuffers(1, &_glid);
@@ -65,12 +68,11 @@ void Buffer::SetUri(std::string uri)
 
 size_t Buffer::ByteLength() const
 {
-	return _byteLength;
+	return _rawData.size();
 }
 
 void Buffer::SetByteLength(size_t byteLength)
 {
-	_byteLength = byteLength;
 	_rawData.resize(byteLength);
 }
 
