@@ -96,7 +96,6 @@ HEADERS_FILES	=	\
 					parser/TABSCENE.hpp			\
 					Quadtree.hpp				\
 					Render.hpp					\
-					Renderable.hpp				\
 					Scene.hpp					\
 					SceneParser.hpp				\
 					Shader.hpp					\
@@ -150,7 +149,6 @@ SRC_FILES		=	\
 					parser/tools.cpp			\
 					Quadtree.cpp				\
 					Render.cpp					\
-					Renderable.cpp				\
 					Scene.cpp					\
 					SceneParser.cpp				\
 					Shader.cpp					\

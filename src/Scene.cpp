@@ -1,5 +1,4 @@
 #include "Scene.hpp"
-#include "Renderable.hpp"
 #include "Camera.hpp"
 #include "Light.hpp"
 #include "Node.hpp"
@@ -28,9 +27,7 @@ void Scene::Add(std::shared_ptr<Node> node)
 	if (node == nullptr)
 		return;
 	_nodes.insert(node);
-	if (auto renderable = std::dynamic_pointer_cast<Renderable>(node); renderable != nullptr)
-		_renderables.insert(renderable);
-	else if (auto camera = std::dynamic_pointer_cast<Camera>(node); camera != nullptr)
+	if (auto camera = std::dynamic_pointer_cast<Camera>(node); camera != nullptr)
 		_cameras.insert(camera);
 	else if (auto light = std::dynamic_pointer_cast<Light>(node); light != nullptr)
 		_lights.insert(light);
@@ -146,17 +143,6 @@ std::shared_ptr<Camera> Scene::GetCameraByName(const std::string &name)
 	return nullptr;
 }
 
-std::shared_ptr<Renderable> Scene::GetRenderableByName(const std::string &name)
-{
-	for (const auto object : _renderables) {
-		auto result(GetByName(name, object));
-		if (result != nullptr)
-			return result;
-	}
-	return nullptr;
-}
-
-
 const std::set<std::shared_ptr<Node>> &Scene::Nodes()
 {
 	return _nodes;
@@ -175,8 +161,7 @@ const std::set<std::shared_ptr<Camera>> &Scene::Cameras()
 void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode) {
     if (rootNode == nullptr)
         return;
-    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode); renderable != nullptr)
-        renderable->Draw(mode);
+    rootNode->Draw(mode);
     for (const auto &child : rootNode->Children())
         DrawNodes(child, mode);
 }
@@ -187,8 +172,7 @@ void Scene::Render(const RenderMod &mode) {
 }
 
 void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
-    if (auto renderable = std::dynamic_pointer_cast<Renderable>(rootNode); renderable != nullptr)
-        renderable->DrawDepth(mode);
+    rootNode->DrawDepth(mode);
     std::shared_ptr<Node> child;
     for (const auto &child : rootNode->Children())
         DrawNodesDepth(child, mode);

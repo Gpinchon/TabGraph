@@ -7,19 +7,18 @@
 
 #pragma once
 
-#include "Renderable.hpp" // for RenderAll, RenderMod, Renderable
 #include <GL/glew.h> // for GLenum, GL_BACK
 #include <memory> // for shared_ptr, weak_ptr
 #include <set>
 #include <string> // for string
 #include <vector> // for vector
-
 #include <iostream>
+#include "Node.hpp"
 
 class Vgroup;
 class Material;
 
-class Mesh : public Renderable
+class Mesh : public Node
 {
 public:
     static std::shared_ptr<Mesh> Create(std::shared_ptr<Mesh> otherMesh);
@@ -74,6 +73,5 @@ private:
     glm::vec3 _geometryPosition{0};
     glm::vec3 _geometryRotation{0};
     glm::vec3 _geometryScale{1};
+    bool _loaded {false};
 };
-
-bool alpha_compare(Renderable *m, Renderable *m1);

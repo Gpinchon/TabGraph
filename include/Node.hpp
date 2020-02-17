@@ -14,6 +14,13 @@
 #include <string> // for string
 #include <vector> // for vector
 
+enum class RenderMod
+{
+    RenderAll,
+    RenderOpaque,
+    RenderTransparent
+};
+
 class BoundingElement;
 
 class Node : public Object
@@ -21,6 +28,10 @@ class Node : public Object
 public:
     static std::shared_ptr<Node> Create(const std::string &name, glm::vec3 position = glm::vec3(), glm::vec3 rotation = glm::vec3(), glm::vec3 scale = glm::vec3(1));
     virtual std::shared_ptr<Node> shared_from_this();
+    virtual bool Draw(RenderMod = RenderMod::RenderAll) { return false; };
+    virtual bool DrawDepth(RenderMod = RenderMod::RenderAll) { return false; };
+    virtual bool Drawable() const { return false; };
+    virtual void Load() {};
     virtual void FixedUpdate();
     virtual void Update();
     /** Updates all matrix and sets the final transformation matrix */

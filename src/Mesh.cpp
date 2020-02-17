@@ -20,7 +20,7 @@
 
 
 Mesh::Mesh(const std::string &name)
-    : Renderable(name)
+    : Node(name)
 {
     bounding_element = new AABB;
 }
@@ -49,7 +49,7 @@ void Mesh::AddVgroup(std::shared_ptr<Vgroup> group)
 
 void Mesh::Load()
 {
-    if (_is_loaded)
+    if (_loaded)
         return;
     for (auto vg : _vgroups)
     {
@@ -172,11 +172,6 @@ void Mesh::set_cull_mod(GLenum mod)
 {
     _cull_mod = mod;
 }
-
-/*void	Mesh::sort(renderable_compare compare)
-{
-	std::sort(_vgroups.begin(), _vgroups.end(), compare);
-}*/
 
 void Mesh::center()
 {

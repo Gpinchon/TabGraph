@@ -13,7 +13,6 @@
 #include "Environment.hpp" // for Environment
 #include "Framebuffer.hpp" // for Framebuffer
 #include "Light.hpp" // for Light, Directionnal, Point
-#include "Renderable.hpp" // for Renderable, RenderMod::RenderOpaque, RenderMod::RenderTransparent
 #include "Scene.hpp"
 #include "Shader.hpp" // for Shader
 #include "Texture.hpp" // for Texture

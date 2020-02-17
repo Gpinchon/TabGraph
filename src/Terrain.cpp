@@ -9,7 +9,6 @@
 #include "Material.hpp" // for Material
 #include "Mesh.hpp" // for Mesh
 #include "Node.hpp" // for Node
-#include "Renderable.hpp" // for Renderable
 #include "Texture.hpp" // for Texture
 #include "TextureParser.hpp" // for TextureParser
 #include "Vgroup.hpp" // for CVEC4, Vgroup

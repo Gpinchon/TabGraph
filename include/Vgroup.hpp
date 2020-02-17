@@ -8,7 +8,7 @@
 #pragma once
 
 #include "Object.hpp"
-#include "Renderable.hpp" // for RenderAll, RenderMod, Renderable
+#include "Node.hpp" // for RenderAll, RenderMod, Renderable
 #include "glm/glm.hpp" // for glm::vec2, s_vec2, s_vec3, glm::vec3
 #include <GL/glew.h> // for GLubyte
 #include <memory> // for shared_ptr, weak_ptr
