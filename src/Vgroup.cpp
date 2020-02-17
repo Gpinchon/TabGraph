@@ -42,14 +42,18 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
     auto buffer(bufferView->GetBuffer());
     auto byteOffset(accessor->ByteOffset() + bufferView->ByteOffset());
     glBindBuffer(bufferView->Target(), buffer->Glid());
+    glCheckError();
     glEnableVertexAttribArray(index);
+    glCheckError();
     glVertexAttribPointer(
         index,
-        accessor->Count(),
+        accessor->ComponentSize(),
         accessor->ComponentType(),
         accessor->Normalized(),
-        bufferView->ByteStride() / accessor->ComponentSize(),
-        BUFFER_OFFSET(byteOffset / accessor->ComponentSize()));
+        bufferView->ByteStride(),
+        BUFFER_OFFSET(byteOffset * accessor->ComponentByteSize())
+        );
+    glCheckError();
 }
 
 void Vgroup::Load()
@@ -58,9 +62,13 @@ void Vgroup::Load()
     {
         return;
     }
+    for (auto accessor : _accessors)
+        accessor.second->Load();
+    Indices()->Load();
     glGenVertexArrays(1, &_vaoGlid);
     glCheckError();
     glBindVertexArray(_vaoGlid);
+    glCheckError();
     BindAccessor(Accessor("POSITION"), 0);
     BindAccessor(Accessor("NORMAL"), 1);
     BindAccessor(Accessor("TEXCOORD_0"), 2);
@@ -87,9 +95,15 @@ bool Vgroup::Draw()
     if (nullptr == vaoPtr)
         return (false);
     vaoPtr->draw();*/
+    Load();
     glBindVertexArray(_vaoGlid);
-    if (_indices != nullptr)
-        glDrawElements(Mode(), _indices->Count(), _indices->ComponentType(), nullptr);
+    std::cout << _indices->Count() << std::endl;
+    if (_indices != nullptr) {
+        /*for (auto data : _indices->GetBufferView()->GetBuffer()->RawData())
+            std::cout << std::to_integer<int>(data) << " ";
+        std::cout << std::endl;*/
+        glDrawElements(Mode(), _indices->Count(), _indices->ComponentType(), &_indices->GetBufferView()->GetBuffer()->RawData().at(0));
+    }
     else
         glDrawArrays(Mode(), 0, Accessor("POSITION")->Count());
     glBindVertexArray(0);
