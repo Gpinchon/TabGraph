@@ -306,6 +306,7 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 	for (const auto &scene : scenes) {
 		std::cout << "found scene" << std::endl;
 		auto newScene(Scene::Create(std::to_string(sceneIndex)));
+		newScene->SetUp(glm::vec3(0, 0, 1));
 		for (const auto &node : scene["nodes"].GetArray()) {
 			newScene->Add(nodes.at(node.GetInt()));
 			std::cout << nodes.at(node.GetInt())->Name() << std::endl;

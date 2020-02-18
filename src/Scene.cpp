@@ -2,6 +2,7 @@
 #include "Camera.hpp"
 #include "Light.hpp"
 #include "Node.hpp"
+#include "Common.hpp"
 
 std::shared_ptr<Scene> Scene::Create(const std::string &name)
 {
@@ -53,6 +54,7 @@ void NodesFixedUpdate(std::shared_ptr<Node> rootNode)
 
 void Scene::FixedUpdate()
 {
+	Common::SetUp(Up());
 	for (auto &node : Nodes())
 		UpdateTransformMatrix(node);
     for (auto &node : Nodes())
@@ -156,6 +158,16 @@ const std::set<std::shared_ptr<Light>> &Scene::Lights()
 const std::set<std::shared_ptr<Camera>> &Scene::Cameras()
 {
 	return _cameras;
+}
+
+glm::vec3 Scene::Up() const
+{
+	return _up;
+}
+
+void Scene::SetUp(glm::vec3 up)
+{
+	_up = up;
 }
 
 void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode) {

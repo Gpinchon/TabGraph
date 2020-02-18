@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glm/vec3.hpp>
 #include <set>
 #include <string>
 #include <memory>
@@ -33,8 +34,12 @@ struct Scene
 	const std::set<std::shared_ptr<Node>> &Nodes();
 	const std::set<std::shared_ptr<Light>> &Lights();
 	const std::set<std::shared_ptr<Camera>> &Cameras();
+	glm::vec3 Up() const;
+	void SetUp(glm::vec3);
+
 private:
 	Scene(const std::string &name);
+	glm::vec3 _up {0, 1, 0};
 	std::string _name;
 	std::set<std::shared_ptr<Node>> _nodes;
 	std::set<std::shared_ptr<Light>> _lights;
