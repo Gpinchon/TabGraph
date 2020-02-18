@@ -17,7 +17,7 @@
 #endif // M_PI
 
 #ifndef UP
-#define UP glm::vec3(0, 1, 0);
+//#define UP glm::vec3(0, 1, 0);
 #endif
 
 /** @brief This class orchestrates the rendering loop and logics around it

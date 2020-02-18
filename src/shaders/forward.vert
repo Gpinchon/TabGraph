@@ -74,7 +74,7 @@ t_Vert	Vert;
 void	FillIn()
 {
 	Vert.Position = vec3(Matrix.Model * vec4(in_Position, 1));
-	Vert.Normal = mat3(Matrix.Normal) * in_Normal;//((in_Normal / 255.f) * 2 - 1);
+	Vert.Normal = mat3(Matrix.Normal) * in_Normal;
 	Vert.UV = in_Texcoord * Texture.Scale;
 }
 

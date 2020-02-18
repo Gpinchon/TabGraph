@@ -8,7 +8,6 @@
 #include "Light.hpp"
 #include "Common.hpp"
 #include "Config.hpp" // for Config
-#include "Engine.hpp" // for up()
 #include "Framebuffer.hpp" // for Framebuffer
 #include "Texture.hpp" // for Texture
 #include <GL/glew.h> // for GL_COMPARE_REF_TO_TEXTURE, GL_DEPTH_COMPO...
