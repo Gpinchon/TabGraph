@@ -141,7 +141,7 @@ void	ApplyTechnique()
 		float	NdH = max(0, dot(N, H));
 		float	LdH = max(0, dot(L, H));
 		vec3	lightColor = Light[i].Color * Attenuation;
-		diffuse += lightColor * NdL * Frag.Material.Albedo * (1 - Frag.Material.Metallic);
+		diffuse += lightColor * NdL * DiffuseFactor();
 		//specular += lightColor * min(fresnel + 1, fresnel * DistributionGGX(NdH, Frag.Material.Roughness));
 		specular += lightColor * min(fresnel + 1, fresnel * Specular(LdH, NdH, Frag.Material.Roughness));
 	}

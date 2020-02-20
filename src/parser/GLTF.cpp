@@ -79,7 +79,7 @@ auto ParseMaterials(const std::string &path, const rapidjson::Document &document
 				auto textureObject(materialValue["normalTexture"].GetObject());
 				material->set_texture_normal(textureVector.at(textureObject["index"].GetInt()));
 			}
-			catch (std::exception &) {debugLog("No roughnessFactor normalTexture")}
+			catch (std::exception &) {debugLog("No normalTexture property")}
 			try {
 				auto pbrMetallicRoughness(materialValue["pbrMetallicRoughness"].GetObject());
 				try {
@@ -97,7 +97,7 @@ auto ParseMaterials(const std::string &path, const rapidjson::Document &document
 					auto textureObject(pbrMetallicRoughness["baseColorTexture"].GetObject());
 					material->set_texture_albedo(textureVector.at(textureObject["index"].GetInt()));
 				}
-				catch (std::exception &) {debugLog("No roughnessFactor baseColorTexture")}
+				catch (std::exception &) {debugLog("No baseColorTexture property")}
 			}
 			catch(std::exception &) {debugLog("Not a pbrMetallicRoughness material")}
 			materialVector.push_back(material);

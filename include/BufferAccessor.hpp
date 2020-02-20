@@ -21,7 +21,7 @@ public:
 	/** The offset relative to the start of the bufferView in bytes. */
 	size_t ByteOffset() const;
 	void SetByteOffset(size_t);
-	/** @return : ComponentByteSize + ComponentSize */
+	/** @return : ComponentByteSize * ComponentSize */
 	size_t TotalComponentByteSize();
 	/** @return : The byte size of the components. */
 	size_t ComponentByteSize();

@@ -53,6 +53,7 @@ SHADERS_FILES	=	\
 					SSRBlur.frag
 HEADERS_FILES	=	\
 					AABB.hpp					\
+					BufferHelper.hpp			\
 					Buffer.hpp					\
 					BufferAccessor.hpp			\
 					BufferView.hpp				\

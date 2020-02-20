@@ -6,6 +6,7 @@
 */
 
 #include "CubeMesh.hpp"
+#include "BufferHelper.hpp"
 #include "Material.hpp" // for Material
 #include "Mesh.hpp" // for Mesh
 #include "Vgroup.hpp" // for CVEC4, Vgroup
@@ -44,36 +45,36 @@ std::shared_ptr<Mesh> CubeMesh::Create(const std::string &name, glm::vec3 size)
         {0.50f, -0.50f, 0.50f},
         {0.50f, -0.50f, -0.50f},
         {-0.50f, -0.50f, -0.50f}};
-    static std::vector<CVEC4> cubeNormals{
-        {127, 127, 255, 255},
-        {127, 127, 255, 255},
-        {127, 127, 255, 255},
-        {127, 127, 255, 255},
+    static std::vector<glm::vec3> cubeNormals{
+        {0, 0, 1},
+        {0, 0, 1},
+        {0, 0, 1},
+        {0, 0, 1},
 
-        {127, 127, 0, 255},
-        {127, 127, 0, 255},
-        {127, 127, 0, 255},
-        {127, 127, 0, 255},
+        {0, 0, -1},
+        {0, 0, -1},
+        {0, 0, -1},
+        {0, 0, -1},
 
-        {0, 127, 127, 255},
-        {0, 127, 127, 255},
-        {0, 127, 127, 255},
-        {0, 127, 127, 255},
+        {-1, 0, 0},
+        {-1, 0, 0},
+        {-1, 0, 0},
+        {-1, 0, 0},
 
-        {255, 127, 127, 255},
-        {255, 127, 127, 255},
-        {255, 127, 127, 255},
-        {255, 127, 127, 255},
+        {1, 0, 0},
+        {1, 0, 0},
+        {1, 0, 0},
+        {1, 0, 0},
 
-        {127, 255, 127, 255},
-        {127, 255, 127, 255},
-        {127, 255, 127, 255},
-        {127, 255, 127, 255},
+        {0, 1, 0},
+        {0, 1, 0},
+        {0, 1, 0},
+        {0, 1, 0},
 
-        {127, 0, 127, 255},
-        {127, 0, 127, 255},
-        {127, 0, 127, 255},
-        {127, 0, 127, 255}};
+        {0, -1, 0},
+        {0, -1, 0},
+        {0, -1, 0},
+        {0, -1, 0}};
     static std::vector<glm::vec2> cubeTexCoords{
         {0, 0},
         {1, 0},
@@ -113,6 +114,10 @@ std::shared_ptr<Mesh> CubeMesh::Create(const std::string &name, glm::vec3 size)
     {
         v *= size;
     }
+    vg->SetAccessor("POSITION", BufferHelper::CreateAccessor(thisCubeVertices));
+    vg->SetAccessor("NORMAL", BufferHelper::CreateAccessor(cubeNormals));
+    vg->SetAccessor("TEXCOORD_0", BufferHelper::CreateAccessor(cubeTexCoords));
+    vg->SetIndices(BufferHelper::CreateAccessor(cubeIndices));
     /*vg->v = thisCubeVertices;
     vg->vn = cubeNormals;
     vg->vt = cubeTexCoords;

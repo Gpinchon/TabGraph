@@ -8,6 +8,8 @@
 #include "Scene.hpp"
 #include "SceneParser.hpp"
 #include "Window.hpp"
+#include "Mesh.hpp"
+#include "CubeMesh.hpp"
 #include "parser/GLTF.hpp"
 
 #define DOWNK SDL_SCANCODE_DOWN
@@ -97,6 +99,7 @@ int main(int argc, char **argv)
     if (scene->CurrentCamera() == nullptr)
         scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
     scene->CurrentCamera()->SetPosition(glm::vec3{10, 10, 0});
+    scene->Add(CubeMesh::Create("cubeMesh", glm::vec3(100, 100 ,100)));
     Scene::SetCurrent(scene);
 	Engine::Start();
 	return 0;

@@ -71,7 +71,8 @@ void	ApplyTechnique()
 	brightness = Luminance(pow(reflection_spec, envGammaCorrection));
 	reflection_spec *= brightness * min(fresnel + 0.5, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
 	specular *= fresnel * brdf.x + mix(vec3(1), fresnel, Frag.Material.Metallic) * brdf.y;
-	diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
+	diffuse *= DiffuseFactor();
+	//diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 
 	float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));
 	alpha = min(1, alpha);

@@ -308,6 +308,11 @@ vec3	WorldPosition()
 	return ScreenToWorld(Frag.UV, Frag.Depth);
 }
 
+vec3	DiffuseFactor()
+{
+	return mix(Frag.Material.Albedo.rgb * vec3(1 - Frag.Material.Specular), vec3(0), Frag.Material.Metallic);
+}
+
 void	FillFrag()
 {
 	Frag.UV = frag_UV;
