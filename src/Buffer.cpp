@@ -19,7 +19,9 @@ std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
 
 void Buffer::Load()
 {
-	if (!Loaded() && Uri() != "") {
+	if (Loaded())
+		return;
+	if (Uri() != "") {
 		debugLog(Uri());
 		auto file(_wfopen(Uri().c_str(), L"rb"));
 		debugLog(file);
@@ -44,6 +46,7 @@ void Buffer::Load()
 void Buffer::Unload()
 {
 	glDeleteBuffers(1, &_glid);
+	_loaded = false;
 }
 
 bool Buffer::Loaded()
