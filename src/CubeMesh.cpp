@@ -114,10 +114,10 @@ std::shared_ptr<Mesh> CubeMesh::Create(const std::string &name, glm::vec3 size)
     {
         v *= size;
     }
-    vg->SetAccessor("POSITION", BufferHelper::CreateAccessor(thisCubeVertices));
-    vg->SetAccessor("NORMAL", BufferHelper::CreateAccessor(cubeNormals));
-    vg->SetAccessor("TEXCOORD_0", BufferHelper::CreateAccessor(cubeTexCoords));
-    vg->SetIndices(BufferHelper::CreateAccessor(cubeIndices));
+    vg->SetAccessor("POSITION", BufferHelper::CreateAccessor(thisCubeVertices, GL_ARRAY_BUFFER));
+    vg->SetAccessor("NORMAL", BufferHelper::CreateAccessor(cubeNormals, GL_ARRAY_BUFFER, true));
+    vg->SetAccessor("TEXCOORD_0", BufferHelper::CreateAccessor(cubeTexCoords, GL_ARRAY_BUFFER));
+    vg->SetIndices(BufferHelper::CreateAccessor(cubeIndices, GL_ELEMENT_ARRAY_BUFFER));
     /*vg->v = thisCubeVertices;
     vg->vn = cubeNormals;
     vg->vt = cubeTexCoords;
