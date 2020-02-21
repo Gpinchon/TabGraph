@@ -257,6 +257,8 @@ void Framebuffer::set_attachement(unsigned color_attachement, std::shared_ptr<Te
 
 void Framebuffer::SetDepthBuffer(std::shared_ptr<Texture> depth, unsigned mipLevel)
 {
+    if (depth == nullptr)
+        return;
     _depth = depth;
     bind();
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth ? depth->glid() : 0, mipLevel);
