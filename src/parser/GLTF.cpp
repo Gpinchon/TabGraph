@@ -220,9 +220,25 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 				currentMesh->AddMaterial(*std::find(materials.begin(), materials.end(), materials.at(material->value.GetInt())));
 				vgroup->SetMaterialIndex(currentMesh->GetMaterialIndex(materials.at(material->value.GetInt())));
 			}
-			for (const auto &attribute : primitive["attributes"].GetObject())
-				vgroup->SetAccessor(attribute.name.GetString(), accessors.at(attribute.value.GetInt()));
-			try { vgroup->SetIndices(accessors.at(primitive["indices"].GetInt())); }
+			for (const auto &attribute : primitive["attributes"].GetObject()) {
+				auto attributeName(std::string(attribute.name.GetString()));
+				auto accessor(accessors.at(attribute.value.GetInt()));
+				if (accessor->GetBufferView()->Target() == 0) {
+					if (attributeName == "POSITION" ||
+						attributeName == "NORMAL" ||
+						attributeName == "TANGENT" ||
+						attributeName == "TEXCOORD_0" ||
+						attributeName == "TEXCOORD_1")
+						accessor->GetBufferView()->SetTarget(GL_ARRAY_BUFFER);
+				}
+				vgroup->SetAccessor(attributeName, accessor);
+			}
+			try {
+				auto accessor(accessors.at(primitive["indices"].GetInt()));
+				if (accessor->GetBufferView()->Target() == 0)
+					accessor->GetBufferView()->SetTarget(GL_ELEMENT_ARRAY_BUFFER);
+				vgroup->SetIndices(accessor);
+			}
 			catch(std::exception &) {debugLog("Vgroup " + vgroup->Name() + " has no indices")}
 			try { vgroup->SetMode(primitive["mode"].GetInt()); }
 			catch(std::exception &) {debugLog("Vgroup " + vgroup->Name() + " has no mode")}
@@ -306,7 +322,7 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 	for (const auto &scene : scenes) {
 		std::cout << "found scene" << std::endl;
 		auto newScene(Scene::Create(std::to_string(sceneIndex)));
-		newScene->SetUp(glm::vec3(0, 0, 1));
+		newScene->SetUp(glm::vec3(0, 1, 0));
 		for (const auto &node : scene["nodes"].GetArray()) {
 			newScene->Add(nodes.at(node.GetInt()));
 			std::cout << nodes.at(node.GetInt())->Name() << std::endl;
