@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     auto camera = FPSCamera::Create("main_camera", 45);
     Scene::SetCurrent(Scene::Create("Main Scene"));
     Scene::Current()->SetCurrentCamera(camera);
-    //camera->set_target(Node::Create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
+    //camera->SetTarget(Node::Create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     //camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
     if (argc >= 2)
     {

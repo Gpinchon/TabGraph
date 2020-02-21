@@ -23,9 +23,10 @@ auto ParseCameras(const rapidjson::Document &document)
 {
 	std::vector<std::shared_ptr<Camera>> cameraVector;
 	try {
+		auto cameraIndex(0);
 		for (const auto &camera : document["cameras"].GetArray()) {
 			std::cout << "found new camera" << std::endl;
-			auto newCamera(Camera::Create("", 45));
+			auto newCamera(Camera::Create("Camera" + std::to_string(cameraIndex), 45));
 			if (std::string(camera["type"].GetString()) == "perspective") {
 				auto perspective(camera["perspective"].GetObject());
 				try {
@@ -36,6 +37,7 @@ auto ParseCameras(const rapidjson::Document &document)
 				newCamera->SetZnear(perspective["znear"].GetFloat());
 			}
 			cameraVector.push_back(newCamera);
+			cameraIndex++;
 		}
 	}
 	catch (std::exception &) {}
@@ -58,6 +60,7 @@ auto ParseTextures(const std::string &path, const rapidjson::Document &document)
 			}
 			catch(std::exception &) {debugLog("Texture " + std::to_string(textureIndex) + " has no Uri")}
 			textureVector.push_back(TextureParser::parse("Texture " + std::to_string(textureIndex), uri));
+			textureIndex++;
 		}
 	}
 	catch(std::exception &) {debugLog("No textures found")}
@@ -101,6 +104,7 @@ auto ParseMaterials(const std::string &path, const rapidjson::Document &document
 			}
 			catch(std::exception &) {debugLog("Not a pbrMetallicRoughness material")}
 			materialVector.push_back(material);
+			materialIndex++;
 		}
 	}
 	catch(std::exception &) {debugLog("No materials found")}
@@ -298,7 +302,7 @@ auto parseNodes(const std::string &path, const rapidjson::Document &document)
 		if (node.FindMember("children") != node.MemberEnd())
 		{
 			for (const auto &child : node["children"].GetArray()) {
-				nodeVector.at(nodeIndex)->add_child(nodeVector.at(child.GetInt()));
+				nodeVector.at(nodeIndex)->AddChild(nodeVector.at(child.GetInt()));
 				std::cout << "Node parenting " << nodeVector.at(nodeIndex)->Name() << " -> " << nodeVector.at(child.GetInt())->Name() << std::endl;
 				std::cout << "Child node use count " << nodeVector.at(child.GetInt()).use_count() << std::endl;
 			}

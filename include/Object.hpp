@@ -22,7 +22,7 @@ public:
     void SetId(int64_t);
     std::string Name() const;
     void SetName(const std::string& name);
-    virtual ~Object() = default;
+    virtual ~Object();
 
 protected:
     Object() = delete;

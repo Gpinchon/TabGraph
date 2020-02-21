@@ -239,7 +239,7 @@ void parse_vg(t_obj_parser */*p*/, const std::string &/*name*/)
         static int childNbr = 0;
         childNbr++;
         vt_min_max(p->vg);
-        //p->parent->add_child(p->vg);
+        //p->parent->AddChild(p->vg);
         p->parent->AddVgroup(p->vg);
         if (name == "")
         {

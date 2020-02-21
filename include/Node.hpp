@@ -64,10 +64,11 @@ public:
     /** @argument scale : the node local scale */
     virtual void SetScale(glm::vec3 scale);
     std::shared_ptr<Node> target();
-    std::shared_ptr<Node> parent();
-    void set_target(std::shared_ptr<Node>);
-    void set_parent(std::shared_ptr<Node>);
-    void add_child(std::shared_ptr<Node>);
+    std::shared_ptr<Node> Parent();
+    void SetTarget(std::shared_ptr<Node>);
+    void SetParent(std::shared_ptr<Node>);
+    void AddChild(std::shared_ptr<Node>);
+    void RemoveChild(std::shared_ptr<Node>);
     std::vector<std::shared_ptr<Node>> Children() const;
     BoundingElement *bounding_element{nullptr};
     virtual ~Node() /*= default*/;
@@ -79,7 +80,7 @@ private:
     //static std::vector<std::shared_ptr<Node>> _nodes;
     std::vector<std::shared_ptr<Node>> _children;
     std::shared_ptr<Node> _target;
-    std::shared_ptr<Node> _parent;
+    std::weak_ptr<Node> _parent;
     glm::vec3 _position{0, 0, 0};
     glm::vec3 _rotation{0, 0, 0};
     glm::vec3 _scale{1, 1, 1};

@@ -6,12 +6,18 @@
 */
 
 #include "Object.hpp"
+#include "Debug.hpp"
 
 Object::Object(const std::string& name)
 {
     std::hash<std::string> hash_fn;
     SetName(name);
     SetId(hash_fn(Name()) + int64_t(this)); //Generate unique ID
+}
+
+Object::~Object()
+{
+	debugLog(Name());
 }
 
 int64_t Object::Id() const

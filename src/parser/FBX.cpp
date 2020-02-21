@@ -435,7 +435,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                             if (destination != nullptr)
                             {
                                 std::cout << source->Id() << " : IS CHILD OF : " << destination->Id() << std::endl;
-                                destination->add_child(source);
+                                destination->AddChild(source);
                             }
                             else if (destinationId == 0)
                             { 

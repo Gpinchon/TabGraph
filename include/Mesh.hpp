@@ -59,10 +59,6 @@ public:
 
     const std::set<std::shared_ptr<Vgroup>> vgroups();
 
-    ~Mesh() {
-        std::cout << __FUNCTION__ << " " << Name() << std::endl;
-    }
-
 protected:
     Mesh(const std::string &name);
 

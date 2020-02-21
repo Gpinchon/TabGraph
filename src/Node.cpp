@@ -16,7 +16,8 @@ Node::Node(const std::string &name)
 }
 
 Node::~Node() {
-    std::cout << __FUNCTION__ << " " << Name() << std::endl;
+    if (Parent() != nullptr)
+        Parent()->RemoveChild(shared_from_this());
 }
 
 std::shared_ptr<Node> Node::Create(const std::string &name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
@@ -49,7 +50,7 @@ void Node::UpdateTransformMatrix()
     UpdateScaleMatrix();
     SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
     SetTransformMatrix(NodeTransformMatrix() * TransformMatrix());
-    if (auto parentPtr = parent(); parentPtr != nullptr)
+    if (auto parentPtr = Parent(); parentPtr != nullptr)
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
 }
 
@@ -77,14 +78,27 @@ std::vector<std::shared_ptr<Node>> Node::Children() const
     return _children;
 }
 
-void Node::add_child(std::shared_ptr<Node> childNode)
+void Node::AddChild(std::shared_ptr<Node> childNode)
 {
     if (childNode == shared_from_this())
     {
         return;
     }
     _children.push_back(childNode);
-    childNode->set_parent(shared_from_this());
+    childNode->SetParent(shared_from_this());
+}
+
+#include <algorithm>
+
+void Node::RemoveChild(std::shared_ptr<Node> child)
+{
+    auto it = std::find(_children.begin(), _children.end(), child);
+    if(it != _children.end()) {
+        auto child(*it);
+        child->SetParent(nullptr);
+        _children.erase(it);
+    }
+    //_children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
 }
 
 std::shared_ptr<Node> Node::target()
@@ -92,27 +106,27 @@ std::shared_ptr<Node> Node::target()
     return (_target);
 }
 
-void Node::set_target(std::shared_ptr<Node> tgt)
+void Node::SetTarget(std::shared_ptr<Node> tgt)
 {
     _target = tgt;
 }
 
-std::shared_ptr<Node> Node::parent()
+std::shared_ptr<Node> Node::Parent()
 {
-    return (_parent);
+    return (_parent.lock());
 }
 
 /*
 ** /!\ BEWARE OF THE BIG BAD LOOP !!! /!\
 */
-void Node::set_parent(std::shared_ptr<Node> prt)
+void Node::SetParent(std::shared_ptr<Node> prt)
 {
-    if (prt == shared_from_this() || _parent == prt)
+    if (prt == shared_from_this() || _parent.lock() == prt)
     {
         return;
     }
     _parent = prt;
-    prt->add_child(shared_from_this());
+    prt->AddChild(shared_from_this());
 }
 
 glm::vec3 Node::Position() const
