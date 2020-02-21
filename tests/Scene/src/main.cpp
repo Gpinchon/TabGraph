@@ -62,8 +62,8 @@ void MouseWheelCallback(SDL_MouseWheelEvent *event)
     camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 70.f));
 }
 
-void FullscreenCallback(SDL_KeyboardEvent* ) {
-    if (Keyboard::key(SDL_SCANCODE_LALT)) {
+void FullscreenCallback(SDL_KeyboardEvent* event) {
+    if (Keyboard::key(SDL_SCANCODE_LALT) && !event->repeat) {
         static bool fullscreen = false;
         fullscreen = !fullscreen;
         Window::fullscreen(fullscreen);
