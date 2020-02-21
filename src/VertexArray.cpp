@@ -48,10 +48,11 @@ void VertexArray::draw() const
     bind();
     if (_indexed) {
         glDrawElements(_GLDrawType, _indices->size(), GL_UNSIGNED_INT, nullptr);
+        glCheckError();
     } else {
         glDrawArrays(_GLDrawType, 0, _vertex_nbr);
+        glCheckError();
     }
-    glCheckError();
     bind(false);
 };
 
