@@ -232,6 +232,7 @@ glm::vec3 Mesh::GeometryPosition() const
 void Mesh::SetGeometryPosition(glm::vec3 position)
 {
     _geometryPosition = position;
+    SetNeedsTranformUpdate(true);
 }
 
 glm::vec3 Mesh::GeometryRotation() const
@@ -242,6 +243,7 @@ glm::vec3 Mesh::GeometryRotation() const
 void Mesh::SetGeometryRotation(glm::vec3 rotation)
 {
     _geometryRotation = rotation;
+    SetNeedsTranformUpdate(true);
 }
 
 glm::vec3 Mesh::GeometryScale() const
@@ -252,4 +254,5 @@ glm::vec3 Mesh::GeometryScale() const
 void Mesh::SetGeometryScale(glm::vec3 scale)
 {
     _geometryScale = scale;
+    SetNeedsTranformUpdate(true);
 }

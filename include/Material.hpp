@@ -31,6 +31,7 @@ public:
     std::shared_ptr<Texture> texture_emitting();
     std::shared_ptr<Texture> texture_normal();
     std::shared_ptr<Texture> texture_height();
+    std::shared_ptr<Texture> texture_metallicRoughness();
     std::shared_ptr<Texture> texture_roughness();
     std::shared_ptr<Texture> texture_metallic();
     std::shared_ptr<Texture> texture_ao();
@@ -39,6 +40,7 @@ public:
     void set_texture_emitting(std::shared_ptr<Texture>);
     void set_texture_normal(std::shared_ptr<Texture>);
     void set_texture_height(std::shared_ptr<Texture>);
+    void set_texture_metallicRoughness(std::shared_ptr<Texture>);
     void set_texture_roughness(std::shared_ptr<Texture>);
     void set_texture_metallic(std::shared_ptr<Texture>);
     void set_texture_ao(std::shared_ptr<Texture>);
@@ -61,6 +63,7 @@ protected:
     std::weak_ptr<Texture> _texture_emitting;
     std::weak_ptr<Texture> _texture_normal;
     std::weak_ptr<Texture> _texture_height;
+    std::weak_ptr<Texture> _texture_metallicRoughness;
     std::weak_ptr<Texture> _texture_roughness;
     std::weak_ptr<Texture> _texture_metallic;
     std::weak_ptr<Texture> _texture_ao;

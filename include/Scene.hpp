@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/vec3.hpp>
+#include <vector>
 #include <set>
 #include <string>
 #include <memory>
@@ -31,9 +32,9 @@ struct Scene
 	std::shared_ptr<Node> GetNodeByName(const std::string &);
 	std::shared_ptr<Light> GetLightByName(const std::string &);
 	std::shared_ptr<Camera> GetCameraByName(const std::string &);
-	const std::set<std::shared_ptr<Node>> &Nodes();
-	const std::set<std::shared_ptr<Light>> &Lights();
-	const std::set<std::shared_ptr<Camera>> &Cameras();
+	const std::vector<std::shared_ptr<Node>> &Nodes();
+	const std::vector<std::shared_ptr<Light>> &Lights();
+	const std::vector<std::shared_ptr<Camera>> &Cameras();
 	glm::vec3 Up() const;
 	void SetUp(glm::vec3);
 
@@ -41,8 +42,8 @@ private:
 	Scene(const std::string &name);
 	glm::vec3 _up {0, 1, 0};
 	std::string _name;
-	std::set<std::shared_ptr<Node>> _nodes;
-	std::set<std::shared_ptr<Light>> _lights;
-	std::set<std::shared_ptr<Camera>> _cameras;
+	std::vector<std::shared_ptr<Node>> _nodes;
+	std::vector<std::shared_ptr<Light>> _lights;
+	std::vector<std::shared_ptr<Camera>> _cameras;
 	std::shared_ptr<Camera> _currentCamera;
 };

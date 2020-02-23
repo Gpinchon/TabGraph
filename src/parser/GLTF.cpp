@@ -19,13 +19,17 @@
 
 auto __gltfParser = SceneParser::Add("gltf", GLTF::Parse);
 
-auto ParseCameras(const rapidjson::Document &document)
+struct TextureSampler
+{
+	std::map<std::string, GLenum> settings;
+};
+
+static inline auto ParseCameras(const rapidjson::Document &document)
 {
 	std::vector<std::shared_ptr<Camera>> cameraVector;
 	try {
 		auto cameraIndex(0);
 		for (const auto &camera : document["cameras"].GetArray()) {
-			std::cout << "found new camera" << std::endl;
 			auto newCamera(Camera::Create("Camera" + std::to_string(cameraIndex), 45));
 			if (std::string(camera["type"].GetString()) == "perspective") {
 				auto perspective(camera["perspective"].GetObject());
@@ -40,14 +44,32 @@ auto ParseCameras(const rapidjson::Document &document)
 			cameraIndex++;
 		}
 	}
-	catch (std::exception &) {}
+	catch (std::exception &) {debugLog("No camera found")}
 	return cameraVector;
 }
 
-auto ParseTextures(const std::string &path, const rapidjson::Document &document)
+static inline auto ParseTextureSamplers(const rapidjson::Document &document)
+{
+	std::vector<TextureSampler> samplerVector;
+	try {
+		for (const auto &sampler : document["samplers"].GetArray())
+		{
+			TextureSampler newSampler;
+			for (rapidjson::Value::ConstMemberIterator setting = sampler.MemberBegin(); setting != sampler.MemberEnd(); setting++) {
+				newSampler.settings[setting->name.GetString()] = setting->value.GetInt();
+			}
+			samplerVector.push_back(newSampler);
+		}
+	}
+	catch (std::exception &) {debugLog("No sampler found")}
+	return samplerVector;
+}
+
+static inline auto ParseTextures(const std::string &path, const rapidjson::Document &document)
 {
 	debugLog("Start parsing textures");
 	std::vector<std::shared_ptr<Texture>> textureVector;
+	auto samplers(ParseTextureSamplers(document));
 	try {
 		auto textureIndex(0);
 		for (const auto &textureValue : document["images"].GetArray()) {
@@ -59,7 +81,26 @@ auto ParseTextures(const std::string &path, const rapidjson::Document &document)
 				uri = texturePath.string();
 			}
 			catch(std::exception &) {debugLog("Texture " + std::to_string(textureIndex) + " has no Uri")}
-			textureVector.push_back(TextureParser::parse("Texture " + std::to_string(textureIndex), uri));
+			auto texture(TextureParser::parse("Texture " + std::to_string(textureIndex), uri));
+			try {
+				/*
+				"magFilter": 9729,
+			    "minFilter": 9987,
+			    "wrapS": 10497,
+			    "wrapT": 10497
+			    */
+				auto sampler(samplers.at(textureValue["sampler"].GetInt()));
+				if (sampler.settings["magFilter"] != 0)
+					texture->set_parameteri(GL_TEXTURE_MAG_FILTER, sampler.settings["magFilter"]);
+				if (sampler.settings["minFilter"] != 0)
+					texture->set_parameteri(GL_TEXTURE_MIN_FILTER, sampler.settings["minFilter"]);
+				if (sampler.settings["wrapS"] != 0)
+					texture->set_parameteri(GL_TEXTURE_WRAP_S, sampler.settings["wrapS"]);
+				if (sampler.settings["wrapT"] != 0)
+					texture->set_parameteri(GL_TEXTURE_WRAP_T, sampler.settings["wrapT"]);
+			}
+			catch(std::exception &) {debugLog("Texture " + std::to_string(textureIndex) + " has no sampler")}
+			textureVector.push_back(texture);
 			textureIndex++;
 		}
 	}
@@ -68,7 +109,7 @@ auto ParseTextures(const std::string &path, const rapidjson::Document &document)
 	return textureVector;
 }
 
-auto ParseMaterials(const std::string &path, const rapidjson::Document &document)
+static inline auto ParseMaterials(const std::string &path, const rapidjson::Document &document)
 {
 	debugLog("Start parsing materials");
 	auto textureVector(ParseTextures(path, document));
@@ -78,13 +119,31 @@ auto ParseMaterials(const std::string &path, const rapidjson::Document &document
 		for (const auto &materialValue : document["materials"].GetArray()) {
 			auto material(Material::Create("Material " + std::to_string(materialIndex)));
 			material->albedo = glm::vec3(1, 1, 1);
+			material->uv_scale = glm::vec2(1, -1);
+			try {
+				auto baseColor(materialValue["emissiveFactor"].GetArray());
+				material->emitting.r = baseColor[0].GetFloat();
+				material->emitting.g = baseColor[1].GetFloat();
+				material->emitting.b = baseColor[2].GetFloat();
+			}
+			catch (std::exception &) {debugLog("No emissiveFactor property")}
 			try {
 				auto textureObject(materialValue["normalTexture"].GetObject());
 				material->set_texture_normal(textureVector.at(textureObject["index"].GetInt()));
 			}
 			catch (std::exception &) {debugLog("No normalTexture property")}
 			try {
+				auto textureObject(materialValue["emissiveTexture"].GetObject());
+				material->set_texture_emitting(textureVector.at(textureObject["index"].GetInt()));
+			}
+			catch (std::exception &) {debugLog("No normalTexture property")}
+			try {
 				auto pbrMetallicRoughness(materialValue["pbrMetallicRoughness"].GetObject());
+				try {
+					auto textureObject(pbrMetallicRoughness["metallicRoughnessTexture"].GetObject());
+					material->set_texture_metallicRoughness(textureVector.at(textureObject["index"].GetInt()));
+				}
+				catch (std::exception &) {debugLog("No metallicRoughnessTexture property")}
 				try {
 					auto baseColor(pbrMetallicRoughness["baseColorFactor"].GetArray());
 					material->albedo.r = baseColor[0].GetFloat();
@@ -112,7 +171,7 @@ auto ParseMaterials(const std::string &path, const rapidjson::Document &document
 	return materialVector;
 }
 
-auto ParseBuffers(const std::string &path, const rapidjson::Document &document)
+static inline auto ParseBuffers(const std::string &path, const rapidjson::Document &document)
 {
 	debugLog("Start parsing buffers");
 	std::vector<std::shared_ptr<Buffer>> bufferVector;
@@ -139,7 +198,7 @@ auto ParseBuffers(const std::string &path, const rapidjson::Document &document)
 	return bufferVector;
 }
 
-auto ParseBufferViews(const std::string &path, const rapidjson::Document &document)
+static inline auto ParseBufferViews(const std::string &path, const rapidjson::Document &document)
 {
 	debugLog("Start parsing bufferViews");
 	auto buffers(ParseBuffers(path, document));
@@ -168,7 +227,7 @@ auto ParseBufferViews(const std::string &path, const rapidjson::Document &docume
 	return bufferViewVector;
 }
 
-auto ParseBufferAccessors(const std::string &path, const rapidjson::Document &document)
+static inline auto ParseBufferAccessors(const std::string &path, const rapidjson::Document &document)
 {
 	debugLog("Start parsing bufferAccessors");
 	auto bufferViews(ParseBufferViews(path, document));
@@ -200,7 +259,7 @@ auto ParseBufferAccessors(const std::string &path, const rapidjson::Document &do
 	return bufferAccessorVector;
 }
 
-auto parseMeshes(const std::string &path, const rapidjson::Document &document)
+static inline auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 {
 	debugLog("Start parsing meshes");
 	std::vector<std::shared_ptr<Mesh>> meshVector;
@@ -256,7 +315,7 @@ auto parseMeshes(const std::string &path, const rapidjson::Document &document)
 	return meshVector;
 }
 
-auto parseNodes(const std::string &path, const rapidjson::Document &document)
+static inline auto parseNodes(const std::string &path, const rapidjson::Document &document)
 {
 	std::vector<std::shared_ptr<Node>> nodeVector;
 	auto meshes(parseMeshes(path, document));

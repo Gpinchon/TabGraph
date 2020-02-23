@@ -48,11 +48,10 @@ void	ApplyTechnique()
 
 	vec2	brdf = BRDF(NdV, Frag.Material.Roughness);
 
-	vec3	diffuse = Frag.Material.AO * (sampleLod(Texture.Environment.Diffuse, -N, Frag.Material.Roughness + 0.9).rgb
-		+ texture(Texture.Environment.Irradiance, -N).rgb);
+	vec3	diffuse = Frag.Material.AO * texture(Texture.Environment.Irradiance, -N).rgb;
 	vec3	reflection = sampleLod(Texture.Environment.Diffuse, R, Frag.Material.Roughness * 2.f).rgb;
-	vec3	specular = texture(Texture.Environment.Irradiance, R).rgb;
-	vec3	reflection_spec = reflection;
+	vec3	specular = sampleLod(Texture.Environment.Irradiance, R, Frag.Material.Roughness).rgb;
+	//vec3	reflection_spec = reflection;
 
 	float	brightness = 0;
 
@@ -68,16 +67,15 @@ void	ApplyTechnique()
 	}
 	vec3	fresnel = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
 	reflection *= fresnel;
-	brightness = Luminance(pow(reflection_spec, envGammaCorrection));
-	reflection_spec *= brightness * min(fresnel + 0.5, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
-	specular *= fresnel * brdf.x + mix(vec3(1), fresnel, Frag.Material.Metallic) * brdf.y;
+	brightness = Luminance(pow(specular, envGammaCorrection));
+	specular *= brightness * min(fresnel, fresnel * Env_Specular(NdV, Frag.Material.Roughness));
+	specular *= fresnel * brdf.x + brdf.y;
 	diffuse *= DiffuseFactor();
-	//diffuse *= Frag.Material.Albedo.rgb * (1 - Frag.Material.Metallic);
 
 	float	alpha = Frag.Material.Alpha + max(specular.r, max(specular.g, specular.b));
 	alpha = min(1, alpha);
 
-	vec3	envReflection = (specular + reflection_spec + reflection) * alpha;
+	vec3	envReflection = (specular /* + reflection_spec */ + reflection) * alpha;
 	vec4	ssrResult = SSR();
 	Out.Color.rgb += mix(envReflection, ssrResult.xyz * fresnel, ssrResult.w);
 	//Out.Color.rgb += envReflection;

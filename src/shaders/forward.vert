@@ -14,11 +14,14 @@ struct t_Textures {
 	bool		Use_Roughness;
 	sampler2D	Metallic;
 	bool		Use_Metallic;
+	sampler2D	MetallicRoughness;
+	bool		Use_MetallicRoughness;
 	sampler2D	Emitting;
-	bool		Use_Normal;
+	bool		Use_Emitting;
 	sampler2D	Normal;
-	bool		Use_Height;
+	bool		Use_Normal;
 	sampler2D	Height;
+	bool		Use_Height;
 	sampler2D	AO;
 };
 

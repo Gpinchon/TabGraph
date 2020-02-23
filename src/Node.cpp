@@ -45,13 +45,16 @@ void Node::Update()
 
 void Node::UpdateTransformMatrix()
 {
-    UpdateTranslationMatrix();
-    UpdateRotationMatrix();
-    UpdateScaleMatrix();
-    SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
-    SetTransformMatrix(NodeTransformMatrix() * TransformMatrix());
+    if (NeedsTransformUpdate()) {
+        UpdateTranslationMatrix();
+        UpdateRotationMatrix();
+        UpdateScaleMatrix();
+        SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
+        SetTransformMatrix(NodeTransformMatrix() * TransformMatrix());
+    }
     if (auto parentPtr = Parent(); parentPtr != nullptr)
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
+    SetNeedsTranformUpdate(false);
 }
 
 void Node::UpdateTranslationMatrix()
@@ -137,6 +140,7 @@ glm::vec3 Node::Position() const
 void Node::SetPosition(glm::vec3 position)
 {
     _position = position;
+    SetNeedsTranformUpdate(true);
 }
 
 glm::vec3 Node::Rotation() const
@@ -147,6 +151,7 @@ glm::vec3 Node::Rotation() const
 void Node::SetRotation(glm::vec3 rotation)
 {
     _rotation = rotation;
+    SetNeedsTranformUpdate(true);
 }
 
 glm::vec3 Node::Scale() const
@@ -157,6 +162,7 @@ glm::vec3 Node::Scale() const
 void Node::SetScale(glm::vec3 scale)
 {
     _scale = scale;
+    SetNeedsTranformUpdate(true);
 }
 
 glm::mat4 Node::NodeTransformMatrix() const
@@ -207,4 +213,14 @@ glm::mat4 Node::ScaleMatrix() const
 void Node::SetScaleMatrix(glm::mat4 scale)
 {
     _scaleMatrix = scale;
+}
+
+bool Node::NeedsTransformUpdate()
+{
+    return _needsTransformUpdate;
+}
+
+void Node::SetNeedsTranformUpdate(bool needsTransformUpdate)
+{
+    _needsTransformUpdate = needsTransformUpdate;
 }

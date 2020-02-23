@@ -143,7 +143,8 @@ std::shared_ptr<Texture> TextureParser::parse(const std::string& name, const std
     debugLog(format);
     auto parser = _get(fileFormat(path));
     debugLog(parser);
-    return parser ? parser(name, path) : GenericTextureParser(name, path);
+    auto texture(parser ? parser(name, path) : GenericTextureParser(name, path));
+    return texture;
 }
 
 TextureParsingFunction TextureParser::_get(const std::string& format)

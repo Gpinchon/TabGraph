@@ -16,11 +16,14 @@ struct t_Textures {
 	bool		Use_Roughness;
 	sampler2D	Metallic;
 	bool		Use_Metallic;
+	sampler2D	MetallicRoughness;
+	bool		Use_MetallicRoughness;
 	sampler2D	Emitting;
-	bool		Use_Normal;
+	bool		Use_Emitting;
 	sampler2D	Normal;
-	bool		Use_Height;
+	bool		Use_Normal;
 	sampler2D	Height;
+	bool		Use_Height;
 	sampler2D	AO;
 };
 
@@ -147,7 +150,7 @@ void	FillIn()
 		Parallax_Mapping(tbn * normalize(Camera.Position - Frag.Position), Frag.UV, ph);
 
 	Frag.Material = Material;
-	Frag.Material.Emitting = texture(Texture.Emitting, Frag.UV).rgb + Material.Emitting;
+	Frag.Material.Emitting = Material.Emitting;
 	Frag.Material.AO = texture(Texture.AO, Frag.UV).r;
 	Frag.Material.Specular = Material.Specular;
 	Frag.Material.Roughness = Material.Roughness;
@@ -155,22 +158,32 @@ void	FillIn()
 	Frag.Material.Ior = Material.Ior;
 
 	vec4	albedo_sample = texture(Texture.Albedo, Frag.UV);
+	vec3	emitting_sample = texture(Texture.Emitting, Frag.UV).rgb;
 	vec3	normal_sample = texture(Texture.Normal, Frag.UV).xyz * 2 - 1;
 	vec3	specular_sample = texture(Texture.Specular, Frag.UV).xyz;
 	float	roughness_sample = texture(Texture.Roughness, Frag.UV).r;
 	float	metallic_sample = texture(Texture.Metallic, Frag.UV).r;
+	vec2	metallicRoughness_sample = texture(Texture.MetallicRoughness, Frag.UV).bg;
 
 	if (Texture.Use_Albedo)
 	{
 		Frag.Material.Albedo *= albedo_sample.rgb;
 		Frag.Material.Alpha *= albedo_sample.a;
 	}
+	if (Texture.Use_Emitting)
+		Frag.Material.Emitting *= emitting_sample;
 	if (Texture.Use_Specular)
 		Frag.Material.Specular = specular_sample;
-	if (Texture.Use_Roughness)
-		Frag.Material.Roughness = roughness_sample;
-	if (Texture.Use_Metallic)
-		Frag.Material.Metallic = metallic_sample;
+	if (Texture.Use_MetallicRoughness) {
+		Frag.Material.Metallic = metallicRoughness_sample.x;
+		Frag.Material.Roughness = metallicRoughness_sample.y;
+	}
+	else {
+		if (Texture.Use_Roughness)
+			Frag.Material.Roughness = roughness_sample;
+		if (Texture.Use_Metallic)
+			Frag.Material.Metallic = metallic_sample;
+	}
 	if (Texture.Use_Normal) {
 		vec3	new_normal = normal_sample * tbn;
 		if (dot(new_normal, new_normal) > 0)

@@ -63,6 +63,10 @@ public:
     virtual glm::vec3 Scale() const;
     /** @argument scale : the node local scale */
     virtual void SetScale(glm::vec3 scale);
+    /** @return does the nod need transform update ? */
+    virtual bool NeedsTransformUpdate();
+    /** @argument needsTransformUpdate : new state */
+    virtual void SetNeedsTranformUpdate(bool needsTransformUpdate);
     std::shared_ptr<Node> target();
     std::shared_ptr<Node> Parent();
     void SetTarget(std::shared_ptr<Node>);
@@ -89,4 +93,5 @@ private:
     glm::mat4 _translationMatrix{glm::mat4(0.f)};
     glm::mat4 _rotationMatrix{glm::mat4(0.f)};
     glm::mat4 _scaleMatrix{glm::mat4(1.f)};
+    bool _needsTransformUpdate{true};
 };

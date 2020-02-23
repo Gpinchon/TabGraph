@@ -80,10 +80,19 @@ void Material::bind_textures(std::shared_ptr<Shader> inShader)
     shaderPtr->set_uniform("Texture.Use_Albedo", texture_albedo() != nullptr);
     shaderPtr->bind_texture("Texture.Specular", texture_specular(), GL_TEXTURE2);
     shaderPtr->set_uniform("Texture.Use_Specular", texture_specular() != nullptr ? true : false);
-    shaderPtr->bind_texture("Texture.Roughness", texture_roughness(), GL_TEXTURE3);
-    shaderPtr->set_uniform("Texture.Use_Roughness", texture_roughness() != nullptr ? true : false);
-    shaderPtr->bind_texture("Texture.Metallic", texture_metallic(), GL_TEXTURE4);
-    shaderPtr->set_uniform("Texture.Use_Metallic", texture_metallic() != nullptr ? true : false);
+    if (texture_metallicRoughness() == nullptr) {
+        shaderPtr->bind_texture("Texture.Roughness", texture_roughness(), GL_TEXTURE3);
+        shaderPtr->set_uniform("Texture.Use_Roughness", texture_roughness() != nullptr ? true : false);
+        shaderPtr->bind_texture("Texture.Metallic", texture_metallic(), GL_TEXTURE4);
+        shaderPtr->set_uniform("Texture.Use_Metallic", texture_metallic() != nullptr ? true : false);
+    }
+    else
+    {
+        shaderPtr->bind_texture("Texture.MetallicRoughness", texture_metallicRoughness(), GL_TEXTURE3);
+        shaderPtr->set_uniform("Texture.Use_MetallicRoughness", texture_metallicRoughness() != nullptr ? true : false);
+        shaderPtr->set_uniform("Texture.Use_Roughness", false);
+        shaderPtr->set_uniform("Texture.Use_Metallic", false);
+    }
     shaderPtr->bind_texture("Texture.Emitting", texture_emitting(), GL_TEXTURE5);
     shaderPtr->set_uniform("Texture.Use_Emitting", texture_emitting() != nullptr ? true : false);
     shaderPtr->bind_texture("Texture.Normal", texture_normal(), GL_TEXTURE6);
@@ -95,6 +104,7 @@ void Material::bind_textures(std::shared_ptr<Shader> inShader)
         shaderPtr->bind_texture("Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE9);
         shaderPtr->bind_texture("Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE10);
     }
+    
 }
 
 void Material::bind_values(std::shared_ptr<Shader> inShader)
@@ -148,6 +158,11 @@ std::shared_ptr<Texture> Material::texture_height()
     return (_texture_height.lock());
 }
 
+std::shared_ptr<Texture> Material::texture_metallicRoughness()
+{
+    return _texture_metallicRoughness.lock();
+}
+
 std::shared_ptr<Texture> Material::texture_roughness()
 {
     return (_texture_roughness.lock());
@@ -186,6 +201,11 @@ void Material::set_texture_normal(std::shared_ptr<Texture> t)
 void Material::set_texture_height(std::shared_ptr<Texture> t)
 {
     _texture_height = t;
+}
+
+void Material::set_texture_metallicRoughness(std::shared_ptr<Texture> t)
+{
+    _texture_metallicRoughness = t;
 }
 
 void Material::set_texture_roughness(std::shared_ptr<Texture> t)

@@ -3,6 +3,7 @@
 #include "Light.hpp"
 #include "Node.hpp"
 #include "Common.hpp"
+#include <algorithm>
 
 std::shared_ptr<Scene> Scene::Create(const std::string &name)
 {
@@ -27,11 +28,11 @@ void Scene::Add(std::shared_ptr<Node> node)
 {
 	if (node == nullptr)
 		return;
-	_nodes.insert(node);
+	_nodes.push_back(node);
 	if (auto camera = std::dynamic_pointer_cast<Camera>(node); camera != nullptr)
-		_cameras.insert(camera);
+		_cameras.push_back(camera);
 	else if (auto light = std::dynamic_pointer_cast<Light>(node); light != nullptr)
-		_lights.insert(light);
+		_lights.push_back(light);
 }
 
 void UpdateTransformMatrix(std::shared_ptr<Node> rootNode)
@@ -99,7 +100,8 @@ std::shared_ptr<Camera> Scene::CurrentCamera()
 
 void Scene::SetCurrentCamera(std::shared_ptr<Camera> camera)
 {
-	Add(camera);
+	if (std::find(_cameras.begin(), _cameras.end(), camera) == _cameras.end())
+		Add(camera);
 	_currentCamera = camera;
 }
 
@@ -145,17 +147,17 @@ std::shared_ptr<Camera> Scene::GetCameraByName(const std::string &name)
 	return nullptr;
 }
 
-const std::set<std::shared_ptr<Node>> &Scene::Nodes()
+const std::vector<std::shared_ptr<Node>> &Scene::Nodes()
 {
 	return _nodes;
 }
 
-const std::set<std::shared_ptr<Light>> &Scene::Lights()
+const std::vector<std::shared_ptr<Light>> &Scene::Lights()
 {
 	return _lights;
 }
 
-const std::set<std::shared_ptr<Camera>> &Scene::Cameras()
+const std::vector<std::shared_ptr<Camera>> &Scene::Cameras()
 {
 	return _cameras;
 }
