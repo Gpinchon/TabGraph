@@ -7,7 +7,7 @@
 
 #include "Node.hpp"
 #include <glm/ext.hpp>
-
+#include <algorithm>
 #include <iostream>
 
 Node::Node(const std::string &name)
@@ -85,6 +85,10 @@ void Node::AddChild(std::shared_ptr<Node> childNode)
 {
     if (childNode == shared_from_this())
     {
+        return;
+    }
+    if (std::find(_children.begin(), _children.end(), childNode) != _children.end()) {
+        std::cout << childNode->Name() << " is already a child of " << Name() << std::endl;
         return;
     }
     _children.push_back(childNode);
