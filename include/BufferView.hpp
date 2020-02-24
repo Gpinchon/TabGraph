@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 #include <GL/glew.h>
 #include "Object.hpp"

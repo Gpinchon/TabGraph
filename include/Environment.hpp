@@ -6,6 +6,7 @@
 */
 
 #pragma once
+
 #include "Object.hpp" // for Object
 #include <memory> // for shared_ptr, weak_ptr
 #include <string> // for string

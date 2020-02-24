@@ -5,6 +5,8 @@
 * @Last Modified time: 2019-08-11 12:18:09
 */
 
+#pragma once
+
 #include <Camera.hpp>
 
 class OrbitCamera : public Camera {

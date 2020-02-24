@@ -5,6 +5,8 @@
 * @Last Modified time: 2019-07-15 09:12:26
 */
 
+#pragma once
+
 #include <glm/vec3.hpp>
 
 namespace Common

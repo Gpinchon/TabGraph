@@ -95,8 +95,6 @@ void Node::AddChild(std::shared_ptr<Node> childNode)
     childNode->SetParent(shared_from_this());
 }
 
-#include <algorithm>
-
 void Node::RemoveChild(std::shared_ptr<Node> child)
 {
     auto it = std::find(_children.begin(), _children.end(), child);

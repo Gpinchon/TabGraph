@@ -5,6 +5,8 @@
 * @Last Modified time: 2019-08-11 12:18:08
 */
 
+#pragma once
+
 #include "Camera.hpp"
 #include <glm/vec3.hpp>
 

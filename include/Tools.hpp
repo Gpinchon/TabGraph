@@ -6,6 +6,7 @@
 */
 
 #pragma once
+
 #define CYCLE(nbr, min, max) (nbr >= max ? min : nbr <= min ? max : nbr)
 
 union SDL_Event;
