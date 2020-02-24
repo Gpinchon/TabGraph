@@ -125,6 +125,7 @@ static inline auto ParseMaterials(const std::string &path, const rapidjson::Docu
 				material->emitting.r = baseColor[0].GetFloat();
 				material->emitting.g = baseColor[1].GetFloat();
 				material->emitting.b = baseColor[2].GetFloat();
+				material->alpha = baseColor[3].GetFloat();
 			}
 			catch (std::exception &) {debugLog("No emissiveFactor property")}
 			try {
