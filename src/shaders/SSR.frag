@@ -138,6 +138,8 @@ bool	castRay(inout vec3 RayStartUVz, in vec3 RayDir, in float StepOffset)
 		vec4	SampleUV0 = RayUVz.xyxy + RayStepUVz.xyxy * vec4( 1, 1, 2, 2 );
 		vec4	SampleUV1 = RayUVz.xyxy + RayStepUVz.xyxy * vec4( 3, 3, 4, 4 );
 		vec4	SampleZ   = RayUVz.zzzz + RayStepUVz.zzzz * vec4( 1, 2, 3, 4 );
+		if (mipLevel * maxMipMaps >= maxMipMaps)
+			return false;
 		vec4	sampleDepth = SampleDepthTexture(mipLevel * maxMipMaps, SampleUV0, SampleUV1);
 		vec4	DepthDiff = SampleZ - sampleDepth;
 		bvec4	Hit = greaterThan(SampleZ, sampleDepth);// || abs(depthDiff) < CompareTolerance;
