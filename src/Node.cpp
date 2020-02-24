@@ -49,9 +49,9 @@ void Node::UpdateTransformMatrix()
         UpdateTranslationMatrix();
         UpdateRotationMatrix();
         UpdateScaleMatrix();
-        SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
-        SetTransformMatrix(NodeTransformMatrix() * TransformMatrix());
     }
+    SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
+    SetTransformMatrix(NodeTransformMatrix() * TransformMatrix());
     if (auto parentPtr = Parent(); parentPtr != nullptr)
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
     SetNeedsTranformUpdate(false);
