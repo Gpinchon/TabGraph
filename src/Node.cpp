@@ -6,6 +6,7 @@
 */
 
 #include "Node.hpp"
+#include "Debug.hpp"
 #include <glm/ext.hpp>
 #include <algorithm>
 #include <iostream>
@@ -88,7 +89,7 @@ void Node::AddChild(std::shared_ptr<Node> childNode)
         return;
     }
     if (std::find(_children.begin(), _children.end(), childNode) != _children.end()) {
-        std::cout << childNode->Name() << " is already a child of " << Name() << std::endl;
+        debugLog(childNode->Name() + " is already a child of " + Name());
         return;
     }
     _children.push_back(childNode);
@@ -100,8 +101,9 @@ void Node::RemoveChild(std::shared_ptr<Node> child)
     auto it = std::find(_children.begin(), _children.end(), child);
     if(it != _children.end()) {
         auto child(*it);
-        child->SetParent(nullptr);
         _children.erase(it);
+        if (child != nullptr)
+            child->SetParent(nullptr);
     }
     //_children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
 }
@@ -124,14 +126,15 @@ std::shared_ptr<Node> Node::Parent()
 /*
 ** /!\ BEWARE OF THE BIG BAD LOOP !!! /!\
 */
-void Node::SetParent(std::shared_ptr<Node> prt)
+void Node::SetParent(std::shared_ptr<Node> parent)
 {
-    if (prt == shared_from_this() || _parent.lock() == prt)
+    if (parent == shared_from_this() || _parent.lock() == parent)
     {
         return;
     }
-    _parent = prt;
-    prt->AddChild(shared_from_this());
+    _parent = parent;
+    if (parent != nullptr)
+        parent->AddChild(shared_from_this());
 }
 
 glm::vec3 Node::Position() const

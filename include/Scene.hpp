@@ -19,7 +19,7 @@ struct Scene
 	static std::shared_ptr<Scene> Create(const std::string &name);
 	static std::shared_ptr<Scene> Current();
 	static void SetCurrent(std::shared_ptr<Scene>);
-	std::shared_ptr<Camera> CurrentCamera();
+	std::shared_ptr<Camera> CurrentCamera() const;
 	void SetCurrentCamera(std::shared_ptr<Camera>);
 	~Scene() = default;
 	std::string Name() const;

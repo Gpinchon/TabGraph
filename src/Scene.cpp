@@ -93,7 +93,7 @@ void Scene::SetCurrent(std::shared_ptr<Scene> scene)
 	CurrentScene() = scene;
 }
 
-std::shared_ptr<Camera> Scene::CurrentCamera()
+std::shared_ptr<Camera> Scene::CurrentCamera() const
 {
 	return _currentCamera;
 }
