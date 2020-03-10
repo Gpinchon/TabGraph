@@ -17,11 +17,9 @@ std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
 	return std::shared_ptr<Buffer>(new Buffer(byteLength));
 }
 
-void Buffer::Load()
+void Buffer::Load(bool loadToGPU)
 {
-	if (Loaded())
-		return;
-	if (Uri() != "") {
+	if (Uri() != "" && !Loaded()) {
 		debugLog(Uri());
 		auto file(_wfopen(Uri().c_str(), L"rb"));
 		debugLog(file);
@@ -31,6 +29,15 @@ void Buffer::Load()
 		}
 		fclose(file);
 	}
+	_loaded = true;
+	if (loadToGPU) 
+		LoadToGPU();
+}
+
+void Buffer::LoadToGPU()
+{
+	if (LoadedToGPU())
+		return;
 	glCreateBuffers(1, &_glid);
 	glCheckError();
 	glNamedBufferData(
@@ -40,18 +47,24 @@ void Buffer::Load()
  		Usage()
  	);
  	glCheckError();
-	_loaded = true;
+ 	_loadedToGPU = true;
 }
 
 void Buffer::Unload()
 {
-	glDeleteBuffers(1, &_glid);
+	if (LoadedToGPU())
+		glDeleteBuffers(1, &_glid);
 	_loaded = false;
 }
 
 bool Buffer::Loaded()
 {
 	return _loaded;
+}
+
+bool Buffer::LoadedToGPU()
+{
+	return _loadedToGPU;
 }
 
 std::vector<std::byte> &Buffer::RawData()

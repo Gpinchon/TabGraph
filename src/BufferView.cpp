@@ -13,9 +13,9 @@ std::shared_ptr<BufferView> BufferView::Create(size_t byteLength, std::shared_pt
 	return std::shared_ptr<BufferView>(new BufferView(byteLength, buffer));
 }
 
-void BufferView::Load()
+void BufferView::Load(bool loadToGPU)
 {
-	GetBuffer()->Load();
+	GetBuffer()->Load(loadToGPU);
 	/*glCreateBuffers(1, &_glid);
 	glBindBuffer(Target(), Glid());
     glBufferData(Target(), ByteLength(), &GetBuffer()->RawData().at(ByteOffset()), Usage());

@@ -16,6 +16,7 @@
 #include "Shader.hpp" // for Shader
 #include "Texture.hpp"
 #include "Vgroup.hpp" // for Vgroup
+#include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
 
@@ -62,15 +63,10 @@ void Mesh::Load()
 bool Mesh::DrawDepth(RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    auto geometryTranslationMatrix(glm::translate(glm::mat4(1.f), GeometryPosition()));
-    auto geometryRotationMatrix(glm::mat4(1.f));
-    geometryRotationMatrix = glm::rotate(geometryRotationMatrix, glm::radians(GeometryRotation().y), glm::vec3(0, 1, 0));
-    geometryRotationMatrix = glm::rotate(geometryRotationMatrix, glm::radians(GeometryRotation().z), glm::vec3(0, 0, 1));
-    geometryRotationMatrix = glm::rotate(geometryRotationMatrix, glm::radians(GeometryRotation().x), glm::vec3(1, 0, 0));
-    auto geometryScalingMatrix(glm::scale(glm::mat4(1.f), Scale()));
-    auto geometryTransformMatrix(geometryTranslationMatrix * geometryRotationMatrix * geometryScalingMatrix);
-
-    auto finalTranformMatrix(geometryTransformMatrix * TransformMatrix());
+    auto geometryTranslationMatrix(glm::translate(GeometryPosition()));
+    auto geometryRotationMatrix(glm::mat4_cast(GeometryRotation()));
+    auto geometryScaleMatrix(glm::scale(GeometryScale()));
+    auto finalTranformMatrix(TransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
 
     bool ret = false;
     auto mvp = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix() * finalTranformMatrix;
@@ -113,12 +109,10 @@ bool Mesh::DrawDepth(RenderMod mod)
 bool Mesh::Draw(RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    auto finalTranformMatrix(TransformMatrix());
-    finalTranformMatrix = glm::translate(finalTranformMatrix, GeometryPosition());
-    finalTranformMatrix = glm::rotate(finalTranformMatrix, glm::radians(GeometryRotation().y), glm::vec3(0, 1, 0));
-    finalTranformMatrix = glm::rotate(finalTranformMatrix, glm::radians(GeometryRotation().z), glm::vec3(0, 0, 1));
-    finalTranformMatrix = glm::rotate(finalTranformMatrix, glm::radians(GeometryRotation().x), glm::vec3(1, 0, 0));
-    finalTranformMatrix = glm::scale(finalTranformMatrix, Scale());
+    auto geometryTranslationMatrix(glm::translate(GeometryPosition()));
+    auto geometryRotationMatrix(glm::mat4_cast(GeometryRotation()));
+    auto geometryScaleMatrix(glm::scale(GeometryScale()));
+    auto finalTranformMatrix(TransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
 
     bool ret = false;
     auto mvp = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix() * finalTranformMatrix;
@@ -235,12 +229,12 @@ void Mesh::SetGeometryPosition(glm::vec3 position)
     SetNeedsTranformUpdate(true);
 }
 
-glm::vec3 Mesh::GeometryRotation() const
+glm::quat Mesh::GeometryRotation() const
 {
     return _geometryRotation;
 }
 
-void Mesh::SetGeometryRotation(glm::vec3 rotation)
+void Mesh::SetGeometryRotation(glm::quat rotation)
 {
     _geometryRotation = rotation;
     SetNeedsTranformUpdate(true);

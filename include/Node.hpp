@@ -40,7 +40,7 @@ public:
     virtual void UpdateRotationMatrix();
     virtual void UpdateScaleMatrix();
     /** @return the basic node transformation matrix, useful for "funny" effects */
-    virtual glm::mat4 NodeTransformMatrix() const;
+    //virtual glm::mat4 NodeTransformMatrix() const;
     /** @argument nodeTransform the node transformation matrix,  useful for "funny" effects*/
     virtual void SetNodeTransformMatrix(glm::mat4 nodeTransform);
     virtual glm::mat4 TransformMatrix() const;
@@ -56,9 +56,11 @@ public:
     /** @argument position : the node local position */
     virtual void SetPosition(glm::vec3 position);
     /** @return the node local rotation */
-    virtual glm::vec3 Rotation() const;
+    virtual glm::quat Rotation() const;
     /** @argument rotation : the node local rotation */
     virtual void SetRotation(glm::vec3 rotation);
+    /** @return the node local scale */
+    virtual void SetRotation(glm::quat rotation);
     /** @return the node local scale */
     virtual glm::vec3 Scale() const;
     /** @argument scale : the node local scale */
@@ -86,9 +88,9 @@ private:
     std::shared_ptr<Node> _target;
     std::weak_ptr<Node> _parent;
     glm::vec3 _position{0, 0, 0};
-    glm::vec3 _rotation{0, 0, 0};
+    glm::quat _rotation{0, 0, 0, 1};
     glm::vec3 _scale{1, 1, 1};
-    glm::mat4 _nodeTranformationmatrix{glm::mat4(1.f)};
+    //glm::mat4 _nodeTranformationmatrix{glm::mat4(1.f)};
     glm::mat4 _transformMatrix{glm::mat4(1.f)};
     glm::mat4 _translationMatrix{glm::mat4(0.f)};
     glm::mat4 _rotationMatrix{glm::mat4(0.f)};

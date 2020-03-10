@@ -12,9 +12,11 @@ class Buffer : public Object
 public:
 	static std::shared_ptr<Buffer> Create(size_t byteLength);
 	/** Reads the data from the uri into rawData */
-	void Load();
+	void Load(bool loadToGPU = true);
+	void LoadToGPU();
 	void Unload();
 	bool Loaded();
+	bool LoadedToGPU();
 	/** The total byte length of the buffer. */
 	size_t ByteLength() const;
 	/** Sets the buffer's byte length and RESIZE RAW DATA !!! */
@@ -38,6 +40,7 @@ private:
 	std::filesystem::path _uri {""};
 	std::vector<std::byte> _rawData {};
 	bool _loaded {false};
+	bool _loadedToGPU {false};
 	GLuint _glid{0};
 	GLenum _usage {GL_STATIC_DRAW};
 };

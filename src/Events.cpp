@@ -6,6 +6,7 @@
 */
 
 #include "Events.hpp"
+#include "Callback.hpp"
 #include "Engine.hpp" // for Stop
 #include "InputDevice.hpp" // for InputDevice
 #include <SDL2/SDL_timer.h> // for SDL_GetTicks
@@ -42,10 +43,16 @@ void Events::remove(InputDevice* device, SDL_EventType event_type)
         inputDevices->second.erase(device);
 }
 
-void Events::set_refresh_callback(t_callback callback)
+void Events::AddRefreshCallback(std::shared_ptr<Callback> callback)
 {
-    _get()._rcallback = callback;
+    if (callback != nullptr)
+        _get()._rcallbacks.push_back(callback);
 }
+
+/*void Events::AddRefreshCallback(t_callback callback, void *argument)
+{
+    _get()._rcallbacks.push_back(std::pair(callback, argument));
+}*/
 
 int Events::filter(void* /*unused*/, SDL_Event* event)
 {
@@ -60,6 +67,8 @@ int Events::filter(void* /*unused*/, SDL_Event* event)
     return (0);
 }
 
+#include "Debug.hpp"
+
 int Events::refresh()
 {
     double ticks;
@@ -68,11 +77,19 @@ int Events::refresh()
     ticks = SDL_GetTicks() / 1000.f;
     _get()._delta_time = ticks - last_ticks;
     last_ticks = ticks;
-    if (_get()._rcallback != nullptr) {
-        _get()._rcallback(nullptr);
+    for (const auto &callback : _get()._rcallbacks) {
+        if (callback != nullptr)
+            (*callback)();
     }
     SDL_Event event;
     event.type = EVENT_REFRESH;
     filter(nullptr, &event);
     return (0);
+}
+
+void Events::RemoveRefreshCallback(std::shared_ptr<Callback> callback)
+{
+    _get()._rcallbacks.erase(std::remove(_get()._rcallbacks.begin(), _get()._rcallbacks.end(), callback), _get()._rcallbacks.end());
+    //TODO : Enable this when C++20 is out
+    //std::erase_if(_get()._rcallbacks, [callback](auto it) { return it->second == reinterpret_cast<size_t>(&callback); });
 }

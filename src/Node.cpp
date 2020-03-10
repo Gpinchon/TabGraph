@@ -7,6 +7,8 @@
 
 #include "Node.hpp"
 #include "Debug.hpp"
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/ext.hpp>
 #include <algorithm>
 #include <iostream>
@@ -24,10 +26,9 @@ Node::~Node() {
 std::shared_ptr<Node> Node::Create(const std::string &name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
     auto t = std::shared_ptr<Node>(new Node(name));
-    t->_position = position;
-    t->_rotation = rotation;
-    t->_scale = scale;
-    t->Update();
+    t->SetPosition(position);
+    t->SetRotation(rotation);
+    t->SetScale(scale);
     return (t);
 }
 
@@ -46,35 +47,32 @@ void Node::Update()
 
 void Node::UpdateTransformMatrix()
 {
-    if (NeedsTransformUpdate()) {
-        UpdateTranslationMatrix();
-        UpdateRotationMatrix();
-        UpdateScaleMatrix();
-    }
+    if (!NeedsTransformUpdate())
+        return;
+    UpdateTranslationMatrix();
+    UpdateRotationMatrix();
+    UpdateScaleMatrix();
     SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
-    SetTransformMatrix(NodeTransformMatrix() * TransformMatrix());
-    if (auto parentPtr = Parent(); parentPtr != nullptr)
+    if (auto parentPtr = Parent(); parentPtr != nullptr) 
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
     SetNeedsTranformUpdate(false);
+    for (auto child : _children)
+        child->SetNeedsTranformUpdate(true);
 }
 
 void Node::UpdateTranslationMatrix()
 {
-    SetTranslationMatrix(glm::translate(glm::mat4(1.f), Position()));
+    SetTranslationMatrix(glm::translate(Position()));
 }
 
 void Node::UpdateRotationMatrix()
 {
-    auto rotationMatrix(glm::mat4(1.f));
-    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(Rotation().y), glm::vec3(0, 1, 0));
-    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(Rotation().z), glm::vec3(0, 0, 1));
-    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(Rotation().x), glm::vec3(1, 0, 0));
-    SetRotationMatrix(rotationMatrix);
+    SetRotationMatrix(glm::mat4_cast(Rotation()));
 }
 
 void Node::UpdateScaleMatrix()
 {
-    SetScaleMatrix(glm::scale(glm::mat4(1.f), Scale()));
+    SetScaleMatrix(glm::scale(Scale()));
 }
 
 std::vector<std::shared_ptr<Node>> Node::Children() const
@@ -148,14 +146,24 @@ void Node::SetPosition(glm::vec3 position)
     SetNeedsTranformUpdate(true);
 }
 
-glm::vec3 Node::Rotation() const
+glm::quat Node::Rotation() const
 {
     return (_rotation);
 }
 
 void Node::SetRotation(glm::vec3 rotation)
 {
-    _rotation = rotation;
+    /*auto angles(glm::eulerAngles(rotation));
+    angles = glm::degrees(glm::vec3(angles.x, angles.y, angles.z));*/
+    SetRotation(glm::quat(rotation));
+}
+
+void Node::SetRotation(glm::quat rotation)
+{
+    _rotation[0] = rotation[0];
+    _rotation[1] = rotation[1];
+    _rotation[2] = rotation[2];
+    _rotation[3] = rotation[3];
     SetNeedsTranformUpdate(true);
 }
 
@@ -170,14 +178,26 @@ void Node::SetScale(glm::vec3 scale)
     SetNeedsTranformUpdate(true);
 }
 
-glm::mat4 Node::NodeTransformMatrix() const
+/*glm::mat4 Node::NodeTransformMatrix() const
 {
     return _nodeTranformationmatrix;
-}
+}*/
+
+#include <glm/gtx/matrix_decompose.hpp>
 
 void Node::SetNodeTransformMatrix(glm::mat4 nodeTransform)
 {
-    _nodeTranformationmatrix = nodeTransform;
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(nodeTransform, scale, rotation, translation, skew, perspective);
+    //rotation=glm::conjugate(rotation);
+    SetPosition(translation);
+    SetRotation(glm::normalize(rotation));
+    SetScale(scale);
+    //_nodeTranformationmatrix = nodeTransform;
 }
 
 glm::mat4 Node::TransformMatrix() const

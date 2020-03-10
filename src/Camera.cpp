@@ -31,12 +31,12 @@ std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
 
 glm::vec3 Camera::Forward() const
 {
-    return Rotation();
+    return _forward;
 }
 
 void Camera::SetForward(glm::vec3 forward)
 {
-    SetRotation(forward);
+    _forward = forward;
 }
 
 glm::vec3 Camera::Right() const

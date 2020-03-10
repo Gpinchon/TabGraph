@@ -13,6 +13,7 @@
 #include <string> // for string
 #include <vector> // for vector
 #include <iostream>
+#include <glm/gtc/quaternion.hpp>
 #include "Node.hpp"
 
 class Vgroup;
@@ -49,9 +50,9 @@ public:
     /** @argument position : vgroups position offset, not inherited by children */
     virtual void SetGeometryPosition(glm::vec3 position);
     /** @return a rotation offset not inherited by children */
-    virtual glm::vec3 GeometryRotation() const;
+    virtual glm::quat GeometryRotation() const;
     /** @argument rotation : vgroups rotation offset, not inherited by children */
-    virtual void SetGeometryRotation(glm::vec3 rotation);
+    virtual void SetGeometryRotation(glm::quat rotation);
     /** @return a scaling offset not inherited by children */
     virtual glm::vec3 GeometryScale() const;
     /** @argument scale : vgroups scale offset, not inherited by children */
@@ -67,7 +68,7 @@ private:
     std::vector<std::shared_ptr<Material>> _materials;
     GLenum _cull_mod{GL_BACK};
     glm::vec3 _geometryPosition{0};
-    glm::vec3 _geometryRotation{0};
+    glm::quat _geometryRotation{0, 0, 0, 1};
     glm::vec3 _geometryScale{1};
     bool _loaded {false};
 };

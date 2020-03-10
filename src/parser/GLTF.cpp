@@ -1,5 +1,7 @@
 #include "parser/GLTF.hpp"
 #include "parser/InternalTools.hpp"
+#include "Animation.hpp"
+#include "AnimationSampler.hpp"
 #include "Buffer.hpp"
 #include "BufferView.hpp"
 #include "BufferAccessor.hpp"
@@ -10,6 +12,7 @@
 #include "SceneParser.hpp"
 #include "TextureParser.hpp"
 #include "Vgroup.hpp"
+#include <glm/ext.hpp>
 #include <iostream>
 #include <filesystem>
 #include <memory>
@@ -22,6 +25,16 @@ auto __gltfParser = SceneParser::Add("gltf", GLTF::Parse);
 struct TextureSampler
 {
 	std::map<std::string, GLenum> settings;
+};
+
+struct GLTFContainer
+{
+	std::vector<std::shared_ptr<BufferAccessor>> accessors;
+	std::vector<std::shared_ptr<Material>> materials;
+	std::vector<std::shared_ptr<Mesh>> meshes;
+	std::vector<std::shared_ptr<Node>> nodes;
+	std::vector<std::shared_ptr<Camera>> cameras;
+	std::vector<std::shared_ptr<Animation>> animations;
 };
 
 static inline auto ParseCameras(const rapidjson::Document &document)
@@ -260,7 +273,7 @@ static inline auto ParseBufferAccessors(const std::string &path, const rapidjson
 	return bufferAccessorVector;
 }
 
-static inline auto parseMeshes(const std::string &path, const rapidjson::Document &document)
+static inline auto ParseMeshes(const rapidjson::Document &document, const GLTFContainer &container)
 {
 	debugLog("Start parsing meshes");
 	std::vector<std::shared_ptr<Mesh>> meshVector;
@@ -270,8 +283,7 @@ static inline auto parseMeshes(const std::string &path, const rapidjson::Documen
 		return meshVector;
 	}
 	auto defaultMaterial(Material::Create("defaultMaterial"));
-	const auto accessors(ParseBufferAccessors(path, document));
-	const auto materials(ParseMaterials(path, document));
+	//const auto materials(ParseMaterials(path, document));
 	int meshIndex = 0;
 	for (const auto &mesh : meshesItr->value.GetArray()) {
 		debugLog("Found new mesh");
@@ -281,12 +293,12 @@ static inline auto parseMeshes(const std::string &path, const rapidjson::Documen
 			auto vgroup(Vgroup::Create());
 			if (auto material = primitive.FindMember("material"); material != primitive.MemberEnd())
 			{
-				currentMesh->AddMaterial(*std::find(materials.begin(), materials.end(), materials.at(material->value.GetInt())));
-				vgroup->SetMaterialIndex(currentMesh->GetMaterialIndex(materials.at(material->value.GetInt())));
+				currentMesh->AddMaterial(*std::find(container.materials.begin(), container.materials.end(), container.materials.at(material->value.GetInt())));
+				vgroup->SetMaterialIndex(currentMesh->GetMaterialIndex(container.materials.at(material->value.GetInt())));
 			}
 			for (const auto &attribute : primitive["attributes"].GetObject()) {
 				auto attributeName(std::string(attribute.name.GetString()));
-				auto accessor(accessors.at(attribute.value.GetInt()));
+				auto accessor(container.accessors.at(attribute.value.GetInt()));
 				if (accessor->GetBufferView()->Target() == 0) {
 					if (attributeName == "POSITION" ||
 						attributeName == "NORMAL" ||
@@ -298,7 +310,7 @@ static inline auto parseMeshes(const std::string &path, const rapidjson::Documen
 				vgroup->SetAccessor(attributeName, accessor);
 			}
 			try {
-				auto accessor(accessors.at(primitive["indices"].GetInt()));
+				auto accessor(container.accessors.at(primitive["indices"].GetInt()));
 				if (accessor->GetBufferView()->Target() == 0)
 					accessor->GetBufferView()->SetTarget(GL_ELEMENT_ARRAY_BUFFER);
 				vgroup->SetIndices(accessor);
@@ -316,11 +328,12 @@ static inline auto parseMeshes(const std::string &path, const rapidjson::Documen
 	return meshVector;
 }
 
-static inline auto parseNodes(const std::string &path, const rapidjson::Document &document)
+static inline auto ParseNodes(const rapidjson::Document &document, const GLTFContainer &container)
 {
 	std::vector<std::shared_ptr<Node>> nodeVector;
-	auto meshes(parseMeshes(path, document));
-	auto cameras(ParseCameras(document));
+	/*const auto accessors(ParseBufferAccessors(path, document));
+	auto container.meshes(ParseMeshes(path, document, accessors));
+	auto container.cameras(ParseCameras(document));*/
 	auto nodeItr(document.FindMember("nodes"));
 	if (nodeItr == document.MemberEnd())
 		return nodeVector;
@@ -330,18 +343,20 @@ static inline auto parseNodes(const std::string &path, const rapidjson::Document
 		std::shared_ptr<Node> newNode;
 		if (node.FindMember("mesh") != node.MemberEnd()) //This is a mesh
 		{
-			newNode = std::dynamic_pointer_cast<Node>(Mesh::Create(meshes.at(node["mesh"].GetInt())));
+			newNode = std::dynamic_pointer_cast<Node>(Mesh::Create(container.meshes.at(node["mesh"].GetInt())));
 			newNode->SetName("MeshNode " + std::to_string(nodeIndex));
 			std::cout << "Found new mesh " << newNode->Name() << " Use count " << newNode.use_count() << std::endl;
 		}
 		else if (node.FindMember("camera") != node.MemberEnd())
 		{
-			newNode = std::dynamic_pointer_cast<Node>(Camera::Create(cameras.at(node["camera"].GetInt())));
+			newNode = std::dynamic_pointer_cast<Node>(Camera::Create(container.cameras.at(node["camera"].GetInt())));
 			newNode->SetName("CameraNode " + std::to_string(nodeIndex));
 			std::cout << "Found new camera " << newNode->Name() << " Use count " << newNode.use_count() << std::endl;
 		}
 		else
 			newNode = Node::Create("Node " + std::to_string(nodeIndex));
+		try { newNode->SetName(node["name"].GetString()); }
+		catch (std::exception &) {}
 		try {
 			glm::mat4 matrix;
 			for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < glm::uint(matrix.length() * 4); i++)
@@ -350,7 +365,24 @@ static inline auto parseNodes(const std::string &path, const rapidjson::Document
 		} catch (std::exception &) {}
 		try {
 			const auto &position(node["translation"].GetArray());
-			newNode->SetPosition(glm::vec3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
+			glm::vec3 positionVec3;
+			positionVec3[0] = position[0].GetFloat();
+			positionVec3[1] = position[1].GetFloat();
+			positionVec3[2] = position[2].GetFloat();
+			newNode->SetPosition(positionVec3);
+		} catch (std::exception &) {}
+		try {
+			const auto &rotation(node["rotation"].GetArray());
+			glm::quat rotationQuat;
+			rotationQuat[0] = rotation[0].GetFloat();
+			rotationQuat[1] = rotation[1].GetFloat();
+			rotationQuat[2] = rotation[2].GetFloat();
+			rotationQuat[3] = rotation[3].GetFloat();
+			newNode->SetRotation(glm::normalize(rotationQuat));
+		} catch (std::exception &) {}
+		try {
+			const auto &scale(node["scale"].GetArray());
+			newNode->SetScale(glm::vec3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
 		} catch (std::exception &) {}
 		nodeVector.push_back(newNode);
 		nodeIndex++;
@@ -372,6 +404,56 @@ static inline auto parseNodes(const std::string &path, const rapidjson::Document
 	return nodeVector;
 }
 
+static inline auto ParseAnimations(const rapidjson::Document &document, const GLTFContainer &container) {
+	std::vector<std::shared_ptr<Animation>> animations;
+	try {
+		for (const auto &animation : document["animations"].GetArray()) {
+			auto newAnimation(Animation::Create());
+			try { newAnimation->SetName(animation["name"].GetString()); }
+			catch (std::exception &) { debugLog("No name property found"); }
+			for (const auto &sampler : animation["samplers"].GetArray()) {
+				auto samplerInput(container.accessors.at(sampler["input"].GetInt()));
+				auto samplerOutput(container.accessors.at(sampler["output"].GetInt()));
+				debugLog(samplerOutput->Type());
+				auto newSampler(AnimationSampler(samplerInput, samplerOutput));
+				try {
+					std::string interpolation(sampler["interpolation"].GetString());
+					if (interpolation == "LINEAR")
+						newSampler.SetInterpolation(AnimationSampler::Linear);
+					else if (interpolation == "STEP")
+						newSampler.SetInterpolation(AnimationSampler::Step);
+					else if (interpolation == "CUBICSPLINE")
+						newSampler.SetInterpolation(AnimationSampler::CubicSpline);
+				}
+				catch (std::exception &) { debugLog("No interpolation property found"); }
+				newAnimation->AddSampler(newSampler);
+			}
+			for (const auto &channel : animation["channels"].GetArray()) {
+				AnimationChannel newChannel;
+				try {
+					auto &target = (channel["target"]);
+					std::string path(target["path"].GetString());
+					newChannel.SetSamplerIndex(channel["sampler"].GetInt());
+					newChannel.SetTarget(container.nodes.at(target["node"].GetInt()));
+					if (path == "translation")
+						newChannel.SetPath(AnimationChannel::Translation);
+					else if (path == "rotation")
+						newChannel.SetPath(AnimationChannel::Rotation);
+					else if (path == "scale")
+						newChannel.SetPath(AnimationChannel::Scale);
+					else if (path == "weights")
+						newChannel.SetPath(AnimationChannel::Weights);
+				}
+				catch (std::exception &) { debugLog("No target property found"); }
+				newAnimation->AddChannel(newChannel);
+			}
+			animations.push_back(newAnimation);
+		}
+	}
+	catch (std::exception &) { debugLog("No animations found"); }
+	return animations;
+}
+
 std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 	std::vector<std::shared_ptr<Scene>> sceneVector;
 	rapidjson::Document document;
@@ -380,7 +462,13 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 		debugLog("Invalid file !");
 		return sceneVector;
 	}
-	auto nodes(parseNodes(path, document));
+	GLTFContainer container;
+	container.cameras = ParseCameras(document);
+	container.accessors = ParseBufferAccessors(path, document);
+	container.materials = ParseMaterials(path, document);
+	container.meshes = ParseMeshes(document, container);
+	container.nodes = ParseNodes(document, container);
+	container.animations = ParseAnimations(document, container);
 	auto scenes(document["scenes"].GetArray());
 	int sceneIndex = 0;
 	for (const auto &scene : scenes) {
@@ -388,11 +476,22 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 		auto newScene(Scene::Create(std::to_string(sceneIndex)));
 		newScene->SetUp(glm::vec3(0, 1, 0));
 		for (const auto &node : scene["nodes"].GetArray()) {
-			newScene->Add(nodes.at(node.GetInt()));
-			std::cout << nodes.at(node.GetInt())->Name() << std::endl;
+			newScene->Add(container.nodes.at(node.GetInt()));
+			std::cout << container.nodes.at(node.GetInt())->Name() << std::endl;
 		}
 		if (!newScene->Cameras().empty())
 			newScene->SetCurrentCamera(*newScene->Cameras().begin());
+		for (const auto animation : container.animations) {
+			std::cout << animation << std::endl;
+			newScene->Add(animation);
+			/*for (const auto channel : animation->GetChannels()) {
+				if (newScene->GetNode(channel.Target())) {
+					std::cout << "Found Node" << std::endl;
+					newScene->Add(animation);
+					break;
+				}
+			}*/
+		}
 		sceneVector.push_back(newScene);
 		sceneIndex++;
 	}

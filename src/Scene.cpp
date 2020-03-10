@@ -35,6 +35,13 @@ void Scene::Add(std::shared_ptr<Node> node)
 		_lights.push_back(light);
 }
 
+void Scene::Add(std::shared_ptr<Animation> animation)
+{
+	if (animation == nullptr)
+		return;
+	_animations.push_back(animation);
+}
+
 void UpdateTransformMatrix(std::shared_ptr<Node> rootNode)
 {
 	if (rootNode == nullptr)
@@ -117,7 +124,29 @@ std::shared_ptr<T> GetByName(const std::string &name, const std::shared_ptr<T> r
 	return nullptr;
 }
 
-std::shared_ptr<Node> Scene::GetNodeByName(const std::string &name)
+template<typename T>
+std::shared_ptr<T> GetByPointer(std::shared_ptr<Node> node, const std::shared_ptr<T> rootNode) {
+	if (rootNode == nullptr || rootNode == node)
+		return std::dynamic_pointer_cast<T>(rootNode);
+	for (const auto object : rootNode->Children()) {
+		auto result(std::dynamic_pointer_cast<T>(GetByPointer<Node>(node, object)));
+		if (result != nullptr)
+			return result;
+	}
+	return nullptr;
+}
+
+std::shared_ptr<Node> Scene::GetNode(std::shared_ptr<Node> node) const
+{
+	for (const auto object : _nodes) {
+		auto result(GetByPointer(node, object));
+		if (result != nullptr)
+			return result;
+	}
+	return nullptr;
+}
+
+std::shared_ptr<Node> Scene::GetNodeByName(const std::string &name) const
 {
 	for (const auto object : _nodes) {
 		auto result(GetByName(name, object));
@@ -127,7 +156,7 @@ std::shared_ptr<Node> Scene::GetNodeByName(const std::string &name)
 	return nullptr;
 }
 
-std::shared_ptr<Light> Scene::GetLightByName(const std::string &name)
+std::shared_ptr<Light> Scene::GetLightByName(const std::string &name) const
 {
 	for (const auto object : _lights) {
 		auto result(GetByName(name, object));
@@ -137,7 +166,7 @@ std::shared_ptr<Light> Scene::GetLightByName(const std::string &name)
 	return nullptr;
 }
 
-std::shared_ptr<Camera> Scene::GetCameraByName(const std::string &name)
+std::shared_ptr<Camera> Scene::GetCameraByName(const std::string &name) const
 {
 	for (const auto object : _cameras) {
 		auto result(GetByName(name, object));
@@ -160,6 +189,11 @@ const std::vector<std::shared_ptr<Light>> &Scene::Lights()
 const std::vector<std::shared_ptr<Camera>> &Scene::Cameras()
 {
 	return _cameras;
+}
+
+const std::vector<std::shared_ptr<Animation>> &Scene::Animations()
+{
+	return _animations;
 }
 
 glm::vec3 Scene::Up() const

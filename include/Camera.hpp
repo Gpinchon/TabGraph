@@ -57,6 +57,7 @@ private:
     CameraProjection _projection_type { PerspectiveCamera };
     glm::mat4 _projection { 0 };
     glm::ivec4 _frustum { -50, 50, -50, 50 };
+    glm::vec3 _forward {0, 0, 0};
     float _fov { 45 };
     float _znear { 0.1 };
     float _zfar { 1000 };
