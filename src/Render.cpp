@@ -49,7 +49,8 @@ public:
     static void StopRenderingThread();
     static void RequestRedraw();
     static double DeltaTime();
-    static bool NeedsUpdate();
+    static std::atomic<bool> &NeedsUpdate();
+    static std::atomic<bool> &Drawing();
     static uint64_t FrameNbr(void);
     static const std::shared_ptr<VertexArray> DisplayQuad();
     static std::vector<std::weak_ptr<Shader>> &PostTreatments();
@@ -63,6 +64,7 @@ private:
     std::atomic<float> _internalQuality{1};
     std::atomic<bool> _needsUpdate{true};
     std::atomic<bool> _loop{true};
+    std::atomic<bool> _drawing{false};
     uint64_t _frame_nbr{0};
     std::thread _rendering_thread;
 };
@@ -278,8 +280,8 @@ void Render::Private::_thread(void)
     {
         if (Render::Private::NeedsUpdate())
         {
-            Engine::UpdateMutex().lock();
             _instance()._frame_nbr++;
+            _instance()._drawing = true;
             ticks = SDL_GetTicks() / 1000.f;
             if (ticks - fixed_timing >= 0.015)
             {
@@ -289,10 +291,8 @@ void Render::Private::_thread(void)
             Render::Private::Update();
             Render::Private::Scene();
             _instance()._needsUpdate = false;
-            Engine::UpdateMutex().unlock();
+            _instance()._drawing = false;
         }
-        //else
-        //    Render::Private::Scene();
     }
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
 }
@@ -376,9 +376,14 @@ Render::Private &Render::Private::_instance()
     return *instance;
 }
 
-bool Render::Private::NeedsUpdate()
+std::atomic<bool> &Render::Private::NeedsUpdate()
 {
     return (_instance()._needsUpdate);
+}
+
+std::atomic<bool> &Render::Private::Drawing()
+{
+    return (_instance()._drawing);
 }
 
 #include <Debug.hpp>
@@ -772,6 +777,11 @@ float Render::InternalQuality()
 double Render::DeltaTime()
 {
     return Render::Private::DeltaTime();
+}
+
+std::atomic<bool> &Render::Drawing()
+{
+    return Render::Private::Drawing();
 }
 
 const std::shared_ptr<VertexArray> Render::DisplayQuad()

@@ -3,6 +3,7 @@
 #include "Light.hpp"
 #include "Node.hpp"
 #include "Common.hpp"
+#include "Animation.hpp"
 #include <algorithm>
 
 std::shared_ptr<Scene> Scene::Create(const std::string &name)
@@ -63,6 +64,10 @@ void NodesFixedUpdate(std::shared_ptr<Node> rootNode)
 void Scene::FixedUpdate()
 {
 	Common::SetUp(Up());
+	for (auto &animation: Animations()) {
+		if (animation->Playing())
+			animation->Advance();
+	}
 	for (auto &node : Nodes())
 		UpdateTransformMatrix(node);
     for (auto &node : Nodes())

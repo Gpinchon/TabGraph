@@ -88,7 +88,9 @@ inline T BufferHelper::Get(std::shared_ptr<BufferAccessor> accessor, size_t inde
 		return ret;
 	auto stride(bufferView->ByteStride() ? bufferView->ByteStride() : accessor->TotalComponentByteSize());
 	auto bufferIndex(accessor->ByteOffset() + bufferView->ByteOffset() + index * stride);
-	memcpy(&ret, &buffer->RawData().at(bufferIndex), std::min(sizeof(T), accessor->TotalComponentByteSize()));
+	if (bufferIndex + accessor->TotalComponentByteSize() > buffer->RawData().size())
+		throw std::runtime_error(std::string("Buffer index(") + std::to_string(bufferIndex + accessor->TotalComponentByteSize()) + ") out of bound(" + std::to_string(buffer->RawData().size()) + ")");
+	memcpy(&ret, &buffer->RawData().at(bufferIndex), accessor->TotalComponentByteSize());
 	return ret;
 }
 

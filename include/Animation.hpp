@@ -17,6 +17,8 @@ public:
 	void AddSampler(AnimationSampler);
 	/** start playing the animation */
 	void Play();
+	/** advance the animation */
+	void Advance();
 	/** stop the animation */
 	void Stop();
 	/** true if the animation is currently playing */

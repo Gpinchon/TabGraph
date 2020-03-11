@@ -2,7 +2,6 @@
 #include <glm/common.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include "Animation.hpp"
-#include "Events.hpp"
 #include "Node.hpp"
 #include "BufferHelper.hpp"
 #include "BufferAccessor.hpp"
@@ -41,44 +40,56 @@ void Animation::AddSampler(AnimationSampler sampler)
 }
 
 template<typename T, typename U>
-T cubicSpline(T previousPoint, T previousTangent, T nextPoint, T nextTangent, U interpolationValue) {
+static inline T cubicSpline(T previousPoint, T previousTangent, T nextPoint, T nextTangent, U interpolationValue) {
 	auto t = interpolationValue;
 	auto t2 = t * t;
 	auto t3 = t2 * t;
 	return (2 * t3 - 3 * t2 + 1) * previousPoint + (t3 - 2 * t2 + t) * previousTangent + (-2 * t3 + 3 * t2) * nextPoint + (t3 - t2) * nextTangent;
 }
 
-/*cubicSpline(prevKey, nextKey, output, keyDelta, t, )
-    {
-        // : Count of components (4 in a quaternion).
-        // Scale by 3, because each output entry consist of two tangents and one data-point.
-        const prevIndex = prevKey *  * 3;
-        const nextIndex = nextKey *  * 3;
-        const A = 0;
-        const V = 1 * ;
-        const B = 2 * ;
+template<typename T, typename U>
+static inline T slerp(T v0, T v1, U t) {
+    // Only unit quaternions are valid rotations.
+    // Normalize to avoid undefined behavior.
+    v0 = glm::normalize(v0);
+    v1 = glm::normalize(v1);
 
-        const result = new glMatrix.ARRAY_TYPE();
-        const tSq = t ** 2;
-        const tCub = t ** 3;
+    // Compute the cosine of the angle between the two vectors.
+    auto dot = glm::dot(v0, v1);
 
-        // We assume that the components in output are laid out like this: in-tangent, point, out-tangent.
-        // https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#appendix-c-spline-interpolation
-        for(let i = 0; i < ; ++i)
-        {
-            const v0 = output[prevIndex + i + V];
-            const a = keyDelta * output[nextIndex + i + A];
-            const b = keyDelta * output[prevIndex + i + B];
-            const v1 = output[nextIndex + i + V];
+    // If the dot product is negative, slerp won't take
+    // the shorter path. Note that v1 and -v1 are equivalent when
+    // the negation is applied to all four components. Fix by 
+    // reversing one T.
+    if (dot < 0.0f) {
+        v1 = -v1;
+        dot = -dot;
+    }
 
-            result[i] = ((2*tCub - 3*tSq + 1) * v0) + ((tCub - 2*tSq + t) * b) + ((-2*tCub + 3*tSq) * v1) + ((tCub - tSq) * a);
-        }
+    const auto DOT_THRESHOLD = 0.9995;
+    if (dot > DOT_THRESHOLD) {
+        // If the inputs are too close for comfort, linearly interpolate
+        // and normalize the result.
 
+        T result = v0 + t*(v1 - v0);
+        result.normalize();
         return result;
-    }*/
+    }
+
+    // Since dot is in range [0, DOT_THRESHOLD], acos is safe
+    auto theta_0 = acos(dot);        // theta_0 = angle between input vectors
+    auto theta = theta_0*t;          // theta = angle between v0 and result
+    auto sin_theta = sin(theta);     // compute this value only once
+    auto sin_theta_0 = sin(theta_0); // compute this value only once
+
+    auto s0 = cos(theta) - dot * sin_theta / sin_theta_0;  // == sin(theta_0 - theta) / sin(theta_0)
+    auto s1 = sin_theta / sin_theta_0;
+
+    return (s0 * v0) + (s1 * v1);
+}
 
 template<typename T, typename U>
-T InterpolateKeyFrame(T prev, T next, U interpolationValue, AnimationSampler::AnimationInterpolation interpolation, T previousTangent = T(), T nextTangent = T())
+static inline T InterpolateKeyFrame(T prev, T next, U interpolationValue, AnimationSampler::AnimationInterpolation interpolation, T previousTangent = T(), T nextTangent = T())
 {
 	switch (interpolation) {
 		case AnimationSampler::Linear:
@@ -86,34 +97,25 @@ T InterpolateKeyFrame(T prev, T next, U interpolationValue, AnimationSampler::An
 		case AnimationSampler::CubicSpline:
 			return cubicSpline(prev, previousTangent, next, nextTangent, interpolationValue);
 		case AnimationSampler::Step:
-			return interpolationValue < 0.5 ? prev : next;
+			return prev;
 	}
 	return next;
 }
 
-//#include <glm/gtx/string_cast.hpp>
-//#include <iostream>
-/*
 template<typename U>
-glm::quat InterpolateKeyFrame(glm::quat prev, glm::quat next, U interpolationValue, AnimationSampler::AnimationInterpolation interpolation, glm::quat previousTangent = glm::quat(), glm::quat nextTangent = glm::quat())
+static inline glm::quat InterpolateKeyFrame(glm::quat prev, glm::quat next, U interpolationValue, AnimationSampler::AnimationInterpolation interpolation, glm::quat previousTangent = glm::quat(), glm::quat nextTangent = glm::quat())
 {
-	//std::cout << glm::to_string(prev) << " " << glm::to_string(next) << std::endl;
-	glm::quat result = prev;
 	switch (interpolation) {
 		case AnimationSampler::Linear:
-			result = glm::mix(prev, next, interpolationValue);
-			break;
+			return slerp(prev, next, interpolationValue);
 		case AnimationSampler::CubicSpline:
-			result = cubicSpline(prev, previousTangent, next, nextTangent, interpolationValue);
-			break;
+			return cubicSpline(prev, previousTangent, next, nextTangent, interpolationValue);
 		case AnimationSampler::Step:
-			result = interpolationValue < 0.5 ? prev : next;
-			break;
+			return prev;
 	}
-	result = glm::normalize(result);
-	return result;
+	return next;
 }
-*/
+
 void Animation::Reset()
 {
 	for (auto interpolator : _interpolators) {
@@ -123,18 +125,8 @@ void Animation::Reset()
 	}
 }
 
-void Animation::Play()
+void Animation::Advance()
 {
-	if (!Playing()) {
-		for (auto sampler : _samplers) {
-			sampler.Timings()->Load(false);
-			sampler.KeyFrames()->Load(false);
-		}
-		Events::AddRefreshCallback(_playCallback);
-		_startTime = SDL_GetTicks();
-		_playing = true;
-		return;
-	}
 	_currentTime = (SDL_GetTicks() - _startTime) / 1000.0;
 	bool animationPlayed(false);
 	for (auto index = 0u; index < _channels.size(); ++index) {
@@ -150,7 +142,7 @@ void Animation::Play()
 		for (auto i = interpolator.PrevKey(); i < sampler.Timings()->Count(); ++i)
 		{
 			float timing(BufferHelper::Get<float>(sampler.Timings(), i));
-			if (timing >= t)
+			if (timing > t)
             {
                 nextKey = std::clamp(size_t(i), size_t(0), sampler.Timings()->Count() - 1);
                 break;
@@ -160,7 +152,9 @@ void Animation::Play()
 		auto prevTime(BufferHelper::Get<float>(sampler.Timings(), interpolator.PrevKey()));
 		auto nextTime(BufferHelper::Get<float>(sampler.Timings(), nextKey));
 		auto keyDelta(nextTime - prevTime);
-		auto interpolationValue((t - prevTime) / keyDelta);
+		auto interpolationValue(0.f);
+		if (keyDelta != 0)
+			interpolationValue = (t - prevTime) / keyDelta;
 		switch (channel.Path()) {
 			case AnimationChannel::Translation:
 			{
@@ -235,6 +229,7 @@ void Animation::Play()
 			case AnimationChannel::None:
 				break;
 		}
+
 		animationPlayed = t < max;
 	}
 	if (!animationPlayed) {
@@ -245,11 +240,22 @@ void Animation::Play()
 	}
 }
 
+void Animation::Play()
+{
+	if (!Playing()) {
+		for (auto sampler : _samplers) {
+			sampler.Timings()->Load(false);
+			sampler.KeyFrames()->Load(false);
+		}
+		_startTime = SDL_GetTicks();
+		_playing = true;
+	}
+}
+
 void Animation::Stop()
 {
-	if (Playing())
-		Events::RemoveRefreshCallback(_playCallback);
-	_playing = 0;
+	Reset();
+	_playing = false;
 }
 
 bool Animation::Playing() const

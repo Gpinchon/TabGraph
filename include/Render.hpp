@@ -20,6 +20,8 @@ void Start();
 void Stop();
 /** @brief Asks for a redraw on next loop */
 void RequestRedraw();
+/** @brief Indicates if the rendering still needs update */
+std::atomic<bool> &Drawing();
 /**
 	*	@brief Adds a post-treatment Shader to be applied after rasterization path
 	*	@param shader The post-treatment Shader to add

@@ -152,22 +152,22 @@ void Engine::Start()
     Render::Start();
     while (EnginePrivate::Get().loop)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        EnginePrivate::Get().updateMutex.lock();
+        //std::this_thread::sleep_for(std::chrono::milliseconds(16));
+        if (Render::Drawing())
+            continue;
+        //EnginePrivate::Get().updateMutex.lock();
         ticks = SDL_GetTicks() / 1000.f;
         EnginePrivate::Get().deltaTime = ticks - lastTicks;
         lastTicks = ticks;
         SDL_PumpEvents();
-        Events::refresh();
         if (ticks - fixedTiming >= 0.015)
         {
             fixedTiming = ticks;
+            Events::refresh();
             Scene::Current()->FixedUpdate();
-            //EnginePrivate::FixedUpdate();
         }
         Scene::Current()->Update();
-        //EnginePrivate::Update();
-        EnginePrivate::Get().updateMutex.unlock();
+        //EnginePrivate::Get().updateMutex.unlock();
         Render::RequestRedraw();
     }
     Render::Stop();
