@@ -29,7 +29,7 @@ public:
 protected:
     static std::vector<std::shared_ptr<Environment>> _environments;
     static std::weak_ptr<Environment> _current;
-    std::weak_ptr<Cubemap> _diffuse;
-    std::weak_ptr<Cubemap> _irradiance;
+    std::shared_ptr<Cubemap> _diffuse;
+    std::shared_ptr<Cubemap> _irradiance;
     Environment(const std::string& name);
 };

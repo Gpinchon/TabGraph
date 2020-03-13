@@ -42,7 +42,7 @@ void Environment::set_current(std::shared_ptr<Environment> cur)
 
 std::shared_ptr<Cubemap> Environment::diffuse()
 {
-    return (_diffuse.lock());
+    return (_diffuse);
 }
 
 void Environment::set_diffuse(std::shared_ptr<Cubemap> dif)
@@ -52,7 +52,7 @@ void Environment::set_diffuse(std::shared_ptr<Cubemap> dif)
 
 std::shared_ptr<Cubemap> Environment::irradiance()
 {
-    return (_irradiance.lock());
+    return (_irradiance);
 }
 
 void Environment::set_irradiance(std::shared_ptr<Cubemap> irr)
