@@ -10,11 +10,11 @@
 #include <memory> // for shared_ptr
 #include <string> // for string
 
-class Texture;
+class Texture2D;
 
 /*
 ** .HDR parsing interface
 */
 namespace HDR {
-std::shared_ptr<Texture> parse(const std::string& texture_name, const std::string& imagepath);
+std::shared_ptr<Texture2D> parse(const std::string& texture_name, const std::string& imagepath);
 };

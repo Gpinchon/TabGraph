@@ -11,14 +11,14 @@
 #include <memory>
 #include <string>
 
-class Texture;
+class Texture2D;
 
-typedef std::shared_ptr<Texture> (*TextureParsingFunction)(const std::string&, const std::string&);
+typedef std::shared_ptr<Texture2D> (*TextureParsingFunction)(const std::string&, const std::string&);
 
 class TextureParser {
 public:
     static TextureParser* Add(const std::string& format, TextureParsingFunction);
-    static std::shared_ptr<Texture> parse(const std::string& name, const std::string& path);
+    static std::shared_ptr<Texture2D> parse(const std::string& name, const std::string& path);
 
 private:
     TextureParser() = delete;

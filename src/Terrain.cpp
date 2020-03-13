@@ -9,7 +9,7 @@
 #include "Material.hpp" // for Material
 #include "Mesh.hpp" // for Mesh
 #include "Node.hpp" // for Node
-#include "Texture.hpp" // for Texture
+#include "Texture2D.hpp" // for Texture2D
 #include "TextureParser.hpp" // for TextureParser
 #include "Vgroup.hpp" // for CVEC4, Vgroup
 #include "parser/InternalTools.hpp" // for BTHeader, fileFormat, openFile
@@ -30,7 +30,7 @@ Terrain::Terrain(const std::string &name)
 
 #include <limits>
 
-std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 /*resolution*/, glm::vec3 /*scale*/, std::shared_ptr<Texture> /*texture*/)
+std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 /*resolution*/, glm::vec3 /*scale*/, std::shared_ptr<Texture2D> /*texture*/)
 {
     auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
     /*

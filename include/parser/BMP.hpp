@@ -10,12 +10,12 @@
 #include <memory> // for shared_ptr
 #include <string> // for string
 
-class Texture;
+class Texture2D;
 
 /*
 ** .BMP parsing interface
 */
 namespace BMP {
-std::shared_ptr<Texture> parse(const std::string& texture_name, const std::string& imagepath);
-void save(std::shared_ptr<Texture>, const std::string&);
+std::shared_ptr<Texture2D> parse(const std::string& texture_name, const std::string& imagepath);
+void save(std::shared_ptr<Texture2D>, const std::string&);
 };

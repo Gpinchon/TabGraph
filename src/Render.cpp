@@ -15,7 +15,7 @@
 #include "Light.hpp" // for Light, Directionnal, Point
 #include "Scene.hpp"
 #include "Shader.hpp" // for Shader
-#include "Texture.hpp" // for Texture
+#include "Texture2D.hpp" // for Texture2D
 #include "VertexArray.hpp" // for VertexArray
 #include "Window.hpp" // for Window
 #include "brdfLUT.hpp" // for brdfLUT
@@ -388,7 +388,7 @@ std::atomic<bool> &Render::Private::Drawing()
 
 #include <Debug.hpp>
 
-void HZBPass(std::shared_ptr<Texture> depthTexture)
+void HZBPass(std::shared_ptr<Texture2D> depthTexture)
 {
     glDepthFunc(GL_ALWAYS);
     glEnable(GL_DEPTH_TEST);
@@ -399,18 +399,18 @@ void HZBPass(std::shared_ptr<Texture> depthTexture)
 #include "hzb.frag"
         ;
     static auto HZBShader = GLSL::compile("HZB", HZBVertexCode, HZBFragmentCode);
-    static auto framebuffer = Framebuffer::Create("HZB", depthTexture->size(), 0, 0);
+    static auto framebuffer = Framebuffer::Create("HZB", depthTexture->Size(), 0, 0);
     depthTexture->generate_mipmap();
     depthTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-    auto numLevels = 1 + unsigned(floorf(log2f(fmaxf(depthTexture->size().x, depthTexture->size().y))));
-    auto currentSize = depthTexture->size();
+    auto numLevels = 1 + unsigned(floorf(log2f(fmaxf(depthTexture->Size().x, depthTexture->Size().y))));
+    auto currentSize = depthTexture->Size();
     for (auto i = 1u; i < numLevels; i++)
     {
         depthTexture->set_parameteri(GL_TEXTURE_BASE_LEVEL, i - 1);
         depthTexture->set_parameteri(GL_TEXTURE_MAX_LEVEL, i - 1);
         currentSize /= 2;
         currentSize = glm::max(currentSize, glm::ivec2(1));
-        framebuffer->resize(currentSize);
+        framebuffer->Resize(currentSize);
         //framebuffer->set_attachement(0, depthTexture, i);
         framebuffer->SetDepthBuffer(depthTexture, i);
         framebuffer->bind();
@@ -427,7 +427,7 @@ void HZBPass(std::shared_ptr<Texture> depthTexture)
     framebuffer->bind(false);
 }
 
-std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
+std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
 {
     glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
     static auto reflectionSteps = Config::Get("ReflexionSteps", 8);
@@ -444,10 +444,10 @@ std::shared_ptr<Texture> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shar
     static auto SSRMergeShader = GLSL::compile("SSRMerge", SSRMergeShaderCode, LightingShader);
     static auto SSRBlurShader = GLSL::compile("SSRBlur", SSRBlurShaderCode, LightingShader);
     static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
-    SSRFramebufferResult->resize(res);
+    SSRFramebufferResult->Resize(res);
     currentFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
     auto lastFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
-    currentFrameBuffer->resize(res);
+    currentFrameBuffer->Resize(res);
     currentFrameBuffer->bind();
     SSRShader->use();
     SSRShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE0);
@@ -480,10 +480,10 @@ void Render::Private::Scene()
         //present(final_back_buffer);
         return;
     }
-    static std::shared_ptr<Texture> brdf;
+    static std::shared_ptr<Texture2D> brdf;
     if (brdf == nullptr)
     {
-        brdf = Texture::Create("brdf", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
+        brdf = Texture2D::Create("brdf", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
         brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
@@ -505,13 +505,13 @@ void Render::Private::Scene()
                                                   std::string("\n#define TRANSPARENT") + std::string("\n#define REFLEXION_STEPS		") + std::to_string(reflectionSteps) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(reflectionSamples) + std::string("\n#define SCREEN_BORDER_FACTOR ") + std::to_string(reflectionBorderFactor) + std::string("\n"));
     static auto refraction_shader = GLSL::compile("refraction", refractionFragmentCode, LightingShader);
 
-    temp_buffer->resize(res);
-    temp_buffer1->resize(res);
-    back_buffer->resize(res);
-    back_buffer1->resize(res);
-    back_buffer2->resize(res);
-    final_back_buffer->resize(res);
-    last_render->resize(res / 2);
+    temp_buffer->Resize(res);
+    temp_buffer1->Resize(res);
+    back_buffer->Resize(res);
+    back_buffer1->Resize(res);
+    back_buffer2->Resize(res);
+    final_back_buffer->Resize(res);
+    last_render->Resize(res / 2);
 
     auto current_tbuffer = temp_buffer;
     auto current_tbuffertex = temp_buffer1;

@@ -4,7 +4,7 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2019-08-11 12:49:48
 */
-
+/*
 #include "TextureArray.hpp"
 #include "Debug.hpp" // for glCheckError
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
@@ -37,17 +37,6 @@ std::shared_ptr<TextureArray> TextureArray::Create(const std::string& name, glm:
     return (t);
 }
 
-/*int			TextureArray::AddTexture *texture)
-{
-	auto	search = std::find(_textures.begin(), _textures.end(), texture);
-	if (search != _textures.end())
-		return (search - _textures.begin());
-	if (_textures.size() == _capacity)
-		return (-1); //Texture array is full
-	_textures.push_back(texture);
-	return (_textures.size() - 1);
-}*/
-
 void TextureArray::set(std::shared_ptr<Texture> texture, int index)
 {
     _array.at(index) = texture;
@@ -73,3 +62,4 @@ void TextureArray::load()
     _loaded = true;
     glCheckError();
 }
+*/

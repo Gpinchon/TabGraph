@@ -41,34 +41,34 @@ std::shared_ptr<Material> Material::Create(const std::string& name)
 {
     auto mtl = std::shared_ptr<Material>(new Material(name));
     _materials.push_back(mtl);
-    return (mtl);
+    return mtl;
 }
 
 std::shared_ptr<Material> Material::Get(unsigned index)
 {
     if (index >= _materials.size())
-        return (nullptr);
-    return (_materials.at(index));
+        return nullptr;
+    return _materials.at(index);
 }
 
 std::shared_ptr<Material> Material::GetByName(const std::string& name)
 {
     for (auto m : _materials) {
         if (name == m->Name()) {
-            return (m);
+            return m;
         }
     }
-    return (nullptr);
+    return nullptr;
 }
 
 std::shared_ptr<Material> Material::GetById(int64_t id)
 {
     for (auto m : _materials) {
         if (id == m->Id()) {
-            return (m);
+            return m;
         }
     }
-    return (nullptr);
+    return nullptr;
 }
 
 void Material::bind_textures(std::shared_ptr<Shader> inShader)
@@ -125,100 +125,100 @@ void Material::bind_values(std::shared_ptr<Shader> inShader)
 
 std::shared_ptr<Shader> Material::shader()
 {
-    return (_shader.lock());
+    return _shader.lock();
 }
 
 std::shared_ptr<Shader> Material::depth_shader()
 {
-    return (_depth_shader.lock());
+    return _depth_shader.lock();
 }
 
-std::shared_ptr<Texture> Material::texture_albedo()
+std::shared_ptr<Texture2D> Material::texture_albedo()
 {
-    return (_texture_albedo.lock());
+    return _texture_albedo;
 }
 
-std::shared_ptr<Texture> Material::texture_specular()
+std::shared_ptr<Texture2D> Material::texture_specular()
 {
-    return (_texture_specular.lock());
+    return _texture_specular;
 }
 
-std::shared_ptr<Texture> Material::texture_emitting()
+std::shared_ptr<Texture2D> Material::texture_emitting()
 {
-    return (_texture_emitting.lock());
+    return _texture_emitting;
 }
 
-std::shared_ptr<Texture> Material::texture_normal()
+std::shared_ptr<Texture2D> Material::texture_normal()
 {
-    return (_texture_normal.lock());
+    return _texture_normal;
 }
 
-std::shared_ptr<Texture> Material::texture_height()
+std::shared_ptr<Texture2D> Material::texture_height()
 {
-    return (_texture_height.lock());
+    return _texture_height;
 }
 
-std::shared_ptr<Texture> Material::texture_metallicRoughness()
+std::shared_ptr<Texture2D> Material::texture_metallicRoughness()
 {
-    return _texture_metallicRoughness.lock();
+    return _texture_metallicRoughness;
 }
 
-std::shared_ptr<Texture> Material::texture_roughness()
+std::shared_ptr<Texture2D> Material::texture_roughness()
 {
-    return (_texture_roughness.lock());
+    return _texture_roughness;
 }
 
-std::shared_ptr<Texture> Material::texture_metallic()
+std::shared_ptr<Texture2D> Material::texture_metallic()
 {
-    return (_texture_metallic.lock());
+    return _texture_metallic;
 }
 
-std::shared_ptr<Texture> Material::texture_ao()
+std::shared_ptr<Texture2D> Material::texture_ao()
 {
-    return (_texture_ao.lock());
+    return _texture_ao;
 }
 
-void Material::set_texture_albedo(std::shared_ptr<Texture> t)
+void Material::set_texture_albedo(std::shared_ptr<Texture2D> t)
 {
     _texture_albedo = t;
 }
 
-void Material::set_texture_specular(std::shared_ptr<Texture> t)
+void Material::set_texture_specular(std::shared_ptr<Texture2D> t)
 {
     _texture_specular = t;
 }
 
-void Material::set_texture_emitting(std::shared_ptr<Texture> t)
+void Material::set_texture_emitting(std::shared_ptr<Texture2D> t)
 {
     _texture_emitting = t;
 }
 
-void Material::set_texture_normal(std::shared_ptr<Texture> t)
+void Material::set_texture_normal(std::shared_ptr<Texture2D> t)
 {
     _texture_normal = t;
 }
 
-void Material::set_texture_height(std::shared_ptr<Texture> t)
+void Material::set_texture_height(std::shared_ptr<Texture2D> t)
 {
     _texture_height = t;
 }
 
-void Material::set_texture_metallicRoughness(std::shared_ptr<Texture> t)
+void Material::set_texture_metallicRoughness(std::shared_ptr<Texture2D> t)
 {
     _texture_metallicRoughness = t;
 }
 
-void Material::set_texture_roughness(std::shared_ptr<Texture> t)
+void Material::set_texture_roughness(std::shared_ptr<Texture2D> t)
 {
     _texture_roughness = t;
 }
 
-void Material::set_texture_metallic(std::shared_ptr<Texture> t)
+void Material::set_texture_metallic(std::shared_ptr<Texture2D> t)
 {
     _texture_metallic = t;
 }
 
-void Material::set_texture_ao(std::shared_ptr<Texture> t)
+void Material::set_texture_ao(std::shared_ptr<Texture2D> t)
 {
     _texture_ao = t;
 }

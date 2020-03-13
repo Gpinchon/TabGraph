@@ -10,6 +10,7 @@
 #include "Camera.hpp"
 #include "Mesh.hpp"
 #include "SceneParser.hpp"
+#include "Texture2D.hpp"
 #include "TextureParser.hpp"
 #include "Vgroup.hpp"
 #include <glm/ext.hpp>
@@ -81,7 +82,7 @@ static inline auto ParseTextureSamplers(const rapidjson::Document &document)
 static inline auto ParseTextures(const std::string &path, const rapidjson::Document &document)
 {
 	debugLog("Start parsing textures");
-	std::vector<std::shared_ptr<Texture>> textureVector;
+	std::vector<std::shared_ptr<Texture2D>> textureVector;
 	auto samplers(ParseTextureSamplers(document));
 	try {
 		auto textureIndex(0);
@@ -300,12 +301,12 @@ static inline auto ParseMeshes(const rapidjson::Document &document, const GLTFCo
 				auto attributeName(std::string(attribute.name.GetString()));
 				auto accessor(container.accessors.at(attribute.value.GetInt()));
 				if (accessor->GetBufferView()->Target() == 0) {
-					if (attributeName == "POSITION" ||
+					/*if (attributeName == "POSITION" ||
 						attributeName == "NORMAL" ||
 						attributeName == "TANGENT" ||
 						attributeName == "TEXCOORD_0" ||
-						attributeName == "TEXCOORD_1")
-						accessor->GetBufferView()->SetTarget(GL_ARRAY_BUFFER);
+						attributeName == "TEXCOORD_1")*/
+					accessor->GetBufferView()->SetTarget(GL_ARRAY_BUFFER);
 				}
 				vgroup->SetAccessor(attributeName, accessor);
 			}

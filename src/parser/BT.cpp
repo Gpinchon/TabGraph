@@ -5,7 +5,7 @@
 * @Last Modified time: 2019-08-11 12:51:02
 */
 
-#include "Texture.hpp" // for Texture
+#include "Texture2D.hpp" // for Texture2D
 #include "TextureParser.hpp" // for TextureParser
 #include "glm/glm.hpp" // for glm::vec2
 #include "parser/InternalTools.hpp" // for BTHeader, openFile
@@ -15,7 +15,7 @@
 #include <stdio.h> // for fclose, fread, size_t
 #include <string> // for operator+, char_traits, to_string
 
-std::shared_ptr<Texture> BTParse(const std::string& texture_name, const std::string& path)
+std::shared_ptr<Texture2D> BTParse(const std::string& texture_name, const std::string& path)
 {
     BTHeader header;
     void* data;
@@ -45,7 +45,7 @@ std::shared_ptr<Texture> BTParse(const std::string& texture_name, const std::str
         throw std::runtime_error(std::string("[ERROR] ") + path + " : " + "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
     }
     fclose(fd);
-    return Texture::Create(texture_name, glm::vec2(header.columns, header.rows), GL_TEXTURE_2D, GL_RED, internalFormat, dataFormat, data);
+    return Texture2D::Create(texture_name, glm::vec2(header.columns, header.rows), GL_TEXTURE_2D, GL_RED, internalFormat, dataFormat, data);
 }
 
 auto __btParser = TextureParser::Add("bt", BTParse);

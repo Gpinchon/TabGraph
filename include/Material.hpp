@@ -14,7 +14,7 @@
 #include <vector> // for vector
 
 class Shader;
-class Texture;
+class Texture2D;
 
 class Material : public Object {
 public:
@@ -26,24 +26,24 @@ public:
     virtual void bind_textures(std::shared_ptr<Shader> = nullptr);
     std::shared_ptr<Shader> shader();
     std::shared_ptr<Shader> depth_shader();
-    std::shared_ptr<Texture> texture_albedo();
-    std::shared_ptr<Texture> texture_specular();
-    std::shared_ptr<Texture> texture_emitting();
-    std::shared_ptr<Texture> texture_normal();
-    std::shared_ptr<Texture> texture_height();
-    std::shared_ptr<Texture> texture_metallicRoughness();
-    std::shared_ptr<Texture> texture_roughness();
-    std::shared_ptr<Texture> texture_metallic();
-    std::shared_ptr<Texture> texture_ao();
-    void set_texture_albedo(std::shared_ptr<Texture>);
-    void set_texture_specular(std::shared_ptr<Texture>);
-    void set_texture_emitting(std::shared_ptr<Texture>);
-    void set_texture_normal(std::shared_ptr<Texture>);
-    void set_texture_height(std::shared_ptr<Texture>);
-    void set_texture_metallicRoughness(std::shared_ptr<Texture>);
-    void set_texture_roughness(std::shared_ptr<Texture>);
-    void set_texture_metallic(std::shared_ptr<Texture>);
-    void set_texture_ao(std::shared_ptr<Texture>);
+    std::shared_ptr<Texture2D> texture_albedo();
+    std::shared_ptr<Texture2D> texture_specular();
+    std::shared_ptr<Texture2D> texture_emitting();
+    std::shared_ptr<Texture2D> texture_normal();
+    std::shared_ptr<Texture2D> texture_height();
+    std::shared_ptr<Texture2D> texture_metallicRoughness();
+    std::shared_ptr<Texture2D> texture_roughness();
+    std::shared_ptr<Texture2D> texture_metallic();
+    std::shared_ptr<Texture2D> texture_ao();
+    void set_texture_albedo(std::shared_ptr<Texture2D>);
+    void set_texture_specular(std::shared_ptr<Texture2D>);
+    void set_texture_emitting(std::shared_ptr<Texture2D>);
+    void set_texture_normal(std::shared_ptr<Texture2D>);
+    void set_texture_height(std::shared_ptr<Texture2D>);
+    void set_texture_metallicRoughness(std::shared_ptr<Texture2D>);
+    void set_texture_roughness(std::shared_ptr<Texture2D>);
+    void set_texture_metallic(std::shared_ptr<Texture2D>);
+    void set_texture_ao(std::shared_ptr<Texture2D>);
     glm::vec3 albedo { 0, 0, 0 };
     glm::vec3 specular { 0.04, 0.04, 0.04 };
     glm::vec3 emitting { 0, 0, 0 };
@@ -58,14 +58,14 @@ protected:
     static std::vector<std::shared_ptr<Material>> _materials;
     std::weak_ptr<Shader> _shader;
     std::weak_ptr<Shader> _depth_shader;
-    std::weak_ptr<Texture> _texture_albedo;
-    std::weak_ptr<Texture> _texture_specular;
-    std::weak_ptr<Texture> _texture_emitting;
-    std::weak_ptr<Texture> _texture_normal;
-    std::weak_ptr<Texture> _texture_height;
-    std::weak_ptr<Texture> _texture_metallicRoughness;
-    std::weak_ptr<Texture> _texture_roughness;
-    std::weak_ptr<Texture> _texture_metallic;
-    std::weak_ptr<Texture> _texture_ao;
+    std::shared_ptr<Texture2D> _texture_albedo;
+    std::shared_ptr<Texture2D> _texture_specular;
+    std::shared_ptr<Texture2D> _texture_emitting;
+    std::shared_ptr<Texture2D> _texture_normal;
+    std::shared_ptr<Texture2D> _texture_height;
+    std::shared_ptr<Texture2D> _texture_metallicRoughness;
+    std::shared_ptr<Texture2D> _texture_roughness;
+    std::shared_ptr<Texture2D> _texture_metallic;
+    std::shared_ptr<Texture2D> _texture_ao;
     Material(const std::string& name);
 };

@@ -7,7 +7,7 @@
 
 #include "TextureParser.hpp" // for TextureParser, TextureParsingFun...
 #include "Debug.hpp" // for debugLog
-#include "Texture.hpp" // for Texture
+#include "Texture2D.hpp" // for Texture2D
 #include "glm/glm.hpp" // for glm::vec2
 #include "parser/InternalTools.hpp" // for fileFormat
 #include <GL/glew.h> // for GL_COMPRESSED_RGB, GL_COMPRESSED...
@@ -76,7 +76,7 @@ std::string hexToString(int hex)
     return stream.str();
 }
 
-std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std::string& path)
+std::shared_ptr<Texture2D> GenericTextureParser(const std::string& name, const std::string& path)
 {
     auto surface = IMG_Load(path.c_str());
     if (!surface || !surface->format)
@@ -84,7 +84,7 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
     auto textureFormat = surface->format->Amask ? GL_RGBA : GL_RGB;
     auto textureInternalFormat = surface->format->Amask ? GL_COMPRESSED_RGBA : GL_COMPRESSED_RGB;
 
-    debugLog("Texture Format before conversion :");
+    debugLog("Texture2D Format before conversion :");
     debugLog(SDL_GetPixelFormatName(surface->format->format));
     debugLog(int(surface->format->BitsPerPixel));
     debugLog(int(surface->format->BytesPerPixel));
@@ -98,7 +98,7 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
     surface = newSurface;
     invert_surface_vertical(surface);
 
-    debugLog("Texture Format after conversion :");
+    debugLog("Texture2D Format after conversion :");
     debugLog(SDL_GetPixelFormatName(surface->format->format));
     debugLog(int(surface->format->BitsPerPixel));
     debugLog(int(surface->format->BytesPerPixel));
@@ -107,7 +107,7 @@ std::shared_ptr<Texture> GenericTextureParser(const std::string& name, const std
     debugLog(hexToString(surface->format->Bmask));
     debugLog(hexToString(surface->format->Amask));
 
-    auto texture = Texture::Create(name, glm::vec2(surface->w, surface->h), GL_TEXTURE_2D,
+    auto texture = Texture2D::Create(name, glm::vec2(surface->w, surface->h), GL_TEXTURE_2D,
         textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     SDL_FreeSurface(surface);
     return (texture);
@@ -136,7 +136,7 @@ std::map<std::string, TextureParser*>& TextureParser::_getParsers()
     return *_parsers;
 }
 
-std::shared_ptr<Texture> TextureParser::parse(const std::string& name, const std::string& path)
+std::shared_ptr<Texture2D> TextureParser::parse(const std::string& name, const std::string& path)
 {
     auto format = path.substr(path.find_last_of(".") + 1);
     debugLog(path);

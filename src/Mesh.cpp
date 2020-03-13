@@ -14,7 +14,7 @@
 #include "Node.hpp" // for Node
 #include "Scene.hpp"
 #include "Shader.hpp" // for Shader
-#include "Texture.hpp"
+#include "Texture2D.hpp"
 #include "Vgroup.hpp" // for Vgroup
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>

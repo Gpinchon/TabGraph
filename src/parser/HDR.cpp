@@ -6,7 +6,7 @@
 */
 
 #include "parser/HDR.hpp"
-#include "Texture.hpp" // for Texture
+#include "Texture2D.hpp" // for Texture2D
 #include "TextureParser.hpp" // for TextureParser
 #include "glm/glm.hpp" // for s_vec2, glm::vec2
 #include <GL/glew.h> // for GLubyte, GL_FLOAT, GL_R11F_G11F_B10F
@@ -32,7 +32,7 @@ static bool oldDecrunch(RGBE* scanline, int len, FILE* file);
 //Add this parser to TextureParser !
 auto __hdrParser = TextureParser::Add("hdr", HDR::parse);
 
-std::shared_ptr<Texture> HDR::parse(const std::string& texture_name, const std::string& path)
+std::shared_ptr<Texture2D> HDR::parse(const std::string& texture_name, const std::string& path)
 {
     std::cout << "Parsing " << texture_name;
     int i;
@@ -93,7 +93,7 @@ std::shared_ptr<Texture> HDR::parse(const std::string& texture_name, const std::
 
     delete[] scanline;
     fclose(file);
-    auto t = Texture::Create(texture_name, size, GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data);
+    auto t = Texture2D::Create(texture_name, size, GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data);
     std::cout << " Done." << std::endl;
     return (t);
 }

@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2020/03/10 14:38:02 by gpinchon         ###   ########.fr        #
+#    Updated: 2020/03/13 18:42:34 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -108,6 +108,7 @@ HEADERS_FILES	=	\
 					StackTracer.hpp				\
 					Terrain.hpp					\
 					Texture.hpp					\
+					Texture2D.hpp				\
 					TextureArray.hpp			\
 					TextureParser.hpp			\
 					VertexArray.hpp				\
@@ -165,6 +166,7 @@ SRC_FILES		=	\
 					Shader.cpp					\
 					StackTracer.cpp				\
 					Texture.cpp					\
+					Texture2D.cpp				\
 					TextureArray.cpp			\
 					TextureParser.cpp			\
 					VertexArray.cpp				\

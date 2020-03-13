@@ -6,7 +6,7 @@
 */
 
 #include "parser/BMP.hpp"
-#include "Texture.hpp" // for Texture
+#include "Texture2D.hpp" // for Texture2D
 #include "glm/glm.hpp" // for s_vec2, glm::vec2
 #include "parser/InternalTools.hpp" // for t_bmp_parser, t_bmp_info, t_bmp_...
 #include <GL/glew.h> // for GLubyte, GLenum, GL_BGR, GL_BGRA
@@ -24,24 +24,24 @@
 #include <sys/io.h>
 #endif // for write, access, close, open, R_OK
 
-static void prepare_header(t_bmp_header *header, t_bmp_info *info, std::shared_ptr<Texture> t)
+static void prepare_header(t_bmp_header *header, t_bmp_info *info, std::shared_ptr<Texture2D> t)
 {
     memset(header, 0, sizeof(t_bmp_header));
     memset(info, 0, sizeof(t_bmp_info));
     header->type = 0x4D42;
     header->data_offset = sizeof(t_bmp_header) + sizeof(t_bmp_info);
-    header->size = header->data_offset + (t->size().x * t->size().y * 4);
+    header->size = header->data_offset + (t->Size().x * t->Size().y * 4);
     info->header_size = sizeof(t_bmp_info);
-    info->width = t->size().x;
-    info->height = t->size().y;
+    info->width = t->Size().x;
+    info->height = t->Size().y;
     info->color_planes = 1;
     info->bpp = t->bpp();
-    info->size = t->size().x * t->size().y * 4;
+    info->size = t->Size().x * t->Size().y * 4;
     info->horizontal_resolution = 0x0ec4;
     info->vertical_resolution = 0x0ec4;
 }
 
-void BMP::save(std::shared_ptr<Texture> t, const std::string &imagepath)
+void BMP::save(std::shared_ptr<Texture2D> t, const std::string &imagepath)
 {
     t_bmp_header header;
     t_bmp_info info;
@@ -53,9 +53,9 @@ void BMP::save(std::shared_ptr<Texture> t, const std::string &imagepath)
               S_IRWXU | S_IRWXG | S_IRWXO);
     write(fd, &header, sizeof(t_bmp_header));
     write(fd, &info, sizeof(t_bmp_info));
-    write(fd, t->data(), (t->size().x * t->size().y * t->bpp() / 8));
-    padding = new GLubyte[int(info.size - (t->size().x * t->size().y * t->bpp() / 8))]();
-    write(fd, padding, info.size - (t->size().x * t->size().y * t->bpp() / 8));
+    write(fd, t->data(), (t->Size().x * t->Size().y * t->bpp() / 8));
+    padding = new GLubyte[int(info.size - (t->Size().x * t->Size().y * t->bpp() / 8))]();
+    write(fd, padding, info.size - (t->Size().x * t->Size().y * t->bpp() / 8));
     delete[] padding;
     close(fd);
 }
@@ -153,7 +153,7 @@ static void get_format(GLubyte bpp, GLenum *format, GLenum *internal_format)
     }
 }
 
-std::shared_ptr<Texture> BMP::parse(const std::string &texture_name, const std::string &path)
+std::shared_ptr<Texture2D> BMP::parse(const std::string &texture_name, const std::string &path)
 {
     t_bmp_parser parser;
     GLenum format[2];
@@ -167,7 +167,7 @@ std::shared_ptr<Texture> BMP::parse(const std::string &texture_name, const std::
         throw std::runtime_error(std::string("Error parsing ") + path + " : " + e.what());
     }
     get_format(parser.info.bpp, &format[0], &format[1]);
-    auto t = Texture::Create(texture_name, glm::ivec2(parser.info.width, parser.info.height),
+    auto t = Texture2D::Create(texture_name, glm::ivec2(parser.info.width, parser.info.height),
                              GL_TEXTURE_2D, format[0], format[1], GL_UNSIGNED_BYTE, parser.data);
     t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     return (t);
