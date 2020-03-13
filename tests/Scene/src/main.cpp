@@ -83,7 +83,7 @@ void CallbackQuality(SDL_KeyboardEvent *event)
     Render::SetInternalQuality(CYCLE(Render::InternalQuality() + 0.25, 0.5, 1.5));
 }
 
-void AnimationQuality(SDL_KeyboardEvent *event)
+void CallbackAnimation(SDL_KeyboardEvent *event)
 {
     if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
         return;
@@ -104,7 +104,7 @@ void SetupCallbacks()
     Keyboard::set_callback(SDL_SCANCODE_ESCAPE, ExitCallback);
     Keyboard::set_callback(SDL_SCANCODE_RETURN, FullscreenCallback);
     Keyboard::set_callback(SDL_SCANCODE_Q, CallbackQuality);
-    Keyboard::set_callback(SDL_SCANCODE_A, AnimationQuality);
+    Keyboard::set_callback(SDL_SCANCODE_A, CallbackAnimation);
     //Mouse::set_relative(SDL_TRUE);
     Mouse::set_move_callback(MouseMoveCallback);
     Mouse::set_wheel_callback(MouseWheelCallback);
