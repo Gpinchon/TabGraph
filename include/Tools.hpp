@@ -7,6 +7,10 @@
 
 #pragma once
 
+#ifndef M_PI
+#define M_PI 3.14159265359f
+#endif // M_PI
+
 #define CYCLE(nbr, min, max) (nbr >= max ? min : nbr <= min ? max : nbr)
 
 union SDL_Event;

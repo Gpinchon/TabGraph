@@ -12,6 +12,7 @@
 #include "Material.hpp" // for Material
 #include "Mesh.hpp" // for Mesh
 #include "MeshParser.hpp" // for MeshParser
+#include "Tools.hpp"
 #include "Vgroup.hpp" // for Vgroup, CVEC4
 #include "glm/glm.hpp" // for s_vec3, s_vec2, glm::vec2, glm::vec3
 #include "parser/InternalTools.hpp" // for t_obj_parser, count_char, split_...

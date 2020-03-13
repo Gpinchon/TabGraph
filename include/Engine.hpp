@@ -12,10 +12,6 @@
 #include <string> // for string
 #include <sys/types.h> // for int8_t
 
-#ifndef M_PI
-#define M_PI 3.14159265359f
-#endif // M_PI
-
 #ifndef UP
 //#define UP glm::vec3(0, 1, 0);
 #endif
@@ -47,6 +43,4 @@ const std::string& ExecutionPath(void);
 const std::string& ProgramPath(void);
 /** @return ProgramPath + "/res/" */
 const std::string ResourcePath(void);
-/** @brief Lock this mutex to keep Engine from performing next update, usefull in multithreaded applications */
-std::mutex& UpdateMutex(void);
 };
