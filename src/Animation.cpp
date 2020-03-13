@@ -48,47 +48,6 @@ static inline T cubicSpline(T previousPoint, T previousTangent, T nextPoint, T n
 }
 
 template<typename T, typename U>
-static inline T slerp(T v0, T v1, U t) {
-    // Only unit quaternions are valid rotations.
-    // Normalize to avoid undefined behavior.
-    v0 = glm::normalize(v0);
-    v1 = glm::normalize(v1);
-
-    // Compute the cosine of the angle between the two vectors.
-    auto dot = glm::dot(v0, v1);
-
-    // If the dot product is negative, slerp won't take
-    // the shorter path. Note that v1 and -v1 are equivalent when
-    // the negation is applied to all four components. Fix by 
-    // reversing one T.
-    if (dot < 0.0f) {
-        v1 = -v1;
-        dot = -dot;
-    }
-
-    const auto DOT_THRESHOLD = 0.9995;
-    if (dot > DOT_THRESHOLD) {
-        // If the inputs are too close for comfort, linearly interpolate
-        // and normalize the result.
-
-        T result = v0 + t*(v1 - v0);
-        result.normalize();
-        return result;
-    }
-
-    // Since dot is in range [0, DOT_THRESHOLD], acos is safe
-    auto theta_0 = acos(dot);        // theta_0 = angle between input vectors
-    auto theta = theta_0*t;          // theta = angle between v0 and result
-    auto sin_theta = sin(theta);     // compute this value only once
-    auto sin_theta_0 = sin(theta_0); // compute this value only once
-
-    auto s0 = cos(theta) - dot * sin_theta / sin_theta_0;  // == sin(theta_0 - theta) / sin(theta_0)
-    auto s1 = sin_theta / sin_theta_0;
-
-    return (s0 * v0) + (s1 * v1);
-}
-
-template<typename T, typename U>
 static inline T InterpolateKeyFrame(T prev, T next, U interpolationValue, AnimationSampler::AnimationInterpolation interpolation, T previousTangent = T(), T nextTangent = T())
 {
 	switch (interpolation) {
@@ -107,7 +66,7 @@ static inline glm::quat InterpolateKeyFrame(glm::quat prev, glm::quat next, U in
 {
 	switch (interpolation) {
 		case AnimationSampler::Linear:
-			return slerp(prev, next, interpolationValue);
+			return glm::slerp(prev, next, interpolationValue);
 		case AnimationSampler::CubicSpline:
 			return cubicSpline(prev, previousTangent, next, nextTangent, interpolationValue);
 		case AnimationSampler::Step:
