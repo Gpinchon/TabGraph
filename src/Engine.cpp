@@ -52,7 +52,6 @@ struct EnginePrivate
     double deltaTime{0};
     std::string programPath{""};
     std::string execPath{""};
-    std::mutex updateMutex;
 };
 
 EnginePrivate::EnginePrivate()
@@ -206,9 +205,4 @@ const std::string &Engine::ExecutionPath()
 const std::string Engine::ResourcePath()
 {
     return (Engine::ProgramPath() + "/res/");
-}
-
-std::mutex &Engine::UpdateMutex(void)
-{
-    return EnginePrivate::Get().updateMutex;
 }
