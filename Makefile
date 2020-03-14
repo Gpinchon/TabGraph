@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2020/03/13 18:42:34 by gpinchon         ###   ########.fr        #
+#    Updated: 2020/03/14 12:10:40 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -77,6 +77,7 @@ HEADERS_FILES	=	\
 					FPSCamera.hpp				\
 					Framebuffer.hpp				\
 					GameController.hpp			\
+					Geometry.hpp				\
 					InputDevice.hpp				\
 					Keyboard.hpp				\
 					Light.hpp					\
@@ -111,9 +112,6 @@ HEADERS_FILES	=	\
 					Texture2D.hpp				\
 					TextureArray.hpp			\
 					TextureParser.hpp			\
-					VertexArray.hpp				\
-					VertexBuffer.hpp			\
-					Vgroup.hpp					\
 					Window.hpp
 SRC_FILES		=	\
 					AABB.cpp					\
@@ -137,6 +135,7 @@ SRC_FILES		=	\
 					FPSCamera.cpp				\
 					Framebuffer.cpp				\
 					GameController.cpp			\
+					Geometry.cpp				\
 					Keyboard.cpp				\
 					Light.cpp					\
 					Material.cpp				\
@@ -169,9 +168,6 @@ SRC_FILES		=	\
 					Texture2D.cpp				\
 					TextureArray.cpp			\
 					TextureParser.cpp			\
-					VertexArray.cpp				\
-					VertexBuffer.cpp			\
-					Vgroup.cpp					\
 					Window.cpp
 
 RES_FILES		=	$(shell find ./res -type f)

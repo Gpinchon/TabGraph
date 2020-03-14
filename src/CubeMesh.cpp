@@ -9,7 +9,7 @@
 #include "BufferHelper.hpp"
 #include "Material.hpp" // for Material
 #include "Mesh.hpp" // for Mesh
-#include "Vgroup.hpp" // for CVEC4, Vgroup
+#include "Geometry.hpp" // for CVEC4, Geometry
 #include <vector> // for vector
 
 std::shared_ptr<Mesh> CubeMesh::Create(const std::string &name, glm::vec3 size)
@@ -108,7 +108,7 @@ std::shared_ptr<Mesh> CubeMesh::Create(const std::string &name, glm::vec3 size)
         16, 17, 18, 16, 18, 19, // top
         20, 22, 21, 20, 23, 22 // bottom
     };
-    auto vg = Vgroup::Create(m->Name() + "_vgroup");
+    auto vg = Geometry::Create(m->Name() + "_Geometry");
     auto thisCubeVertices = cubeVertices;
     for (auto &v : thisCubeVertices)
     {
@@ -122,7 +122,7 @@ std::shared_ptr<Mesh> CubeMesh::Create(const std::string &name, glm::vec3 size)
     vg->vn = cubeNormals;
     vg->vt = cubeTexCoords;
     vg->i = cubeIndices;*/
-    m->AddVgroup(vg);
+    m->AddGeometry(vg);
     m->AddMaterial(Material::Create(m->Name() + "_material"));
     return (m);
 }

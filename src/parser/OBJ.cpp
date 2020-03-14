@@ -13,7 +13,7 @@
 #include "Mesh.hpp" // for Mesh
 #include "MeshParser.hpp" // for MeshParser
 #include "Tools.hpp"
-#include "Vgroup.hpp" // for Vgroup, CVEC4
+#include "Geometry.hpp" // for Geometry, CVEC4
 #include "glm/glm.hpp" // for s_vec3, s_vec2, glm::vec2, glm::vec3
 #include "parser/InternalTools.hpp" // for t_obj_parser, count_char, split_...
 #include "parser/MTLLIB.hpp" // for parse
@@ -196,7 +196,7 @@ void parse_v(t_obj_parser *p, std::vector<std::string> &split, glm::vec2 *in_vt)
 }
 
 /*
-static void vt_min_max(std::shared_ptr<Vgroup> vg)
+static void vt_min_max(std::shared_ptr<Geometry> vg)
 {
     vg->uvmin = glm::vec2(100000, 100000);
     vg->uvmax = glm::vec2(-100000, -100000);
@@ -241,14 +241,14 @@ void parse_vg(t_obj_parser */*p*/, const std::string &/*name*/)
         childNbr++;
         vt_min_max(p->vg);
         //p->parent->AddChild(p->vg);
-        p->parent->AddVgroup(p->vg);
+        p->parent->AddGeometry(p->vg);
         if (name == "")
         {
-            p->vg = Vgroup::Create(p->parent->Name() + "_vgroup_" + std::to_string(childNbr));
+            p->vg = Geometry::Create(p->parent->Name() + "_Geometry_" + std::to_string(childNbr));
         }
         else
         {
-            p->vg = Vgroup::Create(name);
+            p->vg = Geometry::Create(name);
         }
         //p->vg->set_material(Material::GetByName("default"));
     }
@@ -449,7 +449,7 @@ static void start_obj_parsing(t_obj_parser *p, const std::string &name, const st
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
     p->parent = Mesh::Create(name);
-    p->vg = Vgroup::Create(name + "_child 0");
+    p->vg = Geometry::Create(name + "_child 0");
     p->vg->boundingElement = new AABB(p->bbox);
     auto l = 1;
     while (fgets(line, 4096, p->fd) != nullptr)

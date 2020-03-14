@@ -132,6 +132,7 @@ void Engine::Init()
     static auto SSAOShader = GLSL::compile("SSAO", SSAOShaderCode, PostShader);
     Render::AddPostTreatment(SSAOShader);
     EnginePrivate::Get().LoadRes();
+    Engine::SetSwapInterval(Config::Get("SwapInterval", -1));
 }
 
 int event_filter(void *arg, SDL_Event *event)

@@ -15,7 +15,7 @@
 #include "Scene.hpp"
 #include "Shader.hpp" // for Shader
 #include "Texture2D.hpp"
-#include "Vgroup.hpp" // for Vgroup
+#include "Geometry.hpp" // for Geometry
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
@@ -36,23 +36,23 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string &name) /*static*/
     return std::shared_ptr<Mesh>(new Mesh(name));
 }
 
-const std::set<std::shared_ptr<Vgroup>> Mesh::vgroups()
+const std::set<std::shared_ptr<Geometry>> Mesh::Geometrys()
 {
-    return (_vgroups);
+    return (_Geometrys);
 }
 
-void Mesh::AddVgroup(std::shared_ptr<Vgroup> group)
+void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
 {
     if (nullptr == group)
         return;
-    _vgroups.insert(group);
+    _Geometrys.insert(group);
 }
 
 void Mesh::Load()
 {
     if (_loaded)
         return;
-    for (auto vg : _vgroups)
+    for (auto vg : _Geometrys)
     {
         if (nullptr == vg)
             continue;
@@ -74,7 +74,7 @@ bool Mesh::DrawDepth(RenderMod mod)
 
     Load();
     std::shared_ptr<Shader> last_shader;
-    for (auto vg : _vgroups)
+    for (auto vg : _Geometrys)
     {
         if (nullptr == vg)
             continue;
@@ -122,7 +122,7 @@ bool Mesh::Draw(RenderMod mod)
 
     Load();
     std::shared_ptr<Shader> last_shader;
-    for (auto vg : _vgroups)
+    for (auto vg : _Geometrys)
     {
         if (nullptr == vg)
             continue;
@@ -170,7 +170,7 @@ void Mesh::set_cull_mod(GLenum mod)
 void Mesh::center()
 {
     //TODO : FIX THE CENTER FUNCTION
-    /*for (auto vg : _vgroups)
+    /*for (auto vg : _Geometrys)
     {
         auto vg = vg.lock();
         if (nullptr == vg)

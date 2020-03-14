@@ -60,23 +60,15 @@ void Cubemap::load()
     }
     debugLog(Name());
     Texture::load();
+    glBindTexture(_target, _glid);
     for (auto i = 0u; i < 6; i++) {
         auto t = side(i);
-        t->load();
-        glBindTexture(_target, _glid);
-        glCheckError();
-        glBindTexture(t->target(), t->glid());
-        glCheckError();
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t->internal_format(),
                     t->Size().x, t->Size().y, 0, t->format(),
                     t->data_format(), t->data());
         glCheckError();
-        glBindTexture(_target, 0);
-        glCheckError();
-        glBindTexture(t->target(), 0);
-        glCheckError();
-        //assign(*t, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
     }
+    glBindTexture(_target, 0);
     generate_mipmap();
 }
 

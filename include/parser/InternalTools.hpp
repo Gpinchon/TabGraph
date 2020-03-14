@@ -27,7 +27,7 @@ struct t_obj_parser {
     std::vector<glm::vec3> vn;
     std::vector<glm::vec2> vt;
     std::shared_ptr<Mesh> parent;
-    std::shared_ptr<Vgroup> vg;
+    std::shared_ptr<Geometry> vg;
     AABB bbox;
 };
 

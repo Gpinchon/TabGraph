@@ -10,7 +10,7 @@
 #include "Mesh.hpp"
 #include "Scene.hpp"
 #include "SceneParser.hpp"
-#include "Vgroup.hpp"
+#include "Geometry.hpp"
 #include "parser/FBX/FBXDocument.hpp"
 #include "parser/FBX/FBXNode.hpp"
 #include "parser/FBX/FBXObject.hpp"
@@ -194,9 +194,9 @@ static inline auto getMappedIndices(const std::string &mappingInformationType, c
     return indices;
 }
 
-auto getVgroups(std::shared_ptr<FBX::Node> objects)
+auto getGeometrys(std::shared_ptr<FBX::Node> objects)
 {
-    std::map<int64_t, std::vector<std::shared_ptr<Vgroup>>> groupMap;
+    std::map<int64_t, std::vector<std::shared_ptr<Geometry>>> groupMap;
     for (const auto &geometry : objects->SubNodes("Geometry"))
     {
         if (geometry == nullptr)
@@ -219,10 +219,10 @@ auto getVgroups(std::shared_ptr<FBX::Node> objects)
             materialIndices = getMappedIndices(layerElementMaterial->SubNode("MappingInformationType")->Property(0), verticesIndices);
         std::vector<int32_t> polygonIndex;
         std::vector<int32_t> polygonIndexNormal;
-        std::shared_ptr<Vgroup> vgroup;
-        //auto vgroup(Vgroup::Create(""));
-        //vgroup->SetId(geometryId);
-        //groupMap[geometryId].push_back(vgroup);
+        std::shared_ptr<Geometry> Geometry;
+        //auto Geometry(Geometry::Create(""));
+        //Geometry->SetId(geometryId);
+        //groupMap[geometryId].push_back(Geometry);
         for (auto i = 0u; i < verticesIndices.size(); i++)
         {
             auto index = verticesIndices.at(i);
@@ -231,46 +231,46 @@ auto getVgroups(std::shared_ptr<FBX::Node> objects)
             if (!materialIndices.empty())
             {
                 uint32_t materialIndex(materials.at(materialIndices.at(i)));
-                if (vgroup == nullptr)
+                if (Geometry == nullptr)
                 {
-                    vgroup = Vgroup::Create("");
-                    vgroup->SetId(geometryId);
-                    vgroup->SetMaterialIndex(materialIndex);
-                    groupMap[geometryId].push_back(vgroup);
+                    Geometry = Geometry::Create("");
+                    Geometry->SetId(geometryId);
+                    Geometry->SetMaterialIndex(materialIndex);
+                    groupMap[geometryId].push_back(Geometry);
                 }
-                else if (materialIndex != vgroup->MaterialIndex())
+                else if (materialIndex != Geometry->MaterialIndex())
                 {
-                    std::cout << "Material Indices : Last " << vgroup->MaterialIndex() << " New " << materialIndex << std::endl;
-                    std::cout << "Material index changed, create new Vgroup" << std::endl;
-                    vgroup = Vgroup::Create("");
-                    vgroup->SetId(geometryId + materialIndex);
-                    vgroup->SetMaterialIndex(materialIndex);
-                    groupMap[geometryId].push_back(vgroup);
+                    std::cout << "Material Indices : Last " << Geometry->MaterialIndex() << " New " << materialIndex << std::endl;
+                    std::cout << "Material index changed, create new Geometry" << std::endl;
+                    Geometry = Geometry::Create("");
+                    Geometry->SetId(geometryId + materialIndex);
+                    Geometry->SetMaterialIndex(materialIndex);
+                    groupMap[geometryId].push_back(Geometry);
                 }
             }
 
             if (index < 0)
             {
-                if (vgroup == nullptr)
+                if (Geometry == nullptr)
                 {
-                    vgroup = Vgroup::Create("");
-                    vgroup->SetId(geometryId);
-                    groupMap[geometryId].push_back(vgroup);
+                    Geometry = Geometry::Create("");
+                    Geometry->SetId(geometryId);
+                    groupMap[geometryId].push_back(Geometry);
                 }
-                //vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
-                //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
-                //vgroup->v.push_back(vertices.at(polygonIndex.at(1)));
-                //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(1)));
-                //vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
-                //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
+                //Geometry->v.push_back(vertices.at(polygonIndex.at(0)));
+                //Geometry->vn.push_back(normals.at(polygonIndexNormal.at(0)));
+                //Geometry->v.push_back(vertices.at(polygonIndex.at(1)));
+                //Geometry->vn.push_back(normals.at(polygonIndexNormal.at(1)));
+                //Geometry->v.push_back(vertices.at(polygonIndex.at(2)));
+                //Geometry->vn.push_back(normals.at(polygonIndexNormal.at(2)));
                 if (polygonIndex.size() == 4)
                 {
-                    //vgroup->v.push_back(vertices.at(polygonIndex.at(2)));
-                    //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(2)));
-                    //vgroup->v.push_back(vertices.at(polygonIndex.at(3)));
-                    //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(3)));
-                    //vgroup->v.push_back(vertices.at(polygonIndex.at(0)));
-                    //vgroup->vn.push_back(normals.at(polygonIndexNormal.at(0)));
+                    //Geometry->v.push_back(vertices.at(polygonIndex.at(2)));
+                    //Geometry->vn.push_back(normals.at(polygonIndexNormal.at(2)));
+                    //Geometry->v.push_back(vertices.at(polygonIndex.at(3)));
+                    //Geometry->vn.push_back(normals.at(polygonIndexNormal.at(3)));
+                    //Geometry->v.push_back(vertices.at(polygonIndex.at(0)));
+                    //Geometry->vn.push_back(normals.at(polygonIndexNormal.at(0)));
                 }
                 polygonIndex.clear();
                 polygonIndexNormal.clear();
@@ -300,7 +300,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
     document->Print();
     auto scene(Scene::Create(path));
     auto meshes(parseMeshes(document));
-    std::map<int64_t, std::vector<std::shared_ptr<Vgroup>>> vgroupMap;
+    std::map<int64_t, std::vector<std::shared_ptr<Geometry>>> GeometryMap;
     for (const auto &objects : document->SubNodes("Objects"))
     {
         if (objects == nullptr)
@@ -350,7 +350,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
             P = propertiesMap["ReflectionFactor"];
             material->metallic = P ? double(P->Property(4)) : 0.0;
         }
-        vgroupMap = getVgroups(objects);
+        GeometryMap = getGeometrys(objects);
         for (const auto &model : objects->SubNodes("Model"))
         {
             auto mesh(meshes[model->Property(0)]);
@@ -448,18 +448,18 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                     }
                 }
                 {
-                    //auto source(Vgroup::GetById(sourceId));
-                    auto source(vgroupMap[sourceId]);
+                    //auto source(Geometry::GetById(sourceId));
+                    auto source(GeometryMap[sourceId]);
                     if (!source.empty())
                     {
-                        std::cout << "Got Vgroup " << sourceId << std::endl;
+                        std::cout << "Got Geometry " << sourceId << std::endl;
                         {
                             auto destination(meshes[destinationId]);
                             if (destination != nullptr)
                             {
-                                std::cout << "Mesh " << destinationId << " uses Vgroup " << sourceId << std::endl;
+                                std::cout << "Mesh " << destinationId << " uses Geometry " << sourceId << std::endl;
                                 for (auto vg : source)
-                                    destination->AddVgroup(vg);
+                                    destination->AddGeometry(vg);
                             }
                             continue;
                         }

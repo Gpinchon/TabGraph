@@ -12,7 +12,7 @@
 #include "SceneParser.hpp"
 #include "Texture2D.hpp"
 #include "TextureParser.hpp"
-#include "Vgroup.hpp"
+#include "Geometry.hpp"
 #include <glm/ext.hpp>
 #include <iostream>
 #include <filesystem>
@@ -291,35 +291,30 @@ static inline auto ParseMeshes(const rapidjson::Document &document, const GLTFCo
 		auto currentMesh(Mesh::Create("Mesh " + std::to_string(meshIndex)));
 		meshIndex++;
 		for (const auto &primitive : mesh["primitives"].GetArray()) {
-			auto vgroup(Vgroup::Create());
+			auto Geometry(Geometry::Create());
 			if (auto material = primitive.FindMember("material"); material != primitive.MemberEnd())
 			{
 				currentMesh->AddMaterial(*std::find(container.materials.begin(), container.materials.end(), container.materials.at(material->value.GetInt())));
-				vgroup->SetMaterialIndex(currentMesh->GetMaterialIndex(container.materials.at(material->value.GetInt())));
+				Geometry->SetMaterialIndex(currentMesh->GetMaterialIndex(container.materials.at(material->value.GetInt())));
 			}
 			for (const auto &attribute : primitive["attributes"].GetObject()) {
 				auto attributeName(std::string(attribute.name.GetString()));
 				auto accessor(container.accessors.at(attribute.value.GetInt()));
-				if (accessor->GetBufferView()->Target() == 0) {
-					/*if (attributeName == "POSITION" ||
-						attributeName == "NORMAL" ||
-						attributeName == "TANGENT" ||
-						attributeName == "TEXCOORD_0" ||
-						attributeName == "TEXCOORD_1")*/
-					accessor->GetBufferView()->SetTarget(GL_ARRAY_BUFFER);
-				}
-				vgroup->SetAccessor(attributeName, accessor);
+				//if (accessor->GetBufferView()->Target() == 0) {
+				//	accessor->GetBufferView()->SetTarget(GL_ARRAY_BUFFER);
+				//}
+				Geometry->SetAccessor(attributeName, accessor);
 			}
 			try {
 				auto accessor(container.accessors.at(primitive["indices"].GetInt()));
-				if (accessor->GetBufferView()->Target() == 0)
-					accessor->GetBufferView()->SetTarget(GL_ELEMENT_ARRAY_BUFFER);
-				vgroup->SetIndices(accessor);
+				//if (accessor->GetBufferView()->Target() == 0)
+				//	accessor->GetBufferView()->SetTarget(GL_ELEMENT_ARRAY_BUFFER);
+				Geometry->SetIndices(accessor);
 			}
-			catch(std::exception &) {debugLog("Vgroup " + vgroup->Name() + " has no indices")}
-			try { vgroup->SetMode(primitive["mode"].GetInt()); }
-			catch(std::exception &) {debugLog("Vgroup " + vgroup->Name() + " has no mode")}
-			currentMesh->AddVgroup(vgroup);
+			catch(std::exception &) {debugLog("Geometry " + Geometry->Name() + " has no indices")}
+			try { Geometry->SetMode(primitive["mode"].GetInt()); }
+			catch(std::exception &) {debugLog("Geometry " + Geometry->Name() + " has no mode")}
+			currentMesh->AddGeometry(Geometry);
 		}
 		if (currentMesh->GetMaterial(0) == nullptr)
 			currentMesh->AddMaterial(defaultMaterial);

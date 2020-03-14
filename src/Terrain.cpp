@@ -11,7 +11,7 @@
 #include "Node.hpp" // for Node
 #include "Texture2D.hpp" // for Texture2D
 #include "TextureParser.hpp" // for TextureParser
-#include "Vgroup.hpp" // for CVEC4, Vgroup
+#include "Geometry.hpp" // for CVEC4, Geometry
 #include "parser/InternalTools.hpp" // for BTHeader, fileFormat, openFile
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <iostream> // for operator<<, basic_ostream, basic...
@@ -37,7 +37,7 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 /*r
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
     terrain->_terrainSize = scale;
-    auto vg = Vgroup::Create(name + "vgroup");
+    auto vg = Geometry::Create(name + "Geometry");
     vg->v.resize(uint32_t(resolution.x * resolution.y));
     vg->vn.resize(vg->v.size());
     vg->vt.resize(vg->v.size());
@@ -146,7 +146,7 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 /*r
     auto mtl = Material::Create("default_terrain");
     mtl->albedo = glm::vec3(0.5, 0.5, 0.5);
     mtl->roughness = 0.5;
-    terrain->AddVgroup(vg);
+    terrain->AddGeometry(vg);
     terrain->AddMaterial(mtl);
     */
     return terrain;

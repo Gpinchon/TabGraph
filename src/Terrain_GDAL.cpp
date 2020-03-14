@@ -14,7 +14,7 @@
 #include "Renderable.hpp" // for Renderable
 #include "Texture.hpp" // for Texture
 #include "TextureParser.hpp" // for TextureParser
-#include "Vgroup.hpp"
+#include "Geometry.hpp"
 #include "cpl_conv.h" // for CPLMalloc, CPLFree
 #include "cpl_error.h" // for CE_None
 #include "gdal.h" // for GDALAllRegister, GDALClose, GDALOpen
@@ -181,7 +181,7 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string& name,
     }
     std::cout << std::endl;
     Subdivide(&quadTree, texture, scale);
-    auto vg = Vgroup::Create(name + "_vgroup");
+    auto vg = Geometry::Create(name + "_Geometry");
     // auto medZ = (maxDepth + minDepth) / 2.f * scale.y;
     for (auto& data : quadTree.GetAllData()) {
         for (auto& patch : *data) {

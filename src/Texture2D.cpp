@@ -5,7 +5,7 @@
 #include "Shader.hpp" // for Shader
 #include "Texture2D.hpp"
 #include "Tools.hpp"
-#include "VertexArray.hpp" // for VertexArray
+#include "Geometry.hpp" // for Geometry
 #include "parser/GLSL.hpp" // for GLSL
 #include <cstring> // for memcpy
 #include <glm/gtx/rotate_vector.hpp>
@@ -287,7 +287,7 @@ void Texture2D::blur(const int &pass, const float &radius, std::shared_ptr<Shade
         cbuffer->bind();
         blurShader->set_uniform("in_Direction", direction);
         blurShader->bind_texture("in_Texture_Color", ctexture, GL_TEXTURE0);
-        Render::DisplayQuad()->draw();
+        Render::DisplayQuad()->Draw();
         angle = CYCLE(angle + (M_PI / 4.f), 0, M_PI);
         if (totalPass == 1)
             cbuffer->set_attachement(0, attachement);

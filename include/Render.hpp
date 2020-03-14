@@ -10,7 +10,7 @@
 #include <memory> // for shared_ptr
 
 class Shader; // lines 13-13
-class VertexArray; // lines 12-12
+class Geometry; // lines 12-12
 
 /** @brief Render manages the graphical rendering and frame pacing */
 namespace Render {
@@ -48,5 +48,5 @@ float InternalQuality();
 	*/
 double DeltaTime();
 
-const std::shared_ptr<VertexArray> DisplayQuad();
+const std::shared_ptr<Geometry> DisplayQuad();
 };

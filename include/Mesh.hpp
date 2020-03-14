@@ -16,7 +16,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include "Node.hpp"
 
-class Vgroup;
+class Geometry;
 class Material;
 
 class Mesh : public Node
@@ -30,8 +30,8 @@ public:
     bool Drawable() const override;
     void center();
     void set_cull_mod(GLenum);
-    /** Adds the vgroup to vgroups list */
-    void AddVgroup(std::shared_ptr<Vgroup>);
+    /** Adds the Geometry to Geometrys list */
+    void AddGeometry(std::shared_ptr<Geometry>);
     /** Adds the material to materials list */
     void AddMaterial(std::shared_ptr<Material>);
     /** Removes the material from materials list */
@@ -47,24 +47,24 @@ public:
 
     /** @return a position offset not inherited by children */
     virtual glm::vec3 GeometryPosition() const;
-    /** @argument position : vgroups position offset, not inherited by children */
+    /** @argument position : Geometrys position offset, not inherited by children */
     virtual void SetGeometryPosition(glm::vec3 position);
     /** @return a rotation offset not inherited by children */
     virtual glm::quat GeometryRotation() const;
-    /** @argument rotation : vgroups rotation offset, not inherited by children */
+    /** @argument rotation : Geometrys rotation offset, not inherited by children */
     virtual void SetGeometryRotation(glm::quat rotation);
     /** @return a scaling offset not inherited by children */
     virtual glm::vec3 GeometryScale() const;
-    /** @argument scale : vgroups scale offset, not inherited by children */
+    /** @argument scale : Geometrys scale offset, not inherited by children */
     virtual void SetGeometryScale(glm::vec3 scale);
 
-    const std::set<std::shared_ptr<Vgroup>> vgroups();
+    const std::set<std::shared_ptr<Geometry>> Geometrys();
 
 protected:
     Mesh(const std::string &name);
 
 private:
-    std::set<std::shared_ptr<Vgroup>> _vgroups;
+    std::set<std::shared_ptr<Geometry>> _Geometrys;
     std::vector<std::shared_ptr<Material>> _materials;
     GLenum _cull_mod{GL_BACK};
     glm::vec3 _geometryPosition{0};

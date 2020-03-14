@@ -16,7 +16,7 @@
 #include "Scene.hpp"
 #include "Shader.hpp" // for Shader
 #include "Texture2D.hpp" // for Texture2D
-#include "VertexArray.hpp" // for VertexArray
+#include "Geometry.hpp" // for Geometry
 #include "Window.hpp" // for Window
 #include "brdfLUT.hpp" // for brdfLUT
 #include "glm/glm.hpp" // for glm::inverse, vec2_scale, vec3_scale
@@ -52,7 +52,7 @@ public:
     static std::atomic<bool> &NeedsUpdate();
     static std::atomic<bool> &Drawing();
     static uint64_t FrameNbr(void);
-    static const std::shared_ptr<VertexArray> DisplayQuad();
+    static const std::shared_ptr<Geometry> DisplayQuad();
     static std::vector<std::weak_ptr<Shader>> &PostTreatments();
     static void SetInternalQuality(float);
     static float InternalQuality();
@@ -105,29 +105,29 @@ static auto SSRBlurShaderCode =
 #include "SSRBlur.frag"
     ;
 
+#include "BufferHelper.hpp"
+
 /*
 ** quad is a singleton
 */
 
-const std::shared_ptr<VertexArray> Render::Private::DisplayQuad()
+const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
 {
-    static std::shared_ptr<VertexArray> vao;
+    static std::shared_ptr<Geometry> vao;
     if (vao != nullptr)
     {
         return (vao);
     }
-    vao = VertexArray::Create(4, GL_TRIANGLE_STRIP);
-    std::vector<float> quad(8);
-    quad.at(0) = -1.0f;
-    quad.at(1) = -1.0f;
-    quad.at(2) = 1.0f;
-    quad.at(3) = -1.0f;
-    quad.at(4) = -1.0f;
-    quad.at(5) = 1.0f;
-    quad.at(6) = 1.0f;
-    quad.at(7) = 1.0f;
-    vao->add_buffer(GL_FLOAT, 2, quad);
-    return (vao);
+    std::vector<glm::vec2> quad(4);
+    quad.at(0) = {-1.0f, -1.0f};
+    quad.at(1) = {1.0f, -1.0f};
+    quad.at(2) = {-1.0f, 1.0f};
+    quad.at(3) = {1.0f, 1.0f};
+    auto accessor(BufferHelper::CreateAccessor(quad, GL_ARRAY_BUFFER));
+    vao = Geometry::Create("DisplayQuad");
+    vao->SetMode(GL_TRIANGLE_STRIP);
+    vao->SetAccessor("POSITION", accessor);
+    return vao;
 }
 
 std::shared_ptr<Framebuffer> Create_render_buffer(const std::string &name, const glm::ivec2 &size)
@@ -165,7 +165,7 @@ void present(std::shared_ptr<Framebuffer> back_buffer)
     presentShader->bind_texture("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
     presentShader->bind_texture("in_Texture_Emitting", back_buffer->attachement(1), GL_TEXTURE1);
     presentShader->bind_texture("in_Texture_Depth", back_buffer->depth(), GL_TEXTURE2);
-    Render::Private::DisplayQuad()->draw();
+    Render::Private::DisplayQuad()->Draw();
     presentShader->use(false);
     Window::swap();
 }
@@ -274,8 +274,8 @@ void Render::Private::_thread(void)
     float fixed_timing;
 
     fixed_timing = SDL_GetTicks() / 1000.f;
-    SDL_GL_SetSwapInterval(Engine::SwapInterval());
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
+    SDL_GL_SetSwapInterval(Engine::SwapInterval());
     while (_instance()._loop)
     {
         if (Render::Private::NeedsUpdate())
@@ -362,7 +362,7 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
         shader->bind_texture("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE7);
         shader->bind_texture("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE8);
         shader->bind_texture("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE8);
-        Render::Private::DisplayQuad()->draw();
+        Render::Private::DisplayQuad()->Draw();
         std::swap(current_backTexture, current_backBuffer);
     }
     shader->use(false);
@@ -416,7 +416,7 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
         framebuffer->bind();
         HZBShader->use();
         HZBShader->bind_texture("in_Texture_Color", depthTexture, GL_TEXTURE0);
-        Render::Private::DisplayQuad()->draw();
+        Render::Private::DisplayQuad()->Draw();
         HZBShader->use(false);
         framebuffer->SetDepthBuffer(nullptr);
         //framebuffer->set_attachement(0, nullptr);
@@ -454,7 +454,7 @@ std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::sh
     SSRShader->bind_texture("LastColor", lastRender->attachement(0), GL_TEXTURE1);
     SSRShader->bind_texture("LastNormal", lastRender->attachement(2), GL_TEXTURE2);
     SSRShader->bind_texture("LastDepth", gBuffer->depth(), GL_TEXTURE3);
-    Render::Private::DisplayQuad()->draw();
+    Render::Private::DisplayQuad()->Draw();
     SSRShader->use(false);
     currentFrameBuffer->bind(false);
     //Merge the current result with last result to increase sampling
@@ -462,7 +462,7 @@ std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::sh
     SSRMergeShader->use();
     SSRMergeShader->bind_texture("in_Texture_Color", currentFrameBuffer->attachement(0), GL_TEXTURE1);
     SSRMergeShader->bind_texture("in_Last_Texture_Color", lastFrameBuffer->attachement(0), GL_TEXTURE2);
-    Render::DisplayQuad()->draw();
+    Render::DisplayQuad()->Draw();
     SSRMergeShader->use(false);
     SSRFramebufferResult->bind(false);
     //Blur the result
@@ -544,7 +544,7 @@ void Render::Private::Scene()
         passthrough_shader->bind_texture("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
         passthrough_shader->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
         passthrough_shader->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
-        Render::Private::DisplayQuad()->draw();
+        Render::Private::DisplayQuad()->Draw();
         passthrough_shader->use(false);
     }
     for (auto shader : PostTreatments())
@@ -566,7 +566,7 @@ void Render::Private::Scene()
             shaderPtr->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE8);
             shaderPtr->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE9);
         }
-        Render::Private::DisplayQuad()->draw();
+        Render::Private::DisplayQuad()->Draw();
         shaderPtr->use(false);
 
         std::swap(current_tbuffer, current_tbuffertex);
@@ -610,7 +610,7 @@ void Render::Private::Scene()
         elighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
         elighting_shader->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
     }
-    Render::Private::DisplayQuad()->draw();
+    Render::Private::DisplayQuad()->Draw();
     elighting_shader->use(false);
     std::swap(current_backTexture, current_backBuffer);
 
@@ -664,7 +664,7 @@ void Render::Private::Scene()
         telighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
         telighting_shader->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
     }
-    Render::Private::DisplayQuad()->draw();
+    Render::Private::DisplayQuad()->Draw();
     telighting_shader->use(false);
     std::swap(current_backTexture, current_backBuffer);
 
@@ -682,7 +682,7 @@ void Render::Private::Scene()
     refraction_shader->bind_texture("opaqueBackColor", opaqueBackBuffer->attachement(0), GL_TEXTURE0 + (++i));
     refraction_shader->bind_texture("opaqueBackEmitting", opaqueBackBuffer->attachement(1), GL_TEXTURE0 + (++i));
     refraction_shader->bind_texture("opaqueBackNormal", opaqueBackBuffer->attachement(2), GL_TEXTURE0 + (++i));
-    Render::Private::DisplayQuad()->draw();
+    Render::Private::DisplayQuad()->Draw();
     refraction_shader->use(false);
 
     final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -702,7 +702,7 @@ void Render::Private::Scene()
     passthrough_shader->bind_texture("in_Buffer1", final_back_buffer->attachement(1), GL_TEXTURE1);
     passthrough_shader->bind_texture("in_Buffer2", final_back_buffer->attachement(2), GL_TEXTURE2);
     passthrough_shader->bind_texture("in_Texture_Depth", final_back_buffer->depth(), GL_TEXTURE6);
-    Render::Private::DisplayQuad()->draw();
+    Render::Private::DisplayQuad()->Draw();
     passthrough_shader->use(false);
     present(final_back_buffer);
 }
@@ -784,7 +784,7 @@ std::atomic<bool> &Render::Drawing()
     return Render::Private::Drawing();
 }
 
-const std::shared_ptr<VertexArray> Render::DisplayQuad()
+const std::shared_ptr<Geometry> Render::DisplayQuad()
 {
     return Render::Private::DisplayQuad();
 }
