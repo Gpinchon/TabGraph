@@ -15,15 +15,14 @@ std::shared_ptr<BufferView> BufferView::Create(size_t byteLength, std::shared_pt
 
 void BufferView::Load(bool loadToGPU)
 {
-	GetBuffer()->Load(loadToGPU);
-	/*glCreateBuffers(1, &_glid);
-	glBindBuffer(Target(), Glid());
-    glBufferData(Target(), ByteLength(), &GetBuffer()->RawData().at(ByteOffset()), Usage());
-    glBindBuffer(Target(), 0);*/
+	GetBuffer()->LoadToCPU();
+	if (loadToGPU)
+		GetBuffer()->LoadToGPU();
 }
 
 void BufferView::Unload()
 {
+	GetBuffer()->Unload();
 	//glDeleteBuffers(1, &_glid);
 }
 

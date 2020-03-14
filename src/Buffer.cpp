@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <wchar.h>
 
-Buffer::Buffer(size_t byteLength) : Object(""), _rawData(byteLength, std::byte(0)) {
+Buffer::Buffer(size_t byteLength) : Object(""), _byteLength(byteLength) //_rawData(byteLength, std::byte(0))
+{
 }
 
 Buffer::~Buffer()
@@ -17,27 +18,36 @@ std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
 	return std::shared_ptr<Buffer>(new Buffer(byteLength));
 }
 
-void Buffer::Load(bool loadToGPU)
+void Buffer::Load()
 {
-	if (Uri() != "" && !Loaded()) {
+	LoadToCPU();
+	LoadToGPU();
+}
+
+void Buffer::LoadToCPU()
+{
+	if (LoadedToCPU())
+		return;
+	_rawData.resize(ByteLength(), std::byte(0));
+	if (Uri() != "") {
 		debugLog(Uri());
 		auto file(_wfopen(Uri().c_str(), L"rb"));
 		debugLog(file);
-		fread(&RawData().at(0), sizeof(std::byte), ByteLength(), file);
+		fread(&_rawData.at(0), sizeof(std::byte), ByteLength(), file);
 		if (ferror(file)) {
 			perror ("The following error occurred");
 		}
 		fclose(file);
 	}
-	_loaded = true;
-	if (loadToGPU) 
-		LoadToGPU();
+	_loadedToCPU = true;
 }
 
 void Buffer::LoadToGPU()
 {
 	if (LoadedToGPU())
 		return;
+	if (!LoadedToCPU())
+		LoadToCPU();
 	glCreateBuffers(1, &_glid);
 	glCheckError();
 	glNamedBufferData(
@@ -52,14 +62,27 @@ void Buffer::LoadToGPU()
 
 void Buffer::Unload()
 {
-	if (LoadedToGPU())
-		glDeleteBuffers(1, &_glid);
-	_loaded = false;
+	UnloadFromCPU();
+	UnloadFromGPU();
 }
 
-bool Buffer::Loaded()
+void Buffer::UnloadFromCPU()
 {
-	return _loaded;
+	_rawData.resize(0);
+	_rawData.shrink_to_fit();
+	_loadedToCPU = false;
+}
+
+void Buffer::UnloadFromGPU()
+{
+	glDeleteBuffers(1, &_glid);
+	_glid = 0;
+	_loadedToGPU = false;
+}
+
+bool Buffer::LoadedToCPU()
+{
+	return _loadedToCPU;
 }
 
 bool Buffer::LoadedToGPU()
@@ -69,6 +92,8 @@ bool Buffer::LoadedToGPU()
 
 std::vector<std::byte> &Buffer::RawData()
 {
+	if (!LoadedToCPU())
+		LoadToCPU();
 	return _rawData;
 }
 
@@ -84,12 +109,14 @@ void Buffer::SetUri(std::string uri)
 
 size_t Buffer::ByteLength() const
 {
-	return _rawData.size();
+	return _byteLength;
+	//return _rawData.size();
 }
 
 void Buffer::SetByteLength(size_t byteLength)
 {
-	_rawData.resize(byteLength);
+	_byteLength = byteLength;
+	//_rawData.resize(byteLength);
 }
 
 GLenum Buffer::Usage() const

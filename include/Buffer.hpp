@@ -11,11 +11,20 @@ class Buffer : public Object
 {
 public:
 	static std::shared_ptr<Buffer> Create(size_t byteLength);
+	/** Calls LoadToCPU() and LoadToGPU() */
+	void Load();
 	/** Reads the data from the uri into rawData */
-	void Load(bool loadToGPU = true);
+	void LoadToCPU();
+	/**
+	 * Loads the data of rawData into the VRAM
+	 * If the buffer is not loaded to cpu, LoadToCPU is called
+	 */
 	void LoadToGPU();
+	/** Calls UnloadFromCPU() and UnloadFromGPU() */
 	void Unload();
-	bool Loaded();
+	void UnloadFromCPU();
+	void UnloadFromGPU();
+	bool LoadedToCPU();
 	bool LoadedToGPU();
 	/** The total byte length of the buffer. */
 	size_t ByteLength() const;
@@ -39,8 +48,9 @@ protected:
 private:
 	std::filesystem::path _uri {""};
 	std::vector<std::byte> _rawData {};
-	bool _loaded {false};
+	bool _loadedToCPU {false};
 	bool _loadedToGPU {false};
 	GLuint _glid{0};
 	GLenum _usage {GL_STATIC_DRAW};
+	size_t _byteLength{0};
 };
