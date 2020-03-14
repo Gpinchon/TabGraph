@@ -5,30 +5,30 @@
 * @Last Modified time: 2019-10-07 11:38:13
 */
 
-#include "Vgroup.hpp"
+#include "Geometry.hpp"
 #include "AABB.hpp" // for AABB
 #include "BoundingElement.hpp" // for BoundingElement
 #include "Camera.hpp" // for Camera
 #include "Material.hpp" // for Material
 #include "Shader.hpp" // for Shader
 #include "Texture.hpp" // for Texture
-#include "VertexArray.hpp" // for VertexArray
+#include "Debug.hpp"
 #include "Buffer.hpp"
 #include "BufferView.hpp"
 #include "BufferAccessor.hpp"
 
 
-//std::vector<std::shared_ptr<Vgroup>> Vgroup::_vgroups;
+//std::vector<std::shared_ptr<Geometry>> Geometry::_Geometrys;
 
-Vgroup::Vgroup(const std::string &name)
+Geometry::Geometry(const std::string &name)
     : Object(name)
 {
     boundingElement = new AABB;
 }
 
-std::shared_ptr<Vgroup> Vgroup::Create(const std::string &name)
+std::shared_ptr<Geometry> Geometry::Create(const std::string &name)
 {
-    auto vg = std::shared_ptr<Vgroup>(new Vgroup(name));
+    auto vg = std::shared_ptr<Geometry>(new Geometry(name));
     return (vg);
 }
 
@@ -41,12 +41,8 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
     auto bufferView(accessor->GetBufferView());
     auto buffer(bufferView->GetBuffer());
     auto byteOffset(accessor->ByteOffset() + bufferView->ByteOffset());
-    debugLog(byteOffset);
-    glBindBuffer(bufferView->Target(), buffer->Glid());
-    glCheckError();
+    glBindBuffer(GL_ARRAY_BUFFER, buffer->Glid());
     glEnableVertexAttribArray(index);
-    glCheckError();
-    debugLog(accessor->Type());
     glVertexAttribPointer(
         index,
         accessor->ComponentSize(),
@@ -58,62 +54,41 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
     glCheckError();
 }
 
-void Vgroup::Load()
+void Geometry::Load()
 {
     if (IsLoaded())
-    {
         return;
+    for (auto accessor : _accessors) {
+        accessor.second->GetBufferView()->GetBuffer()->LoadToGPU();
+        accessor.second->GetBufferView()->GetBuffer()->UnloadFromCPU();
     }
-    for (auto accessor : _accessors)
-        accessor.second->Load();
     if (Indices() != nullptr)
         Indices()->Load();
     glCreateVertexArrays(1, &_vaoGlid);
-    glCheckError();
     glBindVertexArray(_vaoGlid);
     glCheckError();
     BindAccessor(Accessor("POSITION"), 0);
     BindAccessor(Accessor("NORMAL"), 1);
     BindAccessor(Accessor("TEXCOORD_0"), 2);
     glBindVertexArray(0);
-    //BindAccessor(Accessor("INDICES"), 3);
-
-    /*_vao = VertexArray::Create(v.size());
-    auto vaoPtr = _vao.lock();
-    vaoPtr->add_buffer(GL_FLOAT, 3, v);
-    vaoPtr->add_buffer(GL_UNSIGNED_BYTE, 4, vn);
-    vaoPtr->add_buffer(GL_FLOAT, 2, vt);
-    vaoPtr->add_indices(i);*/
     _isLoaded = true;
 }
 
-bool Vgroup::IsLoaded() const
+bool Geometry::IsLoaded() const
 {
     return _isLoaded;
 }
 
-bool Vgroup::Draw()
+bool Geometry::Draw()
 {
-    /*auto vaoPtr = _vao.lock();
-    if (nullptr == vaoPtr)
-        return (false);
-    vaoPtr->draw();*/
     Load();
     glBindVertexArray(_vaoGlid);
     if (Indices() != nullptr) {
-        /*if (Indices()->ComponentByteSize() == 2)
-        {
-            auto rawData(Indices()->GetBufferView()->GetBuffer()->RawData());
-            for (auto index(0u); index < rawData.size(); index += Indices()->ComponentByteSize()) {
-                short data(*reinterpret_cast<short*>(&rawData.at(index)));
-                debugLog(data);
-            }
-        }*/
         auto bufferView(Indices()->GetBufferView());
         auto byteOffset(Indices()->ByteOffset() + bufferView->ByteOffset());
-        glBindBuffer(bufferView->Target(), bufferView->GetBuffer()->Glid());
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferView->GetBuffer()->Glid());
         glDrawElements(Mode(), Indices()->Count(), Indices()->ComponentType(), BUFFER_OFFSET(byteOffset));
-        glBindBuffer(bufferView->Target(), 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
     else {
         auto accessor(Accessor("POSITION"));
@@ -125,26 +100,26 @@ bool Vgroup::Draw()
     return (true);
 }
 
-uint32_t Vgroup::MaterialIndex()
+uint32_t Geometry::MaterialIndex()
 {
     return _materialIndex;
 }
-void Vgroup::SetMaterialIndex(uint32_t index)
+void Geometry::SetMaterialIndex(uint32_t index)
 {
     _materialIndex = index;
 }
 
-GLenum Vgroup::Mode() const
+GLenum Geometry::Mode() const
 {
     return _drawingMode;
 }
 
-void Vgroup::SetMode(GLenum drawingMode)
+void Geometry::SetMode(GLenum drawingMode)
 {
     _drawingMode = drawingMode;
 }
 
-std::shared_ptr<BufferAccessor> Vgroup::Accessor(const std::string &key) const
+std::shared_ptr<BufferAccessor> Geometry::Accessor(const std::string &key) const
 {
     auto accessor(_accessors.find(key));
     if (accessor != _accessors.end())
@@ -152,23 +127,23 @@ std::shared_ptr<BufferAccessor> Vgroup::Accessor(const std::string &key) const
     return nullptr;
 }
 
-void Vgroup::SetAccessor(const std::string &key, std::shared_ptr<BufferAccessor>accessor)
+void Geometry::SetAccessor(const std::string &key, std::shared_ptr<BufferAccessor>accessor)
 {
     _accessors[key] = accessor;
 }
 
-std::shared_ptr<BufferAccessor> Vgroup::Indices() const
+std::shared_ptr<BufferAccessor> Geometry::Indices() const
 {
     return _indices;
 }
 
-void Vgroup::SetIndices(std::shared_ptr<BufferAccessor> indices)
+void Geometry::SetIndices(std::shared_ptr<BufferAccessor> indices)
 {
     _indices = indices;
 }
 
 
-/*void Vgroup::center(glm::vec3 &center)
+/*void Geometry::center(glm::vec3 &center)
 {
     for (auto &vec : v)
     {
@@ -180,7 +155,7 @@ void Vgroup::SetIndices(std::shared_ptr<BufferAccessor> indices)
     SetPosition(boundingElement->center - center);
 }*/
 
-/*void Vgroup::set_material(std::shared_ptr<Material> mtl)
+/*void Geometry::set_material(std::shared_ptr<Material> mtl)
 {
     if (mtl != nullptr)
         _material = mtl;
@@ -188,7 +163,7 @@ void Vgroup::SetIndices(std::shared_ptr<BufferAccessor> indices)
         _material.reset();
 }
 
-std::shared_ptr<Material> Vgroup::material()
+std::shared_ptr<Material> Geometry::material()
 {
     return (_material.lock());
 }*/
