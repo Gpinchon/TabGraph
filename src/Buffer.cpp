@@ -89,7 +89,7 @@ void Buffer::LoadToGPU()
 		debugLog(Uri());
 		auto file(_wfopen(Uri().c_str(), L"rb"));
 		debugLog(file);
-		fread(Map(BufferAccess::Write), sizeof(std::byte), ByteLength() / 2, file);
+		fread(Map(BufferAccess::Write), sizeof(std::byte), ByteLength(), file);
 		Unmap();
 		if (ferror(file)) {
 			perror ("The following error occurred");
