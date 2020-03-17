@@ -17,6 +17,7 @@ public:
 		ReadWrite = GL_READ_WRITE
 	};
 	static std::shared_ptr<Buffer> Create(size_t byteLength);
+	void UpdateGPU();
 	/** Calls LoadToCPU() and LoadToGPU() */
 	void Load();
 	/** Reads the data from the uri into rawData */

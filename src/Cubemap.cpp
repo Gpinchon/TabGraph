@@ -63,7 +63,7 @@ void Cubemap::load()
     glBindTexture(_target, _glid);
     for (auto i = 0u; i < 6; i++) {
         auto t = side(i);
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t->internal_format(),
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t->InternalFormat(),
                     t->Size().x, t->Size().y, 0, t->format(),
                     t->data_format(), t->data());
         glCheckError();

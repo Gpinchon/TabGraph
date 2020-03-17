@@ -83,12 +83,9 @@ layout(location = 4) in vec4	in_Color;
 layout(location = 5) in vec4	in_Joint;
 layout(location = 6) in vec4	in_Weight;
 
-//uniform t_Camera				Camera;
 uniform t_Textures				Texture;
-//uniform t_Material				Material;
 uniform t_Matrix				Matrix;
-uniform t_Joint					Joint[20];
-//uniform sampler1D				Joints;
+uniform samplerBuffer			Joints;
 uniform bool					Skinned;
 
 out vec3						frag_WorldPosition;
@@ -97,15 +94,29 @@ out lowp vec2					frag_Texcoord;
 
 t_Vert	Vert;
 
+mat4	GetJointMatrix(int index)
+{
+	return mat4(
+		texelFetch(Joints, index * 4 + 0),
+		texelFetch(Joints, index * 4 + 1),
+		texelFetch(Joints, index * 4 + 2),
+		texelFetch(Joints, index * 4 + 3)
+	);
+}
+
 void	FillIn()
 {
+	mat4 Joint[4];
+	Joint[0] = GetJointMatrix(int(in_Joint.x));
+	Joint[1] = GetJointMatrix(int(in_Joint.y));
+	Joint[2] = GetJointMatrix(int(in_Joint.z));
+	Joint[3] = GetJointMatrix(int(in_Joint.w));
 	if (Skinned) {
-		//mat4 SkinMatrix = Matrix.Joint[0];
 		mat4 SkinMatrix =
-        in_Weight.x * Joint[int(in_Joint.x)].Matrix +
-        in_Weight.y * Joint[int(in_Joint.y)].Matrix +
-        in_Weight.z * Joint[int(in_Joint.z)].Matrix +
-        in_Weight.w * Joint[int(in_Joint.w)].Matrix;
+        in_Weight.x * Joint[0] +
+        in_Weight.y * Joint[1] +
+        in_Weight.z * Joint[2] +
+        in_Weight.w * Joint[3];
         Vert.Position = vec3(Matrix.Model * SkinMatrix * vec4(in_Position, 1.0));
 	}
 	else

@@ -1,12 +1,14 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
 #include "Buffer.hpp"
 #include "BufferView.hpp"
 #include "BufferAccessor.hpp"
 #include <vector>
+#include <cstring>
+#include <GL/glew.h>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
 namespace BufferHelper {
 	/** 
@@ -22,9 +24,11 @@ namespace BufferHelper {
 	template <typename T>
 	std::shared_ptr<Buffer> CreateBuffer(std::vector<T> bufferVector);
 	template <typename T>
+	T Get(std::shared_ptr<Buffer>, size_t index);
+	template <typename T>
 	T Get(std::shared_ptr<BufferAccessor>, size_t index);
 	template <typename T>
-	T Get(std::shared_ptr<Buffer>, size_t index);
+	void Set(std::shared_ptr<Buffer>, size_t index, T value);
 	template <typename T>
 	void Set(std::shared_ptr<BufferAccessor>, size_t index, T value);
 }
@@ -34,7 +38,7 @@ inline std::shared_ptr<Buffer> BufferHelper::CreateBuffer(std::vector<T> bufferV
 {
 	auto byteLength(bufferVector.size() * sizeof(T));
 	auto buffer(Buffer::Create(byteLength));
-	memcpy(buffer->RawData().data(), bufferVector.data(), byteLength);
+	std::memcpy(buffer->RawData().data(), bufferVector.data(), byteLength);
 	return buffer;
 }
 
@@ -45,6 +49,15 @@ inline std::shared_ptr<BufferView> BufferHelper::CreateBufferView(std::vector<T>
 	auto bufferView(BufferView::Create(buffer->ByteLength(), buffer));
 	bufferView->SetTarget(target);
 	return bufferView;
+}
+
+template <>
+inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::mat4> bufferVector, GLenum target, bool normalized) {
+	auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
+	auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), "MAT4"));
+	bufferAccessor->SetBufferView(bufferView);
+	bufferAccessor->SetNormalized(normalized);
+	return bufferAccessor;
 }
 
 template <>
@@ -97,8 +110,7 @@ inline T BufferHelper::Get(std::shared_ptr<BufferAccessor> accessor, size_t inde
 	if (accessor == nullptr)
 		return T();
 	if (sizeof(T) != accessor->TotalComponentByteSize())
-		throw std::runtime_error(
-			std::string("Accessor total byte size(") + std::to_string(accessor->TotalComponentByteSize()) + ") different from size of " + typeid(T).name() + "(" + std::to_string(sizeof(T)) + ")");
+		throw std::runtime_error(std::string(__FUNCTION__) + " Accessor total byte size(" + std::to_string(accessor->TotalComponentByteSize()) + ") different from size of " + typeid(T).name() + "(" + std::to_string(sizeof(T)) + ")");
 	if (index >= accessor->Count())
 		throw std::runtime_error(std::string("Index(") + std::to_string(index) + ") greater or equal to accessor Count(" + std::to_string(accessor->Count()) + ")");
 	auto bufferView(accessor->GetBufferView());
@@ -110,16 +122,27 @@ inline T BufferHelper::Get(std::shared_ptr<BufferAccessor> accessor, size_t inde
 }
 
 template <typename T>
+void BufferHelper::Set(std::shared_ptr<Buffer> buffer, size_t index, T value)
+{
+	if (index + sizeof(T) > buffer->ByteLength())
+		throw std::runtime_error(std::string("Buffer index(") + std::to_string(index + sizeof(T)) + ") out of bound(" + std::to_string(buffer->ByteLength()) + ")");
+	auto pointer(buffer->RawData().data() + index);
+	std::memcpy(pointer, &value, sizeof(T));
+}
+
+template <typename T>
 inline void BufferHelper::Set(std::shared_ptr<BufferAccessor> accessor, size_t index, T value) {
 	if (accessor == nullptr)
 		return;
+	if (sizeof(T) != accessor->TotalComponentByteSize())
+		throw std::runtime_error(std::string(__FUNCTION__) + " Accessor total byte size(" + std::to_string(accessor->TotalComponentByteSize()) + ") different from size of " + typeid(T).name() + "(" + std::to_string(sizeof(T)) + ")");
 	auto bufferView(accessor->GetBufferView());
 	if (bufferView == nullptr)
 		return;
 	auto buffer(bufferView->GetBuffer());
 	if (buffer == nullptr)
 		return;
-	auto bufferIndex(accessor->ByteOffset() + bufferView->ByteOffset() + index * accessor->TotalComponentByteSize() * bufferView->ByteStride());
-	auto pointer(buffer->RawData().data() + bufferIndex);
-	memcpy(pointer, &value, std::min(sizeof(T), accessor->TotalComponentByteSize()));
+	auto stride(bufferView->ByteStride() ? bufferView->ByteStride() : accessor->TotalComponentByteSize());
+	auto bufferIndex(accessor->ByteOffset() + bufferView->ByteOffset() + index * stride);
+	BufferHelper::Set(buffer, bufferIndex, value);
 }

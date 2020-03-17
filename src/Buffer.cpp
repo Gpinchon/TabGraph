@@ -1,5 +1,6 @@
 #include "Buffer.hpp"
 #include "Debug.hpp"
+#include <cstring>
 #include <cstddef>
 #include <stdio.h>
 #include <wchar.h>
@@ -16,6 +17,12 @@ Buffer::~Buffer()
 std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
 {
 	return std::shared_ptr<Buffer>(new Buffer(byteLength));
+}
+
+void Buffer::UpdateGPU()
+{
+	std::memcpy(Map(BufferAccess::Write), _rawData.data(), ByteLength());
+	Unmap();
 }
 
 void Buffer::Allocate()
@@ -81,8 +88,6 @@ void Buffer::LoadToCPU()
 	_loadedToCPU = true;
 }
 
-#include <cstring>
-
 void Buffer::LoadToGPU()
 {
 	if (LoadedToGPU())
@@ -100,8 +105,7 @@ void Buffer::LoadToGPU()
 		fclose(file);
 	}
 	else if (_rawData.size()) {
-		std::memcpy(Map(BufferAccess::Write), _rawData.data(), ByteLength());
-		Unmap();
+		UpdateGPU();
 	}
  	_loadedToGPU = true;
 }
@@ -138,8 +142,7 @@ bool Buffer::LoadedToGPU()
 
 std::vector<std::byte> &Buffer::RawData()
 {
-	if (!LoadedToCPU())
-		LoadToCPU();
+	LoadToCPU();
 	return _rawData;
 }
 

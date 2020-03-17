@@ -61,6 +61,8 @@ void Mesh::Load()
             continue;
         vg->Load();
     }
+    if (_jointMatrices != nullptr)
+        _jointMatrices->load();
 }
 
 bool Mesh::DrawDepth(RenderMod mod)
@@ -107,8 +109,10 @@ bool Mesh::DrawDepth(RenderMod mod)
                         glm::inverse(Parent()->TransformMatrix()) *
                         joint.lock()->TransformMatrix() *
                         BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
-                    shader->SetUniform("Joint[" + std::to_string(index) + "].Matrix", jointMatrix);
+                    BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
                 }
+                _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU();
+                shader->bind_texture("Joints", _jointMatrices, GL_TEXTURE11);
             }
             last_shader = shader;
         }
@@ -168,8 +172,10 @@ bool Mesh::Draw(RenderMod mod)
                         glm::inverse(Parent()->TransformMatrix()) *
                         joint.lock()->TransformMatrix() *
                         BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
-                    shader->SetUniform("Joint[" + std::to_string(index) + "].Matrix", jointMatrix);
+                    BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
                 }
+                _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU();
+                shader->bind_texture("Joints", _jointMatrices, GL_TEXTURE11);
             }
             last_shader = shader;
         }
@@ -282,5 +288,5 @@ std::shared_ptr<MeshSkin> Mesh::Skin() const
 void Mesh::SetSkin(std::shared_ptr<MeshSkin> skin)
 {
     _skin = skin;
-    //_jointMatrices = TextureBuffer::Create("jointMatrices", BufferHelper::CreateAccessor<glm::mat4>(_skin->Joints().size()));
+    _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, BufferHelper::CreateAccessor<glm::mat4>(_skin->Joints().size(), GL_TEXTURE_BUFFER));
 }

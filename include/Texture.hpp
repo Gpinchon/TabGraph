@@ -35,10 +35,12 @@ public:
     virtual void load();
     virtual void unload();
     virtual void generate_mipmap();
+    virtual void SetTarget(GLenum target);
     virtual GLenum target() const;
     virtual void format(GLenum *format, GLenum *internal_format);
     virtual GLenum format();
-    virtual GLenum internal_format();
+    virtual void SetInternalFormat(GLenum internalFormat);
+    virtual GLenum InternalFormat();
     virtual GLenum data_format();
     virtual size_t data_size();
     virtual GLuint glid() const;

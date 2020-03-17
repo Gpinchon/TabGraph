@@ -283,7 +283,7 @@ void Shader::bind_image(const std::string& name,
         glBindTexture(texture->target(), texture->glid());
         glBindImageTexture(texture_unit - GL_TEXTURE0,
             texture->glid(), level, layered,
-            layer, access, texture->internal_format());
+            layer, access, texture->InternalFormat());
         glCheckError();
         //glBindTexture(texture->target(), texture->glid());
     }

@@ -61,9 +61,20 @@ size_t Texture::get_data_size(GLenum data_format)
     }
 }
 
-GLenum Texture::target() const { return (_target); }
+void Texture::SetTarget(GLenum target)
+{
+    _target = target;
+}
 
-void *Texture::data() const { return (_data); }
+GLenum Texture::target() const
+{
+    return (_target);
+}
+
+void *Texture::data() const
+{
+    return (_data);
+}
 
 void Texture::unload()
 {
@@ -80,7 +91,13 @@ void Texture::load()
 {
     if (_loaded)
         return;
+    //glCreateTextures(1, target(), &_glid);
     glGenTextures(1, &_glid);
+    glCheckError();
+    if (Name() != "") {
+        glObjectLabel(GL_TEXTURE, glid(), Name().length(), Name().c_str());
+        glCheckError();
+    }
     _loaded = true;
 }
 
@@ -101,17 +118,40 @@ void Texture::format(GLenum *format, GLenum *internal_format)
     *internal_format = _internal_format;
 }
 
-GLubyte Texture::bpp() const { return (_bpp); }
+GLubyte Texture::bpp() const
+{
+    return (_bpp);
+}
 
-GLuint Texture::glid() const { return (_glid); }
+GLuint Texture::glid() const
+{
+    return (_glid);
+}
 
-GLenum Texture::internal_format() { return (_internal_format); }
+void Texture::SetInternalFormat(GLenum internalFormat)
+{
+    _internal_format = internalFormat;
+}
 
-GLenum Texture::format() { return (_format); }
+GLenum Texture::InternalFormat()
+{
+    return (_internal_format);
+}
 
-GLenum Texture::data_format() { return (_data_format); }
+GLenum Texture::format()
+{
+    return (_format);
+}
 
-size_t Texture::data_size() { return (_data_size); }
+GLenum Texture::data_format()
+{
+    return (_data_format);
+}
+
+size_t Texture::data_size()
+{
+    return (_data_size);
+}
 
 size_t Texture::values_per_pixel()
 {
@@ -169,4 +209,7 @@ void Texture::restore_parameters()
     }
 }
 
-bool Texture::is_loaded() { return (_loaded); }
+bool Texture::is_loaded()
+{
+    return (_loaded);
+}

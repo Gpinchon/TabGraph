@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2020/03/14 17:15:53 by gpinchon         ###   ########.fr        #
+#    Updated: 2020/03/17 09:50:22 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -111,6 +111,7 @@ HEADERS_FILES	=	\
 					Terrain.hpp					\
 					Texture.hpp					\
 					Texture2D.hpp				\
+					TextureBuffer.hpp			\
 					TextureArray.hpp			\
 					TextureParser.hpp			\
 					Window.hpp
@@ -168,6 +169,7 @@ SRC_FILES		=	\
 					StackTracer.cpp				\
 					Texture.cpp					\
 					Texture2D.cpp				\
+					TextureBuffer.cpp			\
 					TextureArray.cpp			\
 					TextureParser.cpp			\
 					Window.cpp
