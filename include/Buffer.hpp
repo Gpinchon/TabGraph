@@ -10,6 +10,12 @@
 class Buffer : public Object
 {
 public:
+	enum BufferAccess : GLenum
+	{
+		Read = GL_READ_ONLY,
+		Write = GL_WRITE_ONLY,
+		ReadWrite = GL_READ_WRITE
+	};
 	static std::shared_ptr<Buffer> Create(size_t byteLength);
 	/** Calls LoadToCPU() and LoadToGPU() */
 	void Load();
@@ -39,6 +45,10 @@ public:
 	GLuint Glid() const;
 	GLenum Usage() const;
 	void SetUsage(GLenum);
+	void *Map(GLenum access);
+	void *MapRange(size_t offset, size_t length, GLbitfield access);
+	void Unmap();
+	void Allocate();
 	~Buffer();
 
 protected:

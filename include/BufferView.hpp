@@ -11,8 +11,6 @@ class BufferView : public Object
 {
 public:
 	static std::shared_ptr<BufferView> Create(size_t byteLength, std::shared_ptr<Buffer> buffer);
-	void Load(bool loadToGPU = true);
-	void Unload();
 	/** The buffer. */
 	std::shared_ptr<Buffer> GetBuffer();
 	void SetBuffer(std::shared_ptr<Buffer>);

@@ -8,23 +8,33 @@ precision lowp samplerCube;
 
 struct t_Textures {
 	vec2		Scale;
+#ifdef TEXTURE_USE_ALBEDO
 	sampler2D	Albedo;
-	bool		Use_Albedo;
+#endif
+#ifdef TEXTURE_USE_SPECULAR
 	sampler2D	Specular;
-	bool		Use_Specular;
+#endif
+#ifdef TEXTURE_USE_ROUGHNESS
 	sampler2D	Roughness;
-	bool		Use_Roughness;
+#endif
+#ifdef TEXTURE_USE_METALLIC
 	sampler2D	Metallic;
-	bool		Use_Metallic;
+#endif
+#ifdef TEXTURE_USE_METALLICROUGHNESS
 	sampler2D	MetallicRoughness;
-	bool		Use_MetallicRoughness;
+#endif
+#ifdef TEXTURE_USE_EMITTING
 	sampler2D	Emitting;
-	bool		Use_Emitting;
+#endif
+#ifdef TEXTURE_USE_NORMAL
 	sampler2D	Normal;
-	bool		Use_Normal;
+#endif
+#ifdef TEXTURE_USE_HEIGHT
 	sampler2D	Height;
-	bool		Use_Height;
+#endif
+#ifdef TEXTURE_USE_AO
 	sampler2D	AO;
+#endif
 };
 
 struct t_Material {
@@ -42,7 +52,7 @@ struct t_Material {
 struct t_Matrix {
 	mat4	Model;
 	mat4	Normal;
-	mat4	ModelViewProjection;
+	mat4	ViewProjection;
 };
 
 struct t_Environment {
@@ -90,6 +100,7 @@ layout(location = 5) out vec3	out_Normal;
 
 t_Frag	Frag;
 
+#ifdef TEXTURE_USE_HEIGHT
 void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out float parallaxHeight)
 {
 	const float minLayers = 10;
@@ -119,6 +130,7 @@ void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out float parallaxHeight)
 	parallaxHeight = isnan(parallaxHeight) ? 0 : parallaxHeight;
 	T = finalTexCoords;
 }
+#endif
 
 mat3x3	tbn_matrix()
 {
@@ -146,51 +158,53 @@ void	FillIn()
 	mat3	tbn = tbn_matrix();
 	float	ph = 0;
 
-	if (Texture.Use_Height)
-		Parallax_Mapping(tbn * normalize(Camera.Position - Frag.Position), Frag.UV, ph);
-
 	Frag.Material = Material;
 	Frag.Material.Emitting = Material.Emitting;
-	Frag.Material.AO = texture(Texture.AO, Frag.UV).r;
 	Frag.Material.Specular = Material.Specular;
 	Frag.Material.Roughness = Material.Roughness;
 	Frag.Material.Metallic = Material.Metallic;
 	Frag.Material.Ior = Material.Ior;
+	Frag.Material.AO = 0;
 
+#ifdef TEXTURE_USE_ALBEDO
 	vec4	albedo_sample = texture(Texture.Albedo, Frag.UV);
-	vec3	emitting_sample = texture(Texture.Emitting, Frag.UV).rgb;
-	vec3	normal_sample = texture(Texture.Normal, Frag.UV).xyz * 2 - 1;
+	Frag.Material.Albedo *= albedo_sample.rgb;
+	Frag.Material.Alpha *= albedo_sample.a;
+#endif
+#ifdef TEXTURE_USE_SPECULAR
 	vec3	specular_sample = texture(Texture.Specular, Frag.UV).xyz;
+	Frag.Material.Specular = specular_sample;
+#endif
+#ifdef TEXTURE_USE_ROUGHNESS
 	float	roughness_sample = texture(Texture.Roughness, Frag.UV).r;
+	Frag.Material.Roughness = roughness_sample;
+#endif
+#ifdef TEXTURE_USE_METALLIC
 	float	metallic_sample = texture(Texture.Metallic, Frag.UV).r;
+	Frag.Material.Metallic = metallic_sample;
+#endif
+#ifdef TEXTURE_USE_METALLICROUGHNESS
 	vec2	metallicRoughness_sample = texture(Texture.MetallicRoughness, Frag.UV).bg;
-
-	if (Texture.Use_Albedo)
-	{
-		Frag.Material.Albedo *= albedo_sample.rgb;
-		Frag.Material.Alpha *= albedo_sample.a;
-	}
-	if (Texture.Use_Emitting)
-		Frag.Material.Emitting *= emitting_sample;
-	if (Texture.Use_Specular)
-		Frag.Material.Specular = specular_sample;
-	if (Texture.Use_MetallicRoughness) {
-		Frag.Material.Metallic = metallicRoughness_sample.x;
-		Frag.Material.Roughness = metallicRoughness_sample.y;
-	}
-	else {
-		if (Texture.Use_Roughness)
-			Frag.Material.Roughness = roughness_sample;
-		if (Texture.Use_Metallic)
-			Frag.Material.Metallic = metallic_sample;
-	}
-	if (Texture.Use_Normal) {
-		vec3	new_normal = normal_sample * tbn;
-		if (dot(new_normal, new_normal) > 0)
-			Frag.Normal = new_normal;
-	}
-	//if (Frag.Material.Alpha == 1)
-		Frag.Position = Frag.Position - (Frag.Normal * ph);
+	Frag.Material.Metallic = metallicRoughness_sample.x;
+	Frag.Material.Roughness = metallicRoughness_sample.y;
+#endif
+#ifdef TEXTURE_USE_EMITTING
+	vec3	emitting_sample = texture(Texture.Emitting, Frag.UV).rgb;
+	Frag.Material.Emitting *= emitting_sample;
+#endif
+#ifdef TEXTURE_USE_NORMAL
+	vec3	normal_sample = texture(Texture.Normal, Frag.UV).xyz * 2 - 1;
+	vec3	new_normal = normal_sample * tbn;
+	if (dot(new_normal, new_normal) > 0)
+		Frag.Normal = new_normal;
+#endif
+#ifdef TEXTURE_USE_HEIGHT
+	Parallax_Mapping(tbn * normalize(Camera.Position - Frag.Position), Frag.UV, ph);
+#endif
+#ifdef TEXTURE_USE_AO
+	Frag.Material.AO = texture(Texture.AO, Frag.UV).r;
+#endif
+	Frag.Position = Frag.Position - (Frag.Normal * ph);
 	Frag.Material.Roughness = map(Frag.Material.Roughness, 0, 1, 0.05, 1);
 	Frag.Material.Specular = mix(Frag.Material.Specular, Frag.Material.Albedo.rgb, Frag.Material.Metallic);
 }

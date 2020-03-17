@@ -107,7 +107,80 @@ bool lineSegmentIntersection(out float intersection, in vec2 o, in vec2 d, in ve
 		intersection = t1;
 	return hit;
 }
+/*
+#define CELL_STEP_OFFSET 0.05
 
+void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel, ivec2 BufferSize)
+{
+	// Size of current mip 
+	ivec2 MipSize = BufferSize >> MipLevel;
+
+	// UV converted to index in the mip
+	vec2 MipCellIndex = RaySample.xy * vec2(MipSize);
+
+	//
+	// Find the cell boundary UV based on the direction of the ray
+	// Take floor() or ceil() depending on the sign of RayDir.xy
+	//
+	vec2 BoundaryUV;
+	BoundaryUV.x = RayDir.x > 0 ? ceil(MipCellIndex.x) / float(MipSize.x) : 
+		floor(MipCellIndex.x) / float(MipSize.x);
+	BoundaryUV.y = RayDir.y > 0 ? ceil(MipCellIndex.y) / float(MipSize.y) : 
+		floor(MipCellIndex.y) / float(MipSize.y);
+
+	//
+	// We can now represent the cell boundary as being formed by the intersection of 
+	// two lines which can be represented by 
+	//
+	// x = BoundaryUV.x
+	// y = BoundaryUV.y
+	//
+	// Intersect the parametric equation of the Ray with each of these lines
+	//
+	vec2 t;
+	t.x = (BoundaryUV.x - RaySample.x) / RayDir.x;
+	t.y = (BoundaryUV.y - RaySample.y) / RayDir.y;
+
+	// Pick the cell intersection that is closer, and march to that cell
+	if (abs(t.x) < abs(t.y))
+	{
+		RaySample += (t.x + CELL_STEP_OFFSET / MipSize.x) * RayDir;
+	}
+	else
+	{
+		RaySample += (t.y + CELL_STEP_OFFSET / MipSize.y) * RayDir;
+	}
+}
+
+bool castRay(inout vec3 RayStartUVz, in vec3 RayDir, in float StepOffset)
+{
+	float	distanceToBorder = 1.0;
+	const vec2	UVDir = normalize(RayDir.xy);
+	for (int side = 0; side < 4; side++)
+	{
+		if (lineSegmentIntersection(distanceToBorder, RayStartUVz.xy, UVDir, sides[side].xy, sides[side].zw))
+			break;
+	}
+	const float	Step = 1.0 / float(256);
+	const vec3	RayEnd = RayStartUVz + RayDir * distanceToBorder;
+	const vec3	RayStepUVz = (RayEnd - RayStartUVz) * Step;
+	vec3	RayUVz = RayStartUVz + RayStepUVz * StepOffset;
+	int		level = 0;
+	for (int tries = 0; tries < 256 && level > -1 && level < textureMaxLod(LastDepth) - 1; ++tries) {
+		float depthSample = texelFetchLod(LastDepth, RayUVz.xy, level).r;
+		if (depthSample < RayUVz.z)
+			level--;
+		else {
+			level++;
+			//StepThroughCell(RayUVz, RayDir, level, textureSize(LastDepth,0));
+			RayUVz += RayStepUVz;
+		}
+	}
+	if (level == -1)
+		return true;
+	return false;
+}
+*/
 bool	castRay(inout vec3 RayStartUVz, in vec3 RayDir, in float StepOffset)
 {
 	float	distanceToBorder = 1.0;
@@ -119,30 +192,31 @@ bool	castRay(inout vec3 RayStartUVz, in vec3 RayDir, in float StepOffset)
 	}
 	const float	minMipMaps = 0;
 	const float	maxMipMaps = textureMaxLod(LastDepth);
-	const float	maxTries = REFLEXION_STEPS;
-	const float	Step = 1.0 / maxTries;
+	const float	NumSteps = REFLEXION_STEPS;
+	const float	Step = 1.0 / NumSteps;
 	const vec3	RayEnd = RayStartUVz + RayDir * distanceToBorder;
 	const vec3	RayStepUVz = (RayEnd - RayStartUVz) * Step;
-	//const float	RayStepUVz = distanceToBorder / maxTries;
-	const float 	CompareTolerance = abs(RayStepUVz.z);
-	//const float 	CompareTolerance = min(1.0 / maxTries, RayStartUVz.z * RayStepUVz.z);
-	//const float	CompareTolerance = max(abs(RayStepUVz.z)/* 0.06 */, (RayStartUVz.z - RayEnd.z) * Step * 4);
+	//const float	RayStepUVz = distanceToBorder / NumSteps;
+	//const vec4 	CompareTolerance = abs(RayStepUVz.zzzz);
+	//const float 	CompareTolerance = min(1.0 / NumSteps, RayStartUVz.z * RayStepUVz.z);
+	//const float	CompareTolerance = max(abs(RayStepUVz.z), (RayStartUVz.z - RayEnd.z) * Step * 4);
 	//const float 	CompareTolerance = RayStartUVz.z * abs(RayStepUVz.z) * 2;
 	//const float 	CompareTolerance = abs(RayStartUVz.z) * RayStepUVz.z);
+	const float CompareTolerance = abs( RayStepUVz.z ) * Step * 2.f;
 	float	mipLevel = minMipMaps;
 	vec3	RayUVz = RayStartUVz + RayStepUVz * StepOffset;
 	float	LastDiff = 0;
+	vec4 SampleTime = ( StepOffset + vec4( 1, 2, 3, 4 ) ) * Step;
 	for (int tries = 0; tries < REFLEXION_STEPS; tries += 4)
 	{
 		// Vectorized to group fetches
 		vec4	SampleUV0 = RayUVz.xyxy + RayStepUVz.xyxy * vec4( 1, 1, 2, 2 );
 		vec4	SampleUV1 = RayUVz.xyxy + RayStepUVz.xyxy * vec4( 3, 3, 4, 4 );
 		vec4	SampleZ   = RayUVz.zzzz + RayStepUVz.zzzz * vec4( 1, 2, 3, 4 );
-		if (mipLevel * maxMipMaps >= maxMipMaps)
-			return false;
-		vec4	sampleDepth = SampleDepthTexture(mipLevel * maxMipMaps, SampleUV0, SampleUV1);
-		vec4	DepthDiff = SampleZ - sampleDepth;
-		bvec4	Hit = greaterThan(SampleZ, sampleDepth);// || abs(depthDiff) < CompareTolerance;
+		vec4	SampleDepth = SampleDepthTexture(mipLevel * maxMipMaps, SampleUV0, SampleUV1);
+		/*vec4	DepthDiff = SampleZ - SampleDepth;
+		bool4 Hit = abs( -DepthDiff1 - CompareTolerance ) < CompareTolerance;
+		/*bvec4	Hit = greaterThan(SampleZ, SampleDepth);
 		if(any(Hit))
 		{
 			float DepthDiff0 = DepthDiff[2];
@@ -175,9 +249,39 @@ bool	castRay(inout vec3 RayStartUVz, in vec3 RayDir, in float StepOffset)
 				return true;
 			}
 		}
-		LastDiff = DepthDiff.w;
-		mipLevel += Frag.Material.Roughness * (16.0 / maxTries);
-		RayUVz += 4 * RayStepUVz;
+		LastDiff = DepthDiff.w;*/
+		vec4 DepthDiff1 = SampleZ - SampleDepth;
+		bvec4 Hit = lessThan(abs( -DepthDiff1 - CompareTolerance ), vec4(CompareTolerance));
+		//bvec4 Hit = lessThan(DepthDiff1, vec4(CompareTolerance));
+
+		if( any( Hit ) )
+		{
+			// Find more accurate hit using line segment intersection
+			vec4 DepthDiff0 = vec4( LastDiff, DepthDiff1.xyz );
+			vec4 TimeLerp = clamp( DepthDiff0 / (DepthDiff0 - DepthDiff1), vec4(0), vec4(1) );
+			vec4 IntersectTime = SampleTime + (TimeLerp - 1) / (NumSteps + 1);
+			vec4 HitTime;// = Hit ? IntersectTime : 1;
+			HitTime.x = Hit.x ? IntersectTime.x : 1;
+			HitTime.y = Hit.y ? IntersectTime.y : 1;
+			HitTime.z = Hit.z ? IntersectTime.z : 1;
+			HitTime.w = Hit.w ? IntersectTime.w : 1;
+
+			// Take closest hit
+			HitTime.xy = min( HitTime.xy, HitTime.zw );
+			float MinHitTime = min( HitTime.x, HitTime.y );
+			
+			vec3 HitUVz = RayStartUVz + RayStepUVz * MinHitTime;
+
+			//Result = vec4( HitUVz, MinHitTime );
+			RayStartUVz = HitUVz;
+			return true;
+			//break;
+		}
+
+		LastDiff = DepthDiff1.w;
+		mipLevel += Frag.Material.Roughness * (16.0 / NumSteps);
+		//RayUVz += 4 * RayStepUVz;
+		SampleTime += 4.0 / (NumSteps + 1);
 	}
 	return false;
 }

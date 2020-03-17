@@ -15,8 +15,6 @@ class BufferAccessor : public Object
 {
 public:
 	static std::shared_ptr<BufferAccessor> Create(GLenum componentType, size_t count, const std::string type);
-	void Load(bool loadToGPU = true);
-	void Unload();
 	/** The BufferView. */
 	std::shared_ptr<BufferView> GetBufferView() const;
 	void SetBufferView(std::shared_ptr<BufferView>);

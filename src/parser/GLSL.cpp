@@ -21,7 +21,7 @@
 #include <sys/io.h>
 #endif // for access, R_OK
 
-static auto deferredVertCode =
+/*static auto deferredVertCode =
 #include "deferred.vert"
     ;
 static auto deferredFragCode =
@@ -33,6 +33,7 @@ static auto forwardVertCode =
 static auto forwardFragCode =
 #include "forward.frag"
     ;
+    */
 
 GLuint compile_shader_code(const std::string &code, GLenum type)
 {
@@ -59,6 +60,7 @@ GLuint compile_shader(const std::string &path, GLenum type)
     return (compile_shader_code(file_to_str(path), type));
 }
 
+/*
 std::shared_ptr<Shader> GLSL::compile(const std::string &name,
                                       const std::string &vertex_code, const std::string &fragment_code)
 {
@@ -92,6 +94,7 @@ std::shared_ptr<Shader> GLSL::parse(const std::string &name,
                           file_to_str(vertex_file_path),
                           file_to_str(fragment_file_path)));
 }
+
 
 std::shared_ptr<Shader> GLSL::compile(const std::string &name,
                                       const std::string &vertex_code, const std::string &fragment_code, ShaderType type, const std::string &defines)
@@ -197,3 +200,4 @@ std::shared_ptr<Shader> GLSL::parse(const std::string &name,
     auto shader_code = file_to_str(shader_file_path);
     return (GLSL::compile(name, shader_code, type, defines));
 }
+*/

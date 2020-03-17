@@ -17,7 +17,9 @@
 #include "Node.hpp"
 
 class Geometry;
+class MeshSkin;
 class Material;
+class TextureBuffer;
 
 class Mesh : public Node
 {
@@ -58,6 +60,9 @@ public:
     /** @argument scale : Geometrys scale offset, not inherited by children */
     virtual void SetGeometryScale(glm::vec3 scale);
 
+    std::shared_ptr<MeshSkin> Skin() const;
+    void SetSkin(std::shared_ptr<MeshSkin> skin);
+
     const std::set<std::shared_ptr<Geometry>> Geometrys();
 
 protected:
@@ -66,6 +71,8 @@ protected:
 private:
     std::set<std::shared_ptr<Geometry>> _Geometrys;
     std::vector<std::shared_ptr<Material>> _materials;
+    std::shared_ptr<MeshSkin> _skin { nullptr };
+    std::shared_ptr<TextureBuffer> _jointMatrices { nullptr };
     GLenum _cull_mod{GL_BACK};
     glm::vec3 _geometryPosition{0};
     glm::quat _geometryRotation{0, 0, 0, 1};

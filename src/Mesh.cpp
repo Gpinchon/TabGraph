@@ -7,6 +7,7 @@
 
 #include "Mesh.hpp"
 #include "AABB.hpp" // for AABB
+#include "BufferHelper.hpp"
 #include "BoundingElement.hpp" // for BoundingElement
 #include "Camera.hpp" // for Camera
 #include "Debug.hpp"
@@ -15,7 +16,9 @@
 #include "Scene.hpp"
 #include "Shader.hpp" // for Shader
 #include "Texture2D.hpp"
+#include "TextureBuffer.hpp"
 #include "Geometry.hpp" // for Geometry
+#include "MeshSkin.hpp"
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
@@ -69,7 +72,7 @@ bool Mesh::DrawDepth(RenderMod mod)
     auto finalTranformMatrix(TransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
 
     bool ret = false;
-    auto mvp = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix() * finalTranformMatrix;
+    auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
     Load();
@@ -87,21 +90,31 @@ bool Mesh::DrawDepth(RenderMod mod)
         else if (mod == RenderMod::RenderTransparent
             && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
             continue;
-        auto shader(material->depth_shader());
-        if (nullptr == shader)
+        if (nullptr == material->depth_shader())
             continue;
+        auto shader(material->depth_shader());
+        material->Bind();
         shader->use();
         if (last_shader != shader)
         {
-            shader->set_uniform("Matrix.Model", finalTranformMatrix);
-            shader->set_uniform("Matrix.ModelViewProjection", mvp);
-            shader->set_uniform("Matrix.Normal", normal_matrix);
+            shader->SetUniform("Matrix.Model", finalTranformMatrix);
+            shader->SetUniform("Matrix.ViewProjection", viewProjectionMatrix);
+            shader->SetUniform("Matrix.Normal", normal_matrix);
+            if (Skin() != nullptr) {
+                for (auto index = 0u; index < Skin()->Joints().size(); ++index) {
+                    const auto joint(Skin()->Joints().at(index));
+                    auto jointMatrix =
+                        glm::inverse(Parent()->TransformMatrix()) *
+                        joint.lock()->TransformMatrix() *
+                        BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
+                    shader->SetUniform("Joint[" + std::to_string(index) + "].Matrix", jointMatrix);
+                }
+            }
             last_shader = shader;
         }
-        material->bind_textures(shader);
-        material->bind_values(shader);
+        shader->SetUniform("Skinned", Skin() != nullptr);
         ret |= vg->Draw();
-        shader->use(false);
+        material->shader()->use(false);
     }
     return ret;
 }
@@ -115,7 +128,7 @@ bool Mesh::Draw(RenderMod mod)
     auto finalTranformMatrix(TransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
 
     bool ret = false;
-    auto mvp = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix() * finalTranformMatrix;
+    auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
     //auto geometryTransform()
@@ -138,21 +151,31 @@ bool Mesh::Draw(RenderMod mod)
         else if (mod == RenderMod::RenderTransparent
                  && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
             continue;
-        auto shader(material->shader());
-        if (nullptr == shader)
+        if (nullptr == material->shader())
             continue;
+        auto shader(material->shader());
+        material->Bind();
         shader->use();
         if (last_shader != shader)
         {
-            shader->set_uniform("Matrix.Model", finalTranformMatrix);
-            shader->set_uniform("Matrix.ModelViewProjection", mvp);
-            shader->set_uniform("Matrix.Normal", normal_matrix);
+            shader->SetUniform("Matrix.Model", finalTranformMatrix);
+            shader->SetUniform("Matrix.ViewProjection", viewProjectionMatrix);
+            shader->SetUniform("Matrix.Normal", normal_matrix);
+            if (Skin() != nullptr) {
+                for (auto index = 0u; index < Skin()->Joints().size(); ++index) {
+                    const auto joint(Skin()->Joints().at(index));
+                    auto jointMatrix =
+                        glm::inverse(Parent()->TransformMatrix()) *
+                        joint.lock()->TransformMatrix() *
+                        BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
+                    shader->SetUniform("Joint[" + std::to_string(index) + "].Matrix", jointMatrix);
+                }
+            }
             last_shader = shader;
         }
-        material->bind_textures(shader);
-        material->bind_values(shader);
+        shader->SetUniform("Skinned", Skin() != nullptr);
         ret |= vg->Draw();
-        shader->use(false);
+        material->shader()->use(false);
     }
     return ret;
 }
@@ -249,4 +272,15 @@ void Mesh::SetGeometryScale(glm::vec3 scale)
 {
     _geometryScale = scale;
     SetNeedsTranformUpdate(true);
+}
+
+std::shared_ptr<MeshSkin> Mesh::Skin() const
+{
+    return _skin;
+}
+
+void Mesh::SetSkin(std::shared_ptr<MeshSkin> skin)
+{
+    _skin = skin;
+    //_jointMatrices = TextureBuffer::Create("jointMatrices", BufferHelper::CreateAccessor<glm::mat4>(_skin->Joints().size()));
 }

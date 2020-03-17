@@ -129,7 +129,8 @@ void Engine::Init()
     static auto SSAOShaderCode =
 #include "ssao.frag"
         ;
-    static auto SSAOShader = GLSL::compile("SSAO", SSAOShaderCode, PostShader);
+    static auto SSAOShader = Shader::Create("SSAO", PostShader);
+    SSAOShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSAOShaderCode);
     Render::AddPostTreatment(SSAOShader);
     EnginePrivate::Get().LoadRes();
     Engine::SetSwapInterval(Config::Get("SwapInterval", -1));

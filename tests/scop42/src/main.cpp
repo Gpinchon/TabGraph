@@ -76,10 +76,10 @@ auto	texture = Texture::Create("checkerBoardTexture", glm::vec2(256, 256), GL_TE
 //compute_object->set_in_texture(texture);
 compute_object->set_out_texture(texture);
 compute_object->Start();
-cube->vgroup(0)->material()->set_texture_albedo(texture);
+cube->Geometry(0)->material()->set_texture_albedo(texture);
 */
 
-#include <Vgroup.hpp>
+#include <Geometry.hpp>
 
 std::shared_ptr<Mesh> mainMesh = nullptr;
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     }
     if (mainMesh != nullptr)
     {
-        for (auto &vg : mainMesh->vgroups()) {
+        for (auto &vg : mainMesh->Geometrys()) {
             for (auto &v : vg->v)
                 v -= mainMesh->bounding_element->center;
         }

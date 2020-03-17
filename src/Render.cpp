@@ -155,8 +155,13 @@ std::shared_ptr<Framebuffer> Create_back_buffer(const std::string &name, const g
 
 void present(std::shared_ptr<Framebuffer> back_buffer)
 {
-    static auto presentShader = GLSL::compile("present",
-                                              passthrough_vertex_code, present_fragment_code);
+    static std::shared_ptr<Shader> presentShader;
+    if (presentShader == nullptr)
+    {
+        presentShader = Shader::Create("present");
+        presentShader->SetStage(ShaderStage(GL_VERTEX_SHADER, passthrough_vertex_code));
+        presentShader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, present_fragment_code));
+    }
 
     glDepthFunc(GL_ALWAYS);
     glDisable(GL_CULL_FACE);
@@ -228,13 +233,13 @@ void Render::Private::FixedUpdate()
     while (auto shader = Shader::Get(index))
     {
         shader->use();
-        shader->set_uniform("Camera.Position", Scene::Current()->CurrentCamera()->Position());
-        shader->set_uniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
-        shader->set_uniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
-        shader->set_uniform("Camera.InvMatrix.View", InvViewMatrix);
-        shader->set_uniform("Camera.InvMatrix.Projection", InvProjMatrix);
-        shader->set_uniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));
-        shader->set_uniform("Time", SDL_GetTicks() / 1000.f);
+        shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->Position());
+        shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+        shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+        shader->SetUniform("Camera.InvMatrix.View", InvViewMatrix);
+        shader->SetUniform("Camera.InvMatrix.Projection", InvProjMatrix);
+        shader->SetUniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));
+        shader->SetUniform("Time", SDL_GetTicks() / 1000.f);
         shader->use(false);
         index++;
     }
@@ -312,10 +317,31 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
     auto shadowsPerPass = Config::Get("ShadowsPerPass", 8u);
     if (lightsPerPass == 0)
         return;
+    static auto lighting_shader = Shader::Create("lighting", LightingShader);
+    lighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingFragmentCode);
+    lighting_shader->SetDefine("LIGHTNBR", std::to_string(lightsPerPass));
+    lighting_shader->SetDefine("PointLight", std::to_string(Point));
+    lighting_shader->SetDefine("DirectionnalLight", std::to_string(Directionnal));
+    static auto slighting_shader = Shader::Create("shadow_lighting", LightingShader);
+    slighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingFragmentCode);
+    slighting_shader->SetDefine(("SHADOWNBR"), std::to_string(shadowsPerPass));
+    slighting_shader->SetDefine(("LIGHTNBR"), std::to_string(lightsPerPass));
+    slighting_shader->SetDefine(("PointLight"), std::to_string(Point));
+    slighting_shader->SetDefine(("DirectionnalLight"), std::to_string(Directionnal));
+    if (shadowsPerPass > 0)
+        slighting_shader->SetDefine("SHADOW");
+/*
     static auto lighting_shader = GLSL::compile("lighting", lightingFragmentCode, LightingShader,
-                                                std::string("\n#define LIGHTNBR ") + std::to_string(lightsPerPass) + std::string("\n#define PointLight ") + std::to_string(Point) + std::string("\n#define DirectionnalLight ") + std::to_string(Directionnal) + std::string("\n"));
+                                                std::string("\n#define LIGHTNBR ") + std::to_string(lightsPerPass) +
+                                                std::string("\n#define PointLight ") + std::to_string(Point) +
+                                                std::string("\n#define DirectionnalLight ") + std::to_string(Directionnal) + std::string("\n"));
     static auto slighting_shader = GLSL::compile("shadow_lighting", lightingFragmentCode, LightingShader,
-                                                 (shadowsPerPass > 0 ? std::string("\n#define SHADOW") : std::string("\n")) + std::string("\n#define SHADOWNBR ") + std::to_string(shadowsPerPass) + std::string("\n#define LIGHTNBR ") + std::to_string(lightsPerPass) + std::string("\n#define PointLight ") + std::to_string(Point) + std::string("\n#define DirectionnalLight ") + std::to_string(Directionnal) + std::string("\n"));
+                                                 (shadowsPerPass > 0 ? std::string("\n#define SHADOW") : std::string("\n")) +
+                                                 std::string("\n#define SHADOWNBR ") + std::to_string(shadowsPerPass) +
+                                                 std::string("\n#define LIGHTNBR ") + std::to_string(lightsPerPass) +
+                                                 std::string("\n#define PointLight ") + std::to_string(Point) +
+                                                 std::string("\n#define DirectionnalLight ") + std::to_string(Directionnal) + std::string("\n"));
+*/
     auto actualShadowNbr = std::max(1u, shadowsPerPass);
     auto shader = lighting_shader;
     for (auto i = 0u, j = 0u; i < normalLights.size() || j < shadowLights.size();)
@@ -330,10 +356,10 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
         while (lightIndex < lightsPerPass && i < normalLights.size())
         {
             auto light = normalLights.at(i);
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", -1);
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", -1);
             i++;
             lightIndex++;
         }
@@ -341,11 +367,11 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
         while (lightIndex < lightsPerPass && shadowIndex < actualShadowNbr && j < shadowLights.size())
         {
             auto light = shadowLights.at(j);
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));
-            shader->set_uniform("Light[" + std::to_string(lightIndex) + "].Projection", light->TransformMatrix());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Projection", light->TransformMatrix());
             shader->bind_texture("Shadow[" + std::to_string(shadowIndex) + "]", light->render_buffer()->depth(), GL_TEXTURE9 + shadowIndex);
             j++;
             lightIndex++;
@@ -398,7 +424,14 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
     static auto HZBFragmentCode =
 #include "hzb.frag"
         ;
-    static auto HZBShader = GLSL::compile("HZB", HZBVertexCode, HZBFragmentCode);
+    static std::shared_ptr<Shader> HZBShader;
+    if (HZBShader == nullptr)
+    {
+        HZBShader = Shader::Create("HZB");
+        HZBShader->SetStage(ShaderStage(GL_VERTEX_SHADER, HZBVertexCode));
+        HZBShader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, HZBFragmentCode));
+    }
+    //static auto HZBShader = GLSL::compile("HZB", HZBVertexCode, HZBFragmentCode);
     static auto framebuffer = Framebuffer::Create("HZB", depthTexture->Size(), 0, 0);
     depthTexture->generate_mipmap();
     depthTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -436,13 +469,24 @@ std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::sh
     static auto SSRFramebuffer(Framebuffer::Create("SSRFramebuffer", res, 1, 0));
     static auto SSRFramebuffer1(Framebuffer::Create("SSRFramebuffer1", res, 1, 0));
     static auto SSRFramebufferResult(Framebuffer::Create("SSRFramebufferResult", res, 1, 0));
-    static auto SSRShader = GLSL::compile("SSR", SSRShaderCode, LightingShader,
-                                          std::string("\n#define REFLEXION_STEPS     ") + std::to_string(reflectionSteps)
-                                              + std::string("\n#define REFLEXION_SAMPLES ") + std::to_string(reflectionSamples)
-                                              + std::string("\n#define SCREEN_BORDER_FACTOR    ") + std::to_string(reflectionBorderFactor)
-                                              + std::string("\n"));
-    static auto SSRMergeShader = GLSL::compile("SSRMerge", SSRMergeShaderCode, LightingShader);
-    static auto SSRBlurShader = GLSL::compile("SSRBlur", SSRBlurShaderCode, LightingShader);
+    static std::shared_ptr<Shader> SSRShader;
+    static std::shared_ptr<Shader> SSRMergeShader;
+    static std::shared_ptr<Shader> SSRBlurShader;
+    if (SSRShader == nullptr) {
+        SSRShader = Shader::Create("SSR", LightingShader);
+        SSRShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRShaderCode);
+        SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_STEPS", std::to_string(reflectionSteps));
+        SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_SAMPLES", std::to_string(reflectionSamples));
+        SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(reflectionBorderFactor));
+    }
+    if (SSRMergeShader == nullptr) {
+        SSRMergeShader = Shader::Create("SSRMerge", LightingShader);
+        SSRMergeShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRMergeShaderCode);
+    }
+    if (SSRBlurShader == nullptr) {
+        SSRBlurShader = Shader::Create("SSRBlur", LightingShader);
+        SSRBlurShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRBlurShaderCode);
+    }
     static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
     SSRFramebufferResult->Resize(res);
     currentFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
@@ -489,9 +533,9 @@ void Render::Private::Scene()
     }
     glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
 
-    auto reflectionSteps = Config::Get("ReflexionSteps", 8);
-    auto reflectionSamples = Config::Get("ReflexionSamples", 8);
-    auto reflectionBorderFactor = Config::Get("ReflexionBorderFactor", 10);
+    //auto reflectionSteps = Config::Get("ReflexionSteps", 8);
+    //auto reflectionSamples = Config::Get("ReflexionSamples", 8);
+    //auto reflectionBorderFactor = Config::Get("ReflexionBorderFactor", 10);
     static auto temp_buffer = Create_render_buffer("temp_buffer", res);
     static auto temp_buffer1 = Create_render_buffer("temp_buffer1", res);
     static auto back_buffer = Create_back_buffer("back_buffer", res);
@@ -499,11 +543,53 @@ void Render::Private::Scene()
     static auto back_buffer2 = Create_back_buffer("back_buffer2", res);
     static auto final_back_buffer = Create_back_buffer("final_back_buffer", res);
     static auto last_render = Create_back_buffer("last_render", res);
+    /*static auto passthrough_shader = GLSL::compile("passthrough", emptyShaderCode, LightingShader);
     static auto elighting_shader = GLSL::compile("lighting_env", lightingEnvFragmentCode, LightingShader,
-                                                 std::string("\n#define REFLEXION_STEPS		") + std::to_string(reflectionSteps) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(reflectionSamples) + std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(reflectionBorderFactor) + std::string("\n"));
+                                                 std::string("\n#define REFLEXION_STEPS		") + std::to_string(reflectionSteps) +
+                                                 std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(reflectionSamples) +
+                                                 std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(reflectionBorderFactor) + std::string("\n"));
     static auto telighting_shader = GLSL::compile("lighting_env_transparent", lightingEnvFragmentCode, LightingShader,
-                                                  std::string("\n#define TRANSPARENT") + std::string("\n#define REFLEXION_STEPS		") + std::to_string(reflectionSteps) + std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(reflectionSamples) + std::string("\n#define SCREEN_BORDER_FACTOR ") + std::to_string(reflectionBorderFactor) + std::string("\n"));
-    static auto refraction_shader = GLSL::compile("refraction", refractionFragmentCode, LightingShader);
+                                                  std::string("\n#define TRANSPARENT") +
+                                                  std::string("\n#define REFLEXION_STEPS		") + std::to_string(reflectionSteps) +
+                                                  std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(reflectionSamples) +
+                                                  std::string("\n#define SCREEN_BORDER_FACTOR ") + std::to_string(reflectionBorderFactor) + std::string("\n"));
+    static auto refraction_shader = GLSL::compile("refraction", refractionFragmentCode, LightingShader);*/
+    static std::shared_ptr<Shader> elighting_shader;
+    static std::shared_ptr<Shader> telighting_shader;
+    static std::shared_ptr<Shader> refraction_shader;
+    static std::shared_ptr<Shader> empty_shader;
+    static std::shared_ptr<Shader> passthrough_shader;
+
+    if (elighting_shader == nullptr)
+    {
+        elighting_shader = Shader::Create("lighting_env", LightingShader);
+        elighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
+        //elighting_shader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_STEPS", std::to_string(reflectionSteps));
+        //elighting_shader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_SAMPLES", std::to_string(reflectionSamples));
+        //elighting_shader->Stage(GL_FRAGMENT_SHADER).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(reflectionBorderFactor));
+    }
+    if (telighting_shader == nullptr)
+    {
+        telighting_shader = Shader::Create("lighting_env_transparent", LightingShader);
+        telighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
+        telighting_shader->Stage(GL_FRAGMENT_SHADER).SetDefine("TRANSPARENT");
+    }
+    if (refraction_shader == nullptr)
+    {
+        refraction_shader = Shader::Create("refraction", LightingShader);
+        refraction_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(refractionFragmentCode);
+    }
+    if (empty_shader == nullptr)
+    {
+        empty_shader = Shader::Create("empty", LightingShader);
+        empty_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(emptyShaderCode);
+    }
+    if (passthrough_shader == nullptr)
+    {
+        passthrough_shader = Shader::Create("passthrough");
+        passthrough_shader->SetStage(ShaderStage(GL_VERTEX_SHADER, passthrough_vertex_code));
+        passthrough_shader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, passthrough_fragment_code));
+    }
 
     temp_buffer->Resize(res);
     temp_buffer1->Resize(res);
@@ -534,18 +620,17 @@ void Render::Private::Scene()
     glDisable(GL_CULL_FACE);
     if (PostTreatments().size() == 0u)
     {
-        static auto passthrough_shader = GLSL::compile("passthrough", emptyShaderCode, LightingShader);
         current_tbuffer->bind();
-        passthrough_shader->use();
-        passthrough_shader->bind_texture("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-        passthrough_shader->bind_texture("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
-        passthrough_shader->bind_texture("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
-        passthrough_shader->bind_texture("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
-        passthrough_shader->bind_texture("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
-        passthrough_shader->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
-        passthrough_shader->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
+        empty_shader->use();
+        empty_shader->bind_texture("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
+        empty_shader->bind_texture("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
+        empty_shader->bind_texture("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
+        empty_shader->bind_texture("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
+        empty_shader->bind_texture("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
+        empty_shader->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
+        empty_shader->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
         Render::Private::DisplayQuad()->Draw();
-        passthrough_shader->use(false);
+        empty_shader->use(false);
     }
     for (auto shader : PostTreatments())
     {
@@ -695,7 +780,6 @@ void Render::Private::Scene()
     // GENERATE BLOOM FROM out_Brightness
     final_back_buffer->attachement(1)->blur(Config::Get("BloomPass", 1), 3.5);
 
-    static auto passthrough_shader = GLSL::compile("passthrough", passthrough_vertex_code, passthrough_fragment_code);
     passthrough_shader->use();
     last_render->bind();
     passthrough_shader->bind_texture("in_Buffer0", final_back_buffer->attachement(0), GL_TEXTURE0);
@@ -719,13 +803,13 @@ void Render::Private::AddPostTreatment(std::shared_ptr<Shader> shader)
         PostTreatments().push_back(shader);
 }
 
-void Render::Private::AddPostTreatment(const std::string &name, const std::string &path)
+/*void Render::Private::AddPostTreatment(const std::string &name, const std::string &path)
 {
     auto shader = GLSL::parse(name, path, PostShader);
 
     if (shader != nullptr)
         PostTreatments().push_back(shader);
-}
+}*/
 
 void Render::Private::RemovePostTreatment(std::shared_ptr<Shader> shader)
 {

@@ -14,13 +14,17 @@ namespace BufferHelper {
 	 * @argument target : the buffer's target, see https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml
 	 */
 	template <typename T>
-	std::shared_ptr<BufferAccessor> CreateAccessor(std::vector<T> bufferVector, GLenum target, bool normalized = false);
+	std::shared_ptr<BufferAccessor> CreateAccessor(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER, bool normalized = false);
 	template <typename T>
-	std::shared_ptr<BufferView> CreateBufferView(std::vector<T> bufferVector, GLenum target);
+	std::shared_ptr<BufferAccessor> CreateAccessor(size_t size, GLenum target = GL_ARRAY_BUFFER, bool normalized = false);
+	template <typename T>
+	std::shared_ptr<BufferView> CreateBufferView(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER);
 	template <typename T>
 	std::shared_ptr<Buffer> CreateBuffer(std::vector<T> bufferVector);
 	template <typename T>
 	T Get(std::shared_ptr<BufferAccessor>, size_t index);
+	template <typename T>
+	T Get(std::shared_ptr<Buffer>, size_t index);
 	template <typename T>
 	void Set(std::shared_ptr<BufferAccessor>, size_t index, T value);
 }
@@ -71,10 +75,27 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 }
 
 template <typename T>
+std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(size_t size, GLenum target, bool normalized)
+{
+	return BufferHelper::CreateAccessor(std::vector<T>(size), target, normalized);
+}
+
+template <typename T>
+inline T BufferHelper::Get(std::shared_ptr<Buffer> buffer, size_t index)
+{
+	if (buffer == nullptr)
+		return T();
+	if (index + sizeof(T) > buffer->ByteLength())
+		throw std::runtime_error(std::string("Buffer index(") + std::to_string(index + sizeof(T)) + ") out of bound(" + std::to_string(buffer->ByteLength()) + ")");
+	auto pointer(buffer->RawData().data() + index);
+	return *reinterpret_cast<T*>(pointer);
+}
+
+template <typename T>
 inline T BufferHelper::Get(std::shared_ptr<BufferAccessor> accessor, size_t index) {
-	T ret = T();
+	
 	if (accessor == nullptr)
-		return ret;
+		return T();
 	if (sizeof(T) != accessor->TotalComponentByteSize())
 		throw std::runtime_error(
 			std::string("Accessor total byte size(") + std::to_string(accessor->TotalComponentByteSize()) + ") different from size of " + typeid(T).name() + "(" + std::to_string(sizeof(T)) + ")");
@@ -82,16 +103,10 @@ inline T BufferHelper::Get(std::shared_ptr<BufferAccessor> accessor, size_t inde
 		throw std::runtime_error(std::string("Index(") + std::to_string(index) + ") greater or equal to accessor Count(" + std::to_string(accessor->Count()) + ")");
 	auto bufferView(accessor->GetBufferView());
 	if (bufferView == nullptr)
-		return ret;
-	auto buffer(bufferView->GetBuffer());
-	if (buffer == nullptr)
-		return ret;
+		return T();
 	auto stride(bufferView->ByteStride() ? bufferView->ByteStride() : accessor->TotalComponentByteSize());
 	auto bufferIndex(accessor->ByteOffset() + bufferView->ByteOffset() + index * stride);
-	if (bufferIndex + accessor->TotalComponentByteSize() > buffer->RawData().size())
-		throw std::runtime_error(std::string("Buffer index(") + std::to_string(bufferIndex + accessor->TotalComponentByteSize()) + ") out of bound(" + std::to_string(buffer->RawData().size()) + ")");
-	memcpy(&ret, &buffer->RawData().at(bufferIndex), accessor->TotalComponentByteSize());
-	return ret;
+	return BufferHelper::Get<T>(bufferView->GetBuffer(), bufferIndex);
 }
 
 template <typename T>
@@ -105,5 +120,6 @@ inline void BufferHelper::Set(std::shared_ptr<BufferAccessor> accessor, size_t i
 	if (buffer == nullptr)
 		return;
 	auto bufferIndex(accessor->ByteOffset() + bufferView->ByteOffset() + index * accessor->TotalComponentByteSize() * bufferView->ByteStride());
-	memcpy(&buffer->RawData().at(bufferIndex), &value, std::min(sizeof(T), accessor->TotalComponentByteSize()));
+	auto pointer(buffer->RawData().data() + bufferIndex);
+	memcpy(pointer, &value, std::min(sizeof(T), accessor->TotalComponentByteSize()));
 }

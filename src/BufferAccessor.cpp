@@ -14,16 +14,6 @@ std::shared_ptr<BufferAccessor> BufferAccessor::Create(GLenum componentType, siz
 	return std::shared_ptr<BufferAccessor>(new BufferAccessor(componentType, count, type));
 }
 
-void BufferAccessor::Load(bool loadToGPU)
-{
-	GetBufferView()->Load(loadToGPU);
-}
-
-void BufferAccessor::Unload()
-{
-
-}
-
 std::shared_ptr<BufferView> BufferAccessor::GetBufferView() const
 {
 	return _bufferView;

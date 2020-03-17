@@ -12,6 +12,7 @@
 #include "Material.hpp" // for Material
 #include "Shader.hpp" // for Shader
 #include "Texture.hpp" // for Texture
+#include "Tools.hpp"
 #include "Debug.hpp"
 #include "Buffer.hpp"
 #include "BufferView.hpp"
@@ -31,8 +32,6 @@ std::shared_ptr<Geometry> Geometry::Create(const std::string &name)
     auto vg = std::shared_ptr<Geometry>(new Geometry(name));
     return (vg);
 }
-
-#define BUFFER_OFFSET(i) (reinterpret_cast<const char*>(i))
 
 static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int index)
 {
@@ -60,16 +59,20 @@ void Geometry::Load()
         return;
     for (auto accessor : _accessors) {
         accessor.second->GetBufferView()->GetBuffer()->LoadToGPU();
-        accessor.second->GetBufferView()->GetBuffer()->UnloadFromCPU();
+        //accessor.second->GetBufferView()->GetBuffer()->UnloadFromCPU();
     }
     if (Indices() != nullptr)
-        Indices()->Load();
+        Indices()->GetBufferView()->GetBuffer()->LoadToGPU();
     glCreateVertexArrays(1, &_vaoGlid);
     glBindVertexArray(_vaoGlid);
     glCheckError();
-    BindAccessor(Accessor("POSITION"), 0);
-    BindAccessor(Accessor("NORMAL"), 1);
-    BindAccessor(Accessor("TEXCOORD_0"), 2);
+    BindAccessor(Accessor("POSITION"),      0);
+    BindAccessor(Accessor("NORMAL"),        1);
+    BindAccessor(Accessor("TEXCOORD_0"),    2);
+    BindAccessor(Accessor("TEXCOORD_1"),    3);
+    BindAccessor(Accessor("COLOR_0"),       4);
+    BindAccessor(Accessor("JOINTS_0"),      5);
+    BindAccessor(Accessor("WEIGHTS_0"),     6);
     glBindVertexArray(0);
     _isLoaded = true;
 }
@@ -141,7 +144,6 @@ void Geometry::SetIndices(std::shared_ptr<BufferAccessor> indices)
 {
     _indices = indices;
 }
-
 
 /*void Geometry::center(glm::vec3 &center)
 {

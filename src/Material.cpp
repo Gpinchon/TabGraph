@@ -14,27 +14,26 @@
 
 std::vector<std::shared_ptr<Material>> Material::_materials;
 
-static auto default_fragment_code =
+static std::string forward_default_frag_technique =
 #include "forward_default.frag"
     ;
 
-static auto default_depth_vertex_code =
+static std::string depth_vert_code =
 #include "depth.vert"
     ;
 
-static auto default_depth_fragment_code =
+static std::string depth_frag_code =
 #include "depth.frag"
     ;
 
 Material::Material(const std::string& name)
     : Object(name)
 {
-    if ((_shader = Shader::GetByName("shader_default")).lock() == nullptr) {
-        _shader = GLSL::compile("shader_default", default_fragment_code, ForwardShader);
-    }
-    if ((_depth_shader = Shader::GetByName("default_depth")).lock() == nullptr) {
-        _depth_shader = GLSL::compile("default_depth", default_depth_vertex_code, default_depth_fragment_code);
-    }
+    _shader = Shader::Create("default_shader", ForwardShader);
+    _shader.lock()->Stage(GL_FRAGMENT_SHADER).SetTechnique(forward_default_frag_technique);
+    _depth_shader = Shader::Create("default_shader", ForwardShader);
+    _depth_shader.lock()->SetStage(ShaderStage(GL_VERTEX_SHADER, depth_vert_code));
+    _depth_shader.lock()->SetStage(ShaderStage(GL_FRAGMENT_SHADER, depth_frag_code));
 }
 
 std::shared_ptr<Material> Material::Create(const std::string& name)
@@ -71,56 +70,62 @@ std::shared_ptr<Material> Material::GetById(int64_t id)
     return nullptr;
 }
 
-void Material::bind_textures(std::shared_ptr<Shader> inShader)
+void Material::Bind()
 {
-    auto shaderPtr = inShader ? inShader : shader();
-    if (nullptr == shaderPtr)
+    if (nullptr == shader())
         return;
-    shaderPtr->bind_texture("Texture.Albedo", texture_albedo(), GL_TEXTURE1);
-    shaderPtr->set_uniform("Texture.Use_Albedo", texture_albedo() != nullptr);
-    shaderPtr->bind_texture("Texture.Specular", texture_specular(), GL_TEXTURE2);
-    shaderPtr->set_uniform("Texture.Use_Specular", texture_specular() != nullptr ? true : false);
-    if (texture_metallicRoughness() == nullptr) {
-        shaderPtr->bind_texture("Texture.Roughness", texture_roughness(), GL_TEXTURE3);
-        shaderPtr->set_uniform("Texture.Use_Roughness", texture_roughness() != nullptr ? true : false);
-        shaderPtr->bind_texture("Texture.Metallic", texture_metallic(), GL_TEXTURE4);
-        shaderPtr->set_uniform("Texture.Use_Metallic", texture_metallic() != nullptr ? true : false);
+    texture_albedo() ? shader()->SetDefine("TEXTURE_USE_ALBEDO") : shader()->RemoveDefine("TEXTURE_USE_ALBEDO");
+    texture_specular() ? shader()->SetDefine("TEXTURE_USE_SPECULAR") : shader()->RemoveDefine("TEXTURE_USE_SPECULAR");
+    texture_emitting() ? shader()->SetDefine("TEXTURE_USE_EMITTING") : shader()->RemoveDefine("TEXTURE_USE_EMITTING");
+    texture_normal() ? shader()->SetDefine("TEXTURE_USE_NORMAL") : shader()->RemoveDefine("TEXTURE_USE_NORMAL");
+    texture_height() ? shader()->SetDefine("TEXTURE_USE_HEIGHT") : shader()->RemoveDefine("TEXTURE_USE_HEIGHT");
+    if (texture_metallicRoughness() != nullptr) {
+        shader()->SetDefine("TEXTURE_USE_METALLICROUGHNESS");
+        shader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
+        shader()->RemoveDefine("TEXTURE_USE_METALLIC");
     }
-    else
-    {
-        shaderPtr->bind_texture("Texture.MetallicRoughness", texture_metallicRoughness(), GL_TEXTURE3);
-        shaderPtr->set_uniform("Texture.Use_MetallicRoughness", texture_metallicRoughness() != nullptr ? true : false);
-        shaderPtr->set_uniform("Texture.Use_Roughness", false);
-        shaderPtr->set_uniform("Texture.Use_Metallic", false);
+    else {
+        shader()->RemoveDefine("TEXTURE_USE_METALLICROUGHNESS");
+        texture_roughness() ? shader()->SetDefine("TEXTURE_USE_ROUGHNESS") : shader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
+        texture_metallic() ? shader()->SetDefine("TEXTURE_USE_METALLIC") : shader()->RemoveDefine("TEXTURE_USE_METALLIC");
     }
-    shaderPtr->bind_texture("Texture.Emitting", texture_emitting(), GL_TEXTURE5);
-    shaderPtr->set_uniform("Texture.Use_Emitting", texture_emitting() != nullptr ? true : false);
-    shaderPtr->bind_texture("Texture.Normal", texture_normal(), GL_TEXTURE6);
-    shaderPtr->set_uniform("Texture.Use_Normal", texture_normal() != nullptr ? true : false);
-    shaderPtr->bind_texture("Texture.Height", texture_height(), GL_TEXTURE7);
-    shaderPtr->set_uniform("Texture.Use_Height", texture_height() != nullptr ? true : false);
-    shaderPtr->bind_texture("Texture.AO", texture_ao(), GL_TEXTURE8);
-    if (Environment::current() != nullptr) {
-        shaderPtr->bind_texture("Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE9);
-        shaderPtr->bind_texture("Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE10);
-    }
-    
+    shader()->use();
+    bind_textures();
+    bind_values();
+    shader()->use(false);
 }
 
-void Material::bind_values(std::shared_ptr<Shader> inShader)
+void Material::bind_textures()
 {
-    auto shaderPtr = inShader ? inShader : shader();
-    if (nullptr == shaderPtr)
-        return;
-    shaderPtr->set_uniform("Material.Albedo", albedo);
-    shaderPtr->set_uniform("Material.Specular", specular);
-    shaderPtr->set_uniform("Material.Emitting", emitting);
-    shaderPtr->set_uniform("Material.Roughness", roughness);
-    shaderPtr->set_uniform("Material.Metallic", metallic);
-    shaderPtr->set_uniform("Material.Alpha", alpha);
-    shaderPtr->set_uniform("Material.Parallax", parallax);
-    shaderPtr->set_uniform("Material.Ior", ior);
-    shaderPtr->set_uniform("Texture.Scale", uv_scale);
+    shader()->bind_texture("Texture.Albedo", texture_albedo(), GL_TEXTURE0);
+    shader()->bind_texture("Texture.Specular", texture_specular(), GL_TEXTURE1);
+    if (texture_metallicRoughness() != nullptr)
+        shader()->bind_texture("Texture.MetallicRoughness", texture_metallicRoughness(), GL_TEXTURE2);
+    else {
+        shader()->bind_texture("Texture.Roughness", texture_roughness(), GL_TEXTURE3);
+        shader()->bind_texture("Texture.Metallic", texture_metallic(), GL_TEXTURE4);
+    }
+    shader()->bind_texture("Texture.Emitting", texture_emitting(), GL_TEXTURE5);
+    shader()->bind_texture("Texture.Normal", texture_normal(), GL_TEXTURE6);
+    shader()->bind_texture("Texture.Height", texture_height(), GL_TEXTURE7);
+    shader()->bind_texture("Texture.AO", texture_ao(), GL_TEXTURE8);
+    if (Environment::current() != nullptr) {
+        shader()->bind_texture("Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE9);
+        shader()->bind_texture("Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE10);
+    }
+}
+
+void Material::bind_values()
+{
+    shader()->SetUniform("Material.Albedo", albedo);
+    shader()->SetUniform("Material.Specular", specular);
+    shader()->SetUniform("Material.Emitting", emitting);
+    shader()->SetUniform("Material.Roughness", roughness);
+    shader()->SetUniform("Material.Metallic", metallic);
+    shader()->SetUniform("Material.Alpha", alpha);
+    shader()->SetUniform("Material.Parallax", parallax);
+    shader()->SetUniform("Material.Ior", ior);
+    shader()->SetUniform("Texture.Scale", uv_scale);
 }
 
 std::shared_ptr<Shader> Material::shader()

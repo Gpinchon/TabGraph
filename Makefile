@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2020/03/14 12:10:40 by gpinchon         ###   ########.fr        #
+#    Updated: 2020/03/14 17:15:53 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -84,6 +84,7 @@ HEADERS_FILES	=	\
 					Material.hpp				\
 					Mesh.hpp					\
 					MeshParser.hpp				\
+					MeshSkin.hpp				\
 					Mouse.hpp					\
 					Node.hpp					\
 					Object.hpp					\
@@ -141,6 +142,7 @@ SRC_FILES		=	\
 					Material.cpp				\
 					Mesh.cpp					\
 					MeshParser.cpp				\
+					MeshSkin.cpp				\
 					Mouse.cpp					\
 					Node.cpp					\
 					Object.cpp					\

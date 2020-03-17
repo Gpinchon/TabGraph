@@ -96,14 +96,14 @@ void Node::AddChild(std::shared_ptr<Node> childNode)
 
 void Node::RemoveChild(std::shared_ptr<Node> child)
 {
-    auto it = std::find(_children.begin(), _children.end(), child);
-    if(it != _children.end()) {
-        auto child(*it);
-        _children.erase(it);
-        if (child != nullptr)
-            child->SetParent(nullptr);
-    }
-    //_children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
+    //auto it = std::find(_children.begin(), _children.end(), child);
+    //if(it != _children.end()) {
+    //    auto child(*it);
+    //    _children.erase(it);
+    //    if (child != nullptr)
+    //        child->SetParent(nullptr);
+    //}
+    _children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
 }
 
 std::shared_ptr<Node> Node::target()

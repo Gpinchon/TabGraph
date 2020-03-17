@@ -183,6 +183,7 @@ void Animation::Advance()
 			}
 			case AnimationChannel::Weights:
 			{
+				//channel.Target()->SetSkin();
 				break;
 			}
 			case AnimationChannel::None:
@@ -203,8 +204,8 @@ void Animation::Play()
 {
 	if (!Playing()) {
 		for (auto sampler : _samplers) {
-			sampler.Timings()->Load(false);
-			sampler.KeyFrames()->Load(false);
+			sampler.Timings()->GetBufferView()->GetBuffer()->LoadToCPU();
+			sampler.KeyFrames()->GetBufferView()->GetBuffer()->LoadToCPU();
 		}
 		_startTime = SDL_GetTicks();
 		_playing = true;

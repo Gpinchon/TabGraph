@@ -11,24 +11,17 @@
 #include <memory> // for shared_ptr, allocator
 #include <string> // for string
 
-enum ShaderType {
-    ForwardShader,
-    LightingShader,
-    PostShader,
-    ComputeShader
-};
-
 /*
 ** .GLSL parsing interface
 */
 class GLSL : public Shader {
 public:
-    static std::shared_ptr<Shader> compile(const std::string& name,
+    /*static std::shared_ptr<Shader> compile(const std::string& name,
         const std::string& vertex_code, const std::string& fragment_code);
     static std::shared_ptr<Shader> compile(const std::string& name,
         const std::string& vertex_code, const std::string& fragment_code, ShaderType type, const std::string& defines = "");
     static std::shared_ptr<Shader> compile(const std::string& name,
-        const std::string& fragment_code, ShaderType type, const std::string& defines = "");
+        const std::string& fragment_code, ShaderType type, const std::string& defines = "");*/
 
     static std::shared_ptr<Shader> parse(const std::string& name,
         const std::string& vertex_file_path, const std::string& fragment_file_path);

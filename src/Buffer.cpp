@@ -18,6 +18,45 @@ std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
 	return std::shared_ptr<Buffer>(new Buffer(byteLength));
 }
 
+void Buffer::Allocate()
+{
+	if (Glid() > 0)
+		glDeleteBuffers(1, &_glid);
+	glCreateBuffers(1, &_glid);
+	glCheckError();
+	glNamedBufferData(
+		Glid(),
+ 		ByteLength(),
+ 		nullptr,
+ 		Usage()
+ 	);
+ 	glCheckError();
+}
+
+void *Buffer::Map(GLenum access)
+{
+	if (Glid() == 0)
+		Allocate();
+	auto ptr(glMapNamedBuffer(Glid(), access));
+	glCheckError();
+	return ptr;
+}
+
+void *Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
+{
+	if (Glid() == 0)
+		Allocate();
+	auto ptr(glMapNamedBufferRange(Glid(), offset, length, access));
+	glCheckError();
+	return ptr;
+}
+
+void Buffer::Unmap()
+{
+	glUnmapNamedBuffer(Glid());
+	glCheckError();
+}
+
 void Buffer::Load()
 {
 	LoadToCPU();
@@ -46,17 +85,28 @@ void Buffer::LoadToGPU()
 {
 	if (LoadedToGPU())
 		return;
+	if (Uri() != "") {
+		debugLog(Uri());
+		auto file(_wfopen(Uri().c_str(), L"rb"));
+		debugLog(file);
+		fread(Map(BufferAccess::Write), sizeof(std::byte), ByteLength() / 2, file);
+		Unmap();
+		if (ferror(file)) {
+			perror ("The following error occurred");
+		}
+		fclose(file);
+	}
 	if (!LoadedToCPU())
 		LoadToCPU();
-	glCreateBuffers(1, &_glid);
-	glCheckError();
-	glNamedBufferData(
-		Glid(),
- 		ByteLength(),
- 		&RawData().at(0),
- 		Usage()
- 	);
- 	glCheckError();
+	//glCreateBuffers(1, &_glid);
+	//glCheckError();
+	//glNamedBufferData(
+	//	Glid(),
+ 	//	ByteLength(),
+ 	//	&RawData().at(0),
+ 	//	Usage()
+ 	//);
+ 	//glCheckError();
  	_loadedToGPU = true;
 }
 

@@ -13,6 +13,25 @@
 #include <string.h> // for memset
 #include <utility> // for pair, make_pair
 
+static std::string empty_technique =
+#include "empty.glsl"
+    ;
+
+static std::string forward_vert_code =
+#include "forward.vert"
+    ;
+
+static std::string forward_frag_code =
+#include "forward.frag"
+    ;
+
+static std::string deferred_vert_code =
+#include "deferred.vert"
+    ;
+static std::string deferred_frag_code =
+#include "deferred.frag"
+    ;
+
 std::vector<std::shared_ptr<Shader>> Shader::_shaders;
 
 Shader::Shader(const std::string& name)
@@ -20,9 +39,28 @@ Shader::Shader(const std::string& name)
 {
 }
 
-std::shared_ptr<Shader> Shader::Create(const std::string& name)
+std::shared_ptr<Shader> Shader::Create(const std::string& name, ShaderType type)
 {
     auto shader = std::shared_ptr<Shader>(new Shader(name));
+    shader->_type = type;
+    if (ForwardShader == type) {
+        shader->SetDefine("FORWARDSHADER");
+        shader->SetStage(ShaderStage(GL_VERTEX_SHADER, forward_vert_code));
+        shader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, forward_frag_code));
+    }
+    else if (LightingShader == type) {
+        shader->SetDefine("LIGHTSHADER");
+        shader->SetStage(ShaderStage(GL_VERTEX_SHADER, deferred_vert_code));
+        shader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, deferred_frag_code));
+    }
+    else if (PostShader == type) {
+        shader->SetDefine("POSTSHADER");
+        shader->SetStage(ShaderStage(GL_VERTEX_SHADER, deferred_vert_code));
+        shader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, deferred_frag_code));
+    }
+    else if (ComputeShader == type) {
+        shader->SetDefine("COMPUTESHADER");
+    }
     _shaders.push_back(shader);
     return (shader);
 }
@@ -61,7 +99,7 @@ ShaderVariable* Shader::get_uniform(const std::string& name)
     return (nullptr);
 }
 
-void Shader::set_uniform(const std::string& name, const int& value, unsigned nbr)
+void Shader::SetUniform(const std::string& name, const int& value, unsigned nbr)
 {
     auto v = get_uniform(name);
     if (v == nullptr) {
@@ -72,13 +110,15 @@ void Shader::set_uniform(const std::string& name, const int& value, unsigned nbr
         use();
     }
     glUniform1iv(v->loc, nbr, &value);
-    glCheckError();
+    if (glCheckError()) {
+        debugLog(v->name + " " + std::to_string(v->loc));
+    }
     if (!bound) {
         use(false);
     }
 }
 
-void Shader::set_uniform(const std::string& name, const bool& value, unsigned nbr)
+void Shader::SetUniform(const std::string& name, const bool& value, unsigned nbr)
 {
     auto v = get_uniform(name);
     if (v == nullptr) {
@@ -90,13 +130,15 @@ void Shader::set_uniform(const std::string& name, const bool& value, unsigned nb
     }
     int val = value;
     glUniform1iv(v->loc, nbr, &val);
-    glCheckError();
+    if (glCheckError()) {
+        debugLog(v->name + " " + std::to_string(v->loc));
+    }
     if (!bound) {
         use(false);
     }
 }
 
-void Shader::set_uniform(const std::string& name, const unsigned& value, unsigned nbr)
+void Shader::SetUniform(const std::string& name, const unsigned& value, unsigned nbr)
 {
     auto v = get_uniform(name);
     if (v == nullptr) {
@@ -107,13 +149,15 @@ void Shader::set_uniform(const std::string& name, const unsigned& value, unsigne
         use();
     }
     glUniform1uiv(v->loc, nbr, &value);
-    glCheckError();
+    if (glCheckError()) {
+        debugLog(v->name + " " + std::to_string(v->loc));
+    }
     if (!bound) {
         use(false);
     }
 }
 
-void Shader::set_uniform(const std::string& name, const float& value, unsigned nbr)
+void Shader::SetUniform(const std::string& name, const float& value, unsigned nbr)
 {
     auto v = get_uniform(name);
     if (v == nullptr) {
@@ -124,13 +168,15 @@ void Shader::set_uniform(const std::string& name, const float& value, unsigned n
         use();
     }
     glUniform1fv(v->loc, nbr, &value);
-    glCheckError();
+    if (glCheckError()) {
+        debugLog(v->name + " " + std::to_string(v->loc));
+    }
     if (!bound) {
         use(false);
     }
 }
 
-void Shader::set_uniform(const std::string& name, const glm::vec2& value, unsigned nbr)
+void Shader::SetUniform(const std::string& name, const glm::vec2& value, unsigned nbr)
 {
     auto v = get_uniform(name);
     if (v == nullptr) {
@@ -141,13 +187,15 @@ void Shader::set_uniform(const std::string& name, const glm::vec2& value, unsign
         use();
     }
     glUniform2fv(v->loc, nbr, &value.x);
-    glCheckError();
+    if (glCheckError()) {
+        debugLog(v->name + " " + std::to_string(v->loc));
+    }
     if (!bound) {
         use(false);
     }
 }
 
-void Shader::set_uniform(const std::string& name, const glm::vec3& value, unsigned nbr)
+void Shader::SetUniform(const std::string& name, const glm::vec3& value, unsigned nbr)
 {
     auto v = get_uniform(name);
     if (v == nullptr) {
@@ -158,13 +206,15 @@ void Shader::set_uniform(const std::string& name, const glm::vec3& value, unsign
         use();
     }
     glUniform3fv(v->loc, nbr, &value.x);
-    glCheckError();
+    if (glCheckError()) {
+        debugLog(v->name + " " + std::to_string(v->loc));
+    }
     if (!bound) {
         use(false);
     }
 }
 
-void Shader::set_uniform(const std::string& name, const glm::mat4& value, unsigned nbr)
+void Shader::SetUniform(const std::string& name, const glm::mat4& value, unsigned nbr)
 {
     auto v = get_uniform(name);
     if (v == nullptr) {
@@ -175,7 +225,9 @@ void Shader::set_uniform(const std::string& name, const glm::mat4& value, unsign
         use();
     }
     glUniformMatrix4fv(v->loc, nbr, GL_FALSE, (float*)&value);
-    glCheckError();
+    if (glCheckError()) {
+        debugLog(v->name + " " + std::to_string(v->loc));
+    }
     if (!bound) {
         use(false);
     }
@@ -192,6 +244,9 @@ void Shader::use(const bool& use_program)
         glUseProgram(0);
         return;
     }
+    if (NeedsRecompile())
+        Recompile();
+    Compile();
     glUseProgram(_program);
     if (glCheckError()) {
         debugLog(Name());
@@ -232,7 +287,7 @@ void Shader::bind_image(const std::string& name,
         glCheckError();
         //glBindTexture(texture->target(), texture->glid());
     }
-    set_uniform(name, int(texture_unit - GL_TEXTURE0));
+    SetUniform(name, int(texture_unit - GL_TEXTURE0));
     if (!bound) {
         use(false);
     }
@@ -253,13 +308,13 @@ void Shader::bind_texture(const std::string& name,
         glBindTexture(texture->target(), texture->glid());
         glCheckError();
     }
-    set_uniform(name, int(texture_unit - GL_TEXTURE0));
+    SetUniform(name, int(texture_unit - GL_TEXTURE0));
     if (!bound) {
         use(false);
     }
 }
 
-GLuint Shader::link(const GLuint shaderid)
+/*GLuint Shader::link(const GLuint shaderid)
 {
     if (_program == 0)
         _program = glCreateProgram();
@@ -289,21 +344,22 @@ void Shader::detach(const GLuint shaderid)
         _program = glCreateProgram();
     glDetachShader(_program, shaderid);
     glCheckError();
-}
+}*/
 
-GLuint Shader::link()
+void Shader::Link()
 {
     glLinkProgram(_program);
     glCheckError();
     try {
         check_program(_program);
     } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Linking Error :\n") + e.what());
+        throw std::runtime_error(std::string("Linking Error " + Name() + " :\n") + e.what());
     }
-    return (_program);
+    _uniforms = _get_variables(GL_ACTIVE_UNIFORMS);
+    _attributes = _get_variables(GL_ACTIVE_ATTRIBUTES);
 }
 
-GLuint Shader::link(const GLuint vertexid, const GLuint fragmentid)
+/*GLuint Shader::link(const GLuint vertexid, const GLuint fragmentid)
 {
     if (_program == 0)
         _program = glCreateProgram();
@@ -339,7 +395,7 @@ GLuint Shader::link(const GLuint geometryid, const GLuint vertexid, const GLuint
         throw std::runtime_error(std::string("Linking Error :\n") + e.what());
     }
     return (_program);
-}
+}*/
 
 bool Shader::check_shader(const GLuint id)
 {
@@ -404,7 +460,164 @@ std::unordered_map<std::string, ShaderVariable> Shader::_get_variables(GLenum ty
         v.loc = glGetUniformLocation(_program, name);
         glCheckError();
         variables[v.name] = v;
-        //variables.insert(std::make_pair(v.name, v));
     }
     return (variables);
+}
+
+void Shader::Compile()
+{
+    if (Compiled())
+        return;
+    _program = glCreateProgram();
+    for (auto &stagePair : _shaderStages) {
+        auto stage(stagePair.second);
+        for (auto define : _defines) {
+            debugLog(define.first + " " + define.second);
+            stage.SetDefine(define.first, define.second);
+        }
+        try {
+            stage.Compile();
+        }
+        catch (std::exception& e) {
+            throw std::runtime_error(std::string("Error compiling ") + Name() + "\n" + e.what() +
+                "\nShader Code :\n" + stage.Code());
+        }
+        glAttachShader(_program, stage.Glid());
+    }
+    Link();
+    _compiled = true;
+}
+
+void Shader::Recompile()
+{
+    glDeleteProgram(_program);
+    _program = 0;
+    _compiled = false;
+    for (auto &stagePair : _shaderStages)
+        stagePair.second.Delete();
+    Compile();
+    _needsRecompile = false;
+}
+
+bool Shader::NeedsRecompile() const
+{
+    return _needsRecompile;
+}
+
+void Shader::SetDefine(const std::string define, const std::string value)
+{
+    if (_defines.find(define) == _defines.end() || _defines[define] != value)
+        _needsRecompile = true;
+    _defines[define] = value;
+}
+
+void Shader::RemoveDefine(const std::string define)
+{
+    for (auto &stagePair : _shaderStages)
+        stagePair.second.RemoveDefine(define);
+    if (_defines.find(define) != _defines.end())
+        _needsRecompile = true;
+    _defines.erase(define);
+}
+
+ShaderStage &Shader::Stage(GLenum stage)
+{
+    return _shaderStages[stage];
+}
+
+void Shader::SetStage(const ShaderStage &stage)
+{
+    _shaderStages[stage.Stage()] = stage;
+}
+
+bool Shader::Compiled() const
+{
+    return _compiled;
+}
+
+ShaderStage::ShaderStage(GLenum stage, const std::string code) : _stage(stage), _code(code), _technique(empty_technique)
+{
+}
+
+ShaderStage::~ShaderStage()
+{
+    Delete();
+}
+
+void ShaderStage::Delete() {
+    glDeleteShader(_glid);
+    _glid = 0;
+    _compiled = false;
+}
+
+void ShaderStage::Compile()
+{
+    if (Compiled())
+        Recompile();
+    static auto glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    static auto glslVersionNbr = int(std::stof(glslVersionString) * 100);
+
+    std::string fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n";
+    for (auto define : _defines) {
+        fullCode += "#define " + define.first + " " + define.second + "\n";
+    }
+    fullCode += Code() + Technique();
+    auto codeBuff = fullCode.c_str();
+    _glid = glCreateShader(Stage());
+    glShaderSource(_glid, 1, &codeBuff, nullptr);
+    glCompileShader(_glid);
+    glCheckError();
+    try {
+        Shader::check_shader(_glid);
+    }
+    catch (std::exception& e) {
+        throw std::runtime_error(std::string("Error compiling Shader Stage ") + e.what());
+    }
+    _compiled = true;
+}
+
+void ShaderStage::Recompile()
+{
+    Delete();
+    Compile();
+}
+
+GLenum ShaderStage::Stage() const
+{
+    return _stage;
+}
+
+std::string ShaderStage::Code() const
+{
+    return _code; //Le code c'est le _code ?
+}
+
+bool ShaderStage::Compiled() const
+{
+    return _compiled;
+}
+
+void ShaderStage::SetDefine(const std::string define, const std::string value)
+{
+    _defines[define] = value;
+}
+
+void ShaderStage::RemoveDefine(const std::string define)
+{
+    _defines.erase(define);
+}
+
+std::string ShaderStage::Technique() const
+{
+    return _technique;
+}
+
+void ShaderStage::SetTechnique(const std::string technique)
+{
+    _technique = technique;
+}
+
+GLuint ShaderStage::Glid() const
+{
+    return _glid;
 }

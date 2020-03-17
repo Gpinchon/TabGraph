@@ -73,7 +73,6 @@ public:
     std::shared_ptr<Node> Parent();
     void SetTarget(std::shared_ptr<Node>);
     void SetParent(std::shared_ptr<Node>);
-    void AddChild(std::shared_ptr<Node>);
     void RemoveChild(std::shared_ptr<Node>);
     std::vector<std::shared_ptr<Node>> Children() const;
     BoundingElement *bounding_element{nullptr};
@@ -81,6 +80,7 @@ public:
 
 protected:
     Node(const std::string &name);
+    void AddChild(std::shared_ptr<Node>);
 
 private:
     //static std::vector<std::shared_ptr<Node>> _nodes;

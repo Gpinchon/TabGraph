@@ -13,19 +13,6 @@ std::shared_ptr<BufferView> BufferView::Create(size_t byteLength, std::shared_pt
 	return std::shared_ptr<BufferView>(new BufferView(byteLength, buffer));
 }
 
-void BufferView::Load(bool loadToGPU)
-{
-	GetBuffer()->LoadToCPU();
-	if (loadToGPU)
-		GetBuffer()->LoadToGPU();
-}
-
-void BufferView::Unload()
-{
-	GetBuffer()->Unload();
-	//glDeleteBuffers(1, &_glid);
-}
-
 /** The buffer. */
 std::shared_ptr<Buffer> BufferView::GetBuffer()
 {
