@@ -34,13 +34,20 @@ public:
     virtual glm::ivec4& frustum();
     virtual float Fov() const;
     virtual void SetFov(float);
-    /** Alias for Rotation */
+    /**
+     * Common::Forward() * Rotation()
+     * READONLY : Computed on demand
+     */
     virtual glm::vec3 Forward() const;
-    /** Alias for SetRotation */
-    virtual void SetForward(glm::vec3);
-    /** READONLY : Computed on demand */
+    /**
+     * Common::Up() * Rotation()
+     * READONLY : Computed on demand
+     */
     virtual glm::vec3 Up() const;
-    /** READONLY : Computed on demand */
+    /**
+     * Common::Right() * Rotation()
+     * READONLY : Computed on demand
+     */
     virtual glm::vec3 Right() const;
     virtual float Znear() const;
     virtual void SetZnear(float);
@@ -57,7 +64,6 @@ private:
     CameraProjection _projection_type { PerspectiveCamera };
     glm::mat4 _projection { 0 };
     glm::ivec4 _frustum { -50, 50, -50, 50 };
-    glm::vec3 _forward {0, 0, 0};
     float _fov { 45 };
     float _znear { 0.1 };
     float _zfar { 1000 };

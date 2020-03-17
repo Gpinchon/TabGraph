@@ -27,7 +27,7 @@ void OrbitCamera::UpdateViewMatrix()
     if (target() != nullptr)
         targetPosition = target()->Position();
     SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
-    SetForward(Position() - targetPosition);
+    //SetForward(Position() - targetPosition);
     SetViewMatrix(glm::lookAt(Position(), targetPosition, Up()));
 }
 

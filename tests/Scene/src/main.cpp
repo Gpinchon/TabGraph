@@ -38,7 +38,7 @@ void CameraCallback(std::shared_ptr<FPSCamera> camera)
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->SetPosition(camera->Position() + float(Events::delta_time() * laxis.x * 100) * camera->Right());
+    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.x * 100) * camera->Right());
     camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y * 100) * camera->Forward());
     camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis * 100) * Common::Up());
 }
@@ -51,7 +51,7 @@ void MouseMoveCallback(SDL_MouseMotionEvent *event)
     if (camera == nullptr)
         return;
     static glm::vec2 cameraRotation;
-    cameraRotation.x += event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
+    cameraRotation.x -= event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
     cameraRotation.y -= event->yrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
     camera->SetYaw(cameraRotation.x);
     camera->SetPitch(cameraRotation.y);
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     if (scene == nullptr) {
         return -42;
     }
-    //scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, false));
+    scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, false));
     if (scene->CurrentCamera() == nullptr)
         scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
     scene->CurrentCamera()->SetPosition(glm::vec3{0, 0, 0});

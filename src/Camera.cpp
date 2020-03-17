@@ -29,24 +29,23 @@ std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
     return std::shared_ptr<Camera>(new Camera(*otherCamera));
 }
 
+#include <glm/gtx/transform.hpp>
+
 glm::vec3 Camera::Forward() const
 {
-    return _forward;
-}
-
-void Camera::SetForward(glm::vec3 forward)
-{
-    _forward = forward;
+    return Rotation() * Common::Forward();
 }
 
 glm::vec3 Camera::Right() const
 {
-    return glm::cross(Common::Up(), Forward());
+    return Rotation() * Common::Right();
+    //return glm::cross(Common::Up(), Forward());
 }
 
 glm::vec3 Camera::Up() const
 {
-    return glm::cross(Forward(), Right());
+    return Rotation() * Common::Up();
+    //return glm::cross(Right(), Forward());
 }
 
 void Camera::UpdateViewMatrix()

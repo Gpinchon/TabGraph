@@ -11,6 +11,10 @@
 
 namespace Common
 {
-	glm::vec3 &Up();
+	glm::vec3 Up();
 	void SetUp(glm::vec3);
+	glm::vec3 Forward();
+	void SetForward(glm::vec3);
+	glm::vec3 Right();
+	void SetRight(glm::vec3);
 }

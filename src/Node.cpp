@@ -130,6 +130,8 @@ void Node::SetParent(std::shared_ptr<Node> parent)
     {
         return;
     }
+    if (Parent() != nullptr)
+        Parent()->RemoveChild(shared_from_this());
     _parent = parent;
     if (parent != nullptr)
         parent->AddChild(shared_from_this());
@@ -193,7 +195,6 @@ void Node::SetNodeTransformMatrix(glm::mat4 nodeTransform)
     glm::vec3 skew;
     glm::vec4 perspective;
     glm::decompose(nodeTransform, scale, rotation, translation, skew, perspective);
-    //rotation=glm::conjugate(rotation);
     SetPosition(translation);
     SetRotation(glm::normalize(rotation));
     SetScale(scale);

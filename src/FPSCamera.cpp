@@ -48,19 +48,8 @@ void FPSCamera::SetRoll(float roll)
     _roll = roll;
 }
 
-glm::vec3 FPSCamera::Forward() const
+glm::quat FPSCamera::Rotation() const
 {
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(Pitch())) * cos(glm::radians(Yaw()));
-    direction.y = sin(glm::radians(Pitch()));
-    direction.z = cos(glm::radians(Pitch())) * sin(glm::radians(Yaw()));
-    return direction;
-}
-
-void FPSCamera::UpdateViewMatrix()
-{
-    if (target() != nullptr)
-        SetViewMatrix(glm::lookAt(Position(), target()->Position(), Up()));
-    else
-        SetViewMatrix(glm::lookAt(Position(), Position() + Forward(), Up()));
+    glm::quat key_quat = glm::quat(glm::vec3(glm::radians(Pitch()), glm::radians(Yaw()), glm::radians(Roll())));
+    return glm::normalize(key_quat);
 }
