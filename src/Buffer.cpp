@@ -81,10 +81,13 @@ void Buffer::LoadToCPU()
 	_loadedToCPU = true;
 }
 
+#include <cstring>
+
 void Buffer::LoadToGPU()
 {
 	if (LoadedToGPU())
 		return;
+	Allocate();
 	if (Uri() != "") {
 		debugLog(Uri());
 		auto file(_wfopen(Uri().c_str(), L"rb"));
@@ -96,17 +99,10 @@ void Buffer::LoadToGPU()
 		}
 		fclose(file);
 	}
-	if (!LoadedToCPU())
-		LoadToCPU();
-	//glCreateBuffers(1, &_glid);
-	//glCheckError();
-	//glNamedBufferData(
-	//	Glid(),
- 	//	ByteLength(),
- 	//	&RawData().at(0),
- 	//	Usage()
- 	//);
- 	//glCheckError();
+	else if (_rawData.size()) {
+		std::memcpy(Map(BufferAccess::Write), _rawData.data(), ByteLength());
+		Unmap();
+	}
  	_loadedToGPU = true;
 }
 
