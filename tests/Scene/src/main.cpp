@@ -45,16 +45,19 @@ void CameraCallback(std::shared_ptr<FPSCamera> camera)
 
 void MouseMoveCallback(SDL_MouseMotionEvent *event)
 {
-    if (!Mouse::button(1))
-        return;
     auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
         return;
-    static glm::vec2 cameraRotation;
-    cameraRotation.x -= event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
-    cameraRotation.y -= event->yrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
+    static glm::vec3 cameraRotation;
+    if (Mouse::button(1)) {
+        cameraRotation.x -= event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
+        cameraRotation.y -= event->yrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
+    }
+    if (Mouse::button(3))
+        cameraRotation.z += event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
     camera->SetYaw(cameraRotation.x);
     camera->SetPitch(cameraRotation.y);
+    camera->SetRoll(cameraRotation.z);
 }
 
 void MouseWheelCallback(SDL_MouseWheelEvent *event)
@@ -62,7 +65,7 @@ void MouseWheelCallback(SDL_MouseWheelEvent *event)
     auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
         return;
-    camera->SetFov(camera->Fov() - event->y * 0.01);
+    camera->SetFov(camera->Fov() - event->y);
     camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 70.f));
 }
 
