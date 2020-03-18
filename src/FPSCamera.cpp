@@ -50,6 +50,14 @@ void FPSCamera::SetRoll(float roll)
 
 glm::quat FPSCamera::Rotation() const
 {
-    glm::quat key_quat = glm::quat(glm::vec3(glm::radians(Pitch()), glm::radians(Yaw()), glm::radians(Roll())));
-    return glm::normalize(key_quat);
+    auto radPitch(glm::radians(Pitch()));
+    auto radYaw(glm::radians(Yaw()));
+    auto radRoll(glm::radians(Roll()));
+
+    glm::quat qPitch = glm::angleAxis(radPitch, Common::Right());
+    glm::quat qYaw =  glm::angleAxis(radYaw, Common::Up());
+    glm::quat qRoll = glm::angleAxis(radRoll, Common::Forward());
+    glm::quat rotate = qYaw * qPitch * qRoll;
+
+    return glm::normalize(rotate);
 }
