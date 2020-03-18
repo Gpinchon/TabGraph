@@ -53,11 +53,10 @@ glm::quat FPSCamera::Rotation() const
     auto radPitch(glm::radians(Pitch()));
     auto radYaw(glm::radians(Yaw()));
     auto radRoll(glm::radians(Roll()));
+    glm::quat quatRoll = glm::angleAxis(radRoll, Common::Forward());
+    glm::quat quatPitch = glm::angleAxis(radPitch, Common::Right());
+    glm::quat quatYaw =  glm::angleAxis(radYaw, Common::Up());
+    glm::quat rotation = quatYaw * quatPitch * quatRoll;
 
-    glm::quat qPitch = glm::angleAxis(radPitch, Common::Right());
-    glm::quat qYaw =  glm::angleAxis(radYaw, Common::Up());
-    glm::quat qRoll = glm::angleAxis(radRoll, Common::Forward());
-    glm::quat rotate = qYaw * qPitch * qRoll;
-
-    return glm::normalize(rotate);
+    return glm::normalize(rotation);
 }
