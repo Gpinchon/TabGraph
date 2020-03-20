@@ -59,7 +59,6 @@ void Geometry::Load()
         return;
     for (auto accessor : _accessors) {
         accessor.second->GetBufferView()->GetBuffer()->LoadToGPU();
-        //accessor.second->GetBufferView()->GetBuffer()->UnloadFromCPU();
     }
     if (Indices() != nullptr)
         Indices()->GetBufferView()->GetBuffer()->LoadToGPU();
