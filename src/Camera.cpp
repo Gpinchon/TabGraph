@@ -39,43 +39,21 @@ glm::vec3 Camera::Forward() const
 glm::vec3 Camera::Right() const
 {
     return Rotation() * Common::Right();
-    //return glm::cross(Common::Up(), Forward());
 }
 
 glm::vec3 Camera::Up() const
 {
     return Rotation() * Common::Up();
-    //return glm::cross(Right(), Forward());
-}
-
-void Camera::UpdateViewMatrix()
-{
-    Node::UpdateTransformMatrix();
-    SetViewMatrix(glm::inverse(TransformMatrix()));
-    /*UpdateTranslationMatrix();
-    UpdateRotationMatrix();
-    SetViewMatrix(TranslationMatrix() * RotationMatrix());*/
-    //SetViewMatrix(NodeTransformMatrix());
-}
-
-void Camera::UpdateProjectionMatrix()
-{
-    if (_projection_type == PerspectiveCamera)
-        SetProjectionMatrix(glm::perspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear(), Zfar()));
-    else
-        SetProjectionMatrix(glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w));
 }
 
 void Camera::UpdateTransformMatrix()
 {
-    UpdateViewMatrix();
-    UpdateProjectionMatrix();
-    //Node::UpdateTransformMatrix();
+    Node::UpdateTransformMatrix();
 }
 
 glm::mat4 Camera::ViewMatrix() const
 {
-    return TransformMatrix();
+    return glm::inverse(TransformMatrix());
 }
 
 void Camera::SetViewMatrix(glm::mat4 view)
@@ -85,15 +63,16 @@ void Camera::SetViewMatrix(glm::mat4 view)
 
 glm::mat4 Camera::ProjectionMatrix() const
 {
-    return _projection;
+    if (_projection_type == PerspectiveCamera)
+        if (Zfar() > 0)
+            return glm::perspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear(), Zfar());
+        else
+            return glm::infinitePerspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear());
+    else
+        return glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w);
 }
 
-void Camera::SetProjectionMatrix(glm::mat4 projection)
-{
-    _projection = projection;
-}
-
-glm::ivec4& Camera::frustum()
+glm::ivec4 Camera::Frustum() const
 {
     return _frustum;
 }
@@ -128,3 +107,12 @@ void Camera::SetZfar(float zfar)
     _zfar = zfar;
 }
 
+void Camera::SetTransformMatrix(glm::mat4 transform)
+{
+    Node::SetTransformMatrix(transform);
+}
+
+glm::mat4 Camera::TransformMatrix() const
+{
+    return Node::TransformMatrix();
+}

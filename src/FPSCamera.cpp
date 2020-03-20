@@ -26,6 +26,7 @@ float FPSCamera::Yaw() const
 void FPSCamera::SetYaw(float yaw)
 {
     _yaw = yaw;
+    SetNeedsTranformUpdate(true);
 }
 
 float FPSCamera::Pitch() const
@@ -36,6 +37,7 @@ float FPSCamera::Pitch() const
 void FPSCamera::SetPitch(float pitch)
 {
     _pitch = pitch;
+    SetNeedsTranformUpdate(true);
 }
 
 float FPSCamera::Roll() const
@@ -46,6 +48,7 @@ float FPSCamera::Roll() const
 void FPSCamera::SetRoll(float roll)
 {
     _roll = roll;
+    SetNeedsTranformUpdate(true);
 }
 
 glm::quat FPSCamera::Rotation() const

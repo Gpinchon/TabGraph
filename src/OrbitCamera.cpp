@@ -5,7 +5,8 @@
 * @Last Modified time: 2019-08-11 12:33:18
 */
 
-#include <OrbitCamera.hpp>
+#include "OrbitCamera.hpp"
+#include "Tools.hpp"
 
 OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, CameraProjection proj)
     : Camera(iname, ifov, proj)
@@ -21,14 +22,41 @@ std::shared_ptr<OrbitCamera> OrbitCamera::Create(const std::string& iname, float
     return (camera);
 }
 
-void OrbitCamera::UpdateViewMatrix()
+void OrbitCamera::SetPosition(glm::vec3)
+{
+
+}
+
+glm::vec3 OrbitCamera::Position() const
 {
     glm::vec3 targetPosition(0);
     if (target() != nullptr)
         targetPosition = target()->Position();
-    SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
-    //SetForward(Position() - targetPosition);
-    SetViewMatrix(glm::lookAt(Position(), targetPosition, Up()));
+    return targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi()));
+}
+
+glm::quat OrbitCamera::Rotation() const
+{
+    glm::vec3 targetPosition(0);
+    if (target() != nullptr)
+        targetPosition = target()->Position();
+    glm::vec3 forwardVector = normalize(targetPosition - Position());
+
+    float dot = glm::dot(Common::Forward(), forwardVector);
+
+    if (abs(dot - (-1.0f)) < 0.000001f)
+    {
+        return glm::quat(Common::Up().x, Common::Up().y, Common::Up().z, M_PI);
+    }
+    if (abs(dot - (1.0f)) < 0.000001f)
+    {
+        return glm::quat(0, 0, 0, 1);
+    }
+
+    float rotAngle = (float)acos(dot);
+    glm::vec3 rotAxis = glm::cross(Common::Forward(), forwardVector);
+    rotAxis = normalize(rotAxis);
+    return glm::angleAxis(rotAngle, rotAxis);
 }
 
 float OrbitCamera::Phi() const
@@ -39,6 +67,7 @@ float OrbitCamera::Phi() const
 void OrbitCamera::SetPhi(float phi)
 {
     _phi = phi;
+    SetNeedsTranformUpdate(true);
 }
 
 float OrbitCamera::Theta() const
@@ -49,6 +78,7 @@ float OrbitCamera::Theta() const
 void OrbitCamera::SetTheta(float theta)
 {
     _theta = theta;
+    SetNeedsTranformUpdate(true);
 }
 
 float OrbitCamera::Radius() const
@@ -59,4 +89,5 @@ float OrbitCamera::Radius() const
 void OrbitCamera::SetRadius(float radius)
 {
     _radius = radius;
+    SetNeedsTranformUpdate(true);
 }
