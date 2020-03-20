@@ -49,12 +49,12 @@ static inline auto ParseCameras(const rapidjson::Document &document)
 			auto newCamera(Camera::Create("Camera" + std::to_string(cameraIndex), 45));
 			if (std::string(camera["type"].GetString()) == "perspective") {
 				auto perspective(camera["perspective"].GetObject());
-				try {
-					newCamera->SetZfar(perspective["zfar"].GetFloat());
-				}
+				try { newCamera->SetZfar(perspective["zfar"].GetFloat()); }
 				catch (std::exception &) {debugLog("No zfar property")}
-				newCamera->SetFov(glm::degrees(perspective["yfov"].GetFloat()));
-				newCamera->SetZnear(perspective["znear"].GetFloat());
+				try { newCamera->SetZnear(perspective["znear"].GetFloat()); }
+				catch (std::exception &) {debugLog("No znear property")}
+				try { newCamera->SetFov(glm::degrees(-perspective["yfov"].GetFloat())); }
+				catch (std::exception &) {debugLog("No yfov property")}
 			}
 			cameraVector.push_back(newCamera);
 			cameraIndex++;
@@ -99,12 +99,6 @@ static inline auto ParseTextures(const std::string &path, const rapidjson::Docum
 			catch(std::exception &) {debugLog("Texture " + std::to_string(textureIndex) + " has no Uri")}
 			auto texture(TextureParser::parse("Texture " + std::to_string(textureIndex), uri));
 			try {
-				/*
-				"magFilter": 9729,
-			    "minFilter": 9987,
-			    "wrapS": 10497,
-			    "wrapT": 10497
-			    */
 				auto sampler(samplers.at(textureValue["sampler"].GetInt()));
 				if (sampler.settings["magFilter"] != 0)
 					texture->set_parameteri(GL_TEXTURE_MAG_FILTER, sampler.settings["magFilter"]);
@@ -326,40 +320,24 @@ static inline auto ParseMeshes(const rapidjson::Document &document, const GLTFCo
 	return meshVector;
 }
 
-static inline auto ParseNodes(const rapidjson::Document &document, const GLTFContainer &container)
+static inline auto ParseNodes(const rapidjson::Document &document)
 {
 	std::vector<std::shared_ptr<Node>> nodeVector;
-	/*const auto accessors(ParseBufferAccessors(path, document));
-	auto container.meshes(ParseMeshes(path, document, accessors));
-	auto container.cameras(ParseCameras(document));*/
 	auto nodeItr(document.FindMember("nodes"));
 	if (nodeItr == document.MemberEnd())
 		return nodeVector;
 	int nodeIndex = 0;
 	for (const auto &node : nodeItr->value.GetArray())
 	{
-		std::shared_ptr<Node> newNode;
-		if (node.FindMember("mesh") != node.MemberEnd()) //This is a mesh
-		{
-			auto newMesh = Mesh::Create(container.meshes.at(node["mesh"].GetInt()));
-			newMesh->SetName("MeshNode " + std::to_string(nodeIndex));
-			newNode = newMesh;
-		}
-		else if (node.FindMember("camera") != node.MemberEnd())
-		{
-			newNode = std::dynamic_pointer_cast<Node>(Camera::Create(container.cameras.at(node["camera"].GetInt())));
-			newNode->SetName("CameraNode " + std::to_string(nodeIndex));
-		}
-		else
-			newNode = Node::Create("Node " + std::to_string(nodeIndex));
+		std::shared_ptr<Node> newNode(Node::Create("Node_" + std::to_string(nodeIndex)));
 		try { newNode->SetName(node["name"].GetString()); }
-		catch (std::exception &) {}
+		catch (std::exception &) { debugLog(newNode->Name() + " has no name property"); }
 		try {
 			glm::mat4 matrix;
 			for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < glm::uint(matrix.length() * 4); i++)
 				matrix[i / 4][i % 4] = node["matrix"].GetArray()[i].GetFloat();
 			newNode->SetNodeTransformMatrix(matrix);
-		} catch (std::exception &) {}
+		} catch (std::exception &) { debugLog(newNode->Name() + " has no matrix property"); }
 		try {
 			const auto &position(node["translation"].GetArray());
 			glm::vec3 positionVec3;
@@ -367,7 +345,7 @@ static inline auto ParseNodes(const rapidjson::Document &document, const GLTFCon
 			positionVec3[1] = position[1].GetFloat();
 			positionVec3[2] = position[2].GetFloat();
 			newNode->SetPosition(positionVec3);
-		} catch (std::exception &) {}
+		} catch (std::exception &) { debugLog(newNode->Name() + " has no translation property"); }
 		try {
 			const auto &rotation(node["rotation"].GetArray());
 			glm::quat rotationQuat;
@@ -376,26 +354,12 @@ static inline auto ParseNodes(const rapidjson::Document &document, const GLTFCon
 			rotationQuat[2] = rotation[2].GetFloat();
 			rotationQuat[3] = rotation[3].GetFloat();
 			newNode->SetRotation(glm::normalize(rotationQuat));
-		} catch (std::exception &) {}
+		} catch (std::exception &) { debugLog(newNode->Name() + " has no rotation property"); }
 		try {
 			const auto &scale(node["scale"].GetArray());
 			newNode->SetScale(glm::vec3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
-		} catch (std::exception &) {}
+		} catch (std::exception &) { debugLog(newNode->Name() + " has no scale property"); }
 		nodeVector.push_back(newNode);
-		nodeIndex++;
-	}
-	//Build parenting relationship
-	nodeIndex = 0;
-	for (const auto &node : nodeItr->value.GetArray())
-	{
-		if (node.FindMember("children") != node.MemberEnd())
-		{
-			for (const auto &child : node["children"].GetArray()) {
-				nodeVector.at(child.GetInt())->SetParent(nodeVector.at(nodeIndex));
-				std::cout << "Node parenting " << nodeVector.at(nodeIndex)->Name() << " -> " << nodeVector.at(child.GetInt())->Name() << std::endl;
-				std::cout << "Child node use count " << nodeVector.at(child.GetInt()).use_count() << std::endl;
-			}
-		}
 		nodeIndex++;
 	}
 	return nodeVector;
@@ -476,6 +440,37 @@ static inline auto ParseSkins(const rapidjson::Document &document, const GLTFCon
 	return skins;
 }
 
+static inline auto SetParenting(const rapidjson::Document &document, const GLTFContainer &container)
+{
+	auto nodeItr(document.FindMember("nodes"));
+	if (nodeItr == document.MemberEnd())
+		return;
+	//Build parenting relationship
+	auto nodeIndex = 0;
+	for (const auto &gltfNode : nodeItr->value.GetArray())
+	{
+		auto node(container.nodes.at(nodeIndex));
+		try {
+			container.meshes.at(gltfNode["mesh"].GetInt())->SetParent(node);
+			const auto &skin(container.skins.at(gltfNode["skin"].GetInt()));
+			container.meshes.at(gltfNode["mesh"].GetInt())->SetSkin(skin);
+		}
+		catch (std::exception &) { debugLog(node->Name() + " has no mesh or skin property"); }
+		try { container.cameras.at(gltfNode["camera"].GetInt())->SetParent(node); }
+		catch (std::exception &) { debugLog(node->Name() + " has no camera property"); }
+		try
+		{
+			for (const auto &child : gltfNode["children"].GetArray()) {
+				container.nodes.at(child.GetInt())->SetParent(container.nodes.at(nodeIndex));
+				std::cout << "Node parenting " << container.nodes.at(nodeIndex)->Name() << " -> " << container.nodes.at(child.GetInt())->Name() << std::endl;
+				std::cout << "Child node use count " << container.nodes.at(child.GetInt()).use_count() << std::endl;
+			}
+		}
+		catch (std::exception &) { debugLog("MeshSkin has no skeleton"); }
+		nodeIndex++;
+	}
+}
+
 std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 	std::vector<std::shared_ptr<Scene>> sceneVector;
 	rapidjson::Document document;
@@ -489,20 +484,10 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 	container.accessors = ParseBufferAccessors(path, document);
 	container.materials = ParseMaterials(path, document);
 	container.meshes = ParseMeshes(document, container);
-	container.nodes = ParseNodes(document, container);
+	container.nodes = ParseNodes(document);
 	container.skins = ParseSkins(document, container);
 	container.animations = ParseAnimations(document, container);
-	auto nodeIndex(0u);
-	for (const auto &gltfNode : document["nodes"].GetArray()) {
-		auto node(container.nodes.at(nodeIndex));
-		try {
-			auto skinIndex(gltfNode["skin"].GetInt());
-			auto mesh = std::dynamic_pointer_cast<Mesh>(node);
-			mesh->SetSkin(container.skins.at(skinIndex));
-		}
-		catch(std::exception &e) {debugLog("Node " + node->Name() + " has no skin " + e.what())}
-		nodeIndex++;
-	}
+	SetParenting(document, container);
 	auto scenes(document["scenes"].GetArray());
 	int sceneIndex = 0;
 	for (const auto &scene : scenes) {
@@ -510,7 +495,7 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 		auto newScene(Scene::Create(std::to_string(sceneIndex)));
 		newScene->SetUp(glm::vec3(0, 1, 0));
 		for (const auto &node : scene["nodes"].GetArray()) {
-			newScene->Add(container.nodes.at(node.GetInt()));
+			newScene->AddRootNode(container.nodes.at(node.GetInt()));
 			std::cout << container.nodes.at(node.GetInt())->Name() << std::endl;
 		}
 		if (!newScene->Cameras().empty())
