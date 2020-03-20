@@ -60,6 +60,10 @@ public:
     /** @argument scale : Geometrys scale offset, not inherited by children */
     virtual void SetGeometryScale(glm::vec3 scale);
 
+    virtual void FixedUpdate() override;
+    virtual void UpdateGPU() override;
+    virtual void UpdateSkin();
+
     std::shared_ptr<MeshSkin> Skin() const;
     void SetSkin(std::shared_ptr<MeshSkin> skin);
 

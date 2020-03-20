@@ -56,11 +56,7 @@ void Mesh::Load()
     if (_loaded)
         return;
     for (auto vg : _Geometrys)
-    {
-        if (nullptr == vg)
-            continue;
         vg->Load();
-    }
     if (_jointMatrices != nullptr)
         _jointMatrices->load();
 }
@@ -103,20 +99,11 @@ bool Mesh::DrawDepth(RenderMod mod)
             shader->SetUniform("Matrix.ViewProjection", viewProjectionMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             if (Skin() != nullptr) {
-                for (auto index = 0u; index < Skin()->Joints().size(); ++index) {
-                    const auto joint(Skin()->Joints().at(index));
-                    auto jointMatrix =
-                        glm::inverse(Parent()->TransformMatrix()) *
-                        joint.lock()->TransformMatrix() *
-                        BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
-                    BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
-                }
-                _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU();
                 shader->bind_texture("Joints", _jointMatrices, GL_TEXTURE11);
+                shader->SetUniform("Skinned", true);
             }
             last_shader = shader;
         }
-        shader->SetUniform("Skinned", Skin() != nullptr);
         ret |= vg->Draw();
         material->shader()->use(false);
     }
@@ -166,20 +153,11 @@ bool Mesh::Draw(RenderMod mod)
             shader->SetUniform("Matrix.ViewProjection", viewProjectionMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             if (Skin() != nullptr) {
-                for (auto index = 0u; index < Skin()->Joints().size(); ++index) {
-                    const auto joint(Skin()->Joints().at(index));
-                    auto jointMatrix =
-                        glm::inverse(Parent()->TransformMatrix()) *
-                        joint.lock()->TransformMatrix() *
-                        BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
-                    BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
-                }
-                _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU();
                 shader->bind_texture("Joints", _jointMatrices, GL_TEXTURE11);
+                shader->SetUniform("Skinned", true);
             }
             last_shader = shader;
         }
-        shader->SetUniform("Skinned", Skin() != nullptr);
         ret |= vg->Draw();
         material->shader()->use(false);
     }
@@ -278,6 +256,36 @@ void Mesh::SetGeometryScale(glm::vec3 scale)
 {
     _geometryScale = scale;
     SetNeedsTranformUpdate(true);
+}
+
+void Mesh::FixedUpdate()
+{
+    UpdateSkin();
+}
+
+void Mesh::UpdateGPU()
+{
+    if (NeedsGPUUpdate() && _jointMatrices != nullptr)
+        _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU();
+    SetNeedsGPUUpdate(false);
+}
+
+void Mesh::UpdateSkin()
+{
+    if (Skin() == nullptr)
+        return;
+    bool skinChanged(true);
+    for (auto index = 0u; index < Skin()->Joints().size(); ++index) {
+        const auto joint(Skin()->Joints().at(index));
+        auto jointMatrix =
+            glm::inverse(Parent()->TransformMatrix()) *
+            joint.lock()->TransformMatrix() *
+            BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
+        if (jointMatrix != BufferHelper::Get<glm::mat4>(_jointMatrices->Accessor(), index))
+            skinChanged = true;
+        BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
+    }
+    SetNeedsGPUUpdate(NeedsGPUUpdate() || skinChanged);
 }
 
 std::shared_ptr<MeshSkin> Mesh::Skin() const

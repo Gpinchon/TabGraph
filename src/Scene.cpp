@@ -25,11 +25,30 @@ void Scene::SetName(const std::string &name)
 	_name = name;
 }
 
+void AddNodeChildren(Scene &scene, std::shared_ptr<Node> node)
+{
+	scene.Add(node);
+	for (auto child : node->Children()) {
+		AddNodeChildren(scene, child);
+	}
+}
+
+void Scene::AddRootNode(std::shared_ptr<Node> node)
+{
+	_rootNodes.push_back(node);
+	AddNodeChildren(*this, node);
+}
+
 void Scene::Add(std::shared_ptr<Node> node)
 {
 	if (node == nullptr)
 		return;
-	_nodes.push_back(node);
+	if (std::find(_nodes.begin(), _nodes.end(), node) == _nodes.end()) {
+		_nodes.push_back(node);
+		AddRootNode(node);
+	}
+	else
+		return;
 	if (auto camera = std::dynamic_pointer_cast<Camera>(node); camera != nullptr)
 		_cameras.push_back(camera);
 	else if (auto light = std::dynamic_pointer_cast<Light>(node); light != nullptr)
@@ -68,10 +87,25 @@ void Scene::FixedUpdate()
 		if (animation->Playing())
 			animation->Advance();
 	}
-	for (auto &node : Nodes())
+	for (auto &node : RootNodes())
 		UpdateTransformMatrix(node);
-    for (auto &node : Nodes())
+    for (auto &node : RootNodes())
     	NodesFixedUpdate(node);
+}
+
+void NodesUpdateGPU(std::shared_ptr<Node> rootNode)
+{
+	if (rootNode == nullptr)
+        return;
+    rootNode->UpdateGPU();
+    for (const auto &child : rootNode->Children())
+        NodesUpdateGPU(child);
+}
+
+void Scene::UpdateGPU()
+{
+	for (auto &node : RootNodes())
+		NodesUpdateGPU(node);
 }
 
 void NodesUpdate(std::shared_ptr<Node> rootNode)
@@ -85,8 +119,33 @@ void NodesUpdate(std::shared_ptr<Node> rootNode)
 
 void Scene::Update()
 {
-	for (auto &node : Nodes())
+	for (auto &node : RootNodes())
 		NodesUpdate(node);
+}
+
+void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode) {
+    if (rootNode == nullptr)
+        return;
+    rootNode->Draw(mode);
+    for (const auto &child : rootNode->Children())
+        DrawNodes(child, mode);
+}
+
+void Scene::Render(const RenderMod &mode) {
+    for (auto node : Scene::Current()->RootNodes())
+        DrawNodes(node, mode);
+}
+
+void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
+    rootNode->DrawDepth(mode);
+    std::shared_ptr<Node> child;
+    for (const auto &child : rootNode->Children())
+        DrawNodesDepth(child, mode);
+}
+
+void Scene::RenderDepth(const RenderMod &mode) {
+    for (auto node : Scene::Current()->RootNodes())
+        DrawNodesDepth(node, mode);
 }
 
 std::shared_ptr<Scene> &CurrentScene()
@@ -181,6 +240,11 @@ std::shared_ptr<Camera> Scene::GetCameraByName(const std::string &name) const
 	return nullptr;
 }
 
+const std::vector<std::shared_ptr<Node>> &Scene::RootNodes()
+{
+	return _rootNodes;
+}
+
 const std::vector<std::shared_ptr<Node>> &Scene::Nodes()
 {
 	return _nodes;
@@ -209,29 +273,4 @@ glm::vec3 Scene::Up() const
 void Scene::SetUp(glm::vec3 up)
 {
 	_up = up;
-}
-
-void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode) {
-    if (rootNode == nullptr)
-        return;
-    rootNode->Draw(mode);
-    for (const auto &child : rootNode->Children())
-        DrawNodes(child, mode);
-}
-
-void Scene::Render(const RenderMod &mode) {
-    for (auto node : Scene::Current()->Nodes())
-        DrawNodes(node, mode);
-}
-
-void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
-    rootNode->DrawDepth(mode);
-    std::shared_ptr<Node> child;
-    for (const auto &child : rootNode->Children())
-        DrawNodesDepth(child, mode);
-}
-
-void Scene::RenderDepth(const RenderMod &mode) {
-    for (auto node : Scene::Current()->Nodes())
-        DrawNodesDepth(node, mode);
 }

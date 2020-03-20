@@ -190,7 +190,7 @@ void render_shadows()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     Scene::Current()->SetCurrentCamera(tempCamera);
-    tempCamera->SetProjectionMatrix(glm::mat4(1.0));
+    //tempCamera->SetProjectionMatrix(glm::mat4(1.0));
     for (auto &light : shadowLights)
     {
         light->render_buffer()->bind();
@@ -219,6 +219,7 @@ void Render::Private::FixedUpdate()
     normalLights.reserve(1000);
     shadowLights.clear();
     normalLights.clear();
+    Scene::Current()->UpdateGPU();
     for (auto light : Scene::Current()->Lights())
     {
         if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z))

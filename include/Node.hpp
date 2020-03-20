@@ -34,6 +34,7 @@ public:
     virtual void Load() {};
     virtual void FixedUpdate();
     virtual void Update();
+    virtual void UpdateGPU();
     /** Updates all matrix and sets the final transformation matrix */
     virtual void UpdateTransformMatrix();
     virtual void UpdateTranslationMatrix();
@@ -69,8 +70,10 @@ public:
     virtual bool NeedsTransformUpdate();
     /** @argument needsTransformUpdate : new state */
     virtual void SetNeedsTranformUpdate(bool needsTransformUpdate);
-    std::shared_ptr<Node> target();
-    std::shared_ptr<Node> Parent();
+    virtual bool NeedsGPUUpdate() const;
+    virtual void SetNeedsGPUUpdate(bool needsUpdate);
+    std::shared_ptr<Node> target() const;
+    std::shared_ptr<Node> Parent() const;
     void SetTarget(std::shared_ptr<Node>);
     void SetParent(std::shared_ptr<Node>);
     void RemoveChild(std::shared_ptr<Node>);
@@ -96,4 +99,5 @@ private:
     glm::mat4 _rotationMatrix{glm::mat4(0.f)};
     glm::mat4 _scaleMatrix{glm::mat4(1.f)};
     bool _needsTransformUpdate{true};
+    bool _needsGPUUpdate{true};
 };

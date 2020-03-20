@@ -45,19 +45,34 @@ void Node::Update()
 {
 }
 
+void Node::UpdateGPU()
+{
+}
+
 void Node::UpdateTransformMatrix()
 {
-    if (!NeedsTransformUpdate())
-        return;
-    UpdateTranslationMatrix();
-    UpdateRotationMatrix();
-    UpdateScaleMatrix();
+    //if (!NeedsTransformUpdate())
+    //    return;
+    //UpdateTranslationMatrix();
+    //UpdateRotationMatrix();
+    //UpdateScaleMatrix();
+    //SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
+    //if (auto parentPtr = Parent(); parentPtr != nullptr) 
+    //    SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
+    //SetNeedsTranformUpdate(false);
+    //for (auto child : _children)
+    //    child->SetNeedsTranformUpdate(true);
+    if (NeedsTransformUpdate()) {
+        UpdateTranslationMatrix();
+        UpdateRotationMatrix();
+        UpdateScaleMatrix();
+    }
     SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
     if (auto parentPtr = Parent(); parentPtr != nullptr) 
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
-    SetNeedsTranformUpdate(false);
     for (auto child : _children)
         child->SetNeedsTranformUpdate(true);
+    SetNeedsTranformUpdate(false);
 }
 
 void Node::UpdateTranslationMatrix()
@@ -106,7 +121,7 @@ void Node::RemoveChild(std::shared_ptr<Node> child)
     _children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
 }
 
-std::shared_ptr<Node> Node::target()
+std::shared_ptr<Node> Node::target() const
 {
     return (_target);
 }
@@ -116,7 +131,7 @@ void Node::SetTarget(std::shared_ptr<Node> tgt)
     _target = tgt;
 }
 
-std::shared_ptr<Node> Node::Parent()
+std::shared_ptr<Node> Node::Parent() const
 {
     return (_parent.lock());
 }
@@ -162,10 +177,7 @@ void Node::SetRotation(glm::vec3 rotation)
 
 void Node::SetRotation(glm::quat rotation)
 {
-    _rotation[0] = rotation[0];
-    _rotation[1] = rotation[1];
-    _rotation[2] = rotation[2];
-    _rotation[3] = rotation[3];
+    _rotation = rotation;
     SetNeedsTranformUpdate(true);
 }
 
@@ -249,4 +261,14 @@ bool Node::NeedsTransformUpdate()
 void Node::SetNeedsTranformUpdate(bool needsTransformUpdate)
 {
     _needsTransformUpdate = needsTransformUpdate;
+}
+
+bool Node::NeedsGPUUpdate() const
+{
+    return _needsGPUUpdate;
+}
+
+void Node::SetNeedsGPUUpdate(bool needsUpdate)
+{
+    _needsGPUUpdate = needsUpdate;
 }
