@@ -117,11 +117,14 @@ void	FillIn()
         in_Weight.y * Joint[1] +
         in_Weight.z * Joint[2] +
         in_Weight.w * Joint[3];
-        Vert.Position = vec3(Matrix.Model * SkinMatrix * vec4(in_Position, 1.0));
+        mat4 NewModelMatrix = Matrix.Model * SkinMatrix;
+        Vert.Position = vec3(NewModelMatrix * vec4(in_Position, 1.0));
+        Vert.Normal = mat3(inverse(transpose(NewModelMatrix))) * in_Normal;
 	}
-	else
-   		Vert.Position = vec3(Matrix.Model * vec4(in_Position, 1.0));
-	Vert.Normal = mat3(Matrix.Normal) * in_Normal;
+	else {
+		Vert.Position = vec3(Matrix.Model * vec4(in_Position, 1.0));
+		Vert.Normal = mat3(Matrix.Normal) * in_Normal;
+	}
 	Vert.UV = in_Texcoord * Texture.Scale;
 }
 
