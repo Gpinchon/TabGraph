@@ -31,6 +31,8 @@ namespace BufferHelper {
 	void Set(std::shared_ptr<Buffer>, size_t index, T value);
 	template <typename T>
 	void Set(std::shared_ptr<BufferAccessor>, size_t index, T value);
+	template <typename T>
+	void PushBack(std::shared_ptr<BufferAccessor>, T value);
 }
 
 template <typename T>
@@ -145,4 +147,24 @@ inline void BufferHelper::Set(std::shared_ptr<BufferAccessor> accessor, size_t i
 	auto stride(bufferView->ByteStride() ? bufferView->ByteStride() : accessor->TotalComponentByteSize());
 	auto bufferIndex(accessor->ByteOffset() + bufferView->ByteOffset() + index * stride);
 	BufferHelper::Set(buffer, bufferIndex, value);
+}
+
+template <typename T>
+void BufferHelper::PushBack(std::shared_ptr<BufferAccessor> accessor, T value)
+{
+	if (accessor == nullptr)
+		return;
+	if (sizeof(T) != accessor->TotalComponentByteSize())
+		throw std::runtime_error(std::string(__FUNCTION__) + " Accessor total byte size(" + std::to_string(accessor->TotalComponentByteSize()) + ") different from size of " + typeid(T).name() + "(" + std::to_string(sizeof(T)) + ")");
+	auto bufferView(accessor->GetBufferView());
+	if (bufferView == nullptr)
+		return;
+	auto buffer(bufferView->GetBuffer());
+	if (buffer == nullptr)
+		return;
+	accessor->SetCount(accessor->Count() + 1);
+	bufferView->SetByteLength(bufferView->ByteLength() + sizeof(T));
+	buffer->SetByteLength(buffer->ByteLength() + sizeof(T));
+	buffer->RawData().resize(buffer->ByteLength());
+	BufferHelper::Set(accessor, accessor->Count() - 1, value);
 }
