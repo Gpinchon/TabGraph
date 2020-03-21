@@ -230,7 +230,12 @@ int64_t Mesh::GetMaterialIndex(std::shared_ptr<Material> mtl)
 
 int64_t Mesh::GetMaterialIndex(const std::string &name)
 {
-    return GetMaterialIndex(Material::GetByName(name));
+    for (auto i(0u); i < _materials.size(); i++)
+    {
+        if (_materials.at(i)->Name() == name)
+            return i;
+    }
+    return -1;
 }
 
 glm::vec3 Mesh::GeometryPosition() const
