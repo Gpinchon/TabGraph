@@ -197,9 +197,9 @@ static inline auto ParseBuffers(const std::string &path, const rapidjson::Docume
 					bufferPath = std::filesystem::path(path).parent_path()/bufferPath;
 				buffer->SetUri(bufferPath.string());
 			}
-			catch(std::exception &) {debugLog(buffer->Name() + " has no Uri")}
+			catch(std::exception &) {debugLog("Buffer " + buffer->Name() + " has no uri property")}
 			try {buffer->SetName(bufferValue["name"].GetString());}
-			catch(std::exception &) {debugLog(buffer->Name() + " has no name")}
+			catch(std::exception &) {debugLog("Buffer " + buffer->Name() + " has no name property")}
 			bufferVector.push_back(buffer);
 			bufferIndex++;
 		}
@@ -222,13 +222,13 @@ static inline auto ParseBufferViews(const std::string &path, const rapidjson::Do
 				buffers.at(bufferViewValue["buffer"].GetInt())));
 			bufferView->SetName("BufferView " + std::to_string(bufferViewIndex));
 			try {bufferView->SetByteOffset(bufferViewValue["byteOffset"].GetInt());}
-			catch(std::exception &) {debugLog(bufferView->Name() + " has no byteOffset")}
+			catch(std::exception &) {debugLog("BufferView " + bufferView->Name() + " has no byteOffset property")}
 			try {bufferView->SetByteStride(bufferViewValue["byteStride"].GetInt());}
-			catch(std::exception &) {debugLog(bufferView->Name() + " has no byteStride")}
+			catch(std::exception &) {debugLog("BufferView " + bufferView->Name() + " has no byteStride property")}
 			try {bufferView->SetTarget(bufferViewValue["target"].GetInt());}
-			catch(std::exception &) {debugLog(bufferView->Name() + " has no target")}
+			catch(std::exception &) {debugLog("BufferView " + bufferView->Name() + " has no target property")}
 			try {bufferView->SetName(bufferViewValue["name"].GetString());}
-			catch(std::exception &) {debugLog(bufferView->Name() + " has no name")}
+			catch(std::exception &) {debugLog("BufferView " + bufferView->Name() + " has no name property")}
 			bufferViewVector.push_back(bufferView);
 			bufferViewIndex++;
 		}
@@ -252,15 +252,15 @@ static inline auto ParseBufferAccessors(const std::string &path, const rapidjson
 				bufferAccessorValue["type"].GetString()));
 			bufferAccessor->SetName("BufferAccessor " + std::to_string(bufferAccessorIndex));
 			try {bufferAccessor->SetBufferView(bufferViews.at(bufferAccessorValue["bufferView"].GetInt()));}
-			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no bufferView")}
+			catch(std::exception &) {debugLog("Accessor " + bufferAccessor->Name() + " has no bufferView property")}
 			try {bufferAccessor->SetByteOffset(bufferAccessorValue["byteOffset"].GetInt());}
-			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no byteOffset")}
+			catch(std::exception &) {debugLog("Accessor " + bufferAccessor->Name() + " has no byteOffset property")}
 			try {bufferAccessor->SetNormalized(bufferAccessorValue["normalized"].GetBool());}
-			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no normalized")}
+			catch(std::exception &) {debugLog("Accessor " + bufferAccessor->Name() + " has no normalized property")}
 			try {bufferAccessor->SetCount(bufferAccessorValue["count"].GetInt());}
-			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no count")}
+			catch(std::exception &) {debugLog("Accessor " + bufferAccessor->Name() + " has no count property")}
 			try {bufferAccessor->SetName(bufferAccessorValue["name"].GetString());}
-			catch(std::exception &) {debugLog(bufferAccessor->Name() + " has no name")}
+			catch(std::exception &) {debugLog("Accessor " + bufferAccessor->Name() + " has no name property")}
 			bufferAccessorVector.push_back(bufferAccessor);
 			bufferAccessorIndex++;
 		}
@@ -296,20 +296,15 @@ static inline auto ParseMeshes(const rapidjson::Document &document, const GLTFCo
 			for (const auto &attribute : primitive["attributes"].GetObject()) {
 				auto attributeName(std::string(attribute.name.GetString()));
 				auto accessor(container.accessors.at(attribute.value.GetInt()));
-				//if (accessor->GetBufferView()->Target() == 0) {
-				//	accessor->GetBufferView()->SetTarget(GL_ARRAY_BUFFER);
-				//}
 				geometry->SetAccessor(attributeName, accessor);
 			}
 			try {
 				auto accessor(container.accessors.at(primitive["indices"].GetInt()));
-				//if (accessor->GetBufferView()->Target() == 0)
-				//	accessor->GetBufferView()->SetTarget(GL_ELEMENT_ARRAY_BUFFER);
 				geometry->SetIndices(accessor);
 			}
-			catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no indices")}
+			catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no indices property")}
 			try { geometry->SetMode(primitive["mode"].GetInt()); }
-			catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no mode")}
+			catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no mode property")}
 			currentMesh->AddGeometry(geometry);
 		}
 		if (currentMesh->GetMaterial(0) == nullptr)
@@ -331,13 +326,13 @@ static inline auto ParseNodes(const rapidjson::Document &document)
 	{
 		std::shared_ptr<Node> newNode(Node::Create("Node_" + std::to_string(nodeIndex)));
 		try { newNode->SetName(node["name"].GetString()); }
-		catch (std::exception &) { debugLog(newNode->Name() + " has no name property"); }
+		catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no name property"); }
 		try {
 			glm::mat4 matrix;
 			for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < glm::uint(matrix.length() * 4); i++)
 				matrix[i / 4][i % 4] = node["matrix"].GetArray()[i].GetFloat();
 			newNode->SetNodeTransformMatrix(matrix);
-		} catch (std::exception &) { debugLog(newNode->Name() + " has no matrix property"); }
+		} catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no matrix property"); }
 		try {
 			const auto &position(node["translation"].GetArray());
 			glm::vec3 positionVec3;
@@ -345,7 +340,7 @@ static inline auto ParseNodes(const rapidjson::Document &document)
 			positionVec3[1] = position[1].GetFloat();
 			positionVec3[2] = position[2].GetFloat();
 			newNode->SetPosition(positionVec3);
-		} catch (std::exception &) { debugLog(newNode->Name() + " has no translation property"); }
+		} catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no translation property"); }
 		try {
 			const auto &rotation(node["rotation"].GetArray());
 			glm::quat rotationQuat;
@@ -354,11 +349,15 @@ static inline auto ParseNodes(const rapidjson::Document &document)
 			rotationQuat[2] = rotation[2].GetFloat();
 			rotationQuat[3] = rotation[3].GetFloat();
 			newNode->SetRotation(glm::normalize(rotationQuat));
-		} catch (std::exception &) { debugLog(newNode->Name() + " has no rotation property"); }
+		} catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no rotation property"); }
 		try {
 			const auto &scale(node["scale"].GetArray());
-			newNode->SetScale(glm::vec3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
-		} catch (std::exception &) { debugLog(newNode->Name() + " has no scale property"); }
+			glm::vec3 scaleVec3;
+			scaleVec3[0] = scale[0].GetFloat();
+			scaleVec3[1] = scale[1].GetFloat();
+			scaleVec3[2] = scale[2].GetFloat();
+			newNode->SetScale(scaleVec3);
+		} catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no scale property"); }
 		nodeVector.push_back(newNode);
 		nodeIndex++;
 	}
@@ -375,7 +374,6 @@ static inline auto ParseAnimations(const rapidjson::Document &document, const GL
 			for (const auto &sampler : animation["samplers"].GetArray()) {
 				auto samplerInput(container.accessors.at(sampler["input"].GetInt()));
 				auto samplerOutput(container.accessors.at(sampler["output"].GetInt()));
-				debugLog(samplerOutput->Type());
 				auto newSampler(AnimationSampler(samplerInput, samplerOutput));
 				try {
 					std::string interpolation(sampler["interpolation"].GetString());
@@ -419,19 +417,21 @@ static inline auto ParseSkins(const rapidjson::Document &document, const GLTFCon
 	debugLog("Start parsing Skins");
 	std::vector<std::shared_ptr<MeshSkin>> skins;
 	try {
+		auto skinIndex(0u);
 		for (const auto &skin : document["skins"].GetArray()) {
 			auto newSkin(MeshSkin::Create());
+			newSkin->SetName("Skin_" + std::to_string(skinIndex));
 			try { newSkin->SetName(skin["name"].GetString()); }
-			catch (std::exception &) { debugLog("MeshSkin has no name"); }
+			catch (std::exception &) { debugLog("Skin " + newSkin->Name() + " has no name"); }
 			try { newSkin->SetInverseBinMatrices(container.accessors.at(skin["inverseBindMatrices"].GetInt())); }
-			catch (std::exception &) { debugLog("MeshSkin has no inverseBindMatrices"); }
+			catch (std::exception &) { debugLog("Skin " + newSkin->Name() + " has no inverseBindMatrices"); }
 			try { newSkin->SetSkeleton(container.nodes.at(skin["skeleton"].GetInt())); }
-			catch (std::exception &) { debugLog("MeshSkin has no skeleton"); }
+			catch (std::exception &) { debugLog("Skin " + newSkin->Name() + " has no skeleton"); }
 			try {
 				for (const auto &joint : skin["joints"].GetArray())
 					newSkin->AddJoint(container.nodes.at(joint.GetInt()));
 			}
-			catch (std::exception &) { debugLog("MeshSkin has no joints"); }
+			catch (std::exception &) { debugLog("Skin " + newSkin->Name() + " has no joints"); }
 			skins.push_back(newSkin);
 		}
 	}
@@ -451,22 +451,22 @@ static inline auto SetParenting(const rapidjson::Document &document, const GLTFC
 	{
 		auto node(container.nodes.at(nodeIndex));
 		try {
-			container.meshes.at(gltfNode["mesh"].GetInt())->SetParent(node);
+			auto mesh(container.meshes.at(gltfNode["mesh"].GetInt()));
+			mesh->SetParent(node);
 			const auto &skin(container.skins.at(gltfNode["skin"].GetInt()));
-			container.meshes.at(gltfNode["mesh"].GetInt())->SetSkin(skin);
+			mesh->SetSkin(skin);
 		}
-		catch (std::exception &) { debugLog(node->Name() + " has no mesh or skin property"); }
+		catch (std::exception &) { debugLog("Node " + node->Name() + " has no mesh or skin"); }
 		try { container.cameras.at(gltfNode["camera"].GetInt())->SetParent(node); }
-		catch (std::exception &) { debugLog(node->Name() + " has no camera property"); }
+		catch (std::exception &) { debugLog("Node " + node->Name() + " has no camera"); }
 		try
 		{
 			for (const auto &child : gltfNode["children"].GetArray()) {
-				container.nodes.at(child.GetInt())->SetParent(container.nodes.at(nodeIndex));
-				std::cout << "Node parenting " << container.nodes.at(nodeIndex)->Name() << " -> " << container.nodes.at(child.GetInt())->Name() << std::endl;
-				std::cout << "Child node use count " << container.nodes.at(child.GetInt()).use_count() << std::endl;
+				container.nodes.at(child.GetInt())->SetParent(node);
+				std::cout << "Node parenting " << node->Name() << " -> " << container.nodes.at(child.GetInt())->Name() << std::endl;
 			}
 		}
-		catch (std::exception &) { debugLog("MeshSkin has no skeleton"); }
+		catch (std::exception &) { debugLog("Node " + node->Name() + " has no skeleton"); }
 		nodeIndex++;
 	}
 }
@@ -480,11 +480,11 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 		return sceneVector;
 	}
 	GLTFContainer container;
+	container.nodes = ParseNodes(document);
 	container.cameras = ParseCameras(document);
 	container.accessors = ParseBufferAccessors(path, document);
 	container.materials = ParseMaterials(path, document);
 	container.meshes = ParseMeshes(document, container);
-	container.nodes = ParseNodes(document);
 	container.skins = ParseSkins(document, container);
 	container.animations = ParseAnimations(document, container);
 	SetParenting(document, container);
@@ -501,7 +501,6 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 		if (!newScene->Cameras().empty())
 			newScene->SetCurrentCamera(*newScene->Cameras().begin());
 		for (const auto animation : container.animations) {
-			std::cout << animation << std::endl;
 			newScene->Add(animation);
 			/*for (const auto channel : animation->GetChannels()) {
 				if (newScene->GetNode(channel.Target())) {
