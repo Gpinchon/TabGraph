@@ -25,18 +25,26 @@ void Scene::SetName(const std::string &name)
 	_name = name;
 }
 
-void AddNodeChildren(Scene &scene, std::shared_ptr<Node> node)
+void Scene::_AddNodeChildren(std::shared_ptr<Node> node)
 {
-	scene.Add(node);
 	for (auto child : node->Children()) {
-		AddNodeChildren(scene, child);
+		if (std::find(_nodes.begin(), _nodes.end(), child) == _nodes.end())
+			_nodes.push_back(child);
+		else
+			return;
+		if (auto camera = std::dynamic_pointer_cast<Camera>(child); camera != nullptr)
+			_cameras.push_back(camera);
+		else if (auto light = std::dynamic_pointer_cast<Light>(child); light != nullptr)
+			_lights.push_back(light);
+		_AddNodeChildren(child);
 	}
 }
 
 void Scene::AddRootNode(std::shared_ptr<Node> node)
 {
+	_nodes.push_back(node);
 	_rootNodes.push_back(node);
-	AddNodeChildren(*this, node);
+	_AddNodeChildren(node);
 }
 
 void Scene::Add(std::shared_ptr<Node> node)
@@ -45,7 +53,7 @@ void Scene::Add(std::shared_ptr<Node> node)
 		return;
 	if (std::find(_nodes.begin(), _nodes.end(), node) == _nodes.end()) {
 		_nodes.push_back(node);
-		AddRootNode(node);
+		_rootNodes.push_back(node);
 	}
 	else
 		return;
@@ -137,8 +145,9 @@ void Scene::Render(const RenderMod &mode) {
 }
 
 void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
+	if (rootNode == nullptr)
+        return;
     rootNode->DrawDepth(mode);
-    std::shared_ptr<Node> child;
     for (const auto &child : rootNode->Children())
         DrawNodesDepth(child, mode);
 }
