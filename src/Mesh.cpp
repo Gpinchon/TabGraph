@@ -310,4 +310,5 @@ void Mesh::SetSkin(std::shared_ptr<MeshSkin> skin)
 {
     _skin = skin;
     _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, BufferHelper::CreateAccessor<glm::mat4>(_skin->Joints().size(), GL_TEXTURE_BUFFER));
+    SetNeedsGPUUpdate(true);
 }
