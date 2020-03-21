@@ -8,10 +8,14 @@
 #pragma once
 
 #include <string> // for string
+#include <map> // for map
+#include <memory> // for shared_ptr
+
+class Material;
 
 /*
 ** .MTLLIB parsing interface
 */
 namespace MTLLIB {
-bool parse(const std::string& path);
+std::map<std::string, std::shared_ptr<Material>> parse(const std::string& path);
 };

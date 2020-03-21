@@ -115,14 +115,11 @@ void parse_number(std::vector<std::string> &split, std::shared_ptr<Material> mtl
 
 #include <iostream>
 
-void parse_mtl(t_obj_parser *p, std::string &name)
+auto parse_mtl(t_obj_parser *p, std::string &name)
 {
-    if (Material::GetByName(name) != nullptr)
-    {
-        return;
-    }
     char line[4096];
     auto mtl = Material::Create(name);
+    auto previousOffset(ftell(p->fd));
     while (fgets(line, 4096, p->fd) != nullptr)
     {
         try
@@ -144,7 +141,9 @@ void parse_mtl(t_obj_parser *p, std::string &name)
                 }
                 else if (msplit[0] == "newmtl")
                 {
-                    parse_mtl(p, msplit[1]);
+                    fseek(p->fd, previousOffset, SEEK_SET);
+                    break;
+                    //parse_mtl(p, msplit[1]);
                 }
             }
         }
@@ -152,13 +151,16 @@ void parse_mtl(t_obj_parser *p, std::string &name)
         {
             throw std::runtime_error("Error while parsing " + name + " at line \"" + line + "\" : " + e.what());
         }
+        previousOffset = ftell(p->fd);
     }
+    return mtl;
 }
 
-bool MTLLIB::parse(const std::string &path)
+std::map<std::string, std::shared_ptr<Material>> MTLLIB::parse(const std::string &path)
 {
     char line[4096];
     t_obj_parser p;
+    std::map<std::string, std::shared_ptr<Material>> materials;
 
     if (access(path.c_str(), R_OK) != 0)
     {
@@ -179,7 +181,8 @@ bool MTLLIB::parse(const std::string &path)
             {
                 if (split[0] == "newmtl")
                 {
-                    parse_mtl(&p, split[1]);
+                    auto mtl(parse_mtl(&p, split[1]));
+                    materials[mtl->Name()] = mtl;
                 }
             }
         }
@@ -190,5 +193,5 @@ bool MTLLIB::parse(const std::string &path)
         l++;
     }
     fclose(p.fd);
-    return (true);
+    return materials;
 }
