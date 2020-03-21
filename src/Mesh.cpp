@@ -102,6 +102,10 @@ bool Mesh::DrawDepth(RenderMod mod)
                 shader->bind_texture("Joints", _jointMatrices, GL_TEXTURE11);
                 shader->SetUniform("Skinned", true);
             }
+            else {
+                shader->bind_texture("Joints", nullptr, GL_TEXTURE11);
+                shader->SetUniform("Skinned", false);
+            }
             last_shader = shader;
         }
         ret |= vg->Draw();
@@ -155,6 +159,10 @@ bool Mesh::Draw(RenderMod mod)
             if (Skin() != nullptr) {
                 shader->bind_texture("Joints", _jointMatrices, GL_TEXTURE11);
                 shader->SetUniform("Skinned", true);
+            }
+            else {
+                shader->bind_texture("Joints", nullptr, GL_TEXTURE11);
+                shader->SetUniform("Skinned", false);
             }
             last_shader = shader;
         }
