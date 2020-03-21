@@ -12,8 +12,6 @@
 #include "parser/GLSL.hpp" // for GLSL, ForwardShader
 #include <GL/glew.h> // for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
 
-std::vector<std::shared_ptr<Material>> Material::_materials;
-
 static std::string forward_default_frag_technique =
 #include "forward_default.frag"
     ;
@@ -39,35 +37,7 @@ Material::Material(const std::string& name)
 std::shared_ptr<Material> Material::Create(const std::string& name)
 {
     auto mtl = std::shared_ptr<Material>(new Material(name));
-    _materials.push_back(mtl);
     return mtl;
-}
-
-std::shared_ptr<Material> Material::Get(unsigned index)
-{
-    if (index >= _materials.size())
-        return nullptr;
-    return _materials.at(index);
-}
-
-std::shared_ptr<Material> Material::GetByName(const std::string& name)
-{
-    for (auto m : _materials) {
-        if (name == m->Name()) {
-            return m;
-        }
-    }
-    return nullptr;
-}
-
-std::shared_ptr<Material> Material::GetById(int64_t id)
-{
-    for (auto m : _materials) {
-        if (id == m->Id()) {
-            return m;
-        }
-    }
-    return nullptr;
 }
 
 void Material::Bind()

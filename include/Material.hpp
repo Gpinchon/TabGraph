@@ -19,9 +19,6 @@ class Texture2D;
 class Material : public Object {
 public:
     static std::shared_ptr<Material> Create(const std::string&);
-    static std::shared_ptr<Material> Get(unsigned index);
-    static std::shared_ptr<Material> GetByName(const std::string&);
-    static std::shared_ptr<Material> GetById(int64_t id);
     virtual void Bind();
     std::shared_ptr<Shader> shader();
     std::shared_ptr<Shader> depth_shader();
@@ -54,7 +51,6 @@ public:
     float ior { 1 };
 
 protected:
-    static std::vector<std::shared_ptr<Material>> _materials;
     std::weak_ptr<Shader> _shader;
     std::weak_ptr<Shader> _depth_shader;
     std::shared_ptr<Texture2D> _texture_albedo;
