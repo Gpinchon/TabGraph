@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2020/03/17 09:50:22 by gpinchon         ###   ########.fr        #
+#    Updated: 2020/03/19 19:23:26 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -263,11 +263,6 @@ APP_OBJ = $(addprefix $(APP_PATH)/obj/, $(APP_SRC:.cpp=.o))
 APP_CXXFLAGS += $(CPPFLAGS)
 APP_CXXFLAGS += $(addprefix -I, $(addprefix $(APP_PATH), $(APP_INCLUDE_PATH)))
 
-info:
-	@echo $(APP_RES)
-	@echo $(BUILD_APP_RES)
-	@echo $(CXXFLAGS)
-
 $(BUILD_RES): %: $(RES_FILES)
 	@(mkdir -p $(@D))
 	@(cp $(patsubst $(APP_PATH)/build/%, %,$@) $@)
@@ -325,5 +320,8 @@ fclean:
 	$(foreach dir, $(LIBDIR), $(MAKE) -C $(dir) fclean && ) true
 
 re: fclean all
+
+doc:
+	doxygen doxyfile
 
 .PHONY: all clean fclean re
