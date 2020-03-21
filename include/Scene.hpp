@@ -25,9 +25,11 @@ struct Scene
 	~Scene() = default;
 	std::string Name() const;
 	void SetName(const std::string &name);
+	void AddRootNode(std::shared_ptr<Node>);
 	void Add(std::shared_ptr<Node>);
 	void Add(std::shared_ptr<Animation>);
 	void Update();
+	void UpdateGPU();
 	void FixedUpdate();
 	void Render(const RenderMod &);
 	void RenderDepth(const RenderMod &);
@@ -35,6 +37,7 @@ struct Scene
 	std::shared_ptr<Node> GetNodeByName(const std::string &) const;
 	std::shared_ptr<Light> GetLightByName(const std::string &) const;
 	std::shared_ptr<Camera> GetCameraByName(const std::string &) const;
+	const std::vector<std::shared_ptr<Node>> &RootNodes();
 	const std::vector<std::shared_ptr<Node>> &Nodes();
 	const std::vector<std::shared_ptr<Light>> &Lights();
 	const std::vector<std::shared_ptr<Camera>> &Cameras();
@@ -44,8 +47,10 @@ struct Scene
 
 private:
 	Scene(const std::string &name);
+	void _AddNodeChildren(std::shared_ptr<Node> node);
 	glm::vec3 _up {0, 1, 0};
 	std::string _name;
+	std::vector<std::shared_ptr<Node>> _rootNodes;
 	std::vector<std::shared_ptr<Animation>> _animations;
 	std::vector<std::shared_ptr<Node>> _nodes;
 	std::vector<std::shared_ptr<Light>> _lights;
