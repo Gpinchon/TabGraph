@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2020/03/19 19:23:26 by gpinchon         ###   ########.fr        #
+#    Updated: 2020/04/05 14:50:51 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -78,6 +78,7 @@ HEADERS_FILES	=	\
 					Framebuffer.hpp				\
 					GameController.hpp			\
 					Geometry.hpp				\
+					GLUniformHelper.hpp			\
 					InputDevice.hpp				\
 					Keyboard.hpp				\
 					Light.hpp					\
@@ -107,6 +108,7 @@ HEADERS_FILES	=	\
 					Scene.hpp					\
 					SceneParser.hpp				\
 					Shader.hpp					\
+					ShaderStage.hpp				\
 					StackTracer.hpp				\
 					Terrain.hpp					\
 					Texture.hpp					\
@@ -138,6 +140,7 @@ SRC_FILES		=	\
 					Framebuffer.cpp				\
 					GameController.cpp			\
 					Geometry.cpp				\
+					GLUniformHelper.cpp			\
 					Keyboard.cpp				\
 					Light.cpp					\
 					Material.cpp				\
@@ -166,6 +169,7 @@ SRC_FILES		=	\
 					Scene.cpp					\
 					SceneParser.cpp				\
 					Shader.cpp					\
+					ShaderStage.cpp				\
 					StackTracer.cpp				\
 					Texture.cpp					\
 					Texture2D.cpp				\
@@ -205,7 +209,7 @@ ifeq ($(USE_GDAL), 1)
 endif
 
 LDFLAGS		+=	$(addprefix -L , $(LIBDIR))
-CPPFLAGS	+=	-std=c++17
+CPPFLAGS	+=	-std=gnu++17
 CPPFLAGS	+=	$(addprefix -I, $(INCLUDE_PATH))
 CPPFLAGS	+=	$(addprefix -I, $(SHADERS_PATH))
 CXXFLAGS	+=	-Wall -Wextra -Werror $(CPPFLAGS)
@@ -231,7 +235,7 @@ ifeq ($(USE_GDAL), 1)
 endif
 
 ifeq ($(DEBUG), 1)
-	CXXFLAGS += -DDEBUG_MOD -g
+	CXXFLAGS += -DDEBUG_MOD -g -O1
 	LIBPATH = $(DBGBUILD_PATH)
 	LIBOBJ_PATH = $(DBGOBJ_PATH)
 	LIBOBJ = $(addprefix $(LIBOBJ_PATH), $(OBJ))

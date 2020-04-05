@@ -5,17 +5,14 @@
 * @Last Modified time: 2019-08-11 12:18:05
 */
 
-#include "Shader.hpp"
 #include "Debug.hpp" // for glCheckError, debugLog
+#include "GLUniformHelper.hpp"
+#include "Shader.hpp"
 #include "Texture.hpp" // for Texture
 #include <bits/exception.h> // for exception
 #include <stdexcept> // for runtime_error
 #include <string.h> // for memset
 #include <utility> // for pair, make_pair
-
-static std::string empty_technique =
-#include "empty.glsl"
-    ;
 
 static std::string forward_vert_code =
 #include "forward.vert"
@@ -81,161 +78,21 @@ std::shared_ptr<Shader> Shader::GetByName(const std::string& name)
     return (nullptr);
 }
 
-ShaderVariable* Shader::get_attribute(const std::string& name)
+ShaderVariable &Shader::get_attribute(const std::string& name)
 {
-    auto it = _attributes.find(name);
-    if (it != _attributes.end()) {
-        return (&it->second);
-    }
-    return (nullptr);
+    return _attributes[name];
 }
 
-ShaderVariable* Shader::get_uniform(const std::string& name)
+ShaderVariable &Shader::get_uniform(const std::string& name)
 {
-    auto it = _uniforms.find(name);
-    if (it != _uniforms.end()) {
-        return (&it->second);
-    }
-    return (nullptr);
-}
-
-void Shader::SetUniform(const std::string& name, const int& value, unsigned nbr)
-{
-    auto v = get_uniform(name);
-    if (v == nullptr) {
-        return;
-    }
-    bool bound = in_use();
-    if (!bound) {
-        use();
-    }
-    glUniform1iv(v->loc, nbr, &value);
-    if (glCheckError()) {
-        debugLog(v->name + " " + std::to_string(v->loc));
-    }
-    if (!bound) {
-        use(false);
-    }
-}
-
-void Shader::SetUniform(const std::string& name, const bool& value, unsigned nbr)
-{
-    auto v = get_uniform(name);
-    if (v == nullptr) {
-        return;
-    }
-    bool bound = in_use();
-    if (!bound) {
-        use();
-    }
-    int val = value;
-    glUniform1iv(v->loc, nbr, &val);
-    if (glCheckError()) {
-        debugLog(v->name + " " + std::to_string(v->loc));
-    }
-    if (!bound) {
-        use(false);
-    }
-}
-
-void Shader::SetUniform(const std::string& name, const unsigned& value, unsigned nbr)
-{
-    auto v = get_uniform(name);
-    if (v == nullptr) {
-        return;
-    }
-    bool bound = in_use();
-    if (!bound) {
-        use();
-    }
-    glUniform1uiv(v->loc, nbr, &value);
-    if (glCheckError()) {
-        debugLog(v->name + " " + std::to_string(v->loc));
-    }
-    if (!bound) {
-        use(false);
-    }
-}
-
-void Shader::SetUniform(const std::string& name, const float& value, unsigned nbr)
-{
-    auto v = get_uniform(name);
-    if (v == nullptr) {
-        return;
-    }
-    bool bound = in_use();
-    if (!bound) {
-        use();
-    }
-    glUniform1fv(v->loc, nbr, &value);
-    if (glCheckError()) {
-        debugLog(v->name + " " + std::to_string(v->loc));
-    }
-    if (!bound) {
-        use(false);
-    }
-}
-
-void Shader::SetUniform(const std::string& name, const glm::vec2& value, unsigned nbr)
-{
-    auto v = get_uniform(name);
-    if (v == nullptr) {
-        return;
-    }
-    bool bound = in_use();
-    if (!bound) {
-        use();
-    }
-    glUniform2fv(v->loc, nbr, &value.x);
-    if (glCheckError()) {
-        debugLog(v->name + " " + std::to_string(v->loc));
-    }
-    if (!bound) {
-        use(false);
-    }
-}
-
-void Shader::SetUniform(const std::string& name, const glm::vec3& value, unsigned nbr)
-{
-    auto v = get_uniform(name);
-    if (v == nullptr) {
-        return;
-    }
-    bool bound = in_use();
-    if (!bound) {
-        use();
-    }
-    glUniform3fv(v->loc, nbr, &value.x);
-    if (glCheckError()) {
-        debugLog(v->name + " " + std::to_string(v->loc));
-    }
-    if (!bound) {
-        use(false);
-    }
-}
-
-void Shader::SetUniform(const std::string& name, const glm::mat4& value, unsigned nbr)
-{
-    auto v = get_uniform(name);
-    if (v == nullptr) {
-        return;
-    }
-    bool bound = in_use();
-    if (!bound) {
-        use();
-    }
-    glUniformMatrix4fv(v->loc, nbr, GL_FALSE, (float*)&value);
-    if (glCheckError()) {
-        debugLog(v->name + " " + std::to_string(v->loc));
-    }
-    if (!bound) {
-        use(false);
-    }
+    return _uniforms[name];
 }
 
 bool Shader::in_use()
 {
-    return (_in_use);
+    GLint program;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &program);
+    return (_program != 0 && GLuint(program) == _program);
 }
 
 void Shader::use(const bool& use_program)
@@ -248,10 +105,11 @@ void Shader::use(const bool& use_program)
         Recompile();
     Compile();
     glUseProgram(_program);
+    glCheckError();
+    _UpdateVariables();
     if (glCheckError()) {
         debugLog(Name());
     }
-    _in_use = true;
 }
 
 void Shader::unbind_texture(GLenum texture_unit)
@@ -293,58 +151,32 @@ void Shader::bind_image(const std::string& name,
     }
 }
 
-void Shader::bind_texture(const std::string& name,
-    std::shared_ptr<Texture> texture, const GLenum texture_unit)
+void Shader::_UpdateVariable(const ShaderVariable &variable)
 {
-    bool bound = in_use();
-    if (!bound) {
-        use();
-    }
-    if (texture == nullptr) {
-        unbind_texture(texture_unit);
-    } else {
-        texture->load();
-        glActiveTexture(texture_unit);
-        glBindTexture(texture->target(), texture->glid());
-        glCheckError();
-    }
-    SetUniform(name, int(texture_unit - GL_TEXTURE0));
-    if (!bound) {
-        use(false);
-    }
+    if (variable.loc == -1)
+        return;
+    variable.updateFunction(variable);
 }
 
-/*GLuint Shader::link(const GLuint shaderid)
+void Shader::_UpdateVariables()
 {
-    if (_program == 0)
-        _program = glCreateProgram();
-    glAttachShader(_program, shaderid);
-    glLinkProgram(_program);
-    glDetachShader(_program, shaderid);
-    glCheckError();
-    try {
-        check_program(_program);
-    } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Linking Error :\n") + e.what());
+    if (_uniformsChanged) {
+        for (const auto & uniform : _uniforms)
+        {
+            auto v(uniform.second);
+            _UpdateVariable(v);
+        }
+        _uniformsChanged = false;
     }
-    return (_program);
+    if (_attributesChanged) {
+        for (const auto & uniform : _uniforms)
+        {
+            auto v(uniform.second);
+            _UpdateVariable(v);
+        }
+        _attributesChanged = false;
+    }
 }
-
-void Shader::attach(const GLuint shaderid)
-{
-    if (_program == 0)
-        _program = glCreateProgram();
-    glAttachShader(_program, shaderid);
-    glCheckError();
-}
-
-void Shader::detach(const GLuint shaderid)
-{
-    if (_program == 0)
-        _program = glCreateProgram();
-    glDetachShader(_program, shaderid);
-    glCheckError();
-}*/
 
 void Shader::Link()
 {
@@ -355,47 +187,9 @@ void Shader::Link()
     } catch (std::exception& e) {
         throw std::runtime_error(std::string("Linking Error " + Name() + " :\n") + e.what());
     }
-    _uniforms = _get_variables(GL_ACTIVE_UNIFORMS);
-    _attributes = _get_variables(GL_ACTIVE_ATTRIBUTES);
+    _get_variables(GL_ACTIVE_UNIFORMS);
+    _get_variables(GL_ACTIVE_ATTRIBUTES);
 }
-
-/*GLuint Shader::link(const GLuint vertexid, const GLuint fragmentid)
-{
-    if (_program == 0)
-        _program = glCreateProgram();
-    glAttachShader(_program, vertexid);
-    glAttachShader(_program, fragmentid);
-    glLinkProgram(_program);
-    glDetachShader(_program, vertexid);
-    glDetachShader(_program, fragmentid);
-    glCheckError();
-    try {
-        check_program(_program);
-    } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Linking Error :\n") + e.what());
-    }
-    return (_program);
-}
-
-GLuint Shader::link(const GLuint geometryid, const GLuint vertexid, const GLuint fragmentid)
-{
-    if (_program == 0)
-        _program = glCreateProgram();
-    glAttachShader(_program, geometryid);
-    glAttachShader(_program, vertexid);
-    glAttachShader(_program, fragmentid);
-    glLinkProgram(_program);
-    glDetachShader(_program, geometryid);
-    glDetachShader(_program, vertexid);
-    glDetachShader(_program, fragmentid);
-    glCheckError();
-    try {
-        check_program(_program);
-    } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Linking Error :\n") + e.what());
-    }
-    return (_program);
-}*/
 
 bool Shader::check_shader(const GLuint id)
 {
@@ -435,33 +229,191 @@ bool Shader::check_program(const GLuint id)
     return (false);
 }
 
-std::unordered_map<std::string, ShaderVariable> Shader::_get_variables(GLenum type)
+static inline size_t VariableSize(GLenum type)
+{
+    switch (type) {
+        case(GL_FLOAT) :
+            return sizeof(float);
+        case(GL_FLOAT_VEC2) :
+            return sizeof(glm::vec2);
+        case(GL_FLOAT_VEC3) :
+            return sizeof(glm::vec3);
+        case(GL_FLOAT_VEC4) :
+            return sizeof(glm::vec4);
+        case(GL_DOUBLE) :
+            return sizeof(double);
+        case(GL_DOUBLE_VEC2) :
+            return sizeof(glm::dvec2);
+        case(GL_DOUBLE_VEC3) :
+            return sizeof(glm::dvec3);
+        case(GL_DOUBLE_VEC4) :
+            return sizeof(glm::dvec4);
+        case(GL_INT) :
+            return sizeof(int);
+        case(GL_INT_VEC2) :
+            return sizeof(glm::ivec2);
+        case(GL_INT_VEC3) :
+            return sizeof(glm::ivec3);
+        case(GL_INT_VEC4) :
+            return sizeof(glm::ivec4);
+        case(GL_UNSIGNED_INT) :
+            return sizeof(unsigned);
+        case(GL_UNSIGNED_INT_VEC2) :
+            return sizeof(glm::uvec2);
+        case(GL_UNSIGNED_INT_VEC3) :
+            return sizeof(glm::uvec3);
+        case(GL_UNSIGNED_INT_VEC4) :
+            return sizeof(glm::uvec4);
+        case(GL_BOOL) :
+            return sizeof(bool);
+        case(GL_BOOL_VEC2) :
+            return sizeof(glm::bvec2);
+        case(GL_BOOL_VEC3) :
+            return sizeof(glm::bvec3);
+        case(GL_BOOL_VEC4) :
+            return sizeof(glm::bvec4);
+        case(GL_FLOAT_MAT2) :
+            return sizeof(glm::mat2);
+        case(GL_FLOAT_MAT3) :
+            return sizeof(glm::mat3);
+        case(GL_FLOAT_MAT4) :
+            return sizeof(glm::mat4);
+        case(GL_FLOAT_MAT2x3) :
+            return sizeof(glm::mat2x3);
+        case(GL_FLOAT_MAT2x4) :
+            return sizeof(glm::mat2x4);
+        case(GL_FLOAT_MAT3x2) :
+            return sizeof(glm::mat3x2);
+        case(GL_FLOAT_MAT3x4) :
+            return sizeof(glm::mat3x4);
+        case(GL_FLOAT_MAT4x2) :
+            return sizeof(glm::mat4x2);
+        case(GL_FLOAT_MAT4x3) :
+            return sizeof(glm::mat4x3);
+        case(GL_DOUBLE_MAT2) :
+            return sizeof(glm::dmat2);
+        case(GL_DOUBLE_MAT3) :
+            return sizeof(glm::dmat3);
+        case(GL_DOUBLE_MAT4) :
+            return sizeof(glm::dmat4);
+        case(GL_DOUBLE_MAT2x3) :
+            return sizeof(glm::dmat2x3);
+        case(GL_DOUBLE_MAT2x4) :
+            return sizeof(glm::dmat2x4);
+        case(GL_DOUBLE_MAT3x2) :
+            return sizeof(glm::dmat3x2);
+        case(GL_DOUBLE_MAT3x4) :
+            return sizeof(glm::dmat3x4);
+        case(GL_DOUBLE_MAT4x2) :
+            return sizeof(glm::dmat4x2);
+        case(GL_DOUBLE_MAT4x3) :
+            return sizeof(glm::dmat4x3);
+        case(GL_UNSIGNED_INT_ATOMIC_COUNTER) :
+            return sizeof(unsigned);
+        case (GL_SAMPLER_1D) :
+        case (GL_SAMPLER_2D) :
+        case (GL_SAMPLER_3D) :
+        case (GL_SAMPLER_CUBE) :
+        case (GL_SAMPLER_1D_SHADOW) :
+        case (GL_SAMPLER_2D_SHADOW) :
+        case (GL_SAMPLER_1D_ARRAY) :
+        case (GL_SAMPLER_2D_ARRAY) :
+        case (GL_SAMPLER_1D_ARRAY_SHADOW) :
+        case (GL_SAMPLER_2D_ARRAY_SHADOW) :
+        case (GL_SAMPLER_2D_MULTISAMPLE) :
+        case (GL_SAMPLER_2D_MULTISAMPLE_ARRAY) :
+        case (GL_SAMPLER_CUBE_SHADOW) :
+        case (GL_SAMPLER_BUFFER) :
+        case (GL_SAMPLER_2D_RECT) :
+        case (GL_SAMPLER_2D_RECT_SHADOW) :
+        case (GL_INT_SAMPLER_1D) :
+        case (GL_INT_SAMPLER_2D) :
+        case (GL_INT_SAMPLER_3D) :
+        case (GL_INT_SAMPLER_CUBE) :
+        case (GL_INT_SAMPLER_1D_ARRAY) :
+        case (GL_INT_SAMPLER_2D_ARRAY) :
+        case (GL_INT_SAMPLER_2D_MULTISAMPLE) :
+        case (GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY) :
+        case (GL_INT_SAMPLER_BUFFER) :
+        case (GL_INT_SAMPLER_2D_RECT) :
+        case (GL_UNSIGNED_INT_SAMPLER_1D) :
+        case (GL_UNSIGNED_INT_SAMPLER_2D) :
+        case (GL_UNSIGNED_INT_SAMPLER_3D) :
+        case (GL_UNSIGNED_INT_SAMPLER_CUBE) :
+        case (GL_UNSIGNED_INT_SAMPLER_1D_ARRAY) :
+        case (GL_UNSIGNED_INT_SAMPLER_2D_ARRAY) :
+        case (GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE) :
+        case (GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY) :
+        case (GL_UNSIGNED_INT_SAMPLER_BUFFER) :
+        case (GL_UNSIGNED_INT_SAMPLER_2D_RECT) :
+        case (GL_IMAGE_1D) :
+        case (GL_IMAGE_2D) :
+        case (GL_IMAGE_3D) :
+        case (GL_IMAGE_2D_RECT) :
+        case (GL_IMAGE_CUBE) :
+        case (GL_IMAGE_BUFFER) :
+        case (GL_IMAGE_1D_ARRAY) :
+        case (GL_IMAGE_2D_ARRAY) :
+        case (GL_IMAGE_2D_MULTISAMPLE) :
+        case (GL_IMAGE_2D_MULTISAMPLE_ARRAY) :
+        case (GL_INT_IMAGE_1D) :
+        case (GL_INT_IMAGE_2D) :
+        case (GL_INT_IMAGE_3D) :
+        case (GL_INT_IMAGE_2D_RECT) :
+        case (GL_INT_IMAGE_CUBE) :
+        case (GL_INT_IMAGE_BUFFER) :
+        case (GL_INT_IMAGE_1D_ARRAY) :
+        case (GL_INT_IMAGE_2D_ARRAY) :
+        case (GL_INT_IMAGE_2D_MULTISAMPLE) :
+        case (GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY) :
+        case (GL_UNSIGNED_INT_IMAGE_1D) :
+        case (GL_UNSIGNED_INT_IMAGE_2D) :
+        case (GL_UNSIGNED_INT_IMAGE_3D) :
+        case (GL_UNSIGNED_INT_IMAGE_2D_RECT) :
+        case (GL_UNSIGNED_INT_IMAGE_CUBE) :
+        case (GL_UNSIGNED_INT_IMAGE_BUFFER) :
+        case (GL_UNSIGNED_INT_IMAGE_1D_ARRAY) :
+        case (GL_UNSIGNED_INT_IMAGE_2D_ARRAY) :
+        case (GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE) :
+        case (GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY) :
+            return sizeof(std::pair<std::shared_ptr<Texture>, GLenum>);
+    }
+    return (0);
+}
+
+void Shader::_get_variables(GLenum variableType)
 {
     char name[4096];
     GLint ivcount;
     GLsizei length;
 
-    glGetProgramiv(_program, type, &ivcount);
+    glGetProgramiv(_program, variableType, &ivcount);
     glCheckError();
-    std::unordered_map<std::string, ShaderVariable> variables;
     debugLog(this->Name());
     debugLog(ivcount);
-    debugLog((type == GL_ACTIVE_UNIFORMS ? "GL_ACTIVE_UNIFORMS" : "GL_ACTIVE_ATTRIBUTES"));
+    debugLog((variableType == GL_ACTIVE_UNIFORMS ? "GL_ACTIVE_UNIFORMS" : "GL_ACTIVE_ATTRIBUTES"));
     while (--ivcount >= 0) {
-        ShaderVariable v;
         memset(name, 0, sizeof(name));
-        glGetActiveUniform(_program, static_cast<GLuint>(ivcount), 4096, &length,
-            &v.size, &v.type, name);
+        GLint size;
+        GLenum type;
+        glGetActiveUniform(_program, static_cast<GLuint>(ivcount), 4096, &length, &size, &type, name);
         debugLog(name);
         glCheckError();
+        auto &v(variableType == GL_ACTIVE_UNIFORMS ? _uniforms[name] : _attributes[name]);
         v.name = name;
-        std::hash<std::string> hash_fn;
-        v.id = hash_fn(name);
+        v.size = size;
+        v.type = type;
         v.loc = glGetUniformLocation(_program, name);
+        v.byteSize = VariableSize(v.type);
+        //v.data = (void*)nullptr;
+        v.updateFunction = GetSetUniformCallback(v.type);
+        if (variableType == GL_ACTIVE_UNIFORMS)
+            _uniforms[name] = v;
+        else if (variableType == GL_ACTIVE_ATTRIBUTES)
+            _attributes[name] = v;
+        debugLog(v.name + " " + std::to_string(v.size) + " " + std::to_string(v.type) + " " + std::to_string(v.loc));
         glCheckError();
-        variables[v.name] = v;
     }
-    return (variables);
 }
 
 void Shader::Compile()
@@ -533,91 +485,4 @@ void Shader::SetStage(const ShaderStage &stage)
 bool Shader::Compiled() const
 {
     return _compiled;
-}
-
-ShaderStage::ShaderStage(GLenum stage, const std::string code) : _stage(stage), _code(code), _technique(empty_technique)
-{
-}
-
-ShaderStage::~ShaderStage()
-{
-    Delete();
-}
-
-void ShaderStage::Delete() {
-    glDeleteShader(_glid);
-    _glid = 0;
-    _compiled = false;
-}
-
-void ShaderStage::Compile()
-{
-    if (Compiled())
-        Recompile();
-    static auto glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
-    static auto glslVersionNbr = int(std::stof(glslVersionString) * 100);
-
-    std::string fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n";
-    for (auto define : _defines) {
-        fullCode += "#define " + define.first + " " + define.second + "\n";
-    }
-    fullCode += Code() + Technique();
-    auto codeBuff = fullCode.c_str();
-    _glid = glCreateShader(Stage());
-    glShaderSource(_glid, 1, &codeBuff, nullptr);
-    glCompileShader(_glid);
-    glCheckError();
-    try {
-        Shader::check_shader(_glid);
-    }
-    catch (std::exception& e) {
-        throw std::runtime_error(std::string("Error compiling Shader Stage ") + e.what());
-    }
-    _compiled = true;
-}
-
-void ShaderStage::Recompile()
-{
-    Delete();
-    Compile();
-}
-
-GLenum ShaderStage::Stage() const
-{
-    return _stage;
-}
-
-std::string ShaderStage::Code() const
-{
-    return _code; //Le code c'est le _code ?
-}
-
-bool ShaderStage::Compiled() const
-{
-    return _compiled;
-}
-
-void ShaderStage::SetDefine(const std::string define, const std::string value)
-{
-    _defines[define] = value;
-}
-
-void ShaderStage::RemoveDefine(const std::string define)
-{
-    _defines.erase(define);
-}
-
-std::string ShaderStage::Technique() const
-{
-    return _technique;
-}
-
-void ShaderStage::SetTechnique(const std::string technique)
-{
-    _technique = technique;
-}
-
-GLuint ShaderStage::Glid() const
-{
-    return _glid;
 }
