@@ -51,28 +51,28 @@ void Node::UpdateGPU()
 
 void Node::UpdateTransformMatrix()
 {
-    //if (!NeedsTransformUpdate())
-    //    return;
-    //UpdateTranslationMatrix();
-    //UpdateRotationMatrix();
-    //UpdateScaleMatrix();
-    //SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
-    //if (auto parentPtr = Parent(); parentPtr != nullptr) 
-    //    SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
-    //SetNeedsTranformUpdate(false);
-    //for (auto child : _children)
-    //    child->SetNeedsTranformUpdate(true);
-    if (NeedsTransformUpdate()) {
-        UpdateTranslationMatrix();
-        UpdateRotationMatrix();
-        UpdateScaleMatrix();
-    }
+    if (!NeedsTransformUpdate())
+        return;
+    UpdateTranslationMatrix();
+    UpdateRotationMatrix();
+    UpdateScaleMatrix();
     SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
     if (auto parentPtr = Parent(); parentPtr != nullptr) 
         SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
+    SetNeedsTranformUpdate(false);
     for (auto child : _children)
         child->SetNeedsTranformUpdate(true);
-    SetNeedsTranformUpdate(false);
+    //if (NeedsTransformUpdate()) {
+    //    UpdateTranslationMatrix();
+    //    UpdateRotationMatrix();
+    //    UpdateScaleMatrix();
+    //}
+    //SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
+    //if (auto parentPtr = Parent(); parentPtr != nullptr) 
+    //    SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
+    //for (auto child : _children)
+    //    child->SetNeedsTranformUpdate(true);
+    //SetNeedsTranformUpdate(false);
 }
 
 void Node::UpdateTranslationMatrix()
