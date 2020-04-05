@@ -33,7 +33,7 @@ public:
     std::shared_ptr<Texture2D> attachement(unsigned color_attachement);
     /** @return the depth buffer */
     std::shared_ptr<Texture2D> depth();
-    void setup_attachements();
+    
     /** @brief Adds a new attachement to the current buffer and returns it */
     std::shared_ptr<Texture2D> Create_attachement(GLenum format, GLenum iformat);
     virtual glm::ivec2 Size() const;
@@ -50,18 +50,21 @@ private:
     static std::vector<std::shared_ptr<Framebuffer>> _framebuffers;
     Framebuffer() = delete;
     Framebuffer(const std::string& name);
-    void _resize_depth(const glm::vec2&);
-    void _resize_attachement(const int&, const glm::vec2&);
+    //void _resize_depth(const glm::vec2&);
+    //void _resize_attachement(const int&, const glm::vec2&);
     void resize_attachement(const int&, const glm::vec2&);
-    std::vector<std::shared_ptr<Texture2D>> _color_attachements;
-    std::shared_ptr<Texture2D> _depth;
+    void setup_attachements();
+    std::vector<std::pair<std::shared_ptr<Texture2D>, unsigned>> _color_attachements;
+    std::pair<std::shared_ptr<Texture2D>, unsigned> _depth;
     glm::ivec2 _size { 0, 0 };
     GLuint _glid { 0 };
+    bool _attachementsChanged { true };
 };
 
 /*
 ** Framebuffer Attachements are always loaded by default and cannot be loaded into GPU
 */
+/*
 class Attachement : public Texture2D {
 public:
     static std::shared_ptr<Attachement> Create(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi);
@@ -72,3 +75,4 @@ public:
 private:
     Attachement(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format);
 };
+*/

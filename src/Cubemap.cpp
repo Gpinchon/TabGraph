@@ -5,6 +5,7 @@
 * @Last Modified time: 2019-08-11 12:20:07
 */
 
+#include "Config.hpp"
 #include "Cubemap.hpp"
 #include "Debug.hpp"
 #include "Engine.hpp"
@@ -36,6 +37,9 @@ Cubemap::~Cubemap()
 std::shared_ptr<Cubemap> Cubemap::Create(const std::string& name)
 {
     auto cubemap = std::shared_ptr<Cubemap>(new Cubemap(name));
+    cubemap->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    cubemap->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    cubemap->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Get("Anisotropy", 16.f));
     Cubemap::Add(cubemap);
     return (cubemap);
 }
@@ -70,6 +74,7 @@ void Cubemap::load()
     }
     glBindTexture(_target, 0);
     generate_mipmap();
+    restore_parameters();
 }
 
 void Cubemap::unload()

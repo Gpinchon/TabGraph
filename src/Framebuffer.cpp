@@ -13,9 +13,6 @@
 
 std::vector<std::shared_ptr<Framebuffer>> Framebuffer::_framebuffers;
 
-Attachement::Attachement(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format)
-    : Texture2D(name, s, target, f, fi, data_format) {};
-
 GLenum get_data_format(GLenum internal_format)
 {
     switch (internal_format) {
@@ -50,35 +47,6 @@ GLenum get_data_format(GLenum internal_format)
     }
 }
 
-std::shared_ptr<Attachement> Attachement::Create(const std::string& iname, glm::vec2 s, GLenum target, GLenum f, GLenum fi)
-{
-    auto t = std::shared_ptr<Attachement>(new Attachement(iname, s, target, f, fi, get_data_format(fi)));
-    glGenTextures(1, &t->_glid);
-    glBindTexture(t->_target, t->_glid);
-    glObjectLabel(GL_TEXTURE, t->_glid, -1, t->Name().c_str());
-    glTexImage2D(t->_target, 0, fi, s.x, s.y, 0, f, t->data_format(), nullptr);
-    glBindTexture(t->_target, 0);
-    glCheckError();
-    t->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    t->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    return (t);
-}
-
-bool Attachement::is_loaded()
-{
-    return (true);
-}
-
-void Attachement::load()
-{
-}
-
-void Attachement::unload()
-{
-}
-
 Framebuffer::Framebuffer(const std::string& name)
     : Object(name)
 {
@@ -95,11 +63,6 @@ std::shared_ptr<Framebuffer> Framebuffer::Create(const std::string& name, glm::i
 
     auto f = std::shared_ptr<Framebuffer>(new Framebuffer(name));
     f->_size = size;
-    glGenFramebuffers(1, &f->_glid);
-    glBindFramebuffer(GL_FRAMEBUFFER, f->_glid);
-    glObjectLabel(GL_FRAMEBUFFER, f->_glid, -1, f->Name().c_str());
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glCheckError();
     i = 0;
     while (i < color_attachements) {
         f->Create_attachement(GL_RGBA, GL_RGBA);
@@ -108,7 +71,7 @@ std::shared_ptr<Framebuffer> Framebuffer::Create(const std::string& name, glm::i
     if (depth != 0) {
         f->Create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
     }
-    f->setup_attachements();
+    //f->setup_attachements();
     Framebuffer::Add(f);
     return (f);
 }
@@ -141,14 +104,32 @@ void Framebuffer::bind(bool to_bind)
         bind_default();
         return;
     }
+    glCheckError(Name());
+    for (auto attachement : _color_attachements)
+        attachement.first->load();
+    if (_depth.first != nullptr)
+        _depth.first->load();
+    if (_glid == 0u) {
+        glGenFramebuffers(1, &_glid);
+        glCheckError(Name());
+        glBindFramebuffer(GL_FRAMEBUFFER, _glid);
+        glObjectLabel(GL_FRAMEBUFFER, _glid, Name().length(), Name().c_str());
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glCheckError(Name());
+    }
+    if (_attachementsChanged) {
+        setup_attachements();
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, _glid);
+    glCheckError(Name());
     glViewport(0, 0, Size().x, Size().y);
-    glCheckError();
+    glCheckError(Name());
 }
 
 void Framebuffer::bind_default()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glCheckError();
     glViewport(0, 0, Window::size().x, Window::size().y);
     glCheckError();
 }
@@ -160,40 +141,76 @@ std::shared_ptr<Texture2D> Framebuffer::Create_attachement(GLenum format, GLenum
         tname = (Name() + "_depth");
     else
         tname = (Name() + "_attachement_" + std::to_string(_color_attachements.size()));
-    bind();
-    auto a = Attachement::Create(tname, Size(), GL_TEXTURE_2D, format, iformat);
+    auto a = Texture2D::Create(tname, Size(), GL_TEXTURE_2D, format, iformat);
+    a->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    a->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     if (format == GL_DEPTH_COMPONENT) {
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, a->glid(), 0);
-        _depth = a;
+        _depth = std::pair(a, 0);
     } else {
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + _color_attachements.size(), a->glid(), 0);
-        _color_attachements.push_back(a);
+        _color_attachements.push_back(std::pair(a, 0));
     }
-    glCheckError();
-    bind(false);
+    _attachementsChanged = true;
     return (a);
 }
 
 void Framebuffer::setup_attachements()
 {
-    unsigned i;
     GLenum format[2];
     std::vector<GLenum> color_attachements;
 
-    i = 0;
-    while (i < _color_attachements.size()) {
-        attachement(i)->format(&format[0], &format[1]);
+    glBindFramebuffer(GL_FRAMEBUFFER, _glid);
+    glCheckError(Name());
+    for (auto i = 0u; i < _color_attachements.size(); ++i) {
+        auto attachement(_color_attachements.at(i));
+        attachement.first->format(&format[0], &format[1]);
         if (format[0] != GL_DEPTH_COMPONENT) {
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attachement.first->glid(), attachement.second);
+            glCheckError(Name());
             color_attachements.push_back(GL_COLOR_ATTACHMENT0 + i);
         }
-        i++;
     }
-    bind();
+    if (_depth.first != nullptr) {
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth.first->glid(), _depth.second);
+        glCheckError(Name());
+    }
     glDrawBuffers(color_attachements.size(), &color_attachements[0]);
-    glCheckError();
-    bind(false);
+    glCheckError(Name());
+#ifdef DEBUG_MOD
+    auto status(glCheckFramebufferStatus(GL_FRAMEBUFFER));
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        switch (status) {
+            case (GL_FRAMEBUFFER_UNDEFINED) : 
+                debugLog(Name() + " GL_FRAMEBUFFER_UNDEFINED");
+                break;
+            case (GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) : 
+                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+                break;
+            case (GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT ) : 
+                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT ");
+                break;
+            case (GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER ) : 
+                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER ");
+                break;
+            case (GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER ) : 
+                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER ");
+                break;
+            case (GL_FRAMEBUFFER_UNSUPPORTED ) : 
+                debugLog(Name() + " GL_FRAMEBUFFER_UNSUPPORTED ");
+                break;
+            case (GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) : 
+                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
+                break;
+            case (GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS ) : 
+                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS ");
+                break;
+        }
+    }
+#endif
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glCheckError(Name());
+    _attachementsChanged = false;
 }
-
+/*
 void Framebuffer::_resize_attachement(const int& attachement, const glm::vec2& ns)
 {
     auto t = Framebuffer::attachement(attachement);
@@ -201,19 +218,20 @@ void Framebuffer::_resize_attachement(const int& attachement, const glm::vec2& n
         return;
     }
     t->Resize(ns);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachement, t->glid(), 0);
-    glCheckError();
+    //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachement, t->glid(), 0);
+    //glCheckError(Name());
 }
 
 void Framebuffer::_resize_depth(const glm::vec2& ns)
 {
-    if (_depth == nullptr) {
+    if (_depth.first == nullptr) {
         return;
     }
-    _depth->Resize(ns);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth->glid(), 0);
-    glCheckError();
+    _depth.first->Resize(ns);
+    //glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth->glid(), 0);
+    //glCheckError(Name());
 }
+*/
 
 glm::ivec2 Framebuffer::Size() const
 {
@@ -222,56 +240,55 @@ glm::ivec2 Framebuffer::Size() const
 
 void Framebuffer::Resize(const glm::ivec2& new_size)
 {
-    unsigned i;
-
     if (Size() == new_size) {
         return;
     }
-    bind();
     _size = new_size;
-    i = 0;
-    while (i < _color_attachements.size()) {
-        _resize_attachement(i, new_size);
-        i++;
-    }
-    _resize_depth(new_size);
-    bind(false);
+    for (auto attachement : _color_attachements)
+        attachement.first->Resize(new_size);
+    if (_depth.first != nullptr)
+        _depth.first->Resize(new_size);
+    _attachementsChanged = true;
 }
 
 size_t Framebuffer::AddAttachement(std::shared_ptr<Texture2D> texture2D)
 {
-    _color_attachements.push_back(texture2D);
+    _color_attachements.push_back(std::pair(texture2D, 0));
     set_attachement(_color_attachements.size() - 1, texture2D);
     return _color_attachements.size() - 1;
 }
 
 void Framebuffer::set_attachement(unsigned color_attachement, std::shared_ptr<Texture2D> texture2D, unsigned mipLevel)
 {
-    try { _color_attachements.at(color_attachement) = texture2D; }
+    try {
+        _color_attachements.at(color_attachement).first = texture2D;
+        _color_attachements.at(color_attachement).second = mipLevel;
+    }
     catch (std::runtime_error &e) {throw std::runtime_error(Name() + " : " + e.what()); }
-    bind();
+    _attachementsChanged = true;
+    /*bind();
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture2D ? texture2D->glid() : 0, mipLevel);
-    glCheckError();
-    bind(false);
+    glCheckError(Name());
+    bind(false);*/
 }
 
 void Framebuffer::SetDepthBuffer(std::shared_ptr<Texture2D> depth, unsigned mipLevel)
 {
-    if (depth == nullptr)
-        return;
-    _depth = depth;
-    bind();
+    _depth.first = depth;
+    _depth.second = mipLevel;
+    _attachementsChanged = true;
+    /*bind();
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth ? depth->glid() : 0, mipLevel);
-    glCheckError();
-    bind(false);
+    glCheckError(Name());
+    bind(false);*/
 }
 
 std::shared_ptr<Texture2D> Framebuffer::attachement(unsigned color_attachement)
 {
-    return _color_attachements.at(color_attachement);
+    return _color_attachements.at(color_attachement).first;
 }
 
 std::shared_ptr<Texture2D> Framebuffer::depth()
 {
-    return (_depth);
+    return _depth.first;
 }

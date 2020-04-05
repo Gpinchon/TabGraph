@@ -60,6 +60,7 @@ protected:
     GLenum _internal_format{0};
     GLubyte *_data{nullptr};
     bool _loaded{false};
+    bool _needsReload{false};
     bool _mipMapsGenerated{false};
     std::unordered_map<GLenum, int> _parametersi;
     std::unordered_map<GLenum, float> _parametersf;

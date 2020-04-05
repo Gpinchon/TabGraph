@@ -71,30 +71,32 @@ void Texture2D::unload()
 
 void Texture2D::load()
 {
-    if (_loaded == true)
+    if (_loaded)
         return;
-    auto maxTexRes = Config::Get("MaxTexRes", -1);
+    /*auto maxTexRes = Config::Get("MaxTexRes", -1);
     if (maxTexRes > 0 && _data && (_size.x > maxTexRes || _size.y > maxTexRes))
     {
         Resize(glm::ivec2(
             std::min(_size.x, maxTexRes),
             std::min(_size.y, maxTexRes)));
-    }
-    if (_glid == 0u)
-    {
-        glGenTextures(1, &_glid);
-        glBindTexture(_target, _glid);
-        glObjectLabel(GL_TEXTURE, _glid, -1, Name().c_str());
-        glBindTexture(_target, 0);
-    }
+    }*/
+    Texture::load();
+    glBindTexture(_target, _glid);
+    glCheckError(Name());
+    glObjectLabel(GL_TEXTURE, _glid, -1, Name().c_str());
+    glCheckError(Name());
+    glBindTexture(_target, 0);
+    glCheckError(Name());
     if (_size.x > 0 && _size.y > 0)
     {
         glBindTexture(_target, _glid);
+        glCheckError(Name());
         glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format,
                      _data_format, _data);
+        glCheckError(Name());
         glBindTexture(_target, 0);
+        glCheckError(Name());
     }
-    glCheckError();
     restore_parameters();
     generate_mipmap();
     _loaded = true;
@@ -196,9 +198,9 @@ glm::vec4 Texture2D::sample(const glm::vec2 &uv)
 
 void Texture2D::Resize(const glm::ivec2 &ns)
 {
+    if (Size() == ns)
+        return;
     GLubyte *d;
-
-    _loaded = false;
     if (_data != nullptr)
     {
         auto opp = _bpp / 8;
@@ -223,7 +225,8 @@ void Texture2D::Resize(const glm::ivec2 &ns)
         _data = d;
     }
     _size = ns;
-    if (_glid != 0u)
+    _loaded = false;
+    /*if (_glid != 0u)
     {
         glDeleteTextures(1, &_glid);
         glGenTextures(1, &_glid);
@@ -232,9 +235,10 @@ void Texture2D::Resize(const glm::ivec2 &ns)
         glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format,
                      _data_format, _data);
         glBindTexture(_target, 0);
-        glCheckError();
+        glCheckError(Name());
         restore_parameters();
-    }
+        _loaded = true;
+    }*/
 }
 
 std::shared_ptr<Framebuffer>
@@ -242,7 +246,7 @@ Texture2D::_generate_blur_buffer(const std::string &bname)
 {
     auto buffer = Framebuffer::Create(bname, Size(), 0, 0);
     buffer->Create_attachement(_format, _internal_format);
-    buffer->setup_attachements();
+    //buffer->setup_attachements();
     return (buffer);
 }
 
@@ -279,7 +283,6 @@ void Texture2D::blur(const int &pass, const float &radius, std::shared_ptr<Shade
     auto ctexture = shared_from_this();
     float angle = 0;
     std::shared_ptr<Texture2D> attachement;
-    blurShader->use();
     while (totalPass > 0)
     {
         glm::vec2 direction;
@@ -292,8 +295,10 @@ void Texture2D::blur(const int &pass, const float &radius, std::shared_ptr<Shade
         }
         cbuffer->bind();
         blurShader->SetUniform("in_Direction", direction);
-        blurShader->bind_texture("in_Texture_Color", ctexture, GL_TEXTURE0);
+        blurShader->SetUniform("in_Texture_Color", ctexture, GL_TEXTURE0);
+        blurShader->use();
         Render::DisplayQuad()->Draw();
+        blurShader->use(false);
         angle = CYCLE(angle + (M_PI / 4.f), 0, M_PI);
         if (totalPass == 1)
             cbuffer->set_attachement(0, attachement);
@@ -309,6 +314,5 @@ void Texture2D::blur(const int &pass, const float &radius, std::shared_ptr<Shade
         }
         totalPass--;
     }
-    blurShader->use(false);
     Framebuffer::bind_default();
 }

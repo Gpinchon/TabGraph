@@ -92,23 +92,25 @@ void Texture::load()
     if (_loaded)
         return;
     //glCreateTextures(1, target(), &_glid);
+    if (glid() != 0u)
+        glDeleteTextures(1, &_glid);
     glGenTextures(1, &_glid);
-    glCheckError();
-    if (Name() != "") {
-        glObjectLabel(GL_TEXTURE, glid(), Name().length(), Name().c_str());
-        glCheckError();
-    }
+    glCheckError(Name());
+    glBindTexture(target(), glid());
+    glBindTexture(target(), 0);
+    glObjectLabel(GL_TEXTURE, glid(), Name().length(), Name().c_str());
+    glCheckError(Name());
     _loaded = true;
 }
 
 void Texture::generate_mipmap()
 {
     glBindTexture(_target, _glid);
-    glCheckError();
+    glCheckError(Name());
     glGenerateMipmap(_target);
-    glCheckError();
+    glCheckError(Name());
     glBindTexture(_target, 0);
-    glCheckError();
+    glCheckError(Name());
     _mipMapsGenerated = true;
 }
 
@@ -163,6 +165,7 @@ void Texture::set_parameterf(GLenum p, float v)
     _parametersf[p] = v;
     if (_glid == 0u)
         return;
+    glCheckError(Name());
     if (glTextureParameterf == nullptr)
     {
         glBindTexture(_target, _glid);
@@ -173,7 +176,7 @@ void Texture::set_parameterf(GLenum p, float v)
     {
         glTextureParameterf(_glid, p, v);
     }
-    glCheckError();
+    glCheckError(Name());
 }
 
 void Texture::set_parameteri(GLenum p, int v)
@@ -184,16 +187,16 @@ void Texture::set_parameteri(GLenum p, int v)
     if (glTextureParameteri == nullptr)
     {
         glBindTexture(_target, _glid);
+        glCheckError(Name());
         glTexParameteri(_target, p, v);
+        glCheckError(Name());
         glBindTexture(_target, 0);
+        glCheckError(Name());
     }
     else
     {
         glTextureParameteri(_glid, p, v);
-    }
-    if (glCheckError() != GL_NO_ERROR)
-    {
-        debugLog(Name());
+        glCheckError(Name());
     }
 }
 
