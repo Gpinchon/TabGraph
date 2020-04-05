@@ -16,8 +16,8 @@
 #ifdef DEBUG_MOD
 #define _debugStream(func, line) std::cerr << __DATE__ << " " << __TIME__ << " | " << func << " at line [" << line << "] : "
 #define debugLog(message) _debugStream(__PRETTY_FUNCTION__, __LINE__) << message << std::endl;
-#define glCheckError() _glCheckError(__PRETTY_FUNCTION__, __LINE__)
-inline auto _glCheckError(const char *func, const int line)
+template <typename ...Args>
+inline auto _glCheckError(const char *func, const int line, Args... args)
 {
     GLenum errorCode;
     GLenum errorRet = GL_NO_ERROR;
@@ -49,16 +49,21 @@ inline auto _glCheckError(const char *func, const int line)
             error = "GL_INVALID_FRAMEBUFFER_OPERATION";
             break;
         }
-        _debugStream(func, line) << error << std::endl;
+        if constexpr (sizeof...(Args) == 1)
+            (_debugStream(func, line) << ... << args) << " " << error << std::endl;
+        else
+            _debugStream(func, line) << error << std::endl;
     }
     return errorRet;
 }
+#define glCheckError(...) _glCheckError(__PRETTY_FUNCTION__, __LINE__ , ##__VA_ARGS__)
 #else
 #define debugLog(message)
-inline auto glCheckError()
+#define glCheckError(message) GL_NO_ERROR
+/*inline auto glCheckError(const std::string &)
 {
     return (GL_NO_ERROR);
-}
+}*/
 #endif
 
 #ifdef _WIN32
