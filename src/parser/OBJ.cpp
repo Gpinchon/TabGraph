@@ -369,7 +369,7 @@ static void parse_line(ObjContainer &p, const char *line)
     }
     else if (split[0][0] == 'g' || split[0][0] == 'o')
     {
-        auto mtlIndex(0);
+        auto mtlIndex(-1);
         if (p.currentGeometry != nullptr)
             mtlIndex = p.currentGeometry->MaterialIndex();
         parse_vg(p, split[1]);
@@ -380,8 +380,11 @@ static void parse_line(ObjContainer &p, const char *line)
         if (p.currentGeometry->Accessor("POSITION"))
             parse_vg(p);
         auto mtl(p.materials[split[1]]);
-        p.mesh->AddMaterial(mtl);
         auto mtlIndex(p.mesh->GetMaterialIndex(mtl));
+        if (mtlIndex == -1) {
+            p.mesh->AddMaterial(mtl);
+            mtlIndex = p.mesh->GetMaterialIndex(mtl);
+        }
         p.currentGeometry->SetMaterialIndex(mtlIndex);
     }
     else if (split[0] == "mtllib")

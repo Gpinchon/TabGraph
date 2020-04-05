@@ -24,102 +24,103 @@
 #include <sys/io.h>
 #endif // for access, R_OK
 
-void parse_color(std::vector<std::string> &split, std::shared_ptr<Material> mtl)
+static inline void parse_color(std::vector<std::string> &split, std::shared_ptr<Material> mtl)
 {
     if (split[0] == "Kd")
     {
-        mtl->albedo = parse_vec3(split);
+        mtl->SetAlbedo(parse_vec3(split));
     }
     else if (split[0] == "Ks")
     {
-        mtl->specular = parse_vec3(split) / (1 + (1 - mtl->metallic) * 24);
+        mtl->SetSpecular(parse_vec3(split) / (1 + (1 - mtl->Metallic()) * 24));
     }
     else if (split[0] == "Ke")
     {
-        mtl->emitting = parse_vec3(split);
+        mtl->SetEmitting(parse_vec3(split));
     }
 }
 
-void parse_texture(t_obj_parser *p, std::vector<std::string> &split, std::shared_ptr<Material> mtl)
+static inline void parse_texture(t_obj_parser *p, std::vector<std::string> &split, std::shared_ptr<Material> mtl)
 {
     std::string path(p->path_split[0]);
 
     path += split[1];
     if (split[0] == "map_Kd")
     {
-        mtl->set_texture_albedo(TextureParser::parse(path, path));
+        mtl->SetTextureAlbedo(TextureParser::parse(path, path));
     }
     else if (split[0] == "map_Ks")
     {
-        mtl->set_texture_specular(TextureParser::parse(path, path));
+        mtl->SetTextureSpecular(TextureParser::parse(path, path));
     }
     else if (split[0] == "map_Ke")
     {
-        mtl->set_texture_emitting(TextureParser::parse(path, path));
+        mtl->SetTextureEmitting(TextureParser::parse(path, path));
     }
     else if (split[0] == "map_Nh")
     {
-        mtl->set_texture_height(TextureParser::parse(path, path));
+        mtl->SetTextureHeight(TextureParser::parse(path, path));
     }
     else if (split[0] == "map_No")
     {
-        mtl->set_texture_ao(TextureParser::parse(path, path));
+        mtl->SetTextureAO(TextureParser::parse(path, path));
     }
     else if (split[0] == "map_Nr")
     {
-        mtl->set_texture_roughness(TextureParser::parse(path, path));
+        mtl->SetTextureRoughness(TextureParser::parse(path, path));
     }
     else if (split[0] == "map_Nm")
     {
-        mtl->set_texture_metallic(TextureParser::parse(path, path));
+        mtl->SetTextureMetallic(TextureParser::parse(path, path));
     }
     else if (split[0] == "map_bump" || split[0] == "map_Bump")
     {
-        mtl->set_texture_normal(TextureParser::parse(path, path));
+        mtl->SetTextureNormal(TextureParser::parse(path, path));
     }
 }
 
-void parse_number(std::vector<std::string> &split, std::shared_ptr<Material> mtl)
+static inline void parse_number(std::vector<std::string> &split, std::shared_ptr<Material> mtl)
 {
 
     if (split[0] == "Np")
     {
-        mtl->parallax = std::stof(split[1]);
+        mtl->SetParallax(std::stof(split[1]));
     }
     else if (split[0] == "Ns")
     {
-        mtl->roughness = glm::clamp(1.f / (1.f + std::stof(split[1])) * 50.f, 0.f, 1.f);
+        mtl->SetRoughness(glm::clamp(1.f / (1.f + std::stof(split[1])) * 50.f, 0.f, 1.f));
     }
     else if (split[0] == "Nr")
     {
-        mtl->roughness = std::stof(split[1]);
+        mtl->SetRoughness(std::stof(split[1]));
     }
     else if (split[0] == "Nm")
     {
-        mtl->metallic = std::stof(split[1]);
+        mtl->SetMetallic(std::stof(split[1]));
     }
     else if (split[0] == "Ni")
     {
         float ior;
         ior = std::stof(split[1]);
-        mtl->ior = ior;
+        mtl->SetIor(ior);
         ior = (ior - 1) / (ior + 1);
         ior *= ior;
-        mtl->specular = glm::vec3(ior, ior, ior);
+        mtl->SetSpecular(glm::vec3(ior, ior, ior));
     }
     else if (split[0] == "Tr")
     {
-        mtl->alpha = 1 - std::stof(split[1]);
+        mtl->SetAlpha(1 - std::stof(split[1]));
     }
 }
 
 #include <iostream>
 
-auto parse_mtl(t_obj_parser *p, std::string &name)
+static inline std::map<std::string, std::shared_ptr<Material>> parse_mtl(t_obj_parser *p, std::string &name)
 {
     char line[4096];
+    std::map<std::string, std::shared_ptr<Material>> materials;
     auto mtl = Material::Create(name);
-    auto previousOffset(ftell(p->fd));
+    materials[name] = mtl;
     while (fgets(line, 4096, p->fd) != nullptr)
     {
         try
@@ -141,9 +142,8 @@ auto parse_mtl(t_obj_parser *p, std::string &name)
                 }
                 else if (msplit[0] == "newmtl")
                 {
-                    fseek(p->fd, previousOffset, SEEK_SET);
-                    break;
-                    //parse_mtl(p, msplit[1]);
+                    auto material(parse_mtl(p, msplit[1]));
+                    materials.insert(material.begin(), material.end());
                 }
             }
         }
@@ -151,9 +151,8 @@ auto parse_mtl(t_obj_parser *p, std::string &name)
         {
             throw std::runtime_error("Error while parsing " + name + " at line \"" + line + "\" : " + e.what());
         }
-        previousOffset = ftell(p->fd);
     }
-    return mtl;
+    return materials;
 }
 
 std::map<std::string, std::shared_ptr<Material>> MTLLIB::parse(const std::string &path)
@@ -182,7 +181,7 @@ std::map<std::string, std::shared_ptr<Material>> MTLLIB::parse(const std::string
                 if (split[0] == "newmtl")
                 {
                     auto mtl(parse_mtl(&p, split[1]));
-                    materials[mtl->Name()] = mtl;
+                    materials.insert(mtl.begin(), mtl.end());
                 }
             }
         }
