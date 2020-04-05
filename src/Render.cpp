@@ -139,7 +139,7 @@ std::shared_ptr<Framebuffer> Create_render_buffer(const std::string &name, const
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Material_Values -> Roughness, Metallic, Ior
     buffer->Create_attachement(GL_RED, GL_R8); //AO
     buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); // Normal;
-    buffer->setup_attachements();
+    //buffer->setup_attachements();
     return (buffer);
 }
 
@@ -149,7 +149,7 @@ std::shared_ptr<Framebuffer> Create_back_buffer(const std::string &name, const g
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // Color;
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
     buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); //Normal
-    buffer->setup_attachements();
+    //buffer->setup_attachements();
     return (buffer);
 }
 
@@ -162,14 +162,13 @@ void present(std::shared_ptr<Framebuffer> back_buffer)
         presentShader->SetStage(ShaderStage(GL_VERTEX_SHADER, passthrough_vertex_code));
         presentShader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, present_fragment_code));
     }
-
+    presentShader->SetUniform("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
+    presentShader->SetUniform("in_Texture_Emitting", back_buffer->attachement(1), GL_TEXTURE1);
+    presentShader->SetUniform("in_Texture_Depth", back_buffer->depth(), GL_TEXTURE2);
     glDepthFunc(GL_ALWAYS);
     glDisable(GL_CULL_FACE);
     Framebuffer::bind_default();
     presentShader->use();
-    presentShader->bind_texture("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
-    presentShader->bind_texture("in_Texture_Emitting", back_buffer->attachement(1), GL_TEXTURE1);
-    presentShader->bind_texture("in_Texture_Depth", back_buffer->depth(), GL_TEXTURE2);
     Render::Private::DisplayQuad()->Draw();
     presentShader->use(false);
     Window::swap();
@@ -233,7 +232,7 @@ void Render::Private::FixedUpdate()
     index = 0;
     while (auto shader = Shader::Get(index))
     {
-        shader->use();
+        //shader->use();
         shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->Position());
         shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
         shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
@@ -241,7 +240,7 @@ void Render::Private::FixedUpdate()
         shader->SetUniform("Camera.InvMatrix.Projection", InvProjMatrix);
         shader->SetUniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));
         shader->SetUniform("Time", SDL_GetTicks() / 1000.f);
-        shader->use(false);
+        //shader->use(false);
         index++;
     }
 }
@@ -331,18 +330,6 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
     slighting_shader->SetDefine(("DirectionnalLight"), std::to_string(Directionnal));
     if (shadowsPerPass > 0)
         slighting_shader->SetDefine("SHADOW");
-/*
-    static auto lighting_shader = GLSL::compile("lighting", lightingFragmentCode, LightingShader,
-                                                std::string("\n#define LIGHTNBR ") + std::to_string(lightsPerPass) +
-                                                std::string("\n#define PointLight ") + std::to_string(Point) +
-                                                std::string("\n#define DirectionnalLight ") + std::to_string(Directionnal) + std::string("\n"));
-    static auto slighting_shader = GLSL::compile("shadow_lighting", lightingFragmentCode, LightingShader,
-                                                 (shadowsPerPass > 0 ? std::string("\n#define SHADOW") : std::string("\n")) +
-                                                 std::string("\n#define SHADOWNBR ") + std::to_string(shadowsPerPass) +
-                                                 std::string("\n#define LIGHTNBR ") + std::to_string(lightsPerPass) +
-                                                 std::string("\n#define PointLight ") + std::to_string(Point) +
-                                                 std::string("\n#define DirectionnalLight ") + std::to_string(Directionnal) + std::string("\n"));
-*/
     auto actualShadowNbr = std::max(1u, shadowsPerPass);
     auto shader = lighting_shader;
     for (auto i = 0u, j = 0u; i < normalLights.size() || j < shadowLights.size();)
@@ -352,14 +339,13 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
         else
             shader = lighting_shader;
         current_backBuffer->bind();
-        shader->use();
         auto lightIndex = 0u;
         while (lightIndex < lightsPerPass && i < normalLights.size())
         {
             auto light = normalLights.at(i);
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", -1);
             i++;
             lightIndex++;
@@ -370,29 +356,30 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
             auto light = shadowLights.at(j);
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", light->type());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Projection", light->TransformMatrix());
-            shader->bind_texture("Shadow[" + std::to_string(shadowIndex) + "]", light->render_buffer()->depth(), GL_TEXTURE9 + shadowIndex);
+            shader->SetUniform("Shadow[" + std::to_string(shadowIndex) + "]", light->render_buffer()->depth(), GL_TEXTURE9 + shadowIndex);
             j++;
             lightIndex++;
             shadowIndex++;
         }
         if (lightIndex == 0)
             continue;
-        shader->bind_texture("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-        shader->bind_texture("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
-        shader->bind_texture("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
-        shader->bind_texture("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
-        shader->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
-        shader->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
-        shader->bind_texture("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE7);
-        shader->bind_texture("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE8);
-        shader->bind_texture("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE8);
+        shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
+        shader->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
+        shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
+        shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
+        shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
+        shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
+        shader->SetUniform("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE7);
+        shader->SetUniform("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE8);
+        shader->SetUniform("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE8);
+        shader->use();
         Render::Private::DisplayQuad()->Draw();
+        shader->use(false);
         std::swap(current_backTexture, current_backBuffer);
     }
-    shader->use(false);
 }
 
 Render::Private &Render::Private::_instance()
@@ -448,8 +435,8 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
         //framebuffer->set_attachement(0, depthTexture, i);
         framebuffer->SetDepthBuffer(depthTexture, i);
         framebuffer->bind();
+        HZBShader->SetUniform("in_Texture_Color", depthTexture, GL_TEXTURE0);
         HZBShader->use();
-        HZBShader->bind_texture("in_Texture_Color", depthTexture, GL_TEXTURE0);
         Render::Private::DisplayQuad()->Draw();
         HZBShader->use(false);
         framebuffer->SetDepthBuffer(nullptr);
@@ -494,26 +481,24 @@ std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::sh
     auto lastFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
     currentFrameBuffer->Resize(res);
     currentFrameBuffer->bind();
+    SSRShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE0);
+    SSRShader->SetUniform("LastColor", lastRender->attachement(0), GL_TEXTURE1);
+    SSRShader->SetUniform("LastNormal", lastRender->attachement(2), GL_TEXTURE2);
+    SSRShader->SetUniform("LastDepth", lastRender->depth(), GL_TEXTURE3);
     SSRShader->use();
-    SSRShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE0);
-    SSRShader->bind_texture("LastColor", lastRender->attachement(0), GL_TEXTURE1);
-    SSRShader->bind_texture("LastNormal", lastRender->attachement(2), GL_TEXTURE2);
-    SSRShader->bind_texture("LastDepth", gBuffer->depth(), GL_TEXTURE3);
     Render::Private::DisplayQuad()->Draw();
     SSRShader->use(false);
     currentFrameBuffer->bind(false);
     //Merge the current result with last result to increase sampling
     SSRFramebufferResult->bind();
+    SSRMergeShader->SetUniform("in_Texture_Color", currentFrameBuffer->attachement(0), GL_TEXTURE1);
+    SSRMergeShader->SetUniform("in_Last_Texture_Color", lastFrameBuffer->attachement(0), GL_TEXTURE2);
     SSRMergeShader->use();
-    SSRMergeShader->bind_texture("in_Texture_Color", currentFrameBuffer->attachement(0), GL_TEXTURE1);
-    SSRMergeShader->bind_texture("in_Last_Texture_Color", lastFrameBuffer->attachement(0), GL_TEXTURE2);
     Render::DisplayQuad()->Draw();
     SSRMergeShader->use(false);
     SSRFramebufferResult->bind(false);
     //Blur the result
-    SSRBlurShader->use();
-    SSRBlurShader->bind_texture("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
-    SSRBlurShader->use(false);
+    SSRBlurShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
     SSRFramebufferResult->attachement(0)->blur(2, 1, SSRBlurShader);
     return SSRFramebufferResult->attachement(0);
 }
@@ -622,14 +607,14 @@ void Render::Private::Scene()
     if (PostTreatments().size() == 0u)
     {
         current_tbuffer->bind();
+        empty_shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
+        empty_shader->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
+        empty_shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
+        empty_shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
+        empty_shader->SetUniform("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
+        empty_shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
+        empty_shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
         empty_shader->use();
-        empty_shader->bind_texture("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-        empty_shader->bind_texture("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
-        empty_shader->bind_texture("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
-        empty_shader->bind_texture("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
-        empty_shader->bind_texture("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
-        empty_shader->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
-        empty_shader->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
         Render::Private::DisplayQuad()->Draw();
         empty_shader->use(false);
     }
@@ -638,20 +623,20 @@ void Render::Private::Scene()
         // APPLY POST-TREATMENT
         auto shaderPtr = shader.lock();
         current_tbuffer->bind();
-        shaderPtr->use();
-        shaderPtr->bind_texture("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-        shaderPtr->bind_texture("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
-        shaderPtr->bind_texture("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
-        shaderPtr->bind_texture("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
-        shaderPtr->bind_texture("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
-        shaderPtr->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
-        shaderPtr->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
-        shaderPtr->bind_texture("Texture.BRDF", brdf, GL_TEXTURE7);
+        shaderPtr->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
+        shaderPtr->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
+        shaderPtr->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
+        shaderPtr->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
+        shaderPtr->SetUniform("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
+        shaderPtr->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
+        shaderPtr->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
+        shaderPtr->SetUniform("Texture.BRDF", brdf, GL_TEXTURE7);
         if (Environment::current() != nullptr)
         {
-            shaderPtr->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE8);
-            shaderPtr->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE9);
+            shaderPtr->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE8);
+            shaderPtr->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE9);
         }
+        shaderPtr->use();
         Render::Private::DisplayQuad()->Draw();
         shaderPtr->use(false);
 
@@ -677,25 +662,25 @@ void Render::Private::Scene()
     // APPLY LIGHTING SHADER
     // OUTPUT : out_Color, out_Brightness
     current_backBuffer->bind();
-    elighting_shader->use();
     auto i = 1;
-    elighting_shader->bind_texture("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-    elighting_shader->bind_texture("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("Texture.BRDF", brdf, GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->bind_texture("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
+    elighting_shader->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.BRDF", brdf, GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
     if (Environment::current() != nullptr)
     {
-        elighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
-        elighting_shader->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
+        elighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
+        elighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
     }
+    elighting_shader->use();
     Render::Private::DisplayQuad()->Draw();
     elighting_shader->use(false);
     std::swap(current_backTexture, current_backBuffer);
@@ -731,43 +716,43 @@ void Render::Private::Scene()
     light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
 
     current_backBuffer->bind();
-    telighting_shader->use();
     i = 1;
-    telighting_shader->bind_texture("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-    telighting_shader->bind_texture("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("Texture.BRDF", brdf, GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
-    telighting_shader->bind_texture("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
+    telighting_shader->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.BRDF", brdf, GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
+    telighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
     if (Environment::current() != nullptr)
     {
-        telighting_shader->bind_texture("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
-        telighting_shader->bind_texture("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
+        telighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
+        telighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
     }
+    telighting_shader->use();
     Render::Private::DisplayQuad()->Draw();
     telighting_shader->use(false);
     std::swap(current_backTexture, current_backBuffer);
 
-    refraction_shader->use();
     final_back_buffer->bind();
     i = 1;
-    refraction_shader->bind_texture("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-    refraction_shader->bind_texture("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE0 + (++i));
-    refraction_shader->bind_texture("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE0 + (++i));
-    refraction_shader->bind_texture("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE0 + (++i));
-    refraction_shader->bind_texture("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE0 + (++i));
-    refraction_shader->bind_texture("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
-    refraction_shader->bind_texture("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
-    refraction_shader->bind_texture("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
-    refraction_shader->bind_texture("opaqueBackColor", opaqueBackBuffer->attachement(0), GL_TEXTURE0 + (++i));
-    refraction_shader->bind_texture("opaqueBackEmitting", opaqueBackBuffer->attachement(1), GL_TEXTURE0 + (++i));
-    refraction_shader->bind_texture("opaqueBackNormal", opaqueBackBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
+    refraction_shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("opaqueBackColor", opaqueBackBuffer->attachement(0), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("opaqueBackEmitting", opaqueBackBuffer->attachement(1), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("opaqueBackNormal", opaqueBackBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    refraction_shader->use();
     Render::Private::DisplayQuad()->Draw();
     refraction_shader->use(false);
 
@@ -781,12 +766,12 @@ void Render::Private::Scene()
     // GENERATE BLOOM FROM out_Brightness
     final_back_buffer->attachement(1)->blur(Config::Get("BloomPass", 1), 3.5);
 
-    passthrough_shader->use();
     last_render->bind();
-    passthrough_shader->bind_texture("in_Buffer0", final_back_buffer->attachement(0), GL_TEXTURE0);
-    passthrough_shader->bind_texture("in_Buffer1", final_back_buffer->attachement(1), GL_TEXTURE1);
-    passthrough_shader->bind_texture("in_Buffer2", final_back_buffer->attachement(2), GL_TEXTURE2);
-    passthrough_shader->bind_texture("in_Texture_Depth", final_back_buffer->depth(), GL_TEXTURE6);
+    passthrough_shader->SetUniform("in_Buffer0", final_back_buffer->attachement(0), GL_TEXTURE0);
+    passthrough_shader->SetUniform("in_Buffer1", final_back_buffer->attachement(1), GL_TEXTURE1);
+    passthrough_shader->SetUniform("in_Buffer2", final_back_buffer->attachement(2), GL_TEXTURE2);
+    passthrough_shader->SetUniform("in_Texture_Depth", final_back_buffer->depth(), GL_TEXTURE6);
+    passthrough_shader->use();
     Render::Private::DisplayQuad()->Draw();
     passthrough_shader->use(false);
     present(final_back_buffer);

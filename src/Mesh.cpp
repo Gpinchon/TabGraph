@@ -83,33 +83,33 @@ bool Mesh::DrawDepth(RenderMod mod)
         if (nullptr == material)
             continue;
         if (mod == RenderMod::RenderOpaque
-            && (material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
+            && (material->Alpha() < 1 || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4)))
             continue;
         else if (mod == RenderMod::RenderTransparent
-            && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
+            && !(material->Alpha() < 1 || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4)))
             continue;
         if (nullptr == material->depth_shader())
             continue;
         auto shader(material->depth_shader());
         material->Bind();
-        shader->use();
         if (last_shader != shader)
         {
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.ViewProjection", viewProjectionMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             if (Skin() != nullptr) {
-                shader->bind_texture("Joints", _jointMatrices, GL_TEXTURE11);
+                shader->SetUniform("Joints", _jointMatrices, GL_TEXTURE11);
                 shader->SetUniform("Skinned", true);
             }
             else {
-                shader->bind_texture("Joints", nullptr, GL_TEXTURE11);
+                shader->SetUniform("Joints", nullptr, GL_TEXTURE11);
                 shader->SetUniform("Skinned", false);
             }
             last_shader = shader;
         }
+        shader->use();
         ret |= vg->Draw();
-        material->shader()->use(false);
+        shader->use(false);
     }
     return ret;
 }
@@ -141,33 +141,33 @@ bool Mesh::Draw(RenderMod mod)
             continue;
         }
         if (mod == RenderMod::RenderOpaque
-            && (material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
+            && (material->Alpha() < 1 || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4)))
             continue;
         else if (mod == RenderMod::RenderTransparent
-                 && !(material->alpha < 1 || (material->texture_albedo() != nullptr && material->texture_albedo()->values_per_pixel() == 4)))
+                 && !(material->Alpha() < 1 || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4)))
             continue;
         if (nullptr == material->shader())
             continue;
         auto shader(material->shader());
         material->Bind();
-        shader->use();
         if (last_shader != shader)
         {
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.ViewProjection", viewProjectionMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             if (Skin() != nullptr) {
-                shader->bind_texture("Joints", _jointMatrices, GL_TEXTURE11);
+                shader->SetUniform("Joints", _jointMatrices, GL_TEXTURE11);
                 shader->SetUniform("Skinned", true);
             }
             else {
-                shader->bind_texture("Joints", nullptr, GL_TEXTURE11);
+                shader->SetUniform("Joints", nullptr, GL_TEXTURE11);
                 shader->SetUniform("Skinned", false);
             }
             last_shader = shader;
         }
+        shader->use();
         ret |= vg->Draw();
-        material->shader()->use(false);
+        shader->use(false);
     }
     return ret;
 }
@@ -220,7 +220,7 @@ std::shared_ptr<Material> Mesh::GetMaterial(uint32_t index)
 
 int64_t Mesh::GetMaterialIndex(std::shared_ptr<Material> mtl)
 {
-    for (auto i(0u); i < _materials.size(); i++)
+    for (auto i(0u); i < _materials.size(); ++i)
     {
         if (_materials.at(i) == mtl)
             return i;
@@ -230,7 +230,7 @@ int64_t Mesh::GetMaterialIndex(std::shared_ptr<Material> mtl)
 
 int64_t Mesh::GetMaterialIndex(const std::string &name)
 {
-    for (auto i(0u); i < _materials.size(); i++)
+    for (auto i(0u); i < _materials.size(); ++i)
     {
         if (_materials.at(i)->Name() == name)
             return i;
