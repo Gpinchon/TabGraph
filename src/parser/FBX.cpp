@@ -326,29 +326,29 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                 propertiesMap[P->Property(0)] = P;
             }
             auto P(propertiesMap["DiffuseColor"]);
-            material->albedo = P ? glm::vec3(
+            material->SetAlbedo(P ? glm::vec3(
                                    double(P->Property(4)),
                                    double(P->Property(5)),
                                    double(P->Property(6)))
-                                 : glm::vec3(0.5);
+                                 : glm::vec3(0.5));
             P = propertiesMap["EmissiveColor"];
-            material->emitting = P ? glm::vec3(
+            material->SetEmitting(P ? glm::vec3(
                                      double(P->Property(4)),
                                      double(P->Property(5)),
                                      double(P->Property(6)))
-                                   : glm::vec3(0);
+                                   : glm::vec3(0));
             P = propertiesMap["SpecularColor"] ? propertiesMap["SpecularColor"] : propertiesMap["ReflectionColor"];
-            material->specular = P ? glm::vec3(
+            material->SetSpecular(P ? glm::vec3(
                                      double(P->Property(4)),
                                      double(P->Property(5)),
                                      double(P->Property(6)))
-                                   : glm::vec3(0.04);
+                                   : glm::vec3(0.04));
             P = propertiesMap["EmissiveFactor"];
-            material->emitting *= P ? double(P->Property(4)) : 1;
+            material->SetEmitting(material->Emitting() * float(P ? double(P->Property(4)) : 1.0));
             P = propertiesMap["SpecularFactor"];
-            material->roughness = P ? glm::clamp(1.f / (1.f + double(P->Property(4))) * 50.f, 0.0, 1.0) : 0.5;
+            material->SetRoughness(P ? glm::clamp(1.f / (1.f + double(P->Property(4))) * 50.f, 0.0, 1.0) : 0.5);
             P = propertiesMap["ReflectionFactor"];
-            material->metallic = P ? double(P->Property(4)) : 0.0;
+            material->SetMetallic(P ? double(P->Property(4)) : 0.0);
         }
         GeometryMap = getGeometrys(objects);
         for (const auto &model : objects->SubNodes("Model"))
@@ -466,7 +466,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                     }
                 }
                 {
-                    auto source(Material::GetById(sourceId));
+                    /*auto source(Material::GetById(sourceId));
                     if (source != nullptr)
                     {
                         std::cout << "Got Material " << source->Id() << std::endl;
@@ -479,7 +479,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                                 continue;
                             }
                         }
-                    }
+                    }*/
                 }
             }
         }

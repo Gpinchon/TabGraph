@@ -128,47 +128,46 @@ static inline auto ParseMaterials(const std::string &path, const rapidjson::Docu
 		auto materialIndex(0);
 		for (const auto &materialValue : document["materials"].GetArray()) {
 			auto material(Material::Create("Material " + std::to_string(materialIndex)));
-			material->albedo = glm::vec3(1, 1, 1);
-			material->uv_scale = glm::vec2(1, -1);
+			material->SetUVScale(glm::vec2(1, -1));
 			try {
 				auto baseColor(materialValue["emissiveFactor"].GetArray());
-				material->emitting.r = baseColor[0].GetFloat();
-				material->emitting.g = baseColor[1].GetFloat();
-				material->emitting.b = baseColor[2].GetFloat();
-				material->alpha = baseColor[3].GetFloat();
+				material->SetEmitting(glm::vec3(baseColor[0].GetFloat(),
+												baseColor[1].GetFloat(),
+												baseColor[2].GetFloat()));
 			}
 			catch (std::exception &) {debugLog("No emissiveFactor property")}
 			try {
 				auto textureObject(materialValue["normalTexture"].GetObject());
-				material->set_texture_normal(textureVector.at(textureObject["index"].GetInt()));
+				material->SetTextureNormal(textureVector.at(textureObject["index"].GetInt()));
 			}
 			catch (std::exception &) {debugLog("No normalTexture property")}
 			try {
 				auto textureObject(materialValue["emissiveTexture"].GetObject());
-				material->set_texture_emitting(textureVector.at(textureObject["index"].GetInt()));
+				material->SetTextureEmitting(textureVector.at(textureObject["index"].GetInt()));
 			}
 			catch (std::exception &) {debugLog("No normalTexture property")}
 			try {
 				auto pbrMetallicRoughness(materialValue["pbrMetallicRoughness"].GetObject());
 				try {
 					auto textureObject(pbrMetallicRoughness["metallicRoughnessTexture"].GetObject());
-					material->set_texture_metallicRoughness(textureVector.at(textureObject["index"].GetInt()));
+					material->SetTextureMetallicRoughness(textureVector.at(textureObject["index"].GetInt()));
 				}
 				catch (std::exception &) {debugLog("No metallicRoughnessTexture property")}
 				try {
 					auto baseColor(pbrMetallicRoughness["baseColorFactor"].GetArray());
-					material->albedo.r = baseColor[0].GetFloat();
-					material->albedo.g = baseColor[1].GetFloat();
-					material->albedo.b = baseColor[2].GetFloat();
+					material->SetAlbedo(glm::vec3(baseColor[0].GetFloat(),
+												  baseColor[1].GetFloat(),
+												  baseColor[2].GetFloat()));
+					material->SetAlpha(baseColor[3].GetFloat());
 				}
 				catch (std::exception &) {debugLog("No baseColorFactor property")}
-				try {material->metallic = pbrMetallicRoughness["metallicFactor"].GetFloat();}
+				try {material->SetMetallic(pbrMetallicRoughness["metallicFactor"].GetFloat());}
 				catch (std::exception &) {debugLog("No metallicFactor property")}
-				try {material->roughness = pbrMetallicRoughness["roughnessFactor"].GetFloat();}
+				try {material->SetRoughness(pbrMetallicRoughness["roughnessFactor"].GetFloat());}
 				catch (std::exception &) {debugLog("No roughnessFactor property")}
 				try {
 					auto textureObject(pbrMetallicRoughness["baseColorTexture"].GetObject());
-					material->set_texture_albedo(textureVector.at(textureObject["index"].GetInt()));
+					material->SetTextureAlbedo(textureVector.at(textureObject["index"].GetInt()));
 				}
 				catch (std::exception &) {debugLog("No baseColorTexture property")}
 			}
