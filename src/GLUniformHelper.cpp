@@ -32,6 +32,8 @@ void SetUniform4fv (const ShaderVariable &variable) {
 
 void SetUniform1dv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<double>>(&variable.data));
+    if (value == nullptr)
+        return;
     std::vector<float> v(glm::min(value->size(), variable.size));
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
@@ -41,6 +43,8 @@ void SetUniform1dv (const ShaderVariable &variable) {
 
 void SetUniform2dv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::dvec2>>(&variable.data));
+    if (value == nullptr)
+        return;
     std::vector<glm::vec2> v(glm::min(value->size(), variable.size));
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
@@ -50,6 +54,8 @@ void SetUniform2dv (const ShaderVariable &variable) {
 
 void SetUniform3dv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::dvec3>>(&variable.data));
+    if (value == nullptr)
+        return;
     std::vector<glm::vec3> v(glm::min(value->size(), variable.size));
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
@@ -59,6 +65,8 @@ void SetUniform3dv (const ShaderVariable &variable) {
 
 void SetUniform4dv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::dvec4>>(&variable.data));
+    if (value == nullptr)
+        return;
     std::vector<glm::vec4> v(glm::min(value->size(), variable.size));
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
@@ -68,6 +76,8 @@ void SetUniform4dv (const ShaderVariable &variable) {
 
 void SetUniform1bv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<bool>>(&variable.data));
+    if (value == nullptr)
+        return;
     std::vector<GLint> v(glm::min(value->size(), variable.size));
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
@@ -78,6 +88,8 @@ void SetUniform1bv (const ShaderVariable &variable) {
 
 void SetUniform2bv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::bvec2>>(&variable.data));
+    if (value == nullptr)
+        return;
     std::vector<glm::ivec2> v(glm::min(value->size(), variable.size));
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
@@ -88,6 +100,8 @@ void SetUniform2bv (const ShaderVariable &variable) {
 
 void SetUniform3bv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::bvec3>>(&variable.data));
+    if (value == nullptr)
+        return;
     std::vector<glm::ivec3> v(glm::min(value->size(), variable.size));
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
@@ -98,6 +112,8 @@ void SetUniform3bv (const ShaderVariable &variable) {
 
 void SetUniform4bv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::bvec4>>(&variable.data));
+    if (value == nullptr)
+        return;
     std::vector<glm::ivec4> v(glm::min(value->size(), variable.size));
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
