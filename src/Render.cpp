@@ -452,7 +452,7 @@ std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::sh
 {
     glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
     static auto reflectionSteps = Config::Get("ReflexionSteps", 8);
-    static auto reflectionSamples = Config::Get("ReflexionSamples", 8);
+    static auto reflectionSamples = Config::Get("ReflexionSamples", 12);
     static auto reflectionBorderFactor = Config::Get("ReflexionBorderFactor", 10);
     static auto SSRFramebuffer(Framebuffer::Create("SSRFramebuffer", res, 1, 0));
     static auto SSRFramebuffer1(Framebuffer::Create("SSRFramebuffer1", res, 1, 0));
@@ -479,15 +479,25 @@ std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::sh
     SSRFramebufferResult->Resize(res);
     currentFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
     auto lastFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
+    
+    HZBPass(gBuffer->depth());
+    SSRShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE0);
+    SSRShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE1);
+    SSRShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE2);
+    SSRShader->SetUniform("LastColor", lastRender->attachement(0), GL_TEXTURE3);
+    //SSRShader->SetUniform("LastNormal", lastRender->attachement(2), GL_TEXTURE2);
+    //SSRShader->SetUniform("LastDepth", lastRender->depth(), GL_TEXTURE3);
     currentFrameBuffer->Resize(res);
     currentFrameBuffer->bind();
-    SSRShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE0);
-    SSRShader->SetUniform("LastColor", lastRender->attachement(0), GL_TEXTURE1);
-    SSRShader->SetUniform("LastNormal", lastRender->attachement(2), GL_TEXTURE2);
-    SSRShader->SetUniform("LastDepth", lastRender->depth(), GL_TEXTURE3);
     SSRShader->use();
     Render::Private::DisplayQuad()->Draw();
     SSRShader->use(false);
+
+    SSRShader->SetUniform("LastViewMatrix", Scene::Current()->CurrentCamera()->ViewMatrix());
+    SSRShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    SSRShader->SetUniform("LastInvViewMatrix", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
+    SSRShader->SetUniform("LastInvProjectionMatrix", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
+
     currentFrameBuffer->bind(false);
     //Merge the current result with last result to increase sampling
     SSRFramebufferResult->bind();
@@ -654,7 +664,6 @@ void Render::Private::Scene()
     last_render->attachement(0)->generate_mipmap();
     last_render->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-    HZBPass(last_render->depth());
     auto SSRResult(SSRPass(current_tbuffertex, last_render));
     //last_render->depth()->generate_mipmap();
     //last_render->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

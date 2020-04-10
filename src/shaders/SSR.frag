@@ -2,6 +2,10 @@ R""(
 uniform sampler2D	LastColor;
 uniform sampler2D	LastNormal;
 uniform sampler2D	LastDepth;
+uniform mat4 LastInvViewMatrix;
+uniform mat4 LastInvProjectionMatrix;
+uniform mat4 LastViewMatrix;
+uniform mat4 LastProjectionMatrix;
 
 float vec2cross(in vec2 a, in vec2 b)
 {
@@ -77,194 +81,97 @@ uint ReverseUIntBits( uint bits )
 	return bits;
 }
 
+vec4	LastWorldToView(in vec3 position)
+{
+	return LastViewMatrix * vec4(position, 1);
+}
+
+vec4	LastViewToClip(in vec4 position)
+{
+	return LastProjectionMatrix * position;
+}
+
+/** Returns the World position and the scene depth in world units */
+vec4	LastWorldToScreen(in vec3 position)
+{
+	return ClipToScreen(LastViewToClip(LastWorldToView(position)));
+}
+
+vec3	GetLastUVz(in vec3 UVz)
+{
+	vec3 worldPos = ScreenToWorld(UVz.xy, UVz.z);
+	UVz = LastWorldToScreen(worldPos).xyz;
+	return UVz;
+}
+
+vec3	GetLastUVz(in vec2 UV, in float z)
+{
+	return GetLastUVz(vec3(UV, z));
+}
+
 vec4 SampleDepthTexture(float Level, vec4 SampleUV0, vec4 SampleUV1 )
 {
 	vec4 SampleDepth;
 	// SampleUV{0,1}.{xy,zw} should already be in the HZB UV frame using HZBUvFactorAndInvFactor.xy
-	SampleDepth.x = texelFetchLod(LastDepth, SampleUV0.xy, (Level)).r;
-	SampleDepth.y = texelFetchLod(LastDepth, SampleUV0.zw, (Level)).r;
-	SampleDepth.z = texelFetchLod(LastDepth, SampleUV1.xy, (Level)).r;
-	SampleDepth.w = texelFetchLod(LastDepth, SampleUV1.zw, (Level)).r;
+	SampleDepth.x = textureLod(Texture.Depth, SampleUV0.xy, (Level)).r;
+	SampleDepth.y = textureLod(Texture.Depth, SampleUV0.zw, (Level)).r;
+	SampleDepth.z = textureLod(Texture.Depth, SampleUV1.xy, (Level)).r;
+	SampleDepth.w = textureLod(Texture.Depth, SampleUV1.zw, (Level)).r;
 	return SampleDepth;
 }
 
-vec4 sides[] = vec4[4](
-	vec4(0, 0, 1, 0),
-	vec4(1, 0, 1, 1),
-	vec4(1, 1, 0, 1),
-	vec4(0, 1, 0, 0)
-);
-
-bool lineSegmentIntersection(out float intersection, in vec2 o, in vec2 d, in vec2 a, in vec2 b)
+vec4	castRay(vec3 R, float Roughness, float SceneDepth, vec3 PositionTranslatedWorld, int NumSteps, float StepOffset)
 {
-	vec2	v1 = o - a;
-	vec2	v2 = b - a;
-	vec2	v3 = vec2(-d.y, d.x);
-	float	t1 = vec2cross(v2, v1) / dot(v2, v3);
-	float	t2 = dot(v1, v3) / dot(v2, v3);
-	bool	hit = t1 >= 0 && t2 >= 0 && t2 <= 1;
-	if (hit)
-		intersection = t1;
-	return hit;
-}
-/*
-#define CELL_STEP_OFFSET 0.05
+	const float Step = 1.0 / (NumSteps);
+	vec4 RayStartClip	= WorldToClip(PositionTranslatedWorld);
+	vec4 RayEndClip	= WorldToClip(PositionTranslatedWorld + R * SceneDepth);
 
-void StepThroughCell(inout vec3 RaySample, vec3 RayDir, int MipLevel, ivec2 BufferSize)
-{
-	// Size of current mip 
-	ivec2 MipSize = BufferSize >> MipLevel;
+	vec3 RayStartScreen = RayStartClip.xyz / RayStartClip.w;
+	vec3 RayEndScreen = RayEndClip.xyz / RayEndClip.w;
+	vec3 RayStartUVz = RayStartScreen * 0.5 + 0.5;
+	vec3 RayEndUVz = RayEndScreen * 0.5 + 0.5;
+	
+	// Make sure the RayStepScreen has a length of 2 in order to have the end point ouside of the viewport
+	//vec3 RayStepScreen = ( RayEndScreen - RayStartScreen ) / float(NumSteps);
+	vec3 RayStepScreen = ( RayEndScreen - RayStartScreen );// / (0.5 * length( RayEndScreen.xy - RayStartScreen.xy ));
+	StepOffset *= (1 + RayStartUVz.z);
+	vec3 RayStepUVz = RayStepScreen * (1 + RayStartUVz.z);
+	//vec3 RayStepUVz = vec3( RayStepScreen.xy * vec2( 0.5, -0.5 ) + 0.5, RayStepScreen.z );
+	//RayStartUVz.xy *= HZBUvFactorAndInvFactor.xy;
+	//RayStepUVz.xy *= HZBUvFactorAndInvFactor.xy;
 
-	// UV converted to index in the mip
-	vec2 MipCellIndex = RaySample.xy * vec2(MipSize);
+	// *2 to get less morie pattern in extreme cases, larger values make object appear not grounded in reflections
+	const float CompareTolerance = abs(RayStepUVz.z) * Step * 4;
 
-	//
-	// Find the cell boundary UV based on the direction of the ray
-	// Take floor() or ceil() depending on the sign of RayDir.xy
-	//
-	vec2 BoundaryUV;
-	BoundaryUV.x = RayDir.x > 0 ? ceil(MipCellIndex.x) / float(MipSize.x) : 
-		floor(MipCellIndex.x) / float(MipSize.x);
-	BoundaryUV.y = RayDir.y > 0 ? ceil(MipCellIndex.y) / float(MipSize.y) : 
-		floor(MipCellIndex.y) / float(MipSize.y);
+	// avoid bugs with early returns inside of loops on certain platform compilers.
+	vec4 Result = vec4( 0, 0, 0, 1 );
+	float LastDiff = 0;
+	float Level = 0;
 
-	//
-	// We can now represent the cell boundary as being formed by the intersection of 
-	// two lines which can be represented by 
-	//
-	// x = BoundaryUV.x
-	// y = BoundaryUV.y
-	//
-	// Intersect the parametric equation of the Ray with each of these lines
-	//
-	vec2 t;
-	t.x = (BoundaryUV.x - RaySample.x) / RayDir.x;
-	t.y = (BoundaryUV.y - RaySample.y) / RayDir.y;
+	vec4 SampleTime = (StepOffset + vec4(1, 2, 3, 4)) * Step;
+	//RayStartUVz = RayStartUVz + RayStepUVz * StepOffset;
 
-	// Pick the cell intersection that is closer, and march to that cell
-	if (abs(t.x) < abs(t.y))
-	{
-		RaySample += (t.x + CELL_STEP_OFFSET / MipSize.x) * RayDir;
-	}
-	else
-	{
-		RaySample += (t.y + CELL_STEP_OFFSET / MipSize.y) * RayDir;
-	}
-}
-
-bool castRay(inout vec3 RayStartUVz, in vec3 RayDir, in float StepOffset)
-{
-	float	distanceToBorder = 1.0;
-	const vec2	UVDir = normalize(RayDir.xy);
-	for (int side = 0; side < 4; side++)
-	{
-		if (lineSegmentIntersection(distanceToBorder, RayStartUVz.xy, UVDir, sides[side].xy, sides[side].zw))
-			break;
-	}
-	const float	Step = 1.0 / float(256);
-	const vec3	RayEnd = RayStartUVz + RayDir * distanceToBorder;
-	const vec3	RayStepUVz = (RayEnd - RayStartUVz) * Step;
-	vec3	RayUVz = RayStartUVz + RayStepUVz * StepOffset;
-	int		level = 0;
-	for (int tries = 0; tries < 256 && level > -1 && level < textureMaxLod(LastDepth) - 1; ++tries) {
-		float depthSample = texelFetchLod(LastDepth, RayUVz.xy, level).r;
-		if (depthSample < RayUVz.z)
-			level--;
-		else {
-			level++;
-			//StepThroughCell(RayUVz, RayDir, level, textureSize(LastDepth,0));
-			RayUVz += RayStepUVz;
-		}
-	}
-	if (level == -1)
-		return true;
-	return false;
-}
-*/
-bool	castRay(inout vec3 RayStartUVz, in vec3 RayDir, in float StepOffset)
-{
-	float	distanceToBorder = 1.0;
-	const vec2	UVDir = normalize(RayDir.xy);
-	for (int side = 0; side < 4; side++)
-	{
-		if (lineSegmentIntersection(distanceToBorder, RayStartUVz.xy, UVDir, sides[side].xy, sides[side].zw))
-			break;
-	}
-	const float	minMipMaps = 0;
-	const float	maxMipMaps = textureMaxLod(LastDepth);
-	const float	NumSteps = REFLEXION_STEPS;
-	const float	Step = 1.0 / NumSteps;
-	const vec3	RayEnd = RayStartUVz + RayDir * distanceToBorder;
-	const vec3	RayStepUVz = (RayEnd - RayStartUVz) * Step;
-	//const float	RayStepUVz = distanceToBorder / NumSteps;
-	//const vec4 	CompareTolerance = abs(RayStepUVz.zzzz);
-	//const float 	CompareTolerance = min(1.0 / NumSteps, RayStartUVz.z * RayStepUVz.z);
-	//const float	CompareTolerance = max(abs(RayStepUVz.z), (RayStartUVz.z - RayEnd.z) * Step * 4);
-	//const float 	CompareTolerance = RayStartUVz.z * abs(RayStepUVz.z) * 2;
-	//const float 	CompareTolerance = abs(RayStartUVz.z) * RayStepUVz.z);
-	const float CompareTolerance = abs( RayStepUVz.z ) * Step * 2.f;
-	float	mipLevel = minMipMaps;
-	vec3	RayUVz = RayStartUVz + RayStepUVz * StepOffset;
-	float	LastDiff = 0;
-	vec4 SampleTime = ( StepOffset + vec4( 1, 2, 3, 4 ) ) * Step;
-	for (int tries = 0; tries < REFLEXION_STEPS; tries += 4)
+	for( int i = 0; i < NumSteps; i += 4 )
 	{
 		// Vectorized to group fetches
-		vec4	SampleUV0 = RayUVz.xyxy + RayStepUVz.xyxy * vec4( 1, 1, 2, 2 );
-		vec4	SampleUV1 = RayUVz.xyxy + RayStepUVz.xyxy * vec4( 3, 3, 4, 4 );
-		vec4	SampleZ   = RayUVz.zzzz + RayStepUVz.zzzz * vec4( 1, 2, 3, 4 );
-		vec4	SampleDepth = SampleDepthTexture(mipLevel * maxMipMaps, SampleUV0, SampleUV1);
-		/*vec4	DepthDiff = SampleZ - SampleDepth;
-		bool4 Hit = abs( -DepthDiff1 - CompareTolerance ) < CompareTolerance;
-		/*bvec4	Hit = greaterThan(SampleZ, SampleDepth);
-		if(any(Hit))
-		{
-			float DepthDiff0 = DepthDiff[2];
-			float DepthDiff1 = DepthDiff[3];
-			float MinTime = 3;
-			if(Hit[2])
-			{
-				DepthDiff0 = DepthDiff[1];
-				DepthDiff1 = DepthDiff[2];
-				MinTime = 2;
-			}
-			if(Hit[1])
-			{
-				DepthDiff0 = DepthDiff[0];
-				DepthDiff1 = DepthDiff[1];
-				MinTime = 1;
-			}
-			if(Hit[0])
-			{
-				DepthDiff0 = LastDiff;
-				DepthDiff1 = DepthDiff[0];
-				MinTime = 0;
-			}
-			// Find more accurate hit using line segment intersection
-			float	TimeLerp = clamp(DepthDiff0 / (DepthDiff0 - DepthDiff1), 0, 1);
-			float	IntersectTime = MinTime + TimeLerp;
-			vec3	HitUVz = RayUVz + RayStepUVz * IntersectTime;
-			if (texelFetchLod(LastDepth, HitUVz.xy, 0).r < 1) {
-				RayStartUVz = HitUVz;
-				return true;
-			}
-		}
-		LastDiff = DepthDiff.w;*/
+		vec4 SampleUV0 = RayStartUVz.xyxy + RayStepUVz.xyxy * SampleTime.xxyy;
+		vec4 SampleUV1 = RayStartUVz.xyxy + RayStepUVz.xyxy * SampleTime.zzww;
+		vec4 SampleZ   = RayStartUVz.zzzz + RayStepUVz.zzzz * SampleTime;
+		
+		// Use lower res for farther samples
+		vec4 SampleDepth = SampleDepthTexture(Level, SampleUV0, SampleUV1 );
+
 		vec4 DepthDiff1 = SampleZ - SampleDepth;
-		bvec4 Hit = lessThan(abs( -DepthDiff1 - CompareTolerance ), vec4(CompareTolerance));
-		//bvec4 Hit = lessThan(DepthDiff1, vec4(CompareTolerance));
+		//bvec4 Hit = lessThan(vec4(SampleZ), vec4(SampleDepth)) || lessThan(abs(-DepthDiff1 - CompareTolerance), vec4(CompareTolerance));;
+		bvec4	Hit = lessThan(abs(-DepthDiff1 - CompareTolerance), vec4(CompareTolerance));
 
 		if( any( Hit ) )
 		{
 			// Find more accurate hit using line segment intersection
 			vec4 DepthDiff0 = vec4( LastDiff, DepthDiff1.xyz );
-			vec4 TimeLerp = clamp( DepthDiff0 / (DepthDiff0 - DepthDiff1), vec4(0), vec4(1) );
+			vec4 TimeLerp = clamp( DepthDiff0 / (DepthDiff0 - DepthDiff1), 0, 1);
 			vec4 IntersectTime = SampleTime + (TimeLerp - 1) / (NumSteps + 1);
-			vec4 HitTime;// = Hit ? IntersectTime : 1;
-			HitTime.x = Hit.x ? IntersectTime.x : 1;
-			HitTime.y = Hit.y ? IntersectTime.y : 1;
-			HitTime.z = Hit.z ? IntersectTime.z : 1;
-			HitTime.w = Hit.w ? IntersectTime.w : 1;
+			vec4 HitTime = mix(IntersectTime, vec4(1), Hit);
 
 			// Take closest hit
 			HitTime.xy = min( HitTime.xy, HitTime.zw );
@@ -272,37 +179,45 @@ bool	castRay(inout vec3 RayStartUVz, in vec3 RayDir, in float StepOffset)
 			
 			vec3 HitUVz = RayStartUVz + RayStepUVz * MinHitTime;
 
-			//Result = vec4( HitUVz, MinHitTime );
-			RayStartUVz = HitUVz;
-			return true;
-			//break;
+			Result = vec4( HitUVz, MinHitTime );
+			break;
 		}
 
 		LastDiff = DepthDiff1.w;
-		mipLevel += Frag.Material.Roughness * (16.0 / NumSteps);
-		//RayUVz += 4 * RayStepUVz;
-		SampleTime += 4.0 / (NumSteps + 1);
+		Level += Roughness * (textureMaxLod(LastDepth) / NumSteps);
+		SampleTime += 4.0 / float(NumSteps);
 	}
-	return false;
+	//Result.xy *= HZBUvFactorAndInvFactor.zw;
+	//Result.xy = Result.xy * vec2( 2, 2 ) + vec2( -1, -1 );
+	//Result.xy = Result.xy * View.ScreenPositionScaleBias.xy + View.ScreenPositionScaleBias.wz;
+	return Result;
+}
+
+vec4	SampleScreenColor(vec3 UVz)
+{
+	UVz = GetLastUVz(UVz);
+	return texture(LastColor, UVz.xy, 0);
 }
 
 vec4	SSR()
 {
-	float	SSDepth = texelFetchLod(LastDepth, Frag.UV, 0).r;
-	vec3	SSPos = vec3(Frag.UV, SSDepth);
-	vec3	WSPos = ScreenToWorld(Frag.UV, SSDepth);
-	vec3	WSNormal = texture(LastNormal, Frag.UV, 0).xyz;
+	//vec3	SSPos = vec3(Frag.UV, Frag.Depth);
+	vec3	WSPos = ScreenToWorld(Frag.UV, Frag.Depth);
+	vec3	WSNormal = texture(Texture.Normal, Frag.UV, 0).xyz;
 	vec3	WSViewDir = normalize(Camera.Position - WSPos);
 	uint	FrameRandom = uint(Time * 1000.f) % 7 + 1;
 	vec4	outColor = vec4(0);
-	uvec2	PixelPos = ivec2(textureSize(LastDepth, 0) * Frag.UV);
+	float	SceneDepth = WorldToClip(WSPos).w;
+	uvec2	PixelPos = ivec2(textureSize(Texture.Depth, 0) * Frag.UV.xy);
 	//Get the pixel Dithering Value and reverse Bits
 	uint	Morton = MortonCode(PixelPos.x & 3) | ( MortonCode(PixelPos.y & 3) * 2 );
 	uint	PixelIndex = ReverseUIntBits(Morton);
 	uvec2	Random = uvec2(PseudoRandom(vec2(PixelPos + FrameRandom * uvec2(97, 71)))) * uvec2(0x3127352, 0x11229256);
+	float NumSamples = 0;
 	for( int i = 0; i < REFLEXION_SAMPLES; i++ ) {
-		float	Offset = float((PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & REFLEXION_SAMPLES);
-		float	StepOffset = (Offset / float(REFLEXION_SAMPLES));
+		uint	Offset = (PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15;
+		float	StepOffset = Offset / 15.f;
+		StepOffset -= 0.5;
 		//Generate random normals using Hammersley distribution
 		vec2	E = Hammersley(i, REFLEXION_SAMPLES, Random);
 		//Compute Half vector using GGX Importance Sampling
@@ -311,25 +226,35 @@ vec4	SSR()
 		vec3	WSReflectionDir = -reflect(WSViewDir, H);
 		//Create new Point and project it to compute screen-space ray direction
 		//TODO : Find a better way to do this
-		vec3	SSRDir = WorldToScreen(WSPos + WSReflectionDir).xyz - SSPos;
-		SSRDir = normalize(SSRDir);
-		if (castRay(SSPos, SSRDir, StepOffset))
+		
+		//vec3	SSREnd = WorldToScreen(WSPos + WSReflectionDir * SceneDepth).xyz;
+		vec4	SSRResult = castRay(WSReflectionDir, Frag.Material.Roughness, SceneDepth, WSPos, REFLEXION_STEPS, StepOffset);
+		//vec4	SSRResult = castRay(SSPos, SSREnd, StepOffset);
+		if (SSRResult.w < 1)
 		{
-			float SSRParticipation = clamp(-dot(WSViewDir, WSReflectionDir) + 0.25, 0, 1);//1 - smoothstep(0.25, 0.50, dot(WSViewDir, WSReflectionDir));
-			//SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(LastNormal, SSPos.xy, 0).xyz, -WSReflectionDir));
+			float SSRParticipation = 1;
+			//float SSRParticipation = clamp(-dot(WSViewDir, WSReflectionDir) + 0.25, 0, 1);
+			//SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(Texture.Normal, SSPos.xy, 0).xyz, -WSReflectionDir));
+			//float SSRParticipation = 1;
 			//Attenuate reflection factor when getting closer to screen border
-			SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.x * 2 - 1), SCREEN_BORDER_FACTOR));
-			SSRParticipation -= smoothstep(0, 1, pow(abs(SSPos.y * 2 - 1), SCREEN_BORDER_FACTOR));
+			SSRParticipation -= smoothstep(0, 1, pow(abs(SSRResult.x * 2 - 1), SCREEN_BORDER_FACTOR));
+			SSRParticipation -= smoothstep(0, 1, pow(abs(SSRResult.y * 2 - 1), SCREEN_BORDER_FACTOR));
 			SSRParticipation = clamp(SSRParticipation, 0, 1);
-			vec4 SampleColor = vec4(sampleLod(LastColor, SSPos.xy, Frag.Material.Roughness + abs(SSDepth - SSPos.z)).rgb * SSRParticipation, SSRParticipation);
+			vec4 SampleColor = vec4(SampleScreenColor(SSRResult.xyz).rgb * SSRParticipation, SSRParticipation);
+			//vec4 SampleColor = vec4(texture(LastColor, SSRResult.xy, 0).rgb * SSRParticipation, SSRParticipation);
+			//vec4 SampleColor = vec4(sampleLod(LastColor, SSRResult.xy, abs(Frag.Depth - SSRResult.z)).rgb * SSRParticipation, SSRParticipation);
+			SampleColor *= clamp( 4 - 4 * SSRResult.w, 0, 1);
 			SampleColor.rgb /= 1 + Luminance(SampleColor.rgb);
 			outColor += SampleColor;
+			NumSamples++;
 		}
 	}
-	outColor /= float(REFLEXION_SAMPLES);
+	outColor /= NumSamples;
 	outColor.rgb /= 1 - Luminance(outColor.rgb);
 	return outColor;
 }
+
+
 
 void	ApplyTechnique() {
 	Out.Color = SSR();
