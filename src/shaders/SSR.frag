@@ -199,13 +199,37 @@ vec4	SampleScreenColor(vec3 UVz)
 	return texture(LastColor, UVz.xy, 0);
 }
 
+#define MAXROUGHNESS 0.5
+#define QUALITY 3
+
+float ComputeRoughnessMaskScale()
+{
+	
+	float MaxRoughness = clamp(MAXROUGHNESS, 0.01f, 1.0f);
+
+	// f(x) = x * Scale + Bias
+	// f(MaxRoughness) = 0
+	// f(MaxRoughness/2) = 1
+
+	float RoughnessMaskScale = -2.0f / MaxRoughness;
+	return RoughnessMaskScale * (QUALITY < 3 ? 2.0f : 1.0f);
+}
+
+float GetRoughnessFade()
+{
+	// mask SSR to reduce noise and for better performance, roughness of 0 should have SSR, at MaxRoughness we fade to 0
+	return min(Frag.Material.Roughness * ComputeRoughnessMaskScale() + 2, 1.0);
+}
+
 vec4	SSR()
 {
 	//vec3	SSPos = vec3(Frag.UV, Frag.Depth);
 	vec3	WSPos = ScreenToWorld(Frag.UV, Frag.Depth);
 	vec3	WSNormal = texture(Texture.Normal, Frag.UV, 0).xyz;
-	vec3	WSViewDir = normalize(Camera.Position - WSPos);
-	uint	FrameRandom = uint(Time * 1000.f) % 7 + 1;
+	vec3	WSViewDir = normalize(WSPos - Camera.Position);
+	//uint	FrameRandom = uint(randomAngle(Frag.Position) * 1000) % 8 * 1551;
+	//uint	FrameRandom = uint(randomAngle(Frag.Position) * 1000) + uint(Time * 1000.f) % 7 + 1;
+	uint	FrameRandom = FrameNumber % 8 * 1551;
 	vec4	outColor = vec4(0);
 	float	SceneDepth = WorldToClip(WSPos).w;
 	uvec2	PixelPos = ivec2(textureSize(Texture.Depth, 0) * Frag.UV.xy);
@@ -214,6 +238,7 @@ vec4	SSR()
 	uint	PixelIndex = ReverseUIntBits(Morton);
 	uvec2	Random = uvec2(PseudoRandom(vec2(PixelPos + FrameRandom * uvec2(97, 71)))) * uvec2(0x3127352, 0x11229256);
 	float NumSamples = 0;
+	//Frag.Material.Roughness *= Frag.Material.Roughness;
 	for( int i = 0; i < REFLEXION_SAMPLES; i++ ) {
 		uint	Offset = (PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15;
 		float	StepOffset = Offset / 15.f;
@@ -223,7 +248,7 @@ vec4	SSR()
 		//Compute Half vector using GGX Importance Sampling
 		//Project Half vector from Tangent space to World space
 		vec3	H = ImportanceSampleGGX(E, WSNormal, Frag.Material.Roughness);
-		vec3	WSReflectionDir = -reflect(WSViewDir, H);
+		vec3	WSReflectionDir = reflect(WSViewDir, H);
 		//Create new Point and project it to compute screen-space ray direction
 		//TODO : Find a better way to do this
 		
@@ -251,10 +276,9 @@ vec4	SSR()
 	}
 	outColor /= NumSamples;
 	outColor.rgb /= 1 - Luminance(outColor.rgb);
+	outColor *= GetRoughnessFade();
 	return outColor;
 }
-
-
 
 void	ApplyTechnique() {
 	Out.Color = SSR();
