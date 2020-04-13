@@ -17,6 +17,7 @@
 #include "Buffer.hpp"
 #include "BufferView.hpp"
 #include "BufferAccessor.hpp"
+#include <algorithm>
 
 
 //std::vector<std::shared_ptr<Geometry>> Geometry::_Geometrys;
@@ -31,6 +32,29 @@ std::shared_ptr<Geometry> Geometry::Create(const std::string &name)
 {
     auto vg = std::shared_ptr<Geometry>(new Geometry(name));
     return (vg);
+}
+
+Geometry::AccessorKey Geometry::GetAccessorKey(const std::string &key)
+{
+    std::string lowerKey(key);
+    std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), ::tolower);
+    if (lowerKey == "position")
+        return Geometry::AccessorKey::Position;
+    else if (lowerKey == "normal")
+        return Geometry::AccessorKey::Normal;
+    else if (lowerKey == "tangent")
+        return Geometry::AccessorKey::Tangent;
+    else if (lowerKey == "texcoord_0")
+        return Geometry::AccessorKey::TexCoord_0;
+    else if (lowerKey == "texcoord_1")
+        return Geometry::AccessorKey::TexCoord_1;
+    else if (lowerKey == "color_0")
+        return Geometry::AccessorKey::Color_0;
+    else if (lowerKey == "joints_0")
+        return Geometry::AccessorKey::Joints_0;
+    else if (lowerKey == "weights_0")
+        return Geometry::AccessorKey::Weights_0;
+    return Geometry::AccessorKey::Invalid;
 }
 
 static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int index)
@@ -58,20 +82,22 @@ void Geometry::Load()
     if (IsLoaded())
         return;
     for (auto accessor : _accessors) {
-        accessor.second->GetBufferView()->GetBuffer()->LoadToGPU();
+        if (accessor != nullptr)
+            accessor->GetBufferView()->GetBuffer()->LoadToGPU();
     }
     if (Indices() != nullptr)
         Indices()->GetBufferView()->GetBuffer()->LoadToGPU();
     glCreateVertexArrays(1, &_vaoGlid);
     glBindVertexArray(_vaoGlid);
     glCheckError();
-    BindAccessor(Accessor("POSITION"),      0);
-    BindAccessor(Accessor("NORMAL"),        1);
-    BindAccessor(Accessor("TEXCOORD_0"),    2);
-    BindAccessor(Accessor("TEXCOORD_1"),    3);
-    BindAccessor(Accessor("COLOR_0"),       4);
-    BindAccessor(Accessor("JOINTS_0"),      5);
-    BindAccessor(Accessor("WEIGHTS_0"),     6);
+    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Position)),   0);
+    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Normal)),     1);
+    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Tangent)),    2);
+    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::TexCoord_0)), 3);
+    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::TexCoord_1)), 4);
+    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Color_0)),    5);
+    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Joints_0)),   6);
+    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Weights_0)),  7);
     glBindVertexArray(0);
     _isLoaded = true;
 }
@@ -93,7 +119,7 @@ bool Geometry::Draw()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
     else {
-        auto accessor(Accessor("POSITION"));
+        auto accessor(Accessor(Geometry::AccessorKey::Position));
         auto byteOffset(accessor->ByteOffset() + accessor->GetBufferView()->ByteOffset());
         glDrawArrays(Mode(), byteOffset / accessor->TotalComponentByteSize(), accessor->Count());
     }
@@ -121,17 +147,14 @@ void Geometry::SetMode(GLenum drawingMode)
     _drawingMode = drawingMode;
 }
 
-std::shared_ptr<BufferAccessor> Geometry::Accessor(const std::string &key) const
+std::shared_ptr<BufferAccessor> Geometry::Accessor(const Geometry::AccessorKey key) const
 {
-    auto accessor(_accessors.find(key));
-    if (accessor != _accessors.end())
-        return _accessors.find(key)->second;
-    return nullptr;
+    return _accessors.at(key);
 }
 
-void Geometry::SetAccessor(const std::string &key, std::shared_ptr<BufferAccessor>accessor)
+void Geometry::SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<BufferAccessor>accessor)
 {
-    _accessors[key] = accessor;
+    _accessors.at(key) = accessor;
 }
 
 std::shared_ptr<BufferAccessor> Geometry::Indices() const

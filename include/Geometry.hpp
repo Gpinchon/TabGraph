@@ -31,19 +31,49 @@ static inline CVEC4 VecToCVec4(glm::vec3 v) {
     return CVEC4(v.x, v.y, v.z, 255);
 }
 */
+
+class GeometryMorthTarget {
+public:
+    enum Channel
+    {
+        Normal,
+        Position,
+        Tangent,
+        MaxChannels
+    };
+    std::shared_ptr<BufferAccessor> Get(const GeometryMorthTarget::Channel channel) const;
+    void Set(const GeometryMorthTarget::Channel channel, const std::shared_ptr<BufferAccessor> morphChannel);
+private:
+    std::array<std::shared_ptr<BufferAccessor>, GeometryMorthTarget::MaxChannels> _morphChannels;
+};
+
 class Geometry : public Object
 {
 public:
+    enum AccessorKey
+    {
+        Invalid = -1,
+        Position,
+        Normal,
+        Tangent,
+        TexCoord_0,
+        TexCoord_1,
+        Color_0,
+        Joints_0,
+        Weights_0,
+        MaxAccessorKey
+    };
     static std::shared_ptr<Geometry> Create(const std::string & = "");
+    static Geometry::AccessorKey GetAccessorKey(const std::string &key);
     uint32_t MaterialIndex();
     void SetMaterialIndex(uint32_t);
     void Load();
     bool Draw();
     bool IsLoaded() const;
     /** @return : The accessor corresponding to the key */
-    std::shared_ptr<BufferAccessor> Accessor(const std::string &) const;
+    std::shared_ptr<BufferAccessor> Accessor(const Geometry::AccessorKey key) const;
     /** Sets the accessor corresponding to the key */
-    void SetAccessor(const std::string &, std::shared_ptr<BufferAccessor>);
+    void SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<BufferAccessor>);
     std::shared_ptr<BufferAccessor> Indices() const;
     void SetIndices(std::shared_ptr<BufferAccessor>);
     /** Drawing mode */
@@ -52,6 +82,9 @@ public:
     void SetMode(GLenum drawingMode);
     BoundingElement *boundingElement;
 
+    GeometryMorthTarget &GetMorphTarget(size_t index);
+    void SetMorphTarget(const GeometryMorthTarget &morphTarget);
+
 protected:
     Geometry(const std::string &);
 private:
@@ -59,6 +92,7 @@ private:
     GLenum _drawingMode {GL_TRIANGLES};
     uint32_t _materialIndex{0};
     GLuint _vaoGlid{0};
-    std::map<std::string, std::shared_ptr<BufferAccessor>> _accessors;
+    std::array<std::shared_ptr<BufferAccessor>, Geometry::AccessorKey::MaxAccessorKey> _accessors;
     std::shared_ptr<BufferAccessor> _indices {nullptr};
+    std::vector<GeometryMorthTarget> _morphTargets;
 };

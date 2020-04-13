@@ -20,6 +20,7 @@ class Geometry;
 class MeshSkin;
 class Material;
 class TextureBuffer;
+class BufferAccessor;
 
 class Mesh : public Node
 {
@@ -67,6 +68,9 @@ public:
     std::shared_ptr<MeshSkin> Skin() const;
     void SetSkin(std::shared_ptr<MeshSkin> skin);
 
+    std::shared_ptr<BufferAccessor> Weights() const;
+    void SetWeights(std::shared_ptr<BufferAccessor> weights);
+
     const std::set<std::shared_ptr<Geometry>> Geometrys();
 
 protected:
@@ -77,6 +81,7 @@ private:
     std::vector<std::shared_ptr<Material>> _materials;
     std::shared_ptr<MeshSkin> _skin { nullptr };
     std::shared_ptr<TextureBuffer> _jointMatrices { nullptr };
+    std::shared_ptr<BufferAccessor> _weights { nullptr };
     GLenum _cull_mod{GL_BACK};
     glm::vec3 _geometryPosition{0};
     glm::quat _geometryRotation{0, 0, 0, 1};

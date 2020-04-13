@@ -82,11 +82,10 @@ bool Mesh::DrawDepth(RenderMod mod)
         auto material(GetMaterial(vg->MaterialIndex()));
         if (nullptr == material)
             continue;
-        if (mod == RenderMod::RenderOpaque
-            && (material->Alpha() < 1 || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4)))
+        auto isTransparent(material->Alpha() < 1);// || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4));
+        if (mod == RenderMod::RenderOpaque && isTransparent)
             continue;
-        else if (mod == RenderMod::RenderTransparent
-            && !(material->Alpha() < 1 || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4)))
+        else if (mod == RenderMod::RenderTransparent && !isTransparent)
             continue;
         if (nullptr == material->depth_shader())
             continue;
@@ -311,4 +310,14 @@ void Mesh::SetSkin(std::shared_ptr<MeshSkin> skin)
     _skin = skin;
     _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, BufferHelper::CreateAccessor<glm::mat4>(_skin->Joints().size(), GL_TEXTURE_BUFFER));
     SetNeedsGPUUpdate(true);
+}
+
+std::shared_ptr<BufferAccessor> Mesh::Weights() const
+{
+    return _weights;
+}
+
+void Mesh::SetWeights(std::shared_ptr<BufferAccessor> weights)
+{
+    _weights = weights;
 }

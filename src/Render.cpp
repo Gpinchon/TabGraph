@@ -51,7 +51,7 @@ public:
     static double DeltaTime();
     static std::atomic<bool> &NeedsUpdate();
     static std::atomic<bool> &Drawing();
-    static uint64_t FrameNbr(void);
+    static uint32_t FrameNumber(void);
     static const std::shared_ptr<Geometry> DisplayQuad();
     static std::vector<std::weak_ptr<Shader>> &PostTreatments();
     static void SetInternalQuality(float);
@@ -65,7 +65,7 @@ private:
     std::atomic<bool> _needsUpdate{true};
     std::atomic<bool> _loop{true};
     std::atomic<bool> _drawing{false};
-    uint64_t _frame_nbr{0};
+    uint32_t _frame_nbr{0};
     std::thread _rendering_thread;
 };
 } // namespace Render
@@ -86,15 +86,19 @@ static auto emptyShaderCode =
 #include "empty.glsl"
     ;
 
+
 static auto lightingFragmentCode =
 #include "lighting.frag"
     ;
+
 static auto lightingEnvFragmentCode =
 #include "lighting_env.frag"
     ;
+
 static auto refractionFragmentCode =
 #include "refraction.frag"
     ;
+
 static auto SSRShaderCode =
 #include "SSR.frag"
     ;
@@ -126,7 +130,7 @@ const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
     auto accessor(BufferHelper::CreateAccessor(quad, GL_ARRAY_BUFFER));
     vao = Geometry::Create("DisplayQuad");
     vao->SetMode(GL_TRIANGLE_STRIP);
-    vao->SetAccessor("POSITION", accessor);
+    vao->SetAccessor(Geometry::Position, accessor);
     return vao;
 }
 
@@ -302,7 +306,7 @@ void Render::Private::_thread(void)
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
 }
 
-uint64_t Render::Private::FrameNbr()
+uint32_t Render::Private::FrameNumber()
 {
     return (_instance()._frame_nbr);
 }
@@ -451,9 +455,6 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
 std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
 {
     glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
-    static auto reflectionSteps = Config::Get("ReflexionSteps", 8);
-    static auto reflectionSamples = Config::Get("ReflexionSamples", 12);
-    static auto reflectionBorderFactor = Config::Get("ReflexionBorderFactor", 10);
     static auto SSRFramebuffer(Framebuffer::Create("SSRFramebuffer", res, 1, 0));
     static auto SSRFramebuffer1(Framebuffer::Create("SSRFramebuffer1", res, 1, 0));
     static auto SSRFramebufferResult(Framebuffer::Create("SSRFramebufferResult", res, 1, 0));
@@ -463,10 +464,10 @@ std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::sh
     if (SSRShader == nullptr) {
         SSRShader = Shader::Create("SSR", LightingShader);
         SSRShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRShaderCode);
-        SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_STEPS", std::to_string(reflectionSteps));
-        SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_SAMPLES", std::to_string(reflectionSamples));
-        SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(reflectionBorderFactor));
     }
+    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_STEPS", std::to_string(Config::Get("ReflexionSteps", 8)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_SAMPLES", std::to_string(Config::Get("ReflexionSamples", 10)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
     if (SSRMergeShader == nullptr) {
         SSRMergeShader = Shader::Create("SSRMerge", LightingShader);
         SSRMergeShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRMergeShaderCode);
@@ -497,6 +498,7 @@ std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::sh
     SSRShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
     SSRShader->SetUniform("LastInvViewMatrix", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
     SSRShader->SetUniform("LastInvProjectionMatrix", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
+    SSRShader->SetUniform("FrameNumber", Render::FrameNumber());
 
     currentFrameBuffer->bind(false);
     //Merge the current result with last result to increase sampling
@@ -520,6 +522,92 @@ void Render::Private::Scene()
         //present(final_back_buffer);
         return;
     }
+    /*
+    glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
+
+    //Setup framebuffers
+    static auto opaqueBuffer(Create_render_buffer("opaqueBuffer", res));
+    static auto transpBuffer(Create_render_buffer("transpBuffer", res));
+    static auto renderBuffer0(Create_back_buffer("renderBuffer0", res));
+    static auto renderBuffer1(Create_back_buffer("renderBuffer1", res));
+    static std::shared_ptr<Texture2D> brdf;
+    if (brdf == nullptr)
+    {
+        brdf = Texture2D::Create("brdf", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
+        brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+    opaqueBuffer->Resize(res);
+    transpBuffer->Resize(res);
+    renderBuffer0->Resize(res);
+    renderBuffer1->Resize(res);
+
+    //Setup shaders
+    static std::shared_ptr<Shader> elighting_shader;
+    if (elighting_shader == nullptr)
+    {
+        elighting_shader = Shader::Create("lighting_env", LightingShader);
+        elighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
+    }
+
+    //Clear buffers
+    opaqueBuffer->bind();
+    glClear(Window::clear_mask());
+    opaqueBuffer->bind(false);
+    transpBuffer->bind();
+    glClear(Window::clear_mask());
+    transpBuffer->bind(false);
+
+    opaqueBuffer->bind();
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    Scene::Current()->Render(RenderMod::RenderOpaque);
+    opaqueBuffer->bind(false);
+
+    transpBuffer->bind();
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    Scene::Current()->Render(RenderMod::RenderTransparent);
+    transpBuffer->bind(false);
+
+    auto SSRResult(SSRPass(opaqueBuffer, renderBuffer0));
+
+    renderBuffer1->bind();
+    glClear(Window::clear_mask());
+    renderBuffer1->bind(false);
+
+    auto i = 1;
+    elighting_shader->SetUniform("Texture.Albedo", opaqueBuffer->attachement(0), GL_TEXTURE0);
+    elighting_shader->SetUniform("Texture.Emitting", opaqueBuffer->attachement(1), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Specular", opaqueBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.MaterialValues", opaqueBuffer->attachement(3), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.AO", opaqueBuffer->attachement(4), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Normal", opaqueBuffer->attachement(5), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Depth", opaqueBuffer->depth(), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.BRDF", brdf, GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Color", renderBuffer1->attachement(0), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Emitting", renderBuffer1->attachement(1), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Normal", renderBuffer1->attachement(2), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
+    if (Environment::current() != nullptr)
+    {
+        elighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
+        elighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
+    }
+    renderBuffer0->bind();
+    elighting_shader->use();
+    Render::Private::DisplayQuad()->Draw();
+    elighting_shader->use(false);
+    renderBuffer0->bind(false);
+    
+    present(renderBuffer0);
+    std::swap(renderBuffer0, renderBuffer1);
+    */
+
     static std::shared_ptr<Texture2D> brdf;
     if (brdf == nullptr)
     {
@@ -529,9 +617,6 @@ void Render::Private::Scene()
     }
     glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
 
-    //auto reflectionSteps = Config::Get("ReflexionSteps", 8);
-    //auto reflectionSamples = Config::Get("ReflexionSamples", 8);
-    //auto reflectionBorderFactor = Config::Get("ReflexionBorderFactor", 10);
     static auto temp_buffer = Create_render_buffer("temp_buffer", res);
     static auto temp_buffer1 = Create_render_buffer("temp_buffer1", res);
     static auto back_buffer = Create_back_buffer("back_buffer", res);
@@ -539,17 +624,6 @@ void Render::Private::Scene()
     static auto back_buffer2 = Create_back_buffer("back_buffer2", res);
     static auto final_back_buffer = Create_back_buffer("final_back_buffer", res);
     static auto last_render = Create_back_buffer("last_render", res);
-    /*static auto passthrough_shader = GLSL::compile("passthrough", emptyShaderCode, LightingShader);
-    static auto elighting_shader = GLSL::compile("lighting_env", lightingEnvFragmentCode, LightingShader,
-                                                 std::string("\n#define REFLEXION_STEPS		") + std::to_string(reflectionSteps) +
-                                                 std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(reflectionSamples) +
-                                                 std::string("\n#define SCREEN_BORDER_FACTOR	") + std::to_string(reflectionBorderFactor) + std::string("\n"));
-    static auto telighting_shader = GLSL::compile("lighting_env_transparent", lightingEnvFragmentCode, LightingShader,
-                                                  std::string("\n#define TRANSPARENT") +
-                                                  std::string("\n#define REFLEXION_STEPS		") + std::to_string(reflectionSteps) +
-                                                  std::string("\n#define REFLEXION_SAMPLES	") + std::to_string(reflectionSamples) +
-                                                  std::string("\n#define SCREEN_BORDER_FACTOR ") + std::to_string(reflectionBorderFactor) + std::string("\n"));
-    static auto refraction_shader = GLSL::compile("refraction", refractionFragmentCode, LightingShader);*/
     static std::shared_ptr<Shader> elighting_shader;
     static std::shared_ptr<Shader> telighting_shader;
     static std::shared_ptr<Shader> refraction_shader;
@@ -560,9 +634,6 @@ void Render::Private::Scene()
     {
         elighting_shader = Shader::Create("lighting_env", LightingShader);
         elighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
-        //elighting_shader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_STEPS", std::to_string(reflectionSteps));
-        //elighting_shader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_SAMPLES", std::to_string(reflectionSamples));
-        //elighting_shader->Stage(GL_FRAGMENT_SHADER).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(reflectionBorderFactor));
     }
     if (telighting_shader == nullptr)
     {
@@ -665,8 +736,6 @@ void Render::Private::Scene()
     last_render->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     auto SSRResult(SSRPass(current_tbuffertex, last_render));
-    //last_render->depth()->generate_mipmap();
-    //last_render->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     // APPLY LIGHTING SHADER
     // OUTPUT : out_Color, out_Brightness
@@ -699,22 +768,14 @@ void Render::Private::Scene()
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    bool rendered_stuff = false;
     Scene::Current()->Render(RenderMod::RenderTransparent);
     std::swap(current_tbuffer, current_tbuffertex);
-
-    if (!rendered_stuff)
-    {
-        // NO OBJECTS WERE RENDERED PRESENT IMEDIATLY
-        //present(current_backTexture);
-        //return ;
-    }
 
     auto opaqueBackBuffer = current_backTexture;
     opaqueBackBuffer->attachement(0)->generate_mipmap();
     opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    opaqueBackBuffer->depth()->generate_mipmap();
-    opaqueBackBuffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    //opaqueBackBuffer->depth()->generate_mipmap();
+    //opaqueBackBuffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     current_backTexture = back_buffer2;
     back_buffer2->bind();
@@ -761,6 +822,7 @@ void Render::Private::Scene()
     refraction_shader->SetUniform("opaqueBackColor", opaqueBackBuffer->attachement(0), GL_TEXTURE0 + (++i));
     refraction_shader->SetUniform("opaqueBackEmitting", opaqueBackBuffer->attachement(1), GL_TEXTURE0 + (++i));
     refraction_shader->SetUniform("opaqueBackNormal", opaqueBackBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    refraction_shader->SetUniform("opaqueBackDepth", opaqueBackBuffer->depth(), GL_TEXTURE0 + (++i));
     refraction_shader->use();
     Render::Private::DisplayQuad()->Draw();
     refraction_shader->use(false);
@@ -866,4 +928,9 @@ std::atomic<bool> &Render::Drawing()
 const std::shared_ptr<Geometry> Render::DisplayQuad()
 {
     return Render::Private::DisplayQuad();
+}
+
+uint32_t Render::FrameNumber()
+{
+    return Render::Private::FrameNumber();
 }

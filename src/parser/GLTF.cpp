@@ -295,7 +295,7 @@ static inline auto ParseMeshes(const rapidjson::Document &document, const GLTFCo
 			for (const auto &attribute : primitive["attributes"].GetObject()) {
 				auto attributeName(std::string(attribute.name.GetString()));
 				auto accessor(container.accessors.at(attribute.value.GetInt()));
-				geometry->SetAccessor(attributeName, accessor);
+				geometry->SetAccessor(Geometry::GetAccessorKey(attributeName), accessor);
 			}
 			try {
 				auto accessor(container.accessors.at(primitive["indices"].GetInt()));
@@ -492,7 +492,6 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 	for (const auto &scene : scenes) {
 		std::cout << "found scene" << std::endl;
 		auto newScene(Scene::Create(std::to_string(sceneIndex)));
-		newScene->SetUp(glm::vec3(0, 1, 0));
 		for (const auto &node : scene["nodes"].GetArray()) {
 			newScene->AddRootNode(container.nodes.at(node.GetInt()));
 			std::cout << container.nodes.at(node.GetInt())->Name() << std::endl;
