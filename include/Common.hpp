@@ -17,4 +17,7 @@ namespace Common
 	void SetForward(glm::vec3);
 	glm::vec3 Right();
 	void SetRight(glm::vec3);
+	/** Default gravity is { 0, -9.81, 0 } */
+	glm::vec3 Gravity();
+	void SetGravity(glm::vec3);
 }
