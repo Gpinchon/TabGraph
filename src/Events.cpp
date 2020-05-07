@@ -43,7 +43,7 @@ void Events::remove(InputDevice* device, SDL_EventType event_type)
         inputDevices->second.erase(device);
 }
 
-void Events::AddRefreshCallback(std::shared_ptr<Callback> callback)
+void Events::AddRefreshCallback(std::shared_ptr<Callback<void()>> callback)
 {
     if (callback != nullptr)
         _get()._rcallbacks.push_back(callback);
@@ -87,7 +87,7 @@ int Events::refresh()
     return (0);
 }
 
-void Events::RemoveRefreshCallback(std::shared_ptr<Callback> callback)
+void Events::RemoveRefreshCallback(std::shared_ptr<Callback<void()>> callback)
 {
     _get()._rcallbacks.erase(std::remove(_get()._rcallbacks.begin(), _get()._rcallbacks.end(), callback), _get()._rcallbacks.end());
     //TODO : Enable this when C++20 is out
