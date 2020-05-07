@@ -1,11 +1,22 @@
 R""(
 uniform sampler2D	LastColor;
-uniform sampler2D	LastNormal;
-uniform sampler2D	LastDepth;
-uniform mat4 LastInvViewMatrix;
-uniform mat4 LastInvProjectionMatrix;
-uniform mat4 LastViewMatrix;
-uniform mat4 LastProjectionMatrix;
+uniform ivec2		FrameBufferResolution;
+uniform mat4		LastViewMatrix;
+uniform mat4		LastProjectionMatrix;
+
+#if SSR_QUALITY == 1
+	const int NumSteps = 8;
+	const int NumRays = 1;
+#elif SSR_QUALITY == 2
+	const int NumSteps = 16;
+	const int NumRays = 1;
+#elif SSR_QUALITY == 3
+	const int NumSteps = 8;
+	const int NumRays = 4;
+#else // SSR_QUALITY == 4
+	const int NumSteps = 12;
+	const int NumRays = 12;
+#endif
 
 float vec2cross(in vec2 a, in vec2 b)
 {
@@ -120,7 +131,7 @@ vec4 SampleDepthTexture(float Level, vec4 SampleUV0, vec4 SampleUV1 )
 	return SampleDepth;
 }
 
-vec4	castRay(vec3 R, float Roughness, float SceneDepth, vec3 PositionTranslatedWorld, int NumSteps, float StepOffset)
+vec4	castRay(vec3 R, float Roughness, float SceneDepth, vec3 PositionTranslatedWorld, float StepOffset)
 {
 	const float Step = 1.0 / (NumSteps);
 	vec4 RayStartClip	= WorldToClip(PositionTranslatedWorld);
@@ -184,7 +195,7 @@ vec4	castRay(vec3 R, float Roughness, float SceneDepth, vec3 PositionTranslatedW
 		}
 
 		LastDiff = DepthDiff1.w;
-		Level += Roughness * (textureMaxLod(LastDepth) / NumSteps);
+		Level += Roughness * (textureMaxLod(Texture.Depth) / NumSteps);
 		SampleTime += 4.0 / float(NumSteps);
 	}
 	//Result.xy *= HZBUvFactorAndInvFactor.zw;
@@ -199,26 +210,18 @@ vec4	SampleScreenColor(vec3 UVz)
 	return texture(LastColor, UVz.xy, 0);
 }
 
-#define MAXROUGHNESS 0.5
-#define QUALITY 3
-
-float ComputeRoughnessMaskScale()
-{
-	
-	float MaxRoughness = clamp(MAXROUGHNESS, 0.01f, 1.0f);
-
-	// f(x) = x * Scale + Bias
-	// f(MaxRoughness) = 0
-	// f(MaxRoughness/2) = 1
-
-	float RoughnessMaskScale = -2.0f / MaxRoughness;
-	return RoughnessMaskScale * (QUALITY < 3 ? 2.0f : 1.0f);
-}
+#pragma optionNV (unroll all)
 
 float GetRoughnessFade()
 {
 	// mask SSR to reduce noise and for better performance, roughness of 0 should have SSR, at MaxRoughness we fade to 0
-	return min(Frag.Material.Roughness * ComputeRoughnessMaskScale() + 2, 1.0);
+	return min(Frag.Material.Roughness * ROUGHNESSMASKSCALE + 2, 1.0);
+}
+
+//Use Rodrigues' rotation formula to rotate v about k
+vec3 rotateAround(vec3 v, vec3 k, float angle)
+{
+	return v * cos(angle) + cross(k, v) * sin(angle) + k * dot(k, v) * (1 - cos(angle));
 }
 
 vec4	SSR()
@@ -227,61 +230,57 @@ vec4	SSR()
 	vec3	WSPos = ScreenToWorld(Frag.UV, Frag.Depth);
 	vec3	WSNormal = texture(Texture.Normal, Frag.UV, 0).xyz;
 	vec3	WSViewDir = normalize(WSPos - Camera.Position);
-	//uint	FrameRandom = uint(randomAngle(Frag.Position) * 1000) % 8 * 1551;
-	//uint	FrameRandom = uint(randomAngle(Frag.Position) * 1000) + uint(Time * 1000.f) % 7 + 1;
 	uint	FrameRandom = FrameNumber % 8 * 1551;
 	vec4	outColor = vec4(0);
 	float	SceneDepth = WorldToClip(WSPos).w;
-	uvec2	PixelPos = ivec2(textureSize(Texture.Depth, 0) * Frag.UV.xy);
+	uvec2	PixelPos = ivec2(FrameBufferResolution * Frag.UV.xy);
+	//uvec2	ResFactor = textureSize(Texture.Depth, 0) / textureSize(LastColor, 0) / 3;
 	//Get the pixel Dithering Value and reverse Bits
-	uint	Morton = MortonCode(PixelPos.x & 3) | ( MortonCode(PixelPos.y & 3) * 2 );
+	uint	Morton = MortonCode(PixelPos.x & 3) | ( MortonCode(PixelPos.y & 3) * 2);
 	uint	PixelIndex = ReverseUIntBits(Morton);
 	uvec2	Random = uvec2(PseudoRandom(vec2(PixelPos + FrameRandom * uvec2(97, 71)))) * uvec2(0x3127352, 0x11229256);
-	float NumSamples = 0;
-	//Frag.Material.Roughness *= Frag.Material.Roughness;
-	for( int i = 0; i < REFLEXION_SAMPLES; i++ ) {
+	float	totalWeight = 0;
+	float	sampleAngle = randomAngle(Frag.Position);// * Frag.Material.Roughness;
+	//vec3	sampleRotation = TangentToWorld(vec2(cos(sampleAngle), -sin(sampleAngle)));
+	for( int i = 0; i < NumRays; i++ ) {
 		uint	Offset = (PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15;
 		float	StepOffset = Offset / 15.f;
 		StepOffset -= 0.5;
 		//Generate random normals using Hammersley distribution
-		vec2	E = Hammersley(i, REFLEXION_SAMPLES, Random);
+		vec2	E = Hammersley(i, NumRays, Random);
 		//Compute Half vector using GGX Importance Sampling
 		//Project Half vector from Tangent space to World space
 		vec3	H = ImportanceSampleGGX(E, WSNormal, Frag.Material.Roughness);
+		H = rotateAround(H, Frag.Normal, sampleAngle);
 		vec3	WSReflectionDir = reflect(WSViewDir, H);
 		//Create new Point and project it to compute screen-space ray direction
 		//TODO : Find a better way to do this
 		
 		//vec3	SSREnd = WorldToScreen(WSPos + WSReflectionDir * SceneDepth).xyz;
-		vec4	SSRResult = castRay(WSReflectionDir, Frag.Material.Roughness, SceneDepth, WSPos, REFLEXION_STEPS, StepOffset);
-		//vec4	SSRResult = castRay(SSPos, SSREnd, StepOffset);
-		if (SSRResult.w < 1)
+		vec4	SSRResult = castRay(WSReflectionDir, Frag.Material.Roughness, SceneDepth, WSPos, StepOffset);
+		if (SSRResult.w < 1 && texture(Texture.Depth, SSRResult.xy).x < 1)
 		{
-			float SSRParticipation = 1;
-			//float SSRParticipation = clamp(-dot(WSViewDir, WSReflectionDir) + 0.25, 0, 1);
-			//SSRParticipation *= smoothstep(-0.17, 0.0, dot(texture(Texture.Normal, SSPos.xy, 0).xyz, -WSReflectionDir));
-			//float SSRParticipation = 1;
+			float SSRParticipation = clamp(4 - 4 * SSRResult.w, 0, 1);
+			SSRParticipation *= clamp(dot(WSViewDir, WSReflectionDir) + 0.25, 0, 1);
 			//Attenuate reflection factor when getting closer to screen border
 			SSRParticipation -= smoothstep(0, 1, pow(abs(SSRResult.x * 2 - 1), SCREEN_BORDER_FACTOR));
 			SSRParticipation -= smoothstep(0, 1, pow(abs(SSRResult.y * 2 - 1), SCREEN_BORDER_FACTOR));
 			SSRParticipation = clamp(SSRParticipation, 0, 1);
-			vec4 SampleColor = vec4(SampleScreenColor(SSRResult.xyz).rgb * SSRParticipation, SSRParticipation);
-			//vec4 SampleColor = vec4(texture(LastColor, SSRResult.xy, 0).rgb * SSRParticipation, SSRParticipation);
-			//vec4 SampleColor = vec4(sampleLod(LastColor, SSRResult.xy, abs(Frag.Depth - SSRResult.z)).rgb * SSRParticipation, SSRParticipation);
-			SampleColor *= clamp( 4 - 4 * SSRResult.w, 0, 1);
+			vec4 SampleColor = vec4(SampleScreenColor(SSRResult.xyz).rgb, SSRParticipation);
 			SampleColor.rgb /= 1 + Luminance(SampleColor.rgb);
-			outColor += SampleColor;
-			NumSamples++;
+			outColor += SampleColor * SSRParticipation;
+			totalWeight += SSRParticipation;
 		}
 	}
-	outColor /= NumSamples;
+	outColor /= totalWeight;
 	outColor.rgb /= 1 - Luminance(outColor.rgb);
 	outColor *= GetRoughnessFade();
 	return outColor;
 }
 
 void	ApplyTechnique() {
-	Out.Color = SSR();
+	//if (length(Frag.Normal) > 0)
+		Out.Color = SSR();
 }
 
 )""

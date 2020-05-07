@@ -182,6 +182,7 @@ void Shader::Link()
 {
     glLinkProgram(_program);
     glCheckError();
+    glObjectLabel(GL_PROGRAM, _program, Name().length(), Name().c_str());
     try {
         check_program(_program);
     } catch (std::exception& e) {
@@ -432,7 +433,7 @@ void Shader::Compile()
         }
         catch (std::exception& e) {
             throw std::runtime_error(std::string("Error compiling ") + Name() + "\n" + e.what() +
-                "\nShader Code :\n" + stage.Code());
+                "\nShader Code :\n" + stage.FullCode());
         }
         glAttachShader(_program, stage.Glid());
     }
@@ -485,4 +486,11 @@ void Shader::SetStage(const ShaderStage &stage)
 bool Shader::Compiled() const
 {
     return _compiled;
+}
+
+void ShaderVariable::Set(const std::shared_ptr<Texture> texture, const size_t index)
+{
+    auto value(std::pair(texture, index));
+    byteSize = sizeof(value);
+    data = value;
 }

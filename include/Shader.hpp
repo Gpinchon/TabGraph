@@ -9,6 +9,7 @@
 
 #include "Object.hpp" // for Object
 #include "ShaderStage.hpp"
+#include "Tools.hpp"
 #include "glm/glm.hpp" // for glm::mat4, glm::vec2, glm::vec3
 #include <GL/glew.h> // for GLuint, GLenum, GLint
 #include <memory> // for shared_ptr
@@ -30,8 +31,8 @@ struct ShaderVariable {
     size_t byteSize{ 0 };
     //std::byte *data{ nullptr };
     std::function<void(const ShaderVariable&)> updateFunction {};
-    template<typename T>
-    typename std::enable_if<!std::is_constructible<std::shared_ptr<Texture>, T>::value>::type Set(const T &value, const size_t index = 0);
+    template<typename T, typename = IsNotSharedPointerOfType<Texture, T>>
+    void Set(const T &value, const size_t index = 0);
     //template<typename T, typename std::enable_if<std::is_convertible<T, std::shared_ptr<Texture>>::value> * = nullptr>
     void Set(const std::shared_ptr<Texture> value, const size_t index = 0);
     std::variant<
@@ -92,7 +93,6 @@ public:
     static std::shared_ptr<Shader> GetByName(const std::string&);
     static bool check_shader(const GLuint id);
     static bool check_program(const GLuint id);
-    //void SetUniform(const std::string& uname, std::shared_ptr<Texture>, const GLenum texture_unit);
     void bind_image(const std::string& uname, std::shared_ptr<Texture> texture, const GLint level, const bool layered, const GLint layer, const GLenum access, const GLenum texture_unit);
     void unbind_texture(GLenum texture_unit);
     template <typename T>
@@ -137,8 +137,8 @@ private:
 #include <cstring>
 #include <algorithm>
 
-template<typename T>
-inline typename std::enable_if<!std::is_constructible<std::shared_ptr<Texture>, T>::value>::type ShaderVariable::Set(const T &value, const size_t index)
+template<typename T, typename>
+inline void ShaderVariable::Set(const T &value, const size_t index)
 {
     byteSize = byteSize == 0 ? sizeof(T) : byteSize;
     if (sizeof(T) != byteSize)
@@ -152,18 +152,6 @@ inline typename std::enable_if<!std::is_constructible<std::shared_ptr<Texture>, 
         data = std::vector<T>(index + 1);
         std::get<std::vector<T>>(data).at(index) = value;
     }
-    /*auto dataIndex(index * sizeof(T));
-    if (dataIndex >= byteSize * localSize)
-        throw std::runtime_error(std::string(__FUNCTION__) + " data index(" + std::to_string(dataIndex) + ") out of bound(" + std::to_string(byteSize * localSize) + ")");
-    std::memcpy(std::get_if<T*>(&data)[dataIndex], &value, sizeof(T));*/
-}
-
-//template<typename T, typename std::enable_if<std::is_convertible<T, std::shared_ptr<Texture>>::value> *>
-inline void ShaderVariable::Set(const std::shared_ptr<Texture> texture, const size_t index)
-{
-    auto value(std::pair(texture, index));
-    byteSize = sizeof(value);
-    data = value;
 }
 
 template <typename T>

@@ -1,7 +1,9 @@
 R""(
 struct t_Textures {
+	vec2		Scale;
+#ifdef TEXTURE_USE_ALBEDO
 	sampler2D	Albedo;
-	bool		Use_Albedo;
+#endif
 };
 
 struct t_Material {
@@ -15,10 +17,10 @@ in vec2				frag_Texcoord;
 
 void main()
 {
-	float a = texture(Texture.Albedo, frag_Texcoord).a;
 	float alpha = Material.Alpha;
-	if (Texture.Use_Albedo)
-		alpha *= a;
+#ifdef TEXTURE_USE_ALBEDO
+	alpha *= texture(Texture.Albedo, frag_Texcoord).a;
+#endif
 	if (alpha <= 0.05f)
 		discard;
 }

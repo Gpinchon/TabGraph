@@ -23,8 +23,8 @@ uniform t_Light			Light[LIGHTNBR];
 #ifdef SHADOW
 uniform sampler2DShadow	Shadow[SHADOWNBR];
 #endif //SHADOW
-uniform vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
-uniform vec3	envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
+const vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
+const vec3	envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
 
 vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
 {

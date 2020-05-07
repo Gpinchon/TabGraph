@@ -52,7 +52,6 @@ struct t_Material {
 struct t_Matrix {
 	mat4	Model;
 	mat4	Normal;
-	mat4	ViewProjection;
 };
 
 struct t_Environment {
@@ -71,6 +70,7 @@ struct t_Frag {
 struct t_CameraMatrix {
 	mat4	View;
 	mat4	Projection;
+	mat4	ViewProjection;
 };
 
 struct t_Camera {
@@ -172,25 +172,21 @@ void	FillIn()
 	Frag.Material.Alpha *= albedo_sample.a;
 #endif
 #ifdef TEXTURE_USE_SPECULAR
-	vec3	specular_sample = texture(Texture.Specular, Frag.UV).xyz;
-	Frag.Material.Specular = specular_sample;
+	Frag.Material.Specular = texture(Texture.Specular, Frag.UV).rgb;
 #endif
 #ifdef TEXTURE_USE_ROUGHNESS
-	float	roughness_sample = texture(Texture.Roughness, Frag.UV).r;
-	Frag.Material.Roughness = roughness_sample;
+	Frag.Material.Roughness *= texture(Texture.Roughness, Frag.UV).r;
 #endif
 #ifdef TEXTURE_USE_METALLIC
-	float	metallic_sample = texture(Texture.Metallic, Frag.UV).r;
-	Frag.Material.Metallic = metallic_sample;
+	Frag.Material.Metallic *= texture(Texture.Metallic, Frag.UV).r;
 #endif
 #ifdef TEXTURE_USE_METALLICROUGHNESS
-	vec2	metallicRoughness_sample = texture(Texture.MetallicRoughness, Frag.UV).bg;
-	Frag.Material.Metallic = metallicRoughness_sample.x;
-	Frag.Material.Roughness = metallicRoughness_sample.y;
+	vec2	metallicRoughness_sample = texture(Texture.MetallicRoughness, Frag.UV).gb;
+	Frag.Material.Roughness *= metallicRoughness_sample.x;
+	Frag.Material.Metallic *= metallicRoughness_sample.y;
 #endif
 #ifdef TEXTURE_USE_EMITTING
-	vec3	emitting_sample = texture(Texture.Emitting, Frag.UV).rgb;
-	Frag.Material.Emitting *= emitting_sample;
+	Frag.Material.Emitting *= texture(Texture.Emitting, Frag.UV).rgb;
 #endif
 #ifdef TEXTURE_USE_NORMAL
 	vec3	normal_sample = texture(Texture.Normal, Frag.UV).xyz * 2 - 1;
@@ -198,8 +194,11 @@ void	FillIn()
 	if (dot(new_normal, new_normal) > 0)
 		Frag.Normal = new_normal;
 #endif
+	vec3 viewDir = normalize(Camera.Position - Frag.Position);
+	if (dot(viewDir, Frag.Normal) < 0)
+		Frag.Normal = -Frag.Normal;
 #ifdef TEXTURE_USE_HEIGHT
-	Parallax_Mapping(tbn * normalize(Camera.Position - Frag.Position), Frag.UV, ph);
+	Parallax_Mapping(tbn * viewDir, Frag.UV, ph);
 #endif
 #ifdef TEXTURE_USE_AO
 	Frag.Material.AO = texture(Texture.AO, Frag.UV).r;

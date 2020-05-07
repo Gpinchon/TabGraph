@@ -10,6 +10,7 @@ public:
     ~ShaderStage();
     void Compile();
     void Recompile();
+    std::string FullCode();
     std::string Code() const;
     GLuint Glid() const;
     GLenum Stage() const;
@@ -23,6 +24,7 @@ public:
 private:
     GLuint _glid {0};
     GLenum _stage {0};
+    std::string _fullCode { "" };
     std::string _code { "" };
     std::string _technique { "" };
     bool _compiled { false };

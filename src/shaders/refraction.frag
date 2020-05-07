@@ -2,6 +2,7 @@ R""(
 uniform sampler2D	opaqueBackColor;
 uniform sampler2D	opaqueBackEmitting;
 uniform sampler2D	opaqueBackNormal;
+uniform sampler2D	opaqueBackDepth;
 
 float	cmix(float min, float max, float percent)
 {
@@ -42,7 +43,7 @@ void	ApplyTechnique()
 {
 	vec2	refract_UV = Frag.UV;
 
-	if (Frag.Material.Ior > 1)
+	if (Frag.Material.Ior != 1)
 	{
 		vec3	V = normalize(Camera.Position - Frag.Position);
 		float	NdV = dot(Frag.Normal, V);
@@ -56,20 +57,20 @@ void	ApplyTechnique()
 		refract_UV = refractDir * refractFactor + Frag.UV;
 		refract_UV = warpUV(vec2(0), vec2(1), refract_UV);
 	}
-	vec3	Back_Color = sampleLod(opaqueBackColor, refract_UV, Frag.Material.Roughness).rgb;
-	vec3	Back_Emitting = sampleLod(opaqueBackEmitting, refract_UV, Frag.Material.Roughness).rgb;
+	vec3	Back_Color = sampleLod(Texture.Back.Color, refract_UV, Frag.Material.Roughness).rgb;
+	vec3	Back_Emitting = sampleLod(Texture.Back.Emitting, refract_UV, Frag.Material.Roughness).rgb;
 	vec3	Back_Normal = texture(opaqueBackNormal, refract_UV).rgb;
-	if (Out.Color.a == 0) {
-		Out.Color = vec4(Back_Color, 1);
-		Out.Emitting = Back_Emitting;
-		Out.Normal = Back_Normal;
+	if (Frag.Material.Alpha == 0) {
 		return ;
 	}
-	Back_Color = mix(Back_Color, Back_Color * Frag.Material.Albedo, Frag.Material.Alpha);
-	Back_Emitting = mix(Back_Emitting, Back_Emitting * Frag.Material.Albedo, Frag.Material.Alpha);
-	Out.Color.rgb += Back_Color * (1 - Frag.Material.Alpha);
-	Out.Color.a = 1;
-	Out.Emitting.rgb += Back_Emitting * (1 - Frag.Material.Alpha);
+	vec3 refractionColor = mix(vec3(1), Frag.Material.Albedo, Frag.Material.Alpha);
+	Out.Color.rgb = mix(Back_Color * refractionColor, 
+						vec3(0),
+						Frag.Material.Alpha);
+	Out.Emitting.rgb = mix(Back_Emitting * refractionColor, 
+						vec3(0),
+						Frag.Material.Alpha);
 }
+
 
 )""

@@ -27,13 +27,12 @@ void ShaderStage::Compile()
         Recompile();
     static auto glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
     static auto glslVersionNbr = int(std::stof(glslVersionString) * 100);
-
-    std::string fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n";
+    _fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n";
     for (auto define : _defines) {
-        fullCode += "#define " + define.first + " " + define.second + "\n";
+        _fullCode += "#define " + define.first + " " + define.second + "\n";
     }
-    fullCode += Code() + Technique();
-    auto codeBuff = fullCode.c_str();
+    _fullCode += Code() + Technique();
+    auto codeBuff = _fullCode.c_str();
     _glid = glCreateShader(Stage());
     glShaderSource(_glid, 1, &codeBuff, nullptr);
     glCompileShader(_glid);
@@ -56,6 +55,11 @@ void ShaderStage::Recompile()
 GLenum ShaderStage::Stage() const
 {
     return _stage;
+}
+
+std::string ShaderStage::FullCode()
+{
+    return _fullCode;
 }
 
 std::string ShaderStage::Code() const

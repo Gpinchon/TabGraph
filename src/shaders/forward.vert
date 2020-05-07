@@ -50,7 +50,6 @@ struct t_Material {
 struct t_Matrix {
 	mat4	Model;
 	mat4	Normal;
-	mat4	ViewProjection;
 };
 
 struct t_Joint {
@@ -60,13 +59,13 @@ struct t_Joint {
 struct t_CameraMatrix {
 	mat4	View;
 	mat4	Projection;
+	mat4	ViewProjection;
 };
 
 struct t_Camera {
 	vec3			Position;
 	t_CameraMatrix	Matrix;
 	t_CameraMatrix	InvMatrix;
-
 };
 
 struct	t_Vert {
@@ -77,13 +76,15 @@ struct	t_Vert {
 
 layout(location = 0) in vec3	in_Position;
 layout(location = 1) in vec3	in_Normal;
-layout(location = 2) in vec2	in_Texcoord;
-layout(location = 3) in vec2	in_Texcoord1;
-layout(location = 4) in vec4	in_Color;
-layout(location = 5) in vec4	in_Joint;
-layout(location = 6) in vec4	in_Weight;
+layout(location = 2) in vec3	in_Tangent;
+layout(location = 3) in vec2	in_Texcoord_0;
+layout(location = 4) in vec2	in_Texcoord_1;
+layout(location = 5) in vec4	in_Color_0;
+layout(location = 6) in vec4	in_Joints_0;
+layout(location = 7) in vec4	in_Weight_0;
 
 uniform t_Textures				Texture;
+uniform t_Camera				Camera;
 uniform t_Matrix				Matrix;
 uniform samplerBuffer			Joints;
 uniform bool					Skinned;
@@ -107,16 +108,16 @@ mat4	GetJointMatrix(int index)
 void	FillIn()
 {
 	mat4 Joint[4];
-	Joint[0] = GetJointMatrix(int(in_Joint.x));
-	Joint[1] = GetJointMatrix(int(in_Joint.y));
-	Joint[2] = GetJointMatrix(int(in_Joint.z));
-	Joint[3] = GetJointMatrix(int(in_Joint.w));
+	Joint[0] = GetJointMatrix(int(in_Joints_0.x));
+	Joint[1] = GetJointMatrix(int(in_Joints_0.y));
+	Joint[2] = GetJointMatrix(int(in_Joints_0.z));
+	Joint[3] = GetJointMatrix(int(in_Joints_0.w));
 	if (Skinned) {
 		mat4 SkinMatrix =
-        in_Weight.x * Joint[0] +
-        in_Weight.y * Joint[1] +
-        in_Weight.z * Joint[2] +
-        in_Weight.w * Joint[3];
+        in_Weight_0.x * Joint[0] +
+        in_Weight_0.y * Joint[1] +
+        in_Weight_0.z * Joint[2] +
+        in_Weight_0.w * Joint[3];
         mat4 NewModelMatrix = Matrix.Model * SkinMatrix;
         Vert.Position = vec3(NewModelMatrix * vec4(in_Position, 1.0));
         Vert.Normal = mat3(inverse(transpose(NewModelMatrix))) * in_Normal;
@@ -125,7 +126,7 @@ void	FillIn()
 		Vert.Position = vec3(Matrix.Model * vec4(in_Position, 1.0));
 		Vert.Normal = mat3(Matrix.Normal) * in_Normal;
 	}
-	Vert.UV = in_Texcoord * Texture.Scale;
+	Vert.UV = in_Texcoord_0 * Texture.Scale;
 }
 
 void	FillOut()
@@ -133,7 +134,7 @@ void	FillOut()
 	frag_WorldPosition = Vert.Position;
 	frag_WorldNormal = Vert.Normal;
 	frag_Texcoord = Vert.UV;
-	gl_Position = Matrix.ViewProjection * vec4(Vert.Position, 1);
+	gl_Position = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Vert.Position, 1);
 }
 
 void	ApplyTechnique();

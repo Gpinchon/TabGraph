@@ -71,12 +71,10 @@ struct t_Camera {
 struct t_Out {
 	vec4		Color;
 	vec3		Emitting;
-	vec3		Normal;
 };
 
 layout(location = 0) out vec4	out_Color;
 layout(location = 1) out vec3	out_Emitting;
-layout(location = 2) out vec3	out_Normal;
 t_Out	Out;
 #endif //LIGHTSHADER
 
@@ -84,11 +82,18 @@ uniform t_Textures		Texture;
 uniform t_Camera		Camera;
 uniform vec3			Resolution;
 uniform float			Time;
+uniform uint			FrameNumber;
 
 in vec2				frag_UV;
 in vec3				frag_Cube_UV;
 
 #ifdef POSTSHADER
+struct t_Out {
+	t_Material	Material;
+	float		Depth;
+	vec3		Normal;
+};
+
 layout(location = 0) out vec4	out_Albedo;
 layout(location = 1) out vec3	out_Emitting;
 layout(location = 2) out vec3	out_Fresnel;
@@ -273,7 +278,11 @@ vec4	ClipToScreen(in vec4 position)
 vec4	WorldToScreen(in vec3 position)
 {
 	return ClipToScreen(ViewToClip(WorldToView(position)));
-	//return ClipToScreen(WorldToClip(position));
+}
+
+vec4	WorldToClip(in vec3 position)
+{
+	return ViewToClip(WorldToView(position));
 }
 
 vec3 TangentToWorld(in vec3 vec)
@@ -293,9 +302,21 @@ vec3	ScreenToWorld(in vec2 UV, in float depth)
 	return (projectedCoord.xyz / projectedCoord.w);
 }
 
+float SceneDepth(vec2 UV, float depth)
+{
+	vec4	projectedCoord = vec4(UV * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
+	return projectedCoord.w;
+}
+
+float SceneDepth()
+{
+	return SceneDepth(Frag.UV, Frag.Depth);
+}
+
 float	Depth(in vec2 UV)
 {
-	return texture(Texture.Depth, UV).r;
+	return texture(Texture.Depth, UV, 0).r;
 }
 
 vec3	WorldPosition(in vec2 UV)
@@ -333,7 +354,6 @@ void	FillFrag()
 #ifdef LIGHTSHADER
 	Out.Color = texture(Texture.Back.Color, frag_UV);
 	Out.Emitting = texture(Texture.Back.Emitting, frag_UV).rgb;
-	Out.Normal = texture(Texture.Normal, frag_UV).rgb;
 #endif
 }
 
@@ -367,7 +387,6 @@ void	FillOut(in vec3 OriginalPosition)
 	}
 	out_Color = Out.Color;
 	out_Emitting = Out.Emitting;
-	out_Normal = Out.Normal;
 }
 #endif
 
