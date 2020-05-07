@@ -11,6 +11,7 @@
 static glm::vec3 s_up(0, 1, 0);
 static glm::vec3 s_forward(0, 0, -1);
 static glm::vec3 s_right(1, 0, 0);
+static glm::vec3 s_gravity(0, -9.81, 0);
 
 glm::vec3	Common::Up()
 {
@@ -40,4 +41,14 @@ glm::vec3	Common::Right()
 void	Common::SetRight(glm::vec3 up)
 {
 	s_right = up;
+}
+
+glm::vec3 Common::Gravity()
+{
+	return s_gravity;
+}
+
+void Common::SetGravity(glm::vec3 gravity)
+{
+	s_gravity = gravity;
 }
