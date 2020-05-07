@@ -56,6 +56,8 @@ public:
     static std::vector<std::weak_ptr<Shader>> &PostTreatments();
     static void SetInternalQuality(float);
     static float InternalQuality();
+    static std::shared_ptr<Texture2D> BRDF();
+    static void SetBRDF(std::shared_ptr<Texture2D>);
 
 private:
     static void _thread();
@@ -67,6 +69,7 @@ private:
     std::atomic<bool> _drawing{false};
     uint32_t _frame_nbr{0};
     std::thread _rendering_thread;
+    std::shared_ptr<Texture2D> _brdf;
 };
 } // namespace Render
 
@@ -81,12 +84,11 @@ static auto passthrough_fragment_code =
 static auto present_fragment_code =
 #include "present.frag"
     ;
-
+/*
 static auto emptyShaderCode =
 #include "empty.glsl"
     ;
-
-
+*/
 static auto lightingFragmentCode =
 #include "lighting.frag"
     ;
@@ -134,25 +136,25 @@ const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
     return vao;
 }
 
-std::shared_ptr<Framebuffer> Create_render_buffer(const std::string &name, const glm::ivec2 &size)
+std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string &name, const glm::ivec2 &size)
 {
     auto buffer = Framebuffer::Create(name, size, 0, 1);
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // Albedo;
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
     buffer->Create_attachement(GL_RGB, GL_RGB8); // Fresnel;
-    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Material_Values -> Roughness, Metallic, Ior
+    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // MaterialValues -> Roughness, Metallic, Ior
     buffer->Create_attachement(GL_RED, GL_R8); //AO
     buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); // Normal;
     //buffer->setup_attachements();
     return (buffer);
 }
 
-std::shared_ptr<Framebuffer> Create_back_buffer(const std::string &name, const glm::ivec2 &size)
+std::shared_ptr<Framebuffer> CreateRenderBuffer(const std::string &name, const glm::ivec2 &size)
 {
     auto buffer = Framebuffer::Create(name, size, 0, 1);
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // Color;
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
-    buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); //Normal
+    //buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); //Normal
     //buffer->setup_attachements();
     return (buffer);
 }
@@ -184,26 +186,26 @@ std::vector<std::shared_ptr<Light>> shadowLights;
 //TODO Cleanup
 void render_shadows()
 {
-    static auto tempCamera = Camera::Create("light_camera", 45);
-    auto camera = Scene::Current()->CurrentCamera();
+    
+    //auto camera = Scene::Current()->CurrentCamera();
 
     //glEnable(GL_CULL_FACE);
     //glCullFace(GL_BACK);
-    glDisable(GL_CULL_FACE);
+    /*glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    Scene::Current()->SetCurrentCamera(tempCamera);
-    //tempCamera->SetProjectionMatrix(glm::mat4(1.0));
+    glDepthFunc(GL_LESS);*/
+    
     for (auto &light : shadowLights)
     {
-        light->render_buffer()->bind();
+        /*light->render_buffer()->bind();
         glClear(GL_DEPTH_BUFFER_BIT);
         tempCamera->SetPosition(light->Position());
         tempCamera->SetViewMatrix(light->TransformMatrix());
         Scene::Current()->RenderDepth(RenderMod::RenderOpaque);
-        light->render_buffer()->bind(false);
+        light->render_buffer()->bind(false);*/
+        light->render_shadow();
     }
-    Scene::Current()->SetCurrentCamera(camera);
+    //Scene::Current()->SetCurrentCamera(camera);
 }
 
 double Render::Private::DeltaTime()
@@ -259,6 +261,16 @@ float Render::Private::InternalQuality()
     return Render::Private::_instance()._internalQuality;
 }
 
+std::shared_ptr<Texture2D> Render::Private::BRDF()
+{
+    return Render::Private::_instance()._brdf;
+}
+
+void Render::Private::SetBRDF(std::shared_ptr<Texture2D> brdf)
+{
+    Render::Private::_instance()._brdf = brdf;
+}
+
 void Render::Private::RequestRedraw(void)
 {
     _instance()._needsUpdate = true;
@@ -285,6 +297,10 @@ void Render::Private::_thread(void)
     fixed_timing = SDL_GetTicks() / 1000.f;
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
+    std::shared_ptr<Texture2D> brdf = Texture2D::Create("brdf", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
+    brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    Render::Private::SetBRDF(brdf);
     while (_instance()._loop)
     {
         if (Render::Private::NeedsUpdate())
@@ -315,12 +331,16 @@ void Render::Private::Update()
 {
 }
 
-void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_ptr<Framebuffer> &current_backTexture, std::shared_ptr<Framebuffer> &current_tbuffertex)
+std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeometryBuffer)
 {
     auto lightsPerPass = Config::Get("LightsPerPass", 8u);
     auto shadowsPerPass = Config::Get("ShadowsPerPass", 8u);
+    static std::shared_ptr<Framebuffer> lightRenderBuffer0 = CreateRenderBuffer("lightRenderBuffer0", glm::vec2(currentGeometryBuffer->Size()));
     if (lightsPerPass == 0)
-        return;
+        return lightRenderBuffer0;
+    static std::shared_ptr<Framebuffer> lightRenderBuffer1 = CreateRenderBuffer("lightRenderBuffer1", glm::vec2(currentGeometryBuffer->Size()));
+    lightRenderBuffer0->Resize(glm::vec2(currentGeometryBuffer->Size()));
+    lightRenderBuffer1->Resize(glm::vec2(currentGeometryBuffer->Size()));
     static auto lighting_shader = Shader::Create("lighting", LightingShader);
     lighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingFragmentCode);
     lighting_shader->SetDefine("LIGHTNBR", std::to_string(lightsPerPass));
@@ -336,13 +356,15 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
         slighting_shader->SetDefine("SHADOW");
     auto actualShadowNbr = std::max(1u, shadowsPerPass);
     auto shader = lighting_shader;
+    lightRenderBuffer1->bind();
+    glClear(GL_COLOR_BUFFER_BIT);
+    lightRenderBuffer1->bind(false);
     for (auto i = 0u, j = 0u; i < normalLights.size() || j < shadowLights.size();)
     {
         if (normalLights.size() - i < lightsPerPass && shadowLights.size() - j != 0)
             shader = slighting_shader;
         else
             shader = lighting_shader;
-        current_backBuffer->bind();
         auto lightIndex = 0u;
         while (lightIndex < lightsPerPass && i < normalLights.size())
         {
@@ -362,7 +384,7 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Projection", light->TransformMatrix());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Projection", light->ShadowProjectionMatrix());
             shader->SetUniform("Shadow[" + std::to_string(shadowIndex) + "]", light->render_buffer()->depth(), GL_TEXTURE9 + shadowIndex);
             j++;
             lightIndex++;
@@ -370,20 +392,22 @@ void light_pass(std::shared_ptr<Framebuffer> &current_backBuffer, std::shared_pt
         }
         if (lightIndex == 0)
             continue;
-        shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-        shader->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
-        shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
-        shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
-        shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
-        shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
-        shader->SetUniform("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE7);
-        shader->SetUniform("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE8);
-        shader->SetUniform("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE8);
+        shader->SetUniform("Texture.Albedo", currentGeometryBuffer->attachement(0), GL_TEXTURE0);
+        shader->SetUniform("Texture.Emitting", currentGeometryBuffer->attachement(1), GL_TEXTURE1);
+        shader->SetUniform("Texture.Specular", currentGeometryBuffer->attachement(2), GL_TEXTURE2);
+        shader->SetUniform("Texture.MaterialValues", currentGeometryBuffer->attachement(3), GL_TEXTURE3);
+        shader->SetUniform("Texture.Normal", currentGeometryBuffer->attachement(5), GL_TEXTURE5);
+        shader->SetUniform("Texture.Depth", currentGeometryBuffer->depth(), GL_TEXTURE6);
+        shader->SetUniform("Texture.Back.Color", lightRenderBuffer1->attachement(0), GL_TEXTURE7);
+        shader->SetUniform("Texture.Back.Emitting", lightRenderBuffer1->attachement(1), GL_TEXTURE8);
+        //shader->SetUniform("Texture.Back.Normal", lightRenderBuffer1->attachement(2), GL_TEXTURE8);
+        lightRenderBuffer0->bind();
         shader->use();
         Render::Private::DisplayQuad()->Draw();
         shader->use(false);
-        std::swap(current_backTexture, current_backBuffer);
+        std::swap(lightRenderBuffer0, lightRenderBuffer1);
     }
+    return lightRenderBuffer1;
 }
 
 Render::Private &Render::Private::_instance()
@@ -423,7 +447,6 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
         HZBShader->SetStage(ShaderStage(GL_VERTEX_SHADER, HZBVertexCode));
         HZBShader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, HZBFragmentCode));
     }
-    //static auto HZBShader = GLSL::compile("HZB", HZBVertexCode, HZBFragmentCode);
     static auto framebuffer = Framebuffer::Create("HZB", depthTexture->Size(), 0, 0);
     depthTexture->generate_mipmap();
     depthTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -452,22 +475,77 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
     framebuffer->bind(false);
 }
 
-std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
+
+void SSAOPass(std::shared_ptr<Framebuffer> gBuffer)
 {
-    glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
-    static auto SSRFramebuffer(Framebuffer::Create("SSRFramebuffer", res, 1, 0));
+    glm::ivec2 res = glm::vec2(1024) * Render::Private::InternalQuality() * Config::Get("SSAOResolutionFactor", 0.5f);
+    glDepthMask(false);
+static auto SSAOFragmentCode =
+    #include "ssao.frag"
+    ;
+static auto SSAOApplyFragmentCode =
+    #include "ssaoApply.frag"
+    ;
+    static auto SSAOResult(Framebuffer::Create("SSAOBuffer", res, 1, 0));
+    static std::shared_ptr<Shader> SSAOShader;
+    static std::shared_ptr<Shader> SSAOApplyShader;
+    if (SSAOShader == nullptr) {
+        SSAOShader = Shader::Create("SSAO", LightingShader); 
+        SSAOShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSAOFragmentCode);
+    }
+    if (SSAOApplyShader == nullptr) {
+        SSAOApplyShader = Shader::Create("SSAOApply");
+        SSAOApplyShader->SetStage(ShaderStage(GL_VERTEX_SHADER, passthrough_vertex_code));
+        SSAOApplyShader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, SSAOApplyFragmentCode));
+    }
+    SSAOShader->SetUniform("Texture.AO", gBuffer->attachement(4), GL_TEXTURE0);
+    SSAOShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE1);
+    SSAOShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE2);
+    SSAOResult->Resize(res);
+    SSAOResult->bind();
+    glClear(Window::clear_mask());
+    SSAOShader->use();
+    Render::DisplayQuad()->Draw();
+    SSAOShader->use(false);
+    SSAOResult->bind(false);
+
+    SSAOResult->attachement(0)->blur(1, 1);
+
+    SSAOApplyShader->SetUniform("Texture.AO", SSAOResult->attachement(0), GL_TEXTURE0);
+    gBuffer->bind();
+    SSAOApplyShader->use();
+    Render::DisplayQuad()->Draw();
+    SSAOApplyShader->use(false);
+    gBuffer->bind(false);
+    glDepthMask(true);
+}
+
+#define SSRQUALITY 3
+
+float ComputeRoughnessMaskScale()
+{
+    float MaxRoughness = std::clamp(Config::Get("SSRMaxRoughness", 0.8f), 0.01f, 1.0f);
+
+    float RoughnessMaskScale = -2.0f / MaxRoughness;
+    return RoughnessMaskScale * (SSRQUALITY < 3 ? 2.0f : 1.0f);
+}
+
+std::shared_ptr<Texture2D> SSRPass1(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
+{
+    glm::ivec2 res = glm::vec2(1024) * Config::Get("SSRResolutionFactor", 1.f);
+    static auto SSRFramebuffer0(Framebuffer::Create("SSRFramebuffer0", res, 1, 0));
     static auto SSRFramebuffer1(Framebuffer::Create("SSRFramebuffer1", res, 1, 0));
     static auto SSRFramebufferResult(Framebuffer::Create("SSRFramebufferResult", res, 1, 0));
     static std::shared_ptr<Shader> SSRShader;
     static std::shared_ptr<Shader> SSRMergeShader;
     static std::shared_ptr<Shader> SSRBlurShader;
     if (SSRShader == nullptr) {
-        SSRShader = Shader::Create("SSR", LightingShader);
+        SSRShader = Shader::Create("SSR1", LightingShader);
         SSRShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRShaderCode);
     }
-    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_STEPS", std::to_string(Config::Get("ReflexionSteps", 8)));
-    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("REFLEXION_SAMPLES", std::to_string(Config::Get("ReflexionSamples", 10)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
     SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
     if (SSRMergeShader == nullptr) {
         SSRMergeShader = Shader::Create("SSRMerge", LightingShader);
         SSRMergeShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRMergeShaderCode);
@@ -477,42 +555,249 @@ std::shared_ptr<Texture2D> SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::sh
         SSRBlurShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRBlurShaderCode);
     }
     static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
+    SSRFramebuffer0->Resize(res);
+    SSRFramebuffer1->Resize(res);
     SSRFramebufferResult->Resize(res);
-    currentFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
-    auto lastFrameBuffer = currentFrameBuffer == SSRFramebuffer ? SSRFramebuffer1 : SSRFramebuffer;
+    currentFrameBuffer = currentFrameBuffer == SSRFramebuffer0 ? SSRFramebuffer1 : SSRFramebuffer0;
+    auto lastFrameBuffer = currentFrameBuffer == SSRFramebuffer0 ? SSRFramebuffer1 : SSRFramebuffer0;
     
     HZBPass(gBuffer->depth());
     SSRShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE0);
     SSRShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE1);
     SSRShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE2);
     SSRShader->SetUniform("LastColor", lastRender->attachement(0), GL_TEXTURE3);
-    //SSRShader->SetUniform("LastNormal", lastRender->attachement(2), GL_TEXTURE2);
-    //SSRShader->SetUniform("LastDepth", lastRender->depth(), GL_TEXTURE3);
+    SSRShader->SetUniform("FrameBufferResolution", res);
+    SSRShader->SetUniform("FrameNumber", Render::FrameNumber());
     currentFrameBuffer->Resize(res);
     currentFrameBuffer->bind();
     SSRShader->use();
     Render::Private::DisplayQuad()->Draw();
     SSRShader->use(false);
 
-    SSRShader->SetUniform("LastViewMatrix", Scene::Current()->CurrentCamera()->ViewMatrix());
-    SSRShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
-    SSRShader->SetUniform("LastInvViewMatrix", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
-    SSRShader->SetUniform("LastInvProjectionMatrix", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
-    SSRShader->SetUniform("FrameNumber", Render::FrameNumber());
+    //Blur the result
+    SSRBlurShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
+    currentFrameBuffer->attachement(0)->blur(1, 1, SSRBlurShader);
 
-    currentFrameBuffer->bind(false);
     //Merge the current result with last result to increase sampling
-    SSRFramebufferResult->bind();
+    SSRMergeShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE0);
     SSRMergeShader->SetUniform("in_Texture_Color", currentFrameBuffer->attachement(0), GL_TEXTURE1);
     SSRMergeShader->SetUniform("in_Last_Texture_Color", lastFrameBuffer->attachement(0), GL_TEXTURE2);
+    SSRFramebufferResult->bind();
     SSRMergeShader->use();
     Render::DisplayQuad()->Draw();
     SSRMergeShader->use(false);
     SSRFramebufferResult->bind(false);
+
+    SSRShader->SetUniform("LastViewMatrix", Scene::Current()->CurrentCamera()->ViewMatrix());
+    SSRShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    SSRMergeShader->SetUniform("LastViewMatrix", Scene::Current()->CurrentCamera()->ViewMatrix());
+    SSRMergeShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+
+    return SSRFramebufferResult->attachement(0);
+}
+
+std::shared_ptr<Texture2D> SSRPass0(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
+{
+    glm::ivec2 res = glm::vec2(1024) * Config::Get("SSRResolutionFactor", 1.f);
+    static auto SSRFramebuffer0(Framebuffer::Create("SSRFramebuffer0", res, 1, 0));
+    static auto SSRFramebuffer1(Framebuffer::Create("SSRFramebuffer1", res, 1, 0));
+    static auto SSRFramebufferResult(Framebuffer::Create("SSRFramebufferResult", res, 1, 0));
+    static std::shared_ptr<Shader> SSRShader;
+    static std::shared_ptr<Shader> SSRMergeShader;
+    static std::shared_ptr<Shader> SSRBlurShader;
+    if (SSRShader == nullptr) {
+        SSRShader = Shader::Create("SSR0", LightingShader);
+        SSRShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRShaderCode);
+    }
+    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
+    if (SSRMergeShader == nullptr) {
+        SSRMergeShader = Shader::Create("SSRMerge", LightingShader);
+        SSRMergeShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRMergeShaderCode);
+    }
+    if (SSRBlurShader == nullptr) {
+        SSRBlurShader = Shader::Create("SSRBlur", LightingShader);
+        SSRBlurShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRBlurShaderCode);
+    }
+    static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
+    SSRFramebuffer0->Resize(res);
+    SSRFramebuffer1->Resize(res);
+    SSRFramebufferResult->Resize(res);
+    currentFrameBuffer = currentFrameBuffer == SSRFramebuffer0 ? SSRFramebuffer1 : SSRFramebuffer0;
+    auto lastFrameBuffer = currentFrameBuffer == SSRFramebuffer0 ? SSRFramebuffer1 : SSRFramebuffer0;
+    
+    HZBPass(gBuffer->depth());
+    SSRShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE0);
+    SSRShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE1);
+    SSRShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE2);
+    SSRShader->SetUniform("LastColor", lastRender->attachement(0), GL_TEXTURE3);
+    SSRShader->SetUniform("FrameBufferResolution", res);
+    SSRShader->SetUniform("FrameNumber", Render::FrameNumber());
+    currentFrameBuffer->Resize(res);
+    currentFrameBuffer->bind();
+    SSRShader->use();
+    Render::Private::DisplayQuad()->Draw();
+    SSRShader->use(false);
+
     //Blur the result
     SSRBlurShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
-    SSRFramebufferResult->attachement(0)->blur(2, 1, SSRBlurShader);
+    currentFrameBuffer->attachement(0)->blur(1, 1, SSRBlurShader);
+
+    //Merge the current result with last result to increase sampling
+    SSRMergeShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE0);
+    SSRMergeShader->SetUniform("in_Texture_Color", currentFrameBuffer->attachement(0), GL_TEXTURE1);
+    SSRMergeShader->SetUniform("in_Last_Texture_Color", lastFrameBuffer->attachement(0), GL_TEXTURE2);
+    SSRFramebufferResult->bind();
+    SSRMergeShader->use();
+    Render::DisplayQuad()->Draw();
+    SSRMergeShader->use(false);
+    SSRFramebufferResult->bind(false);
+
+    SSRShader->SetUniform("LastViewMatrix", Scene::Current()->CurrentCamera()->ViewMatrix());
+    SSRShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    SSRMergeShader->SetUniform("LastViewMatrix", Scene::Current()->CurrentCamera()->ViewMatrix());
+    SSRMergeShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+
     return SSRFramebufferResult->attachement(0);
+}
+
+std::shared_ptr<Framebuffer> RefractionPass(std::shared_ptr<Framebuffer> geometryBuffer, std::shared_ptr<Framebuffer> opaqueRenderBuffer)
+{
+    glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
+    static auto refractionRenderBuffer(CreateRenderBuffer("refractionRenderBuffer", res));
+    static std::shared_ptr<Shader> refractionShader;
+    if (refractionShader == nullptr)
+    {
+        refractionShader = Shader::Create("refraction", LightingShader);
+        refractionShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(refractionFragmentCode);
+    }
+    auto i = 0;
+    refractionShader->SetUniform("Texture.Albedo", geometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.Emitting", geometryBuffer->attachement(1), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.Specular", geometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.MaterialValues", geometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.AO", geometryBuffer->attachement(4), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.Normal", geometryBuffer->attachement(5), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.Depth", geometryBuffer->depth(), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.BRDF", Render::Private::BRDF(), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.Back.Color", opaqueRenderBuffer->attachement(0), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.Back.Emitting", opaqueRenderBuffer->attachement(1), GL_TEXTURE0 + (++i));
+    //refractionShader->SetUniform("Texture.Back.Normal", opaqueRenderBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    refractionRenderBuffer->bind();
+    refractionShader->use();
+    Render::Private::DisplayQuad()->Draw();
+    refractionShader->use(false);
+    refractionRenderBuffer->bind(false);
+    return refractionRenderBuffer;
+}
+
+std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
+{
+    glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
+    static auto opaqueGeometryBuffer(CreateGeometryBuffer("opaqueGeometryBuffer", res));
+    static auto opaqueRenderBuffer(CreateRenderBuffer("opaqueRenderBuffer", res));
+    static std::shared_ptr<Shader> elighting_shader;
+    if (elighting_shader == nullptr)
+    {
+        elighting_shader = Shader::Create("lighting_env", LightingShader);
+        elighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
+    }
+    opaqueGeometryBuffer->Resize(res);
+    opaqueRenderBuffer->Resize(res);
+    opaqueGeometryBuffer->bind();
+    glClear(Window::clear_mask());
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    Scene::Current()->Render(RenderMod::RenderOpaque);
+    opaqueGeometryBuffer->bind(false);
+
+    auto SSRResult(SSRPass0(opaqueGeometryBuffer, lastRender));
+    auto lightResult(light_pass(opaqueGeometryBuffer));
+
+    SSAOPass(opaqueGeometryBuffer);
+
+    auto i = 0;
+    elighting_shader->SetUniform("Texture.Albedo", opaqueGeometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Emitting", opaqueGeometryBuffer->attachement(1), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Specular", opaqueGeometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.MaterialValues", opaqueGeometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.AO", opaqueGeometryBuffer->attachement(4), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Normal", opaqueGeometryBuffer->attachement(5), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Depth", opaqueGeometryBuffer->depth(), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.BRDF", Render::Private::BRDF(), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Color", lightResult->attachement(0), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Emitting", lightResult->attachement(1), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
+    if (Environment::current() != nullptr)
+    {
+        elighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
+        elighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
+    }
+    opaqueRenderBuffer->bind();
+    elighting_shader->use();
+    Render::Private::DisplayQuad()->Draw();
+    elighting_shader->use(false);
+    opaqueRenderBuffer->bind(false);
+    return opaqueRenderBuffer;
+}
+
+std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender, std::shared_ptr<Framebuffer> opaqueRenderBuffer)
+{
+    glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
+    static auto transpGeometryBuffer(CreateGeometryBuffer("transpGeometryBuffer", res));
+    static auto transpRenderBuffer(CreateRenderBuffer("transpRenderBuffer", res));
+    static std::shared_ptr<Shader> elighting_shader;
+    if (elighting_shader == nullptr)
+    {
+        elighting_shader = Shader::Create("lighting_env_transparent", LightingShader);
+        elighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
+        elighting_shader->SetDefine("TRANSPARENT");
+    }
+    transpGeometryBuffer->SetDepthBuffer(opaqueRenderBuffer->depth());
+    transpRenderBuffer->Resize(res);
+    transpGeometryBuffer->Resize(res);
+    
+    //Transparent pass
+    transpGeometryBuffer->bind();
+    glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    Scene::Current()->Render(RenderMod::RenderTransparent);
+    transpGeometryBuffer->bind(false);
+
+    //SSAOPass(transpGeometryBuffer);
+
+    auto SSRResult(SSRPass1(transpGeometryBuffer, lastRender));
+    auto refractionResult(RefractionPass(transpGeometryBuffer, opaqueRenderBuffer));
+
+    auto i = 0;
+    elighting_shader->SetUniform("Texture.Albedo", transpGeometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Emitting", transpGeometryBuffer->attachement(1), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Specular", transpGeometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.MaterialValues", transpGeometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.AO", transpGeometryBuffer->attachement(4), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Normal", transpGeometryBuffer->attachement(5), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Depth", transpGeometryBuffer->depth(), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.BRDF", Render::Private::BRDF(), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Color", refractionResult->attachement(0), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Back.Emitting", refractionResult->attachement(1), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
+    if (Environment::current() != nullptr)
+    {
+        elighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
+        elighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
+    }
+    transpRenderBuffer->bind();
+    elighting_shader->use();
+    Render::Private::DisplayQuad()->Draw();
+    elighting_shader->use(false);
+    transpRenderBuffer->bind(false);
+    return transpRenderBuffer;
 }
 
 void Render::Private::Scene()
@@ -522,135 +807,16 @@ void Render::Private::Scene()
         //present(final_back_buffer);
         return;
     }
-    /*
     glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
-
     //Setup framebuffers
-    static auto opaqueBuffer(Create_render_buffer("opaqueBuffer", res));
-    static auto transpBuffer(Create_render_buffer("transpBuffer", res));
-    static auto renderBuffer0(Create_back_buffer("renderBuffer0", res));
-    static auto renderBuffer1(Create_back_buffer("renderBuffer1", res));
-    static std::shared_ptr<Texture2D> brdf;
-    if (brdf == nullptr)
-    {
-        brdf = Texture2D::Create("brdf", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
-        brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    }
-    opaqueBuffer->Resize(res);
-    transpBuffer->Resize(res);
-    renderBuffer0->Resize(res);
-    renderBuffer1->Resize(res);
+    static auto finalRenderBuffer(CreateRenderBuffer("finalRenderBuffer", res));
+    static auto lastRender(CreateRenderBuffer("lastRender", res / 8));
+    finalRenderBuffer->Resize(res);
+    lastRender->Resize(res / 8);
 
     //Setup shaders
-    static std::shared_ptr<Shader> elighting_shader;
-    if (elighting_shader == nullptr)
-    {
-        elighting_shader = Shader::Create("lighting_env", LightingShader);
-        elighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
-    }
-
-    //Clear buffers
-    opaqueBuffer->bind();
-    glClear(Window::clear_mask());
-    opaqueBuffer->bind(false);
-    transpBuffer->bind();
-    glClear(Window::clear_mask());
-    transpBuffer->bind(false);
-
-    opaqueBuffer->bind();
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    Scene::Current()->Render(RenderMod::RenderOpaque);
-    opaqueBuffer->bind(false);
-
-    transpBuffer->bind();
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    Scene::Current()->Render(RenderMod::RenderTransparent);
-    transpBuffer->bind(false);
-
-    auto SSRResult(SSRPass(opaqueBuffer, renderBuffer0));
-
-    renderBuffer1->bind();
-    glClear(Window::clear_mask());
-    renderBuffer1->bind(false);
-
-    auto i = 1;
-    elighting_shader->SetUniform("Texture.Albedo", opaqueBuffer->attachement(0), GL_TEXTURE0);
-    elighting_shader->SetUniform("Texture.Emitting", opaqueBuffer->attachement(1), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Specular", opaqueBuffer->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.MaterialValues", opaqueBuffer->attachement(3), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.AO", opaqueBuffer->attachement(4), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Normal", opaqueBuffer->attachement(5), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Depth", opaqueBuffer->depth(), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.BRDF", brdf, GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Back.Color", renderBuffer1->attachement(0), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Back.Emitting", renderBuffer1->attachement(1), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Back.Normal", renderBuffer1->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
-    if (Environment::current() != nullptr)
-    {
-        elighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
-        elighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
-    }
-    renderBuffer0->bind();
-    elighting_shader->use();
-    Render::Private::DisplayQuad()->Draw();
-    elighting_shader->use(false);
-    renderBuffer0->bind(false);
     
-    present(renderBuffer0);
-    std::swap(renderBuffer0, renderBuffer1);
-    */
-
-    static std::shared_ptr<Texture2D> brdf;
-    if (brdf == nullptr)
-    {
-        brdf = Texture2D::Create("brdf", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
-        brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    }
-    glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
-
-    static auto temp_buffer = Create_render_buffer("temp_buffer", res);
-    static auto temp_buffer1 = Create_render_buffer("temp_buffer1", res);
-    static auto back_buffer = Create_back_buffer("back_buffer", res);
-    static auto back_buffer1 = Create_back_buffer("back_buffer1", res);
-    static auto back_buffer2 = Create_back_buffer("back_buffer2", res);
-    static auto final_back_buffer = Create_back_buffer("final_back_buffer", res);
-    static auto last_render = Create_back_buffer("last_render", res);
-    static std::shared_ptr<Shader> elighting_shader;
-    static std::shared_ptr<Shader> telighting_shader;
-    static std::shared_ptr<Shader> refraction_shader;
-    static std::shared_ptr<Shader> empty_shader;
     static std::shared_ptr<Shader> passthrough_shader;
-
-    if (elighting_shader == nullptr)
-    {
-        elighting_shader = Shader::Create("lighting_env", LightingShader);
-        elighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
-    }
-    if (telighting_shader == nullptr)
-    {
-        telighting_shader = Shader::Create("lighting_env_transparent", LightingShader);
-        telighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
-        telighting_shader->Stage(GL_FRAGMENT_SHADER).SetDefine("TRANSPARENT");
-    }
-    if (refraction_shader == nullptr)
-    {
-        refraction_shader = Shader::Create("refraction", LightingShader);
-        refraction_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(refractionFragmentCode);
-    }
-    if (empty_shader == nullptr)
-    {
-        empty_shader = Shader::Create("empty", LightingShader);
-        empty_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(emptyShaderCode);
-    }
     if (passthrough_shader == nullptr)
     {
         passthrough_shader = Shader::Create("passthrough");
@@ -658,194 +824,27 @@ void Render::Private::Scene()
         passthrough_shader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, passthrough_fragment_code));
     }
 
-    temp_buffer->Resize(res);
-    temp_buffer1->Resize(res);
-    back_buffer->Resize(res);
-    back_buffer1->Resize(res);
-    back_buffer2->Resize(res);
-    final_back_buffer->Resize(res);
-    last_render->Resize(res / 2);
+    auto opaqueRenderBuffer(OpaquePass(lastRender));
+    opaqueRenderBuffer->attachement(0)->generate_mipmap();
+    opaqueRenderBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    opaqueRenderBuffer->attachement(1)->generate_mipmap();
+    opaqueRenderBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-    auto current_tbuffer = temp_buffer;
-    auto current_tbuffertex = temp_buffer1;
+    auto transpRenderBuffer(TranspPass(lastRender, opaqueRenderBuffer));
+    transpRenderBuffer->attachement(1)->blur(Config::Get("BloomPass", 1), 3.5);
 
-    /*
-	** TODO :
-	** 	- CLEANUP CODE
-	*/
-    glClearColor(0, 0, 0, 0);
-    current_tbuffer->bind();
+    lastRender->bind();
     glClear(Window::clear_mask());
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    Scene::Current()->Render(RenderMod::RenderOpaque);
-    std::swap(current_tbuffer, current_tbuffertex);
-
-    glDepthFunc(GL_ALWAYS);
-    glDisable(GL_CULL_FACE);
-    if (PostTreatments().size() == 0u)
-    {
-        current_tbuffer->bind();
-        empty_shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-        empty_shader->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
-        empty_shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
-        empty_shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
-        empty_shader->SetUniform("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
-        empty_shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
-        empty_shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
-        empty_shader->use();
-        Render::Private::DisplayQuad()->Draw();
-        empty_shader->use(false);
-    }
-    for (auto shader : PostTreatments())
-    {
-        // APPLY POST-TREATMENT
-        auto shaderPtr = shader.lock();
-        current_tbuffer->bind();
-        shaderPtr->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-        shaderPtr->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE1);
-        shaderPtr->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE2);
-        shaderPtr->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE3);
-        shaderPtr->SetUniform("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE4);
-        shaderPtr->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE5);
-        shaderPtr->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE6);
-        shaderPtr->SetUniform("Texture.BRDF", brdf, GL_TEXTURE7);
-        if (Environment::current() != nullptr)
-        {
-            shaderPtr->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE8);
-            shaderPtr->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE9);
-        }
-        shaderPtr->use();
-        Render::Private::DisplayQuad()->Draw();
-        shaderPtr->use(false);
-
-        std::swap(current_tbuffer, current_tbuffertex);
-    }
-    current_tbuffertex->attachement(4)->blur(1, 0.75);
-
-    auto current_backBuffer = back_buffer;
-    auto current_backTexture = back_buffer1;
-
-    current_backTexture->bind();
-    glClear(GL_COLOR_BUFFER_BIT);
-    light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
-
-    last_render->attachement(0)->generate_mipmap();
-    last_render->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-    auto SSRResult(SSRPass(current_tbuffertex, last_render));
-
-    // APPLY LIGHTING SHADER
-    // OUTPUT : out_Color, out_Brightness
-    current_backBuffer->bind();
-    auto i = 1;
-    elighting_shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-    elighting_shader->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.BRDF", brdf, GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
-    if (Environment::current() != nullptr)
-    {
-        elighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
-        elighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
-    }
-    elighting_shader->use();
-    Render::Private::DisplayQuad()->Draw();
-    elighting_shader->use(false);
-    std::swap(current_backTexture, current_backBuffer);
-
-    current_tbuffer->bind();
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    Scene::Current()->Render(RenderMod::RenderTransparent);
-    std::swap(current_tbuffer, current_tbuffertex);
-
-    auto opaqueBackBuffer = current_backTexture;
-    opaqueBackBuffer->attachement(0)->generate_mipmap();
-    opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    //opaqueBackBuffer->depth()->generate_mipmap();
-    //opaqueBackBuffer->depth()->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-    current_backTexture = back_buffer2;
-    back_buffer2->bind();
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glDepthFunc(GL_ALWAYS);
-    glDisable(GL_CULL_FACE);
-    light_pass(current_backBuffer, current_backTexture, current_tbuffertex);
-
-    current_backBuffer->bind();
-    i = 1;
-    telighting_shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-    telighting_shader->SetUniform("Texture.Emitting", current_tbuffertex->attachement(1), GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("Texture.AO", current_tbuffertex->attachement(4), GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("Texture.BRDF", brdf, GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
-    telighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
-    if (Environment::current() != nullptr)
-    {
-        telighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
-        telighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
-    }
-    telighting_shader->use();
-    Render::Private::DisplayQuad()->Draw();
-    telighting_shader->use(false);
-    std::swap(current_backTexture, current_backBuffer);
-
-    final_back_buffer->bind();
-    i = 1;
-    refraction_shader->SetUniform("Texture.Albedo", current_tbuffertex->attachement(0), GL_TEXTURE0);
-    refraction_shader->SetUniform("Texture.Specular", current_tbuffertex->attachement(2), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("Texture.MaterialValues", current_tbuffertex->attachement(3), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("Texture.Normal", current_tbuffertex->attachement(5), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("Texture.Depth", current_tbuffertex->depth(), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("Texture.Back.Color", current_backTexture->attachement(0), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("Texture.Back.Emitting", current_backTexture->attachement(1), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("Texture.Back.Normal", current_backTexture->attachement(2), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("opaqueBackColor", opaqueBackBuffer->attachement(0), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("opaqueBackEmitting", opaqueBackBuffer->attachement(1), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("opaqueBackNormal", opaqueBackBuffer->attachement(2), GL_TEXTURE0 + (++i));
-    refraction_shader->SetUniform("opaqueBackDepth", opaqueBackBuffer->depth(), GL_TEXTURE0 + (++i));
-    refraction_shader->use();
-    Render::Private::DisplayQuad()->Draw();
-    refraction_shader->use(false);
-
-    final_back_buffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    final_back_buffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    final_back_buffer->attachement(2)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    opaqueBackBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    opaqueBackBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    // GENERATE BLOOM FROM out_Brightness
-    final_back_buffer->attachement(1)->blur(Config::Get("BloomPass", 1), 3.5);
-
-    last_render->bind();
-    passthrough_shader->SetUniform("in_Buffer0", final_back_buffer->attachement(0), GL_TEXTURE0);
-    passthrough_shader->SetUniform("in_Buffer1", final_back_buffer->attachement(1), GL_TEXTURE1);
-    passthrough_shader->SetUniform("in_Buffer2", final_back_buffer->attachement(2), GL_TEXTURE2);
-    passthrough_shader->SetUniform("in_Texture_Depth", final_back_buffer->depth(), GL_TEXTURE6);
+    lastRender->bind();
+    passthrough_shader->SetUniform("in_Buffer0", transpRenderBuffer->attachement(0), GL_TEXTURE0);
+    passthrough_shader->SetUniform("in_Buffer1", transpRenderBuffer->attachement(1), GL_TEXTURE1);
+    passthrough_shader->SetUniform("in_Texture_Depth", transpRenderBuffer->depth(), GL_TEXTURE6);
     passthrough_shader->use();
     Render::Private::DisplayQuad()->Draw();
     passthrough_shader->use(false);
-    present(final_back_buffer);
+    lastRender->bind(false);
+
+    present(transpRenderBuffer);
 }
 
 std::vector<std::weak_ptr<Shader>> &Render::Private::PostTreatments()

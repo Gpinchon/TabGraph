@@ -48,5 +48,7 @@ float InternalQuality();
 	*/
 double DeltaTime();
 
+uint32_t FrameNumber();
+
 const std::shared_ptr<Geometry> DisplayQuad();
 };
