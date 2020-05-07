@@ -11,7 +11,7 @@
 
 class OrbitCamera : public Camera {
 public:
-    static std::shared_ptr<OrbitCamera> Create(const std::string&, float fov, float phi, float theta, float radius, CameraProjection proj = PerspectiveCamera);
+    static std::shared_ptr<OrbitCamera> Create(const std::string&, float fov, float phi, float theta, float radius, Camera::Projection proj = Perspective);
     //virtual void UpdateViewMatrix() override;
     virtual glm::vec3 Position() const override;
     virtual glm::quat Rotation() const override;
@@ -23,7 +23,7 @@ public:
     void SetRadius(float);
 
 private:
-    OrbitCamera(const std::string&, float fov, float phi, float theta, float radius, CameraProjection proj);
+    OrbitCamera(const std::string&, float fov, float phi, float theta, float radius, Camera::Projection proj);
     virtual void SetPosition(glm::vec3) override;
     float _phi { 0 };
     float _theta { 0 };

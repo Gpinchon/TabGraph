@@ -14,17 +14,17 @@
 #include <string> // for string
 #include <vector> // for vector
 
-enum CameraProjection {
-    OrthoCamera,
-    PerspectiveCamera
-};
-
 /**
  * @brief The default "general purpose" camera
  */
 class Camera : public Node {
 public:
-    static std::shared_ptr<Camera> Create(const std::string&, float fov, CameraProjection proj = PerspectiveCamera);
+    enum Projection {
+        Invalid = -1,
+        Ortho,
+        Perspective
+    };
+    static std::shared_ptr<Camera> Create(const std::string&, float fov, Camera::Projection proj = Perspective);
     static std::shared_ptr<Camera> Create(std::shared_ptr<Camera> otherCamera);
     /** Overload this to change Camera's behavior */
     //virtual void UpdateProjectionMatrix();
@@ -43,7 +43,8 @@ public:
      */
     virtual glm::mat4 ProjectionMatrix() const;
     //virtual void SetProjectionMatrix(glm::mat4);
-    virtual glm::ivec4 Frustum() const;
+    virtual glm::vec4 Frustum() const;
+    virtual void SetFrustum(glm::vec4 frustum);
     /** @return the vertical field of view in degrees */
     virtual float Fov() const;
     /** @arg fov : the vertical field of view in degrees */
@@ -74,19 +75,21 @@ public:
      * @arg zfar : the new far clipping plane distance
      */
     virtual void SetZfar(float zfar);
+    virtual Camera::Projection ProjectionType() const;
+    virtual void SetProjectionType(Camera::Projection projectionType);
     virtual ~Camera() = default;
 
 protected:
-    Camera(const std::string& name, float fov, CameraProjection proj = PerspectiveCamera);
+    Camera(const std::string& name, float fov, Camera::Projection proj = Perspective);
 
 private:
     /** Calls UpdateViewMatrix and UpdateProjectionMatrix */
     void UpdateTransformMatrix() final override;
     glm::mat4 TransformMatrix() const final override;
     void SetTransformMatrix(glm::mat4) final override;
-    CameraProjection _projection_type { PerspectiveCamera };
+    Camera::Projection _projection_type { Perspective };
     //glm::mat4 _projection { 0 };
-    glm::ivec4 _frustum { -50, 50, -50, 50 };
+    glm::vec4 _frustum { -50, 50, -50, 50 };
     float _fov { 45 };
     float _znear { 0.1 };
     float _zfar { 0 };

@@ -8,12 +8,12 @@
 #include "FPSCamera.hpp"
 #include <memory>
 
-FPSCamera::FPSCamera(const std::string& name, float fov, CameraProjection proj)
+FPSCamera::FPSCamera(const std::string& name, float fov, Camera::Projection proj)
     : Camera(name, fov, proj)
 {
 }
 
-std::shared_ptr<FPSCamera> FPSCamera::Create(const std::string& name, float ifov, CameraProjection proj)
+std::shared_ptr<FPSCamera> FPSCamera::Create(const std::string& name, float ifov, Camera::Projection proj)
 {
     return std::shared_ptr<FPSCamera>(new FPSCamera(name, ifov, proj));
 }

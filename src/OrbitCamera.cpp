@@ -8,7 +8,7 @@
 #include "OrbitCamera.hpp"
 #include "Tools.hpp"
 
-OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, CameraProjection proj)
+OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
     : Camera(iname, ifov, proj)
 {
     _phi = phi;
@@ -16,7 +16,7 @@ OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float 
     _radius = radius;
 }
 
-std::shared_ptr<OrbitCamera> OrbitCamera::Create(const std::string& iname, float ifov, float phi, float theta, float radius, CameraProjection proj)
+std::shared_ptr<OrbitCamera> OrbitCamera::Create(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
 {
     std::shared_ptr<OrbitCamera> camera(new OrbitCamera(iname, ifov, phi, theta, radius, proj));
     return (camera);
