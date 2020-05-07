@@ -1,25 +1,25 @@
 #pragma once
 #include <memory>
 #include <functional>
+#include <type_traits>
 
 /** Callback wrapper */
+template <typename Signature = void()>
 class Callback
 {
 public:
-    static std::shared_ptr<Callback> Create(std::function<void()>);
-    template<typename F, typename T>
-    static std::shared_ptr<Callback> Create(const F &callback, const T &argument);
-    void operator()();
+    template<typename F, typename... Args>
+    static auto Create(const F &callback, Args... args) {
+        auto bindResult = std::bind(callback, args...);
+        return std::shared_ptr<Callback<Signature>>(new Callback<Signature>(bindResult));
+    }
+    template<typename... Args>
+    auto Call(Args... args) const { return _function(args...); };
+    template<typename... Args>
+    auto operator() (Args... args) const { return Call(args...); };
 protected:
-    Callback() = default;
+    template <typename Function>
+    Callback(Function f) : _function(f) {};
 private:
-    std::function<void()> _function;
+    std::function<Signature> _function;
 };
-
-template<typename F, typename T>
-std::shared_ptr<Callback> Callback::Create(const F &callback, const T &argument)
-{
-	std::shared_ptr<Callback> newCallback(new Callback());
-	newCallback->_function = std::bind(callback, argument);
-    return newCallback;
-}
