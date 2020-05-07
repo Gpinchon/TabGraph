@@ -1,6 +1,8 @@
 #pragma once
 
+#include <variant>
 #include <memory>
+#include <glm/glm.hpp>
 #include <GL/glew.h>
 #include "Object.hpp"
 
@@ -14,7 +16,19 @@ class BufferView;
 class BufferAccessor : public Object
 {
 public:
-	static std::shared_ptr<BufferAccessor> Create(GLenum componentType, size_t count, const std::string type);
+	enum Type
+	{
+		Invalid = -1,
+		Scalar,
+		Vec2,
+		Vec3,
+		Vec4,
+		Mat2,
+		Mat3,
+		Mat4,
+		MaxType
+	};
+	static std::shared_ptr<BufferAccessor> Create(GLenum componentType, size_t count, const BufferAccessor::Type type);
 	/** The BufferView. */
 	std::shared_ptr<BufferView> GetBufferView() const;
 	void SetBufferView(std::shared_ptr<BufferView>);
@@ -22,11 +36,11 @@ public:
 	size_t ByteOffset() const;
 	void SetByteOffset(size_t);
 	/** @return : ComponentByteSize * ComponentSize */
-	size_t TotalComponentByteSize();
+	size_t TotalComponentByteSize() const;
 	/** @return : The byte size of the components. */
-	size_t ComponentByteSize();
+	size_t ComponentByteSize() const;
 	/** @return : Specifies the number of components per generic vertex attribute. */
-	size_t ComponentSize();
+	size_t ComponentSize() const;
 	/** The datatype of components in the attribute. */
 	GLenum ComponentType() const;
 	void SetComponentType(GLenum);
@@ -36,18 +50,25 @@ public:
 	/** The number of attributes referenced by this accessor. */
 	size_t Count() const;
 	void SetCount(size_t);
-	/** Specifies if the attribute is a scalar, vector, or matrix. */
-	std::string Type() const;
-	void SetType(const std::string &);
-	/** Maximum value of each component in this attribute. */
-	std::vector<double> Max() const;
-	void SetMax(std::initializer_list<double>);
-	/** Minimum value of each component in this attribute. */
-	std::vector<double> Min() const;
-	void SetMin(std::initializer_list<double>);
+	/** @return : the Accessor's type (see : BufferAccessor::Type) */
+	BufferAccessor::Type GetType() const;
+	/** @return : the Accessor's type corresponding to the string */
+	static BufferAccessor::Type GetType(const std::string &type);
+	/** @return : the maximum value for this Accessor */
+	template <typename T>
+	T Max() const;
+	/** @arg max : the new maximum value for this accessor */
+	template <typename T>
+	void SetMax(const T max);
+	/** @return : the minimum value for this Accessor */
+	template <typename T>
+	T Min() const;
+	/** @arg min : the new minimum value for this accessor */
+	template <typename T>
+	void SetMin(const T min);
 
 protected:
-	BufferAccessor(GLenum componentType, size_t count, const std::string type);
+	BufferAccessor(GLenum componentType, size_t count, const BufferAccessor::Type type);
 	BufferAccessor() = delete;
 	
 private:
@@ -56,7 +77,32 @@ private:
 	GLenum _componentType {0};
 	bool _normalized{false};
 	size_t _count {0};
-	std::string _type{""};
-	std::vector<double> _max{};
-	std::vector<double> _min{};
+	const BufferAccessor::Type _type { Invalid };
+	typedef std::variant<double, glm::vec2, glm::vec3, glm::vec4, glm::mat2, glm::mat3, glm::mat4> boundsVar;
+	boundsVar _max {};
+	boundsVar _min {};
 };
+
+template <typename T>
+inline T BufferAccessor::Max() const
+{
+	return std::get<T>(_max);
+}
+
+template <typename T>
+inline void BufferAccessor::SetMax(const T max)
+{
+	_max = max;
+}
+
+template <typename T>
+inline T BufferAccessor::Min() const
+{
+	return std::get<T>(_min);
+}
+
+template <typename T>
+inline void BufferAccessor::SetMin(const T min)
+{
+	_min = min;
+}

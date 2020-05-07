@@ -1,7 +1,8 @@
 #include "BufferAccessor.hpp"
 #include "BufferView.hpp"
+#include <algorithm>
 
-BufferAccessor::BufferAccessor(GLenum componentType, size_t count, const std::string type) : Object(""),
+BufferAccessor::BufferAccessor(GLenum componentType, size_t count, const BufferAccessor::Type type) : Object(""),
 	_componentType(componentType),
 	_count(count),
 	_type(type)
@@ -9,7 +10,7 @@ BufferAccessor::BufferAccessor(GLenum componentType, size_t count, const std::st
 
 }
 
-std::shared_ptr<BufferAccessor> BufferAccessor::Create(GLenum componentType, size_t count, const std::string type)
+std::shared_ptr<BufferAccessor> BufferAccessor::Create(GLenum componentType, size_t count, const BufferAccessor::Type type)
 {
 	return std::shared_ptr<BufferAccessor>(new BufferAccessor(componentType, count, type));
 }
@@ -34,12 +35,12 @@ void BufferAccessor::SetByteOffset(size_t byteOffset)
 	_byteOffset = byteOffset;
 }
 
-size_t BufferAccessor::TotalComponentByteSize()
+size_t BufferAccessor::TotalComponentByteSize() const
 {
 	return ComponentSize() * ComponentByteSize();
 }
 
-size_t BufferAccessor::ComponentByteSize()
+size_t BufferAccessor::ComponentByteSize() const
 {
 	switch (ComponentType())
     {
@@ -57,23 +58,27 @@ size_t BufferAccessor::ComponentByteSize()
     }
 }
 
-size_t BufferAccessor::ComponentSize()
+size_t BufferAccessor::ComponentSize() const
 {
-	if (Type() == "SCALAR")
-		return 1;
-	if (Type() == "VEC2")
-		return 2;
-	if (Type() == "VEC3")
-		return 3;
-	if (Type() == "VEC4")
-		return 4;
-	if (Type() == "MAT2")
-		return 4;
-	if (Type() == "MAT3")
-		return 9;
-	if (Type() == "MAT4")
-		return 16;
-	return 0;
+	switch (GetType())
+	{
+		case Scalar :
+			return 1;
+		case Vec2 :
+			return 2;
+		case Vec3 :
+			return 3;
+		case Vec4 :
+			return 4;
+		case Mat2 :
+			return 4;
+		case Mat3 :
+			return 9;
+		case Mat4 :
+			return 16;
+		default :
+			return 0;
+	}
 }
 
 GLenum BufferAccessor::ComponentType() const
@@ -106,34 +111,28 @@ void BufferAccessor::SetCount(size_t count)
 	_count = count;
 }
 
-std::string BufferAccessor::Type() const
+BufferAccessor::Type BufferAccessor::GetType() const
 {
 	return _type;
 }
 
-void BufferAccessor::SetType(const std::string &type)
+BufferAccessor::Type BufferAccessor::GetType(const std::string &type)
 {
-	_type = type;
+	std::string lowerType(type);
+    std::transform(lowerType.begin(), lowerType.end(), lowerType.begin(), ::tolower);
+    if (lowerType == "scalar")
+		return Scalar;
+	if (lowerType == "vec2")
+		return Vec2;
+	if (lowerType == "vec3")
+		return Vec3;
+	if (lowerType == "vec4")
+		return Vec4;
+	if (lowerType == "mat2")
+		return Mat2;
+	if (lowerType == "mat3")
+		return Mat3;
+	if (lowerType == "mat4")
+		return Mat4;
+	return Invalid;
 }
-
-std::vector<double> BufferAccessor::Max() const
-{
-	return _max;
-}
-
-void BufferAccessor::SetMax(std::initializer_list<double>)
-{
-
-}
-
-std::vector<double> BufferAccessor::Min() const
-{
-	return _min;
-}
-
-void BufferAccessor::SetMin(std::initializer_list<double>)
-{
-
-}
-
-

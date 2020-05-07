@@ -53,39 +53,74 @@ inline std::shared_ptr<BufferView> BufferHelper::CreateBufferView(std::vector<T>
 	return bufferView;
 }
 
+template <typename T>
+inline void FindMinMax(const std::vector<T> &vector, T &min, T &max)
+{
+	min = vector.at(0);
+	max = vector.at(0);
+	for (const auto &v : vector)
+	{
+		max = glm::max(v, max);
+		min = glm::min(v, min);
+	}
+}
+
+template <>
+inline void FindMinMax(const std::vector<glm::mat4> &vector, glm::mat4 &min, glm::mat4 &max)
+{
+	min = vector.at(0);
+	max = vector.at(vector.size() - 1);
+}
+
 template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::mat4> bufferVector, GLenum target, bool normalized) {
 	auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
-	auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), "MAT4"));
+	auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Mat4));
+	glm::mat4 min, max;
+	FindMinMax(bufferVector, min, max);
 	bufferAccessor->SetBufferView(bufferView);
 	bufferAccessor->SetNormalized(normalized);
+	bufferAccessor->SetMin(min);
+	bufferAccessor->SetMax(max);
 	return bufferAccessor;
 }
 
 template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<unsigned> bufferVector, GLenum target, bool normalized) {
 	auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
-	auto bufferAccessor(BufferAccessor::Create(GL_UNSIGNED_INT, bufferVector.size(), "SCALAR"));
+	auto bufferAccessor(BufferAccessor::Create(GL_UNSIGNED_INT, bufferVector.size(), BufferAccessor::Type::Scalar));
+	unsigned min, max;
+	FindMinMax(bufferVector, min, max);
 	bufferAccessor->SetBufferView(bufferView);
 	bufferAccessor->SetNormalized(normalized);
+	bufferAccessor->SetMin(min);
+	bufferAccessor->SetMax(max);
 	return bufferAccessor;
 }
 
 template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec3> bufferVector, GLenum target, bool normalized) {
 	auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
-	auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), "VEC3"));
+	auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec3));
+	glm::vec3 min, max;
+	FindMinMax(bufferVector, min, max);
 	bufferAccessor->SetBufferView(bufferView);
 	bufferAccessor->SetNormalized(normalized);
+	bufferAccessor->SetMin(min);
+	bufferAccessor->SetMax(max);
 	return bufferAccessor;
 }
 
 template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec2> bufferVector, GLenum target, bool normalized) {
 	auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
-	auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), "VEC2"));
+	auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec2));
+	glm::vec2 min, max;
+	FindMinMax(bufferVector, min, max);
 	bufferAccessor->SetBufferView(bufferView);
 	bufferAccessor->SetNormalized(normalized);
+	bufferAccessor->SetMin(min);
+	bufferAccessor->SetMax(max);
 	return bufferAccessor;
 }
 
