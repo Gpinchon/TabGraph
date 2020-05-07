@@ -6,7 +6,7 @@
 #    By: gpinchon <gpinchon@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/02/18 14:51:09 by gpinchon          #+#    #+#              #
-#    Updated: 2020/04/05 14:50:51 by gpinchon         ###   ########.fr        #
+#    Updated: 2020/05/04 16:21:08 by gpinchon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -52,7 +52,6 @@ SHADERS_FILES	=	\
 					SSRMerge.frag			\
 					SSRBlur.frag
 HEADERS_FILES	=	\
-					AABB.hpp					\
 					Animation.hpp				\
 					AnimationChannel.hpp		\
 					AnimationInterpolator.hpp	\
@@ -62,6 +61,9 @@ HEADERS_FILES	=	\
 					BufferAccessor.hpp			\
 					BufferView.hpp				\
 					BoundingElement.hpp			\
+					BoundingAABB.hpp			\
+					BoundingSphere.hpp			\
+					BoundingMesh.hpp			\
 					Callback.hpp				\
 					Camera.hpp					\
 					Common.hpp					\
@@ -103,8 +105,11 @@ HEADERS_FILES	=	\
 					parser/MTLLIB.hpp			\
 					parser/OBJ.hpp				\
 					parser/TABSCENE.hpp			\
+					PhysicsEngine.hpp			\
+					PlaneMesh.hpp				\
 					Quadtree.hpp				\
 					Render.hpp					\
+					RigidBody.hpp				\
 					Scene.hpp					\
 					SceneParser.hpp				\
 					Shader.hpp					\
@@ -118,11 +123,15 @@ HEADERS_FILES	=	\
 					TextureParser.hpp			\
 					Window.hpp
 SRC_FILES		=	\
-					AABB.cpp					\
 					Animation.cpp				\
 					AnimationChannel.cpp		\
 					AnimationInterpolator.cpp	\
 					AnimationSampler.cpp		\
+					BoundingElement.cpp			\
+					BoundingAABB.cpp			\
+					BoundingPlane.cpp			\
+					BoundingSphere.cpp			\
+					BoundingMesh.cpp			\
 					Buffer.cpp					\
 					BufferAccessor.cpp			\
 					BufferView.cpp				\
@@ -141,6 +150,7 @@ SRC_FILES		=	\
 					GameController.cpp			\
 					Geometry.cpp				\
 					GLUniformHelper.cpp			\
+					Intersection.cpp			\
 					Keyboard.cpp				\
 					Light.cpp					\
 					Material.cpp				\
@@ -164,8 +174,11 @@ SRC_FILES		=	\
 					parser/MTLLIB.cpp			\
 					parser/OBJ.cpp				\
 					parser/tools.cpp			\
+					PhysicsEngine.cpp			\
+					PlaneMesh.cpp				\
 					Quadtree.cpp				\
 					Render.cpp					\
+					RigidBody.cpp				\
 					Scene.cpp					\
 					SceneParser.cpp				\
 					Shader.cpp					\
