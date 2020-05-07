@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "Common.hpp"
 #include "Object.hpp" // for Object
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
@@ -21,7 +22,8 @@ enum class RenderMod
     RenderTransparent
 };
 
-class BoundingElement;
+class BoundingAABB;
+class RigidBody;
 
 class Node : public Object
 {
@@ -52,16 +54,20 @@ public:
     virtual void SetRotationMatrix(glm::mat4);
     virtual glm::mat4 ScaleMatrix() const;
     virtual void SetScaleMatrix(glm::mat4);
+
+    virtual glm::vec3 WorldPosition() const;
     /** @return the node local position */
     virtual glm::vec3 Position() const;
     /** @argument position : the node local position */
     virtual void SetPosition(glm::vec3 position);
+    virtual glm::quat WorldRotation() const;
     /** @return the node local rotation */
     virtual glm::quat Rotation() const;
     /** @argument rotation : the node local rotation */
     virtual void SetRotation(glm::vec3 rotation);
     /** @return the node local scale */
     virtual void SetRotation(glm::quat rotation);
+    virtual glm::vec3 WorldScale() const;
     /** @return the node local scale */
     virtual glm::vec3 Scale() const;
     /** @argument scale : the node local scale */
@@ -78,7 +84,9 @@ public:
     void SetParent(std::shared_ptr<Node>);
     void RemoveChild(std::shared_ptr<Node>);
     std::vector<std::shared_ptr<Node>> Children() const;
-    BoundingElement *bounding_element{nullptr};
+
+    virtual std::shared_ptr<BoundingAABB> GetBounds() const final;
+
     virtual ~Node() /*= default*/;
 
 protected:
@@ -86,13 +94,17 @@ protected:
     void AddChild(std::shared_ptr<Node>);
 
 private:
-    //static std::vector<std::shared_ptr<Node>> _nodes;
+    std::shared_ptr<BoundingAABB> _bounds { nullptr };
     std::vector<std::shared_ptr<Node>> _children;
     std::shared_ptr<Node> _target;
     std::weak_ptr<Node> _parent;
-    glm::vec3 _position{0, 0, 0};
-    glm::quat _rotation{0, 0, 0, 1};
-    glm::vec3 _scale{1, 1, 1};
+    glm::vec3 _position { 0, 0, 0 };
+    glm::quat _rotation { 0, 0, 0, 1 };
+    glm::vec3 _scale { 1, 1, 1 };
+    glm::vec3 _worldPosition { 0, 0, 0 };
+    glm::quat _worldRotation { 0, 0, 0, 1 };
+    glm::vec3 _worldScale { 1, 1, 1 };
+
     //glm::mat4 _nodeTranformationmatrix{glm::mat4(1.f)};
     glm::mat4 _transformMatrix{glm::mat4(1.f)};
     glm::mat4 _translationMatrix{glm::mat4(0.f)};

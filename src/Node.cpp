@@ -5,8 +5,11 @@
 * @Last Modified time: 2019-10-23 13:57:23
 */
 
-#include "Node.hpp"
+#include "BoundingAABB.hpp"
 #include "Debug.hpp"
+#include "Node.hpp"
+#include "RigidBody.hpp"
+#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/ext.hpp>
@@ -14,7 +17,7 @@
 #include <iostream>
 
 Node::Node(const std::string &name)
-    : Object(name)
+    : Object(name), _bounds(new BoundingAABB(glm::vec3(0), glm::vec3(1)))
 {
 }
 
@@ -152,6 +155,11 @@ void Node::SetParent(std::shared_ptr<Node> parent)
         parent->AddChild(shared_from_this());
 }
 
+glm::vec3 Node::WorldPosition() const
+{
+    return _worldPosition;
+}
+
 glm::vec3 Node::Position() const
 {
     return _position;
@@ -161,6 +169,11 @@ void Node::SetPosition(glm::vec3 position)
 {
     _position = position;
     SetNeedsTranformUpdate(true);
+}
+
+glm::quat Node::WorldRotation() const
+{
+    return _worldRotation;
 }
 
 glm::quat Node::Rotation() const
@@ -181,6 +194,11 @@ void Node::SetRotation(glm::quat rotation)
     SetNeedsTranformUpdate(true);
 }
 
+glm::vec3 Node::WorldScale() const
+{
+    return _worldScale;
+}
+
 glm::vec3 Node::Scale() const
 {
     return (_scale);
@@ -191,13 +209,6 @@ void Node::SetScale(glm::vec3 scale)
     _scale = scale;
     SetNeedsTranformUpdate(true);
 }
-
-/*glm::mat4 Node::NodeTransformMatrix() const
-{
-    return _nodeTranformationmatrix;
-}*/
-
-#include <glm/gtx/matrix_decompose.hpp>
 
 void Node::SetNodeTransformMatrix(glm::mat4 nodeTransform)
 {
@@ -221,6 +232,9 @@ glm::mat4 Node::TransformMatrix() const
 void Node::SetTransformMatrix(glm::mat4 transform)
 {
     _transformMatrix = transform;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(transform, _worldScale, _worldRotation, _worldPosition, skew, perspective);
 }
 
 glm::mat4 Node::TranslationMatrix() const
@@ -271,4 +285,9 @@ bool Node::NeedsGPUUpdate() const
 void Node::SetNeedsGPUUpdate(bool needsUpdate)
 {
     _needsGPUUpdate = needsUpdate;
+}
+
+std::shared_ptr<BoundingAABB> Node::GetBounds() const
+{
+    return _bounds;
 }

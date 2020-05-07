@@ -6,8 +6,7 @@
 */
 
 #include "Geometry.hpp"
-#include "AABB.hpp" // for AABB
-#include "BoundingElement.hpp" // for BoundingElement
+#include "BoundingAABB.hpp" // for AABB
 #include "Camera.hpp" // for Camera
 #include "Material.hpp" // for Material
 #include "Shader.hpp" // for Shader
@@ -23,9 +22,8 @@
 //std::vector<std::shared_ptr<Geometry>> Geometry::_Geometrys;
 
 Geometry::Geometry(const std::string &name)
-    : Object(name)
+    : Object(name), _bounds(new BoundingAABB(glm::vec3(0), glm::vec3(0)))
 {
-    boundingElement = new AABB;
 }
 
 std::shared_ptr<Geometry> Geometry::Create(const std::string &name)
@@ -48,6 +46,8 @@ Geometry::AccessorKey Geometry::GetAccessorKey(const std::string &key)
         return Geometry::AccessorKey::TexCoord_0;
     else if (lowerKey == "texcoord_1")
         return Geometry::AccessorKey::TexCoord_1;
+    else if (lowerKey == "texcoord_2")
+        return Geometry::AccessorKey::TexCoord_2;
     else if (lowerKey == "color_0")
         return Geometry::AccessorKey::Color_0;
     else if (lowerKey == "joints_0")
@@ -90,14 +90,14 @@ void Geometry::Load()
     glCreateVertexArrays(1, &_vaoGlid);
     glBindVertexArray(_vaoGlid);
     glCheckError();
-    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Position)),   0);
-    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Normal)),     1);
-    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Tangent)),    2);
-    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::TexCoord_0)), 3);
-    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::TexCoord_1)), 4);
-    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Color_0)),    5);
-    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Joints_0)),   6);
-    BindAccessor(Accessor(Geometry::AccessorKey(Geometry::AccessorKey::Weights_0)),  7);
+    BindAccessor(Accessor(Geometry::AccessorKey::Position),   0);
+    BindAccessor(Accessor(Geometry::AccessorKey::Normal),     1);
+    BindAccessor(Accessor(Geometry::AccessorKey::Tangent),    2);
+    BindAccessor(Accessor(Geometry::AccessorKey::TexCoord_0), 3);
+    BindAccessor(Accessor(Geometry::AccessorKey::TexCoord_1), 4);
+    BindAccessor(Accessor(Geometry::AccessorKey::Color_0),    5);
+    BindAccessor(Accessor(Geometry::AccessorKey::Joints_0),   6);
+    BindAccessor(Accessor(Geometry::AccessorKey::Weights_0),  7);
     glBindVertexArray(0);
     _isLoaded = true;
 }
@@ -132,6 +132,7 @@ uint32_t Geometry::MaterialIndex()
 {
     return _materialIndex;
 }
+
 void Geometry::SetMaterialIndex(uint32_t index)
 {
     _materialIndex = index;
@@ -154,7 +155,8 @@ std::shared_ptr<BufferAccessor> Geometry::Accessor(const Geometry::AccessorKey k
 
 void Geometry::SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<BufferAccessor>accessor)
 {
-    _accessors.at(key) = accessor;
+    if (key != Geometry::AccessorKey::Invalid)
+        _accessors.at(key) = accessor;
 }
 
 std::shared_ptr<BufferAccessor> Geometry::Indices() const
@@ -165,6 +167,11 @@ std::shared_ptr<BufferAccessor> Geometry::Indices() const
 void Geometry::SetIndices(std::shared_ptr<BufferAccessor> indices)
 {
     _indices = indices;
+}
+
+std::shared_ptr<BoundingAABB> Geometry::GetBounds() const
+{
+    return _bounds;
 }
 
 /*void Geometry::center(glm::vec3 &center)

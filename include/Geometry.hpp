@@ -18,6 +18,7 @@
 
 class Material; // lines 20-20
 class BufferAccessor;
+class BoundingAABB;
 
 typedef glm::vec<4, uint8_t, glm::defaultp> CVEC4;
 /*
@@ -58,6 +59,7 @@ public:
         Tangent,
         TexCoord_0,
         TexCoord_1,
+        TexCoord_2,
         Color_0,
         Joints_0,
         Weights_0,
@@ -80,7 +82,8 @@ public:
     GLenum Mode() const;
     /** Sets the Drawing mod */
     void SetMode(GLenum drawingMode);
-    BoundingElement *boundingElement;
+
+    std::shared_ptr<BoundingAABB> GetBounds() const;
 
     GeometryMorthTarget &GetMorphTarget(size_t index);
     void SetMorphTarget(const GeometryMorthTarget &morphTarget);
@@ -88,11 +91,12 @@ public:
 protected:
     Geometry(const std::string &);
 private:
-    bool _isLoaded{false};
-    GLenum _drawingMode {GL_TRIANGLES};
-    uint32_t _materialIndex{0};
+    bool _isLoaded { false };
+    std::shared_ptr<BoundingAABB> _bounds;
+    GLenum _drawingMode { GL_TRIANGLES };
+    uint32_t _materialIndex { 0 };
     GLuint _vaoGlid{0};
     std::array<std::shared_ptr<BufferAccessor>, Geometry::AccessorKey::MaxAccessorKey> _accessors;
-    std::shared_ptr<BufferAccessor> _indices {nullptr};
+    std::shared_ptr<BufferAccessor> _indices { nullptr };
     std::vector<GeometryMorthTarget> _morphTargets;
 };
