@@ -2,6 +2,8 @@
 #include <glm/common.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include "Animation.hpp"
+#include "Debug.hpp"
+#include "Mesh.hpp"
 #include "Node.hpp"
 #include "BufferHelper.hpp"
 #include "BufferAccessor.hpp"
@@ -9,8 +11,8 @@
 
 Animation::Animation() : Object("")
 {
-	void (__thiscall Animation::* pFunc)() = &Animation::Play;
-	_playCallback = Callback::Create(pFunc, this);
+	//void (__thiscall Animation::* pFunc)() = &Animation::Play;
+	_playCallback = Callback<void()>::Create(std::bind(&Animation::Play, this));
 }
 
 std::shared_ptr<Animation> Animation::Create()
@@ -183,13 +185,39 @@ void Animation::Advance()
 			}
 			case AnimationChannel::Weights:
 			{
-				//channel.Target()->SetSkin();
+				auto mesh(std::dynamic_pointer_cast<Mesh>(channel.Target()));
+				if (mesh == nullptr) {
+					debugLog(channel.Target()->Name() + " is not a Mesh");
+					break;
+				}
+				auto weights(mesh->Weights());
+				if (sampler.Interpolation() == AnimationSampler::CubicSpline)
+				{
+					/*for (auto i = 0u; i < weights->Count(); ++i) {
+						float prev				(BufferHelper::Get<float>(sampler.KeyFrames(), interpolator.PrevKey() * 3 * i + 1));
+						float prevOutputTangent	(BufferHelper::Get<float>(sampler.KeyFrames(), interpolator.PrevKey() * 3 * i + 2));
+						float nextInputTangent	(BufferHelper::Get<float>(sampler.KeyFrames(), nextKey * 3 * i + 0));
+						float next				(BufferHelper::Get<float>(sampler.KeyFrames(), nextKey * 3 * i + 1));
+						float prevTangent = keyDelta * prevOutputTangent;
+	    				float nextTangent = keyDelta * nextInputTangent;
+	    				auto current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation(), prevTangent, nextTangent);
+	    				BufferHelper::Set(weights, i, current);
+					}*/
+				}
+				else
+				{
+					for (auto i = 0u; i < weights->Count(); ++i) {
+						float prev(BufferHelper::Get<float>(sampler.KeyFrames(), interpolator.PrevKey() + i));
+						float next(BufferHelper::Get<float>(sampler.KeyFrames(), nextKey + i));
+						auto current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
+						BufferHelper::Set(weights, i, current);
+					}
+				}
 				break;
 			}
 			case AnimationChannel::None:
 				break;
 		}
-
 		animationPlayed = t < max;
 	}
 	if (!animationPlayed) {

@@ -5,6 +5,7 @@
 #include "AnimationInterpolator.hpp"
 #include "AnimationSampler.hpp"
 
+template <typename Signature>
 class Callback;
 
 class Animation : public Object
@@ -38,5 +39,5 @@ private:
 	bool _repeat { false };
 	float _startTime { 0 };
 	float _currentTime{ 0 };
-	std::shared_ptr<Callback> _playCallback { nullptr };
+	std::shared_ptr<Callback<void()>> _playCallback { nullptr };
 };
