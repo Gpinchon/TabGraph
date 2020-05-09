@@ -377,7 +377,7 @@ static void parse_line(ObjContainer &p, const char *line)
     }
     else if (split[0] == "usemtl")
     {
-        if (p.currentGeometry->Accessor(Geometry::Position))
+        if (p.currentGeometry == nullptr || p.currentGeometry->Accessor(Geometry::Position))
             parse_vg(p);
         auto mtl(p.materials[split[1]]);
         auto mtlIndex(p.mesh->GetMaterialIndex(mtl));
