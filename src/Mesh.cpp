@@ -6,7 +6,7 @@
 */
 
 #include "Mesh.hpp"
-#include "AABB.hpp" // for AABB
+#include "BoundingAABB.hpp" // for BoundingAABB
 #include "BufferHelper.hpp"
 #include "BoundingElement.hpp" // for BoundingElement
 #include "Camera.hpp" // for Camera
@@ -26,7 +26,6 @@
 Mesh::Mesh(const std::string &name)
     : Node(name)
 {
-    bounding_element = new AABB;
 }
 
 std::shared_ptr<Mesh> Mesh::Create(std::shared_ptr<Mesh> otherMesh) /*static*/
@@ -93,8 +92,11 @@ bool Mesh::DrawDepth(RenderMod mod)
         material->Bind();
         if (last_shader != shader)
         {
+            shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->Position());
+            shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+            shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+            shader->SetUniform("Camera.Matrix.ViewProjection", viewProjectionMatrix);
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
-            shader->SetUniform("Matrix.ViewProjection", viewProjectionMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             if (Skin() != nullptr) {
                 shader->SetUniform("Joints", _jointMatrices, GL_TEXTURE11);
@@ -151,8 +153,8 @@ bool Mesh::Draw(RenderMod mod)
         material->Bind();
         if (last_shader != shader)
         {
+            shader->SetUniform("Camera.Matrix.ViewProjection", viewProjectionMatrix);
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
-            shader->SetUniform("Matrix.ViewProjection", viewProjectionMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             if (Skin() != nullptr) {
                 shader->SetUniform("Joints", _jointMatrices, GL_TEXTURE11);
@@ -164,9 +166,14 @@ bool Mesh::Draw(RenderMod mod)
             }
             last_shader = shader;
         }
+        if (material->DoubleSided())
+            glDisable(GL_CULL_FACE);
+        else
+            glEnable(GL_CULL_FACE);
         shader->use();
         ret |= vg->Draw();
         shader->use(false);
+        glEnable(GL_CULL_FACE);
     }
     return ret;
 }
