@@ -304,3 +304,13 @@ void Material::SetIor(float value)
     shader()->SetUniform("Material.Ior", value);
     _ior = value;
 }
+
+bool Material::DoubleSided() const
+{
+    return _doubleSided;
+}
+
+void Material::SetDoubleSided(bool doubleSided)
+{
+    _doubleSided = doubleSided;
+}

@@ -58,6 +58,8 @@ public:
     void SetParallax(float);
     float Ior() const;
     void SetIor(float);
+    bool DoubleSided() const;
+    void SetDoubleSided(bool doubleSided);
 
 protected:
     std::weak_ptr<Shader> _shader;
@@ -83,4 +85,5 @@ protected:
     float _alpha { 1 };
     float _parallax { 0.01 };
     float _ior { 1 };
+    bool _doubleSided { false };
 };
