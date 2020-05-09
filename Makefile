@@ -64,6 +64,7 @@ HEADERS_FILES	=	\
 					BoundingAABB.hpp			\
 					BoundingSphere.hpp			\
 					BoundingMesh.hpp			\
+					BoundingBox.hpp				\
 					Callback.hpp				\
 					Camera.hpp					\
 					Common.hpp					\
@@ -132,6 +133,7 @@ SRC_FILES		=	\
 					BoundingPlane.cpp			\
 					BoundingSphere.cpp			\
 					BoundingMesh.cpp			\
+					BoundingBox.cpp				\
 					Buffer.cpp					\
 					BufferAccessor.cpp			\
 					BufferView.cpp				\
