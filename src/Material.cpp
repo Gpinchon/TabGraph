@@ -30,7 +30,6 @@ Material::Material(const std::string& name)
     _shader = Shader::Create(Name() + "_shader", ForwardShader);
     _shader.lock()->Stage(GL_FRAGMENT_SHADER).SetTechnique(forward_default_frag_technique);
     _depth_shader = Shader::Create(Name() + "_depth_shader", ForwardShader);
-    _depth_shader.lock()->SetStage(ShaderStage(GL_VERTEX_SHADER, depth_vert_code));
     _depth_shader.lock()->SetStage(ShaderStage(GL_FRAGMENT_SHADER, depth_frag_code));
     shader()->SetUniform("Material.Albedo", Albedo());
     shader()->SetUniform("Material.Specular", Specular());
