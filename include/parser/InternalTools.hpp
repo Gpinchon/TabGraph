@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "AABB.hpp"
+#include "BoundingAABB.hpp"
 #include "Mesh.hpp"
 #include "Texture.hpp"
 #include <errno.h>
@@ -28,7 +28,7 @@ struct t_obj_parser {
     std::vector<glm::vec2> vt;
     std::shared_ptr<Mesh> parent;
     std::shared_ptr<Geometry> vg;
-    AABB bbox;
+    BoundingAABB bbox { glm::vec3(0), glm::vec3(0) };
 };
 
 #pragma pack(1)

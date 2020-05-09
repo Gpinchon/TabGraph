@@ -6,7 +6,7 @@
 */
 
 #include "parser/OBJ.hpp"
-#include "AABB.hpp" // for AABB
+#include "BoundingAABB.hpp" // for BoundingAABB
 #include "BoundingElement.hpp" // for BoundingElement
 #include "BufferHelper.hpp"
 #include "Engine.hpp" // for M_PI
