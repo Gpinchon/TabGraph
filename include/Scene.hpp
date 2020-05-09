@@ -1,15 +1,20 @@
 #pragma once
 
+#include "Common.hpp"
+#include "PhysicsEngine.hpp"
 #include <glm/vec3.hpp>
 #include <vector>
 #include <set>
 #include <string>
 #include <memory>
 
+class PhysicsImpostor;
 class Camera;
 class Light;
 class Node;
 class Animation;
+class AABB;
+class RigidBody;
 enum class RenderMod;
 
 /**
@@ -28,11 +33,14 @@ struct Scene
 	void AddRootNode(std::shared_ptr<Node>);
 	void Add(std::shared_ptr<Node>);
 	void Add(std::shared_ptr<Animation>);
+	void Add(std::shared_ptr<RigidBody>);
 	void Update();
 	void UpdateGPU();
 	void FixedUpdate();
+	void PhysicsUpdate();
 	void Render(const RenderMod &);
 	void RenderDepth(const RenderMod &);
+	std::shared_ptr<AABB> GetLimits() const;
 	std::shared_ptr<Node> GetNode(std::shared_ptr<Node>) const;
 	std::shared_ptr<Node> GetNodeByName(const std::string &) const;
 	std::shared_ptr<Light> GetLightByName(const std::string &) const;
@@ -48,12 +56,14 @@ struct Scene
 private:
 	Scene(const std::string &name);
 	void _AddNodeChildren(std::shared_ptr<Node> node);
-	glm::vec3 _up {0, 1, 0};
+	glm::vec3 _up { Common::Up() };
 	std::string _name;
 	std::vector<std::shared_ptr<Node>> _rootNodes;
 	std::vector<std::shared_ptr<Animation>> _animations;
 	std::vector<std::shared_ptr<Node>> _nodes;
 	std::vector<std::shared_ptr<Light>> _lights;
 	std::vector<std::shared_ptr<Camera>> _cameras;
-	std::shared_ptr<Camera> _currentCamera;
+	std::shared_ptr<Camera> _currentCamera { nullptr };
+	std::shared_ptr<AABB> _aabb { nullptr };
+	PhysicsEngine _physicsEngine;
 };

@@ -1,9 +1,11 @@
-#include "Scene.hpp"
+
+#include "Animation.hpp"
+#include "Engine.hpp"
 #include "Camera.hpp"
+#include "Common.hpp"
 #include "Light.hpp"
 #include "Node.hpp"
-#include "Common.hpp"
-#include "Animation.hpp"
+#include "Scene.hpp"
 #include <algorithm>
 
 std::shared_ptr<Scene> Scene::Create(const std::string &name)
@@ -45,6 +47,11 @@ void Scene::AddRootNode(std::shared_ptr<Node> node)
 	_nodes.push_back(node);
 	_rootNodes.push_back(node);
 	_AddNodeChildren(node);
+}
+
+void Scene::Add(std::shared_ptr<RigidBody> rigidBody)
+{
+	_physicsEngine.AddRigidBody(rigidBody);
 }
 
 void Scene::Add(std::shared_ptr<Node> node)
@@ -95,10 +102,30 @@ void Scene::FixedUpdate()
 		if (animation->Playing())
 			animation->Advance();
 	}
+	PhysicsUpdate();
 	for (auto &node : RootNodes())
 		UpdateTransformMatrix(node);
     for (auto &node : RootNodes())
     	NodesFixedUpdate(node);
+}
+
+#include "RigidBody.hpp"
+#include <iostream>
+
+#include <SDL2/SDL_timer.h> // for SDL_GetTicks
+
+void Scene::PhysicsUpdate()
+{
+	/*for (auto &node : RootNodes())
+		NodesPhysicsUpdate(node);*/
+	static auto time(SDL_GetTicks());
+	time = SDL_GetTicks();
+	static auto lastTime(time);
+	_physicsEngine.Simulate((time - lastTime) / 1000.f);
+	lastTime = time;
+	_physicsEngine.CheckCollision();
+	//for (auto &node : RootNodes())
+	//	NodesCollisionCheck(node);
 }
 
 void NodesUpdateGPU(std::shared_ptr<Node> rootNode)
@@ -211,7 +238,7 @@ std::shared_ptr<T> GetByPointer(std::shared_ptr<Node> node, const std::shared_pt
 
 std::shared_ptr<Node> Scene::GetNode(std::shared_ptr<Node> node) const
 {
-	for (const auto object : _nodes) {
+	for (const auto &object : _nodes) {
 		auto result(GetByPointer(node, object));
 		if (result != nullptr)
 			return result;
@@ -221,7 +248,7 @@ std::shared_ptr<Node> Scene::GetNode(std::shared_ptr<Node> node) const
 
 std::shared_ptr<Node> Scene::GetNodeByName(const std::string &name) const
 {
-	for (const auto object : _nodes) {
+	for (const auto &object : _nodes) {
 		auto result(GetByName(name, object));
 		if (result != nullptr)
 			return result;
@@ -231,7 +258,7 @@ std::shared_ptr<Node> Scene::GetNodeByName(const std::string &name) const
 
 std::shared_ptr<Light> Scene::GetLightByName(const std::string &name) const
 {
-	for (const auto object : _lights) {
+	for (const auto &object : _lights) {
 		auto result(GetByName(name, object));
 		if (result != nullptr)
 			return result;
@@ -241,7 +268,7 @@ std::shared_ptr<Light> Scene::GetLightByName(const std::string &name) const
 
 std::shared_ptr<Camera> Scene::GetCameraByName(const std::string &name) const
 {
-	for (const auto object : _cameras) {
+	for (const auto &object : _cameras) {
 		auto result(GetByName(name, object));
 		if (result != nullptr)
 			return result;
@@ -282,4 +309,9 @@ glm::vec3 Scene::Up() const
 void Scene::SetUp(glm::vec3 up)
 {
 	_up = up;
+}
+
+std::shared_ptr<AABB> Scene::GetLimits() const
+{
+	return _aabb;
 }

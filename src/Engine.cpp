@@ -50,6 +50,7 @@ struct EnginePrivate
     std::atomic<bool> loop{false};
     int8_t swapInterval{1};
     double deltaTime{0};
+    double fixedDeltaTime { 0 };
     std::string programPath{""};
     std::string execPath{""};
 };
@@ -145,9 +146,8 @@ void Engine::Start()
 {
     float ticks;
     float lastTicks;
-    float fixedTiming;
 
-    fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
+    auto fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
     SDL_SetEventFilter(event_filter, nullptr);
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
     Render::Start();
@@ -163,6 +163,7 @@ void Engine::Start()
         SDL_PumpEvents();
         if (ticks - fixedTiming >= 0.015)
         {
+            EnginePrivate::Get().fixedDeltaTime = ticks - fixedTiming;
             fixedTiming = ticks;
             Events::refresh();
             Scene::Current()->FixedUpdate();
@@ -192,6 +193,11 @@ int8_t Engine::SwapInterval()
 double Engine::DeltaTime()
 {
     return (EnginePrivate::Get().deltaTime);
+}
+
+double Engine::FixedDeltaTime(void)
+{
+    return EnginePrivate::Get().fixedDeltaTime;
 }
 
 const std::string &Engine::ProgramPath()
