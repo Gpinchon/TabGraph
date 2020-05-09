@@ -56,6 +56,11 @@ inline std::shared_ptr<BufferView> BufferHelper::CreateBufferView(std::vector<T>
 template <typename T>
 inline void FindMinMax(const std::vector<T> &vector, T &min, T &max)
 {
+	if (vector.empty()) {
+		min = T(0);
+		max = T(0);
+		return;
+	}
 	min = vector.at(0);
 	max = vector.at(0);
 	for (const auto &v : vector)
@@ -68,6 +73,11 @@ inline void FindMinMax(const std::vector<T> &vector, T &min, T &max)
 template <>
 inline void FindMinMax(const std::vector<glm::mat4> &vector, glm::mat4 &min, glm::mat4 &max)
 {
+	if (vector.empty()) {
+		min = glm::mat4(0);
+		max = glm::mat4(0);
+		return;
+	}
 	min = vector.at(0);
 	max = vector.at(vector.size() - 1);
 }
@@ -197,6 +207,8 @@ void BufferHelper::PushBack(std::shared_ptr<BufferAccessor> accessor, T value)
 	auto buffer(bufferView->GetBuffer());
 	if (buffer == nullptr)
 		return;
+	auto min(accessor->Min<T>());
+	auto max(accessor->Max<T>());
 	accessor->SetCount(accessor->Count() + 1);
 	bufferView->SetByteLength(bufferView->ByteLength() + sizeof(T));
 	buffer->SetByteLength(buffer->ByteLength() + sizeof(T));
