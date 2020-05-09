@@ -8,9 +8,9 @@
 #include "Common.hpp"
 #include "Events.hpp" // for Events
 #include "Node.hpp" // for Node
-#include "Renderable.hpp" // for Renderable
 #include "glm/glm.hpp" // for s_vec3, s_vec2, glm::vec3, glm::clamp
 #include "scop.hpp" // for DOWNK, LEFTK, MouseMoveCallback
+#include "Callback.hpp"
 #include <Config.hpp>
 #include <Engine.hpp> // for Stop
 #include <Environment.hpp> // for Environment
@@ -66,7 +66,7 @@ void callback_camera(SDL_Event *)
         taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
     }
     cameraRotation.z -= laxis.y * Events::delta_time();
-    camera->SetPosition(camera->Position() + float(Events::delta_time() * laxis.x) * camera->Right());
+    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.x) * camera->Right());
     camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y) * camera->Forward());
     camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis) * Common::Up());
 }
@@ -179,7 +179,7 @@ void callback_refresh(SDL_Event * /*unused*/)
     if (rotate_model)
     {
         static float rotation = 0;
-        rotation += Events::delta_time() * 10;
+        rotation += Events::delta_time();
         rotation = CYCLE(rotation, 0, 360);
         mainMesh->SetRotation(glm::vec3(0, rotation, 0));
     }
@@ -215,7 +215,7 @@ void MouseMoveCallback(SDL_MouseMotionEvent *event)
         return;
     auto scene(Scene::Current());
     static auto camera = std::dynamic_pointer_cast<FPSCamera>(scene->GetCameraByName("main_camera"));
-    cameraRotation.x += event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
+    cameraRotation.x -= event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
     cameraRotation.y -= event->yrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
     camera->SetYaw(cameraRotation.x);
     camera->SetPitch(cameraRotation.y);
@@ -240,7 +240,7 @@ void setup_callbacks()
     Mouse::set_relative(SDL_TRUE);
     Mouse::set_move_callback(MouseMoveCallback);
     Mouse::set_wheel_callback(MouseWheelCallback);
-    Events::set_refresh_callback(callback_refresh);
+    Events::AddRefreshCallback(Callback<void()>::Create(callback_refresh, nullptr));
     auto controller = GameController::Get(0);
     if (controller == nullptr)
         return;

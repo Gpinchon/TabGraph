@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     {
         mainMesh = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/obj/chart.obj");
     }
-    if (mainMesh != nullptr)
+    /*if (mainMesh != nullptr)
     {
         for (auto &vg : mainMesh->Geometrys()) {
             for (auto &v : vg->v)
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
         mainMesh->bounding_element->min -= mainMesh->bounding_element->center;
         mainMesh->bounding_element->max -= mainMesh->bounding_element->center;
         mainMesh->bounding_element->center = glm::vec3(0, 0, 0);
-    }
+    }*/
     Scene::Current()->Add(mainMesh);
     Scene::Current()->Add(camera);
     Scene::Current()->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true));

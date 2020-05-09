@@ -111,7 +111,7 @@ void SetupCallbacks()
     //Mouse::set_relative(SDL_TRUE);
     Mouse::set_move_callback(MouseMoveCallback);
     Mouse::set_wheel_callback(MouseWheelCallback);
-    Events::AddRefreshCallback(Callback::Create(CameraCallback, std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera())));
+    Events::AddRefreshCallback(Callback<void()>::Create(CameraCallback, std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera())));
 }
 
 #include <filesystem>
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
     if (scene == nullptr) {
         return -42;
     }
-    scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, false));
+    scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(1000, 1000, 1000), 0.5, true));
     if (scene->CurrentCamera() == nullptr)
         scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
     scene->CurrentCamera()->SetPosition(glm::vec3{0, 0, 0});
