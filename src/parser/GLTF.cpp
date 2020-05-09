@@ -129,11 +129,13 @@ static inline auto ParseMaterials(const std::string &path, const rapidjson::Docu
 		for (const auto &materialValue : document["materials"].GetArray()) {
 			auto material(Material::Create("Material " + std::to_string(materialIndex)));
 			material->SetUVScale(glm::vec2(1, -1));
+			try { material->SetDoubleSided(materialValue["doubleSided"].GetBool()); }
+			catch(std::exception &) {debugLog("Material " + material->Name() + " has no doubleSided property")}
 			try {
-				auto baseColor(materialValue["emissiveFactor"].GetArray());
-				material->SetEmitting(glm::vec3(baseColor[0].GetFloat(),
-												baseColor[1].GetFloat(),
-												baseColor[2].GetFloat()));
+				auto emissiveFactor(materialValue["emissiveFactor"].GetArray());
+				material->SetEmitting(glm::vec3(emissiveFactor[0].GetFloat(),
+												emissiveFactor[1].GetFloat(),
+												emissiveFactor[2].GetFloat()));
 			}
 			catch (std::exception &) {debugLog("No emissiveFactor property")}
 			try {
@@ -145,7 +147,7 @@ static inline auto ParseMaterials(const std::string &path, const rapidjson::Docu
 				auto textureObject(materialValue["emissiveTexture"].GetObject());
 				material->SetTextureEmitting(textureVector.at(textureObject["index"].GetInt()));
 			}
-			catch (std::exception &) {debugLog("No normalTexture property")}
+			catch (std::exception &) {debugLog("No emissiveTexture property")}
 			try {
 				auto pbrMetallicRoughness(materialValue["pbrMetallicRoughness"].GetObject());
 				try {
@@ -153,6 +155,11 @@ static inline auto ParseMaterials(const std::string &path, const rapidjson::Docu
 					material->SetTextureMetallicRoughness(textureVector.at(textureObject["index"].GetInt()));
 				}
 				catch (std::exception &) {debugLog("No metallicRoughnessTexture property")}
+				try {
+					auto textureObject(pbrMetallicRoughness["occlusionTexture"].GetObject());
+					material->SetTextureAO(textureVector.at(textureObject["index"].GetInt()));
+				}
+				catch (std::exception &) {debugLog("No occlusionTexture property")}
 				try {
 					auto baseColor(pbrMetallicRoughness["baseColorFactor"].GetArray());
 					material->SetAlbedo(glm::vec3(baseColor[0].GetFloat(),
@@ -248,7 +255,7 @@ static inline auto ParseBufferAccessors(const std::string &path, const rapidjson
 			auto bufferAccessor(BufferAccessor::Create(
 				bufferAccessorValue["componentType"].GetInt(),
 				bufferAccessorValue["count"].GetInt(),
-				bufferAccessorValue["type"].GetString()));
+				BufferAccessor::GetType(bufferAccessorValue["type"].GetString())));
 			bufferAccessor->SetName("BufferAccessor " + std::to_string(bufferAccessorIndex));
 			try {bufferAccessor->SetBufferView(bufferViews.at(bufferAccessorValue["bufferView"].GetInt()));}
 			catch(std::exception &) {debugLog("Accessor " + bufferAccessor->Name() + " has no bufferView property")}
@@ -295,7 +302,12 @@ static inline auto ParseMeshes(const rapidjson::Document &document, const GLTFCo
 			for (const auto &attribute : primitive["attributes"].GetObject()) {
 				auto attributeName(std::string(attribute.name.GetString()));
 				auto accessor(container.accessors.at(attribute.value.GetInt()));
-				geometry->SetAccessor(Geometry::GetAccessorKey(attributeName), accessor);
+				auto accessorKey(Geometry::GetAccessorKey(attributeName));
+				if (accessorKey == Geometry::AccessorKey::Invalid) {
+					debugLog("Invalid Accessor Key : " + attributeName);
+				}
+				else
+					geometry->SetAccessor(accessorKey, accessor);
 			}
 			try {
 				auto accessor(container.accessors.at(primitive["indices"].GetInt()));
@@ -498,7 +510,7 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 		}
 		if (!newScene->Cameras().empty())
 			newScene->SetCurrentCamera(*newScene->Cameras().begin());
-		for (const auto animation : container.animations) {
+		for (const auto &animation : container.animations) {
 			newScene->Add(animation);
 			/*for (const auto channel : animation->GetChannels()) {
 				if (newScene->GetNode(channel.Target())) {
