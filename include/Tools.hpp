@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include <memory>
+#include <type_traits>
+
 #ifndef M_PI
 #define M_PI 3.14159265359f
 #endif // M_PI
@@ -19,3 +22,30 @@ union SDL_Event;
 namespace Tools {
 void PrintEventName(SDL_Event*);
 }
+
+/*
+** Useful to secure for templates
+** @arg T : the shared pointer type you want
+** @arg U : the type to test
+** @arg V : return type
+*/
+template<typename T, typename U, typename V = void>
+using IsSharedPointerOfType = std::enable_if_t<std::is_constructible_v<std::shared_ptr<T>, U>, V>;
+
+/*
+** Useful to secure for templates
+** @arg T : the base class
+** @arg U : the type to test
+** @arg V : return type
+*/
+template<typename T, typename U, typename V = void>
+using IsBaseOf = std::enable_if_t<std::is_base_of_v<T, U>, V>;
+
+/*
+** Useful to secure for templates
+** @arg T : the shared pointer type you want
+** @arg U : the type to test
+** @arg V : return type
+*/
+template<typename T, typename U, typename V = void>
+using IsNotSharedPointerOfType = std::enable_if_t<!std::is_constructible_v<std::shared_ptr<T>, U>, V>;
