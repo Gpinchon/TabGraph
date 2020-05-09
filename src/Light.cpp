@@ -59,6 +59,11 @@ LightType Light::type()
     return (Point);
 }
 
+glm::mat4 Light::ShadowProjectionMatrix() const
+{
+    return glm::mat4(1.0);
+}
+
 void Light::render_shadow()
 {
 }
@@ -87,14 +92,35 @@ std::shared_ptr<DirectionnalLight> DirectionnalLight::Create(const std::string& 
     return (light);
 }
 
+#include "Scene.hpp"
+#include "Camera.hpp"
+
 void DirectionnalLight::render_shadow()
 {
+    auto camera = Scene::Current()->CurrentCamera();
+    static auto tempCamera = Camera::Create("light_camera", 45, Camera::Projection::Ortho);
+    Scene::Current()->SetCurrentCamera(tempCamera);
+    render_buffer()->bind();
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    tempCamera->SetZfar(10000);
+    tempCamera->SetFrustum(glm::vec4(-500, 500, -500, 500));
+    tempCamera->SetPosition(Position());
+    tempCamera->SetViewMatrix(glm::inverse(glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up())));
+    Scene::Current()->RenderDepth(RenderMod::RenderOpaque);
+    render_buffer()->bind(false);
+    Scene::Current()->SetCurrentCamera(camera);
 }
 
 void DirectionnalLight::UpdateTransformMatrix()
 {
-    auto proj = glm::ortho(-10.f, 10.f, -10.f, 10.f, 0.1f, 100.f);
-    SetTransformMatrix(proj * glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up()));
+    SetTransformMatrix(glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up()));
+}
+
+glm::mat4 DirectionnalLight::ShadowProjectionMatrix() const
+{
+    return glm::ortho(-500.f, 500.f, -500.f, 500.f, 0.1f, 10000.f) * glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up());
 }
 
 LightType DirectionnalLight::type()

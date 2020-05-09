@@ -33,6 +33,7 @@ public:
     std::shared_ptr<Framebuffer> render_buffer();
     //static TextureArray				*shadow_array();
     virtual LightType type();
+    virtual glm::mat4 ShadowProjectionMatrix() const;
 
 protected:
     Light(const std::string& name);
@@ -51,6 +52,7 @@ public:
     virtual void render_shadow() override;
     virtual void UpdateTransformMatrix() override;
     virtual LightType type() override;
+    virtual glm::mat4 ShadowProjectionMatrix() const override;
 
 protected:
     DirectionnalLight(const std::string& name);
