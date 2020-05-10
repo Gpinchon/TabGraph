@@ -1,15 +1,15 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-09-09 17:11:43
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-05-10 19:23:08
 */
 
-#include "parser/BMP.hpp"
-#include "Texture2D.hpp" // for Texture2D
-#include "glm/glm.hpp" // for s_vec2, glm::vec2
-#include "parser/InternalTools.hpp" // for t_bmp_parser, t_bmp_info, t_bmp_...
+#include "Parser/InternalTools.hpp" // for t_bmp_parser, t_bmp_info, t_bmp_...
+#include "Parser/BMP.hpp"
+#include "Texture/Texture2D.hpp" // for Texture2D
 #include <GL/glew.h> // for GLubyte, GLenum, GL_BGR, GL_BGRA
+#include <glm/glm.hpp> // for s_vec2, glm::vec2
 #include <bits/exception.h> // for exception
 #include <errno.h> // for errno
 #include <fcntl.h> // for O_BINARY, O_CREAT, O_RDWR

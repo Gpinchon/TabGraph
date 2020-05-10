@@ -1,27 +1,28 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-10-29 17:27:18
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-05-10 20:20:42
 */
 
 #include "Render.hpp"
-#include "Camera.hpp" // for Camera
+#include "Buffer/BufferHelper.hpp"
+#include "Camera/Camera.hpp" // for Camera
 #include "Config.hpp" // for Config
-#include "Cubemap.hpp"
+#include "Texture/Cubemap.hpp"
 #include "Engine.hpp" // for UpdateMutex, SwapInterval
 #include "Environment.hpp" // for Environment
 #include "Framebuffer.hpp" // for Framebuffer
-#include "Light.hpp" // for Light, Directionnal, Point
-#include "Scene.hpp"
-#include "Shader.hpp" // for Shader
-#include "Texture2D.hpp" // for Texture2D
-#include "Geometry.hpp" // for Geometry
+#include "Light/Light.hpp" // for Light, Directionnal, Point
+#include "Scene/Scene.hpp"
+#include "Shader/Shader.hpp" // for Shader
+#include "Texture/Texture2D.hpp" // for Texture2D
+#include "Mesh/Geometry.hpp" // for Geometry
 #include "Window.hpp" // for Window
 #include "brdfLUT.hpp" // for brdfLUT
-#include "glm/glm.hpp" // for glm::inverse, vec2_scale, vec3_scale
-#include "parser/GLSL.hpp" // for GLSL, LightingShader, PostShader
+#include "Parser/GLSL.hpp" // for GLSL, LightingShader, PostShader
 #include <GL/glew.h> // for GL_TEXTURE0, glDepthFunc, glClear, glDis...
+#include <glm/glm.hpp> // for glm::inverse, vec2_scale, vec3_scale
 #include <SDL2/SDL_timer.h> // for SDL_GetTicks
 #include <SDL2/SDL_video.h> // for SDL_GL_MakeCurrent, SDL_GL_SetSwapInterval
 #include <algorithm> // for max, remove_if
@@ -110,8 +111,6 @@ static auto SSRMergeShaderCode =
 static auto SSRBlurShaderCode =
 #include "SSRBlur.frag"
     ;
-
-#include "BufferHelper.hpp"
 
 /*
 ** quad is a singleton

@@ -1,24 +1,25 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-10-07 10:03:28
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-05-10 19:40:42
 */
 
-#include "parser/OBJ.hpp"
-#include "BoundingAABB.hpp" // for BoundingAABB
-#include "BoundingElement.hpp" // for BoundingElement
-#include "BufferHelper.hpp"
+#include "Parser/OBJ.hpp"
+#include "Physics/BoundingAABB.hpp" // for BoundingAABB
+#include "Physics/BoundingElement.hpp" // for BoundingElement
+#include "Buffer/BufferHelper.hpp"
 #include "Engine.hpp" // for M_PI
 #include "Material.hpp" // for Material
-#include "Mesh.hpp" // for Mesh
-#include "MeshParser.hpp" // for MeshParser
-#include "SceneParser.hpp"
+#include "Mesh/Mesh.hpp" // for Mesh
+#include "Mesh/Geometry.hpp" // for Geometry, CVEC4
+#include "Mesh/MeshParser.hpp" // for MeshParser
+#include "Scene/Scene.hpp"
+#include "Scene/SceneParser.hpp"
 #include "Tools.hpp"
-#include "Geometry.hpp" // for Geometry, CVEC4
-#include "glm/glm.hpp" // for s_vec3, s_vec2, glm::vec2, glm::vec3
-#include "parser/InternalTools.hpp" // for count_char, split_...
-#include "parser/MTLLIB.hpp" // for parse
+#include "Parser/InternalTools.hpp" // for count_char, split_...
+#include "Parser/MTLLIB.hpp" // for parse
+#include <glm/glm.hpp> // for s_vec3, s_vec2, glm::vec2, glm::vec3
 #include <algorithm> // for max, min
 #include <bits/exception.h> // for exception
 #include <errno.h> // for errno
@@ -449,8 +450,6 @@ std::shared_ptr<Mesh> OBJ::Parse(const std::string &name, const std::string &pat
     }
     return (p.mesh);
 }
-
-#include "Scene.hpp"
 
 std::vector<std::shared_ptr<Scene>> OBJ::ParseScene(const std::string& path)
 {

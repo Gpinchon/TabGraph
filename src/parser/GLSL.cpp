@@ -1,13 +1,13 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-09-09 17:38:51
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-05-10 19:33:15
 */
 
-#include "parser/GLSL.hpp"
+#include "Parser/GLSL.hpp"
+#include "Parser/InternalTools.hpp" // for file_to_str
 #include "Debug.hpp" // for glCheckError
-#include "parser/InternalTools.hpp" // for file_to_str
 #include <GL/glew.h> // for GLuint, GL_FRAGMENT_SHADER, GL_V...
 #include <bits/exception.h> // for exception
 #include <errno.h> // for errno
@@ -34,7 +34,7 @@ static auto forwardFragCode =
 #include "forward.frag"
     ;
     */
-
+/*
 GLuint compile_shader_code(const std::string &code, GLenum type)
 {
     GLuint shaderid;
@@ -59,7 +59,7 @@ GLuint compile_shader(const std::string &path, GLenum type)
     }
     return (compile_shader_code(file_to_str(path), type));
 }
-
+*/
 /*
 std::shared_ptr<Shader> GLSL::compile(const std::string &name,
                                       const std::string &vertex_code, const std::string &fragment_code)

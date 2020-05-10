@@ -2,14 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:51:01
+* @Last Modified time: 2020-05-10 19:37:50
 */
 
-#include "parser/HDR.hpp"
-#include "Texture2D.hpp" // for Texture2D
-#include "TextureParser.hpp" // for TextureParser
-#include "glm/glm.hpp" // for s_vec2, glm::vec2
+#include "Parser/HDR.hpp"
+#include "Texture/Texture2D.hpp" // for Texture2D
+#include "Texture/TextureParser.hpp" // for TextureParser
 #include <GL/glew.h> // for GLubyte, GL_FLOAT, GL_R11F_G11F_B10F
+#include <glm/glm.hpp> // for s_vec2, glm::vec2
 #include <iostream> // for operator<<, flush, basic_ostream, cout
 #include <math.h> // for pow
 #include <stdexcept> // for runtime_error

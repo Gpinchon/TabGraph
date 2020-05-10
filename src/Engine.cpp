@@ -1,22 +1,22 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-09-09 17:10:59
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-05-10 20:14:35
 */
 
 #include "Engine.hpp"
 #include "Config.hpp" // for Config
-#include "Cubemap.hpp" // for Cubemap
+#include "Texture/TextureParser.hpp" // for TextureParser
+#include "Texture/Cubemap.hpp" // for Cubemap
 #include "Environment.hpp" // for Environment
-#include "Events.hpp" // for Events
+#include "Input/Events.hpp" // for Events
 #include "Node.hpp" // for Node
 #include "Render.hpp" // for AddPostTreatment, RequestRedraw
-#include "Scene.hpp"
-#include "TextureParser.hpp" // for TextureParser
+#include "Scene/Scene.hpp"
 #include "Window.hpp" // for Window
-#include "parser/GLSL.hpp" // for GLSL, PostShader
-#include "parser/InternalTools.hpp" // for convert_backslash
+#include "Parser/GLSL.hpp" // for GLSL, PostShader
+#include "Parser/InternalTools.hpp" // for convert_backslash
 #include <SDL2/SDL_events.h> // for SDL_PumpEvents, SDL_SetEventFilter
 #include <SDL2/SDL_filesystem.h> // for SDL_GetBasePath
 #include <SDL2/SDL_timer.h> // for SDL_GetTicks

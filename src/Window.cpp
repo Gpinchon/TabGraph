@@ -2,14 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:58:27
+* @Last Modified time: 2020-05-10 19:00:27
 */
 
 #include "Window.hpp"
 #include "Config.hpp" // for Config
 #include "Debug.hpp" // for glCheckError
 #include "Engine.hpp" // for Stop
-#include "Events.hpp" // for Events
+#include "Input/Events.hpp" // for Events
 #include <SDL2/SDL.h> // for SDL_Init, SDL_INIT_EVERYTHING
 #include <SDL2/SDL_error.h> // for SDL_GetError
 #include <SDL2/SDL_gamecontroller.h> // for SDL_GameControllerEventState

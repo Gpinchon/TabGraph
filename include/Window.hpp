@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "InputDevice.hpp" // for InputDevice
+#include "Input/InputDevice.hpp" // for InputDevice
 #include "glm/glm.hpp" // for glm::vec2, glm::vec4, s_vec2
 #include <GL/glew.h> // for GLbitfield
 #include <SDL2/SDL_events.h> // for SDL_Event

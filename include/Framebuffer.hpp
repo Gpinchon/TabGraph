@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "Texture2D.hpp" // for Texture2D
-#include "glm/glm.hpp" // for glm::vec2
+#include "Texture/Texture2D.hpp" // for Texture2D
+#include <glm/glm.hpp> // for glm::vec2
 #include <GL/glew.h> // for GLenum
 #include <memory> // for shared_ptr
 #include <string> // for string

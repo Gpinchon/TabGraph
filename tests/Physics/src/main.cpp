@@ -1,5 +1,5 @@
 #include "Engine.hpp"
-#include "Animation.hpp"
+#include "Animation/Animation.hpp"
 #include "Config.hpp"
 #include "FPSCamera.hpp"
 #include "Light.hpp"
@@ -216,6 +216,14 @@ void CollidersTest()
                 << ", distance : " << plane1IntersectSphere4.GetDistance() << std::endl;
 }
 
+void CreateColliders(std::shared_ptr<Scene> &scene)
+{
+    auto plane(PlaneMesh::Create("PlaneMesh", glm::vec2(100, 100)));
+    auto rigidBody(RigidBody::Create("PlaneRigidBody", plane, BoundingAABB::Create(glm::vec3(-50, 0, -50), glm::vec3(50, 0, 50))));
+    scene->Add(plane);
+    scene->Add(rigidBody);
+    CreateCubes(1, scene);
+}
 
 int main(int, char **)
 {
@@ -226,8 +234,7 @@ int main(int, char **)
     scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 0.5, false));
     scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
     scene->CurrentCamera()->SetPosition(glm::vec3{0, 5, 10});
-    CreateCubes(1, scene);
-    scene->Add(PlaneMesh::Create("PlaneMesh", glm::vec2(100, 100)));
+    CreateColliders(scene);
     Scene::SetCurrent(scene);
     SetupCallbacks();
     Engine::Start();

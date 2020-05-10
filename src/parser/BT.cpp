@@ -2,14 +2,14 @@
 * @Author: gpinchon
 * @Date:   2019-05-08 11:07:22
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:51:02
+* @Last Modified time: 2020-05-10 19:26:25
 */
 
-#include "Texture2D.hpp" // for Texture2D
-#include "TextureParser.hpp" // for TextureParser
-#include "glm/glm.hpp" // for glm::vec2
-#include "parser/InternalTools.hpp" // for BTHeader, openFile
+#include "Texture/Texture2D.hpp" // for Texture2D
+#include "Texture/TextureParser.hpp" // for TextureParser
+#include "Parser/InternalTools.hpp" // for BTHeader, openFile
 #include <GL/glew.h> // for GLenum, GL_FLOAT, GL_HALF_FLOAT
+#include <glm/glm.hpp> // for glm::vec2
 #include <memory> // for allocator, shared_ptr
 #include <stdexcept> // for runtime_error
 #include <stdio.h> // for fclose, fread, size_t

@@ -2,11 +2,11 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:03
+* @Last Modified time: 2020-05-10 20:17:28
 */
 
 #include "Environment.hpp"
-#include "Cubemap.hpp"
+#include "Texture/Cubemap.hpp"
 
 std::weak_ptr<Environment> Environment::_current;
 std::vector<std::shared_ptr<Environment>> Environment::_environments;

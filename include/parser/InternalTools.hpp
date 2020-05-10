@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "BoundingAABB.hpp"
-#include "Mesh.hpp"
-#include "Texture.hpp"
+#include "Physics/BoundingAABB.hpp"
+#include "Mesh/Mesh.hpp"
+#include "Texture/Texture.hpp"
 #include <errno.h>
 #include <fcntl.h>
 #include <string>

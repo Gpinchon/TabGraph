@@ -1,14 +1,14 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-10-23 13:57:23
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-05-10 20:18:04
 */
 
-#include "BoundingAABB.hpp"
+#include "Physics/RigidBody.hpp"
+#include "Physics/BoundingAABB.hpp"
 #include "Debug.hpp"
 #include "Node.hpp"
-#include "RigidBody.hpp"
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/quaternion.hpp>

@@ -1,20 +1,20 @@
 /*
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
- * @Last Modified by:   gpi
- * @Last Modified time: 2019-10-10 15:33:07
+ * @Last Modified by:   gpinchon
+ * @Last Modified time: 2020-05-10 19:26:59
  */
 
-#include "parser/FBX.hpp"
+#include "Parser/FBX.hpp"
 #include "Material.hpp"
-#include "Mesh.hpp"
-#include "Scene.hpp"
-#include "SceneParser.hpp"
-#include "Geometry.hpp"
-#include "parser/FBX/FBXDocument.hpp"
-#include "parser/FBX/FBXNode.hpp"
-#include "parser/FBX/FBXObject.hpp"
-#include "parser/FBX/FBXProperty.hpp"
+#include "Mesh/Mesh.hpp"
+#include "Scene/Scene.hpp"
+#include "Scene/SceneParser.hpp"
+#include "Mesh/Geometry.hpp"
+#include "Parser/FBX/FBXDocument.hpp"
+#include "Parser/FBX/FBXNode.hpp"
+#include "Parser/FBX/FBXObject.hpp"
+#include "Parser/FBX/FBXProperty.hpp"
 #include <glm/glm.hpp>
 #include <iostream>
 #include <memory>

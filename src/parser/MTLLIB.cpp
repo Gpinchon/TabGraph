@@ -1,15 +1,15 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-09-09 17:39:10
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-05-10 19:38:22
 */
 
-#include "parser/MTLLIB.hpp"
+#include "Parser/MTLLIB.hpp"
+#include "Parser/InternalTools.hpp" // for parse_vec3, t_obj_parser, strspl...
 #include "Material.hpp" // for Material
-#include "TextureParser.hpp" // for TextureParser
-#include "glm/glm.hpp" // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
-#include "parser/InternalTools.hpp" // for parse_vec3, t_obj_parser, strspl...
+#include "Texture/TextureParser.hpp" // for TextureParser
+#include <glm/glm.hpp> // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <memory> // for shared_ptr, allocator, __shared_...
 #include <stdexcept> // for runtime_error

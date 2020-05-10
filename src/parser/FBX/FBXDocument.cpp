@@ -1,15 +1,15 @@
 /*
 * @Author: gpinchon
 * @Date:   2019-08-10 11:52:02
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-09-09 17:38:30
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-05-10 20:25:21
 */
 
-#include "parser/FBX/FBXDocument.hpp"
-#include "MeshParser.hpp"
-#include "parser/FBX.hpp"
-#include "parser/FBX/FBXNode.hpp"
-#include "parser/FBX/FBXProperty.hpp"
+#include "Parser/FBX/FBXDocument.hpp"
+#include "Parser/FBX.hpp"
+#include "Parser/FBX/FBXNode.hpp"
+#include "Parser/FBX/FBXProperty.hpp"
+#include "Mesh/MeshParser.hpp"
 #include <errno.h> // for errno
 #include <iostream> // for operator<<, basic_ostream, cout, ostream, char_...
 #include <map> // for allocator, map

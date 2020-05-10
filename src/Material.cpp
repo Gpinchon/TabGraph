@@ -2,14 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:04
+* @Last Modified time: 2020-05-10 20:19:44
 */
 
 #include "Material.hpp"
-#include "Cubemap.hpp"
+#include "Texture/Cubemap.hpp"
 #include "Environment.hpp" // for Environment
-#include "Shader.hpp" // for Shader
-#include "parser/GLSL.hpp" // for GLSL, ForwardShader
+#include "Shader/Shader.hpp" // for Shader
+#include "Parser/GLSL.hpp" // for GLSL, ForwardShader
 #include <GL/glew.h> // for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
 
 static std::string forward_default_frag_technique =
