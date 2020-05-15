@@ -1,22 +1,22 @@
 #include "Engine.hpp"
 #include "Animation/Animation.hpp"
 #include "Config.hpp"
-#include "FPSCamera.hpp"
-#include "Light.hpp"
-#include "Keyboard.hpp"
-#include "Mouse.hpp"
-#include "Events.hpp"
+#include "Camera/FPSCamera.hpp"
+#include "Light/Light.hpp"
+#include "Input/Keyboard.hpp"
+#include "Input/Mouse.hpp"
+#include "Input/Events.hpp"
 #include "Callback.hpp"
-#include "Scene.hpp"
-#include "SceneParser.hpp"
+#include "Scene/Scene.hpp"
+#include "Scene/SceneParser.hpp"
 #include "Window.hpp"
-#include "Mesh.hpp"
-#include "CubeMesh.hpp"
-#include "PlaneMesh.hpp"
+#include "Mesh/Mesh.hpp"
+#include "Mesh/CubeMesh.hpp"
+#include "Mesh/PlaneMesh.hpp"
 #include "Tools.hpp"
 #include "Render.hpp"
-#include "RigidBody.hpp"
-#include "parser/GLTF.hpp"
+#include "Physics/RigidBody.hpp"
+#include "Transform.hpp"
 
 #define DOWNK SDL_SCANCODE_DOWN
 #define UPK SDL_SCANCODE_UP
@@ -40,9 +40,9 @@ void CameraCallback(std::shared_ptr<FPSCamera> camera)
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.x * 10) * camera->Right());
-    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y * 10) * camera->Forward());
-    camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis * 10) * Common::Up());
+    camera->Transform()->SetPosition(camera->Transform()->WorldPosition() - float(Events::delta_time() * laxis.x * 10) * camera->Transform()->Right());
+    camera->Transform()->SetPosition(camera->Transform()->WorldPosition() - float(Events::delta_time() * laxis.y * 10) * camera->Transform()->Forward());
+    camera->Transform()->SetPosition(camera->Transform()->WorldPosition() + float(Events::delta_time() * taxis * 10) * Common::Up());
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent *event)
@@ -117,7 +117,9 @@ void SetupCallbacks()
 }
 
 #include "Material.hpp"
-#include "BoundingAABB.hpp"
+#include "Physics/BoundingAABB.hpp"
+#include "Physics/BoundingSphere.hpp"
+#include "Physics/BoundingPlane.hpp"
 
 static inline void CreateCubes(unsigned /*nbr*/, std::shared_ptr<Scene> scene)
 {
@@ -144,13 +146,13 @@ static inline void CreateCubes(unsigned /*nbr*/, std::shared_ptr<Scene> scene)
     auto cube(CubeMesh::Create("cubeMesh", glm::vec3(1, 1, 1)));
     auto rigidBody(RigidBody::Create("cubeRigidBody", cube, BoundingSphere::Create(glm::vec3(0), 1.f)));
     cube->GetMaterial(0)->SetAlbedo(glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f));
-    cube->SetPosition(glm::vec3(0, 5, 0));
+    cube->Transform()->SetPosition(glm::vec3(0, 5, 0));
     //cube->SetImpostor(rigidBody);
 
     rigidBody->SetMass(1);
     //cube->SetMass((rand() % 100 - 50) / 100.f);
     rigidBody->SetApplyGravity(false);
-    rigidBody->ApplyWorldPush(glm::vec3(0, 10, -1), glm::vec3(0, 0, 1), cube->Position());
+    rigidBody->ApplyWorldPush(glm::vec3(0, 10, -1), glm::vec3(0, 0, 1), cube->Transform()->WorldPosition());
     rigidBody->SetLinearVelocity(glm::vec3(0));
     //rigidBody->ApplyCentralPush(1.f / normalize(cube->Position()) * 2.f);
     //rigidBody->ApplyCentralPush(glm::vec3(rand() % 100 - 50, rand() % 100 - 50, rand() % 100 - 50));
@@ -158,10 +160,6 @@ static inline void CreateCubes(unsigned /*nbr*/, std::shared_ptr<Scene> scene)
     scene->Add(rigidBody);
     scene->Add(cube);
 }
-
-#include "BoundingSphere.hpp"
-#include "BoundingAABB.hpp"
-#include "BoundingPlane.hpp"
 
 
 void CollidersTest()
@@ -233,7 +231,7 @@ int main(int, char **)
 	auto scene(Scene::Create("mainScene"));
     scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 0.5, false));
     scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
-    scene->CurrentCamera()->SetPosition(glm::vec3{0, 5, 10});
+    scene->CurrentCamera()->Transform()->SetPosition(glm::vec3{0, 5, 10});
     CreateColliders(scene);
     Scene::SetCurrent(scene);
     SetupCallbacks();

@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpinchon
- * @Last Modified time: 2020-05-10 19:26:59
+ * @Last Modified time: 2020-05-13 21:15:34
  */
 
 #include "Parser/FBX.hpp"
@@ -15,6 +15,7 @@
 #include "Parser/FBX/FBXNode.hpp"
 #include "Parser/FBX/FBXObject.hpp"
 #include "Parser/FBX/FBXProperty.hpp"
+#include "Transform.hpp"
 #include <glm/glm.hpp>
 #include <iostream>
 #include <memory>
@@ -354,6 +355,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
         for (const auto &model : objects->SubNodes("Model"))
         {
             auto mesh(meshes[model->Property(0)]);
+            auto transform(mesh->Transform());
             //auto mesh(Mesh::GetById(model->Property(0)));
             if (mesh == nullptr)
             {
@@ -367,27 +369,27 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                 std::cout << propertyName << std::endl;
                 if (propertyName == "Lcl Translation")
                 {
-                    mesh->SetPosition(glm::vec3(
+                    transform->SetPosition(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << mesh->Position().x << " " << mesh->Position().y << " " << mesh->Position().z << std::endl;
+                    std::cout << transform->Position().x << " " << transform->Position().y << " " << transform->Position().z << std::endl;
                 }
                 else if (propertyName == "Lcl Rotation")
                 {
-                    mesh->SetRotation(glm::vec3(
+                    transform->SetRotation(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << mesh->Rotation().x << " " << mesh->Rotation().y << " " << mesh->Rotation().z << std::endl;
+                    std::cout << transform->Rotation().x << " " << transform->Rotation().y << " " << transform->Rotation().z << std::endl;
                 }
                 else if (propertyName == "Lcl Scaling")
                 {
-                    mesh->SetScale(glm::vec3(
+                    transform->SetScale(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << mesh->Scale().x << " " << mesh->Scale().y << " " << mesh->Scale().z << std::endl;
+                    std::cout << transform->Scale().x << " " << transform->Scale().y << " " << transform->Scale().z << std::endl;
                 }
                 if (propertyName == "GeometricTranslation")
                 {
@@ -435,7 +437,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                             if (destination != nullptr)
                             {
                                 std::cout << source->Id() << " : IS CHILD OF : " << destination->Id() << std::endl;
-                                source->SetParent(destination);
+                                source->Transform()->SetParent(destination->Transform());
                             }
                             else if (destinationId == 0)
                             { 

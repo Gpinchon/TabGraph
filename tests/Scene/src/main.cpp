@@ -10,11 +10,13 @@
 #include "Scene/Scene.hpp"
 #include "Scene/SceneParser.hpp"
 #include "Window.hpp"
+#include "Material.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Mesh/CubeMesh.hpp"
 #include "Tools.hpp"
 #include "Render.hpp"
 #include "Parser/GLTF.hpp"
+#include "Transform.hpp"
 
 #define DOWNK SDL_SCANCODE_DOWN
 #define UPK SDL_SCANCODE_UP
@@ -38,9 +40,9 @@ void CameraCallback(std::shared_ptr<FPSCamera> camera)
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.x * 100) * camera->Right());
-    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y * 100) * camera->Forward());
-    camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis * 100) * Common::Up());
+    camera->Transform()->SetPosition(camera->Transform()->Position() - float(Events::delta_time() * laxis.x * 1) * camera->Transform()->Right());
+    camera->Transform()->SetPosition(camera->Transform()->Position() - float(Events::delta_time() * laxis.y * 1) * camera->Transform()->Forward());
+    camera->Transform()->SetPosition(camera->Transform()->Position() + float(Events::delta_time() * taxis * 1) * Common::Up());
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent *event)
@@ -123,8 +125,9 @@ int main(int argc, char **argv)
 	Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
     std::filesystem::path filePath = (std::string(argv[1]));
-    if (!filePath.is_absolute())
+    if (!filePath.is_absolute()) {
         filePath = Engine::ExecutionPath()/filePath;
+    }
 	auto scene(SceneParser::Parse(filePath.string()).at(0));
     if (scene == nullptr) {
         return -42;
@@ -132,9 +135,30 @@ int main(int argc, char **argv)
     scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(1000, 1000, 1000), 0.5, true));
     if (scene->CurrentCamera() == nullptr)
         scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
-    scene->CurrentCamera()->SetPosition(glm::vec3{0, 0, 0});
+
+/*
+    auto scene(Scene::Create("MainScene"));
+    scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
+    scene->CurrentCamera()->Transform()->SetPosition(glm::vec3{0, 0, 0});
+    auto cube0(CubeMesh::Create("Cube0", glm::vec3(1, 1, 1)));
+    auto cube1(CubeMesh::Create("Cube1", glm::vec3(1, 1, 1)));
+    auto cube2(CubeMesh::Create("Cube2", glm::vec3(1, 1, 1)));
+    cube0->GetMaterial(0)->SetAlbedo(glm::vec3(1, 0, 0));
+    cube1->GetMaterial(0)->SetAlbedo(glm::vec3(0, 1, 0));
+    cube2->GetMaterial(0)->SetAlbedo(glm::vec3(0, 0, 1));
+    cube1->SetParent(cube0);
+    cube2->SetParent(cube1);
+    cube0->Transform()->SetLocalTransform(
+        glm::mat4x4(glm::vec4(0.388609, 0.000000, 0.921403, 0.000000),
+                    glm::vec4(-0.300040, 0.945496, 0.126544, 0.000000),
+                    glm::vec4(-0.871183, -0.325634, 0.367428, 0.000000),
+                    glm::vec4(-2.968655, -0.502453, 1.696065, 1.000000)));
+    cube1->Transform()->SetPosition(glm::vec3(0, 1, 0));
+    cube2->Transform()->SetPosition(glm::vec3(0, 1, 0));
+    cube1->Transform()->SetRotation(glm::vec3(1, 0, 0));
+    scene->Add(cube0);
+*/
     
-    //scene->Add(CubeMesh::Create("cubeMesh", glm::vec3(100, 100 ,100)));
     Scene::SetCurrent(scene);
     SetupCallbacks();
 	Engine::Start();

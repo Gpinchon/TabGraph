@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 19:21:13
+* @Last Modified time: 2020-05-15 21:25:32
 */
 
 #include "Mesh/Mesh.hpp"
@@ -19,6 +19,7 @@
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureBuffer.hpp"
+#include "Transform.hpp"
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
@@ -66,7 +67,7 @@ bool Mesh::DrawDepth(RenderMod mod)
     auto geometryTranslationMatrix(glm::translate(GeometryPosition()));
     auto geometryRotationMatrix(glm::mat4_cast(GeometryRotation()));
     auto geometryScaleMatrix(glm::scale(GeometryScale()));
-    auto finalTranformMatrix(TransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
+    auto finalTranformMatrix(Transform()->WorldTransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
 
     bool ret = false;
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
@@ -92,7 +93,7 @@ bool Mesh::DrawDepth(RenderMod mod)
         material->Bind();
         if (last_shader != shader)
         {
-            shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->Position());
+            shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->Transform()->WorldPosition());
             shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
             shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
             shader->SetUniform("Camera.Matrix.ViewProjection", viewProjectionMatrix);
@@ -121,7 +122,7 @@ bool Mesh::Draw(RenderMod mod)
     auto geometryTranslationMatrix(glm::translate(GeometryPosition()));
     auto geometryRotationMatrix(glm::mat4_cast(GeometryRotation()));
     auto geometryScaleMatrix(glm::scale(GeometryScale()));
-    auto finalTranformMatrix(TransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
+    auto finalTranformMatrix(Transform()->WorldTransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
 
     bool ret = false;
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
@@ -252,7 +253,7 @@ glm::vec3 Mesh::GeometryPosition() const
 void Mesh::SetGeometryPosition(glm::vec3 position)
 {
     _geometryPosition = position;
-    SetNeedsTranformUpdate(true);
+    //SetNeedsTranformUpdate(true);
 }
 
 glm::quat Mesh::GeometryRotation() const
@@ -263,7 +264,7 @@ glm::quat Mesh::GeometryRotation() const
 void Mesh::SetGeometryRotation(glm::quat rotation)
 {
     _geometryRotation = rotation;
-    SetNeedsTranformUpdate(true);
+    //SetNeedsTranformUpdate(true);
 }
 
 glm::vec3 Mesh::GeometryScale() const
@@ -274,7 +275,7 @@ glm::vec3 Mesh::GeometryScale() const
 void Mesh::SetGeometryScale(glm::vec3 scale)
 {
     _geometryScale = scale;
-    SetNeedsTranformUpdate(true);
+    //SetNeedsTranformUpdate(true);
 }
 
 void Mesh::FixedUpdate()
@@ -297,8 +298,8 @@ void Mesh::UpdateSkin()
     for (auto index = 0u; index < Skin()->Joints().size(); ++index) {
         const auto joint(Skin()->Joints().at(index));
         auto jointMatrix =
-            glm::inverse(Parent()->TransformMatrix()) *
-            joint.lock()->TransformMatrix() *
+            glm::inverse(Transform()->Parent()->WorldTransformMatrix()) *
+            joint.lock()->Transform()->WorldTransformMatrix() *
             BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
         if (jointMatrix != BufferHelper::Get<glm::mat4>(_jointMatrices->Accessor(), index))
             skinChanged = true;

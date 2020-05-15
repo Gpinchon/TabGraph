@@ -1,6 +1,7 @@
 #include "Physics/PhysicsEngine.hpp"
 #include "Physics/RigidBody.hpp"
 #include "Node.hpp"
+#include "Transform.hpp"
 #include <algorithm>
 
 void PhysicsEngine::AddRigidBody(const std::shared_ptr<RigidBody> &rigidBody)
@@ -13,11 +14,12 @@ void PhysicsEngine::Simulate(float step)
 	for (auto &rigidBody : _rigidBodies) {
 		auto node(rigidBody->GetNode());
 		rigidBody->IntegrateVelocities(step);
-		if (node == nullptr) continue;
-		node->SetPosition(node->Position() + rigidBody->LinearVelocity() * step);
-	    node->SetRotation(normalize(node->Rotation() + step * 0.5f * rigidBody->AngularSpin() * node->Rotation()));
-	    node->UpdateTransformMatrix();
-	    rigidBody->GetCollider()->Transform(node->WorldPosition(), node->WorldRotation(), node->WorldScale());
+		if (node == nullptr || node->Transform() == nullptr) continue;
+		auto transform(node->Transform());
+		transform->SetPosition(transform->Position() + rigidBody->LinearVelocity() * step);
+	    transform->SetRotation(normalize(transform->Rotation() + step * 0.5f * rigidBody->AngularSpin() * transform->Rotation()));
+	    //transform->UpdateTransformMatrix();
+	    rigidBody->GetCollider()->Transform(transform->WorldPosition(), transform->WorldRotation(), transform->WorldScale());
 	}
 }
 

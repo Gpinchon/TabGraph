@@ -2,7 +2,7 @@
 #include "Physics/BoundingSphere.hpp"
 #include "Physics/BoundingAABB.hpp"
 #include "Physics/BoundingPlane.hpp"
-#include "Physics/BoundingMesh.hpp"
+#include "Physics/BoundingGeometry.hpp"
 #include "Physics/BoundingBox.hpp"
 #include "Debug.hpp"
 #include "Callback.hpp"
@@ -36,8 +36,8 @@ Intersection BoundingElement::Intersect(const std::shared_ptr<BoundingElement> &
 			return IntersectAABB(std::static_pointer_cast<BoundingAABB>(other));
 		case (Plane) :
 			return IntersectPlane(std::static_pointer_cast<BoundingPlane>(other));
-		case (Mesh) :
-			return IntersectMesh(std::static_pointer_cast<BoundingMesh>(other));
+		case (Geometry) :
+			return IntersectGeometry(std::static_pointer_cast<BoundingGeometry>(other));
 		case (Box) :
 			return IntersectBox(std::static_pointer_cast<BoundingBox>(other));
 		default :
@@ -81,10 +81,10 @@ Intersection BoundingElement::IntersectPlane(const std::shared_ptr<BoundingPlane
 		<< GetType() << " and BoundingPlane"<< std::endl;
 	return Intersection(false, NAN);
 }
-Intersection BoundingElement::IntersectMesh(const std::shared_ptr<BoundingMesh> &) const
+Intersection BoundingElement::IntersectGeometry(const std::shared_ptr<BoundingGeometry> &) const
 {
 	std::cerr << "[ERROR] : Intersection function not implemented between type "
-		<< GetType() << " and BoundingMesh"<< std::endl;
+		<< GetType() << " and BoundingGeometry"<< std::endl;
 	return Intersection(false, NAN);
 }
 Intersection BoundingElement::IntersectBox(const std::shared_ptr<BoundingBox> &) const

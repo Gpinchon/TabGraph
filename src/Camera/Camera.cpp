@@ -2,11 +2,12 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 18:57:22
+* @Last Modified time: 2020-05-13 20:14:17
 */
 
 #include "Camera/Camera.hpp"
 #include "Common.hpp"
+#include "Transform.hpp"
 #include "Window.hpp" // for Window
 #include <glm/ext.hpp>
 #include <glm/gtx/transform.hpp>
@@ -30,36 +31,9 @@ std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
     return std::shared_ptr<Camera>(new Camera(*otherCamera));
 }
 
-#include <glm/gtx/transform.hpp>
-
-glm::vec3 Camera::Forward() const
-{
-    return Rotation() * Common::Forward();
-}
-
-glm::vec3 Camera::Right() const
-{
-    return Rotation() * Common::Right();
-}
-
-glm::vec3 Camera::Up() const
-{
-    return Rotation() * Common::Up();
-}
-
-void Camera::UpdateTransformMatrix()
-{
-    Node::UpdateTransformMatrix();
-}
-
 glm::mat4 Camera::ViewMatrix() const
 {
-    return glm::inverse(TransformMatrix());
-}
-
-void Camera::SetViewMatrix(glm::mat4 view)
-{
-    SetTransformMatrix(view);
+    return glm::inverse(Transform()->WorldTransformMatrix());
 }
 
 glm::mat4 Camera::ProjectionMatrix() const
@@ -123,14 +97,4 @@ Camera::Projection Camera::ProjectionType() const
 void Camera::SetProjectionType(Camera::Projection projectionType)
 {
     _projection_type = projectionType;
-}
-
-void Camera::SetTransformMatrix(glm::mat4 transform)
-{
-    Node::SetTransformMatrix(transform);
-}
-
-glm::mat4 Camera::TransformMatrix() const
-{
-    return Node::TransformMatrix();
 }

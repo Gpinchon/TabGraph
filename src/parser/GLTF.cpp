@@ -15,6 +15,7 @@
 #include "Scene/SceneParser.hpp"
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureParser.hpp"
+#include "Transform.hpp"
 #include <glm/ext.hpp>
 #include <iostream>
 #include <filesystem>
@@ -92,10 +93,14 @@ static inline auto ParseTextures(const std::string &path, const rapidjson::Docum
 		for (const auto &textureValue : document["images"].GetArray()) {
 			std::string uri;
 			try {
-				auto texturePath(std::filesystem::path(textureValue["uri"].GetString()));
-				if (!texturePath.is_absolute())
-					texturePath = std::filesystem::path(path).parent_path()/texturePath;
-				uri = texturePath.string();
+				uri = textureValue["uri"].GetString();
+				std::string header("data:application/octet-stream;base64,");
+				if (uri.find(header) != 0) {
+					auto texturePath = std::filesystem::path(uri);
+					if (!texturePath.is_absolute())
+						texturePath = std::filesystem::path(path).parent_path()/texturePath;
+					uri = texturePath.string();
+				}
 			}
 			catch(std::exception &) {debugLog("Texture " + std::to_string(textureIndex) + " has no Uri")}
 			auto texture(TextureParser::parse("Texture " + std::to_string(textureIndex), uri));
@@ -198,6 +203,16 @@ static inline auto ParseBuffers(const std::string &path, const rapidjson::Docume
 		for (const auto &bufferValue : document["buffers"].GetArray()) {
 			auto buffer(Buffer::Create(bufferValue["byteLength"].GetFloat()));
 			buffer->SetName("Buffer " + std::to_string(bufferIndex));
+			/*try {
+				std::string uri = bufferValue["uri"].GetString();
+				std::string header("data:application/octet-stream;base64,");
+				if (uri.find(header) == std::string::npos) {
+					auto texturePath = std::filesystem::path(uri);
+					if (!texturePath.is_absolute())
+						texturePath = std::filesystem::path(path).parent_path()/texturePath;
+					uri = texturePath.string();
+				}
+			}*/
 			try {
 				auto bufferPath(std::filesystem::path(bufferValue["uri"].GetString()));
 				if (!bufferPath.is_absolute())
@@ -327,6 +342,9 @@ static inline auto ParseMeshes(const rapidjson::Document &document, const GLTFCo
 	return meshVector;
 }
 
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+
 static inline auto ParseNodes(const rapidjson::Document &document)
 {
 	std::vector<std::shared_ptr<Node>> nodeVector;
@@ -336,14 +354,15 @@ static inline auto ParseNodes(const rapidjson::Document &document)
 	int nodeIndex = 0;
 	for (const auto &node : nodeItr->value.GetArray())
 	{
-		std::shared_ptr<Node> newNode(Node::Create("Node_" + std::to_string(nodeIndex)));
+		auto newNode(Node::Create("Node_" + std::to_string(nodeIndex)));
+		auto transform(newNode->Transform()); 
 		try { newNode->SetName(node["name"].GetString()); }
 		catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no name property"); }
 		try {
 			glm::mat4 matrix;
 			for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < glm::uint(matrix.length() * 4); i++)
 				matrix[i / 4][i % 4] = node["matrix"].GetArray()[i].GetFloat();
-			newNode->SetNodeTransformMatrix(matrix);
+			transform->SetLocalTransform(matrix);
 		} catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no matrix property"); }
 		try {
 			const auto &position(node["translation"].GetArray());
@@ -351,7 +370,7 @@ static inline auto ParseNodes(const rapidjson::Document &document)
 			positionVec3[0] = position[0].GetFloat();
 			positionVec3[1] = position[1].GetFloat();
 			positionVec3[2] = position[2].GetFloat();
-			newNode->SetPosition(positionVec3);
+			transform->SetPosition(positionVec3);
 		} catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no translation property"); }
 		try {
 			const auto &rotation(node["rotation"].GetArray());
@@ -360,7 +379,7 @@ static inline auto ParseNodes(const rapidjson::Document &document)
 			rotationQuat[1] = rotation[1].GetFloat();
 			rotationQuat[2] = rotation[2].GetFloat();
 			rotationQuat[3] = rotation[3].GetFloat();
-			newNode->SetRotation(glm::normalize(rotationQuat));
+			transform->SetRotation(glm::normalize(rotationQuat));
 		} catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no rotation property"); }
 		try {
 			const auto &scale(node["scale"].GetArray());
@@ -368,7 +387,7 @@ static inline auto ParseNodes(const rapidjson::Document &document)
 			scaleVec3[0] = scale[0].GetFloat();
 			scaleVec3[1] = scale[1].GetFloat();
 			scaleVec3[2] = scale[2].GetFloat();
-			newNode->SetScale(scaleVec3);
+			transform->SetScale(scaleVec3);
 		} catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no scale property"); }
 		nodeVector.push_back(newNode);
 		nodeIndex++;

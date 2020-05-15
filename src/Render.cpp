@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 20:20:42
+* @Last Modified time: 2020-05-13 19:51:49
 */
 
 #include "Render.hpp"
@@ -21,6 +21,7 @@
 #include "Window.hpp" // for Window
 #include "brdfLUT.hpp" // for brdfLUT
 #include "Parser/GLSL.hpp" // for GLSL, LightingShader, PostShader
+#include "Transform.hpp"
 #include <GL/glew.h> // for GL_TEXTURE0, glDepthFunc, glClear, glDis...
 #include <glm/glm.hpp> // for glm::inverse, vec2_scale, vec3_scale
 #include <SDL2/SDL_timer.h> // for SDL_GetTicks
@@ -238,7 +239,7 @@ void Render::Private::FixedUpdate()
     while (auto shader = Shader::Get(index))
     {
         //shader->use();
-        shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->Position());
+        shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->Transform()->WorldPosition());
         shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
         shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
         shader->SetUniform("Camera.InvMatrix.View", InvViewMatrix);
@@ -368,7 +369,7 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeo
         while (lightIndex < lightsPerPass && i < normalLights.size())
         {
             auto light = normalLights.at(i);
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Transform()->WorldPosition());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", -1);
@@ -379,7 +380,7 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeo
         while (lightIndex < lightsPerPass && shadowIndex < actualShadowNbr && j < shadowLights.size())
         {
             auto light = shadowLights.at(j);
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Position());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Transform()->WorldPosition());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));

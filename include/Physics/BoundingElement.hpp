@@ -17,7 +17,7 @@ class Ray;
 class BoundingAABB;
 class BoundingSphere;
 class BoundingPlane;
-class BoundingMesh;
+class BoundingGeometry;
 class BoundingBox;
 template <typename Signature>
 class Callback;
@@ -32,7 +32,7 @@ public:
 		Sphere,
 		AABB,
 		Plane,
-		Mesh,
+		Geometry,
 		Box,
 		MaxType
 	};
@@ -43,7 +43,7 @@ public:
     virtual Intersection IntersectSphere(const std::shared_ptr<BoundingSphere> &other) const;
     virtual Intersection IntersectAABB(const std::shared_ptr<BoundingAABB> &other) const;
     virtual Intersection IntersectPlane(const std::shared_ptr<BoundingPlane> &other) const;
-    virtual Intersection IntersectMesh(const std::shared_ptr<BoundingMesh> &other) const;
+    virtual Intersection IntersectGeometry(const std::shared_ptr<BoundingGeometry> &other) const;
     virtual Intersection IntersectBox(const std::shared_ptr<BoundingBox> &other) const;
     virtual void Transform(const glm::vec3 &translation, const glm::quat &rotation, const glm::vec3 &scale);
 	Intersection IntersectError(const std::shared_ptr<BoundingElement> &other) const;

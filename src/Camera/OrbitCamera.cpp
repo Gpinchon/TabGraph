@@ -2,10 +2,11 @@
 * @Author: gpi
 * @Date:   2019-07-16 08:55:52
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 18:57:31
+* @Last Modified time: 2020-05-13 22:13:49
 */
 
 #include "Camera/OrbitCamera.hpp"
+#include "Transform.hpp"
 #include "Tools.hpp"
 
 OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
@@ -22,41 +23,36 @@ std::shared_ptr<OrbitCamera> OrbitCamera::Create(const std::string& iname, float
     return (camera);
 }
 
-void OrbitCamera::SetPosition(glm::vec3)
+std::shared_ptr<Node> OrbitCamera::Target() const
 {
-
+    return nullptr;
 }
 
-glm::vec3 OrbitCamera::Position() const
+void OrbitCamera::UpdateTransform()
 {
     glm::vec3 targetPosition(0);
-    if (target() != nullptr)
-        targetPosition = target()->Position();
-    return targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi()));
-}
-
-glm::quat OrbitCamera::Rotation() const
-{
-    glm::vec3 targetPosition(0);
-    if (target() != nullptr)
-        targetPosition = target()->Position();
-    glm::vec3 forwardVector = normalize(targetPosition - Position());
+    if (Target() != nullptr && Target()->Transform() != nullptr)
+        targetPosition = Target()->Transform()->WorldPosition();
+    Transform()->SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
+    glm::vec3 forwardVector = normalize(targetPosition - Transform()->WorldPosition());
 
     float dot = glm::dot(Common::Forward(), forwardVector);
 
     if (abs(dot - (-1.0f)) < 0.000001f)
     {
-        return glm::quat(Common::Up().x, Common::Up().y, Common::Up().z, M_PI);
+        Transform()->SetRotation(glm::quat(Common::Up().x, Common::Up().y, Common::Up().z, M_PI));
+        return;
     }
     if (abs(dot - (1.0f)) < 0.000001f)
     {
-        return glm::quat(0, 0, 0, 1);
+        Transform()->SetRotation(glm::quat(0, 0, 0, 1));
+        return;
     }
 
     float rotAngle = (float)acos(dot);
     glm::vec3 rotAxis = glm::cross(Common::Forward(), forwardVector);
     rotAxis = normalize(rotAxis);
-    return glm::angleAxis(rotAngle, rotAxis);
+    Transform()->SetRotation(glm::angleAxis(rotAngle, rotAxis));
 }
 
 float OrbitCamera::Phi() const
@@ -67,7 +63,8 @@ float OrbitCamera::Phi() const
 void OrbitCamera::SetPhi(float phi)
 {
     _phi = phi;
-    SetNeedsTranformUpdate(true);
+    UpdateTransform();
+    //SetNeedsTranformUpdate(true);
 }
 
 float OrbitCamera::Theta() const
@@ -78,7 +75,8 @@ float OrbitCamera::Theta() const
 void OrbitCamera::SetTheta(float theta)
 {
     _theta = theta;
-    SetNeedsTranformUpdate(true);
+    UpdateTransform();
+    //SetNeedsTranformUpdate(true);
 }
 
 float OrbitCamera::Radius() const
@@ -89,5 +87,6 @@ float OrbitCamera::Radius() const
 void OrbitCamera::SetRadius(float radius)
 {
     _radius = radius;
-    SetNeedsTranformUpdate(true);
+    UpdateTransform();
+    //SetNeedsTranformUpdate(true);
 }

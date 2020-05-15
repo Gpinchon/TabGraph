@@ -2,10 +2,11 @@
 * @Author: gpi
 * @Date:   2019-07-15 10:36:36
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 18:57:32
+* @Last Modified time: 2020-05-13 20:20:40
 */
 
 #include "Camera/FPSCamera.hpp"
+#include "Transform.hpp"
 #include <memory>
 
 FPSCamera::FPSCamera(const std::string& name, float fov, Camera::Projection proj)
@@ -18,6 +19,19 @@ std::shared_ptr<FPSCamera> FPSCamera::Create(const std::string& name, float ifov
     return std::shared_ptr<FPSCamera>(new FPSCamera(name, ifov, proj));
 }
 
+static inline auto GetRotation(const float Yaw, const float Pitch, const float Roll)
+{
+    auto radPitch(glm::radians(Pitch));
+    auto radYaw(glm::radians(Yaw));
+    auto radRoll(glm::radians(Roll));
+    glm::quat quatRoll = glm::angleAxis(radRoll, Common::Forward());
+    glm::quat quatPitch = glm::angleAxis(radPitch, Common::Right());
+    glm::quat quatYaw =  glm::angleAxis(radYaw, Common::Up());
+    glm::quat rotation = quatYaw * quatPitch * quatRoll;
+
+    return glm::normalize(rotation);
+}
+
 float FPSCamera::Yaw() const
 {
     return _yaw;
@@ -26,7 +40,8 @@ float FPSCamera::Yaw() const
 void FPSCamera::SetYaw(float yaw)
 {
     _yaw = yaw;
-    SetNeedsTranformUpdate(true);
+    Transform()->SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
+    //SetNeedsTranformUpdate(true);
 }
 
 float FPSCamera::Pitch() const
@@ -37,7 +52,8 @@ float FPSCamera::Pitch() const
 void FPSCamera::SetPitch(float pitch)
 {
     _pitch = pitch;
-    SetNeedsTranformUpdate(true);
+    Transform()->SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
+    //SetNeedsTranformUpdate(true);
 }
 
 float FPSCamera::Roll() const
@@ -48,10 +64,11 @@ float FPSCamera::Roll() const
 void FPSCamera::SetRoll(float roll)
 {
     _roll = roll;
-    SetNeedsTranformUpdate(true);
+    Transform()->SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
+    //SetNeedsTranformUpdate(true);
 }
 
-glm::quat FPSCamera::Rotation() const
+/*glm::quat FPSCamera::Rotation() const
 {
     auto radPitch(glm::radians(Pitch()));
     auto radYaw(glm::radians(Yaw()));
@@ -62,4 +79,4 @@ glm::quat FPSCamera::Rotation() const
     glm::quat rotation = quatYaw * quatPitch * quatRoll;
 
     return glm::normalize(rotation);
-}
+}*/

@@ -50,7 +50,6 @@ class DirectionnalLight : public Light {
 public:
     static std::shared_ptr<DirectionnalLight> Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power, bool cast_shadow = false);
     virtual void render_shadow() override;
-    virtual void UpdateTransformMatrix() override;
     virtual LightType type() override;
     virtual glm::mat4 ShadowProjectionMatrix() const override;
 

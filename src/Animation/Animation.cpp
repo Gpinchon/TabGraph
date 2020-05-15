@@ -1,6 +1,3 @@
-#include <SDL2/SDL_timer.h> // for SDL_GetTicks
-#include <glm/common.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include "Animation/Animation.hpp"
 #include "Debug.hpp"
 #include "Mesh/Mesh.hpp"
@@ -8,6 +5,10 @@
 #include "Buffer/BufferHelper.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Callback.hpp"
+#include "Transform.hpp"
+#include <SDL2/SDL_timer.h> // for SDL_GetTicks
+#include <glm/common.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 Animation::Animation() : Object("")
 {
@@ -136,7 +137,7 @@ void Animation::Advance()
 					glm::vec3 next(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey));
 					current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
 				}
-				channel.Target()->SetPosition(current);
+				channel.Target()->Transform()->SetPosition(current);
 				break;
 			}
 			case AnimationChannel::Rotation:
@@ -158,12 +159,12 @@ void Animation::Advance()
 					glm::quat next(BufferHelper::Get<glm::quat>(sampler.KeyFrames(), nextKey));
 					current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
 				}
-				channel.Target()->SetRotation(glm::normalize(current));
+				channel.Target()->Transform()->SetRotation(glm::normalize(current));
 				break;
 			}
 			case AnimationChannel::Scale:
 			{
-				glm::vec3 current(channel.Target()->Scale());
+				glm::vec3 current(channel.Target()->Transform()->Scale());
 				if (sampler.Interpolation() == AnimationSampler::CubicSpline)
 				{
 					glm::vec3 prev				(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), interpolator.PrevKey() * 3 + 1));
@@ -180,7 +181,7 @@ void Animation::Advance()
 					glm::vec3 next(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey));
 					current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
 				}
-				channel.Target()->SetScale(current);
+				channel.Target()->Transform()->SetScale(current);
 				break;
 			}
 			case AnimationChannel::Weights:

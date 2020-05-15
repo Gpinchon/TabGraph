@@ -19,7 +19,7 @@ public:
     virtual void SetPitch(float);
     virtual float Roll() const;
     virtual void SetRoll(float);
-    virtual glm::quat Rotation() const override;
+    //virtual glm::quat Rotation() const override;
 
 protected:
     FPSCamera(const std::string& name, float fov, Camera::Projection proj = Perspective);

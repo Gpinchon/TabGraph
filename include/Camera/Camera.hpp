@@ -34,11 +34,6 @@ public:
      */
     glm::mat4 ViewMatrix() const;
     /**
-     * @brief alias for SetTransformMatrix
-     * @arg viewMatrix : the new camera's view matrix
-     */
-    void SetViewMatrix(glm::mat4 viewMatrix);
-    /**
      * @brief READONLY : Computed on demand
      */
     virtual glm::mat4 ProjectionMatrix() const;
@@ -49,21 +44,6 @@ public:
     virtual float Fov() const;
     /** @arg fov : the vertical field of view in degrees */
     virtual void SetFov(float fov);
-    /**
-     * @brief Common::Forward() * Rotation()
-     * READONLY : Computed on demand
-     */
-    virtual glm::vec3 Forward() const;
-    /**
-     * @brief READONLY : Computed on demand
-     * @return Common::Up() * Rotation()
-     */
-    virtual glm::vec3 Up() const;
-    /**
-     * @brief READONLY : Computed on demand
-     * Common::Right() * Rotation()
-     */
-    virtual glm::vec3 Right() const;
     /** @return the near clipping plane distance */
     virtual float Znear() const;
     /** @arg znear : the new near clipping plane distance */
@@ -83,10 +63,6 @@ protected:
     Camera(const std::string& name, float fov, Camera::Projection proj = Perspective);
 
 private:
-    /** Calls UpdateViewMatrix and UpdateProjectionMatrix */
-    void UpdateTransformMatrix() final override;
-    glm::mat4 TransformMatrix() const final override;
-    void SetTransformMatrix(glm::mat4) final override;
     Camera::Projection _projection_type { Perspective };
     //glm::mat4 _projection { 0 };
     glm::vec4 _frustum { -50, 50, -50, 50 };

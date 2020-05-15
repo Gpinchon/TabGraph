@@ -7,6 +7,7 @@
 #include "Node.hpp"
 #include "Scene/Scene.hpp"
 #include "Physics/RigidBody.hpp"
+#include "Transform.hpp"
 #include <iostream>
 #include <SDL2/SDL_timer.h> // for SDL_GetTicks
 #include <algorithm>
@@ -32,7 +33,8 @@ void Scene::SetName(const std::string &name)
 
 void Scene::_AddNodeChildren(std::shared_ptr<Node> node)
 {
-	for (auto child : node->Children()) {
+	for (auto index(0u); index < node->ChildCount(); ++index) {
+		auto child(node->GetChild(index));
 		if (std::find(_nodes.begin(), _nodes.end(), child) == _nodes.end())
 			_nodes.push_back(child);
 		else
@@ -80,22 +82,22 @@ void Scene::Add(std::shared_ptr<Animation> animation)
 	_animations.push_back(animation);
 }
 
-void UpdateTransformMatrix(std::shared_ptr<Node> rootNode)
-{
-	if (rootNode == nullptr)
-        return;
-    rootNode->UpdateTransformMatrix();
-    for (const auto &child : rootNode->Children())
-        UpdateTransformMatrix(child);
-}
-
+//void UpdateTransformMatrix(std::shared_ptr<Node> rootNode)
+//{
+//	if (rootNode == nullptr)
+//        return;
+//    rootNode->UpdateTransformMatrix();
+//    for (const auto &child : Nodes())
+//        UpdateTransformMatrix(child);
+//}
+//
 void NodesFixedUpdate(std::shared_ptr<Node> rootNode)
 {
 	if (rootNode == nullptr)
         return;
     rootNode->FixedUpdate();
-    for (const auto &child : rootNode->Children())
-        NodesFixedUpdate(child);
+    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
+        NodesFixedUpdate(rootNode->GetChild(index));
 }
 
 void Scene::FixedUpdate()
@@ -106,8 +108,8 @@ void Scene::FixedUpdate()
 			animation->Advance();
 	}
 	PhysicsUpdate();
-	for (auto &node : RootNodes())
-		UpdateTransformMatrix(node);
+	//for (auto &node : RootNodes())
+	//	UpdateTransformMatrix(node);
     for (auto &node : RootNodes())
     	NodesFixedUpdate(node);
 }
@@ -131,8 +133,10 @@ void NodesUpdateGPU(std::shared_ptr<Node> rootNode)
 	if (rootNode == nullptr)
         return;
     rootNode->UpdateGPU();
-    for (const auto &child : rootNode->Children())
-        NodesUpdateGPU(child);
+    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
+        NodesUpdateGPU(rootNode->GetChild(index));
+    //for (const auto &child : Nodes())
+    //    NodesUpdateGPU(child);
 }
 
 void Scene::UpdateGPU()
@@ -146,8 +150,8 @@ void NodesUpdate(std::shared_ptr<Node> rootNode)
 	if (rootNode == nullptr)
         return;
     rootNode->Update();
-    for (const auto &child : rootNode->Children())
-        NodesUpdate(child);
+    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
+        NodesUpdate(rootNode->GetChild(index));
 }
 
 void Scene::Update()
@@ -160,8 +164,8 @@ void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode) {
     if (rootNode == nullptr)
         return;
     rootNode->Draw(mode);
-    for (const auto &child : rootNode->Children())
-        DrawNodes(child, mode);
+    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
+        DrawNodes(rootNode->GetChild(index), mode);
 }
 
 void Scene::Render(const RenderMod &mode) {
@@ -173,8 +177,8 @@ void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode) {
 	if (rootNode == nullptr)
         return;
     rootNode->DrawDepth(mode);
-    for (const auto &child : rootNode->Children())
-        DrawNodesDepth(child, mode);
+    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
+        DrawNodesDepth(rootNode->GetChild(index), mode);
 }
 
 void Scene::RenderDepth(const RenderMod &mode) {
@@ -214,11 +218,11 @@ template<typename T>
 std::shared_ptr<T> GetByName(const std::string &name, const std::shared_ptr<T> rootNode) {
 	if (rootNode == nullptr || rootNode->Name() == name)
 		return std::dynamic_pointer_cast<T>(rootNode);
-	for (const auto object : rootNode->Children()) {
-		auto result(std::dynamic_pointer_cast<T>(GetByName<Node>(name, object)));
-		if (result != nullptr)
-			return result;
-	}
+	//for (const auto object : Nodes()) {
+	//	auto result(std::dynamic_pointer_cast<T>(GetByName<Node>(name, object)));
+	//	if (result != nullptr)
+	//		return result;
+	//}
 	return nullptr;
 }
 
@@ -226,11 +230,11 @@ template<typename T>
 std::shared_ptr<T> GetByPointer(std::shared_ptr<Node> node, const std::shared_ptr<T> rootNode) {
 	if (rootNode == nullptr || rootNode == node)
 		return std::dynamic_pointer_cast<T>(rootNode);
-	for (const auto object : rootNode->Children()) {
-		auto result(std::dynamic_pointer_cast<T>(GetByPointer<Node>(node, object)));
-		if (result != nullptr)
-			return result;
-	}
+	//for (const auto object : Nodes()) {
+	//	auto result(std::dynamic_pointer_cast<T>(GetByPointer<Node>(node, object)));
+	//	if (result != nullptr)
+	//		return result;
+	//}
 	return nullptr;
 }
 
