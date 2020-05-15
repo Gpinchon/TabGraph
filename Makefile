@@ -87,7 +87,7 @@ HEADERS_FILES	=	\
 					Physics/BoundingAABB.hpp				\
 					Physics/BoundingBox.hpp					\
 					Physics/BoundingElement.hpp				\
-					Physics/BoundingMesh.hpp				\
+					Physics/BoundingGeometry.hpp			\
 					Physics/BoundingPlane.hpp				\
 					Physics/BoundingSphere.hpp				\
 					Physics/IntersectFunctions.hpp			\
@@ -107,7 +107,8 @@ HEADERS_FILES	=	\
 					Texture/Texture2D.hpp					\
 					Texture/TextureArray.hpp				\
 					Texture/TextureBuffer.hpp				\
-					Texture/TextureParser.hpp
+					Texture/TextureParser.hpp				\
+					Transform.hpp
 SRC_FILES		=	\
 					Callback.cpp						\
 					Common.cpp							\
@@ -162,7 +163,7 @@ SRC_FILES		=	\
 					Physics/BoundingAABB.cpp			\
 					Physics/BoundingBox.cpp				\
 					Physics/BoundingElement.cpp			\
-					Physics/BoundingMesh.cpp			\
+					Physics/BoundingGeometry.cpp		\
 					Physics/BoundingPlane.cpp			\
 					Physics/BoundingSphere.cpp			\
 					Physics/Intersection.cpp			\
@@ -243,7 +244,7 @@ ifeq ($(DEBUG), 1)
 	LIBOBJ = $(addprefix $(LIBOBJ_PATH), $(OBJ))
 all: $(LIBFILES) $(LIBOBJ)
 else
-	CXXFLAGS += -Ofast
+	CXXFLAGS += -O1
 	LIBPATH = $(RELBUILD_PATH)
 	LIBOBJ_PATH = $(RELOBJ_PATH)
 	LIBOBJ = $(addprefix $(LIBOBJ_PATH), $(OBJ))
