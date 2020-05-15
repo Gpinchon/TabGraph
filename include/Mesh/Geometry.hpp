@@ -9,6 +9,7 @@
 
 #include "Object.hpp"
 #include "Node.hpp" // for RenderAll, RenderMod, Renderable
+#include "Buffer/BufferHelper.hpp"
 #include <glm/glm.hpp> // for glm::vec2, s_vec2, s_vec3, glm::vec3
 #include <GL/glew.h> // for GLubyte
 #include <memory> // for shared_ptr, weak_ptr
@@ -67,6 +68,12 @@ public:
     };
     static std::shared_ptr<Geometry> Create(const std::string & = "");
     static Geometry::AccessorKey GetAccessorKey(const std::string &key);
+    glm::vec3 Centroid() const;
+    size_t EdgeCount() const;
+    glm::ivec2 GetEdge(const size_t index) const;
+    size_t VertexCount() const;
+    template<typename T>
+    T GetVertex(const Geometry::AccessorKey key, const size_t index) const;
     uint32_t MaterialIndex();
     void SetMaterialIndex(uint32_t);
     void Load();
@@ -92,6 +99,7 @@ protected:
     Geometry(const std::string &);
 private:
     bool _isLoaded { false };
+    glm::vec3 _centroid { 0 };
     std::shared_ptr<BoundingAABB> _bounds;
     GLenum _drawingMode { GL_TRIANGLES };
     uint32_t _materialIndex { 0 };
@@ -100,3 +108,15 @@ private:
     std::shared_ptr<BufferAccessor> _indices { nullptr };
     std::vector<GeometryMorthTarget> _morphTargets;
 };
+
+template<typename T>
+inline T Geometry::GetVertex(const Geometry::AccessorKey key, const size_t index) const
+{
+    assert(index < VertexCount());
+    if (Indices() != nullptr) {
+        auto indice(BufferHelper::Get<unsigned>(Indices(), index));
+        return BufferHelper::Get<T>(Accessor(key), indice);
+    }
+    else
+        return BufferHelper::Get<T>(Accessor(key), index);
+}
