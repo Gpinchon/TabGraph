@@ -244,7 +244,7 @@ ifeq ($(DEBUG), 1)
 	LIBOBJ = $(addprefix $(LIBOBJ_PATH), $(OBJ))
 all: $(LIBFILES) $(LIBOBJ)
 else
-	CXXFLAGS += -O1
+	CXXFLAGS += -Ofast
 	LIBPATH = $(RELBUILD_PATH)
 	LIBOBJ_PATH = $(RELOBJ_PATH)
 	LIBOBJ = $(addprefix $(LIBOBJ_PATH), $(OBJ))
