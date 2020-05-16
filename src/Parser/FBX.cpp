@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpinchon
- * @Last Modified time: 2020-05-13 21:15:34
+ * @Last Modified time: 2020-05-16 20:40:12
  */
 
 #include "Parser/FBX.hpp"
@@ -393,27 +393,27 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                 }
                 if (propertyName == "GeometricTranslation")
                 {
-                    mesh->SetGeometryPosition(glm::vec3(
+                    mesh->GetGeometryTransform()->SetPosition(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << mesh->GeometryPosition().x << " " << mesh->GeometryPosition().y << " " << mesh->GeometryPosition().z << std::endl;
+                    std::cout << mesh->GetGeometryTransform()->Position().x << " " << mesh->GetGeometryTransform()->Position().y << " " << mesh->GetGeometryTransform()->Position().z << std::endl;
                 }
                 else if (propertyName == "GeometricRotation")
                 {
-                    mesh->SetGeometryRotation(glm::vec3(
+                    mesh->GetGeometryTransform()->SetRotation(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << mesh->GeometryRotation().x << " " << mesh->GeometryRotation().y << " " << mesh->GeometryRotation().z << std::endl;
+                    std::cout << mesh->GetGeometryTransform()->Rotation().x << " " << mesh->GetGeometryTransform()->Rotation().y << " " << mesh->GetGeometryTransform()->Rotation().z << std::endl;
                 }
                 else if (propertyName == "GeometricScaling")
                 {
-                    mesh->SetGeometryScale(glm::vec3(
+                    mesh->GetGeometryTransform()->SetScale(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << mesh->GeometryScale().x << " " << mesh->GeometryScale().y << " " << mesh->GeometryScale().z << std::endl;
+                    std::cout << mesh->GetGeometryTransform()->Scale().x << " " << mesh->GetGeometryTransform()->Scale().y << " " << mesh->GetGeometryTransform()->Scale().z << std::endl;
                 }
             }
         }
