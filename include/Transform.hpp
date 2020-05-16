@@ -78,8 +78,8 @@ private:
     std::shared_ptr<Transform> _parent;
     //std::vector<std::shared_ptr<Transform>> _children;
 	glm::vec3 _position { 0, 0, 0 };
-    glm::quat _rotation { 0, 0, 0, 1 };
+    glm::quat _rotation {glm::vec3(0.0, 0.0, 0.0)};
     glm::vec3 _scale { 1, 1, 1 };
     bool _needsUpdate { true };
-    glm::mat4 _localTransformMatrix;
+    glm::mat4 _localTransformMatrix { glm::mat4(1) };
 };

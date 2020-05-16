@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-15 21:25:32
+* @Last Modified time: 2020-05-16 20:39:07
 */
 
 #include "Mesh/Mesh.hpp"
@@ -25,7 +25,7 @@
 
 
 Mesh::Mesh(const std::string &name)
-    : Node(name)
+    : Node(name), _geometryTransform(Transform::Create(Name() + "_geometryTransform"))
 {
 }
 
@@ -64,10 +64,7 @@ void Mesh::Load()
 bool Mesh::DrawDepth(RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    auto geometryTranslationMatrix(glm::translate(GeometryPosition()));
-    auto geometryRotationMatrix(glm::mat4_cast(GeometryRotation()));
-    auto geometryScaleMatrix(glm::scale(GeometryScale()));
-    auto finalTranformMatrix(GetTransform()->WorldTransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
+    auto finalTranformMatrix(GetTransform()->WorldTransformMatrix() * GetGeometryTransform()->WorldTransformMatrix());
 
     bool ret = false;
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
@@ -119,10 +116,7 @@ bool Mesh::DrawDepth(RenderMod mod)
 bool Mesh::Draw(RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    auto geometryTranslationMatrix(glm::translate(GeometryPosition()));
-    auto geometryRotationMatrix(glm::mat4_cast(GeometryRotation()));
-    auto geometryScaleMatrix(glm::scale(GeometryScale()));
-    auto finalTranformMatrix(GetTransform()->WorldTransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
+    auto finalTranformMatrix(GetTransform()->WorldTransformMatrix() * GetGeometryTransform()->WorldTransformMatrix());
 
     bool ret = false;
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
@@ -245,37 +239,14 @@ int64_t Mesh::GetMaterialIndex(const std::string &name)
     return -1;
 }
 
-glm::vec3 Mesh::GeometryPosition() const
+std::shared_ptr<Transform> Mesh::GetGeometryTransform() const
 {
-    return _geometryPosition;
+    return _geometryTransform;
 }
 
-void Mesh::SetGeometryPosition(glm::vec3 position)
+void Mesh::SetGeometryTransform(const std::shared_ptr<Transform> &transform)
 {
-    _geometryPosition = position;
-    //SetNeedsTranformUpdate(true);
-}
-
-glm::quat Mesh::GeometryRotation() const
-{
-    return _geometryRotation;
-}
-
-void Mesh::SetGeometryRotation(glm::quat rotation)
-{
-    _geometryRotation = rotation;
-    //SetNeedsTranformUpdate(true);
-}
-
-glm::vec3 Mesh::GeometryScale() const
-{
-    return _geometryScale;
-}
-
-void Mesh::SetGeometryScale(glm::vec3 scale)
-{
-    _geometryScale = scale;
-    //SetNeedsTranformUpdate(true);
+    _geometryTransform = transform;
 }
 
 void Mesh::FixedUpdate()

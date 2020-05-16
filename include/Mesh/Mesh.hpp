@@ -48,18 +48,8 @@ public:
     /** @return the material index in this mesh material table using its name, -1 if not found */
     int64_t GetMaterialIndex(const std::string &);
 
-    /** @return a position offset not inherited by children */
-    virtual glm::vec3 GeometryPosition() const;
-    /** @argument position : Geometrys position offset, not inherited by children */
-    virtual void SetGeometryPosition(glm::vec3 position);
-    /** @return a rotation offset not inherited by children */
-    virtual glm::quat GeometryRotation() const;
-    /** @argument rotation : Geometrys rotation offset, not inherited by children */
-    virtual void SetGeometryRotation(glm::quat rotation);
-    /** @return a scaling offset not inherited by children */
-    virtual glm::vec3 GeometryScale() const;
-    /** @argument scale : Geometrys scale offset, not inherited by children */
-    virtual void SetGeometryScale(glm::vec3 scale);
+    std::shared_ptr<Transform> GetGeometryTransform() const;
+    void SetGeometryTransform(const std::shared_ptr<Transform> &transform);
 
     virtual void FixedUpdate() override;
     virtual void UpdateGPU() override;
@@ -82,9 +72,7 @@ private:
     std::shared_ptr<MeshSkin> _skin { nullptr };
     std::shared_ptr<TextureBuffer> _jointMatrices { nullptr };
     std::shared_ptr<BufferAccessor> _weights { nullptr };
+    std::shared_ptr<Transform> _geometryTransform { nullptr };
     GLenum _cull_mod{GL_BACK};
-    glm::vec3 _geometryPosition{0};
-    glm::quat _geometryRotation{0, 0, 0, 1};
-    glm::vec3 _geometryScale{1};
     bool _loaded {false};
 };
