@@ -104,34 +104,39 @@ void Framebuffer::bind(bool to_bind)
         bind_default();
         return;
     }
-    glCheckError(Name());
     for (auto attachement : _color_attachements)
         attachement.first->load();
     if (_depth.first != nullptr)
         _depth.first->load();
     if (_glid == 0u) {
         glGenFramebuffers(1, &_glid);
-        glCheckError(Name());
+        if (glCheckError(Name()))
+                throw std::runtime_error("Error while generating Framebuffer");
         glBindFramebuffer(GL_FRAMEBUFFER, _glid);
         glObjectLabel(GL_FRAMEBUFFER, _glid, Name().length(), Name().c_str());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glCheckError(Name());
+        if (glCheckError(Name()))
+                throw std::runtime_error("Error while bind default Framebuffer");
     }
     if (_attachementsChanged) {
         setup_attachements();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, _glid);
-    glCheckError(Name());
+    if (glCheckError(Name()))
+            throw std::runtime_error("Error while binding Framebuffer");
     glViewport(0, 0, Size().x, Size().y);
-    glCheckError(Name());
+    if (glCheckError(Name()))
+            throw std::runtime_error("Error while setting viewport");
 }
 
 void Framebuffer::bind_default()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glCheckError();
+    if (glCheckError())
+        throw std::runtime_error("Error while binding default framebuffer");
     glViewport(0, 0, Window::size().x, Window::size().y);
-    glCheckError();
+    if (glCheckError())
+        throw std::runtime_error("Error while setting viewport");
 }
 
 std::shared_ptr<Texture2D> Framebuffer::Create_attachement(GLenum format, GLenum iformat)
@@ -159,22 +164,26 @@ void Framebuffer::setup_attachements()
     std::vector<GLenum> color_attachements;
 
     glBindFramebuffer(GL_FRAMEBUFFER, _glid);
-    glCheckError(Name());
+    if (glCheckError(Name()))
+            throw std::runtime_error("Error while binding Framebuffer");
     for (auto i = 0u; i < _color_attachements.size(); ++i) {
         auto attachement(_color_attachements.at(i));
         attachement.first->format(&format[0], &format[1]);
         if (format[0] != GL_DEPTH_COMPONENT) {
             glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attachement.first->glid(), attachement.second);
-            glCheckError(Name());
+            if (glCheckError(Name()))
+                    throw std::runtime_error("Error while setting Framebuffer texture " + attachement.first->Name());
             color_attachements.push_back(GL_COLOR_ATTACHMENT0 + i);
         }
     }
     if (_depth.first != nullptr) {
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth.first->glid(), _depth.second);
-        glCheckError(Name());
+        if (glCheckError(Name()))
+                throw std::runtime_error("Error while setting Framebuffer Depth attachement " + _depth.first->Name());
     }
     glDrawBuffers(color_attachements.size(), &color_attachements[0]);
-    glCheckError(Name());
+    if (glCheckError(Name()))
+            throw std::runtime_error("Error while setting Framebuffer drawbuffers");
 #ifdef DEBUG_MOD
     auto status(glCheckFramebufferStatus(GL_FRAMEBUFFER));
     if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -207,7 +216,8 @@ void Framebuffer::setup_attachements()
     }
 #endif
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glCheckError(Name());
+    if (glCheckError(Name()))
+            throw std::runtime_error("Error while binding default Framebuffer");
     _attachementsChanged = false;
 }
 /*
@@ -219,7 +229,8 @@ void Framebuffer::_resize_attachement(const int& attachement, const glm::vec2& n
     }
     t->Resize(ns);
     //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachement, t->glid(), 0);
-    //glCheckError(Name());
+    //if (glCheckError(Name()))
+        throw std::runtime_error("");
 }
 
 void Framebuffer::_resize_depth(const glm::vec2& ns)
@@ -229,7 +240,8 @@ void Framebuffer::_resize_depth(const glm::vec2& ns)
     }
     _depth.first->Resize(ns);
     //glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth->glid(), 0);
-    //glCheckError(Name());
+    //if (glCheckError(Name()))
+        throw std::runtime_error("");
 }
 */
 
@@ -268,7 +280,8 @@ void Framebuffer::set_attachement(unsigned color_attachement, std::shared_ptr<Te
     _attachementsChanged = true;
     /*bind();
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture2D ? texture2D->glid() : 0, mipLevel);
-    glCheckError(Name());
+    if (glCheckError(Name()))
+        throw std::runtime_error("");
     bind(false);*/
 }
 
@@ -279,7 +292,8 @@ void Framebuffer::SetDepthBuffer(std::shared_ptr<Texture2D> depth, unsigned mipL
     _attachementsChanged = true;
     /*bind();
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth ? depth->glid() : 0, mipLevel);
-    glCheckError(Name());
+    if (glCheckError(Name()))
+        throw std::runtime_error("");
     bind(false);*/
 }
 

@@ -137,7 +137,7 @@ void Animation::Advance()
 					glm::vec3 next(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey));
 					current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
 				}
-				channel.Target()->Transform()->SetPosition(current);
+				channel.Target()->GetTransform()->SetPosition(current);
 				break;
 			}
 			case AnimationChannel::Rotation:
@@ -159,12 +159,12 @@ void Animation::Advance()
 					glm::quat next(BufferHelper::Get<glm::quat>(sampler.KeyFrames(), nextKey));
 					current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
 				}
-				channel.Target()->Transform()->SetRotation(glm::normalize(current));
+				channel.Target()->GetTransform()->SetRotation(glm::normalize(current));
 				break;
 			}
 			case AnimationChannel::Scale:
 			{
-				glm::vec3 current(channel.Target()->Transform()->Scale());
+				glm::vec3 current(channel.Target()->GetTransform()->Scale());
 				if (sampler.Interpolation() == AnimationSampler::CubicSpline)
 				{
 					glm::vec3 prev				(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), interpolator.PrevKey() * 3 + 1));
@@ -181,7 +181,7 @@ void Animation::Advance()
 					glm::vec3 next(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey));
 					current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
 				}
-				channel.Target()->Transform()->SetScale(current);
+				channel.Target()->GetTransform()->SetScale(current);
 				break;
 			}
 			case AnimationChannel::Weights:

@@ -153,8 +153,8 @@ void Node::SetParent(std::shared_ptr<Node> parent)
     if (parent != nullptr) {
         parent->AddChild(shared_from_this());
     }
-    if (Transform())
-        Transform()->SetParent(parent ? parent->Transform() : nullptr);
+    if (GetTransform())
+        GetTransform()->SetParent(parent ? parent->GetTransform() : nullptr);
 }
 
 //glm::vec3 Node::WorldPosition() const

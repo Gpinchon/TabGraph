@@ -67,7 +67,7 @@ bool Mesh::DrawDepth(RenderMod mod)
     auto geometryTranslationMatrix(glm::translate(GeometryPosition()));
     auto geometryRotationMatrix(glm::mat4_cast(GeometryRotation()));
     auto geometryScaleMatrix(glm::scale(GeometryScale()));
-    auto finalTranformMatrix(Transform()->WorldTransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
+    auto finalTranformMatrix(GetTransform()->WorldTransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
 
     bool ret = false;
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
@@ -93,7 +93,7 @@ bool Mesh::DrawDepth(RenderMod mod)
         material->Bind();
         if (last_shader != shader)
         {
-            shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->Transform()->WorldPosition());
+            shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->GetTransform()->WorldPosition());
             shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
             shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
             shader->SetUniform("Camera.Matrix.ViewProjection", viewProjectionMatrix);
@@ -122,7 +122,7 @@ bool Mesh::Draw(RenderMod mod)
     auto geometryTranslationMatrix(glm::translate(GeometryPosition()));
     auto geometryRotationMatrix(glm::mat4_cast(GeometryRotation()));
     auto geometryScaleMatrix(glm::scale(GeometryScale()));
-    auto finalTranformMatrix(Transform()->WorldTransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
+    auto finalTranformMatrix(GetTransform()->WorldTransformMatrix() * geometryTranslationMatrix * geometryRotationMatrix * geometryScaleMatrix);
 
     bool ret = false;
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
@@ -298,8 +298,8 @@ void Mesh::UpdateSkin()
     for (auto index = 0u; index < Skin()->Joints().size(); ++index) {
         const auto joint(Skin()->Joints().at(index));
         auto jointMatrix =
-            glm::inverse(Transform()->Parent()->WorldTransformMatrix()) *
-            joint.lock()->Transform()->WorldTransformMatrix() *
+            glm::inverse(GetTransform()->Parent()->WorldTransformMatrix()) *
+            joint.lock()->GetTransform()->WorldTransformMatrix() *
             BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
         if (jointMatrix != BufferHelper::Get<glm::mat4>(_jointMatrices->Accessor(), index))
             skinChanged = true;

@@ -98,7 +98,7 @@ public:
     void EmptyChildren();
     //std::vector<std::shared_ptr<Node>> Children() const;
 
-    std::shared_ptr<Transform> Transform() const { return _transform; }
+    std::shared_ptr<Transform> GetTransform() const { return _transform; }
     void SetTransform(const std::shared_ptr<::Transform> &transform) { _transform = transform; };
 
     std::shared_ptr<BoundingAABB> GetBounds() const;

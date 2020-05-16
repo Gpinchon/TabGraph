@@ -12,7 +12,7 @@
 #include "Node.hpp" // for Node
 #include "Texture/Texture2D.hpp" // for Texture2D
 #include "Texture/TextureParser.hpp" // for TextureParser
-#include "parser/InternalTools.hpp" // for BTHeader, fileFormat, openFile
+#include "Parser/InternalTools.hpp" // for BTHeader, fileFormat, openFile
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <iostream> // for operator<<, basic_ostream, basic...
 #include <limits> // for numeric_limits

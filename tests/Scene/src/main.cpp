@@ -40,9 +40,9 @@ void CameraCallback(std::shared_ptr<FPSCamera> camera)
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->Transform()->SetPosition(camera->Transform()->Position() - float(Events::delta_time() * laxis.x * 1) * camera->Transform()->Right());
-    camera->Transform()->SetPosition(camera->Transform()->Position() - float(Events::delta_time() * laxis.y * 1) * camera->Transform()->Forward());
-    camera->Transform()->SetPosition(camera->Transform()->Position() + float(Events::delta_time() * taxis * 1) * Common::Up());
+    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() - float(Events::delta_time() * laxis.x * 1) * camera->GetTransform()->Right());
+    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() - float(Events::delta_time() * laxis.y * 1) * camera->GetTransform()->Forward());
+    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() + float(Events::delta_time() * taxis * 1) * Common::Up());
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent *event)
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 /*
     auto scene(Scene::Create("MainScene"));
     scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
-    scene->CurrentCamera()->Transform()->SetPosition(glm::vec3{0, 0, 0});
+    scene->CurrentCamera()->GetTransform()->SetPosition(glm::vec3{0, 0, 0});
     auto cube0(CubeMesh::Create("Cube0", glm::vec3(1, 1, 1)));
     auto cube1(CubeMesh::Create("Cube1", glm::vec3(1, 1, 1)));
     auto cube2(CubeMesh::Create("Cube2", glm::vec3(1, 1, 1)));
@@ -148,14 +148,14 @@ int main(int argc, char **argv)
     cube2->GetMaterial(0)->SetAlbedo(glm::vec3(0, 0, 1));
     cube1->SetParent(cube0);
     cube2->SetParent(cube1);
-    cube0->Transform()->SetLocalTransform(
+    cube0->GetTransform()->SetLocalTransform(
         glm::mat4x4(glm::vec4(0.388609, 0.000000, 0.921403, 0.000000),
                     glm::vec4(-0.300040, 0.945496, 0.126544, 0.000000),
                     glm::vec4(-0.871183, -0.325634, 0.367428, 0.000000),
                     glm::vec4(-2.968655, -0.502453, 1.696065, 1.000000)));
-    cube1->Transform()->SetPosition(glm::vec3(0, 1, 0));
-    cube2->Transform()->SetPosition(glm::vec3(0, 1, 0));
-    cube1->Transform()->SetRotation(glm::vec3(1, 0, 0));
+    cube1->GetTransform()->SetPosition(glm::vec3(0, 1, 0));
+    cube2->GetTransform()->SetPosition(glm::vec3(0, 1, 0));
+    cube1->GetTransform()->SetRotation(glm::vec3(1, 0, 0));
     scene->Add(cube0);
 */
     

@@ -31,28 +31,28 @@ std::shared_ptr<Node> OrbitCamera::Target() const
 void OrbitCamera::UpdateTransform()
 {
     glm::vec3 targetPosition(0);
-    if (Target() != nullptr && Target()->Transform() != nullptr)
-        targetPosition = Target()->Transform()->WorldPosition();
-    Transform()->SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
-    glm::vec3 forwardVector = normalize(targetPosition - Transform()->WorldPosition());
+    if (Target() != nullptr && Target()->GetTransform() != nullptr)
+        targetPosition = Target()->GetTransform()->WorldPosition();
+    GetTransform()->SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
+    glm::vec3 forwardVector = normalize(targetPosition - GetTransform()->WorldPosition());
 
     float dot = glm::dot(Common::Forward(), forwardVector);
 
-    if (abs(dot - (-1.0f)) < 0.000001f)
+    if (fabs(dot - (-1.0f)) < 0.000001f)
     {
-        Transform()->SetRotation(glm::quat(Common::Up().x, Common::Up().y, Common::Up().z, M_PI));
+        GetTransform()->SetRotation(glm::quat(Common::Up().x, Common::Up().y, Common::Up().z, M_PI));
         return;
     }
-    if (abs(dot - (1.0f)) < 0.000001f)
+    if (fabs(dot - (1.0f)) < 0.000001f)
     {
-        Transform()->SetRotation(glm::quat(0, 0, 0, 1));
+        GetTransform()->SetRotation(glm::quat(0, 0, 0, 1));
         return;
     }
 
     float rotAngle = (float)acos(dot);
     glm::vec3 rotAxis = glm::cross(Common::Forward(), forwardVector);
     rotAxis = normalize(rotAxis);
-    Transform()->SetRotation(glm::angleAxis(rotAngle, rotAxis));
+    GetTransform()->SetRotation(glm::angleAxis(rotAngle, rotAxis));
 }
 
 float OrbitCamera::Phi() const

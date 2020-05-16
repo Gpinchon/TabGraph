@@ -74,7 +74,8 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
         bufferView->ByteStride(),
         BUFFER_OFFSET(byteOffset)
     );
-    glCheckError();
+    if (glCheckError(Name()))
+        throw std::runtime_error("Error while binding Accessor " + accessor->Name() + " at " + std::to_string(index));
 }
 
 void Geometry::Load()
@@ -89,7 +90,8 @@ void Geometry::Load()
         Indices()->GetBufferView()->GetBuffer()->LoadToGPU();
     glCreateVertexArrays(1, &_vaoGlid);
     glBindVertexArray(_vaoGlid);
-    glCheckError();
+    if (glCheckError(Name()))
+        throw std::runtime_error("Error while binding VertexArray " + std::to_string(_vaoGlid));
     BindAccessor(Accessor(Geometry::AccessorKey::Position),   0);
     BindAccessor(Accessor(Geometry::AccessorKey::Normal),     1);
     BindAccessor(Accessor(Geometry::AccessorKey::Tangent),    2);

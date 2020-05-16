@@ -26,7 +26,7 @@ std::shared_ptr<Light> Light::Create(const std::string& name, glm::vec3 color, g
     auto light = std::shared_ptr<Light>(new Light(name));
     light->color() = color;
     light->power() = power;
-    light->Transform()->SetPosition(position);
+    light->GetTransform()->SetPosition(position);
     return (light);
 }
 
@@ -80,7 +80,7 @@ std::shared_ptr<DirectionnalLight> DirectionnalLight::Create(const std::string& 
 {
     auto light = std::shared_ptr<DirectionnalLight>(new DirectionnalLight(name));
     light->color() = color;
-    light->Transform()->SetPosition(position);
+    light->GetTransform()->SetPosition(position);
     light->power() = power;
     light->cast_shadow() = cast_shadow;
     if (cast_shadow) {
@@ -99,7 +99,7 @@ void DirectionnalLight::render_shadow()
 {
     auto camera = Scene::Current()->CurrentCamera();
     static auto tempCamera = Camera::Create("light_camera", 45, Camera::Projection::Ortho);
-    Transform()->LookAt(glm::vec3(0));
+    GetTransform()->LookAt(glm::vec3(0));
     Scene::Current()->SetCurrentCamera(tempCamera);
     render_buffer()->bind();
     glEnable(GL_DEPTH_TEST);
@@ -107,7 +107,7 @@ void DirectionnalLight::render_shadow()
     glClear(GL_DEPTH_BUFFER_BIT);
     tempCamera->SetZfar(10000);
     tempCamera->SetFrustum(glm::vec4(-500, 500, -500, 500));
-    tempCamera->SetTransform(Transform());
+    tempCamera->SetTransform(GetTransform());
     //tempCamera->SetPosition(Position());
     //tempCamera->SetViewMatrix(glm::inverse(glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up())));
     Scene::Current()->RenderDepth(RenderMod::RenderOpaque);
@@ -122,7 +122,7 @@ void DirectionnalLight::render_shadow()
 
 glm::mat4 DirectionnalLight::ShadowProjectionMatrix() const
 {
-    return glm::ortho(-500.f, 500.f, -500.f, 500.f, 0.1f, 10000.f) * glm::lookAt(Transform()->WorldPosition(), glm::vec3(0, 0, 0), Common::Up());
+    return glm::ortho(-500.f, 500.f, -500.f, 500.f, 0.1f, 10000.f) * glm::lookAt(GetTransform()->WorldPosition(), glm::vec3(0, 0, 0), Common::Up());
 }
 
 LightType DirectionnalLight::type()

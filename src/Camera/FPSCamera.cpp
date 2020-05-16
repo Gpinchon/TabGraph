@@ -40,7 +40,7 @@ float FPSCamera::Yaw() const
 void FPSCamera::SetYaw(float yaw)
 {
     _yaw = yaw;
-    Transform()->SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
+    GetTransform()->SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
     //SetNeedsTranformUpdate(true);
 }
 
@@ -52,7 +52,7 @@ float FPSCamera::Pitch() const
 void FPSCamera::SetPitch(float pitch)
 {
     _pitch = pitch;
-    Transform()->SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
+    GetTransform()->SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
     //SetNeedsTranformUpdate(true);
 }
 
@@ -64,7 +64,7 @@ float FPSCamera::Roll() const
 void FPSCamera::SetRoll(float roll)
 {
     _roll = roll;
-    Transform()->SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
+    GetTransform()->SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
     //SetNeedsTranformUpdate(true);
 }
 

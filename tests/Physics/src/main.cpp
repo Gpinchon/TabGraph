@@ -40,9 +40,9 @@ void CameraCallback(std::shared_ptr<FPSCamera> camera)
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->Transform()->SetPosition(camera->Transform()->WorldPosition() - float(Events::delta_time() * laxis.x * 10) * camera->Transform()->Right());
-    camera->Transform()->SetPosition(camera->Transform()->WorldPosition() - float(Events::delta_time() * laxis.y * 10) * camera->Transform()->Forward());
-    camera->Transform()->SetPosition(camera->Transform()->WorldPosition() + float(Events::delta_time() * taxis * 10) * Common::Up());
+    camera->GetTransform()->SetPosition(camera->GetTransform()->WorldPosition() - float(Events::delta_time() * laxis.x * 10) * camera->GetTransform()->Right());
+    camera->GetTransform()->SetPosition(camera->GetTransform()->WorldPosition() - float(Events::delta_time() * laxis.y * 10) * camera->GetTransform()->Forward());
+    camera->GetTransform()->SetPosition(camera->GetTransform()->WorldPosition() + float(Events::delta_time() * taxis * 10) * Common::Up());
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent *event)
@@ -146,13 +146,13 @@ static inline void CreateCubes(unsigned /*nbr*/, std::shared_ptr<Scene> scene)
     auto cube(CubeMesh::Create("cubeMesh", glm::vec3(1, 1, 1)));
     auto rigidBody(RigidBody::Create("cubeRigidBody", cube, BoundingSphere::Create(glm::vec3(0), 1.f)));
     cube->GetMaterial(0)->SetAlbedo(glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f));
-    cube->Transform()->SetPosition(glm::vec3(0, 5, 0));
+    cube->GetTransform()->SetPosition(glm::vec3(0, 5, 0));
     //cube->SetImpostor(rigidBody);
 
     rigidBody->SetMass(1);
     //cube->SetMass((rand() % 100 - 50) / 100.f);
     rigidBody->SetApplyGravity(false);
-    rigidBody->ApplyWorldPush(glm::vec3(0, 10, -1), glm::vec3(0, 0, 1), cube->Transform()->WorldPosition());
+    rigidBody->ApplyWorldPush(glm::vec3(0, 10, -1), glm::vec3(0, 0, 1), cube->GetTransform()->WorldPosition());
     rigidBody->SetLinearVelocity(glm::vec3(0));
     //rigidBody->ApplyCentralPush(1.f / normalize(cube->Position()) * 2.f);
     //rigidBody->ApplyCentralPush(glm::vec3(rand() % 100 - 50, rand() % 100 - 50, rand() % 100 - 50));
@@ -231,7 +231,7 @@ int main(int, char **)
 	auto scene(Scene::Create("mainScene"));
     scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 0.5, false));
     scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
-    scene->CurrentCamera()->Transform()->SetPosition(glm::vec3{0, 5, 10});
+    scene->CurrentCamera()->GetTransform()->SetPosition(glm::vec3{0, 5, 10});
     CreateColliders(scene);
     Scene::SetCurrent(scene);
     SetupCallbacks();

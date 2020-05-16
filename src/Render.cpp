@@ -239,7 +239,7 @@ void Render::Private::FixedUpdate()
     while (auto shader = Shader::Get(index))
     {
         //shader->use();
-        shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->Transform()->WorldPosition());
+        shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->GetTransform()->WorldPosition());
         shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
         shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
         shader->SetUniform("Camera.InvMatrix.View", InvViewMatrix);
@@ -369,7 +369,7 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeo
         while (lightIndex < lightsPerPass && i < normalLights.size())
         {
             auto light = normalLights.at(i);
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Transform()->WorldPosition());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->GetTransform()->WorldPosition());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", -1);
@@ -380,7 +380,7 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeo
         while (lightIndex < lightsPerPass && shadowIndex < actualShadowNbr && j < shadowLights.size())
         {
             auto light = shadowLights.at(j);
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->Transform()->WorldPosition());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->GetTransform()->WorldPosition());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));

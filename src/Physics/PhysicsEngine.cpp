@@ -14,8 +14,8 @@ void PhysicsEngine::Simulate(float step)
 	for (auto &rigidBody : _rigidBodies) {
 		auto node(rigidBody->GetNode());
 		rigidBody->IntegrateVelocities(step);
-		if (node == nullptr || node->Transform() == nullptr) continue;
-		auto transform(node->Transform());
+		if (node == nullptr || node->GetTransform() == nullptr) continue;
+		auto transform(node->GetTransform());
 		transform->SetPosition(transform->Position() + rigidBody->LinearVelocity() * step);
 	    transform->SetRotation(normalize(transform->Rotation() + step * 0.5f * rigidBody->AngularSpin() * transform->Rotation()));
 	    //transform->UpdateTransformMatrix();

@@ -33,7 +33,7 @@ std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
 
 glm::mat4 Camera::ViewMatrix() const
 {
-    return glm::inverse(Transform()->WorldTransformMatrix());
+    return glm::inverse(GetTransform()->WorldTransformMatrix());
 }
 
 glm::mat4 Camera::ProjectionMatrix() const

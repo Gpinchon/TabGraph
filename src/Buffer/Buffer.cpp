@@ -1,5 +1,6 @@
 #include "Buffer/Buffer.hpp"
 #include "Debug.hpp"
+#include <algorithm>
 #include <cstring>
 #include <cstddef>
 #include <stdio.h>
@@ -30,14 +31,20 @@ void Buffer::Allocate()
 	if (Glid() > 0)
 		glDeleteBuffers(1, &_glid);
 	glCreateBuffers(1, &_glid);
-	glCheckError();
+	if (glCheckError()) {
+		debugLog("ERROR");
+		return;
+	}
 	glNamedBufferData(
 		Glid(),
  		ByteLength(),
  		nullptr,
  		Usage()
  	);
- 	glCheckError();
+ 	if (glCheckError()) {
+ 		debugLog("ERROR");
+ 		return;
+ 	}
 }
 
 void *Buffer::Map(GLenum access)
@@ -45,7 +52,9 @@ void *Buffer::Map(GLenum access)
 	if (Glid() == 0)
 		Allocate();
 	auto ptr(glMapNamedBuffer(Glid(), access));
-	glCheckError();
+	if (glCheckError()) {
+		debugLog("ERROR");
+	}
 	return ptr;
 }
 
@@ -54,14 +63,18 @@ void *Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
 	if (Glid() == 0)
 		Allocate();
 	auto ptr(glMapNamedBufferRange(Glid(), offset, length, access));
-	glCheckError();
+	if (glCheckError()) {
+		debugLog("ERROR");
+	}
 	return ptr;
 }
 
 void Buffer::Unmap()
 {
 	glUnmapNamedBuffer(Glid());
-	glCheckError();
+	if (glCheckError()) {
+		debugLog("ERROR");
+	}
 }
 
 void Buffer::Load()
@@ -146,7 +159,7 @@ void Buffer::LoadToCPU()
 		auto data(ParseData(Uri().string()));
 		if (data.empty()) {
 			debugLog(Uri());
-			auto file(_wfopen(Uri().c_str(), L"rb"));
+			auto file(fopen64(Uri().c_str(), "rb"));
 			debugLog(file);
 			fread(&_rawData.at(0), sizeof(std::byte), ByteLength(), file);
 			if (ferror(file)) {
@@ -169,7 +182,7 @@ void Buffer::LoadToGPU()
 		auto data(ParseData(Uri().string()));
 		if (data.empty()) {
 			debugLog(Uri());
-			auto file(_wfopen(Uri().c_str(), L"rb"));
+			auto file(fopen64(Uri().c_str(), "rb"));
 			debugLog(file);
 			fread(Map(BufferAccess::Write), sizeof(std::byte), ByteLength(), file);
 			Unmap();
