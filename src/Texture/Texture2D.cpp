@@ -82,20 +82,20 @@ void Texture2D::load()
     }*/
     Texture::load();
     glBindTexture(_target, _glid);
-    glCheckError(Name());
+    if (glCheckError(Name())) throw std::runtime_error("Error while binding texture " + std::to_string(_glid) + " to target " + std::to_string(_target));
     glObjectLabel(GL_TEXTURE, _glid, -1, Name().c_str());
-    glCheckError(Name());
+    if (glCheckError(Name())) throw std::runtime_error("Error while setting object label");
     glBindTexture(_target, 0);
-    glCheckError(Name());
+    if (glCheckError(Name())) throw std::runtime_error("Error while binding texture 0 to target " + std::to_string(_target));
     if (_size.x > 0 && _size.y > 0)
     {
         glBindTexture(_target, _glid);
-        glCheckError(Name());
+        if (glCheckError(Name())) throw std::runtime_error("Error while binding texture " + std::to_string(_glid) + " to target " + std::to_string(_target));
         glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format,
                      _data_format, _data);
-        glCheckError(Name());
+        if (glCheckError(Name())) throw std::runtime_error("Error while generating Texture Image");
         glBindTexture(_target, 0);
-        glCheckError(Name());
+        if (glCheckError(Name())) throw std::runtime_error("Error while binding texture 0 to target " + std::to_string(_target));
     }
     restore_parameters();
     generate_mipmap();
@@ -235,7 +235,7 @@ void Texture2D::Resize(const glm::ivec2 &ns)
         glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format,
                      _data_format, _data);
         glBindTexture(_target, 0);
-        glCheckError(Name());
+        if (glCheckError(Name())) throw std::runtime_error("");
         restore_parameters();
         _loaded = true;
     }*/

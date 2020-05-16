@@ -90,7 +90,7 @@ void Window::init(const std::string& name, glm::ivec2 resolution)
     }
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    glCheckError();
+    if (glCheckError(name)) throw std::runtime_error("Error while initializing Window");
 }
 
 GLbitfield& Window::clear_mask()

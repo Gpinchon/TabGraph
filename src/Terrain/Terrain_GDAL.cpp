@@ -5,20 +5,20 @@
  * @Last Modified time: 2019-08-11 12:54:17
  */
 
-#include "Terrain_GDAL.hpp" // for Terrain
-#include "Debug.hpp" // for debugLog
-#include "Material.hpp" // for Material
-#include "Mesh.hpp" // for Mesh
+#include "Terrain/Terrain_GDAL.hpp" // for Terrain
 #include "Node.hpp" // for Node
 #include "Quadtree.hpp" // for Quadtree
-#include "Renderable.hpp" // for Renderable
-#include "Texture.hpp" // for Texture
-#include "TextureParser.hpp" // for TextureParser
-#include "Geometry.hpp"
+#include "Debug.hpp" // for debugLog
+#include "Material.hpp" // for Material
+#include "Mesh/Geometry.hpp"
+#include "Mesh/Mesh.hpp" // for Mesh
+#include "Texture/Texture.hpp" // for Texture
+#include "Texture/TextureParser.hpp" // for TextureParser
+
 #include "cpl_conv.h" // for CPLMalloc, CPLFree
 #include "cpl_error.h" // for CE_None
 #include "gdal.h" // for GDALAllRegister, GDALClose, GDALOpen
-#include "glm/glm.hpp" // for s_vec3, glm::vec2, s_vec2, glm::vec3, glm::vec3
+#include <glm/glm.hpp> // for s_vec3, glm::vec2, s_vec2, glm::vec3, glm::vec3
 #include <GL/glew.h> // for GL_COMPRESSED_RED, GL_FLOAT, GL_RED
 #include <array> // for array
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type

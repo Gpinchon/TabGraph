@@ -70,7 +70,7 @@ void Cubemap::load()
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t->InternalFormat(),
                     t->Size().x, t->Size().y, 0, t->format(),
                     t->data_format(), t->data());
-        glCheckError();
+        if (glCheckError()) throw std::runtime_error("Error while generating Cubemap face " + std::to_string(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i));
     }
     glBindTexture(_target, 0);
     generate_mipmap();

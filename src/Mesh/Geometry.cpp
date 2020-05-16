@@ -74,7 +74,7 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
         bufferView->ByteStride(),
         BUFFER_OFFSET(byteOffset)
     );
-    if (glCheckError(Name()))
+    if (glCheckError())
         throw std::runtime_error("Error while binding Accessor " + accessor->Name() + " at " + std::to_string(index));
 }
 

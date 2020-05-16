@@ -198,8 +198,6 @@ SRC_FILES		=	\
 					Shader/Shader.cpp \
 					Shader/ShaderStage.cpp \
 					StackTracer.cpp \
-					Terrain/Terrain.cpp \
-					Terrain/Terrain_GDAL.cpp \
 					Texture/Cubemap.cpp \
 					Texture/Texture2D.cpp \
 					Texture/TextureArray.cpp \
@@ -207,6 +205,7 @@ SRC_FILES		=	\
 					Texture/Texture.cpp \
 					Texture/TextureParser.cpp \
 					Tools.cpp \
+					Transform.cpp \
 					Window.cpp
 
 RES_FILES		=	$(shell find ./res -type f)
@@ -258,7 +257,7 @@ LDLIBS		+= $(GDALLIBS) -static-libgcc -Wl,-Bstatic -lstdc++ -lpthread -lSDL2_ima
 else ifeq ($(shell uname -s), Darwin)
 LDLIBS		+= $(LDFLAGS) -lm -lGLEW -framework OpenGL -framework SDL2
 else
-LDLIBS		+= $(LDFLAGS) -lstdc++ -pthread -lz -lm -lSDL2main -lSDL2 -lSDL2_image -lGLEW -lGL 
+LDLIBS		+= $(LDFLAGS) -lstdc++ -lstdc++fs -pthread -lz -lm -lSDL2main -lSDL2 -lSDL2_image -lGLEW -lGL 
 endif
 
 ifeq ($(USE_GDAL), 1)

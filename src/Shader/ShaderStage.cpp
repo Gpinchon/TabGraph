@@ -25,19 +25,19 @@ void ShaderStage::Compile()
 {
     if (Compiled())
         Recompile();
-    static auto glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
-    static auto glslVersionNbr = int(std::stof(glslVersionString) * 100);
-    _fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n";
-    for (auto define : _defines) {
-        _fullCode += "#define " + define.first + " " + define.second + "\n";
-    }
-    _fullCode += Code() + Technique();
-    auto codeBuff = _fullCode.c_str();
-    _glid = glCreateShader(Stage());
-    glShaderSource(_glid, 1, &codeBuff, nullptr);
-    glCompileShader(_glid);
-    glCheckError();
     try {
+        static auto glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+        static auto glslVersionNbr = int(std::stof(glslVersionString) * 100);
+        _fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n";
+        for (auto define : _defines) {
+            _fullCode += "#define " + define.first + " " + define.second + "\n";
+        }
+        _fullCode += Code() + Technique();
+        auto codeBuff = _fullCode.c_str();
+        _glid = glCreateShader(Stage());
+        glShaderSource(_glid, 1, &codeBuff, nullptr);
+        glCompileShader(_glid);
+        if (glCheckError()) throw std::runtime_error("Error while compiling shader source " + std::string(codeBuff));
         Shader::check_shader(_glid);
     }
     catch (std::exception& e) {

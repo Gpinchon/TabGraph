@@ -95,22 +95,22 @@ void Texture::load()
     if (glid() != 0u)
         glDeleteTextures(1, &_glid);
     glGenTextures(1, &_glid);
-    glCheckError(Name());
+    if (glCheckError(Name())) throw std::runtime_error("Error while generating Texture");
     glBindTexture(target(), glid());
     glBindTexture(target(), 0);
     glObjectLabel(GL_TEXTURE, glid(), Name().length(), Name().c_str());
-    glCheckError(Name());
+    if (glCheckError(Name())) throw std::runtime_error("Error while setting object label");
     _loaded = true;
 }
 
 void Texture::generate_mipmap()
 {
     glBindTexture(_target, _glid);
-    glCheckError(Name());
+    if (glCheckError(Name())) throw std::runtime_error("");
     glGenerateMipmap(_target);
-    glCheckError(Name());
+    if (glCheckError(Name())) throw std::runtime_error("");
     glBindTexture(_target, 0);
-    glCheckError(Name());
+    if (glCheckError(Name())) throw std::runtime_error("");
     _mipMapsGenerated = true;
 }
 
@@ -165,7 +165,6 @@ void Texture::set_parameterf(GLenum p, float v)
     _parametersf[p] = v;
     if (_glid == 0u)
         return;
-    glCheckError(Name());
     if (glTextureParameterf == nullptr)
     {
         glBindTexture(_target, _glid);
@@ -176,7 +175,7 @@ void Texture::set_parameterf(GLenum p, float v)
     {
         glTextureParameterf(_glid, p, v);
     }
-    glCheckError(Name());
+    if (glCheckError(Name())) throw std::runtime_error("Error while setting float parameter");
 }
 
 void Texture::set_parameteri(GLenum p, int v)
@@ -187,17 +186,14 @@ void Texture::set_parameteri(GLenum p, int v)
     if (glTextureParameteri == nullptr)
     {
         glBindTexture(_target, _glid);
-        glCheckError(Name());
         glTexParameteri(_target, p, v);
-        glCheckError(Name());
         glBindTexture(_target, 0);
-        glCheckError(Name());
     }
     else
     {
         glTextureParameteri(_glid, p, v);
-        glCheckError(Name());
     }
+    if (glCheckError(Name())) throw std::runtime_error("Error while setting interger parameter");
 }
 
 void Texture::restore_parameters()
