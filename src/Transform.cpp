@@ -12,15 +12,7 @@ std::shared_ptr<Transform> Transform::shared_from_this()
 
 glm::mat4 Transform::WorldTransformMatrix()
 {
-    auto worldTransformMatrix(Parent() ? Parent()->WorldTransformMatrix() * LocalTransformMatrix() : LocalTransformMatrix());
-    //std::cout << "================================================================================" << std::endl;
-    //std::cout << "LocalTranslationMatrix " << Name() << " " << glm::to_string(LocalTranslationMatrix()) << std::endl;
-    //std::cout << "LocalRotationMatrix    " << Name() << " " << glm::to_string(LocalRotationMatrix()) << std::endl;
-    //std::cout << "LocalScaleMatrix       " << Name() << " " << glm::to_string(LocalScaleMatrix()) << std::endl;
-    //std::cout << "LocalTransformMatrix   " << Name() << " " << glm::to_string(LocalTransformMatrix()) << std::endl;
-    //std::cout << "worldTransformMatrix   " << Name() << " " << glm::to_string(worldTransformMatrix) << std::endl;
-    //std::cout << "================================================================================" << std::endl;
-    return worldTransformMatrix;
+    return Parent() ? Parent()->WorldTransformMatrix() * LocalTransformMatrix() : LocalTransformMatrix();
 }
 
 glm::mat4 Transform::WorldTranslationMatrix() const
@@ -40,8 +32,10 @@ glm::mat4 Transform::WorldScaleMatrix() const
 
 glm::mat4 Transform::LocalTransformMatrix()
 {
-    if (_needsUpdate)
+    if (_needsUpdate) {
         _localTransformMatrix = LocalTranslationMatrix() * LocalRotationMatrix() * LocalScaleMatrix();
+        _needsUpdate = false;
+    }
     return _localTransformMatrix;
 }
 
@@ -109,7 +103,9 @@ glm::quat Transform::Rotation() const
 /** @argument rotation : the node local rotation */
 void Transform::SetRotation(glm::vec3 rotation)
 {
-    _rotation = glm::quat(rotation);
+    auto quatRotation = glm::quat(rotation);
+    _needsUpdate |= _rotation != quatRotation;
+    _rotation = quatRotation;
 }
 
 /** @return the node local scale */
@@ -181,9 +177,5 @@ void Transform::SetParent(std::shared_ptr<Transform> parent)
 {
     if (parent == shared_from_this() || Parent() == parent)
         return;
-    //if (Parent() != nullptr)
-    //    Parent()->RemoveChild(shared_from_this());
     _parent = parent;
-    //if (parent != nullptr)
-    //    parent->AddChild(shared_from_this());
 }

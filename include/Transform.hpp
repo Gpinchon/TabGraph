@@ -66,17 +66,7 @@ public:
 
 private:
     Transform(const std::string &name) : Object(name) {};
-    /*
-    void RemoveChild(std::shared_ptr<Transform> child) { _children.erase(std::remove(_children.begin(), _children.end(), child), _children.end()); };
-    void AddChild(std::shared_ptr<Transform> child) {
-        if (child == shared_from_this() || std::find(_children.begin(), _children.end(), child) != _children.end())
-            return;
-        _children.push_back(child);
-        child->SetParent(shared_from_this());
-    };
-    */
     std::shared_ptr<Transform> _parent;
-    //std::vector<std::shared_ptr<Transform>> _children;
 	glm::vec3 _position { 0, 0, 0 };
     glm::quat _rotation {glm::vec3(0.0, 0.0, 0.0)};
     glm::vec3 _scale { 1, 1, 1 };
