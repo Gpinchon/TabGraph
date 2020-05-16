@@ -5,9 +5,9 @@
 * @Last Modified time: 2019-08-11 15:13:49
 */
 
-#include "parser/FBX/FBXNode.hpp"
-#include "parser/FBX/FBXObject.hpp"
-#include "parser/FBX/FBXProperty.hpp"
+#include "Parser/FBX/FBXNode.hpp"
+#include "Parser/FBX/FBXObject.hpp"
+#include "Parser/FBX/FBXProperty.hpp"
 #include <iostream>
 #include <vector>
 

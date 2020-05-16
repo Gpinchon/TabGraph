@@ -5,7 +5,7 @@
 * @Last Modified time: 2019-08-11 14:43:43
 */
 
-#include "parser/FBX/FBXProperty.hpp"
+#include "Parser/FBX/FBXProperty.hpp"
 #include <iostream>
 
 using namespace FBX;

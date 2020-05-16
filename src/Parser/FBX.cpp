@@ -6,15 +6,15 @@
  */
 
 #include "Parser/FBX.hpp"
+#include "Parser/FBX/FBXDocument.hpp"
+#include "Parser/FBX/FBXNode.hpp"
+#include "Parser/FBX/FBXObject.hpp"
+#include "Parser/FBX/FBXProperty.hpp"
 #include "Material.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneParser.hpp"
 #include "Mesh/Geometry.hpp"
-#include "Parser/FBX/FBXDocument.hpp"
-#include "Parser/FBX/FBXNode.hpp"
-#include "Parser/FBX/FBXObject.hpp"
-#include "Parser/FBX/FBXProperty.hpp"
 #include "Transform.hpp"
 #include <glm/glm.hpp>
 #include <iostream>
@@ -355,7 +355,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
         for (const auto &model : objects->SubNodes("Model"))
         {
             auto mesh(meshes[model->Property(0)]);
-            auto transform(mesh->Transform());
+            auto transform(mesh->GetTransform());
             //auto mesh(Mesh::GetById(model->Property(0)));
             if (mesh == nullptr)
             {
@@ -437,7 +437,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                             if (destination != nullptr)
                             {
                                 std::cout << source->Id() << " : IS CHILD OF : " << destination->Id() << std::endl;
-                                source->Transform()->SetParent(destination->Transform());
+                                source->GetTransform()->SetParent(destination->GetTransform());
                             }
                             else if (destinationId == 0)
                             { 

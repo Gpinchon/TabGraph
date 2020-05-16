@@ -5,7 +5,7 @@
 * @Last Modified time: 2019-08-11 15:14:52
 */
 
-#include "parser/FBX/FBXObject.hpp"
+#include "Parser/FBX/FBXObject.hpp"
 #include <iostream>
 
 using namespace FBX;

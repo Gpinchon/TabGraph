@@ -355,7 +355,7 @@ static inline auto ParseNodes(const rapidjson::Document &document)
 	for (const auto &node : nodeItr->value.GetArray())
 	{
 		auto newNode(Node::Create("Node_" + std::to_string(nodeIndex)));
-		auto transform(newNode->Transform()); 
+		auto transform(newNode->GetTransform()); 
 		try { newNode->SetName(node["name"].GetString()); }
 		catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no name property"); }
 		try {

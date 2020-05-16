@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "parser/FBX/FBXNode.hpp"
+#include "Parser/FBX/FBXNode.hpp"
 #include <string>
 
 namespace FBX
