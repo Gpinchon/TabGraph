@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-14 23:00:14
+* @Last Modified time: 2020-05-16 18:54:03
 */
 
 #include "Physics/RigidBody.hpp"
@@ -118,6 +118,7 @@ void Node::RemoveChild(std::shared_ptr<Node> child)
         auto child(*it);
         _children.erase(it);
         child->SetParent(nullptr);
+        child->GetTransform()->SetParent(nullptr);
     }
     //_children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
 }
