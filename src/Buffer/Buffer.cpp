@@ -150,6 +150,8 @@ auto ParseData(const std::string &uri)
 	return ret;
 }
 
+#include <fstream>
+
 void Buffer::LoadToCPU()
 {
 	if (LoadedToCPU())
@@ -159,13 +161,8 @@ void Buffer::LoadToCPU()
 		auto data(ParseData(Uri().string()));
 		if (data.empty()) {
 			debugLog(Uri());
-			auto file(fopen64(Uri().c_str(), "rb"));
-			debugLog(file);
-			fread(&_rawData.at(0), sizeof(std::byte), ByteLength(), file);
-			if (ferror(file)) {
-				perror ("The following error occurred");
-			}
-			fclose(file);
+			std::ifstream is(Uri());
+			is.read((char*)_rawData.data(), ByteLength());
 		}
 		else
 			_rawData = data;
@@ -182,14 +179,10 @@ void Buffer::LoadToGPU()
 		auto data(ParseData(Uri().string()));
 		if (data.empty()) {
 			debugLog(Uri());
-			auto file(fopen64(Uri().c_str(), "rb"));
-			debugLog(file);
-			fread(Map(BufferAccess::Write), sizeof(std::byte), ByteLength(), file);
-			Unmap();
-			if (ferror(file)) {
-				perror ("The following error occurred");
-			}
-			fclose(file);
+			std::ifstream is(Uri(), std::ios::binary);
+			 if(!is.read((char*)Map(BufferAccess::Write), ByteLength()))
+        		throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
+        	Unmap();
 		}
 		else {
 			std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
