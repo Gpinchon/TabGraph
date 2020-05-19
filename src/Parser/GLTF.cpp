@@ -55,7 +55,7 @@ static inline auto ParseCameras(const rapidjson::Document &document)
 				catch (std::exception &) {debugLog("No zfar property")}
 				try { newCamera->SetZnear(perspective["znear"].GetFloat()); }
 				catch (std::exception &) {debugLog("No znear property")}
-				try { newCamera->SetFov(glm::degrees(-perspective["yfov"].GetFloat())); }
+				try { newCamera->SetFov(glm::degrees(perspective["yfov"].GetFloat())); }
 				catch (std::exception &) {debugLog("No yfov property")}
 			}
 			cameraVector.push_back(newCamera);
@@ -90,10 +90,12 @@ static inline auto ParseTextures(const std::string &path, const rapidjson::Docum
 	auto samplers(ParseTextureSamplers(document));
 	try {
 		auto textureIndex(0);
-		for (const auto &textureValue : document["images"].GetArray()) {
+		for (const auto &textureValue : document["textures"].GetArray()) {
 			std::string uri;
 			try {
-				uri = textureValue["uri"].GetString();
+				auto source(textureValue["source"].GetInt());
+				auto &image(document["images"].GetArray()[source]);
+				uri = image["uri"].GetString();
 				std::string header("data:application/octet-stream;base64,");
 				if (uri.find(header) != 0) {
 					auto texturePath = std::filesystem::path(uri);
@@ -135,6 +137,7 @@ static inline auto ParseMaterials(const std::string &path, const rapidjson::Docu
 		for (const auto &materialValue : document["materials"].GetArray()) {
 			auto material(Material::Create("Material " + std::to_string(materialIndex)));
 			material->SetUVScale(glm::vec2(1, -1));
+			material->SetAlbedo(glm::vec3(1));
 			try { material->SetDoubleSided(materialValue["doubleSided"].GetBool()); }
 			catch(std::exception &) {debugLog("Material " + material->Name() + " has no doubleSided property")}
 			try {
@@ -307,33 +310,40 @@ static inline auto ParseMeshes(const rapidjson::Document &document, const GLTFCo
 		debugLog("Found new mesh");
 		auto currentMesh(Mesh::Create("Mesh " + std::to_string(meshIndex)));
 		meshIndex++;
-		for (const auto &primitive : mesh["primitives"].GetArray()) {
-			debugLog("Found new primitive");
-			auto geometry(Geometry::Create());
-			if (auto material = primitive.FindMember("material"); material != primitive.MemberEnd())
-			{
-				currentMesh->AddMaterial(*std::find(container.materials.begin(), container.materials.end(), container.materials.at(material->value.GetInt())));
-				geometry->SetMaterialIndex(currentMesh->GetMaterialIndex(container.materials.at(material->value.GetInt())));
-			}
-			for (const auto &attribute : primitive["attributes"].GetObject()) {
-				auto attributeName(std::string(attribute.name.GetString()));
-				auto accessor(container.accessors.at(attribute.value.GetInt()));
-				auto accessorKey(Geometry::GetAccessorKey(attributeName));
-				if (accessorKey == Geometry::AccessorKey::Invalid) {
-					debugLog("Invalid Accessor Key : " + attributeName);
+		try {
+			for (const auto &primitive : mesh["primitives"].GetArray()) {
+				debugLog("Found new primitive");
+				auto geometry(Geometry::Create());
+				try {
+					auto &material(primitive["material"]);
+					currentMesh->AddMaterial(*std::find(container.materials.begin(), container.materials.end(), container.materials.at(material.GetInt())));
+					geometry->SetMaterialIndex(currentMesh->GetMaterialIndex(container.materials.at(material.GetInt())));
 				}
-				else
-					geometry->SetAccessor(accessorKey, accessor);
+				catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no material")}
+				try {
+					for (const auto &attribute : primitive["attributes"].GetObject()) {
+						auto attributeName(std::string(attribute.name.GetString()));
+						auto accessor(container.accessors.at(attribute.value.GetInt()));
+						auto accessorKey(Geometry::GetAccessorKey(attributeName));
+						if (accessorKey == Geometry::AccessorKey::Invalid) {
+							debugLog("Invalid Accessor Key : " + attributeName);
+						}
+						else
+							geometry->SetAccessor(accessorKey, accessor);
+					}
+				}
+				catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no material")}
+				try {
+					auto accessor(container.accessors.at(primitive["indices"].GetInt()));
+					geometry->SetIndices(accessor);
+				}
+				catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no indices property")}
+				try { geometry->SetMode(primitive["mode"].GetInt()); }
+				catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no mode property")}
+				currentMesh->AddGeometry(geometry);
 			}
-			try {
-				auto accessor(container.accessors.at(primitive["indices"].GetInt()));
-				geometry->SetIndices(accessor);
-			}
-			catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no indices property")}
-			try { geometry->SetMode(primitive["mode"].GetInt()); }
-			catch(std::exception &) {debugLog("Geometry " + geometry->Name() + " has no mode property")}
-			currentMesh->AddGeometry(geometry);
 		}
+		catch(std::exception &) { debugLog("Mesh " + currentMesh->Name() + " has no primitives"); }
 		if (currentMesh->GetMaterial(0) == nullptr)
 			currentMesh->AddMaterial(defaultMaterial);
 		meshVector.push_back(currentMesh);
@@ -362,7 +372,15 @@ static inline auto ParseNodes(const rapidjson::Document &document)
 			glm::mat4 matrix;
 			for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < glm::uint(matrix.length() * 4); i++)
 				matrix[i / 4][i % 4] = node["matrix"].GetArray()[i].GetFloat();
-			transform->SetLocalTransform(matrix);
+			glm::vec3 scale;
+		    glm::quat rotation;
+		    glm::vec3 translation;
+		    glm::vec3 skew;
+		    glm::vec4 perspective;
+		    glm::decompose(matrix, scale, rotation, translation, skew, perspective);
+		    transform->SetPosition(translation);
+		    transform->SetRotation(rotation);
+		    transform->SetScale(scale);
 		} catch (std::exception &) { debugLog("Node " + newNode->Name() + " has no matrix property"); }
 		try {
 			const auto &position(node["translation"].GetArray());
@@ -483,7 +501,8 @@ static inline auto SetParenting(const rapidjson::Document &document, const GLTFC
 		auto node(container.nodes.at(nodeIndex));
 		try {
 			auto mesh(container.meshes.at(gltfNode["mesh"].GetInt()));
-			mesh->SetParent(node);
+			auto newMesh(Mesh::Create(mesh));
+			node->SetMesh(mesh);
 			const auto &skin(container.skins.at(gltfNode["skin"].GetInt()));
 			mesh->SetSkin(skin);
 		}
@@ -528,8 +547,6 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string &path) {
 			newScene->AddRootNode(container.nodes.at(node.GetInt()));
 			std::cout << container.nodes.at(node.GetInt())->Name() << std::endl;
 		}
-		if (!newScene->Cameras().empty())
-			newScene->SetCurrentCamera(*newScene->Cameras().begin());
 		for (const auto &animation : container.animations) {
 			newScene->Add(animation);
 			/*for (const auto channel : animation->GetChannels()) {

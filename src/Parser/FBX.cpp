@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-02-22 16:13:28
  * @Last Modified by:   gpinchon
- * @Last Modified time: 2020-05-16 20:40:12
+ * @Last Modified time: 2020-05-17 21:07:44
  */
 
 #include "Parser/FBX.hpp"
@@ -54,7 +54,7 @@ auto __fbxParser = SceneParser::Add("fbx", FBX::Parse);
     }
     return uv;
 }*/
-
+/*
 static inline auto getMaterials(std::shared_ptr<FBX::Node> layerElementMaterial)
 {
     std::vector<int32_t> materials;
@@ -294,10 +294,14 @@ static inline auto parseMeshes(FBX::Document *document)
     }
     return meshMap;
 }
-
+*/
 std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
 {
-    auto document(FBX::Document::Parse(path));
+    auto scene(Scene::Create(path));
+    std::vector<std::shared_ptr<Scene>> v;
+    v.push_back(scene);
+    return v;
+    /*auto document(FBX::Document::Parse(path));
     document->Print();
     auto scene(Scene::Create(path));
     auto meshes(parseMeshes(document));
@@ -468,7 +472,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                     }
                 }
                 {
-                    /*auto source(Material::GetById(sourceId));
+                    auto source(Material::GetById(sourceId));
                     if (source != nullptr)
                     {
                         std::cout << "Got Material " << source->Id() << std::endl;
@@ -481,7 +485,7 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
                                 continue;
                             }
                         }
-                    }*/
+                    }
                 }
             }
         }
@@ -489,5 +493,5 @@ std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
     delete document;
     std::vector<std::shared_ptr<Scene>> v;
     v.push_back(scene);
-    return v;
+    return v;*/
 }
