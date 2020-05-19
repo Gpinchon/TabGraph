@@ -25,7 +25,6 @@ public:
     glm::mat4 LocalTranslationMatrix() const;
     glm::mat4 LocalRotationMatrix() const;
     glm::mat4 LocalScaleMatrix() const;
-    void SetLocalTransform(glm::mat4 transform);
     glm::vec3 WorldPosition() const;
     glm::quat WorldRotation() const;
     glm::vec3 WorldScale() const;

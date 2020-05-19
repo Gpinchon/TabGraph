@@ -54,18 +54,6 @@ glm::mat4 Transform::LocalScaleMatrix() const
     return glm::scale(Scale());
 }
 
-void Transform::SetLocalTransform(glm::mat4 transform) {
-    glm::vec3 scale;
-    glm::quat rotation;
-    glm::vec3 translation;
-    glm::vec3 skew;
-    glm::vec4 perspective;
-    glm::decompose(transform, scale, rotation, translation, skew, perspective);
-    SetPosition(translation);
-    SetRotation(rotation);
-    SetScale(scale);
-}
-
 glm::vec3 Transform::WorldPosition() const
 {
     return Parent() ? Parent()->WorldTransformMatrix() * glm::vec4(Position(), 1.f) : Position();
