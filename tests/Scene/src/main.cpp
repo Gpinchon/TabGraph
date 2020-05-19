@@ -25,9 +25,9 @@
 #define ZOOMK SDL_SCANCODE_KP_PLUS
 #define UNZOOMK SDL_SCANCODE_KP_MINUS
 
-void CameraCallback(std::shared_ptr<FPSCamera> camera)
+void CameraCallback()
 {
-    //auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
+    auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
         return;
     glm::vec2 raxis = glm::vec2(0, 0);
@@ -40,9 +40,9 @@ void CameraCallback(std::shared_ptr<FPSCamera> camera)
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() - float(Events::delta_time() * laxis.x * 1) * camera->GetTransform()->Right());
-    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() - float(Events::delta_time() * laxis.y * 1) * camera->GetTransform()->Forward());
-    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() + float(Events::delta_time() * taxis * 1) * Common::Up());
+    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() - float(Events::delta_time() * laxis.x * 100) * camera->GetTransform()->Right());
+    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() - float(Events::delta_time() * laxis.y * 100) * camera->GetTransform()->Forward());
+    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() + float(Events::delta_time() * taxis * 100) * Common::Up());
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent *event)
@@ -64,11 +64,8 @@ void MouseMoveCallback(SDL_MouseMotionEvent *event)
 
 void MouseWheelCallback(SDL_MouseWheelEvent *event)
 {
-    auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
-    if (camera == nullptr)
-        return;
-    camera->SetFov(camera->Fov() - event->y);
-    camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 70.f));
+    Scene::Current()->CurrentCamera()->SetFov(Scene::Current()->CurrentCamera()->Fov() - event->y);
+    Scene::Current()->CurrentCamera()->SetFov(glm::clamp(Scene::Current()->CurrentCamera()->Fov(), 1.0f, 70.f));
 }
 
 void FullscreenCallback(SDL_KeyboardEvent*)
@@ -90,12 +87,12 @@ void CallbackQuality(SDL_KeyboardEvent *event)
 
 void CallbackAnimation(SDL_KeyboardEvent *event)
 {
-    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
+    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)) || Scene::Current()->Animations().empty())
         return;
     static auto currentAnimation(0);
     Scene::Current()->Animations().at(currentAnimation)->Stop();
     currentAnimation++;
-    currentAnimation = currentAnimation % Scene::Current()->Animations().size();
+    currentAnimation %= Scene::Current()->Animations().size();
     Scene::Current()->Animations().at(currentAnimation)->SetRepeat(true);
     Scene::Current()->Animations().at(currentAnimation)->Play();
 }
@@ -104,16 +101,27 @@ void ExitCallback(SDL_KeyboardEvent* ) {
     Engine::Stop();
 }
 
+void ChangeCamera(SDL_KeyboardEvent* event) {
+    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
+        return;
+    static auto currentCameraIndex(0u);
+    auto &camera(Scene::Current()->Cameras().at(currentCameraIndex));
+    currentCameraIndex++;
+    currentCameraIndex %= Scene::Current()->Cameras().size();
+    Scene::Current()->SetCurrentCamera(camera);
+}
+
 void SetupCallbacks()
 {
     Keyboard::set_callback(SDL_SCANCODE_ESCAPE, ExitCallback);
     Keyboard::set_callback(SDL_SCANCODE_RETURN, FullscreenCallback);
     Keyboard::set_callback(SDL_SCANCODE_Q, CallbackQuality);
     Keyboard::set_callback(SDL_SCANCODE_A, CallbackAnimation);
+    Keyboard::set_callback(SDL_SCANCODE_C, ChangeCamera);
     //Mouse::set_relative(SDL_TRUE);
     Mouse::set_move_callback(MouseMoveCallback);
     Mouse::set_wheel_callback(MouseWheelCallback);
-    Events::AddRefreshCallback(Callback<void()>::Create(CameraCallback, std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera())));
+    Events::AddRefreshCallback(Callback<void()>::Create(CameraCallback));
 }
 
 #include <filesystem>
@@ -132,9 +140,8 @@ int main(int argc, char **argv)
     if (scene == nullptr) {
         return -42;
     }
+    scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
     scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(1000, 1000, 1000), 0.5, true));
-    if (scene->CurrentCamera() == nullptr)
-        scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
 
 /*
     auto scene(Scene::Create("MainScene"));
