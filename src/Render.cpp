@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-13 19:51:49
+* @Last Modified time: 2020-05-16 20:53:53
 */
 
 #include "Render.hpp"
@@ -664,7 +664,7 @@ std::shared_ptr<Texture2D> SSRPass0(std::shared_ptr<Framebuffer> gBuffer, std::s
 
 std::shared_ptr<Framebuffer> RefractionPass(std::shared_ptr<Framebuffer> geometryBuffer, std::shared_ptr<Framebuffer> opaqueRenderBuffer)
 {
-    glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
+    glm::ivec2 res = geometryBuffer->Size();
     static auto refractionRenderBuffer(CreateRenderBuffer("refractionRenderBuffer", res));
     static std::shared_ptr<Shader> refractionShader;
     if (refractionShader == nullptr)
@@ -746,7 +746,7 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
 
 std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender, std::shared_ptr<Framebuffer> opaqueRenderBuffer)
 {
-    glm::ivec2 res = glm::vec2(Window::size()) * Render::Private::InternalQuality();
+    glm::ivec2 res = opaqueRenderBuffer->Size();
     static auto transpGeometryBuffer(CreateGeometryBuffer("transpGeometryBuffer", res));
     static auto transpRenderBuffer(CreateRenderBuffer("transpRenderBuffer", res));
     static std::shared_ptr<Shader> elighting_shader;
