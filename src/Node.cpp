@@ -2,12 +2,13 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-16 18:54:03
+* @Last Modified time: 2020-05-17 20:55:06
 */
 
 #include "Physics/RigidBody.hpp"
 #include "Physics/BoundingAABB.hpp"
 #include "Debug.hpp"
+#include "Mesh/Mesh.hpp"
 #include "Node.hpp"
 #include "Transform.hpp"
 #include <glm/gtx/matrix_decompose.hpp>
@@ -39,8 +40,35 @@ std::shared_ptr<Node> Node::shared_from_this()
     return (std::static_pointer_cast<Node>(Object::shared_from_this()));
 }
 
+bool Node::Draw(RenderMod renderMod)
+{
+    if (GetMesh() != nullptr)
+        return GetMesh()->Draw(GetTransform(), renderMod);
+    return false;
+}
+
+bool Node::DrawDepth(RenderMod renderMod)
+{
+    if (GetMesh() != nullptr)
+        return GetMesh()->DrawDepth(GetTransform(), renderMod);
+    return false;
+}
+
+bool Node::Drawable() const
+{
+    return GetMesh() != nullptr;
+}
+
+void Node::Load()
+{
+    if (GetMesh() != nullptr)
+        GetMesh()->Load();
+}
+
 void Node::FixedUpdate()
 {
+    if (GetMesh() != nullptr)
+        GetMesh()->UpdateSkin(GetTransform());
 }
 
 void Node::Update()
@@ -49,53 +77,10 @@ void Node::Update()
 
 void Node::UpdateGPU()
 {
+    //TODO GET REAL DELTA
+    if (GetMesh() != nullptr)
+        GetMesh()->UpdateGPU(0.f);
 }
-
-//void Node::UpdateTransformMatrix()
-//{
-//    if (!NeedsTransformUpdate())
-//        return;
-//    UpdateTranslationMatrix();
-//    UpdateRotationMatrix();
-//    UpdateScaleMatrix();
-//    SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
-//    if (auto parentPtr = Parent(); parentPtr != nullptr) 
-//        SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
-//    SetNeedsTranformUpdate(false);
-//    for (auto child : _children)
-//        child->SetNeedsTranformUpdate(true);
-//    //if (NeedsTransformUpdate()) {
-//    //    UpdateTranslationMatrix();
-//    //    UpdateRotationMatrix();
-//    //    UpdateScaleMatrix();
-//    //}
-//    //SetTransformMatrix(TranslationMatrix() * RotationMatrix() * ScaleMatrix());
-//    //if (auto parentPtr = Parent(); parentPtr != nullptr) 
-//    //    SetTransformMatrix(parentPtr->TransformMatrix() * TransformMatrix());
-//    //for (auto child : _children)
-//    //    child->SetNeedsTranformUpdate(true);
-//    //SetNeedsTranformUpdate(false);
-//}
-//
-//void Node::UpdateTranslationMatrix()
-//{
-//    SetTranslationMatrix(glm::translate(Position()));
-//}
-//
-//void Node::UpdateRotationMatrix()
-//{
-//    SetRotationMatrix(glm::mat4_cast(Rotation()));
-//}
-//
-//void Node::UpdateScaleMatrix()
-//{
-//    SetScaleMatrix(glm::scale(Scale()));
-//}
-//
-//std::vector<std::shared_ptr<Node>> Node::Children() const
-//{
-//    return _children;
-//}
 
 void Node::AddChild(std::shared_ptr<Node> childNode)
 {
@@ -122,22 +107,7 @@ void Node::RemoveChild(std::shared_ptr<Node> child)
     }
     //_children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
 }
-//
-//std::shared_ptr<Node> Node::target() const
-//{
-//    return (_target);
-//}
-//
-//void Node::SetTarget(std::shared_ptr<Node> tgt)
-//{
-//    _target = tgt;
-//}
-//
-//std::shared_ptr<Node> Node::Parent() const
-//{
-//    return (_parent.lock());
-//}
-//
+
 /*
 ** /!\ BEWARE OF THE BIG BAD LOOP !!! /!\
 */
@@ -158,128 +128,6 @@ void Node::SetParent(std::shared_ptr<Node> parent)
         GetTransform()->SetParent(parent ? parent->GetTransform() : nullptr);
 }
 
-//glm::vec3 Node::WorldPosition() const
-//{
-//    return _worldPosition;
-//}
-//
-//glm::vec3 Node::Position() const
-//{
-//    return _position;
-//}
-//
-//void Node::SetPosition(glm::vec3 position)
-//{
-//    _position = position;
-//    SetNeedsTranformUpdate(true);
-//}
-//
-//glm::quat Node::WorldRotation() const
-//{
-//    return _worldRotation;
-//}
-//
-//glm::quat Node::Rotation() const
-//{
-//    return (_rotation);
-//}
-//
-//void Node::SetRotation(glm::vec3 rotation)
-//{
-//    /*auto angles(glm::eulerAngles(rotation));
-//    angles = glm::degrees(glm::vec3(angles.x, angles.y, angles.z));*/
-//    SetRotation(glm::quat(rotation));
-//}
-//
-//void Node::SetRotation(glm::quat rotation)
-//{
-//    _rotation = rotation;
-//    SetNeedsTranformUpdate(true);
-//}
-//
-//glm::vec3 Node::WorldScale() const
-//{
-//    return _worldScale;
-//}
-//
-//glm::vec3 Node::Scale() const
-//{
-//    return (_scale);
-//}
-//
-//void Node::SetScale(glm::vec3 scale)
-//{
-//    _scale = scale;
-//    SetNeedsTranformUpdate(true);
-//}
-//
-//void Node::SetNodeTransformMatrix(glm::mat4 nodeTransform)
-//{
-//    glm::vec3 scale;
-//    glm::quat rotation;
-//    glm::vec3 translation;
-//    glm::vec3 skew;
-//    glm::vec4 perspective;
-//    glm::decompose(nodeTransform, scale, rotation, translation, skew, perspective);
-//    SetPosition(translation);
-//    SetRotation(glm::normalize(rotation));
-//    SetScale(scale);
-//    //_nodeTranformationmatrix = nodeTransform;
-//}
-//
-//glm::mat4 Node::TransformMatrix() const
-//{
-//    return (_transformMatrix);
-//}
-//
-//void Node::SetTransformMatrix(glm::mat4 transform)
-//{
-//    _transformMatrix = transform;
-//    glm::vec3 skew;
-//    glm::vec4 perspective;
-//    glm::decompose(transform, _worldScale, _worldRotation, _worldPosition, skew, perspective);
-//}
-//
-//glm::mat4 Node::TranslationMatrix() const
-//{
-//    return (_translationMatrix);
-//}
-//
-//void Node::SetTranslationMatrix(glm::mat4 translation)
-//{
-//    _translationMatrix = translation;
-//}
-//
-//glm::mat4 Node::RotationMatrix() const
-//{
-//    return (_rotationMatrix);
-//}
-//
-//void Node::SetRotationMatrix(glm::mat4 rotation)
-//{
-//    _rotationMatrix = rotation;
-//}
-//
-//glm::mat4 Node::ScaleMatrix() const
-//{
-//    return (_scaleMatrix);
-//}
-//
-//void Node::SetScaleMatrix(glm::mat4 scale)
-//{
-//    _scaleMatrix = scale;
-//}
-//
-//bool Node::NeedsTransformUpdate()
-//{
-//    return _needsTransformUpdate;
-//}
-//
-//void Node::SetNeedsTranformUpdate(bool needsTransformUpdate)
-//{
-//    _needsTransformUpdate = needsTransformUpdate;
-//}
-
 bool Node::NeedsGPUUpdate() const
 {
     return _needsGPUUpdate;
@@ -293,4 +141,14 @@ void Node::SetNeedsGPUUpdate(bool needsUpdate)
 std::shared_ptr<BoundingAABB> Node::GetBounds() const
 {
     return _bounds;
+}
+
+void Node::SetMesh(const std::shared_ptr<Mesh> &mesh)
+{
+    _mesh = mesh;
+}
+
+std::shared_ptr<Mesh> Node::GetMesh() const
+{
+    return _mesh;
 }

@@ -26,63 +26,25 @@ enum class RenderMod
 class BoundingAABB;
 class RigidBody;
 class Transform;
+class Animation;
+class Mesh;
 
 class Node : public Object
 {
 public:
     static std::shared_ptr<Node> Create(const std::string &name);
     virtual std::shared_ptr<Node> shared_from_this();
-    virtual bool Draw(RenderMod = RenderMod::RenderAll) { return false; };
-    virtual bool DrawDepth(RenderMod = RenderMod::RenderAll) { return false; };
-    virtual bool Drawable() const { return false; };
-    virtual void Load() {};
+    virtual bool Draw(RenderMod = RenderMod::RenderAll);
+    virtual bool DrawDepth(RenderMod = RenderMod::RenderAll);
+    virtual bool Drawable() const;
+    virtual void Load();
     virtual void FixedUpdate();
     virtual void Update();
     virtual void UpdateGPU();
-    /** Updates all matrix and sets the final transformation matrix */
-    //virtual void UpdateTransformMatrix();
-    //virtual void UpdateTranslationMatrix();
-    //virtual void UpdateRotationMatrix();
-    //virtual void UpdateScaleMatrix();
-    /** @return the basic node transformation matrix, useful for "funny" effects */
-    //virtual glm::mat4 NodeTransformMatrix() const;
-    /** @argument nodeTransform the node transformation matrix,  useful for "funny" effects*/
-    //virtual void SetNodeTransformMatrix(glm::mat4 nodeTransform);
-    //virtual glm::mat4 TransformMatrix() const;
-    //virtual void SetTransformMatrix(glm::mat4);
-    //virtual glm::mat4 TranslationMatrix() const;
-    //virtual void SetTranslationMatrix(glm::mat4);
-    //virtual glm::mat4 RotationMatrix() const;
-    //virtual void SetRotationMatrix(glm::mat4);
-    //virtual glm::mat4 ScaleMatrix() const;
-    //virtual void SetScaleMatrix(glm::mat4);
-
-    //virtual glm::vec3 WorldPosition() const;
-    ///** @return the node local position */
-    //virtual glm::vec3 Position() const;
-    ///** @argument position : the node local position */
-    //virtual void SetPosition(glm::vec3 position);
-    //virtual glm::quat WorldRotation() const;
-    ///** @return the node local rotation */
-    //virtual glm::quat Rotation() const;
-    ///** @argument rotation : the node local rotation */
-    //virtual void SetRotation(glm::vec3 rotation);
-    ///** @return the node local scale */
-    //virtual void SetRotation(glm::quat rotation);
-    //virtual glm::vec3 WorldScale() const;
-    ///** @return the node local scale */
-    //virtual glm::vec3 Scale() const;
-    ///** @argument scale : the node local scale */
-    //virtual void SetScale(glm::vec3 scale);
-    ///** @return does the nod need transform update ? */
-    //virtual bool NeedsTransformUpdate();
-    ///** @argument needsTransformUpdate : new state */
-    //virtual void SetNeedsTranformUpdate(bool needsTransformUpdate);
     virtual bool NeedsGPUUpdate() const;
     virtual void SetNeedsGPUUpdate(bool needsUpdate);
-    //std::shared_ptr<Node> target() const;
     
-    //void SetTarget(std::shared_ptr<Node>);
+    /** @return the Node's parent */
     std::shared_ptr<Node> Parent() const { return _parent.lock(); };
     /** sets the parent to parent and calls AddChild in parent */
     void SetParent(std::shared_ptr<Node> parent);
@@ -103,6 +65,20 @@ public:
 
     std::shared_ptr<BoundingAABB> GetBounds() const;
 
+    ///** @arg animation : an animation to add to the node */
+    //void AddAnimation(const std::shared_ptr<Animation> &animation);
+    ///** @arg animation : the animation to remove from the node */
+    //void RemoveAnimation(const std::shared_ptr<Animation> &animation);
+    ///** @return the total number of animation */
+    //size_t GetAnimationCount() const;
+    ///** @return the animation at the specified index (subject to change) */
+    //std::shared_ptr<Animation> GetAnimation(size_t index);
+    ///** @return the animation with the specified name */
+    //std::shared_ptr<Animation> GetAnimation(const std::string &name);
+
+    void SetMesh(const std::shared_ptr<Mesh> &mesh);
+    std::shared_ptr<Mesh> GetMesh() const;
+
     virtual ~Node() /*= default*/;
 
 protected:
@@ -112,21 +88,8 @@ protected:
 private:
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
     std::vector<std::shared_ptr<Node>> _children;
-    //std::shared_ptr<Node> _target;
+    std::shared_ptr<Mesh> _mesh { nullptr };
     std::weak_ptr<Node> _parent;
     std::shared_ptr<::Transform> _transform;
-    //glm::vec3 _position { 0, 0, 0 };
-    //glm::quat _rotation { 0, 0, 0, 1 };
-    //glm::vec3 _scale { 1, 1, 1 };
-    //glm::vec3 _worldPosition { 0, 0, 0 };
-    //glm::quat _worldRotation { 0, 0, 0, 1 };
-    //glm::vec3 _worldScale { 1, 1, 1 };
-
-    //glm::mat4 _nodeTranformationmatrix{glm::mat4(1.f)};
-    //glm::mat4 _transformMatrix{glm::mat4(1.f)};
-    //glm::mat4 _translationMatrix{glm::mat4(0.f)};
-    //glm::mat4 _rotationMatrix{glm::mat4(0.f)};
-    //glm::mat4 _scaleMatrix{glm::mat4(1.f)};
-    //bool _needsTransformUpdate{true};
     bool _needsGPUUpdate{true};
 };
