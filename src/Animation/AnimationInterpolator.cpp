@@ -10,6 +10,16 @@ void AnimationInterpolator::SetPrevTime(float prevTime)
 	_prevTime = prevTime;
 }
 
+long long unsigned AnimationInterpolator::NextKey() const
+{
+	return _nextKey;
+}
+
+void AnimationInterpolator::SetNextKey(long long unsigned nextKey)
+{
+	_nextKey = nextKey;
+}
+
 long long unsigned AnimationInterpolator::PrevKey() const
 {
 	return _prevKey;

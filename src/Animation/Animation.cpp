@@ -42,47 +42,12 @@ void Animation::AddSampler(AnimationSampler sampler)
 	_samplers.push_back(sampler);
 }
 
-template<typename T, typename U>
-static inline T cubicSpline(T previousPoint, T previousTangent, T nextPoint, T nextTangent, U interpolationValue) {
-	auto t = interpolationValue;
-	auto t2 = t * t;
-	auto t3 = t2 * t;
-	return (2 * t3 - 3 * t2 + 1) * previousPoint + (t3 - 2 * t2 + t) * previousTangent + (-2 * t3 + 3 * t2) * nextPoint + (t3 - t2) * nextTangent;
-}
-
-template<typename T, typename U>
-static inline T InterpolateKeyFrame(T prev, T next, U interpolationValue, AnimationSampler::AnimationInterpolation interpolation, T previousTangent = T(), T nextTangent = T())
-{
-	switch (interpolation) {
-		case AnimationSampler::Linear:
-			return glm::mix(prev, next, interpolationValue);
-		case AnimationSampler::CubicSpline:
-			return cubicSpline(prev, previousTangent, next, nextTangent, interpolationValue);
-		case AnimationSampler::Step:
-			return prev;
-	}
-	return next;
-}
-
-template<typename U>
-static inline glm::quat InterpolateKeyFrame(glm::quat prev, glm::quat next, U interpolationValue, AnimationSampler::AnimationInterpolation interpolation, glm::quat previousTangent = glm::quat(), glm::quat nextTangent = glm::quat())
-{
-	switch (interpolation) {
-		case AnimationSampler::Linear:
-			return glm::slerp(prev, next, interpolationValue);
-		case AnimationSampler::CubicSpline:
-			return cubicSpline(prev, previousTangent, next, nextTangent, interpolationValue);
-		case AnimationSampler::Step:
-			return prev;
-	}
-	return next;
-}
-
 void Animation::Reset()
 {
 	for (auto interpolator : _interpolators) {
 		_startTime = SDL_GetTicks();
 		interpolator.SetPrevTime(0);
+		interpolator.SetNextKey(0);
 		interpolator.SetPrevKey(0);
 	}
 }
@@ -100,19 +65,19 @@ void Animation::Advance()
 		auto min(BufferHelper::Get<float>(sampler.Timings(), 0));
 		t = std::clamp(t, min, max);
         interpolator.SetPrevTime(t);
-		size_t nextKey(0u);
+        interpolator.SetNextKey(0u);
 		for (auto i = interpolator.PrevKey(); i < sampler.Timings()->Count(); ++i)
 		{
 			float timing(BufferHelper::Get<float>(sampler.Timings(), i));
 			if (timing > t)
             {
-                nextKey = std::clamp(size_t(i), size_t(0), sampler.Timings()->Count() - 1);
+            	interpolator.SetNextKey(std::clamp(size_t(i), size_t(0), sampler.Timings()->Count() - 1));
                 break;
             }
 		}
-		interpolator.SetPrevKey(std::clamp(size_t(nextKey - 1), size_t(0), size_t(nextKey)));
+		interpolator.SetPrevKey(std::clamp(size_t(interpolator.NextKey() - 1), size_t(0), size_t(interpolator.NextKey())));
 		auto prevTime(BufferHelper::Get<float>(sampler.Timings(), interpolator.PrevKey()));
-		auto nextTime(BufferHelper::Get<float>(sampler.Timings(), nextKey));
+		auto nextTime(BufferHelper::Get<float>(sampler.Timings(), interpolator.NextKey()));
 		auto keyDelta(nextTime - prevTime);
 		auto interpolationValue(0.f);
 		if (keyDelta != 0)
@@ -120,73 +85,25 @@ void Animation::Advance()
 		switch (channel.Path()) {
 			case AnimationChannel::Translation:
 			{
-				glm::vec3 current;
-				if (sampler.Interpolation() == AnimationSampler::CubicSpline)
-				{
-					glm::vec3 prev				(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), interpolator.PrevKey() * 3 + 1));
-					glm::vec3 prevOutputTangent	(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), interpolator.PrevKey() * 3 + 2));
-					glm::vec3 nextInputTangent	(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey * 3 + 0));
-					glm::vec3 next				(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey * 3 + 1));
-					glm::vec3 prevTangent = keyDelta * prevOutputTangent;
-    				glm::vec3 nextTangent = keyDelta * nextInputTangent;
-    				current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation(), prevTangent, nextTangent);
-				}
-				else
-				{
-					glm::vec3 prev(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), interpolator.PrevKey()));
-					glm::vec3 next(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey));
-					current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
-				}
+				glm::vec3 current = interpolator.Interpolate<glm::vec3>(sampler, keyDelta, interpolationValue);
 				channel.Target()->GetTransform()->SetPosition(current);
 				break;
 			}
 			case AnimationChannel::Rotation:
 			{
-				glm::quat current;
-				if (sampler.Interpolation() == AnimationSampler::CubicSpline)
-				{
-					glm::quat prev				(BufferHelper::Get<glm::quat>(sampler.KeyFrames(), interpolator.PrevKey() * 3 + 1));
-					glm::quat prevOutputTangent	(BufferHelper::Get<glm::quat>(sampler.KeyFrames(), interpolator.PrevKey() * 3 + 2));
-					glm::quat nextInputTangent	(BufferHelper::Get<glm::quat>(sampler.KeyFrames(), nextKey * 3 + 0));
-					glm::quat next				(BufferHelper::Get<glm::quat>(sampler.KeyFrames(), nextKey * 3 + 1));
-					glm::quat prevTangent = keyDelta * prevOutputTangent;
-    				glm::quat nextTangent = keyDelta * nextInputTangent;
-    				current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation(), prevTangent, nextTangent);
-				}
-				else
-				{
-					glm::quat prev(BufferHelper::Get<glm::quat>(sampler.KeyFrames(), interpolator.PrevKey()));
-					glm::quat next(BufferHelper::Get<glm::quat>(sampler.KeyFrames(), nextKey));
-					current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
-				}
+				glm::quat current = interpolator.Interpolate<glm::quat>(sampler, keyDelta, interpolationValue);
 				channel.Target()->GetTransform()->SetRotation(glm::normalize(current));
 				break;
 			}
 			case AnimationChannel::Scale:
 			{
-				glm::vec3 current(channel.Target()->GetTransform()->Scale());
-				if (sampler.Interpolation() == AnimationSampler::CubicSpline)
-				{
-					glm::vec3 prev				(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), interpolator.PrevKey() * 3 + 1));
-					glm::vec3 prevOutputTangent	(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), interpolator.PrevKey() * 3 + 2));
-					glm::vec3 nextInputTangent	(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey * 3 + 0));
-					glm::vec3 next				(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey * 3 + 1));
-					glm::vec3 prevTangent = keyDelta * prevOutputTangent;
-    				glm::vec3 nextTangent = keyDelta * nextInputTangent;
-    				current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation(), prevTangent, nextTangent);
-				}
-				else
-				{
-					glm::vec3 prev(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), interpolator.PrevKey()));
-					glm::vec3 next(BufferHelper::Get<glm::vec3>(sampler.KeyFrames(), nextKey));
-					current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
-				}
+				glm::vec3 current(interpolator.Interpolate<glm::vec3>(sampler, keyDelta, interpolationValue));
 				channel.Target()->GetTransform()->SetScale(current);
 				break;
 			}
 			case AnimationChannel::Weights:
 			{
-				auto mesh(std::dynamic_pointer_cast<Mesh>(channel.Target()));
+				/*auto mesh(std::dynamic_pointer_cast<Mesh>(channel.Target()));
 				if (mesh == nullptr) {
 					debugLog(channel.Target()->Name() + " is not a Mesh");
 					break;
@@ -194,16 +111,6 @@ void Animation::Advance()
 				auto weights(mesh->Weights());
 				if (sampler.Interpolation() == AnimationSampler::CubicSpline)
 				{
-					/*for (auto i = 0u; i < weights->Count(); ++i) {
-						float prev				(BufferHelper::Get<float>(sampler.KeyFrames(), interpolator.PrevKey() * 3 * i + 1));
-						float prevOutputTangent	(BufferHelper::Get<float>(sampler.KeyFrames(), interpolator.PrevKey() * 3 * i + 2));
-						float nextInputTangent	(BufferHelper::Get<float>(sampler.KeyFrames(), nextKey * 3 * i + 0));
-						float next				(BufferHelper::Get<float>(sampler.KeyFrames(), nextKey * 3 * i + 1));
-						float prevTangent = keyDelta * prevOutputTangent;
-	    				float nextTangent = keyDelta * nextInputTangent;
-	    				auto current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation(), prevTangent, nextTangent);
-	    				BufferHelper::Set(weights, i, current);
-					}*/
 				}
 				else
 				{
@@ -213,13 +120,13 @@ void Animation::Advance()
 						auto current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
 						BufferHelper::Set(weights, i, current);
 					}
-				}
+				}*/
 				break;
 			}
 			case AnimationChannel::None:
 				break;
 		}
-		animationPlayed = t < max;
+		animationPlayed |= t < max;
 	}
 	if (!animationPlayed) {
 		if (Repeat())

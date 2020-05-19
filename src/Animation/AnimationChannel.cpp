@@ -20,12 +20,12 @@ void AnimationChannel::SetSamplerIndex(size_t index)
 	_samplerIndex = index;
 }
 
-AnimationChannel::AnimationPath AnimationChannel::Path() const
+AnimationChannel::Channel AnimationChannel::Path() const
 {
 	return _path;
 }
 
-void AnimationChannel::SetPath(AnimationPath path)
+void AnimationChannel::SetPath(Channel path)
 {
 	_path = path;
 }

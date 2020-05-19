@@ -12,6 +12,8 @@ class Animation : public Object
 {
 public:
 	static std::shared_ptr<Animation> Create();
+	AnimationChannel GetChannel(AnimationChannel::Channel channel);
+
 	std::vector<AnimationChannel> GetChannels() const;
 	std::vector<AnimationSampler> GetSamplers() const;
 	void AddChannel(AnimationChannel);
