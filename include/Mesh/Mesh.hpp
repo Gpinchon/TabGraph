@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "Object.hpp"
 #include "Node.hpp"
 #include <GL/glew.h> // for GLenum, GL_BACK
 #include <memory> // for shared_ptr, weak_ptr
@@ -22,15 +23,15 @@ class Material;
 class TextureBuffer;
 class BufferAccessor;
 
-class Mesh : public Node
+class Mesh : public Object
 {
 public:
     static std::shared_ptr<Mesh> Create(std::shared_ptr<Mesh> otherMesh);
     static std::shared_ptr<Mesh> Create(const std::string &);
-    void Load() override;
-    bool Draw(RenderMod mod = RenderMod::RenderAll) override;
-    bool DrawDepth(RenderMod mod = RenderMod::RenderAll) override;
-    bool Drawable() const override;
+    void Load();
+    bool Draw(const std::shared_ptr<Transform> &transform, RenderMod mod = RenderMod::RenderAll);
+    bool DrawDepth(const std::shared_ptr<Transform> &transform, RenderMod mod = RenderMod::RenderAll);
+    bool Drawable() const;
     void center();
     void set_cull_mod(GLenum);
     /** Adds the Geometry to Geometrys list */
@@ -51,9 +52,9 @@ public:
     std::shared_ptr<Transform> GetGeometryTransform() const;
     void SetGeometryTransform(const std::shared_ptr<Transform> &transform);
 
-    virtual void FixedUpdate() override;
-    virtual void UpdateGPU() override;
-    virtual void UpdateSkin();
+    virtual void FixedUpdate(float delta);
+    virtual void UpdateGPU(float delta);
+    virtual void UpdateSkin(const std::shared_ptr<Transform> &transform);
 
     std::shared_ptr<MeshSkin> Skin() const;
     void SetSkin(std::shared_ptr<MeshSkin> skin);
@@ -62,6 +63,9 @@ public:
     void SetWeights(std::shared_ptr<BufferAccessor> weights);
 
     const std::set<std::shared_ptr<Geometry>> Geometrys();
+
+    void SetNeedsUpdateGPU(bool);
+    bool NeedsUpdateGPU();
 
 protected:
     Mesh(const std::string &name);
@@ -74,5 +78,6 @@ private:
     std::shared_ptr<BufferAccessor> _weights { nullptr };
     std::shared_ptr<Transform> _geometryTransform { nullptr };
     GLenum _cull_mod{GL_BACK};
-    bool _loaded {false};
+    bool _loaded { false };
+    bool _needsUpdateGPU { false };
 };

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-16 20:39:07
+* @Last Modified time: 2020-05-17 21:01:29
 */
 
 #include "Mesh/Mesh.hpp"
@@ -25,13 +25,16 @@
 
 
 Mesh::Mesh(const std::string &name)
-    : Node(name), _geometryTransform(Transform::Create(Name() + "_geometryTransform"))
+    : Object(name), _geometryTransform(Transform::Create(Name() + "_geometryTransform"))
 {
 }
 
 std::shared_ptr<Mesh> Mesh::Create(std::shared_ptr<Mesh> otherMesh) /*static*/
 {
-    return std::shared_ptr<Mesh>(new Mesh(*otherMesh));
+    std::shared_ptr<Mesh> newMesh(new Mesh(*otherMesh));
+    newMesh->SetName(otherMesh->Name() + "_copy");
+    //newMesh->SetTransform(Transform::Create(newMesh->Name() + "_geometryTransform"));
+    return newMesh;
 }
 
 std::shared_ptr<Mesh> Mesh::Create(const std::string &name) /*static*/
@@ -61,10 +64,10 @@ void Mesh::Load()
         _jointMatrices->load();
 }
 
-bool Mesh::DrawDepth(RenderMod mod)
+bool Mesh::DrawDepth(const std::shared_ptr<Transform> &transform, RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    auto finalTranformMatrix(GetTransform()->WorldTransformMatrix() * GetGeometryTransform()->WorldTransformMatrix());
+    auto finalTranformMatrix(transform->WorldTransformMatrix() * GetGeometryTransform()->WorldTransformMatrix());
 
     bool ret = false;
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
@@ -113,10 +116,10 @@ bool Mesh::DrawDepth(RenderMod mod)
     return ret;
 }
 
-bool Mesh::Draw(RenderMod mod)
+bool Mesh::Draw(const std::shared_ptr<Transform> &transform, RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    auto finalTranformMatrix(GetTransform()->WorldTransformMatrix() * GetGeometryTransform()->WorldTransformMatrix());
+    auto finalTranformMatrix(transform->WorldTransformMatrix() * GetGeometryTransform()->WorldTransformMatrix());
 
     bool ret = false;
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
@@ -249,19 +252,18 @@ void Mesh::SetGeometryTransform(const std::shared_ptr<Transform> &transform)
     _geometryTransform = transform;
 }
 
-void Mesh::FixedUpdate()
+void Mesh::FixedUpdate(float)
 {
-    UpdateSkin();
 }
 
-void Mesh::UpdateGPU()
+void Mesh::UpdateGPU(float)
 {
-    if (NeedsGPUUpdate() && _jointMatrices != nullptr)
+    if (NeedsUpdateGPU() && _jointMatrices != nullptr)
         _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU();
-    SetNeedsGPUUpdate(false);
+    SetNeedsUpdateGPU(false);
 }
 
-void Mesh::UpdateSkin()
+void Mesh::UpdateSkin(const std::shared_ptr<Transform> &transform)
 {
     if (Skin() == nullptr)
         return;
@@ -269,14 +271,14 @@ void Mesh::UpdateSkin()
     for (auto index = 0u; index < Skin()->Joints().size(); ++index) {
         const auto joint(Skin()->Joints().at(index));
         auto jointMatrix =
-            glm::inverse(GetTransform()->Parent()->WorldTransformMatrix()) *
+            glm::inverse(transform->Parent()->WorldTransformMatrix()) *
             joint.lock()->GetTransform()->WorldTransformMatrix() *
             BufferHelper::Get<glm::mat4>(Skin()->InverseBindMatrices(), index);
         if (jointMatrix != BufferHelper::Get<glm::mat4>(_jointMatrices->Accessor(), index))
             skinChanged = true;
         BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
     }
-    SetNeedsGPUUpdate(NeedsGPUUpdate() || skinChanged);
+    SetNeedsUpdateGPU(NeedsUpdateGPU() || skinChanged);
 }
 
 std::shared_ptr<MeshSkin> Mesh::Skin() const
@@ -288,7 +290,7 @@ void Mesh::SetSkin(std::shared_ptr<MeshSkin> skin)
 {
     _skin = skin;
     _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, BufferHelper::CreateAccessor<glm::mat4>(_skin->Joints().size(), GL_TEXTURE_BUFFER));
-    SetNeedsGPUUpdate(true);
+    SetNeedsUpdateGPU(true);
 }
 
 std::shared_ptr<BufferAccessor> Mesh::Weights() const
@@ -299,4 +301,14 @@ std::shared_ptr<BufferAccessor> Mesh::Weights() const
 void Mesh::SetWeights(std::shared_ptr<BufferAccessor> weights)
 {
     _weights = weights;
+}
+
+void Mesh::SetNeedsUpdateGPU(bool needsUpdateGPU)
+{
+    _needsUpdateGPU = needsUpdateGPU;
+}
+
+bool Mesh::NeedsUpdateGPU()
+{
+    return _needsUpdateGPU;
 }

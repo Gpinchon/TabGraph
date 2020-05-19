@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-12 21:14:21
+* @Last Modified time: 2020-05-17 23:29:44
 */
 
 #include "Mesh/Geometry.hpp"
@@ -120,8 +120,7 @@ bool Geometry::Draw()
         glDrawElements(Mode(), Indices()->Count(), Indices()->ComponentType(), BUFFER_OFFSET(byteOffset));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
-    else {
-        auto accessor(Accessor(Geometry::AccessorKey::Position));
+    else if (auto accessor(Accessor(Geometry::AccessorKey::Position)); accessor != nullptr) {
         auto byteOffset(accessor->ByteOffset() + accessor->GetBufferView()->ByteOffset());
         glDrawArrays(Mode(), byteOffset / accessor->TotalComponentByteSize(), accessor->Count());
     }
