@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 19:00:27
+* @Last Modified time: 2020-05-21 16:20:31
 */
 
 #include "Window.hpp"
@@ -58,6 +58,16 @@ SDL_Window* Window::sdl_window()
     return (_get()._sdl_window);
 }
 
+void PrintExtensions()
+{
+    debugLog("GL Extensions :");
+    GLint n;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+    for (auto i = 0; i < n; ++i) {
+        debugLog(glGetStringi(GL_EXTENSIONS, i));
+    }
+}
+
 void Window::init(const std::string& name, glm::ivec2 resolution)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -65,11 +75,11 @@ void Window::init(const std::string& name, glm::ivec2 resolution)
     }
     SDL_JoystickEventState(SDL_ENABLE);
     SDL_GameControllerEventState(SDL_ENABLE);
-    //SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, Config::Get("MSAA", 0));
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     if (nullptr == _get()._sdl_window)
         _get()._sdl_window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_CENTERED,
@@ -88,9 +98,15 @@ void Window::init(const std::string& name, glm::ivec2 resolution)
     if (error != GLEW_OK) {
         throw std::runtime_error(reinterpret_cast<const char*>(glewGetErrorString(error)));
     }
+    debugLog(std::string("GL vendor    : ") + reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+    debugLog(std::string("GL renderer  : ") + reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    debugLog(std::string("GL version   : ") + reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    debugLog(std::string("GLSL version : ") + reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+    PrintExtensions();
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    if (glCheckError(name)) throw std::runtime_error("Error while initializing Window");
+    if (glCheckError(name))
+        throw std::runtime_error("Error while initializing Window");
 }
 
 GLbitfield& Window::clear_mask()

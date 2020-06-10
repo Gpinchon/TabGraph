@@ -3,28 +3,27 @@
 #include "BoundingElement.hpp"
 #include "BoundingSphere.hpp"
 #include "Common.hpp"
-#include "Object.hpp"
+#include "Component.hpp"
 #include "Tools.hpp"
 #include <glm/glm.hpp>
 
 class Node;
 
-class RigidBody : public Object
-{
+class RigidBody : public Component {
 public:
-	static std::shared_ptr<RigidBody> Create(const std::string &name, const std::shared_ptr<Node> &node, const std::shared_ptr<BoundingElement> &collider);
+    static std::shared_ptr<RigidBody> Create(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider);
     template <typename T, typename U,
         typename = IsSharedPointerOfType<RigidBody, T>,
         typename = IsSharedPointerOfType<RigidBody, U>>
     static bool Collides(const T& a, const U& b);
     //static glm::vec3 GetSupport(std::vector<glm::vec3> vertices, glm::vec3 d);
-	//virtual Intersection IntersectRay(const Ray ray);
-	//virtual const std::vector<Ray> GatherRays();
-	bool Static() const;
-	void SetStatic(bool isStatic);
-	std::shared_ptr<Node> GetNode() const;
-	void SetNode(std::shared_ptr<Node> node);
-	float Mass() const;
+    //virtual Intersection IntersectRay(const Ray ray);
+    //virtual const std::vector<Ray> GatherRays();
+    bool Static() const;
+    void SetStatic(bool isStatic);
+    std::shared_ptr<Node> GetNode() const;
+    void SetNode(std::shared_ptr<Node> node);
+    float Mass() const;
     void SetMass(const float mass);
     glm::vec3 LinearAcceleration() const;
     glm::quat AngularSpin() const;
@@ -55,16 +54,16 @@ public:
     void ApplyLocalPush(glm::vec3 pushDirection, glm::vec3 pushLocation);
     void ApplyWorldPush(glm::vec3 pushDirection, glm::vec3 pushLocation, glm::vec3 originalPosition);
     void IntegrateVelocities(float step);
-    void SetCollider(const std::shared_ptr<BoundingElement> &collider);
-    std::shared_ptr<BoundingElement> &GetCollider();
+    void SetCollider(const std::shared_ptr<BoundingElement>& collider);
+    std::shared_ptr<BoundingElement>& GetCollider();
 
 protected:
-	//std::vector<Ray> _rays;
-	RigidBody(const std::string &name);
+    //std::vector<Ray> _rays;
+    RigidBody(const std::string& name);
 
 private:
-	float _mass { 0 };
-	float _invMass { 0 };
+    float _mass { 0 };
+    float _invMass { 0 };
     glm::vec3 _linearVelocity { 0 };
     glm::vec3 _angularVelocity { 0 };
     glm::vec3 _gravity { Common::Gravity() };
@@ -78,7 +77,6 @@ private:
     bool _static { false };
     std::weak_ptr<Node> _node;
     std::shared_ptr<BoundingElement> _collider;
-    virtual std::shared_ptr<RigidBody> shared_from_this();
 };
 
 /*

@@ -1,15 +1,35 @@
 #include "Physics/Intersection.hpp"
 
-Intersection::Intersection(const bool intersects, const float distance) : _intersects(intersects), _distance(distance)
+Intersection::Intersection(const bool intersects, const float distance, const glm::vec3 normal, const glm::vec3 position)
+    : _intersects(intersects)
+    , _normal(normal)
+    , _position(position)
+    , _distance(distance)
+{
+}
+
+Intersection::Intersection(const bool intersects, const float distance)
+    : _intersects(intersects)
+    , _distance(distance)
 {
 }
 
 bool Intersection::GetIntersects() const
 {
-	return _intersects;
+    return _intersects;
+}
+
+glm::vec3 Intersection::GetNormal() const
+{
+    return _normal;
+}
+
+glm::vec3 Intersection::GetPosition() const
+{
+    return _position;
 }
 
 float Intersection::GetDistance() const
 {
-	return _distance;
+    return _distance;
 }

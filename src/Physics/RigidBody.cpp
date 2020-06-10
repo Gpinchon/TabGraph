@@ -1,17 +1,21 @@
+#include "Physics/RigidBody.hpp"
 #include "Node.hpp"
 #include "Physics/BoundingElement.hpp"
 #include "Physics/BoundingSphere.hpp"
-#include "Physics/RigidBody.hpp"
 #include <glm/gtc/quaternion.hpp>
 
-RigidBody::RigidBody(const std::string &name) : Object(name), _collider(new BoundingSphere(glm::vec3(0), 1.f)) {}
-
-std::shared_ptr<RigidBody> RigidBody::Create(const std::string &name, const std::shared_ptr<Node> &node, const std::shared_ptr<BoundingElement> &collider)
+RigidBody::RigidBody(const std::string& name)
+    : Component(name)
+    , _collider(new BoundingSphere(glm::vec3(0), 1.f))
 {
-	auto t = std::shared_ptr<RigidBody>(new RigidBody(name));
+}
+
+std::shared_ptr<RigidBody> RigidBody::Create(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider)
+{
+    auto t = std::shared_ptr<RigidBody>(new RigidBody(name));
     t->SetNode(node);
     t->SetCollider(collider);
-	return t;
+    return t;
 }
 /*
 const std::vector<Ray> RigidBody::GatherRays()
@@ -25,11 +29,6 @@ const std::vector<Ray> RigidBody::GatherRays()
     return _rays;
 }
 */
-
-std::shared_ptr<RigidBody> RigidBody::shared_from_this()
-{
-    return (std::static_pointer_cast<RigidBody>(Object::shared_from_this()));
-}
 
 bool RigidBody::Static() const
 {
@@ -65,7 +64,7 @@ void RigidBody::SetMass(const float mass)
 
 glm::quat RigidBody::AngularSpin() const
 {
-	/*glm::quat q(0,
+    /*glm::quat q(0,
                 AngularVelocity().x,
                 AngularVelocity().y,
                 AngularVelocity().z);
@@ -80,22 +79,22 @@ glm::vec3 RigidBody::LinearAcceleration() const
 
 glm::vec3 RigidBody::AngularFactor() const
 {
-	return _angularFactor;
+    return _angularFactor;
 }
 
 void RigidBody::SetAngularFactor(glm::vec3 angularFactor)
 {
-	_angularFactor = angularFactor;
+    _angularFactor = angularFactor;
 }
 
 glm::vec3 RigidBody::LinearFactor() const
 {
-	return _linearFactor;
+    return _linearFactor;
 }
 
 void RigidBody::SetLinearFactor(glm::vec3 linearFactor)
 {
-	_linearFactor = linearFactor;
+    _linearFactor = linearFactor;
 }
 
 glm::vec3 RigidBody::MomenfOfIndertia() const
@@ -151,7 +150,7 @@ void RigidBody::SetApplyGravity(const bool applyGravity)
 
 void RigidBody::ApplyTorque(glm::vec3 torque)
 {
-	SetTotalTorque(TotalTorque() + torque * AngularFactor());
+    SetTotalTorque(TotalTorque() + torque * AngularFactor());
 }
 
 void RigidBody::ApplyLocalForce(glm::vec3 force, glm::vec3 forceLocation)
@@ -201,12 +200,12 @@ void RigidBody::SetTotalTorque(glm::vec3 totalTorque)
     _totalTorque = totalTorque;
 }
 
-void RigidBody::SetCollider(const std::shared_ptr<BoundingElement> &collider)
+void RigidBody::SetCollider(const std::shared_ptr<BoundingElement>& collider)
 {
     _collider = collider;
 }
 
-std::shared_ptr<BoundingElement> &RigidBody::GetCollider()
+std::shared_ptr<BoundingElement>& RigidBody::GetCollider()
 {
     return _collider;
 }
@@ -230,8 +229,7 @@ void RigidBody::IntegrateVelocities(float step)
 #define MAX_ANGVEL HALF_PI
     /// clamp angular velocity. collision calculations will fail on higher angular velocities
     float angvel = AngularVelocity().length();
-    if (angvel * step > MAX_ANGVEL)
-    {
+    if (angvel * step > MAX_ANGVEL) {
         SetAngularVelocity(AngularVelocity() * float(MAX_ANGVEL / step) / angvel);
     }
 }

@@ -2,14 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 20:19:44
+* @Last Modified time: 2020-05-21 22:17:56
 */
 
 #include "Material.hpp"
-#include "Texture/Cubemap.hpp"
 #include "Environment.hpp" // for Environment
-#include "Shader/Shader.hpp" // for Shader
 #include "Parser/GLSL.hpp" // for GLSL, ForwardShader
+#include "Shader/Shader.hpp" // for Shader
+#include "Texture/Cubemap.hpp"
 #include <GL/glew.h> // for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
 
 static std::string forward_default_frag_technique =
@@ -28,9 +28,9 @@ Material::Material(const std::string& name)
     : Object(name)
 {
     _shader = Shader::Create(Name() + "_shader", ForwardShader);
-    _shader.lock()->Stage(GL_FRAGMENT_SHADER).SetTechnique(forward_default_frag_technique);
+    _shader.lock()->Stage(GL_FRAGMENT_SHADER)->SetTechnique(forward_default_frag_technique);
     _depth_shader = Shader::Create(Name() + "_depth_shader", ForwardShader);
-    _depth_shader.lock()->SetStage(ShaderStage(GL_FRAGMENT_SHADER, depth_frag_code));
+    _depth_shader.lock()->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, depth_frag_code));
     shader()->SetUniform("Material.Albedo", Albedo());
     shader()->SetUniform("Material.Specular", Specular());
     shader()->SetUniform("Material.Emitting", Emitting());
@@ -65,8 +65,7 @@ void Material::Bind()
         shader()->SetDefine("TEXTURE_USE_METALLICROUGHNESS");
         shader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
         shader()->RemoveDefine("TEXTURE_USE_METALLIC");
-    }
-    else {
+    } else {
         shader()->RemoveDefine("TEXTURE_USE_METALLICROUGHNESS");
         TextureRoughness() ? shader()->SetDefine("TEXTURE_USE_ROUGHNESS") : shader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
         TextureMetallic() ? shader()->SetDefine("TEXTURE_USE_METALLIC") : shader()->RemoveDefine("TEXTURE_USE_METALLIC");
@@ -87,7 +86,6 @@ void Material::bind_textures()
 
 void Material::bind_values()
 {
-    
 }
 
 std::shared_ptr<Shader> Material::shader()

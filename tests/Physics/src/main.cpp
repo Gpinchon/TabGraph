@@ -1,22 +1,25 @@
-#include "Engine.hpp"
+#define USE_HIGH_PERFORMANCE_GPU
+#include "DLLExport.hpp"
+
 #include "Animation/Animation.hpp"
-#include "Config.hpp"
+#include "Callback.hpp"
 #include "Camera/FPSCamera.hpp"
-#include "Light/Light.hpp"
+#include "Config.hpp"
+#include "Engine.hpp"
+#include "Input/Events.hpp"
 #include "Input/Keyboard.hpp"
 #include "Input/Mouse.hpp"
-#include "Input/Events.hpp"
-#include "Callback.hpp"
+#include "Light/Light.hpp"
+#include "Mesh/CubeMesh.hpp"
+#include "Mesh/Mesh.hpp"
+#include "Mesh/PlaneMesh.hpp"
+#include "Physics/RigidBody.hpp"
+#include "Render.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneParser.hpp"
-#include "Window.hpp"
-#include "Mesh/Mesh.hpp"
-#include "Mesh/CubeMesh.hpp"
-#include "Mesh/PlaneMesh.hpp"
 #include "Tools.hpp"
-#include "Render.hpp"
-#include "Physics/RigidBody.hpp"
 #include "Transform.hpp"
+#include "Window.hpp"
 
 #define DOWNK SDL_SCANCODE_DOWN
 #define UPK SDL_SCANCODE_UP
@@ -40,12 +43,12 @@ void CameraCallback(std::shared_ptr<FPSCamera> camera)
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->GetTransform()->SetPosition(camera->GetTransform()->WorldPosition() - float(Events::delta_time() * laxis.x * 10) * camera->GetTransform()->Right());
-    camera->GetTransform()->SetPosition(camera->GetTransform()->WorldPosition() - float(Events::delta_time() * laxis.y * 10) * camera->GetTransform()->Forward());
-    camera->GetTransform()->SetPosition(camera->GetTransform()->WorldPosition() + float(Events::delta_time() * taxis * 10) * Common::Up());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->WorldPosition() - float(Events::delta_time() * laxis.x * 10) * camera->GetComponent<Transform>()->Right());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->WorldPosition() - float(Events::delta_time() * laxis.y * 10) * camera->GetComponent<Transform>()->Forward());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->WorldPosition() + float(Events::delta_time() * taxis * 10) * Common::Up());
 }
 
-void MouseMoveCallback(SDL_MouseMotionEvent *event)
+void MouseMoveCallback(SDL_MouseMotionEvent* event)
 {
     auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
@@ -62,7 +65,7 @@ void MouseMoveCallback(SDL_MouseMotionEvent *event)
     camera->SetRoll(cameraRotation.z);
 }
 
-void MouseWheelCallback(SDL_MouseWheelEvent *event)
+void MouseWheelCallback(SDL_MouseWheelEvent* event)
 {
     auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
@@ -73,22 +76,21 @@ void MouseWheelCallback(SDL_MouseWheelEvent *event)
 
 void FullscreenCallback(SDL_KeyboardEvent*)
 {
-    if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u))
-    {
+    if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u)) {
         static bool fullscreen = false;
         fullscreen = !fullscreen;
         Window::fullscreen(fullscreen);
     }
 }
 
-void CallbackQuality(SDL_KeyboardEvent *event)
+void CallbackQuality(SDL_KeyboardEvent* event)
 {
     if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
         return;
     Render::SetInternalQuality(CYCLE(Render::InternalQuality() + 0.25, 0.5, 1.5));
 }
 
-void CallbackAnimation(SDL_KeyboardEvent *event)
+void CallbackAnimation(SDL_KeyboardEvent* event)
 {
     if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
         return;
@@ -100,7 +102,8 @@ void CallbackAnimation(SDL_KeyboardEvent *event)
     Scene::Current()->Animations().at(currentAnimation)->Play();
 }
 
-void ExitCallback(SDL_KeyboardEvent* ) {
+void ExitCallback(SDL_KeyboardEvent*)
+{
     Engine::Stop();
 }
 
@@ -118,14 +121,14 @@ void SetupCallbacks()
 
 #include "Material.hpp"
 #include "Physics/BoundingAABB.hpp"
-#include "Physics/BoundingSphere.hpp"
 #include "Physics/BoundingPlane.hpp"
+#include "Physics/BoundingSphere.hpp"
 
 static inline void CreateCubes(unsigned /*nbr*/, std::shared_ptr<Scene> scene)
 {
     /*for (auto i = 0u; i < nbr; ++i)
     {
-        auto cube(CubeMesh::Create("cubeMesh", glm::vec3(1, 1, 1)));
+        auto cubeMesh(CubeMesh::Create("cubeMesh", glm::vec3(1, 1, 1)));
         auto rigidBody(RigidBody::Create("cubeRigidBody"));
         cube->GetMaterial(0)->SetAlbedo(glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f));
         cube->SetPosition(glm::vec3(rand() % 100 - 50, rand() % 100, rand() % 100 - 50));
@@ -143,24 +146,26 @@ static inline void CreateCubes(unsigned /*nbr*/, std::shared_ptr<Scene> scene)
         
         scene->Add(cube);
     }*/
-    auto cube(CubeMesh::Create("cubeMesh", glm::vec3(1, 1, 1)));
-    auto rigidBody(RigidBody::Create("cubeRigidBody", cube, BoundingSphere::Create(glm::vec3(0), 1.f)));
-    cube->GetMaterial(0)->SetAlbedo(glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f));
-    cube->GetTransform()->SetPosition(glm::vec3(0, 5, 0));
-    //cube->SetImpostor(rigidBody);
+    auto cubeMesh(CubeMesh::Create("cubeMesh", glm::vec3(1, 1, 1)));
+    auto cubeNode(Node::Create("cubeNode"));
+
+    auto rigidBody(RigidBody::Create("cubeRigidBody", cubeNode, BoundingSphere::Create(glm::vec3(0), 1.f)));
+    cubeMesh->GetMaterial(0)->SetAlbedo(glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f));
+    cubeNode->GetComponent<Transform>()->SetPosition(glm::vec3(0, 5, 0));
+    cubeNode->SetMesh(cubeMesh);
+    //cubeMesh->SetImpostor(rigidBody);
 
     rigidBody->SetMass(1);
-    //cube->SetMass((rand() % 100 - 50) / 100.f);
+    //cubeMesh->SetMass((rand() % 100 - 50) / 100.f);
     rigidBody->SetApplyGravity(false);
-    rigidBody->ApplyWorldPush(glm::vec3(0, 10, -1), glm::vec3(0, 0, 1), cube->GetTransform()->WorldPosition());
+    rigidBody->ApplyWorldPush(glm::vec3(0, 10, -1), glm::vec3(0, 0, 1), cubeNode->GetComponent<Transform>()->WorldPosition());
     rigidBody->SetLinearVelocity(glm::vec3(0));
-    //rigidBody->ApplyCentralPush(1.f / normalize(cube->Position()) * 2.f);
+    //rigidBody->ApplyCentralPush(1.f / normalize(cubeMesh->Position()) * 2.f);
     //rigidBody->ApplyCentralPush(glm::vec3(rand() % 100 - 50, rand() % 100 - 50, rand() % 100 - 50));
-    //cube->SetApplyGravity(rand() % 2);
+    //cubeMesh->SetApplyGravity(rand() % 2);
     scene->Add(rigidBody);
-    scene->Add(cube);
+    scene->Add(cubeNode);
 }
-
 
 void CollidersTest()
 {
@@ -172,69 +177,71 @@ void CollidersTest()
     auto aIntersectB(sphere1->Intersect(sphere2));
     auto aIntersectC(sphere1->Intersect(sphere3));
     auto aIntersectD(sphere1->Intersect(sphere4));
-    std::cout   << "Sphare sphere1 intersect sphere2 : " << aIntersectB.GetIntersects()
-                << ", distance : " << aIntersectB.GetDistance() << std::endl;
-    std::cout   << "Sphare sphere1 intersect sphere3 : " << aIntersectC.GetIntersects()
-                << ", distance : " << aIntersectC.GetDistance() << std::endl;
-    std::cout   << "Sphare sphere1 intersect sphere4 : " << aIntersectD.GetIntersects()
-                << ", distance : " << aIntersectD.GetDistance() << std::endl;
+    std::cout << "Sphare sphere1 intersect sphere2 : " << aIntersectB.GetIntersects()
+              << ", distance : " << aIntersectB.GetDistance() << std::endl;
+    std::cout << "Sphare sphere1 intersect sphere3 : " << aIntersectC.GetIntersects()
+              << ", distance : " << aIntersectC.GetDistance() << std::endl;
+    std::cout << "Sphare sphere1 intersect sphere4 : " << aIntersectD.GetIntersects()
+              << ", distance : " << aIntersectD.GetDistance() << std::endl;
 
-    auto AABB1(BoundingAABB::Create(glm::vec3(0, 0,   0), glm::vec3(1, 1,   1)));
-    auto AABB2(BoundingAABB::Create(glm::vec3(1, 1,   1), glm::vec3(2, 2,   2)));
-    auto AABB3(BoundingAABB::Create(glm::vec3(1, 0,   0), glm::vec3(2, 1,   1)));
-    auto AABB4(BoundingAABB::Create(glm::vec3(0, 0,  -2), glm::vec3(1, 1,  -1)));
+    auto AABB1(BoundingAABB::Create(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
+    auto AABB2(BoundingAABB::Create(glm::vec3(1, 1, 1), glm::vec3(2, 2, 2)));
+    auto AABB3(BoundingAABB::Create(glm::vec3(1, 0, 0), glm::vec3(2, 1, 1)));
+    auto AABB4(BoundingAABB::Create(glm::vec3(0, 0, -2), glm::vec3(1, 1, -1)));
     auto AABB5(BoundingAABB::Create(glm::vec3(0, 0.5, 0), glm::vec3(1, 1.5, 1)));
 
     auto AABB1IntersectAABB2(AABB1->Intersect(AABB2));
     auto AABB1IntersectAABB3(AABB1->Intersect(AABB3));
     auto AABB1IntersectAABB4(AABB1->Intersect(AABB4));
     auto AABB1IntersectAABB5(AABB1->Intersect(AABB5));
-    std::cout   << "AABB1 intersect AABB2 : " << AABB1IntersectAABB2.GetIntersects()
-                << ", distance : " << AABB1IntersectAABB2.GetDistance() << std::endl;
-    std::cout   << "AABB1 intersect AABB3 : " << AABB1IntersectAABB3.GetIntersects()
-                << ", distance : " << AABB1IntersectAABB3.GetDistance() << std::endl;
-    std::cout   << "AABB1 intersect AABB4 : " << AABB1IntersectAABB4.GetIntersects()
-                << ", distance : " << AABB1IntersectAABB4.GetDistance() << std::endl;
-    std::cout   << "AABB1 intersect AABB5 : " << AABB1IntersectAABB5.GetIntersects()
-                << ", distance : " << AABB1IntersectAABB5.GetDistance() << std::endl;
-    
+    std::cout << "AABB1 intersect AABB2 : " << AABB1IntersectAABB2.GetIntersects()
+              << ", distance : " << AABB1IntersectAABB2.GetDistance() << std::endl;
+    std::cout << "AABB1 intersect AABB3 : " << AABB1IntersectAABB3.GetIntersects()
+              << ", distance : " << AABB1IntersectAABB3.GetDistance() << std::endl;
+    std::cout << "AABB1 intersect AABB4 : " << AABB1IntersectAABB4.GetIntersects()
+              << ", distance : " << AABB1IntersectAABB4.GetDistance() << std::endl;
+    std::cout << "AABB1 intersect AABB5 : " << AABB1IntersectAABB5.GetIntersects()
+              << ", distance : " << AABB1IntersectAABB5.GetDistance() << std::endl;
+
     BoundingPlane plane1(glm::vec3(0, 1, 0), 0);
 
     auto plane1IntersectSphere1(plane1.Intersect(sphere1));
     auto plane1IntersectSphere2(plane1.Intersect(sphere2));
     auto plane1IntersectSphere3(plane1.Intersect(sphere3));
     auto plane1IntersectSphere4(plane1.Intersect(sphere4));
-    std::cout   << "plane1 intersect sphere1 : " << plane1IntersectSphere1.GetIntersects()
-                << ", distance : " << plane1IntersectSphere1.GetDistance() << std::endl;
-    std::cout   << "plane1 intersect sphere2 : " << plane1IntersectSphere2.GetIntersects()
-                << ", distance : " << plane1IntersectSphere2.GetDistance() << std::endl;
-    std::cout   << "plane1 intersect sphere3 : " << plane1IntersectSphere3.GetIntersects()
-                << ", distance : " << plane1IntersectSphere3.GetDistance() << std::endl;
-    std::cout   << "plane1 intersect sphere4 : " << plane1IntersectSphere4.GetIntersects()
-                << ", distance : " << plane1IntersectSphere4.GetDistance() << std::endl;
+    std::cout << "plane1 intersect sphere1 : " << plane1IntersectSphere1.GetIntersects()
+              << ", distance : " << plane1IntersectSphere1.GetDistance() << std::endl;
+    std::cout << "plane1 intersect sphere2 : " << plane1IntersectSphere2.GetIntersects()
+              << ", distance : " << plane1IntersectSphere2.GetDistance() << std::endl;
+    std::cout << "plane1 intersect sphere3 : " << plane1IntersectSphere3.GetIntersects()
+              << ", distance : " << plane1IntersectSphere3.GetDistance() << std::endl;
+    std::cout << "plane1 intersect sphere4 : " << plane1IntersectSphere4.GetIntersects()
+              << ", distance : " << plane1IntersectSphere4.GetDistance() << std::endl;
 }
 
-void CreateColliders(std::shared_ptr<Scene> &scene)
+void CreateColliders(std::shared_ptr<Scene>& scene)
 {
-    auto plane(PlaneMesh::Create("PlaneMesh", glm::vec2(100, 100)));
-    auto rigidBody(RigidBody::Create("PlaneRigidBody", plane, BoundingAABB::Create(glm::vec3(-50, 0, -50), glm::vec3(50, 0, 50))));
-    scene->Add(plane);
+    auto planeMesh(PlaneMesh::Create("PlaneMesh", glm::vec2(100, 100)));
+    auto planeNode(Node::Create("PlaneNode"));
+    auto rigidBody(RigidBody::Create("PlaneRigidBody", planeNode, BoundingAABB::Create(glm::vec3(-50, 0, -50), glm::vec3(50, 0, 50))));
+    planeNode->SetMesh(planeMesh);
+    scene->Add(planeNode);
     scene->Add(rigidBody);
     CreateCubes(1, scene);
 }
 
-int main(int, char **)
+int main(int, char**)
 {
     //CollidersTest();
     Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
-	auto scene(Scene::Create("mainScene"));
+    auto scene(Scene::Create("mainScene"));
     scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 0.5, false));
     scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
-    scene->CurrentCamera()->GetTransform()->SetPosition(glm::vec3{0, 5, 10});
+    scene->CurrentCamera()->GetComponent<Transform>()->SetPosition(glm::vec3 { 0, 5, 10 });
     CreateColliders(scene);
     Scene::SetCurrent(scene);
     SetupCallbacks();
     Engine::Start();
-	return 0;
+    return 0;
 }

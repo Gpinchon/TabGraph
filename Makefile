@@ -66,6 +66,7 @@ HEADERS_FILES	=	\
 					Camera/FPSCamera.hpp \
 					Camera/OrbitCamera.hpp \
 					Common.hpp \
+					Component.hpp \
 					ComputeObject.hpp \
 					Config.hpp \
 					Debug.hpp \

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:09
+* @Last Modified time: 2020-05-21 21:49:39
 */
 
 #pragma once
@@ -11,28 +11,28 @@
 #include "Shader/ShaderStage.hpp"
 #include "Tools.hpp"
 #include <GL/glew.h> // for GLuint, GLenum, GLint
+#include <cstdlib>
+#include <functional>
 #include <glm/glm.hpp> // for glm::mat4, glm::vec2, glm::vec3
 #include <memory> // for shared_ptr
 #include <stddef.h> // for size_t
 #include <string> // for string
 #include <unordered_map> // for unordered_map
-#include <vector> // for vector
 #include <variant>
-#include <functional>
-#include <cstdlib>
+#include <vector> // for vector
 
 class Texture; // lines 16-16
 
 struct ShaderVariable {
     std::string name { "" };
-    size_t size{ 0 };
-    GLenum type{ 0 };
+    size_t size { 0 };
+    GLenum type { 0 };
     GLint loc { -1 };
-    size_t byteSize{ 0 };
+    size_t byteSize { 0 };
     //std::byte *data{ nullptr };
     std::function<void(const ShaderVariable&)> updateFunction {};
-    template<typename T, typename = IsNotSharedPointerOfType<Texture, T>>
-    void Set(const T &value, const size_t index = 0);
+    template <typename T, typename = IsNotSharedPointerOfType<Texture, T>>
+    void Set(const T& value, const size_t index = 0);
     //template<typename T, typename std::enable_if<std::is_convertible<T, std::shared_ptr<Texture>>::value> * = nullptr>
     void Set(const std::shared_ptr<Texture> value, const size_t index = 0);
     std::variant<
@@ -74,7 +74,8 @@ struct ShaderVariable {
         std::vector<glm::dmat3x2>,
         std::vector<glm::dmat3x4>,
         std::vector<glm::dmat4x2>,
-        std::vector<glm::dmat4x3>> data;
+        std::vector<glm::dmat4x3>>
+        data;
     //std::variant<bool, int, unsigned, float, glm::vec2, glm::vec3, glm::mat4, std::pair<std::shared_ptr<Texture>, GLenum>> value;
 };
 
@@ -96,25 +97,24 @@ public:
     void bind_image(const std::string& uname, std::shared_ptr<Texture> texture, const GLint level, const bool layered, const GLint layer, const GLenum access, const GLenum texture_unit);
     void unbind_texture(GLenum texture_unit);
     template <typename T>
-    void SetUniform(const std::string& uname, const T&value, const size_t index = 0);
+    void SetUniform(const std::string& uname, const T& value, const size_t index = 0);
     void use(const bool& use_program = true);
-    ShaderVariable &get_uniform(const std::string& name);
-    ShaderVariable &get_attribute(const std::string& name);
+    ShaderVariable& get_uniform(const std::string& name);
+    ShaderVariable& get_attribute(const std::string& name);
     bool in_use();
     bool Compiled() const;
     bool NeedsRecompile() const;
     void Recompile();
     void SetDefine(const std::string define, const std::string value = "");
     void RemoveDefine(const std::string define);
-    ShaderStage &Stage(GLenum stage);
-    void SetStage(const ShaderStage &stage);
+    std::shared_ptr<ShaderStage>& Stage(GLenum stage);
+    void SetStage(const std::shared_ptr<ShaderStage>& stage);
     void RemoveStage(GLenum stage);
     ShaderType Type();
     void Compile();
     void Link();
 
 protected:
-
 private:
     Shader(const std::string& name);
     static std::vector<std::shared_ptr<Shader>> _shaders;
@@ -124,8 +124,8 @@ private:
     bool _compiled { false };
     bool _needsRecompile { false };
     void _UpdateVariables();
-    void _UpdateVariable(const ShaderVariable &variable);
-    std::unordered_map<GLenum, ShaderStage> _shaderStages;
+    void _UpdateVariable(const ShaderVariable& variable);
+    std::unordered_map<GLenum, std::shared_ptr<ShaderStage>> _shaderStages;
     void _get_variables(GLenum type);
     std::unordered_map<std::string, ShaderVariable> _uniforms;
     std::unordered_map<std::string, ShaderVariable> _attributes;
@@ -134,11 +134,11 @@ private:
 };
 
 #include "Debug.hpp"
-#include <cstring>
 #include <algorithm>
+#include <cstring>
 
-template<typename T, typename>
-inline void ShaderVariable::Set(const T &value, const size_t index)
+template <typename T, typename>
+inline void ShaderVariable::Set(const T& value, const size_t index)
 {
     byteSize = byteSize == 0 ? sizeof(T) : byteSize;
     if (sizeof(T) != byteSize)
@@ -147,15 +147,14 @@ inline void ShaderVariable::Set(const T &value, const size_t index)
     if (dataPtr != nullptr) {
         dataPtr->resize(glm::max(index + 1, dataPtr->size()));
         dataPtr->at(index) = value;
-    }
-    else {
+    } else {
         data = std::vector<T>(index + 1);
         std::get<std::vector<T>>(data).at(index) = value;
     }
 }
 
 template <typename T>
-inline void Shader::SetUniform(const std::string& uname, const T&value, const size_t index)
+inline void Shader::SetUniform(const std::string& uname, const T& value, const size_t index)
 {
     if (in_use()) {
         debugLog(" Warning setting uniform " + uname + " Shader " + Name() + " in use");

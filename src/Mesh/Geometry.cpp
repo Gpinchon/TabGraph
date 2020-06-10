@@ -2,37 +2,37 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-17 23:29:44
+* @Last Modified time: 2020-05-27 12:15:46
 */
 
 #include "Mesh/Geometry.hpp"
-#include "Physics/BoundingAABB.hpp" // for AABB
+#include "Buffer/Buffer.hpp"
+#include "Buffer/BufferAccessor.hpp"
+#include "Buffer/BufferView.hpp"
 #include "Camera/Camera.hpp" // for Camera
+#include "Debug.hpp"
 #include "Material.hpp" // for Material
+#include "Physics/BoundingAABB.hpp" // for AABB
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Texture.hpp" // for Texture
 #include "Tools.hpp"
-#include "Debug.hpp"
-#include "Buffer/Buffer.hpp"
-#include "Buffer/BufferView.hpp"
-#include "Buffer/BufferAccessor.hpp"
 #include <algorithm>
-
 
 //std::vector<std::shared_ptr<Geometry>> Geometry::_Geometrys;
 
-Geometry::Geometry(const std::string &name)
-    : Object(name), _bounds(new BoundingAABB(glm::vec3(0), glm::vec3(0)))
+Geometry::Geometry(const std::string& name)
+    : Object(name)
+    , _bounds(new BoundingAABB(glm::vec3(0), glm::vec3(0)))
 {
 }
 
-std::shared_ptr<Geometry> Geometry::Create(const std::string &name)
+std::shared_ptr<Geometry> Geometry::Create(const std::string& name)
 {
     auto vg = std::shared_ptr<Geometry>(new Geometry(name));
     return (vg);
 }
 
-Geometry::AccessorKey Geometry::GetAccessorKey(const std::string &key)
+Geometry::AccessorKey Geometry::GetAccessorKey(const std::string& key)
 {
     std::string lowerKey(key);
     std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), ::tolower);
@@ -72,8 +72,7 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
         accessor->ComponentType(),
         accessor->Normalized(),
         bufferView->ByteStride(),
-        BUFFER_OFFSET(byteOffset)
-    );
+        BUFFER_OFFSET(byteOffset));
     if (glCheckError())
         throw std::runtime_error("Error while binding Accessor " + accessor->Name() + " at " + std::to_string(index));
 }
@@ -82,24 +81,25 @@ void Geometry::Load()
 {
     if (IsLoaded())
         return;
+    debugLog(Name());
     for (auto accessor : _accessors) {
         if (accessor != nullptr)
             accessor->GetBufferView()->GetBuffer()->LoadToGPU();
     }
     if (Indices() != nullptr)
         Indices()->GetBufferView()->GetBuffer()->LoadToGPU();
-    glCreateVertexArrays(1, &_vaoGlid);
+    glGenVertexArrays(1, &_vaoGlid);
     glBindVertexArray(_vaoGlid);
     if (glCheckError(Name()))
         throw std::runtime_error("Error while binding VertexArray " + std::to_string(_vaoGlid));
-    BindAccessor(Accessor(Geometry::AccessorKey::Position),   0);
-    BindAccessor(Accessor(Geometry::AccessorKey::Normal),     1);
-    BindAccessor(Accessor(Geometry::AccessorKey::Tangent),    2);
+    BindAccessor(Accessor(Geometry::AccessorKey::Position), 0);
+    BindAccessor(Accessor(Geometry::AccessorKey::Normal), 1);
+    BindAccessor(Accessor(Geometry::AccessorKey::Tangent), 2);
     BindAccessor(Accessor(Geometry::AccessorKey::TexCoord_0), 3);
     BindAccessor(Accessor(Geometry::AccessorKey::TexCoord_1), 4);
-    BindAccessor(Accessor(Geometry::AccessorKey::Color_0),    5);
-    BindAccessor(Accessor(Geometry::AccessorKey::Joints_0),   6);
-    BindAccessor(Accessor(Geometry::AccessorKey::Weights_0),  7);
+    BindAccessor(Accessor(Geometry::AccessorKey::Color_0), 5);
+    BindAccessor(Accessor(Geometry::AccessorKey::Joints_0), 6);
+    BindAccessor(Accessor(Geometry::AccessorKey::Weights_0), 7);
     glBindVertexArray(0);
     _isLoaded = true;
 }
@@ -119,10 +119,11 @@ bool Geometry::Draw()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferView->GetBuffer()->Glid());
         glDrawElements(Mode(), Indices()->Count(), Indices()->ComponentType(), BUFFER_OFFSET(byteOffset));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
-    else if (auto accessor(Accessor(Geometry::AccessorKey::Position)); accessor != nullptr) {
+        glCheckError(Name());
+    } else if (auto accessor(Accessor(Geometry::AccessorKey::Position)); accessor != nullptr) {
         auto byteOffset(accessor->ByteOffset() + accessor->GetBufferView()->ByteOffset());
         glDrawArrays(Mode(), byteOffset / accessor->TotalComponentByteSize(), accessor->Count());
+        glCheckError(Name());
     }
     glBindVertexArray(0);
 
@@ -154,7 +155,7 @@ std::shared_ptr<BufferAccessor> Geometry::Accessor(const Geometry::AccessorKey k
     return _accessors.at(key);
 }
 
-void Geometry::SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<BufferAccessor>accessor)
+void Geometry::SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<BufferAccessor> accessor)
 {
     if (key != Geometry::AccessorKey::Invalid)
         _accessors.at(key) = accessor;
@@ -178,28 +179,27 @@ std::shared_ptr<BoundingAABB> Geometry::GetBounds() const
 size_t Geometry::EdgeCount() const
 {
     switch (Mode()) {
-        case GL_POINTS :
-            return 0;
-        case GL_LINES :
-            return VertexCount() / 2;
-        case GL_LINE_STRIP :
-            return VertexCount() - 1;
-        case GL_LINE_LOOP :
-        case GL_POLYGON :
-            return VertexCount();
-        case GL_TRIANGLES :
-            return VertexCount() / 3;
-        case GL_TRIANGLE_STRIP :
-        case GL_TRIANGLE_FAN :
-            return VertexCount() - (VertexCount() / 3) + 1;
-        case GL_QUADS :
-            return VertexCount() / 4;
-        case GL_QUAD_STRIP :
-            return VertexCount() - (VertexCount() / 4) + 1;
+    case GL_POINTS:
+        return 0;
+    case GL_LINES:
+        return VertexCount() / 2;
+    case GL_LINE_STRIP:
+        return VertexCount() - 1;
+    case GL_LINE_LOOP:
+    case GL_POLYGON:
+        return VertexCount();
+    case GL_TRIANGLES:
+        return VertexCount() / 3;
+    case GL_TRIANGLE_STRIP:
+    case GL_TRIANGLE_FAN:
+        return VertexCount() - (VertexCount() / 3) + 1;
+    case GL_QUADS:
+        return VertexCount() / 4;
+    case GL_QUAD_STRIP:
+        return VertexCount() - (VertexCount() / 4) + 1;
     }
     return 0;
 }
-
 
 /*
 ** GL_TRIANGLES
@@ -281,66 +281,61 @@ glm::ivec2 Geometry::GetEdge(const size_t index) const
 {
     glm::ivec2 ret { -1 };
     switch (Mode()) {
-        case GL_POINTS :
-            return glm::ivec2(index);
-        case GL_LINES :
-            return glm::ivec2(
-                index * 2 + 0,
-                index * 2 + 1
-                );
-        case GL_LINE_STRIP :
-            return glm::ivec2(
-                index + 0,
-                index + 1
-                );
-        case GL_LINE_LOOP :
-        case GL_POLYGON :
-            return glm::ivec2(
-                index,
-                (index + 1) % VertexCount()
-                );
-        case GL_TRIANGLES :
-            return glm::ivec2(
-                index,
-                index / 3 * 3 + (index + 1) % 3
-                );
-        case GL_TRIANGLE_STRIP : {
-            auto face = (index - 1) / 2;
-            auto zeroIndex = index == 0;
-            auto oddIndex = index % 2;
-            auto oddFace = face % 2;
-            auto A = face + 2 * !oddIndex + !oddFace * oddIndex;
-            auto B = face + 2 * oddIndex + oddFace * !oddIndex;
-            A *= !zeroIndex;
-            B += zeroIndex;
-            return glm::ivec2(A,B);
-        }
-        case GL_TRIANGLE_FAN : {
-            auto face = (index - 1) / 2;
-            auto zeroIndex = index == 0;
-            auto oddIndex = (index % 2);
-            auto A = face + 2 - oddIndex;
-            auto B = (face + 2) * oddIndex;
-            A *= !zeroIndex;
-            B += zeroIndex;
-            return glm::ivec2(A, B);
-        }
-        case GL_QUADS :
-            return glm::ivec2(
-                index,
-                index / 4 * 4 + (index + 1) % 4
-                );
-        case GL_QUAD_STRIP : {
-            int iMod3 = index % 3;
-            int iIs3 = iMod3 == 0;
-            int face = (index - 1) / 3;
-            int zeroIndex = index == 0;
-            int A = face * 2 + (iMod3) + ((index + 2) % 3);
-            int B = face * 2 + 3 * !iIs3 - iMod3 + 1 * !iIs3;
-            A *= !zeroIndex;
-            B += zeroIndex;
-            return glm::ivec2(A,B);
-        }
+    case GL_POINTS:
+        return glm::ivec2(index);
+    case GL_LINES:
+        return glm::ivec2(
+            index * 2 + 0,
+            index * 2 + 1);
+    case GL_LINE_STRIP:
+        return glm::ivec2(
+            index + 0,
+            index + 1);
+    case GL_LINE_LOOP:
+    case GL_POLYGON:
+        return glm::ivec2(
+            index,
+            (index + 1) % VertexCount());
+    case GL_TRIANGLES:
+        return glm::ivec2(
+            index,
+            index / 3 * 3 + (index + 1) % 3);
+    case GL_TRIANGLE_STRIP: {
+        auto face = (index - 1) / 2;
+        auto zeroIndex = index == 0;
+        auto oddIndex = index % 2;
+        auto oddFace = face % 2;
+        auto A = face + 2 * !oddIndex + !oddFace * oddIndex;
+        auto B = face + 2 * oddIndex + oddFace * !oddIndex;
+        A *= !zeroIndex;
+        B += zeroIndex;
+        return glm::ivec2(A, B);
+    }
+    case GL_TRIANGLE_FAN: {
+        auto face = (index - 1) / 2;
+        auto zeroIndex = index == 0;
+        auto oddIndex = (index % 2);
+        auto A = face + 2 - oddIndex;
+        auto B = (face + 2) * oddIndex;
+        A *= !zeroIndex;
+        B += zeroIndex;
+        return glm::ivec2(A, B);
+    }
+    case GL_QUADS:
+        return glm::ivec2(
+            index,
+            index / 4 * 4 + (index + 1) % 4);
+    case GL_QUAD_STRIP: {
+        int iMod3 = index % 3;
+        int iIs3 = iMod3 == 0;
+        int face = (index - 1) / 3;
+        int zeroIndex = index == 0;
+        int A = face * 2 + (iMod3) + ((index + 2) % 3);
+        int B = face * 2 + 3 * !iIs3 - iMod3 + 1 * !iIs3;
+        A *= !zeroIndex;
+        B += zeroIndex;
+        return glm::ivec2(A, B);
+    }
     }
     return ret;
 }

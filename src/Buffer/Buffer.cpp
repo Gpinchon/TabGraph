@@ -1,268 +1,311 @@
 #include "Buffer/Buffer.hpp"
 #include "Debug.hpp"
 #include <algorithm>
-#include <cstring>
 #include <cstddef>
+#include <cstring>
 #include <stdio.h>
 #include <wchar.h>
 
-Buffer::Buffer(size_t byteLength) : Object(""), _byteLength(byteLength) //_rawData(byteLength, std::byte(0))
+Buffer::Buffer(size_t byteLength)
+    : Object("")
+    , _byteLength(byteLength) //_rawData(byteLength, std::byte(0))
 {
 }
 
 Buffer::~Buffer()
 {
-	Unload();
+    Unload();
 }
 
 std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
 {
-	return std::shared_ptr<Buffer>(new Buffer(byteLength));
+    return std::shared_ptr<Buffer>(new Buffer(byteLength));
 }
 
 void Buffer::UpdateGPU()
 {
-	std::memcpy(Map(BufferAccess::Write), _rawData.data(), ByteLength());
-	Unmap();
+    if (_rawData.empty())
+        return;
+    std::memcpy(Map(BufferAccess::Write), _rawData.data(), ByteLength());
+    Unmap();
+}
+
+#include <cassert>
+
+auto GetMapFunction()
+{
+    static auto f = glMapNamedBuffer ? glMapNamedBuffer : glMapNamedBufferEXT;
+    assert(f);
+    return f;
+}
+
+auto GetMapRangeFunction()
+{
+    static auto f = glMapNamedBufferRange ? glMapNamedBufferRange : glMapNamedBufferRangeEXT;
+    assert(f);
+    return f;
+}
+
+auto GetUnmapRangeFunction()
+{
+    static auto f = glUnmapNamedBuffer ? glUnmapNamedBuffer : glUnmapNamedBufferEXT;
+    assert(f);
+    return f;
+}
+
+auto GetCreateFunction()
+{
+    static auto f = glCreateBuffers ? glCreateBuffers : glGenBuffers;
+    assert(f);
+    return f;
 }
 
 void Buffer::Allocate()
 {
-	if (Glid() > 0)
-		glDeleteBuffers(1, &_glid);
-	glCreateBuffers(1, &_glid);
-	if (glCheckError()) {
-		debugLog("ERROR");
-		return;
-	}
-	glNamedBufferData(
-		Glid(),
- 		ByteLength(),
- 		nullptr,
- 		Usage()
- 	);
- 	if (glCheckError()) {
- 		debugLog("ERROR");
- 		return;
- 	}
+    debugLog(Name());
+    if (Glid() > 0)
+        glDeleteBuffers(1, &_glid);
+    if (glCreateBuffers == nullptr) //We are not using OGL 4.5
+    {
+        glGenBuffers(1, &_glid);
+        glNamedBufferDataEXT(
+            Glid(),
+            ByteLength(),
+            nullptr,
+            Usage());
+        if (glCheckError()) {
+            return;
+        }
+    } else {
+        glCreateBuffers(1, &_glid);
+        glNamedBufferData(
+            Glid(),
+            ByteLength(),
+            nullptr,
+            Usage());
+        if (glCheckError()) {
+            return;
+        }
+    }
+    if (glCheckError()) {
+        return;
+    }
 }
 
-void *Buffer::Map(GLenum access)
+void* Buffer::Map(GLenum access)
 {
-	if (Glid() == 0)
-		Allocate();
-	auto ptr(glMapNamedBuffer(Glid(), access));
-	if (glCheckError()) {
-		debugLog("ERROR");
-	}
-	return ptr;
+    if (Glid() == 0)
+        Allocate();
+    debugLog(Name());
+    auto ptr(GetMapFunction()(Glid(), access));
+    if (glCheckError()) {
+        debugLog("ERROR");
+    }
+    return ptr;
 }
 
-void *Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
+void* Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
 {
-	if (Glid() == 0)
-		Allocate();
-	auto ptr(glMapNamedBufferRange(Glid(), offset, length, access));
-	if (glCheckError()) {
-		debugLog("ERROR");
-	}
-	return ptr;
+    if (Glid() == 0)
+        Allocate();
+    auto ptr(GetMapRangeFunction()(Glid(), offset, length, access));
+    if (glCheckError()) {
+        debugLog("ERROR");
+    }
+    return ptr;
 }
 
 void Buffer::Unmap()
 {
-	glUnmapNamedBuffer(Glid());
-	if (glCheckError()) {
-		debugLog("ERROR");
-	}
+    GetUnmapRangeFunction()(Glid());
+    if (glCheckError()) {
+        debugLog("ERROR");
+    }
 }
 
 void Buffer::Load()
 {
-	LoadToCPU();
-	LoadToGPU();
+    LoadToCPU();
+    LoadToGPU();
 }
 
-static inline bool is_base64(unsigned char c) {
-  return (isalnum(c) || (c == '+') || (c == '/'));
-}
-
-std::string base64_decode(std::string const &encoded_string) {
-  int in_len = static_cast<int>(encoded_string.size());
-  int i = 0;
-  int j = 0;
-  int in_ = 0;
-  unsigned char char_array_4[4], char_array_3[3];
-  std::string ret;
-
-  const std::string base64_chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "abcdefghijklmnopqrstuvwxyz"
-      "0123456789+/";
-
-  while (in_len-- && (encoded_string[in_] != '=') &&
-         is_base64(encoded_string[in_])) {
-    char_array_4[i++] = encoded_string[in_];
-    in_++;
-    if (i == 4) {
-      for (i = 0; i < 4; i++)
-        char_array_4[i] =
-            static_cast<unsigned char>(base64_chars.find(char_array_4[i]));
-
-      char_array_3[0] =
-          (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-      char_array_3[1] =
-          ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-      char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-      for (i = 0; (i < 3); i++) ret += char_array_3[i];
-      i = 0;
-    }
-  }
-
-  if (i) {
-    for (j = i; j < 4; j++) char_array_4[j] = 0;
-
-    for (j = 0; j < 4; j++)
-      char_array_4[j] =
-          static_cast<unsigned char>(base64_chars.find(char_array_4[j]));
-
-    char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-    char_array_3[1] =
-        ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-    char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-    for (j = 0; (j < i - 1); j++) ret += char_array_3[j];
-  }
-
-  return ret;
-}
-
-auto ParseData(const std::string &uri)
+static inline bool is_base64(unsigned char c)
 {
-	std::vector<std::byte> ret;
-	std::string header("data:application/octet-stream;base64,");
-	if (uri.find(header) == 0) {
-		auto data(base64_decode(uri.substr(header.size())));
-		std::transform(data.begin(), data.end(), ret.begin(),
-                   [] (char c) { return std::byte(c); });
-	}
-	return ret;
+    return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+std::string base64_decode(std::string const& encoded_string)
+{
+    int in_len = static_cast<int>(encoded_string.size());
+    int i = 0;
+    int j = 0;
+    int in_ = 0;
+    unsigned char char_array_4[4], char_array_3[3];
+    std::string ret;
+
+    const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                     "abcdefghijklmnopqrstuvwxyz"
+                                     "0123456789+/";
+
+    while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
+        char_array_4[i++] = encoded_string[in_];
+        in_++;
+        if (i == 4) {
+            for (i = 0; i < 4; i++)
+                char_array_4[i] = static_cast<unsigned char>(base64_chars.find(char_array_4[i]));
+
+            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+            for (i = 0; (i < 3); i++)
+                ret += char_array_3[i];
+            i = 0;
+        }
+    }
+
+    if (i) {
+        for (j = i; j < 4; j++)
+            char_array_4[j] = 0;
+
+        for (j = 0; j < 4; j++)
+            char_array_4[j] = static_cast<unsigned char>(base64_chars.find(char_array_4[j]));
+
+        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+        for (j = 0; (j < i - 1); j++)
+            ret += char_array_3[j];
+    }
+
+    return ret;
+}
+
+auto ParseData(const std::string& uri)
+{
+    std::vector<std::byte> ret;
+    std::string header("data:application/octet-stream;base64,");
+    if (uri.find(header) == 0) {
+        auto data(base64_decode(uri.substr(header.size())));
+        std::transform(data.begin(), data.end(), ret.begin(),
+            [](char c) { return std::byte(c); });
+    }
+    return ret;
 }
 
 #include <fstream>
 
 void Buffer::LoadToCPU()
 {
-	if (LoadedToCPU())
-		return;
-	_rawData.resize(ByteLength(), std::byte(0));
-	if (Uri() != "") {
-		auto data(ParseData(Uri().string()));
-		if (data.empty()) {
-			debugLog(Uri());
-			std::ifstream is(Uri());
-			is.read((char*)_rawData.data(), ByteLength());
-		}
-		else
-			_rawData = data;
-	}
-	_loadedToCPU = true;
+    if (LoadedToCPU())
+        return;
+    debugLog(Name());
+    _rawData.resize(ByteLength(), std::byte(0));
+    if (Uri() != "") {
+        auto data(ParseData(Uri().string()));
+        if (data.empty()) {
+            debugLog(Uri());
+            std::ifstream is(Uri());
+            is.read((char*)_rawData.data(), ByteLength());
+        } else
+            _rawData = data;
+    }
+    _loadedToCPU = true;
 }
 
 void Buffer::LoadToGPU()
 {
-	if (LoadedToGPU())
-		return;
-	Allocate();
-	if (Uri() != "") {
-		auto data(ParseData(Uri().string()));
-		if (data.empty()) {
-			debugLog(Uri());
-			std::ifstream is(Uri(), std::ios::binary);
-			 if(!is.read((char*)Map(BufferAccess::Write), ByteLength()))
-        		throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
-        	Unmap();
-		}
-		else {
-			std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
-		}
-	}
-	else if (_rawData.size()) {
-		UpdateGPU();
-	}
- 	_loadedToGPU = true;
+    if (LoadedToGPU())
+        return;
+    debugLog(Name());
+    Allocate();
+    if (Uri() != "") {
+        auto data(ParseData(Uri().string()));
+        if (data.empty()) {
+            debugLog(Uri());
+            std::ifstream is(Uri(), std::ios::binary);
+            if (!is.read((char*)Map(BufferAccess::Write), ByteLength()))
+                throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
+            Unmap();
+        } else {
+            std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
+        }
+    } else if (_rawData.size()) {
+        UpdateGPU();
+    }
+    _loadedToGPU = true;
 }
 
 void Buffer::Unload()
 {
-	UnloadFromCPU();
-	UnloadFromGPU();
+    UnloadFromCPU();
+    UnloadFromGPU();
 }
 
 void Buffer::UnloadFromCPU()
 {
-	_rawData.resize(0);
-	_rawData.shrink_to_fit();
-	_loadedToCPU = false;
+    _rawData.resize(0);
+    _rawData.shrink_to_fit();
+    _loadedToCPU = false;
 }
 
 void Buffer::UnloadFromGPU()
 {
-	glDeleteBuffers(1, &_glid);
-	_glid = 0;
-	_loadedToGPU = false;
+    glDeleteBuffers(1, &_glid);
+    _glid = 0;
+    _loadedToGPU = false;
 }
 
 bool Buffer::LoadedToCPU()
 {
-	return _loadedToCPU;
+    return _loadedToCPU;
 }
 
 bool Buffer::LoadedToGPU()
 {
-	return _loadedToGPU;
+    return _loadedToGPU;
 }
 
-std::vector<std::byte> &Buffer::RawData()
+std::vector<std::byte>& Buffer::RawData()
 {
-	LoadToCPU();
-	return _rawData;
+    LoadToCPU();
+    return _rawData;
 }
 
 std::filesystem::path Buffer::Uri() const
 {
-	return _uri;
+    return _uri;
 }
 
 void Buffer::SetUri(std::string uri)
 {
-	_uri = uri;
+    _uri = uri;
 }
 
 size_t Buffer::ByteLength() const
 {
-	return _byteLength;
-	//return _rawData.size();
+    return _byteLength;
+    //return _rawData.size();
 }
 
 void Buffer::SetByteLength(size_t byteLength)
 {
-	_byteLength = byteLength;
-	//_rawData.resize(byteLength);
+    _byteLength = byteLength;
+    //_rawData.resize(byteLength);
 }
 
 GLenum Buffer::Usage() const
 {
-	return _usage;
+    return _usage;
 }
 
 void Buffer::SetUsage(GLenum usage)
 {
-	_usage= usage;
+    _usage = usage;
 }
 
 GLuint Buffer::Glid() const
 {
-	return _glid;
+    return _glid;
 }

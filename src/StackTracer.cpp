@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-06-04 18:11:41
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-04 17:46:43
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-06-09 11:55:43
 */
 
 #include <StackTracer.hpp>
@@ -448,7 +448,7 @@ static inline void killAllThreads(int signum)
             DEBUGLOG("Could not send signal to thread");
             continue;
         }
-        threadNbr++;
+        ++threadNbr;
     }
     close(dir_fd);
 }

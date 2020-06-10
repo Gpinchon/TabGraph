@@ -1,13 +1,21 @@
 #include "Shader/ShaderStage.hpp"
-#include "Shader/Shader.hpp"
 #include "Debug.hpp"
+#include "Shader/Shader.hpp"
 
 static std::string empty_technique =
 #include "empty.glsl"
     ;
 
-ShaderStage::ShaderStage(GLenum stage, const std::string code) : _stage(stage), _code(code), _technique(empty_technique)
+ShaderStage::ShaderStage(GLenum stage, const std::string& code)
+    : _stage(stage)
+    , _code(code)
+    , _technique(empty_technique)
 {
+}
+
+std::shared_ptr<ShaderStage> ShaderStage::Create(GLenum stage, const std::string& code)
+{
+    return std::shared_ptr<ShaderStage>(new ShaderStage(stage, code));
 }
 
 ShaderStage::~ShaderStage()
@@ -15,7 +23,8 @@ ShaderStage::~ShaderStage()
     Delete();
 }
 
-void ShaderStage::Delete() {
+void ShaderStage::Delete()
+{
     glDeleteShader(_glid);
     _glid = 0;
     _compiled = false;
@@ -26,7 +35,7 @@ void ShaderStage::Compile()
     if (Compiled())
         Recompile();
     try {
-        static auto glslVersionString = std::string((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+        static auto glslVersionString = std::string((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
         static auto glslVersionNbr = int(std::stof(glslVersionString) * 100);
         _fullCode = std::string("#version ") + std::to_string(glslVersionNbr) + "\n";
         for (auto define : _defines) {
@@ -37,10 +46,10 @@ void ShaderStage::Compile()
         _glid = glCreateShader(Stage());
         glShaderSource(_glid, 1, &codeBuff, nullptr);
         glCompileShader(_glid);
-        if (glCheckError()) throw std::runtime_error("Error while compiling shader source " + std::string(codeBuff));
+        if (glCheckError())
+            throw std::runtime_error("Error while compiling shader source " + std::string(codeBuff));
         Shader::check_shader(_glid);
-    }
-    catch (std::exception& e) {
+    } catch (std::exception& e) {
         throw std::runtime_error(std::string("Error compiling Shader Stage ") + e.what());
     }
     _compiled = true;

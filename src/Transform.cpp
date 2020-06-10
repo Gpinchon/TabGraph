@@ -1,14 +1,14 @@
 #include "Transform.hpp"
 
-std::shared_ptr<Transform> Transform::Create(const std::string &name)
+std::shared_ptr<Transform> Transform::Create()
 {
-    return std::shared_ptr<Transform>(new Transform(name));
+    return std::shared_ptr<Transform>(new Transform());
 }
 
-std::shared_ptr<Transform> Transform::shared_from_this()
+/*std::shared_ptr<Transform> Transform::shared_from_this()
 {
-    return std::static_pointer_cast<Transform>(Object::shared_from_this());
-}
+    return std::static_pointer_cast<Transform>(shared_from_this());
+}*/
 
 glm::mat4 Transform::WorldTransformMatrix()
 {
@@ -143,13 +143,13 @@ glm::vec3 Transform::Right() const
     return Rotation() * Common::Right();
 }
 
-void Transform::LookAt(const glm::vec3 &target, const glm::vec3 &up)
+void Transform::LookAt(const glm::vec3& target, const glm::vec3& up)
 {
     auto direction(normalize(target - WorldPosition()));
     SetRotation(glm::quatLookAt(direction, up));
 }
 
-void Transform::LookAt(const std::shared_ptr<Transform> &target, const glm::vec3 &up)
+void Transform::LookAt(const std::shared_ptr<Transform>& target, const glm::vec3& up)
 {
     if (target == nullptr)
         return;

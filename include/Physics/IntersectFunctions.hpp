@@ -1,23 +1,35 @@
-#include "BoundingSphere.hpp"
 #include "BoundingAABB.hpp"
-#include "BoundingPlane.hpp"
-#include "BoundingGeometry.hpp"
 #include "BoundingBox.hpp"
+#include "BoundingGeometry.hpp"
+#include "BoundingPlane.hpp"
+#include "BoundingSphere.hpp"
 #include "Mesh/Geometry.hpp"
 #include <glm/gtx/component_wise.hpp>
 
-inline Intersection IntersectFunction(const BoundingSphere &a,const BoundingSphere &b)
+inline Intersection IntersectFunction(const glm::vec3& point, const BoundingAABB& box)
 {
-	float radiusDistance = a.GetRadius() + b.GetRadius();
-	float centerDistance = glm::distance(a.GetCenter(), b.GetCenter());
-	float distance = centerDistance - radiusDistance;    
-	return Intersection(centerDistance < radiusDistance, distance);
+    auto underMax(glm::lessThanEqual(point, box.Max()));
+    auto aboveMin(glm::greaterThanEqual(point, box.Min()));
+    return Intersection(glm::all(underMax) && glm::all(aboveMin), 0.f);
 }
 
-
-inline Intersection IntersectFunction(const BoundingAABB &a, const BoundingAABB &b)
+inline Intersection IntersectFunction(const BoundingSphere& a, const BoundingSphere& b)
 {
-	auto distance1(b.Min() - a.Max());
+    float radiusDistance = a.GetRadius() + b.GetRadius();
+    float centerDistance = glm::distance(a.GetCenter(), b.GetCenter());
+    float distance = centerDistance - radiusDistance;
+    return Intersection(centerDistance < radiusDistance, distance);
+}
+
+inline Intersection isPointInsideSphere(const glm::vec3& point, const BoundingSphere& sphere)
+{
+    auto distance(glm::distance(point, sphere.GetCenter()));
+    return Intersection(distance < sphere.GetRadius(), distance);
+}
+
+inline Intersection IntersectFunction(const BoundingAABB& a, const BoundingAABB& b)
+{
+    auto distance1(b.Min() - a.Max());
     auto distance2(a.Min() - b.Max());
     auto distance(glm::max(distance1, distance2));
     auto maxDistance(glm::compMax(distance));

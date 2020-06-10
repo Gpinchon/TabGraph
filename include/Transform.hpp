@@ -1,22 +1,21 @@
 #pragma once
 #include "Common.hpp"
-#include "Object.hpp"
-#include <vector>
-#include <memory>
+#include "Component.hpp"
 #include <algorithm>
-#include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <glm/gtx/transform.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/transform.hpp>
 #include <iostream>
+#include <memory>
+#include <vector>
 
 /** Header-only class for performance */
-class Transform : public Object
-{
+class Transform : public Component, public std::enable_shared_from_this<Transform> {
 public:
-    static std::shared_ptr<Transform> Create(const std::string &name);
-    std::shared_ptr<Transform> shared_from_this();
+    static std::shared_ptr<Transform> Create();
+    //std::shared_ptr<Transform> shared_from_this();
     glm::mat4 WorldTransformMatrix();
     glm::mat4 WorldTranslationMatrix() const;
     glm::mat4 WorldRotationMatrix() const;
@@ -28,7 +27,7 @@ public:
     glm::vec3 WorldPosition() const;
     glm::quat WorldRotation() const;
     glm::vec3 WorldScale() const;
-	/** @return the node local position */
+    /** @return the node local position */
     glm::vec3 Position() const;
     /** @argument position : the node local position */
     void SetPosition(glm::vec3 position);
@@ -57,17 +56,18 @@ public:
      * Common::Right() * Rotation()
      */
     glm::vec3 Right() const;
-    void LookAt(const glm::vec3 &target, const glm::vec3 &up = Common::Up());
-    void LookAt(const std::shared_ptr<Transform> &target, const glm::vec3 &up = Common::Up());
+    void LookAt(const glm::vec3& target, const glm::vec3& up = Common::Up());
+    void LookAt(const std::shared_ptr<Transform>& target, const glm::vec3& up = Common::Up());
     std::shared_ptr<Transform> Parent() const;
     void SetParent(std::shared_ptr<Transform> parent);
     ~Transform() = default;
 
 private:
-    Transform(const std::string &name) : Object(name) {};
+    Transform()
+        : Component() {};
     std::shared_ptr<Transform> _parent;
-	glm::vec3 _position { 0, 0, 0 };
-    glm::quat _rotation {glm::vec3(0.0, 0.0, 0.0)};
+    glm::vec3 _position { 0, 0, 0 };
+    glm::quat _rotation { glm::vec3(0.0, 0.0, 0.0) };
     glm::vec3 _scale { 1, 1, 1 };
     bool _needsUpdate { true };
     glm::mat4 _localTransformMatrix { glm::mat4(1) };

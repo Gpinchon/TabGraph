@@ -1,22 +1,23 @@
-#include "Engine.hpp"
+#define USE_HIGH_PERFORMANCE_GPU
 #include "Animation/Animation.hpp"
-#include "Config.hpp"
+#include "Callback.hpp"
 #include "Camera/FPSCamera.hpp"
-#include "Light/Light.hpp"
+#include "Config.hpp"
+#include "Engine.hpp"
+#include "Input/Events.hpp"
 #include "Input/Keyboard.hpp"
 #include "Input/Mouse.hpp"
-#include "Input/Events.hpp"
-#include "Callback.hpp"
+#include "Light/Light.hpp"
+#include "Material.hpp"
+#include "Mesh/CubeMesh.hpp"
+#include "Mesh/Mesh.hpp"
+#include "Parser/GLTF.hpp"
+#include "Render.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneParser.hpp"
-#include "Window.hpp"
-#include "Material.hpp"
-#include "Mesh/Mesh.hpp"
-#include "Mesh/CubeMesh.hpp"
 #include "Tools.hpp"
-#include "Render.hpp"
-#include "Parser/GLTF.hpp"
 #include "Transform.hpp"
+#include "Window.hpp"
 
 #define DOWNK SDL_SCANCODE_DOWN
 #define UPK SDL_SCANCODE_UP
@@ -40,12 +41,12 @@ void CameraCallback()
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() - float(Events::delta_time() * laxis.x * 100) * camera->GetTransform()->Right());
-    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() - float(Events::delta_time() * laxis.y * 100) * camera->GetTransform()->Forward());
-    camera->GetTransform()->SetPosition(camera->GetTransform()->Position() + float(Events::delta_time() * taxis * 100) * Common::Up());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() - float(Events::delta_time() * laxis.x * 1) * camera->GetComponent<Transform>()->Right());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() - float(Events::delta_time() * laxis.y * 1) * camera->GetComponent<Transform>()->Forward());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() + float(Events::delta_time() * taxis * 1) * Common::Up());
 }
 
-void MouseMoveCallback(SDL_MouseMotionEvent *event)
+void MouseMoveCallback(SDL_MouseMotionEvent* event)
 {
     auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
@@ -62,7 +63,7 @@ void MouseMoveCallback(SDL_MouseMotionEvent *event)
     camera->SetRoll(cameraRotation.z);
 }
 
-void MouseWheelCallback(SDL_MouseWheelEvent *event)
+void MouseWheelCallback(SDL_MouseWheelEvent* event)
 {
     Scene::Current()->CurrentCamera()->SetFov(Scene::Current()->CurrentCamera()->Fov() - event->y);
     Scene::Current()->CurrentCamera()->SetFov(glm::clamp(Scene::Current()->CurrentCamera()->Fov(), 1.0f, 70.f));
@@ -70,22 +71,21 @@ void MouseWheelCallback(SDL_MouseWheelEvent *event)
 
 void FullscreenCallback(SDL_KeyboardEvent*)
 {
-    if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u))
-    {
+    if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u)) {
         static bool fullscreen = false;
         fullscreen = !fullscreen;
         Window::fullscreen(fullscreen);
     }
 }
 
-void CallbackQuality(SDL_KeyboardEvent *event)
+void CallbackQuality(SDL_KeyboardEvent* event)
 {
     if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
         return;
     Render::SetInternalQuality(CYCLE(Render::InternalQuality() + 0.25, 0.5, 1.5));
 }
 
-void CallbackAnimation(SDL_KeyboardEvent *event)
+void CallbackAnimation(SDL_KeyboardEvent* event)
 {
     if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)) || Scene::Current()->Animations().empty())
         return;
@@ -97,15 +97,17 @@ void CallbackAnimation(SDL_KeyboardEvent *event)
     Scene::Current()->Animations().at(currentAnimation)->Play();
 }
 
-void ExitCallback(SDL_KeyboardEvent* ) {
+void ExitCallback(SDL_KeyboardEvent*)
+{
     Engine::Stop();
 }
 
-void ChangeCamera(SDL_KeyboardEvent* event) {
+void ChangeCamera(SDL_KeyboardEvent* event)
+{
     if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
         return;
     static auto currentCameraIndex(0u);
-    auto &camera(Scene::Current()->Cameras().at(currentCameraIndex));
+    auto& camera(Scene::Current()->Cameras().at(currentCameraIndex));
     currentCameraIndex++;
     currentCameraIndex %= Scene::Current()->Cameras().size();
     Scene::Current()->SetCurrentCamera(camera);
@@ -124,29 +126,34 @@ void SetupCallbacks()
     Events::AddRefreshCallback(Callback<void()>::Create(CameraCallback));
 }
 
+#include "StackTracer.hpp"
+#include <csignal>
 #include <filesystem>
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-	if (argc <= 1)
-		return -42;
-	Config::Parse(Engine::ResourcePath() + "config.ini");
+    if (argc <= 1)
+        return -42;
+
+    std::set_terminate([]() { std::cout << "Unhandled exception\n"; int* p = nullptr; p[0] = 1; });
+    StackTracer::set_signal_handler(SIGABRT);
+    Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
     std::filesystem::path filePath = (std::string(argv[1]));
     if (!filePath.is_absolute()) {
-        filePath = Engine::ExecutionPath()/filePath;
+        filePath = Engine::ExecutionPath() / filePath;
     }
-	auto scene(SceneParser::Parse(filePath.string()).at(0));
+    auto scene(SceneParser::Parse(filePath.string()).at(0));
     if (scene == nullptr) {
         return -42;
     }
     scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
     scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(1000, 1000, 1000), 0.5, true));
 
-/*
+    /*
     auto scene(Scene::Create("MainScene"));
     scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
-    scene->CurrentCamera()->GetTransform()->SetPosition(glm::vec3{0, 0, 0});
+    scene->CurrentCamera()->GetComponent<Transform>()->SetPosition(glm::vec3{0, 0, 0});
     auto cube0(CubeMesh::Create("Cube0", glm::vec3(1, 1, 1)));
     auto cube1(CubeMesh::Create("Cube1", glm::vec3(1, 1, 1)));
     auto cube2(CubeMesh::Create("Cube2", glm::vec3(1, 1, 1)));
@@ -155,19 +162,19 @@ int main(int argc, char **argv)
     cube2->GetMaterial(0)->SetAlbedo(glm::vec3(0, 0, 1));
     cube1->SetParent(cube0);
     cube2->SetParent(cube1);
-    cube0->GetTransform()->SetLocalTransform(
+    cube0->GetComponent<Transform>()->SetLocalTransform(
         glm::mat4x4(glm::vec4(0.388609, 0.000000, 0.921403, 0.000000),
                     glm::vec4(-0.300040, 0.945496, 0.126544, 0.000000),
                     glm::vec4(-0.871183, -0.325634, 0.367428, 0.000000),
                     glm::vec4(-2.968655, -0.502453, 1.696065, 1.000000)));
-    cube1->GetTransform()->SetPosition(glm::vec3(0, 1, 0));
-    cube2->GetTransform()->SetPosition(glm::vec3(0, 1, 0));
-    cube1->GetTransform()->SetRotation(glm::vec3(1, 0, 0));
+    cube1->GetComponent<Transform>()->SetPosition(glm::vec3(0, 1, 0));
+    cube2->GetComponent<Transform>()->SetPosition(glm::vec3(0, 1, 0));
+    cube1->GetComponent<Transform>()->SetRotation(glm::vec3(1, 0, 0));
     scene->Add(cube0);
 */
-    
+
     Scene::SetCurrent(scene);
     SetupCallbacks();
-	Engine::Start();
-	return 0;
+    Engine::Start();
+    return 0;
 }

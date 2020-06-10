@@ -2,32 +2,32 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-16 20:53:53
+* @Last Modified time: 2020-06-08 14:18:13
 */
 
 #include "Render.hpp"
 #include "Buffer/BufferHelper.hpp"
 #include "Camera/Camera.hpp" // for Camera
 #include "Config.hpp" // for Config
-#include "Texture/Cubemap.hpp"
 #include "Engine.hpp" // for UpdateMutex, SwapInterval
 #include "Environment.hpp" // for Environment
 #include "Framebuffer.hpp" // for Framebuffer
 #include "Light/Light.hpp" // for Light, Directionnal, Point
+#include "Mesh/Geometry.hpp" // for Geometry
+#include "Parser/GLSL.hpp" // for GLSL, LightingShader, PostShader
 #include "Scene/Scene.hpp"
 #include "Shader/Shader.hpp" // for Shader
+#include "Texture/Cubemap.hpp"
 #include "Texture/Texture2D.hpp" // for Texture2D
-#include "Mesh/Geometry.hpp" // for Geometry
+#include "Transform.hpp"
 #include "Window.hpp" // for Window
 #include "brdfLUT.hpp" // for brdfLUT
-#include "Parser/GLSL.hpp" // for GLSL, LightingShader, PostShader
-#include "Transform.hpp"
 #include <GL/glew.h> // for GL_TEXTURE0, glDepthFunc, glClear, glDis...
-#include <glm/glm.hpp> // for glm::inverse, vec2_scale, vec3_scale
 #include <SDL2/SDL_timer.h> // for SDL_GetTicks
 #include <SDL2/SDL_video.h> // for SDL_GL_MakeCurrent, SDL_GL_SetSwapInterval
 #include <algorithm> // for max, remove_if
 #include <atomic> // for atomic
+#include <glm/glm.hpp> // for glm::inverse, vec2_scale, vec3_scale
 #include <iostream> // for char_traits, endl, cout, operator<<, ost...
 #include <mutex> // for mutex
 #include <stdint.h> // for uint64_t, uint16_t
@@ -35,27 +35,25 @@
 #include <thread> // for thread
 #include <vector> // for vector<>::iterator, vector
 
-namespace Render
-{
-class Private
-{
+namespace Render {
+class Private {
     //class Render::Private {
 public:
     static void Update();
     static void FixedUpdate();
     static void Scene();
     static void AddPostTreatment(std::shared_ptr<Shader>);
-    static void AddPostTreatment(const std::string &name, const std::string &path);
+    static void AddPostTreatment(const std::string& name, const std::string& path);
     static void RemovePostTreatment(std::shared_ptr<Shader>);
     static void StartRenderingThread();
     static void StopRenderingThread();
     static void RequestRedraw();
     static double DeltaTime();
-    static std::atomic<bool> &NeedsUpdate();
-    static std::atomic<bool> &Drawing();
+    static std::atomic<bool>& NeedsUpdate();
+    static std::atomic<bool>& Drawing();
     static uint32_t FrameNumber(void);
     static const std::shared_ptr<Geometry> DisplayQuad();
-    static std::vector<std::weak_ptr<Shader>> &PostTreatments();
+    static std::vector<std::weak_ptr<Shader>>& PostTreatments();
     static void SetInternalQuality(float);
     static float InternalQuality();
     static std::shared_ptr<Texture2D> BRDF();
@@ -63,13 +61,13 @@ public:
 
 private:
     static void _thread();
-    static Render::Private &_instance();
-    std::atomic<double> _deltaTime{0};
-    std::atomic<float> _internalQuality{1};
-    std::atomic<bool> _needsUpdate{true};
-    std::atomic<bool> _loop{true};
-    std::atomic<bool> _drawing{false};
-    uint32_t _frame_nbr{0};
+    static Render::Private& _instance();
+    std::atomic<double> _deltaTime { 0 };
+    std::atomic<float> _internalQuality { 1 };
+    std::atomic<bool> _needsUpdate { true };
+    std::atomic<bool> _loop { true };
+    std::atomic<bool> _drawing { false };
+    uint32_t _frame_nbr { 0 };
     std::thread _rendering_thread;
     std::shared_ptr<Texture2D> _brdf;
 };
@@ -120,15 +118,14 @@ static auto SSRBlurShaderCode =
 const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
 {
     static std::shared_ptr<Geometry> vao;
-    if (vao != nullptr)
-    {
+    if (vao != nullptr) {
         return (vao);
     }
     std::vector<glm::vec2> quad(4);
-    quad.at(0) = {-1.0f, -1.0f};
-    quad.at(1) = {1.0f, -1.0f};
-    quad.at(2) = {-1.0f, 1.0f};
-    quad.at(3) = {1.0f, 1.0f};
+    quad.at(0) = { -1.0f, -1.0f };
+    quad.at(1) = { 1.0f, -1.0f };
+    quad.at(2) = { -1.0f, 1.0f };
+    quad.at(3) = { 1.0f, 1.0f };
     auto accessor(BufferHelper::CreateAccessor(quad, GL_ARRAY_BUFFER));
     vao = Geometry::Create("DisplayQuad");
     vao->SetMode(GL_TRIANGLE_STRIP);
@@ -136,7 +133,7 @@ const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
     return vao;
 }
 
-std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string &name, const glm::ivec2 &size)
+std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string& name, const glm::ivec2& size)
 {
     auto buffer = Framebuffer::Create(name, size, 0, 1);
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // Albedo;
@@ -149,7 +146,7 @@ std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string &name, const
     return (buffer);
 }
 
-std::shared_ptr<Framebuffer> CreateRenderBuffer(const std::string &name, const glm::ivec2 &size)
+std::shared_ptr<Framebuffer> CreateRenderBuffer(const std::string& name, const glm::ivec2& size)
 {
     auto buffer = Framebuffer::Create(name, size, 0, 1);
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // Color;
@@ -162,11 +159,10 @@ std::shared_ptr<Framebuffer> CreateRenderBuffer(const std::string &name, const g
 void present(std::shared_ptr<Framebuffer> back_buffer)
 {
     static std::shared_ptr<Shader> presentShader;
-    if (presentShader == nullptr)
-    {
+    if (presentShader == nullptr) {
         presentShader = Shader::Create("present");
-        presentShader->SetStage(ShaderStage(GL_VERTEX_SHADER, passthrough_vertex_code));
-        presentShader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, present_fragment_code));
+        presentShader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, passthrough_vertex_code));
+        presentShader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, present_fragment_code));
     }
     presentShader->SetUniform("in_Texture_Color", back_buffer->attachement(0), GL_TEXTURE0);
     presentShader->SetUniform("in_Texture_Emitting", back_buffer->attachement(1), GL_TEXTURE1);
@@ -186,7 +182,7 @@ std::vector<std::shared_ptr<Light>> shadowLights;
 //TODO Cleanup
 void render_shadows()
 {
-    
+
     //auto camera = Scene::Current()->CurrentCamera();
 
     //glEnable(GL_CULL_FACE);
@@ -194,9 +190,8 @@ void render_shadows()
     /*glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);*/
-    
-    for (auto &light : shadowLights)
-    {
+
+    for (auto& light : shadowLights) {
         /*light->render_buffer()->bind();
         glClear(GL_DEPTH_BUFFER_BIT);
         tempCamera->SetPosition(light->Position());
@@ -225,8 +220,7 @@ void Render::Private::FixedUpdate()
     shadowLights.clear();
     normalLights.clear();
     Scene::Current()->UpdateGPU();
-    for (auto light : Scene::Current()->Lights())
-    {
+    for (auto light : Scene::Current()->Lights()) {
         if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z))
             continue;
         if (light->cast_shadow())
@@ -236,10 +230,9 @@ void Render::Private::FixedUpdate()
     }
     render_shadows();
     index = 0;
-    while (auto shader = Shader::Get(index))
-    {
+    while (auto shader = Shader::Get(index)) {
         //shader->use();
-        shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->GetTransform()->WorldPosition());
+        shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->GetComponent<Transform>()->WorldPosition());
         shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
         shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
         shader->SetUniform("Camera.InvMatrix.View", InvViewMatrix);
@@ -301,15 +294,12 @@ void Render::Private::_thread(void)
     brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     Render::Private::SetBRDF(brdf);
-    while (_instance()._loop)
-    {
-        if (Render::Private::NeedsUpdate())
-        {
+    while (_instance()._loop) {
+        if (Render::Private::NeedsUpdate()) {
             _instance()._frame_nbr++;
             _instance()._drawing = true;
             ticks = SDL_GetTicks() / 1000.f;
-            if (ticks - fixed_timing >= 0.015)
-            {
+            if (ticks - fixed_timing >= 0.015) {
                 fixed_timing = ticks;
                 Render::Private::FixedUpdate();
             }
@@ -331,7 +321,7 @@ void Render::Private::Update()
 {
 }
 
-std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeometryBuffer)
+std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer>& currentGeometryBuffer)
 {
     auto lightsPerPass = Config::Get("LightsPerPass", 8u);
     auto shadowsPerPass = Config::Get("ShadowsPerPass", 8u);
@@ -342,12 +332,12 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeo
     lightRenderBuffer0->Resize(glm::vec2(currentGeometryBuffer->Size()));
     lightRenderBuffer1->Resize(glm::vec2(currentGeometryBuffer->Size()));
     static auto lighting_shader = Shader::Create("lighting", LightingShader);
-    lighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingFragmentCode);
+    lighting_shader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(lightingFragmentCode);
     lighting_shader->SetDefine("LIGHTNBR", std::to_string(lightsPerPass));
     lighting_shader->SetDefine("PointLight", std::to_string(Point));
     lighting_shader->SetDefine("DirectionnalLight", std::to_string(Directionnal));
     static auto slighting_shader = Shader::Create("shadow_lighting", LightingShader);
-    slighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingFragmentCode);
+    slighting_shader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(lightingFragmentCode);
     slighting_shader->SetDefine(("SHADOWNBR"), std::to_string(shadowsPerPass));
     slighting_shader->SetDefine(("LIGHTNBR"), std::to_string(lightsPerPass));
     slighting_shader->SetDefine(("PointLight"), std::to_string(Point));
@@ -359,17 +349,15 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeo
     lightRenderBuffer1->bind();
     glClear(GL_COLOR_BUFFER_BIT);
     lightRenderBuffer1->bind(false);
-    for (auto i = 0u, j = 0u; i < normalLights.size() || j < shadowLights.size();)
-    {
+    for (auto i = 0u, j = 0u; i < normalLights.size() || j < shadowLights.size();) {
         if (normalLights.size() - i < lightsPerPass && shadowLights.size() - j != 0)
             shader = slighting_shader;
         else
             shader = lighting_shader;
         auto lightIndex = 0u;
-        while (lightIndex < lightsPerPass && i < normalLights.size())
-        {
+        while (lightIndex < lightsPerPass && i < normalLights.size()) {
             auto light = normalLights.at(i);
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->GetTransform()->WorldPosition());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->GetComponent<Transform>()->WorldPosition());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", -1);
@@ -377,10 +365,9 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeo
             lightIndex++;
         }
         auto shadowIndex = 0u;
-        while (lightIndex < lightsPerPass && shadowIndex < actualShadowNbr && j < shadowLights.size())
-        {
+        while (lightIndex < lightsPerPass && shadowIndex < actualShadowNbr && j < shadowLights.size()) {
             auto light = shadowLights.at(j);
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->GetTransform()->WorldPosition());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->GetComponent<Transform>()->WorldPosition());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));
@@ -410,20 +397,20 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer> &currentGeo
     return lightRenderBuffer1;
 }
 
-Render::Private &Render::Private::_instance()
+Render::Private& Render::Private::_instance()
 {
-    static Render::Private *instance = nullptr;
+    static Render::Private* instance = nullptr;
     if (instance == nullptr)
         instance = new Render::Private;
     return *instance;
 }
 
-std::atomic<bool> &Render::Private::NeedsUpdate()
+std::atomic<bool>& Render::Private::NeedsUpdate()
 {
     return (_instance()._needsUpdate);
 }
 
-std::atomic<bool> &Render::Private::Drawing()
+std::atomic<bool>& Render::Private::Drawing()
 {
     return (_instance()._drawing);
 }
@@ -441,19 +428,17 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
 #include "hzb.frag"
         ;
     static std::shared_ptr<Shader> HZBShader;
-    if (HZBShader == nullptr)
-    {
+    if (HZBShader == nullptr) {
         HZBShader = Shader::Create("HZB");
-        HZBShader->SetStage(ShaderStage(GL_VERTEX_SHADER, HZBVertexCode));
-        HZBShader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, HZBFragmentCode));
+        HZBShader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, HZBVertexCode));
+        HZBShader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, HZBFragmentCode));
     }
     static auto framebuffer = Framebuffer::Create("HZB", depthTexture->Size(), 0, 0);
     depthTexture->generate_mipmap();
     depthTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
     auto numLevels = 1 + unsigned(floorf(log2f(fmaxf(depthTexture->Size().x, depthTexture->Size().y))));
     auto currentSize = depthTexture->Size();
-    for (auto i = 1u; i < numLevels; i++)
-    {
+    for (auto i = 1u; i < numLevels; i++) {
         depthTexture->set_parameteri(GL_TEXTURE_BASE_LEVEL, i - 1);
         depthTexture->set_parameteri(GL_TEXTURE_MAX_LEVEL, i - 1);
         currentSize /= 2;
@@ -475,28 +460,27 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
     framebuffer->bind(false);
 }
 
-
 void SSAOPass(std::shared_ptr<Framebuffer> gBuffer)
 {
     glm::ivec2 res = glm::vec2(1024) * Render::Private::InternalQuality() * Config::Get("SSAOResolutionFactor", 0.5f);
     glDepthMask(false);
-static auto SSAOFragmentCode =
-    #include "ssao.frag"
-    ;
-static auto SSAOApplyFragmentCode =
-    #include "ssaoApply.frag"
-    ;
+    static auto SSAOFragmentCode =
+#include "ssao.frag"
+        ;
+    static auto SSAOApplyFragmentCode =
+#include "ssaoApply.frag"
+        ;
     static auto SSAOResult(Framebuffer::Create("SSAOBuffer", res, 1, 0));
     static std::shared_ptr<Shader> SSAOShader;
     static std::shared_ptr<Shader> SSAOApplyShader;
     if (SSAOShader == nullptr) {
-        SSAOShader = Shader::Create("SSAO", LightingShader); 
-        SSAOShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSAOFragmentCode);
+        SSAOShader = Shader::Create("SSAO", LightingShader);
+        SSAOShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSAOFragmentCode);
     }
     if (SSAOApplyShader == nullptr) {
         SSAOApplyShader = Shader::Create("SSAOApply");
-        SSAOApplyShader->SetStage(ShaderStage(GL_VERTEX_SHADER, passthrough_vertex_code));
-        SSAOApplyShader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, SSAOApplyFragmentCode));
+        SSAOApplyShader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, passthrough_vertex_code));
+        SSAOApplyShader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, SSAOApplyFragmentCode));
     }
     SSAOShader->SetUniform("Texture.AO", gBuffer->attachement(4), GL_TEXTURE0);
     SSAOShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE1);
@@ -530,29 +514,30 @@ float ComputeRoughnessMaskScale()
     return RoughnessMaskScale * (SSRQUALITY < 3 ? 2.0f : 1.0f);
 }
 
+static std::shared_ptr<Shader> SSRShader;
+static std::shared_ptr<Shader> SSRMergeShader;
+static std::shared_ptr<Shader> SSRBlurShader;
+
 std::shared_ptr<Texture2D> SSRPass1(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
 {
     glm::ivec2 res = glm::vec2(1024) * Config::Get("SSRResolutionFactor", 1.f);
     static auto SSRFramebuffer0(Framebuffer::Create("SSRFramebuffer0", res, 1, 0));
     static auto SSRFramebuffer1(Framebuffer::Create("SSRFramebuffer1", res, 1, 0));
     static auto SSRFramebufferResult(Framebuffer::Create("SSRFramebufferResult", res, 1, 0));
-    static std::shared_ptr<Shader> SSRShader;
-    static std::shared_ptr<Shader> SSRMergeShader;
-    static std::shared_ptr<Shader> SSRBlurShader;
     if (SSRShader == nullptr) {
         SSRShader = Shader::Create("SSR1", LightingShader);
-        SSRShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRShaderCode);
+        SSRShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRShaderCode);
     }
-    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
-    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
-    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
     if (SSRMergeShader == nullptr) {
         SSRMergeShader = Shader::Create("SSRMerge", LightingShader);
-        SSRMergeShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRMergeShaderCode);
+        SSRMergeShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRMergeShaderCode);
     }
     if (SSRBlurShader == nullptr) {
         SSRBlurShader = Shader::Create("SSRBlur", LightingShader);
-        SSRBlurShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRBlurShaderCode);
+        SSRBlurShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRBlurShaderCode);
     }
     static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
     SSRFramebuffer0->Resize(res);
@@ -560,7 +545,7 @@ std::shared_ptr<Texture2D> SSRPass1(std::shared_ptr<Framebuffer> gBuffer, std::s
     SSRFramebufferResult->Resize(res);
     currentFrameBuffer = currentFrameBuffer == SSRFramebuffer0 ? SSRFramebuffer1 : SSRFramebuffer0;
     auto lastFrameBuffer = currentFrameBuffer == SSRFramebuffer0 ? SSRFramebuffer1 : SSRFramebuffer0;
-    
+
     HZBPass(gBuffer->depth());
     SSRShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE0);
     SSRShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE1);
@@ -595,8 +580,58 @@ std::shared_ptr<Texture2D> SSRPass1(std::shared_ptr<Framebuffer> gBuffer, std::s
 
     return SSRFramebufferResult->attachement(0);
 }
+/*
+struct SSR {
+    static auto Resolution()
+    {
+        return glm::vec2(1024) * Config::Get("SSRResolutionFactor", 1.f);
+    }
+    static auto Apply(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
+    {
+        static auto SSRFramebuffer(Framebuffer::Create("SSRFramebuffer", Resolution(), 1, 0));
+        static auto SSRFramebufferResult(Framebuffer::Create("SSRFramebufferResult", Resolution(), 1, 0));
+        static std::shared_ptr<Shader> SSRShader;
+        static std::shared_ptr<Shader> SSRBlurShader;
+        if (SSRShader == nullptr) {
+            SSRShader = Shader::Create("SSR0", LightingShader);
+            SSRShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRShaderCode);
+        }
+        if (SSRBlurShader == nullptr) {
+            SSRBlurShader = Shader::Create("SSRBlur", LightingShader);
+            SSRBlurShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRBlurShaderCode);
+        }
+        SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
+        SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
+        SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
+        SSRFramebuffer->Resize(Resolution());
 
-std::shared_ptr<Texture2D> SSRPass0(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
+        HZBPass(gBuffer->depth());
+
+        SSRShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE0);
+        SSRShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE1);
+        SSRShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE2);
+        SSRShader->SetUniform("LastColor", lastRender->attachement(0), GL_TEXTURE3);
+        SSRShader->SetUniform("FrameBufferResolution", Resolution());
+        SSRShader->SetUniform("FrameNumber", Render::FrameNumber());
+        SSRFramebuffer->Resize(Resolution());
+        SSRFramebuffer->bind();
+        SSRShader->use();
+        Render::Private::DisplayQuad()->Draw();
+        SSRShader->use(false);
+
+        //Blur the result
+        SSRBlurShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
+        SSRFramebuffer->attachement(0)->blur(1, 1, SSRBlurShader);
+
+        SSRShader->SetUniform("LastViewMatrix", Scene::Current()->CurrentCamera()->ViewMatrix());
+        SSRShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+        return SSRFramebufferResult->attachement(0);
+    };
+};
+*/
+
+std::shared_ptr<Texture2D>
+SSRPass0(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
 {
     glm::ivec2 res = glm::vec2(1024) * Config::Get("SSRResolutionFactor", 1.f);
     static auto SSRFramebuffer0(Framebuffer::Create("SSRFramebuffer0", res, 1, 0));
@@ -607,18 +642,18 @@ std::shared_ptr<Texture2D> SSRPass0(std::shared_ptr<Framebuffer> gBuffer, std::s
     static std::shared_ptr<Shader> SSRBlurShader;
     if (SSRShader == nullptr) {
         SSRShader = Shader::Create("SSR0", LightingShader);
-        SSRShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRShaderCode);
+        SSRShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRShaderCode);
     }
-    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
-    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
-    SSRShader->Stage(GL_FRAGMENT_SHADER).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
     if (SSRMergeShader == nullptr) {
         SSRMergeShader = Shader::Create("SSRMerge", LightingShader);
-        SSRMergeShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRMergeShaderCode);
+        SSRMergeShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRMergeShaderCode);
     }
     if (SSRBlurShader == nullptr) {
         SSRBlurShader = Shader::Create("SSRBlur", LightingShader);
-        SSRBlurShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(SSRBlurShaderCode);
+        SSRBlurShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRBlurShaderCode);
     }
     static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
     SSRFramebuffer0->Resize(res);
@@ -626,7 +661,7 @@ std::shared_ptr<Texture2D> SSRPass0(std::shared_ptr<Framebuffer> gBuffer, std::s
     SSRFramebufferResult->Resize(res);
     currentFrameBuffer = currentFrameBuffer == SSRFramebuffer0 ? SSRFramebuffer1 : SSRFramebuffer0;
     auto lastFrameBuffer = currentFrameBuffer == SSRFramebuffer0 ? SSRFramebuffer1 : SSRFramebuffer0;
-    
+
     HZBPass(gBuffer->depth());
     SSRShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE0);
     SSRShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE1);
@@ -667,10 +702,9 @@ std::shared_ptr<Framebuffer> RefractionPass(std::shared_ptr<Framebuffer> geometr
     glm::ivec2 res = geometryBuffer->Size();
     static auto refractionRenderBuffer(CreateRenderBuffer("refractionRenderBuffer", res));
     static std::shared_ptr<Shader> refractionShader;
-    if (refractionShader == nullptr)
-    {
+    if (refractionShader == nullptr) {
         refractionShader = Shader::Create("refraction", LightingShader);
-        refractionShader->Stage(GL_FRAGMENT_SHADER).SetTechnique(refractionFragmentCode);
+        refractionShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(refractionFragmentCode);
     }
     auto i = 0;
     refractionShader->SetUniform("Texture.Albedo", geometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
@@ -698,10 +732,9 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     static auto opaqueGeometryBuffer(CreateGeometryBuffer("opaqueGeometryBuffer", res));
     static auto opaqueRenderBuffer(CreateRenderBuffer("opaqueRenderBuffer", res));
     static std::shared_ptr<Shader> elighting_shader;
-    if (elighting_shader == nullptr)
-    {
-        elighting_shader = Shader::Create("lighting_env", LightingShader);
-        elighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
+    if (elighting_shader == nullptr) {
+        elighting_shader = Shader::Create("opaque_lighting_env", LightingShader);
+        elighting_shader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(lightingEnvFragmentCode);
     }
     opaqueGeometryBuffer->Resize(res);
     opaqueRenderBuffer->Resize(res);
@@ -731,8 +764,7 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     elighting_shader->SetUniform("Texture.Back.Color", lightResult->attachement(0), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Back.Emitting", lightResult->attachement(1), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
-    if (Environment::current() != nullptr)
-    {
+    if (Environment::current() != nullptr) {
         elighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
         elighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
     }
@@ -750,16 +782,15 @@ std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender,
     static auto transpGeometryBuffer(CreateGeometryBuffer("transpGeometryBuffer", res));
     static auto transpRenderBuffer(CreateRenderBuffer("transpRenderBuffer", res));
     static std::shared_ptr<Shader> elighting_shader;
-    if (elighting_shader == nullptr)
-    {
+    if (elighting_shader == nullptr) {
         elighting_shader = Shader::Create("lighting_env_transparent", LightingShader);
-        elighting_shader->Stage(GL_FRAGMENT_SHADER).SetTechnique(lightingEnvFragmentCode);
+        elighting_shader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(lightingEnvFragmentCode);
         elighting_shader->SetDefine("TRANSPARENT");
     }
     transpGeometryBuffer->SetDepthBuffer(opaqueRenderBuffer->depth());
     transpRenderBuffer->Resize(res);
     transpGeometryBuffer->Resize(res);
-    
+
     //Transparent pass
     transpGeometryBuffer->bind();
     glClear(GL_COLOR_BUFFER_BIT);
@@ -787,8 +818,7 @@ std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender,
     elighting_shader->SetUniform("Texture.Back.Color", refractionResult->attachement(0), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Back.Emitting", refractionResult->attachement(1), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("SSRResult", SSRResult, GL_TEXTURE0 + (++i));
-    if (Environment::current() != nullptr)
-    {
+    if (Environment::current() != nullptr) {
         elighting_shader->SetUniform("Texture.Environment.Diffuse", Environment::current()->diffuse(), GL_TEXTURE0 + (++i));
         elighting_shader->SetUniform("Texture.Environment.Irradiance", Environment::current()->irradiance(), GL_TEXTURE0 + (++i));
     }
@@ -802,8 +832,7 @@ std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender,
 
 void Render::Private::Scene()
 {
-    if (!Render::Private::NeedsUpdate() || Scene::Current() == nullptr || Scene::Current()->CurrentCamera() == nullptr)
-    {
+    if (!Render::Private::NeedsUpdate() || Scene::Current() == nullptr || Scene::Current()->CurrentCamera() == nullptr) {
         //present(final_back_buffer);
         return;
     }
@@ -815,13 +844,12 @@ void Render::Private::Scene()
     lastRender->Resize(res / 8);
 
     //Setup shaders
-    
+
     static std::shared_ptr<Shader> passthrough_shader;
-    if (passthrough_shader == nullptr)
-    {
+    if (passthrough_shader == nullptr) {
         passthrough_shader = Shader::Create("passthrough");
-        passthrough_shader->SetStage(ShaderStage(GL_VERTEX_SHADER, passthrough_vertex_code));
-        passthrough_shader->SetStage(ShaderStage(GL_FRAGMENT_SHADER, passthrough_fragment_code));
+        passthrough_shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, passthrough_vertex_code));
+        passthrough_shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, passthrough_fragment_code));
     }
 
     auto opaqueRenderBuffer(OpaquePass(lastRender));
@@ -847,7 +875,7 @@ void Render::Private::Scene()
     present(transpRenderBuffer);
 }
 
-std::vector<std::weak_ptr<Shader>> &Render::Private::PostTreatments()
+std::vector<std::weak_ptr<Shader>>& Render::Private::PostTreatments()
 {
     static std::vector<std::weak_ptr<Shader>> ptVector;
     return (ptVector);
@@ -869,13 +897,12 @@ void Render::Private::AddPostTreatment(std::shared_ptr<Shader> shader)
 
 void Render::Private::RemovePostTreatment(std::shared_ptr<Shader> shader)
 {
-    if (shader != nullptr)
-    {
+    if (shader != nullptr) {
         PostTreatments().erase(std::remove_if(
                                    PostTreatments().begin(),
                                    PostTreatments().end(),
                                    [shader](std::weak_ptr<Shader> p) { return !(p.owner_before(shader) || shader.owner_before(p)); }),
-                               PostTreatments().end()); //PostTreatments.erase(shader);
+            PostTreatments().end()); //PostTreatments.erase(shader);
     }
 }
 
@@ -919,7 +946,7 @@ double Render::DeltaTime()
     return Render::Private::DeltaTime();
 }
 
-std::atomic<bool> &Render::Drawing()
+std::atomic<bool>& Render::Drawing()
 {
     return Render::Private::Drawing();
 }

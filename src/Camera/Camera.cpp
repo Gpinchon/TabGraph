@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-13 20:14:17
+* @Last Modified time: 2020-06-08 14:05:26
 */
 
 #include "Camera/Camera.hpp"
@@ -10,8 +10,8 @@
 #include "Transform.hpp"
 #include "Window.hpp" // for Window
 #include <glm/ext.hpp>
-#include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 #include <math.h> // for sin, cos
 
 Camera::Camera(const std::string& name, float ifov, Camera::Projection proj)
@@ -33,19 +33,17 @@ std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
 
 glm::mat4 Camera::ViewMatrix() const
 {
-    return glm::inverse(GetTransform()->WorldTransformMatrix());
+    return glm::inverse(GetComponent<Transform>()->WorldTransformMatrix());
 }
 
 glm::mat4 Camera::ProjectionMatrix() const
 {
-    if (ProjectionType() == Camera::Projection::Perspective)
-    {
+    if (ProjectionType() == Camera::Projection::Perspective) {
         if (Zfar() > 0)
             return glm::perspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear(), Zfar());
         else
             return glm::infinitePerspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear());
-    } 
-    else
+    } else
         return glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
 }
 

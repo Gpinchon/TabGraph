@@ -2,22 +2,33 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:57:25
+* @Last Modified time: 2020-06-09 09:56:50
 */
 
 #include "Object.hpp"
 #include "Debug.hpp"
+#include <random>
+
+Object::Object()
+{
+    static uint64_t objNbr(0);
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<> dis(0, 15);
+    SetId(dis(gen)); //Generate unique ID
+    SetName("Object_" + std::to_string(objNbr));
+    objNbr++;
+}
 
 Object::Object(const std::string& name)
+    : Object()
 {
-    std::hash<std::string> hash_fn;
     SetName(name);
-    SetId(hash_fn(Name()) + int64_t(this)); //Generate unique ID
 }
 
 Object::~Object()
 {
-	debugLog(Name());
+    debugLog(Name());
 }
 
 int64_t Object::Id() const

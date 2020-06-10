@@ -2,13 +2,16 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:56:19
+* @Last Modified time: 2020-06-09 10:09:35
 */
 
 #pragma once
 
 #include <memory> // for enable_shared_from_this, shared_ptr
 #include <string> // for string
+#include <typeindex>
+#include <typeinfo>
+#include <unordered_map>
 #include <vector> // for vector
 
 /*
@@ -16,7 +19,7 @@
 ** ALWAYS STORE IN A SHARED_PTR !!!
 */
 
-class Object : public std::enable_shared_from_this<Object> {
+class Object {
 public:
     int64_t Id() const;
     void SetId(int64_t);
@@ -25,7 +28,7 @@ public:
     virtual ~Object();
 
 protected:
-    Object() = delete;
+    Object();
     Object(const std::string& name);
 
 private:
