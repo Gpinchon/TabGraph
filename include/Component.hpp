@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-08 13:30:04
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-09 23:16:02
+* @Last Modified time: 2020-06-12 10:12:01
 */
 
 #pragma once
@@ -22,9 +22,27 @@ public:
     std::shared_ptr<T> GetComponent();
     template <typename T>
     std::shared_ptr<T> GetComponent() const;
+    bool NeedsUpdateGPU() const { return _needsUpdateGPU; };
+    void SetNeedsUpdateGPU(bool changed) { _needsUpdateGPU = changed; };
+    bool NeedsUpdateCPU() const { return _needsUpdateCPU; };
+    void SetNeedsUpdateCPU(bool changed) { _needsUpdateCPU = changed; };
+    bool LoadedGPU() const { return _loadedGPU; };
+    void SetLoadedGPU(bool loaded) { _loadedGPU = loaded; };
+    bool LoadedCPU() const { return _loadedCPU; };
+    void SetLoadedCPU(bool loaded) { _loadedCPU = loaded; };
+    virtual void LoadCPU() = 0;
+    virtual void UnloadCPU() = 0;
+    virtual void LoadGPU() = 0;
+    virtual void UnloadGPU() = 0;
+    virtual void UpdateCPU() = 0;
+    virtual void UpdateGPU() = 0;
 
 private:
     std::unordered_map<std::type_index, std::shared_ptr<Component>> _components;
+    bool _needsUpdateGPU { false };
+    bool _needsUpdateCPU { false };
+    bool _loadedGPU { false };
+    bool _loadedCPU { false };
 };
 
 //#include <iostream>

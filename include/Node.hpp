@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-09 18:02:11
+* @Last Modified time: 2020-06-12 23:09:47
 */
 
 #pragma once
@@ -28,7 +28,7 @@ class Transform;
 class Animation;
 class Mesh;
 
-class Node : public Component, std::enable_shared_from_this<Node> {
+class Node : public Component, public std::enable_shared_from_this<Node> {
 public:
     static std::shared_ptr<Node> Create(const std::string& name);
     virtual bool Draw(RenderMod = RenderMod::RenderAll);
@@ -36,10 +36,6 @@ public:
     virtual bool Drawable() const;
     virtual void Load();
     virtual void FixedUpdate();
-    virtual void Update();
-    virtual void UpdateGPU();
-    virtual bool NeedsGPUUpdate() const;
-    virtual void SetNeedsGPUUpdate(bool needsUpdate);
 
     /** @return the Node's parent */
     std::shared_ptr<Node> Parent() const { return _parent.lock(); };
@@ -59,6 +55,12 @@ public:
     std::shared_ptr<BoundingAABB> GetBounds() const;
 
     virtual ~Node() /*= default*/;
+    virtual void LoadCPU() override {};
+    virtual void UnloadCPU() override {};
+    virtual void LoadGPU() override {};
+    virtual void UnloadGPU() override {};
+    virtual void UpdateCPU() override {};
+    virtual void UpdateGPU() override;
 
 protected:
     Node(const std::string& name);
@@ -68,5 +70,4 @@ private:
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
     std::vector<std::shared_ptr<Node>> _children;
     std::weak_ptr<Node> _parent;
-    bool _needsGPUUpdate { true };
 };

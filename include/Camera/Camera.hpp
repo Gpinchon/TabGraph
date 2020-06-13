@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:33:45
+* @Last Modified time: 2020-06-12 11:35:51
 */
 
 #pragma once
@@ -58,6 +58,13 @@ public:
     virtual Camera::Projection ProjectionType() const;
     virtual void SetProjectionType(Camera::Projection projectionType);
     virtual ~Camera() = default;
+
+    virtual void LoadCPU() override { SetLoadedCPU(true); };
+    virtual void UnloadCPU() override { SetLoadedCPU(false); };
+    virtual void LoadGPU() override { SetLoadedGPU(true); };
+    virtual void UnloadGPU() override { SetLoadedGPU(false); };
+    virtual void UpdateCPU() override { SetNeedsUpdateCPU(false); };
+    virtual void UpdateGPU() override { SetNeedsUpdateGPU(false); };
 
 protected:
     Camera(const std::string& name, float fov, Camera::Projection proj = Perspective);

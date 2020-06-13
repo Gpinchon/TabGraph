@@ -16,6 +16,12 @@ public:
     void SetJoints(std::vector<std::weak_ptr<Node>> joints);
     void AddJoint(std::shared_ptr<Node> joint);
     void RemoveJoint(std::shared_ptr<Node> joint);
+    virtual void LoadCPU() override {};
+    virtual void UnloadCPU() override {};
+    virtual void LoadGPU() override {};
+    virtual void UnloadGPU() override {};
+    virtual void UpdateCPU() override {};
+    virtual void UpdateGPU() override {};
 
 protected:
     MeshSkin();

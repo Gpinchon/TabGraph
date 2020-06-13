@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:08
+* @Last Modified time: 2020-06-12 12:05:01
 */
 
 #pragma once
@@ -34,6 +34,12 @@ public:
     //static TextureArray				*shadow_array();
     virtual LightType type();
     virtual glm::mat4 ShadowProjectionMatrix() const;
+    virtual void LoadCPU() override {};
+    virtual void UnloadCPU() override {};
+    virtual void LoadGPU() override {};
+    virtual void UnloadGPU() override {};
+    virtual void UpdateCPU() override {};
+    virtual void UpdateGPU() override {};
 
 protected:
     Light(const std::string& name);

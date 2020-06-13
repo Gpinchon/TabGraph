@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-10 11:27:18
+* @Last Modified time: 2020-06-12 12:17:13
 */
 
 #include "Mesh/Mesh.hpp"
@@ -171,7 +171,6 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, RenderMod mod)
         else
             glEnable(GL_CULL_FACE);
         shader->use();
-        std::cout << __FUNCTION__ << " " << Name() << std::endl;
         ret |= vg->Draw();
         shader->use(false);
         glEnable(GL_CULL_FACE);
@@ -247,7 +246,7 @@ void Mesh::FixedUpdate(float)
 {
 }
 
-void Mesh::UpdateGPU(float)
+void Mesh::UpdateGPU()
 {
     if (NeedsUpdateGPU() && _jointMatrices != nullptr)
         _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU();

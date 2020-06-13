@@ -607,12 +607,15 @@ static inline auto SetParenting(const rapidjson::Document& document, const GLTFC
         auto node(container.nodes.at(nodeIndex));
         try {
             auto mesh(container.meshes.at(gltfNode["mesh"].GetInt()));
-            auto newMesh(Mesh::Create(mesh));
             node->AddComponent(mesh);
-            const auto& skin(container.skins.at(gltfNode["skin"].GetInt()));
-            mesh->AddComponent(skin);
+            try {
+                const auto& skin(container.skins.at(gltfNode["skin"].GetInt()));
+                mesh->AddComponent(skin);
+            } catch (std::exception&) {
+                debugLog("Mesh " + mesh->Name() + " has no skin");
+            }
         } catch (std::exception&) {
-            debugLog("Node " + node->Name() + " has no mesh or skin");
+            debugLog("Node " + node->Name() + " has no mesh");
         }
         try {
             container.cameras.at(gltfNode["camera"].GetInt())->SetParent(node);

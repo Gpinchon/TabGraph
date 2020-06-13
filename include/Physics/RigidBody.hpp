@@ -56,6 +56,12 @@ public:
     void IntegrateVelocities(float step);
     void SetCollider(const std::shared_ptr<BoundingElement>& collider);
     std::shared_ptr<BoundingElement>& GetCollider();
+    virtual void LoadCPU() override {};
+    virtual void UnloadCPU() override {};
+    virtual void LoadGPU() override {};
+    virtual void UnloadGPU() override {};
+    virtual void UpdateCPU() override {};
+    virtual void UpdateGPU() override {};
 
 protected:
     //std::vector<Ray> _rays;

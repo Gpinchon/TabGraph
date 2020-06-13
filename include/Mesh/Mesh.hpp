@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-10 11:25:56
+* @Last Modified time: 2020-06-12 12:16:55
 */
 
 #pragma once
@@ -50,8 +50,13 @@ public:
     int64_t GetMaterialIndex(const std::string&);
 
     virtual void FixedUpdate(float delta);
-    virtual void UpdateGPU(float delta);
     virtual void UpdateSkin(const std::shared_ptr<Transform>& transform);
+    virtual void LoadCPU() override {};
+    virtual void UnloadCPU() override {};
+    virtual void LoadGPU() override {};
+    virtual void UnloadGPU() override {};
+    virtual void UpdateCPU() override {};
+    virtual void UpdateGPU() override;
 
     std::shared_ptr<BufferAccessor> Weights() const;
     void SetWeights(std::shared_ptr<BufferAccessor> weights);

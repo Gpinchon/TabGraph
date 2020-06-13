@@ -2,12 +2,12 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 20:13:24
+* @Last Modified time: 2020-06-12 11:43:16
 */
 
-#include "Shader/Shader.hpp"
 #include "ComputeObject.hpp"
 #include "Debug.hpp"
+#include "Shader/Shader.hpp"
 
 ComputeObject::ComputeObject(const std::string& name)
     : Node(name)
@@ -36,10 +36,6 @@ void ComputeObject::set_shader(std::shared_ptr<Shader> ishader)
     _shader = ishader;
 }
 
-void ComputeObject::load()
-{
-}
-
 void ComputeObject::run()
 {
     auto shaderPtr = shader();
@@ -52,20 +48,20 @@ void ComputeObject::run()
         shaderPtr->bind_image("inout_data", inTexturePtr, 0, false, 0, GL_READ_WRITE, GL_TEXTURE0);
     } else {
         shaderPtr->bind_image("in_data", inTexturePtr, 0, false, 0, GL_READ_ONLY, GL_TEXTURE0);
-        if (glCheckError(Name())){
+        if (glCheckError(Name())) {
             throw std::runtime_error(" : Error while binding image 'in_data'");
         }
         shaderPtr->bind_image("out_data", outTexturePtr, 0, false, 0, GL_WRITE_ONLY, GL_TEXTURE1);
-        if (glCheckError(Name())){
+        if (glCheckError(Name())) {
             throw std::runtime_error(" : Error while binding image 'out_data'");
         }
     }
     glDispatchCompute(30, 40, 1);
-    if (glCheckError(Name())){
+    if (glCheckError(Name())) {
         throw std::runtime_error(" : Error while dispatching workgroup");
     }
     glMemoryBarrier(memory_barrier());
-    if (glCheckError(Name())){
+    if (glCheckError(Name())) {
         throw std::runtime_error(" : Error while trying to execute ComputeObject");
     }
     shaderPtr->use(false);

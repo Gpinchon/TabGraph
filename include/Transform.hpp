@@ -61,6 +61,12 @@ public:
     std::shared_ptr<Transform> Parent() const;
     void SetParent(std::shared_ptr<Transform> parent);
     ~Transform() = default;
+    virtual void LoadCPU() override {};
+    virtual void UnloadCPU() override {};
+    virtual void LoadGPU() override {};
+    virtual void UnloadGPU() override {};
+    virtual void UpdateCPU() override {};
+    virtual void UpdateGPU() override {};
 
 private:
     Transform()

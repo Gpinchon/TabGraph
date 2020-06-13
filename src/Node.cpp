@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-09 17:08:46
+* @Last Modified time: 2020-06-12 22:38:35
 */
 
 #include "Node.hpp"
@@ -69,27 +69,25 @@ void Node::FixedUpdate()
         GetComponent<Mesh>()->UpdateSkin(GetComponent<Transform>());
 }
 
-void Node::Update()
-{
-}
-
 void Node::UpdateGPU()
 {
     //TODO GET REAL DELTA
     if (GetComponent<Mesh>() != nullptr)
-        GetComponent<Mesh>()->UpdateGPU(0.f);
+        GetComponent<Mesh>()->UpdateGPU();
 }
+
+#include <iostream>
 
 void Node::AddChild(std::shared_ptr<Node> childNode)
 {
-    if (childNode == shared_from_this())
+    std::cout << __LINE__ << " " << __FUNCTION__ << " " << Name() << " " << childNode->Name() << std::endl;
+    if (childNode.get() == this)
         return;
     if (HasChild(childNode)) {
         debugLog(childNode->Name() + " is already a child of " + Name());
         return;
     }
     _children.push_back(childNode);
-    childNode->SetParent(shared_from_this());
 }
 
 void Node::RemoveChild(std::shared_ptr<Node> child)
@@ -103,7 +101,6 @@ void Node::RemoveChild(std::shared_ptr<Node> child)
         child->SetParent(nullptr);
         child->GetComponent<Transform>()->SetParent(nullptr);
     }
-    //_children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
 }
 
 /*
@@ -111,7 +108,7 @@ void Node::RemoveChild(std::shared_ptr<Node> child)
 */
 void Node::SetParent(std::shared_ptr<Node> parent)
 {
-    if (parent == shared_from_this() || _parent.lock() == parent) {
+    if (parent.get() == this || Parent() == parent) {
         return;
     }
     if (Parent() != nullptr) {
@@ -119,20 +116,14 @@ void Node::SetParent(std::shared_ptr<Node> parent)
     }
     _parent = parent;
     if (parent != nullptr) {
+        std::cout << __LINE__ << " " << __FUNCTION__ << " " << Name() << " " << parent->Name() << std::endl;
         parent->AddChild(shared_from_this());
     }
-    if (GetComponent<Transform>())
+    std::cout << __LINE__ << " " << __FUNCTION__ << " Parent " << Parent()->Name() << " Child " << Name() << std::endl;
+    if (GetComponent<Transform>()) {
+        std::cout << __LINE__ << " " << __FUNCTION__ << " Parent " << Parent()->Name() << " Child " << Name() << std::endl;
         GetComponent<Transform>()->SetParent(parent ? parent->GetComponent<Transform>() : nullptr);
-}
-
-bool Node::NeedsGPUUpdate() const
-{
-    return _needsGPUUpdate;
-}
-
-void Node::SetNeedsGPUUpdate(bool needsUpdate)
-{
-    _needsGPUUpdate = needsUpdate;
+    }
 }
 
 std::shared_ptr<BoundingAABB> Node::GetBounds() const

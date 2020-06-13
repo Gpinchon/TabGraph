@@ -2,7 +2,7 @@
  * @Author: gpi
  * @Date:   2019-03-26 12:03:23
  * @Last Modified by:   gpinchon
- * @Last Modified time: 2019-08-11 12:54:17
+ * @Last Modified time: 2019-08-18 18:31:38
  */
 
 #include "Terrain/Terrain_GDAL.hpp" // for Terrain
@@ -272,7 +272,7 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string& name,
     // mtl->set_texture_roughness(texture);
     mtl->albedo = glm::vec3(0.5);
     mtl->roughness = 0.5;
-    vg->set_material(mtl);
+    vg->SetMaterial(mtl);
     terrain->Addvg);
     return terrain;
 }

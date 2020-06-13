@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:08
+* @Last Modified time: 2020-06-12 11:43:11
 */
 
 #pragma once
@@ -26,7 +26,13 @@ public:
     virtual void set_in_texture(std::shared_ptr<Texture>);
     virtual void set_out_texture(std::shared_ptr<Texture>);
     virtual void set_shader(std::shared_ptr<Shader>);
-    virtual void load();
+    virtual void LoadCPU() override {};
+    virtual void UnloadCPU() override {};
+    virtual void LoadGPU() override {};
+    virtual void UnloadGPU() override {};
+    virtual void UpdateCPU() override {};
+    virtual void UpdateGPU() override {};
+    //virtual void load();
     virtual void run();
     glm::ivec3 num_groups();
     GLbitfield memory_barrier();
