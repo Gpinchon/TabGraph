@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-08 14:18:13
+* @Last Modified time: 2020-06-23 13:30:15
 */
 
 #include "Render.hpp"
@@ -106,9 +106,6 @@ static auto SSRShaderCode =
     ;
 static auto SSRMergeShaderCode =
 #include "SSRMerge.frag"
-    ;
-static auto SSRBlurShaderCode =
-#include "SSRBlur.frag"
     ;
 
 /*
@@ -516,7 +513,6 @@ float ComputeRoughnessMaskScale()
 
 static std::shared_ptr<Shader> SSRShader;
 static std::shared_ptr<Shader> SSRMergeShader;
-static std::shared_ptr<Shader> SSRBlurShader;
 
 std::shared_ptr<Texture2D> SSRPass1(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender)
 {
@@ -529,15 +525,11 @@ std::shared_ptr<Texture2D> SSRPass1(std::shared_ptr<Framebuffer> gBuffer, std::s
         SSRShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRShaderCode);
     }
     SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
-    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("SSRBorderFactor", 10)));
     SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
     if (SSRMergeShader == nullptr) {
         SSRMergeShader = Shader::Create("SSRMerge", LightingShader);
         SSRMergeShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRMergeShaderCode);
-    }
-    if (SSRBlurShader == nullptr) {
-        SSRBlurShader = Shader::Create("SSRBlur", LightingShader);
-        SSRBlurShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRBlurShaderCode);
     }
     static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
     SSRFramebuffer0->Resize(res);
@@ -558,10 +550,6 @@ std::shared_ptr<Texture2D> SSRPass1(std::shared_ptr<Framebuffer> gBuffer, std::s
     SSRShader->use();
     Render::Private::DisplayQuad()->Draw();
     SSRShader->use(false);
-
-    //Blur the result
-    SSRBlurShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
-    currentFrameBuffer->attachement(0)->blur(1, 1, SSRBlurShader);
 
     //Merge the current result with last result to increase sampling
     SSRMergeShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE0);
@@ -601,7 +589,7 @@ struct SSR {
             SSRBlurShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRBlurShaderCode);
         }
         SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
-        SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
+        SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("SSRBorderFactor", 10)));
         SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
         SSRFramebuffer->Resize(Resolution());
 
@@ -639,21 +627,16 @@ SSRPass0(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> last
     static auto SSRFramebufferResult(Framebuffer::Create("SSRFramebufferResult", res, 1, 0));
     static std::shared_ptr<Shader> SSRShader;
     static std::shared_ptr<Shader> SSRMergeShader;
-    static std::shared_ptr<Shader> SSRBlurShader;
     if (SSRShader == nullptr) {
         SSRShader = Shader::Create("SSR0", LightingShader);
         SSRShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRShaderCode);
     }
     SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
-    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("ReflexionBorderFactor", 10)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("SSRBorderFactor", 10)));
     SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
     if (SSRMergeShader == nullptr) {
         SSRMergeShader = Shader::Create("SSRMerge", LightingShader);
         SSRMergeShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRMergeShaderCode);
-    }
-    if (SSRBlurShader == nullptr) {
-        SSRBlurShader = Shader::Create("SSRBlur", LightingShader);
-        SSRBlurShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(SSRBlurShaderCode);
     }
     static std::shared_ptr<Framebuffer> currentFrameBuffer = nullptr;
     SSRFramebuffer0->Resize(res);
@@ -674,10 +657,6 @@ SSRPass0(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> last
     SSRShader->use();
     Render::Private::DisplayQuad()->Draw();
     SSRShader->use(false);
-
-    //Blur the result
-    SSRBlurShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE1);
-    currentFrameBuffer->attachement(0)->blur(1, 1, SSRBlurShader);
 
     //Merge the current result with last result to increase sampling
     SSRMergeShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE0);
@@ -718,6 +697,7 @@ std::shared_ptr<Framebuffer> RefractionPass(std::shared_ptr<Framebuffer> geometr
     refractionShader->SetUniform("Texture.Back.Color", opaqueRenderBuffer->attachement(0), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.Back.Emitting", opaqueRenderBuffer->attachement(1), GL_TEXTURE0 + (++i));
     //refractionShader->SetUniform("Texture.Back.Normal", opaqueRenderBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    refractionRenderBuffer->Resize(res);
     refractionRenderBuffer->bind();
     refractionShader->use();
     Render::Private::DisplayQuad()->Draw();
