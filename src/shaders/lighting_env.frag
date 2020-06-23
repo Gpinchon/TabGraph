@@ -108,7 +108,7 @@ void	ApplyTechnique()
 
 	vec3	envReflection = (specular /* + reflection_spec */ + reflection) * alpha;
 	
-	Out.Color.rgb += mix(envReflection, ssrResult.xyz * fresnel, ssrResult.w);
+	Out.Color.rgb += mix(envReflection, ssrResult.xyz * fresnel, ssrResult.w) * alpha;
 	Out.Color.rgb += (diffuse + Frag.Material.Emitting) * alpha;
 #ifndef TRANSPARENT
 	Out.Color.rgb += EnvDiffuse * floor(Frag.Depth) * (1 - alpha);
