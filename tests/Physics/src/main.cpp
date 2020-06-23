@@ -202,6 +202,25 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
         scene->Add(rigidBody);
         scene->Add(node);
     }*/
+    auto cubeMesh(CubeMesh::Create("cubeMesh", glm::vec3(1, 1, 1)));
+    auto cubeNode(Node::Create("cubeNode"));
+
+    auto rigidBody(RigidBody::Create("cubeRigidBody", cubeNode, BoundingSphere::Create(glm::vec3(0), 1.f)));
+    cubeMesh->GetMaterial(0)->SetAlbedo(glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f));
+    cubeNode->GetComponent<Transform>()->SetPosition(glm::vec3(0, 5, 0));
+    cubeNode->AddComponent(cubeMesh);
+    //cubeMesh->SetImpostor(rigidBody);
+
+    rigidBody->SetMass(1);
+    //cubeMesh->SetMass((rand() % 100 - 50) / 100.f);
+    rigidBody->SetApplyGravity(false);
+    rigidBody->ApplyWorldPush(glm::vec3(0, 10, -1), glm::vec3(0, 0, 1), cubeNode->GetComponent<Transform>()->WorldPosition());
+    rigidBody->SetLinearVelocity(glm::vec3(0));
+    //rigidBody->ApplyCentralPush(1.f / normalize(cubeMesh->Position()) * 2.f);
+    //rigidBody->ApplyCentralPush(glm::vec3(rand() % 100 - 50, rand() % 100 - 50, rand() % 100 - 50));
+    //cubeMesh->SetApplyGravity(rand() % 2);
+    scene->Add(rigidBody);
+    scene->Add(cubeNode);
 }
 
 #include "Physics/IntersectFunctions.hpp"
@@ -263,14 +282,7 @@ void CreateColliders(std::shared_ptr<Scene>& scene)
 {
     auto planeMesh(PlaneMesh::Create("PlaneMesh", glm::vec2(100, 100)));
     auto planeNode(Node::Create("PlaneNode"));
-    //auto boundingElement(BoundingMesh::Create(planeMesh));
-    auto boundingElement(BoundingAABB::Create(glm::vec3(-50, -5, -50), glm::vec3(50, 0, 50)));
-    //auto boundingElement(BoundingSphere::Create(glm::vec3(0, 0, 0), 1));
-    auto rigidBody(RigidBody::Create("PlaneRigidBody", planeNode, boundingElement));
-    planeMesh->GetMaterial(0)->SetRoughness(0.f);
-    planeMesh->GetMaterial(0)->SetMetallic(1.f);
-    planeMesh->GetMaterial(0)->SetAlpha(0.5);
-    rigidBody->SetStatic(true);
+    auto rigidBody(RigidBody::Create("PlaneRigidBody", planeNode, BoundingAABB::Create(glm::vec3(-50, 0, -50), glm::vec3(50, 0, 50))));
     planeNode->AddComponent(planeMesh);
     scene->Add(planeNode);
     scene->Add(rigidBody);
