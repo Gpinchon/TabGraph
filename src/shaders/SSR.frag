@@ -190,7 +190,7 @@ vec4	castRay(vec3 R, float StepOffset)
 				}
 			}
 			vec3 HitUVz = RayStartUVz + RayStepUVz * SampleTime[closestHitIndex];
-			Result = vec4(HitUVz, SampleTime[closestHitIndex] * 0.5);
+			Result = vec4(HitUVz, SampleTime[closestHitIndex] * SampleTime[closestHitIndex]);
 			break;
 		}
 		LastDiff = DepthDiff.w;
@@ -198,7 +198,6 @@ vec4	castRay(vec3 R, float StepOffset)
 		SampleTime += 4.0 * Step;
 	}
 	*/
-	
 	float SampleTime = StepOffset * Step + Step;
 	for (int i = 0; i < NumSteps; ++i)
 	{
@@ -267,9 +266,6 @@ vec4	SSR()
 		{
 			float SSRParticipation = clamp(4 - 4 * SSRResult.w, 0, 1);
 			//Attenuate reflection factor when getting closer to screen border
-			//SSRParticipation -= smoothstep(0, 1, pow(abs(SSRResult.x * 2 - 1), SCREEN_BORDER_FACTOR));
-			//SSRParticipation -= smoothstep(0, 1, pow(abs(SSRResult.y * 2 - 1), SCREEN_BORDER_FACTOR));
-			//SSRParticipation = clamp(SSRParticipation, 0, 1);
 			vec4 SampleColor = vec4(SampleScreenColor(SSRResult.xyz).rgb, SSRParticipation);
 			SampleColor.rgb /= 1 + Luminance(SampleColor.rgb);
 			outColor += SampleColor * SSRParticipation;
