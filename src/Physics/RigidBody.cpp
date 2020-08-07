@@ -2,11 +2,11 @@
 #include "Node.hpp"
 #include "Physics/BoundingElement.hpp"
 #include "Physics/BoundingSphere.hpp"
+#include "Transform.hpp"
 #include <glm/gtc/quaternion.hpp>
 
 RigidBody::RigidBody(const std::string& name)
     : Component(name)
-    , _collider(new BoundingSphere(glm::vec3(0), 1.f))
 {
 }
 
@@ -15,6 +15,7 @@ std::shared_ptr<RigidBody> RigidBody::Create(const std::string& name, const std:
     auto t = std::shared_ptr<RigidBody>(new RigidBody(name));
     t->SetNode(node);
     t->SetCollider(collider);
+    t->AddComponent(Transform::Create());
     return t;
 }
 /*
@@ -42,12 +43,32 @@ void RigidBody::SetStatic(bool isStatic)
 
 std::shared_ptr<Node> RigidBody::GetNode() const
 {
-    return _node.lock();
+    return GetComponent<Node>();
 }
 
 void RigidBody::SetNode(std::shared_ptr<Node> target)
 {
-    _node = target;
+    AddComponent(target);
+}
+
+void RigidBody::ApplyAngularImpulse(const glm::vec3& impulse)
+{
+    SetAngularVelocity(AngularVelocity() + InvInertiaTensor() * impulse);
+}
+
+void RigidBody::ApplyLinearImpulse(const glm::vec3& impulse)
+{
+    SetLinearVelocity(LinearVelocity() + _invMass * impulse);
+}
+
+float RigidBody::Restitution() const
+{
+    return _restitution;
+}
+
+void RigidBody::SetRestitution(float restitution)
+{
+    _restitution = restitution;
 }
 
 float RigidBody::Mass() const
@@ -55,20 +76,20 @@ float RigidBody::Mass() const
     return _mass;
 }
 
+float RigidBody::InvMass() const
+{
+    return _invMass;
+}
+
 void RigidBody::SetMass(const float mass)
 {
     _mass = mass;
-    _invMass = 1 / mass;
-    SetMomentOfInertia(glm::vec3(2.f / 5.f * _mass * 0.25));
+    _invMass = _mass ? (1.f / _mass) : 0.f;
+    SetInertiaLocal(glm::vec3((2.f / 5.f) * _mass * 0.25));
 }
 
 glm::quat RigidBody::AngularSpin() const
 {
-    /*glm::quat q(0,
-                AngularVelocity().x,
-                AngularVelocity().y,
-                AngularVelocity().z);
-    return q;*/
     return AngularVelocity();
 }
 
@@ -97,15 +118,35 @@ void RigidBody::SetLinearFactor(glm::vec3 linearFactor)
     _linearFactor = linearFactor;
 }
 
-glm::vec3 RigidBody::MomenfOfIndertia() const
+glm::vec3 RigidBody::InertiaLocal() const
 {
-    return _momentOfInertia;
+    return _inertiaLocal;
 }
 
-void RigidBody::SetMomentOfInertia(glm::vec3 momentOfInertia)
+void RigidBody::SetInertiaLocal(glm::vec3 inertia)
 {
-    _momentOfInertia = momentOfInertia;
-    _invMomentOfInertia = 1.f / momentOfInertia;
+    _inertiaLocal = inertia;
+    _invInertiaLocal = glm::vec3(inertia.x ? 1.f / inertia.x : 0.f,
+        inertia.y ? 1.f / inertia.y : 0.f,
+        inertia.z ? 1.f / inertia.z : 0.f);
+}
+
+glm::vec3 RigidBody::InvInertiaLocal() const
+{
+    return _invInertiaLocal;
+}
+
+glm::mat3 RigidBody::InertiaTensor() const
+{
+    auto transform = CurrentTransform();
+    auto localInertiaTensor = GetCollider()->LocalInertiaTensor(Mass());
+    glm::mat3 inverseLocalToWorld = glm::inverse(transform.WorldRotationMatrix());
+    return glm::transpose(inverseLocalToWorld) * localInertiaTensor * inverseLocalToWorld;
+}
+
+glm::mat3 RigidBody::InvInertiaTensor() const
+{
+    return Mass() ? glm::inverse(InertiaTensor()) : glm::mat3(0.f);
 }
 
 glm::vec3 RigidBody::LinearVelocity() const
@@ -115,6 +156,8 @@ glm::vec3 RigidBody::LinearVelocity() const
 
 void RigidBody::SetLinearVelocity(const glm::vec3 velocity)
 {
+    if (Static())
+        return;
     _linearVelocity = velocity;
 }
 
@@ -125,6 +168,8 @@ glm::vec3 RigidBody::AngularVelocity() const
 
 void RigidBody::SetAngularVelocity(const glm::vec3 velocity)
 {
+    if (Static())
+        return;
     _angularVelocity = velocity;
 }
 
@@ -166,13 +211,13 @@ void RigidBody::ApplyCentralForce(glm::vec3 force)
 
 void RigidBody::ApplyCentralPush(glm::vec3 pushDirection)
 {
-    SetLinearVelocity(LinearVelocity() + pushDirection / Mass());
+    SetLinearVelocity(LinearVelocity() + pushDirection * InvMass());
 }
 
 void RigidBody::ApplyLocalPush(glm::vec3 pushDirection, glm::vec3 pushLocation)
 {
     ApplyCentralPush(pushDirection);
-    SetAngularVelocity(AngularVelocity() + glm::cross(pushLocation, pushDirection));
+    SetAngularVelocity(AngularVelocity() + InvInertiaTensor() * glm::cross(pushLocation, pushDirection));
 }
 
 void RigidBody::ApplyWorldPush(glm::vec3 pushDirection, glm::vec3 pushLocation, glm::vec3 originalPosition)
@@ -202,12 +247,12 @@ void RigidBody::SetTotalTorque(glm::vec3 totalTorque)
 
 void RigidBody::SetCollider(const std::shared_ptr<BoundingElement>& collider)
 {
-    _collider = collider;
+    AddComponent(collider);
 }
 
-std::shared_ptr<BoundingElement>& RigidBody::GetCollider()
+std::shared_ptr<BoundingElement> RigidBody::GetCollider() const
 {
-    return _collider;
+    return GetComponent<BoundingElement>();
 }
 
 #include "Tools.hpp"
@@ -222,7 +267,7 @@ void RigidBody::IntegrateVelocities(float step)
         SetLinearVelocity(LinearVelocity() + (TotalForce() + GravityForce()) * (_invMass * step));
     else
         SetLinearVelocity(LinearVelocity() + TotalForce() * (_invMass * step));
-    SetAngularVelocity(AngularVelocity() + TotalTorque() * (_invMomentOfInertia * step));
+    SetAngularVelocity(AngularVelocity() + TotalTorque() * (InvInertiaLocal() * step));
     //m_linearVelocity += m_totalForce * (m_inverseMass * step);
     //m_angularVelocity += m_invInertiaTensorWorld * m_totalTorque * step;
 
@@ -233,6 +278,12 @@ void RigidBody::IntegrateVelocities(float step)
         SetAngularVelocity(AngularVelocity() * float(MAX_ANGVEL / step) / angvel);
     }
 }
+
+/*Intersection RigidBody::Collides(const std::shared_ptr<RigidBody>& objectB)
+{
+    
+}*/
+
 /*
 
 bool        intersect_test(float t0, float t1)

@@ -144,6 +144,16 @@ static inline auto ParseTextures(const std::string& path, const rapidjson::Docum
     return textureVector;
 }
 
+static inline std::shared_ptr<Texture2D> GetTexture(const std::vector<std::shared_ptr<Texture2D>> textureVector, size_t index) {
+    try {
+        return textureVector.at(index);
+    }
+    catch (std::exception&e) {
+        std::cerr << "Error getting texture : " << e.what() << std::endl;
+    }
+    return nullptr;
+}
+
 static inline auto ParseMaterials(const std::string& path, const rapidjson::Document& document)
 {
     debugLog("Start parsing materials");
@@ -170,13 +180,13 @@ static inline auto ParseMaterials(const std::string& path, const rapidjson::Docu
             }
             try {
                 auto textureObject(materialValue["normalTexture"].GetObject());
-                material->SetTextureNormal(textureVector.at(textureObject["index"].GetInt()));
+                material->SetTextureNormal(GetTexture(textureVector, textureObject["index"].GetInt()));
             } catch (std::exception&) {
                 debugLog("No normalTexture property")
             }
             try {
                 auto textureObject(materialValue["emissiveTexture"].GetObject());
-                material->SetTextureEmitting(textureVector.at(textureObject["index"].GetInt()));
+                material->SetTextureEmitting(GetTexture(textureVector, textureObject["index"].GetInt()));
             } catch (std::exception&) {
                 debugLog("No emissiveTexture property")
             }
@@ -184,13 +194,13 @@ static inline auto ParseMaterials(const std::string& path, const rapidjson::Docu
                 auto pbrMetallicRoughness(materialValue["pbrMetallicRoughness"].GetObject());
                 try {
                     auto textureObject(pbrMetallicRoughness["metallicRoughnessTexture"].GetObject());
-                    material->SetTextureMetallicRoughness(textureVector.at(textureObject["index"].GetInt()));
+                    material->SetTextureMetallicRoughness(GetTexture(textureVector, textureObject["index"].GetInt()));
                 } catch (std::exception&) {
                     debugLog("No metallicRoughnessTexture property")
                 }
                 try {
                     auto textureObject(pbrMetallicRoughness["occlusionTexture"].GetObject());
-                    material->SetTextureAO(textureVector.at(textureObject["index"].GetInt()));
+                    material->SetTextureAO(GetTexture(textureVector, textureObject["index"].GetInt()));
                 } catch (std::exception&) {
                     debugLog("No occlusionTexture property")
                 }
@@ -215,7 +225,7 @@ static inline auto ParseMaterials(const std::string& path, const rapidjson::Docu
                 }
                 try {
                     auto textureObject(pbrMetallicRoughness["baseColorTexture"].GetObject());
-                    material->SetTextureAlbedo(textureVector.at(textureObject["index"].GetInt()));
+                    material->SetTextureAlbedo(GetTexture(textureVector, textureObject["index"].GetInt()));
                 } catch (std::exception&) {
                     debugLog("No baseColorTexture property")
                 }
@@ -388,6 +398,8 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const GLTFCo
                 auto geometry(Geometry::Create());
                 try {
                     auto& material(primitive["material"]);
+                    if (size_t(material.GetInt()) >= container.materials.size())
+                        std::cerr << "Material index " << material.GetInt() << " out of bound " << container.materials.size() << std::endl;
                     currentMesh->AddMaterial(*std::find(container.materials.begin(), container.materials.end(), container.materials.at(material.GetInt())));
                     geometry->SetMaterialIndex(currentMesh->GetMaterialIndex(container.materials.at(material.GetInt())));
                 } catch (std::exception&) {

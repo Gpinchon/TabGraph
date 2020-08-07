@@ -2,7 +2,7 @@
 #include "Physics/BoundingSphere.hpp"
 #include "Physics/BoundingAABB.hpp"
 #include "Physics/BoundingPlane.hpp"
-#include "Physics/BoundingGeometry.hpp"
+#include "Physics/BoundingMesh.hpp"
 #include "Physics/BoundingBox.hpp"
 #include "Debug.hpp"
 #include "Callback.hpp"
@@ -24,6 +24,7 @@ void BoundingElement::SetIntersectionCallback(BoundingElement::Type type, Inters
 	_intersectionCallback.at(type) = callback;
 }
 */
+/*
 Intersection BoundingElement::Intersect(const std::shared_ptr<BoundingElement> &other) const
 {
 	std::cout << __FUNCTION__ << std::endl;
@@ -37,7 +38,7 @@ Intersection BoundingElement::Intersect(const std::shared_ptr<BoundingElement> &
 		case (Plane) :
 			return IntersectPlane(std::static_pointer_cast<BoundingPlane>(other));
 		case (Geometry) :
-			return IntersectGeometry(std::static_pointer_cast<BoundingGeometry>(other));
+			return IntersectGeometry(std::static_pointer_cast<BoundingMesh>(other));
 		case (Box) :
 			return IntersectBox(std::static_pointer_cast<BoundingBox>(other));
 		default :
@@ -47,7 +48,7 @@ Intersection BoundingElement::Intersect(const std::shared_ptr<BoundingElement> &
 	//if (callback != nullptr)
 	//	return (*callback)(other);
 	//return IntersectError(other);
-}
+}*/
 
 Intersection BoundingElement::IntersectError(const std::shared_ptr<BoundingElement> &other) const
 {
@@ -56,13 +57,13 @@ Intersection BoundingElement::IntersectError(const std::shared_ptr<BoundingEleme
 	return Intersection(false, NAN);
 }
 
-Intersection BoundingElement::IntersectRay(const Ray &/*ray*/) const
+Intersection BoundingElement::IntersectRay(const Ray &) const
 {
 	std::cerr << "[ERROR] : Intersection function not implemented between type "
 		<< GetType() << " and Ray"<< std::endl;
 	return Intersection(false, NAN);
 }
-
+/*
 Intersection BoundingElement::IntersectSphere(const std::shared_ptr<BoundingSphere> &) const
 {
 	std::cerr << "[ERROR] : Intersection function not implemented between type "
@@ -81,10 +82,10 @@ Intersection BoundingElement::IntersectPlane(const std::shared_ptr<BoundingPlane
 		<< GetType() << " and BoundingPlane"<< std::endl;
 	return Intersection(false, NAN);
 }
-Intersection BoundingElement::IntersectGeometry(const std::shared_ptr<BoundingGeometry> &) const
+Intersection BoundingElement::IntersectGeometry(const std::shared_ptr<BoundingMesh> &) const
 {
 	std::cerr << "[ERROR] : Intersection function not implemented between type "
-		<< GetType() << " and BoundingGeometry"<< std::endl;
+		<< GetType() << " and BoundingMesh"<< std::endl;
 	return Intersection(false, NAN);
 }
 Intersection BoundingElement::IntersectBox(const std::shared_ptr<BoundingBox> &) const
@@ -94,10 +95,11 @@ Intersection BoundingElement::IntersectBox(const std::shared_ptr<BoundingBox> &)
 	return Intersection(false, NAN);
 }
 
-void BoundingElement::Transform(const glm::vec3 &/*translation*/, const glm::quat &/*rotation*/, const glm::vec3 &/*scale*/)
+void BoundingElement::Transform(const glm::vec3 &, const glm::quat &, const glm::vec3 &)
 {
 	std::cerr << "[ERROR] : Transform function not implemented for type " << GetType() << std::endl;
 }
+*/
 
 BoundingElement::Type BoundingElement::GetType() const
 {

@@ -1,22 +1,22 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 17:20:58
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-06-21 10:51:54
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
 
 #include "Config.hpp" // for Config
-#include "BoundingElement.hpp"
 #include "Engine.hpp" // for ProgramPath, Init, Start
-#include "FPSCamera.hpp" // for FPSCamera
-#include "Light.hpp" // for DirectionnalLight, Light
-#include "Mesh.hpp" // for Mesh
-#include "MeshParser.hpp" // for MeshParser
+#include "Camera/FPSCamera.hpp" // for FPSCamera
+#include "Light/Light.hpp" // for DirectionnalLight, Light
+#include "Mesh/Mesh.hpp" // for Mesh
+#include "Mesh/MeshParser.hpp" // for MeshParser
 #include "Node.hpp" // for Node
-#include "Scene.hpp"
+#include "Scene/Scene.hpp"
+#include "Mesh/Geometry.hpp"
 #include "glm/glm.hpp" // for glm::vec3, glm::vec3
 #include "scop.hpp" // for setup_callbacks
 #include <SDL2/SDL.h> // for SDL_Quit
@@ -79,8 +79,6 @@ compute_object->Start();
 cube->Geometry(0)->material()->set_texture_albedo(texture);
 */
 
-#include <Geometry.hpp>
-
 std::shared_ptr<Mesh> mainMesh = nullptr;
 
 int main(int argc, char *argv[])
@@ -110,7 +108,9 @@ int main(int argc, char *argv[])
         mainMesh->bounding_element->max -= mainMesh->bounding_element->center;
         mainMesh->bounding_element->center = glm::vec3(0, 0, 0);
     }*/
-    Scene::Current()->Add(mainMesh);
+    auto node(Node::Create("mainNode"));
+    node->AddComponent(mainMesh);
+    Scene::Current()->Add(node);
     Scene::Current()->Add(camera);
     Scene::Current()->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true));
     setup_callbacks();

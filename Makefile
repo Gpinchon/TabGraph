@@ -87,6 +87,7 @@ HEADERS_FILES	=	\
 					Mesh/MeshParser.hpp \
 					Mesh/MeshSkin.hpp \
 					Mesh/PlaneMesh.hpp \
+					Mesh/SphereMesh.hpp \
 					Node.hpp \
 					Object.hpp \
 					Parser/BMP.hpp \
@@ -105,14 +106,17 @@ HEADERS_FILES	=	\
 					Physics/BoundingAABB.hpp \
 					Physics/BoundingBox.hpp \
 					Physics/BoundingElement.hpp \
-					Physics/BoundingGeometry.hpp \
+					Physics/BoundingMesh.hpp \
 					Physics/BoundingPlane.hpp \
 					Physics/BoundingSphere.hpp \
+					Physics/CollisionAlgorithmSAT.hpp \
+					Physics/CollisionAlgorithmGJKRaycast.hpp \
 					Physics/IntersectFunctions.hpp \
 					Physics/Intersection.hpp \
 					Physics/PhysicsEngine.hpp \
 					Physics/Ray.hpp \
 					Physics/RigidBody.hpp \
+					Physics/SimplexSolver.hpp \
 					Quadtree.hpp \
 					Render.hpp \
 					Scene/Scene.hpp \
@@ -167,6 +171,7 @@ SRC_FILES		=	\
 					Mesh/MeshParser.cpp \
 					Mesh/MeshSkin.cpp \
 					Mesh/PlaneMesh.cpp \
+					Mesh/SphereMesh.cpp \
 					Node.cpp \
 					Object.cpp \
 					Parser/BMP.cpp \
@@ -185,12 +190,15 @@ SRC_FILES		=	\
 					Physics/BoundingAABB.cpp \
 					Physics/BoundingBox.cpp \
 					Physics/BoundingElement.cpp \
-					Physics/BoundingGeometry.cpp \
+					Physics/BoundingMesh.cpp \
 					Physics/BoundingPlane.cpp \
 					Physics/BoundingSphere.cpp \
+					Physics/CollisionAlgorithmSAT.cpp \
+					Physics/CollisionAlgorithmGJKRaycast.cpp \
 					Physics/Intersection.cpp \
 					Physics/PhysicsEngine.cpp \
 					Physics/RigidBody.cpp \
+					Physics/SimplexSolver.cpp \
 					Quadtree.cpp \
 					Render.cpp \
 					Scene/Scene.cpp \

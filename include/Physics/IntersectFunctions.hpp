@@ -1,6 +1,6 @@
 #include "BoundingAABB.hpp"
 #include "BoundingBox.hpp"
-#include "BoundingGeometry.hpp"
+#include "BoundingMesh.hpp"
 #include "BoundingPlane.hpp"
 #include "BoundingSphere.hpp"
 #include "Mesh/Geometry.hpp"
@@ -8,33 +8,35 @@
 
 inline Intersection IntersectFunction(const glm::vec3& point, const BoundingAABB& box)
 {
-    auto underMax(glm::lessThanEqual(point, box.Max()));
-    auto aboveMin(glm::greaterThanEqual(point, box.Min()));
-    return Intersection(glm::all(underMax) && glm::all(aboveMin), 0.f);
+	auto underMax(glm::lessThanEqual(point, box.Max()));
+	auto aboveMin(glm::greaterThanEqual(point, box.Min()));
+	return Intersection(glm::all(underMax) && glm::all(aboveMin), 0.f);
 }
 
 inline Intersection IntersectFunction(const BoundingSphere& a, const BoundingSphere& b)
 {
-    float radiusDistance = a.GetRadius() + b.GetRadius();
-    float centerDistance = glm::distance(a.GetCenter(), b.GetCenter());
-    float distance = centerDistance - radiusDistance;
-    return Intersection(centerDistance < radiusDistance, distance);
+	float radiusDistance = a.GetRadius() + b.GetRadius();
+	float centerDistance = glm::distance(a.GetCenter(), b.GetCenter());
+	float distance = centerDistance - radiusDistance;
+	return Intersection(centerDistance < radiusDistance, distance);
 }
 
 inline Intersection isPointInsideSphere(const glm::vec3& point, const BoundingSphere& sphere)
 {
-    auto distance(glm::distance(point, sphere.GetCenter()));
-    return Intersection(distance < sphere.GetRadius(), distance);
+	auto distance(glm::distance(point, sphere.GetCenter()));
+	return Intersection(distance < sphere.GetRadius(), distance);
 }
 
 inline Intersection IntersectFunction(const BoundingAABB& a, const BoundingAABB& b)
 {
-    auto distance1(b.Min() - a.Max());
-    auto distance2(a.Min() - b.Max());
-    auto distance(glm::max(distance1, distance2));
-    auto maxDistance(glm::compMax(distance));
-    return Intersection(maxDistance < 0, maxDistance);
+	auto distance1(b.Min() - a.Max());
+	auto distance2(a.Min() - b.Max());
+	auto distance(glm::max(distance1, distance2));
+	auto maxDistance(glm::compMax(distance));
+	return Intersection(maxDistance < 0, maxDistance);
 }
+
+
 
 /*
 static inline bool IsMinowskiFace(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, const glm::vec3 &d)
@@ -106,8 +108,24 @@ static inline std::vector<EdgeQuery> QueryEdgeDirection(const std::shared_ptr<Ge
 	return ret;
 }
 
-inline Intersection IntersectFunction(const BoundingGeometry &a, const BoundingGeometry &b)
+inline Intersection IntersectFunction(const BoundingMesh &a, const BoundingMesh &b)
 {
 
 }
 */
+
+#include "Physics/RigidBody.hpp"
+#include "Transform.hpp"
+
+/*auto Projection(const std::shared_ptr<Geometry> &geometry, const glm::mat4 &transform, glm::vec3 normal)
+{
+	BoundingElement::ProjectionInterval interval;
+	for (auto index = 0u; index < geometry->VertexCount(); ++index) {
+		auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, index));
+		glm::vec3 transformedVertex(transform * glm::vec4(v, 1.f));
+		auto dotProduct(glm::dot(transformedVertex, normal));
+		interval.start = dotProduct < interval.start ? dotProduct : interval.start;
+		interval.end = dotProduct > interval.end ? dotProduct : interval.end;
+	}
+	return interval;
+}*/

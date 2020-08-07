@@ -17,8 +17,12 @@
 class BoundingAABB : public BoundingElement {
 public:
     static std::shared_ptr<BoundingAABB> Create(glm::vec3 min, glm::vec3 max);
-    virtual Intersection IntersectRay(const Ray &ray) const override;
-    virtual Intersection IntersectAABB(const std::shared_ptr<BoundingAABB> &other) const override;
+    virtual glm::mat3 LocalInertiaTensor(const float& mass) const override;
+    virtual Intersection IntersectRay(const Ray& ray) const override;
+    virtual std::set<glm::vec3, compareVec> GetSATAxis(const glm::mat4& transform) const override;
+    virtual ProjectionInterval Project(const glm::vec3& axis, const glm::mat4& transform = glm::mat4(1.f)) const override;
+    virtual std::vector<glm::vec3> Clip(glm::vec3 axis, const glm::mat4& transform = glm::mat4(1.f)) const override;
+    //virtual CollisionEdge GetBestEdge(glm::vec3 axis, const glm::mat4 &transform = glm::mat4(1.f)) override;
     BoundingAABB(glm::vec3 min, glm::vec3 max);
     glm::vec3 Min() const;
     void SetMin(glm::vec3 min);

@@ -5,10 +5,15 @@
 #include "Common.hpp"
 #include "Component.hpp"
 #include "Tools.hpp"
+#include "Transform.hpp"
 #include <glm/glm.hpp>
 
 class Node;
 
+/*
+** @brief : A RigidBody class for PhysicsEngine
+** The Transform Component is the transform that's to be applied after physics calculations 
+*/
 class RigidBody : public Component {
 public:
     static std::shared_ptr<RigidBody> Create(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider);
@@ -16,14 +21,20 @@ public:
         typename = IsSharedPointerOfType<RigidBody, T>,
         typename = IsSharedPointerOfType<RigidBody, U>>
     static bool Collides(const T& a, const U& b);
-    //static glm::vec3 GetSupport(std::vector<glm::vec3> vertices, glm::vec3 d);
-    //virtual Intersection IntersectRay(const Ray ray);
-    //virtual const std::vector<Ray> GatherRays();
+
+    /** @arg impulse : the impulse in world space */
+    void ApplyAngularImpulse(const glm::vec3& impulse);
+    /** @arg impulse : the impulse in world space */
+    void ApplyLinearImpulse(const glm::vec3& impulse);
+
+    float Restitution() const;
+    void SetRestitution(float restitution);
     bool Static() const;
     void SetStatic(bool isStatic);
     std::shared_ptr<Node> GetNode() const;
     void SetNode(std::shared_ptr<Node> node);
     float Mass() const;
+    float InvMass() const;
     void SetMass(const float mass);
     glm::vec3 LinearAcceleration() const;
     glm::quat AngularSpin() const;
@@ -31,8 +42,11 @@ public:
     void SetAngularFactor(glm::vec3 angularFactor);
     glm::vec3 LinearFactor() const;
     void SetLinearFactor(glm::vec3 angularFactor);
-    glm::vec3 MomenfOfIndertia() const;
-    void SetMomentOfInertia(glm::vec3 momentOfInertia);
+    glm::mat3 InertiaTensor() const;
+    glm::mat3 InvInertiaTensor() const;
+    glm::vec3 InvInertiaLocal() const;
+    glm::vec3 InertiaLocal() const;
+    void SetInertiaLocal(glm::vec3 inertia);
     glm::vec3 LinearVelocity() const;
     void SetLinearVelocity(const glm::vec3 linearVelocity);
     glm::vec3 AngularVelocity() const;
@@ -55,7 +69,12 @@ public:
     void ApplyWorldPush(glm::vec3 pushDirection, glm::vec3 pushLocation, glm::vec3 originalPosition);
     void IntegrateVelocities(float step);
     void SetCollider(const std::shared_ptr<BoundingElement>& collider);
-    std::shared_ptr<BoundingElement>& GetCollider();
+    auto& CurrentTransform() { return _currentTransform; };
+    auto& CurrentTransform() const { return _currentTransform; };
+    auto& NextTransform() { return _nextTransform; }
+    auto& NextTransform() const { return _nextTransform; }
+    std::shared_ptr<BoundingElement> GetCollider() const;
+    Intersection Collides(const std::shared_ptr<RigidBody>& objectB);
     virtual void LoadCPU() override {};
     virtual void UnloadCPU() override {};
     virtual void LoadGPU() override {};
@@ -68,8 +87,11 @@ protected:
     RigidBody(const std::string& name);
 
 private:
+    Transform _currentTransform;
+    Transform _nextTransform;
     float _mass { 0 };
     float _invMass { 0 };
+    float _restitution { 1 };
     glm::vec3 _linearVelocity { 0 };
     glm::vec3 _angularVelocity { 0 };
     glm::vec3 _gravity { Common::Gravity() };
@@ -77,12 +99,10 @@ private:
     glm::vec3 _totalTorque { 0 };
     glm::vec3 _angularFactor { 1 };
     glm::vec3 _linearFactor { 1 };
-    glm::vec3 _momentOfInertia { 1 };
-    glm::vec3 _invMomentOfInertia { 1 };
+    glm::vec3 _inertiaLocal { 1 };
+    glm::vec3 _invInertiaLocal { 1 };
     bool _applyGravity { false };
     bool _static { false };
-    std::weak_ptr<Node> _node;
-    std::shared_ptr<BoundingElement> _collider;
 };
 
 /*

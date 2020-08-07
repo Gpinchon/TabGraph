@@ -49,7 +49,7 @@ private:
     std::array<std::shared_ptr<BufferAccessor>, GeometryMorthTarget::MaxChannels> _morphChannels;
 };
 
-class Geometry : public Object
+class Geometry : public Component
 {
 public:
     enum AccessorKey
@@ -68,6 +68,12 @@ public:
     };
     static std::shared_ptr<Geometry> Create(const std::string & = "");
     static Geometry::AccessorKey GetAccessorKey(const std::string &key);
+    virtual void LoadCPU() {};
+    virtual void UnloadCPU() {};
+    virtual void LoadGPU() {};
+    virtual void UnloadGPU() {};
+    virtual void UpdateCPU() {};
+    virtual void UpdateGPU() {};
     glm::vec3 Centroid() const;
     size_t EdgeCount() const;
     glm::ivec2 GetEdge(const size_t index) const;

@@ -1,9 +1,8 @@
 #include "Physics/Intersection.hpp"
 
-Intersection::Intersection(const bool intersects, const float distance, const glm::vec3 normal, const glm::vec3 position)
+Intersection::Intersection(const bool intersects, const float distance, const glm::vec3 normal)
     : _intersects(intersects)
     , _normal(normal)
-    , _position(position)
     , _distance(distance)
 {
 }

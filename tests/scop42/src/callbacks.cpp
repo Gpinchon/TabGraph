@@ -1,26 +1,26 @@
 /*
 * @Author: gpi
 * @Date:   2019-03-26 13:04:37
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-08-13 09:56:18
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-06-21 10:54:57
 */
 
 #include "Common.hpp"
-#include "Events.hpp" // for Events
+#include "Input/Events.hpp" // for Events
 #include "Node.hpp" // for Node
 #include "glm/glm.hpp" // for s_vec3, s_vec2, glm::vec3, glm::clamp
-#include "scop.hpp" // for DOWNK, LEFTK, MouseMoveCallback
 #include "Callback.hpp"
-#include <Config.hpp>
-#include <Engine.hpp> // for Stop
-#include <Environment.hpp> // for Environment
-#include <FPSCamera.hpp> // for FPSCamera
-#include <GameController.hpp> // for Controller, GameController
-#include <Keyboard.hpp> // for Keyboard
-#include <Mesh.hpp> // for Mesh
-#include <Mouse.hpp> // for Mouse
-#include <Render.hpp> // for InternalQuality, SetInternalQua...
-#include <Scene.hpp>
+#include "Config.hpp"
+#include "Engine.hpp" // for Stop
+#include "Environment.hpp" // for Environment
+#include "Camera/FPSCamera.hpp" // for FPSCamera
+#include "Input/GameController.hpp" // for Controller, GameController
+#include "Input/Keyboard.hpp" // for Keyboard
+#include "Mesh/Mesh.hpp" // for Mesh
+#include "Input/Mouse.hpp" // for Mouse
+#include "Render.hpp" // for InternalQuality, SetInternalQua...
+#include "Scene/Scene.hpp"
+#include "Transform.hpp"
 #include <SDL2/SDL_events.h> // for SDL_KeyboardEvent, SDL_Controll...
 #include <SDL2/SDL_gamecontroller.h> // for SDL_CONTROLLER_AXIS_LEFTX, SDL_...
 #include <SDL2/SDL_scancode.h> // for SDL_SCANCODE_KP_MINUS, SDL_SCAN...
@@ -30,6 +30,7 @@
 #include <iostream> // for operator<<, endl, basic_ostream
 #include <math.h> // for M_PI
 #include <memory> // for shared_ptr, dynamic_pointer_cast
+#include "scop.hpp" // for DOWNK, LEFTK, MouseMoveCallback
 
 static auto cameraRotation = glm::vec3(M_PI / 2.f, M_PI / 2.f, 5.f);
 bool orbit = false;
@@ -66,9 +67,9 @@ void callback_camera(SDL_Event *)
         taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
     }
     cameraRotation.z -= laxis.y * Events::delta_time();
-    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.x) * camera->Right());
-    camera->SetPosition(camera->Position() - float(Events::delta_time() * laxis.y) * camera->Forward());
-    camera->SetPosition(camera->Position() + float(Events::delta_time() * taxis) * Common::Up());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() - float(Events::delta_time() * laxis.x) * camera->GetComponent<Transform>()->Right());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() - float(Events::delta_time() * laxis.y) * camera->GetComponent<Transform>()->Forward());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() + float(Events::delta_time() * taxis) * Common::Up());
 }
 
 void callback_scale(SDL_KeyboardEvent *event)
@@ -92,7 +93,7 @@ void callback_scale(SDL_KeyboardEvent *event)
         scale -= (0.005 * (Keyboard::key(SDL_SCANCODE_LSHIFT) + 1));
     }
     scale = glm::clamp(scale, 0.0001f, 1000.f);
-    mainMesh->SetScale(glm::vec3(scale));
+    mainMesh->GetComponent<Transform>()->SetScale(glm::vec3(scale));
 }
 
 void switch_background()
@@ -181,7 +182,7 @@ void callback_refresh(SDL_Event * /*unused*/)
         static float rotation = 0;
         rotation += Events::delta_time();
         rotation = CYCLE(rotation, 0, 360);
-        mainMesh->SetRotation(glm::vec3(0, rotation, 0));
+        mainMesh->GetComponent<Transform>()->SetRotation(glm::vec3(0, rotation, 0));
     }
 }
 

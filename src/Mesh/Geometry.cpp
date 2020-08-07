@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-27 12:15:46
+* @Last Modified time: 2020-06-25 17:48:22
 */
 
 #include "Mesh/Geometry.hpp"
@@ -21,7 +21,7 @@
 //std::vector<std::shared_ptr<Geometry>> Geometry::_Geometrys;
 
 Geometry::Geometry(const std::string& name)
-    : Object(name)
+    : Component(name)
     , _bounds(new BoundingAABB(glm::vec3(0), glm::vec3(0)))
 {
 }

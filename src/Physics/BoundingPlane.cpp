@@ -7,18 +7,19 @@ BoundingPlane::BoundingPlane(glm::vec3 normal, float distance) : BoundingElement
 
 }
 
-BoundingPlane BoundingPlane::Normalized() const
+void BoundingPlane::Normalize()
 {
 	auto magnitude(glm::length(GetNormal()));
-	return BoundingPlane(GetNormal() / magnitude, GetDistance() / magnitude);
+	SetNormal(GetNormal() / magnitude);
+	SetDistance(GetDistance() / magnitude);
 }
 
-Intersection BoundingPlane::IntersectSphere(const std::shared_ptr<BoundingSphere> &other) const
+/*Intersection BoundingPlane::IntersectSphere(const std::shared_ptr<BoundingSphere> &other) const
 {
 	const auto distanceFromSphereCenter(glm::dot(GetNormal(), other->GetCenter()) + GetDistance());
 	const auto distanceFromSphere(distanceFromSphereCenter - other->GetRadius());
 	return Intersection(distanceFromSphere < 0, distanceFromSphere);
-}
+}*/
 
 Intersection BoundingPlane::IntersectRay(const Ray &ray) const
 {
@@ -32,11 +33,11 @@ Intersection BoundingPlane::IntersectRay(const Ray &ray) const
 	return Intersection(t >= 0, t);
 }
 
-void BoundingPlane::Transform(const glm::vec3 &translation, const glm::quat &/*rotation*/, const glm::vec3 &/*scale*/)
-{
-	SetDistance(glm::length(translation));
-    SetNormal(glm::normalize(translation));
-}
+//void BoundingPlane::Transform(const glm::vec3 &translation, const glm::quat &/*rotation*/, const glm::vec3 &/*scale*/)
+//{
+//	SetDistance(glm::length(translation));
+//    SetNormal(glm::normalize(translation));
+//}
 
 glm::vec3 BoundingPlane::GetNormal() const
 {
