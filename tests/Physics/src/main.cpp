@@ -151,7 +151,7 @@ void SetupCallbacks()
 
 static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
 {
-    auto geometry = *CubeMesh::Create("originalMesh", glm::vec3(1.f))->Geometrys().begin();
+    /*auto geometry = *CubeMesh::Create("originalMesh", glm::vec3(1.f))->Geometrys().begin();
     auto rowLength = sqrt(nbr);
     for (auto i = 0u; i < rowLength; ++i) {
         for (auto j = 0u; j < rowLength; ++j) {
@@ -173,9 +173,9 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
             scene->Add(rigidBody);
             scene->Add(node);
         }
-    }
+    }*/
 
-    /*auto geometry = *SphereMesh::Create("originalMesh", 1.f)->Geometrys().begin();
+    auto geometry = *SphereMesh::Create("originalMesh", 1.f)->Geometrys().begin();
     for (auto i = 0u; i < nbr; ++i) {
         auto mesh(Mesh::Create());
         auto material(Material::Create("mesh_" + std::to_string(i) + "_material"));
@@ -193,6 +193,7 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
         //mesh->SetImpostor(rigidBody);
 
         rigidBody->SetMass(1);
+        rigidBody->SetRestitution(0.5f);
         //mesh->SetMass((rand() % 100 - 50) / 100.f);
         rigidBody->SetApplyGravity(true);
         rigidBody->ApplyWorldPush(glm::vec3(0, 10, -1), glm::vec3(0, 0, 1), node->GetComponent<Transform>()->WorldPosition());
@@ -201,7 +202,7 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
         //mesh->SetApplyGravity(rand() % 2);
         scene->Add(rigidBody);
         scene->Add(node);
-    }*/
+    }
 }
 
 #include "Physics/IntersectFunctions.hpp"
