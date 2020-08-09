@@ -81,6 +81,7 @@ HEADERS_FILES	=	\
 					Input/Mouse.hpp \
 					Light/Light.hpp \
 					Material.hpp \
+					Mesh/CapsuleMesh.hpp \
 					Mesh/CubeMesh.hpp \
 					Mesh/Geometry.hpp \
 					Mesh/Mesh.hpp \
@@ -165,6 +166,7 @@ SRC_FILES		=	\
 					Input/Mouse.cpp \
 					Light/Light.cpp \
 					Material.cpp \
+					Mesh/CapsuleMesh.cpp \
 					Mesh/CubeMesh.cpp \
 					Mesh/Geometry.cpp \
 					Mesh/Mesh.cpp \
