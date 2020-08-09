@@ -2,26 +2,26 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 19:22:31
+* @Last Modified time: 2020-08-09 17:56:48
 */
 
-#include "Mesh/Mesh.hpp" // for Mesh
-#include "Mesh/Geometry.hpp" // for CVEC4, Geometry
 #include "Mesh/PlaneMesh.hpp"
 #include "Buffer/BufferHelper.hpp"
 #include "Material.hpp" // for Material
+#include "Mesh/Geometry.hpp" // for CVEC4, Geometry
+#include "Mesh/Mesh.hpp" // for Mesh
 #include <vector> // for vector
 
-std::shared_ptr<Mesh> PlaneMesh::Create(const std::string &name, glm::vec2 size, unsigned subdivision)
+std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size, unsigned subdivision)
 {
     auto m = Mesh::Create(name);
     glm::vec3 max((size.x / 2.f), 0, (size.y / 2.f));
     glm::vec3 min(-max);
     glm::vec3 vn(0, 1, 0);
-    std::vector<glm::vec3>  planeVertices;
-    std::vector<glm::vec3>  planeNormals;
-    std::vector<glm::vec2>  planeTexCoords;
-    std::vector<unsigned>   planeIndices;
+    std::vector<glm::vec3> planeVertices;
+    std::vector<glm::vec3> planeNormals;
+    std::vector<glm::vec2> planeTexCoords;
+    std::vector<unsigned> planeIndices;
     for (auto x = 0u; x <= subdivision; ++x) {
         for (auto y = 0u; y <= subdivision; ++y) {
             auto uv = glm::vec2(x / float(subdivision), y / float(subdivision));
