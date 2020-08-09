@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-07-28 00:01:40
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-07-29 00:09:36
+* @Last Modified time: 2020-08-09 11:38:44
 */
 
 #include "Mesh/SphereMesh.hpp"
@@ -83,10 +83,8 @@ unsigned getMiddlePoint(unsigned p1, unsigned p2, std::vector<glm::vec3>& positi
     return i;
 }
 
-std::shared_ptr<Mesh> SphereMesh::Create(const std::string& name, float radius, unsigned subdivision)
+std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, float radius, unsigned subdivision)
 {
-    auto m = Mesh::Create(name);
-    middlePointIndexCache.clear();
     const float t = (1.0 + std::sqrt(5.0)) / 2.0;
 
     std::vector<glm::vec3> sphereVertices;
@@ -146,6 +144,7 @@ std::shared_ptr<Mesh> SphereMesh::Create(const std::string& name, float radius, 
         }
         faces = faces2;
     }
+    middlePointIndexCache.clear();
     std::vector<glm::vec3> sphereNormals;
     std::vector<glm::vec2> sphereTexCoords;
     for (auto& v : sphereVertices) {
@@ -159,34 +158,19 @@ std::shared_ptr<Mesh> SphereMesh::Create(const std::string& name, float radius, 
         sphereIndices.push_back(tri[1]);
         sphereIndices.push_back(tri[2]);
     }
-
-    /*for (auto x = 0u; x <= subdivision; ++x) {
-        for (auto y = 0u; y <= subdivision; ++y) {
-            auto uv = glm::vec2(x / float(subdivision), y / float(subdivision));
-            auto v(glm::mix(min, max, glm::vec3(uv.x, 0, uv.y)));
-            planeVertices.push_back(v);
-            planeNormals.push_back(vn);
-            planeTexCoords.push_back(uv);
-            if (x < subdivision && y < subdivision) {
-                auto a((x + 0) + (y + 0) * (subdivision + 1));
-                auto b((x + 1) + (y + 0) * (subdivision + 1));
-                auto c((x + 0) + (y + 1) * (subdivision + 1));
-                auto d((x + 1) + (y + 1) * (subdivision + 1));
-                planeIndices.push_back(a);
-                planeIndices.push_back(b);
-                planeIndices.push_back(c);
-                planeIndices.push_back(b);
-                planeIndices.push_back(d);
-                planeIndices.push_back(c);
-            }
-        }
-    }*/
-    auto vg = Geometry::Create(m->Name() + "_Geometry");
+    auto vg = Geometry::Create(name);
     vg->SetAccessor(Geometry::Position, BufferHelper::CreateAccessor(sphereVertices, GL_ARRAY_BUFFER));
     vg->SetAccessor(Geometry::Normal, BufferHelper::CreateAccessor(sphereNormals, GL_ARRAY_BUFFER, true));
     vg->SetAccessor(Geometry::TexCoord_0, BufferHelper::CreateAccessor(sphereTexCoords, GL_ARRAY_BUFFER));
     vg->SetIndices(BufferHelper::CreateAccessor(sphereIndices, GL_ELEMENT_ARRAY_BUFFER));
+    return vg;
+}
+
+std::shared_ptr<Mesh> SphereMesh::Create(const std::string& name, float radius, unsigned subdivision)
+{
+    auto m = Mesh::Create(name);
+    auto vg = SphereMesh::CreateGeometry(name + "Geometry", radius, subdivision);
     m->AddGeometry(vg);
-    m->AddMaterial(Material::Create(m->Name() + "_material"));
+    m->AddMaterial(Material::Create(name + "Material"));
     return (m);
 }
