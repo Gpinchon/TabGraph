@@ -12,7 +12,9 @@
 #include <string> // for string
 
 class Mesh;
+class Geometry;
 
 namespace CubeMesh {
 std::shared_ptr<Mesh> Create(const std::string& name, glm::vec3 size);
+std::shared_ptr<Geometry> CreateGeometry(const std::string& name, glm::vec3 size);
 };
