@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-07-16 08:55:52
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-08 14:08:41
+* @Last Modified time: 2020-08-11 22:48:39
 */
 
 #include "Camera/OrbitCamera.hpp"
@@ -25,32 +25,16 @@ std::shared_ptr<OrbitCamera> OrbitCamera::Create(const std::string& iname, float
 
 std::shared_ptr<Node> OrbitCamera::Target() const
 {
-    return nullptr;
+    return _target.lock();
 }
 
-void OrbitCamera::UpdateTransform()
+void OrbitCamera::_UpdateCPU(float)
 {
     glm::vec3 targetPosition(0);
     if (Target() != nullptr && Target()->GetComponent<Transform>() != nullptr)
         targetPosition = Target()->GetComponent<Transform>()->WorldPosition();
     GetComponent<Transform>()->SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
-    glm::vec3 forwardVector = normalize(targetPosition - GetComponent<Transform>()->WorldPosition());
-
-    float dot = glm::dot(Common::Forward(), forwardVector);
-
-    if (fabs(dot - (-1.0f)) < 0.000001f) {
-        GetComponent<Transform>()->SetRotation(glm::quat(Common::Up().x, Common::Up().y, Common::Up().z, M_PI));
-        return;
-    }
-    if (fabs(dot - (1.0f)) < 0.000001f) {
-        GetComponent<Transform>()->SetRotation(glm::quat(0, 0, 0, 1));
-        return;
-    }
-
-    float rotAngle = (float)acos(dot);
-    glm::vec3 rotAxis = glm::cross(Common::Forward(), forwardVector);
-    rotAxis = normalize(rotAxis);
-    GetComponent<Transform>()->SetRotation(glm::angleAxis(rotAngle, rotAxis));
+    GetComponent<Transform>()->LookAt(targetPosition);
 }
 
 float OrbitCamera::Phi() const
@@ -61,8 +45,6 @@ float OrbitCamera::Phi() const
 void OrbitCamera::SetPhi(float phi)
 {
     _phi = phi;
-    UpdateTransform();
-    //SetNeedsTranformUpdate(true);
 }
 
 float OrbitCamera::Theta() const
@@ -73,8 +55,6 @@ float OrbitCamera::Theta() const
 void OrbitCamera::SetTheta(float theta)
 {
     _theta = theta;
-    UpdateTransform();
-    //SetNeedsTranformUpdate(true);
 }
 
 float OrbitCamera::Radius() const
@@ -85,6 +65,9 @@ float OrbitCamera::Radius() const
 void OrbitCamera::SetRadius(float radius)
 {
     _radius = radius;
-    UpdateTransform();
-    //SetNeedsTranformUpdate(true);
+}
+
+void OrbitCamera::SetTarget(const std::shared_ptr<Node>& target)
+{
+    _target = target;
 }

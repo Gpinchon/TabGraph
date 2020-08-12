@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-21 22:14:25
+* @Last Modified time: 2020-08-12 00:09:01
 */
 
 #include "Engine.hpp"
@@ -135,8 +135,8 @@ void Engine::Start()
 {
     float ticks;
     float lastTicks;
+    float fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
 
-    auto fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
     SDL_SetEventFilter(event_filter, nullptr);
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
     Render::Start();
@@ -153,9 +153,9 @@ void Engine::Start()
             EnginePrivate::Get().fixedDeltaTime = ticks - fixedTiming;
             fixedTiming = ticks;
             Events::refresh();
-            Scene::Current()->FixedUpdate();
+            Scene::Current()->FixedUpdateCPU(EnginePrivate::Get().fixedDeltaTime);
         }
-        Scene::Current()->Update();
+        Scene::Current()->UpdateCPU(EnginePrivate::Get().deltaTime);
         //EnginePrivate::Get().updateMutex.unlock();
         Render::RequestRedraw();
     }

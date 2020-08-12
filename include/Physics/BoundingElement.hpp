@@ -107,12 +107,7 @@ public:
     };
     BoundingElement(BoundingElement::Type);
     virtual BoundingElement::Type GetType() const final;
-    void LoadCPU() override {};
-    void UnloadCPU() override {};
-    void LoadGPU() override {};
-    void UnloadGPU() override {};
-    void UpdateCPU() override {};
-    void UpdateGPU() override {};
+
     virtual glm::mat3 LocalInertiaTensor(const float& mass) const = 0;
     virtual Intersection IntersectRay(const Ray& ray) const;
     virtual std::set<glm::vec3, compareVec> GetSATAxis(const glm::mat4& transform = glm::mat4(1.f)) const = 0;
@@ -130,6 +125,14 @@ public:
     //void SetIntersectionCallback(BoundingElement::Type type, Intersection (*function)(const BoundingElement &));
 
 private:
+    void _LoadCPU() override {};
+    void _UnloadCPU() override {};
+    void _LoadGPU() override {};
+    void _UnloadGPU() override {};
+    void _UpdateCPU(float) override {};
+    void _UpdateGPU(float) override {};
+    void _FixedUpdateCPU(float) override {};
+    void _FixedUpdateGPU(float) override {};
     BoundingElement::Type _type { BoundingElement::Type::Invalid };
     //std::array<std::shared_ptr<Callback<Intersection(const BoundingElement &)>>, MaxType> _intersectionCallback;
     BoundingElement() = delete;

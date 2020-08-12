@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-23 13:30:15
+* @Last Modified time: 2020-08-12 00:14:46
 */
 
 #include "Render.hpp"
@@ -39,8 +39,8 @@ namespace Render {
 class Private {
     //class Render::Private {
 public:
-    static void Update();
-    static void FixedUpdate();
+    static void Update(float delta);
+    static void FixedUpdate(float delta);
     static void Scene();
     static void AddPostTreatment(std::shared_ptr<Shader>);
     static void AddPostTreatment(const std::string& name, const std::string& path);
@@ -48,7 +48,8 @@ public:
     static void StartRenderingThread();
     static void StopRenderingThread();
     static void RequestRedraw();
-    static double DeltaTime();
+    static double DeltaTime() { return _instance()._deltaTime; }
+    static double FixedDeltaTime() { return _instance()._fixedDeltaTime; }
     static std::atomic<bool>& NeedsUpdate();
     static std::atomic<bool>& Drawing();
     static uint32_t FrameNumber(void);
@@ -63,6 +64,7 @@ private:
     static void _thread();
     static Render::Private& _instance();
     std::atomic<double> _deltaTime { 0 };
+    std::atomic<double> _fixedDeltaTime { 0 };
     std::atomic<float> _internalQuality { 1 };
     std::atomic<bool> _needsUpdate { true };
     std::atomic<bool> _loop { true };
@@ -200,12 +202,12 @@ void render_shadows()
     //Scene::Current()->SetCurrentCamera(camera);
 }
 
-double Render::Private::DeltaTime()
-{
-    return _instance()._deltaTime;
-}
+//double Render::Private::DeltaTime()
+//{
+//    return _instance()._deltaTime;
+//}
 
-void Render::Private::FixedUpdate()
+void Render::Private::FixedUpdate(float delta)
 {
     auto InvViewMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix());
     auto InvProjMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix());
@@ -216,7 +218,7 @@ void Render::Private::FixedUpdate()
     normalLights.reserve(1000);
     shadowLights.clear();
     normalLights.clear();
-    Scene::Current()->UpdateGPU();
+    Scene::Current()->FixedUpdateGPU(delta);
     for (auto light : Scene::Current()->Lights()) {
         if (light->power() == 0 || (!light->color().x && !light->color().y && !light->color().z))
             continue;
@@ -282,9 +284,9 @@ void Render::Private::StopRenderingThread(void)
 void Render::Private::_thread(void)
 {
     float ticks;
-    float fixed_timing;
+    float lastTicks;
+    float lastTicksFixed = lastTicks = SDL_GetTicks() / 1000.f;
 
-    fixed_timing = SDL_GetTicks() / 1000.f;
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
     std::shared_ptr<Texture2D> brdf = Texture2D::Create("brdf", glm::vec2(256, 256), GL_TEXTURE_2D, GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
@@ -293,14 +295,17 @@ void Render::Private::_thread(void)
     Render::Private::SetBRDF(brdf);
     while (_instance()._loop) {
         if (Render::Private::NeedsUpdate()) {
+            ticks = SDL_GetTicks() / 1000.f;
             _instance()._frame_nbr++;
             _instance()._drawing = true;
-            ticks = SDL_GetTicks() / 1000.f;
-            if (ticks - fixed_timing >= 0.015) {
-                fixed_timing = ticks;
-                Render::Private::FixedUpdate();
+            _instance()._deltaTime = ticks - lastTicks;
+            lastTicks = ticks;
+            Render::Private::Update(_instance()._deltaTime);
+            if (ticks - lastTicksFixed >= 0.015) {
+                _instance()._fixedDeltaTime = ticks - lastTicksFixed;
+                lastTicksFixed = ticks;
+                Render::Private::FixedUpdate(_instance()._fixedDeltaTime);
             }
-            Render::Private::Update();
             Render::Private::Scene();
             _instance()._needsUpdate = false;
             _instance()._drawing = false;
@@ -314,8 +319,9 @@ uint32_t Render::Private::FrameNumber()
     return (_instance()._frame_nbr);
 }
 
-void Render::Private::Update()
+void Render::Private::Update(float delta)
 {
+    Scene::Current()->UpdateGPU(delta);
 }
 
 std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer>& currentGeometryBuffer)
@@ -924,6 +930,11 @@ float Render::InternalQuality()
 double Render::DeltaTime()
 {
     return Render::Private::DeltaTime();
+}
+
+double Render::FixedDeltaTime()
+{
+    return Render::Private::FixedDeltaTime();
 }
 
 std::atomic<bool>& Render::Drawing()

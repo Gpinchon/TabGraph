@@ -16,17 +16,19 @@ public:
     void SetJoints(std::vector<std::weak_ptr<Node>> joints);
     void AddJoint(std::shared_ptr<Node> joint);
     void RemoveJoint(std::shared_ptr<Node> joint);
-    virtual void LoadCPU() override {};
-    virtual void UnloadCPU() override {};
-    virtual void LoadGPU() override {};
-    virtual void UnloadGPU() override {};
-    virtual void UpdateCPU() override {};
-    virtual void UpdateGPU() override {};
 
 protected:
     MeshSkin();
 
 private:
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float) override {};
+    virtual void _UpdateGPU(float) override {};
+    virtual void _FixedUpdateCPU(float) override {};
+    virtual void _FixedUpdateGPU(float) override {};
     std::weak_ptr<Node> _skeleton;
     std::shared_ptr<BufferAccessor> _inverseBindMatrices;
     std::vector<std::weak_ptr<Node>> _joints;

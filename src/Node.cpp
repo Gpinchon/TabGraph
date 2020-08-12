@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-12 22:38:35
+* @Last Modified time: 2020-08-12 00:47:22
 */
 
 #include "Node.hpp"
@@ -63,17 +63,10 @@ void Node::Load()
         GetComponent<Mesh>()->Load();
 }
 
-void Node::FixedUpdate()
+void Node::_FixedUpdateCPU(float)
 {
     if (GetComponent<Mesh>() != nullptr)
         GetComponent<Mesh>()->UpdateSkin(GetComponent<Transform>());
-}
-
-void Node::UpdateGPU()
-{
-    //TODO GET REAL DELTA
-    if (GetComponent<Mesh>() != nullptr)
-        GetComponent<Mesh>()->UpdateGPU();
 }
 
 #include <iostream>

@@ -34,12 +34,6 @@ public:
     //static TextureArray				*shadow_array();
     virtual LightType type();
     virtual glm::mat4 ShadowProjectionMatrix() const;
-    virtual void LoadCPU() override {};
-    virtual void UnloadCPU() override {};
-    virtual void LoadGPU() override {};
-    virtual void UnloadGPU() override {};
-    virtual void UpdateCPU() override {};
-    virtual void UpdateGPU() override {};
 
 protected:
     Light(const std::string& name);

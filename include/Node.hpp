@@ -35,7 +35,7 @@ public:
     virtual bool DrawDepth(RenderMod = RenderMod::RenderAll);
     virtual bool Drawable() const;
     virtual void Load();
-    virtual void FixedUpdate();
+    //virtual void FixedUpdate();
 
     /** @return the Node's parent */
     std::shared_ptr<Node> Parent() const { return _parent.lock(); };
@@ -55,18 +55,20 @@ public:
     std::shared_ptr<BoundingAABB> GetBounds() const;
 
     virtual ~Node() /*= default*/;
-    virtual void LoadCPU() override {};
-    virtual void UnloadCPU() override {};
-    virtual void LoadGPU() override {};
-    virtual void UnloadGPU() override {};
-    virtual void UpdateCPU() override {};
-    virtual void UpdateGPU() override;
 
 protected:
     Node(const std::string& name);
     void AddChild(std::shared_ptr<Node>);
 
 private:
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float /*delta*/) override {};
+    virtual void _FixedUpdateCPU(float /*delta*/) override;
+    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
     std::vector<std::shared_ptr<Node>> _children;
     std::weak_ptr<Node> _parent;

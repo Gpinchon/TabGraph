@@ -21,7 +21,7 @@ void Stop();
 /** @brief Asks for a redraw on next loop */
 void RequestRedraw();
 /** @brief Indicates if the rendering still needs update */
-std::atomic<bool> &Drawing();
+std::atomic<bool>& Drawing();
 /**
 	*	@brief Adds a post-treatment Shader to be applied after rasterization path
 	*	@param shader The post-treatment Shader to add
@@ -47,6 +47,12 @@ float InternalQuality();
 	*	@return The delta time between the two ast frames
 	*/
 double DeltaTime();
+
+/**
+	*	@brief Returns the delta time between the last two fixed updates
+	*	@return The delta time between the last two fixed updates (usually 0.015)
+	*/
+double FixedDeltaTime();
 
 uint32_t FrameNumber();
 

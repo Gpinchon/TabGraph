@@ -75,18 +75,20 @@ public:
     auto& NextTransform() const { return _nextTransform; }
     std::shared_ptr<BoundingElement> GetCollider() const;
     Intersection Collides(const std::shared_ptr<RigidBody>& objectB);
-    virtual void LoadCPU() override {};
-    virtual void UnloadCPU() override {};
-    virtual void LoadGPU() override {};
-    virtual void UnloadGPU() override {};
-    virtual void UpdateCPU() override {};
-    virtual void UpdateGPU() override {};
 
 protected:
     //std::vector<Ray> _rays;
     RigidBody(const std::string& name);
 
 private:
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float) override {};
+    virtual void _UpdateGPU(float) override {};
+    virtual void _FixedUpdateCPU(float) override {};
+    virtual void _FixedUpdateGPU(float) override {};
     Transform _currentTransform;
     Transform _nextTransform;
     float _mass { 0 };

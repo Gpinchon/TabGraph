@@ -33,10 +33,11 @@ struct Scene {
     void Add(std::shared_ptr<Node>);
     void Add(std::shared_ptr<Animation>);
     void Add(std::shared_ptr<RigidBody>);
-    virtual void Update();
-    virtual void UpdateGPU();
-    virtual void FixedUpdate();
-    virtual void PhysicsUpdate();
+    virtual void UpdateCPU(float delta);
+    virtual void UpdateGPU(float delta);
+    virtual void FixedUpdateCPU(float delta);
+    virtual void FixedUpdateGPU(float delta);
+    virtual void PhysicsUpdate(float delta);
     virtual void Render(const RenderMod&);
     virtual void RenderDepth(const RenderMod&);
     std::shared_ptr<AABB> GetLimits() const;

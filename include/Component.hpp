@@ -9,36 +9,116 @@
 
 #include "Object.hpp"
 
+#include <iostream>
+
 class Component : public Object {
 public:
+    typedef std::unordered_map<std::type_index, std::shared_ptr<Component>> ComponentMap;
     Component()
         : Object() {};
     Component(const std::string& name)
         : Object(name) {};
     ~Component() = default;
+    ComponentMap Components() const;
     template <typename T>
     void AddComponent(const std::shared_ptr<T>& component);
     template <typename T>
     std::shared_ptr<T> GetComponent();
     template <typename T>
     std::shared_ptr<T> GetComponent() const;
-    bool NeedsUpdateGPU() const { return _needsUpdateGPU; };
-    void SetNeedsUpdateGPU(bool changed) { _needsUpdateGPU = changed; };
-    bool NeedsUpdateCPU() const { return _needsUpdateCPU; };
-    void SetNeedsUpdateCPU(bool changed) { _needsUpdateCPU = changed; };
-    bool LoadedGPU() const { return _loadedGPU; };
-    void SetLoadedGPU(bool loaded) { _loadedGPU = loaded; };
-    bool LoadedCPU() const { return _loadedCPU; };
-    void SetLoadedCPU(bool loaded) { _loadedCPU = loaded; };
-    virtual void LoadCPU() = 0;
-    virtual void UnloadCPU() = 0;
-    virtual void LoadGPU() = 0;
-    virtual void UnloadGPU() = 0;
-    virtual void UpdateCPU() = 0;
-    virtual void UpdateGPU() = 0;
+    virtual bool NeedsUpdateGPU() const final { return _needsUpdateGPU; };
+    virtual void SetNeedsUpdateGPU(bool changed) final { _needsUpdateGPU = changed; };
+    virtual bool NeedsUpdateCPU() const final { return _needsUpdateCPU; };
+    virtual void SetNeedsUpdateCPU(bool changed) final { _needsUpdateCPU = changed; };
+    virtual bool LoadedGPU() const final { return _loadedGPU; };
+    virtual void SetLoadedGPU(bool loaded) final { _loadedGPU = loaded; };
+    virtual bool LoadedCPU() const final { return _loadedCPU; };
+    virtual void SetLoadedCPU(bool loaded) final { _loadedCPU = loaded; };
+    /** Calls LoadCPU for all sub Components */
+    void LoadCPU()
+    {
+        _LoadCPU();
+        for (const auto& component : _components) {
+            if (component.second != nullptr)
+                component.second->LoadCPU();
+        }
+    }
+    /** Calls UnloadCPU for all sub Components */
+    void UnloadCPU()
+    {
+        _UnloadCPU();
+        for (const auto& component : _components) {
+            if (component.second != nullptr)
+                component.second->UnloadCPU();
+        }
+    }
+    /** Calls LoadGPU for all sub Components */
+    void LoadGPU()
+    {
+        _LoadGPU();
+        for (const auto& component : _components) {
+            if (component.second != nullptr)
+                component.second->LoadGPU();
+        }
+    }
+    /** Calls UnloadGPU for all sub Components */
+    void UnloadGPU()
+    {
+        _UnloadGPU();
+        for (const auto& component : _components) {
+            if (component.second != nullptr)
+                component.second->UnloadGPU();
+        }
+    }
+    /** Calls UpdateCPU for all sub Components */
+    void UpdateCPU(float delta)
+    {
+        if (NeedsUpdateCPU())
+            _UpdateCPU(delta);
+        SetNeedsUpdateCPU(false);
+        for (const auto& component : _components) {
+            if (component.second != nullptr)
+                component.second->UpdateCPU(delta);
+        }
+    }
+    /** Calls UpdateGPU for all sub Components */
+    void UpdateGPU(float delta)
+    {
+        if (NeedsUpdateGPU())
+            _UpdateGPU(delta);
+        SetNeedsUpdateGPU(false);
+        for (const auto& component : _components) {
+            if (component.second != nullptr)
+                component.second->UpdateGPU(delta);
+        }
+    }
+    void FixedUpdateCPU(float delta)
+    {
+        _FixedUpdateCPU(delta);
+        for (const auto& component : _components) {
+            if (component.second != nullptr)
+                component.second->FixedUpdateCPU(delta);
+        }
+    }
+    void FixedUpdateGPU(float delta)
+    {
+        _FixedUpdateGPU(delta);
+        for (const auto& component : _components) {
+            if (component.second != nullptr)
+                component.second->FixedUpdateGPU(delta);
+        }
+    }
 
 private:
-    std::unordered_map<std::type_index, std::shared_ptr<Component>> _components;
+    virtual void _LoadCPU() = 0;
+    virtual void _UnloadCPU() = 0;
+    virtual void _LoadGPU() = 0;
+    virtual void _UnloadGPU() = 0;
+    virtual void _UpdateCPU(float delta) = 0;
+    virtual void _UpdateGPU(float delta) = 0;
+    virtual void _FixedUpdateCPU(float delta) = 0;
+    virtual void _FixedUpdateGPU(float delta) = 0;
+    ComponentMap _components;
     bool _needsUpdateGPU { false };
     bool _needsUpdateCPU { false };
     bool _loadedGPU { false };

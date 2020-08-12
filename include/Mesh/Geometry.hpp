@@ -7,15 +7,15 @@
 
 #pragma once
 
-#include "Object.hpp"
-#include "Node.hpp" // for RenderAll, RenderMod, Renderable
 #include "Buffer/BufferHelper.hpp"
-#include <glm/glm.hpp> // for glm::vec2, s_vec2, s_vec3, glm::vec3
+#include "Node.hpp" // for RenderAll, RenderMod, Renderable
+#include "Object.hpp"
 #include <GL/glew.h> // for GLubyte
+#include <glm/glm.hpp> // for glm::vec2, s_vec2, s_vec3, glm::vec3
+#include <map>
 #include <memory> // for shared_ptr, weak_ptr
 #include <string> // for string
 #include <vector> // for vector
-#include <map>
 
 class Material; // lines 20-20
 class BufferAccessor;
@@ -36,8 +36,7 @@ static inline CVEC4 VecToCVec4(glm::vec3 v) {
 
 class GeometryMorthTarget {
 public:
-    enum Channel
-    {
+    enum Channel {
         Normal,
         Position,
         Tangent,
@@ -45,15 +44,14 @@ public:
     };
     std::shared_ptr<BufferAccessor> Get(const GeometryMorthTarget::Channel channel) const;
     void Set(const GeometryMorthTarget::Channel channel, const std::shared_ptr<BufferAccessor> morphChannel);
+
 private:
     std::array<std::shared_ptr<BufferAccessor>, GeometryMorthTarget::MaxChannels> _morphChannels;
 };
 
-class Geometry : public Component
-{
+class Geometry : public Component {
 public:
-    enum AccessorKey
-    {
+    enum AccessorKey {
         Invalid = -1,
         Position,
         Normal,
@@ -66,19 +64,13 @@ public:
         Weights_0,
         MaxAccessorKey
     };
-    static std::shared_ptr<Geometry> Create(const std::string & = "");
-    static Geometry::AccessorKey GetAccessorKey(const std::string &key);
-    virtual void LoadCPU() {};
-    virtual void UnloadCPU() {};
-    virtual void LoadGPU() {};
-    virtual void UnloadGPU() {};
-    virtual void UpdateCPU() {};
-    virtual void UpdateGPU() {};
+    static std::shared_ptr<Geometry> Create(const std::string& = "");
+    static Geometry::AccessorKey GetAccessorKey(const std::string& key);
     glm::vec3 Centroid() const;
     size_t EdgeCount() const;
     glm::ivec2 GetEdge(const size_t index) const;
     size_t VertexCount() const;
-    template<typename T>
+    template <typename T>
     T GetVertex(const Geometry::AccessorKey key, const size_t index) const;
     uint32_t MaterialIndex();
     void SetMaterialIndex(uint32_t);
@@ -98,31 +90,39 @@ public:
 
     std::shared_ptr<BoundingAABB> GetBounds() const;
 
-    GeometryMorthTarget &GetMorphTarget(size_t index);
-    void SetMorphTarget(const GeometryMorthTarget &morphTarget);
+    GeometryMorthTarget& GetMorphTarget(size_t index);
+    void SetMorphTarget(const GeometryMorthTarget& morphTarget);
 
 protected:
-    Geometry(const std::string &);
+    Geometry(const std::string&);
+
 private:
+    virtual void _LoadCPU() {};
+    virtual void _UnloadCPU() {};
+    virtual void _LoadGPU() {};
+    virtual void _UnloadGPU() {};
+    virtual void _UpdateCPU(float) {};
+    virtual void _UpdateGPU(float) {};
+    virtual void _FixedUpdateCPU(float) {};
+    virtual void _FixedUpdateGPU(float) {};
     bool _isLoaded { false };
     glm::vec3 _centroid { 0 };
     std::shared_ptr<BoundingAABB> _bounds;
     GLenum _drawingMode { GL_TRIANGLES };
     uint32_t _materialIndex { 0 };
-    GLuint _vaoGlid{0};
+    GLuint _vaoGlid { 0 };
     std::array<std::shared_ptr<BufferAccessor>, Geometry::AccessorKey::MaxAccessorKey> _accessors;
     std::shared_ptr<BufferAccessor> _indices { nullptr };
     std::vector<GeometryMorthTarget> _morphTargets;
 };
 
-template<typename T>
+template <typename T>
 inline T Geometry::GetVertex(const Geometry::AccessorKey key, const size_t index) const
 {
     assert(index < VertexCount());
     if (Indices() != nullptr) {
         auto indice(BufferHelper::Get<unsigned>(Indices(), index));
         return BufferHelper::Get<T>(Accessor(key), indice);
-    }
-    else
+    } else
         return BufferHelper::Get<T>(Accessor(key), index);
 }

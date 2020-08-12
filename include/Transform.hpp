@@ -65,14 +65,16 @@ public:
     std::shared_ptr<Transform> Parent() const;
     void SetParent(std::shared_ptr<Transform> parent);
     ~Transform() = default;
-    virtual void LoadCPU() override {};
-    virtual void UnloadCPU() override {};
-    virtual void LoadGPU() override {};
-    virtual void UnloadGPU() override {};
-    virtual void UpdateCPU() override {};
-    virtual void UpdateGPU() override {};
 
 private:
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float) override {};
+    virtual void _UpdateGPU(float) override {};
+    virtual void _FixedUpdateCPU(float) override {};
+    virtual void _FixedUpdateGPU(float) override {};
     std::shared_ptr<Transform> _parent;
     glm::vec3 _position { 0, 0, 0 };
     glm::quat _rotation { glm::vec3(0.0, 0.0, 0.0) };

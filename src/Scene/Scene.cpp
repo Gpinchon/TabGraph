@@ -91,73 +91,98 @@ void Scene::Add(std::shared_ptr<Animation> animation)
 //        UpdateTransformMatrix(child);
 //}
 //
-void NodesFixedUpdate(std::shared_ptr<Node> rootNode)
+void NodesFixedUpdateCPU(std::shared_ptr<Node> rootNode, float delta)
 {
     if (rootNode == nullptr)
         return;
-    rootNode->FixedUpdate();
+    rootNode->FixedUpdateCPU(delta);
     for (auto index = 0u; index < rootNode->ChildCount(); ++index)
-        NodesFixedUpdate(rootNode->GetChild(index));
+        NodesFixedUpdateCPU(rootNode->GetChild(index), delta);
 }
 
-void Scene::FixedUpdate()
+void Scene::FixedUpdateCPU(float delta)
 {
     Common::SetUp(Up());
     for (auto& animation : Animations()) {
         if (animation->Playing())
             animation->Advance();
     }
-    PhysicsUpdate();
+    PhysicsUpdate(delta);
     //for (auto &node : RootNodes())
     //	UpdateTransformMatrix(node);
     for (auto& node : RootNodes())
-        NodesFixedUpdate(node);
+        NodesFixedUpdateCPU(node, delta);
 }
 
-void Scene::PhysicsUpdate()
+void NodesFixedUpdateGPU(std::shared_ptr<Node> rootNode, float delta)
 {
+    if (rootNode == nullptr)
+        return;
+    rootNode->FixedUpdateGPU(delta);
+    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
+        NodesFixedUpdateGPU(rootNode->GetChild(index), delta);
+}
+
+void Scene::FixedUpdateGPU(float delta)
+{
+    Common::SetUp(Up());
+    for (auto& animation : Animations()) {
+        if (animation->Playing())
+            animation->Advance();
+    }
+    PhysicsUpdate(delta);
+    //for (auto &node : RootNodes())
+    //  UpdateTransformMatrix(node);
+    for (auto& node : RootNodes())
+        NodesFixedUpdateGPU(node, delta);
+}
+
+void Scene::PhysicsUpdate(float delta)
+{
+    _physicsEngine.Simulate(delta);
+    _physicsEngine.CheckCollision();
     /*for (auto &node : RootNodes())
 		NodesPhysicsUpdate(node);*/
-    static auto time(SDL_GetTicks());
+    /*static auto time(SDL_GetTicks());
     time = SDL_GetTicks();
     static auto lastTime(time);
     _physicsEngine.Simulate((time - lastTime) / 1000.f);
     lastTime = time;
-    _physicsEngine.CheckCollision();
+    _physicsEngine.CheckCollision();*/
     //for (auto &node : RootNodes())
     //	NodesCollisionCheck(node);
 }
 
-void NodesUpdateGPU(std::shared_ptr<Node> rootNode)
+void NodesUpdateGPU(std::shared_ptr<Node> rootNode, float delta)
 {
     if (rootNode == nullptr)
         return;
-    rootNode->UpdateGPU();
+    rootNode->UpdateGPU(delta);
     for (auto index = 0u; index < rootNode->ChildCount(); ++index)
-        NodesUpdateGPU(rootNode->GetChild(index));
+        NodesUpdateGPU(rootNode->GetChild(index), delta);
     //for (const auto &child : Nodes())
     //    NodesUpdateGPU(child);
 }
 
-void Scene::UpdateGPU()
+void Scene::UpdateGPU(float delta)
 {
     for (auto& node : RootNodes())
-        NodesUpdateGPU(node);
+        NodesUpdateGPU(node, delta);
 }
 
-void NodesUpdateCPU(std::shared_ptr<Node> rootNode)
+void NodesUpdateCPU(std::shared_ptr<Node> rootNode, float delta)
 {
     if (rootNode == nullptr)
         return;
-    rootNode->UpdateCPU();
+    rootNode->UpdateCPU(delta);
     for (auto index = 0u; index < rootNode->ChildCount(); ++index)
-        NodesUpdateCPU(rootNode->GetChild(index));
+        NodesUpdateCPU(rootNode->GetChild(index), delta);
 }
 
-void Scene::Update()
+void Scene::UpdateCPU(float delta)
 {
     for (auto& node : RootNodes())
-        NodesUpdateCPU(node);
+        NodesUpdateCPU(node, delta);
 }
 
 void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode)

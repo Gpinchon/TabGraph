@@ -26,12 +26,6 @@ public:
     virtual void set_in_texture(std::shared_ptr<Texture>);
     virtual void set_out_texture(std::shared_ptr<Texture>);
     virtual void set_shader(std::shared_ptr<Shader>);
-    virtual void LoadCPU() override {};
-    virtual void UnloadCPU() override {};
-    virtual void LoadGPU() override {};
-    virtual void UnloadGPU() override {};
-    virtual void UpdateCPU() override {};
-    virtual void UpdateGPU() override {};
     //virtual void load();
     virtual void run();
     glm::ivec3 num_groups();
@@ -47,4 +41,14 @@ protected:
     GLbitfield _memory_barrier { GL_ALL_BARRIER_BITS };
     glm::ivec3 _num_groups { 0, 0, 0 };
     ComputeObject(const std::string& name);
+
+private:
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float) override {};
+    virtual void _UpdateGPU(float) override {};
+    virtual void _FixedUpdateCPU(float) override {};
+    virtual void _FixedUpdateGPU(float) override {};
 };

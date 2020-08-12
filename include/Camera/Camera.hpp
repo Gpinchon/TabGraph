@@ -59,17 +59,18 @@ public:
     virtual void SetProjectionType(Camera::Projection projectionType);
     virtual ~Camera() = default;
 
-    virtual void LoadCPU() override { SetLoadedCPU(true); };
-    virtual void UnloadCPU() override { SetLoadedCPU(false); };
-    virtual void LoadGPU() override { SetLoadedGPU(true); };
-    virtual void UnloadGPU() override { SetLoadedGPU(false); };
-    virtual void UpdateCPU() override { SetNeedsUpdateCPU(false); };
-    virtual void UpdateGPU() override { SetNeedsUpdateGPU(false); };
-
 protected:
     Camera(const std::string& name, float fov, Camera::Projection proj = Perspective);
 
 private:
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float) override {};
+    virtual void _UpdateGPU(float) override {};
+    virtual void _FixedUpdateCPU(float) override {};
+    virtual void _FixedUpdateGPU(float) override {};
     Camera::Projection _projection_type { Perspective };
     //glm::mat4 _projection { 0 };
     glm::vec4 _frustum { -50, 50, -50, 50 };

@@ -49,32 +49,28 @@ public:
     /** @return the material index in this mesh material table using its name, -1 if not found */
     int64_t GetMaterialIndex(const std::string&);
 
-    virtual void FixedUpdate(float delta);
-    virtual void UpdateSkin(const std::shared_ptr<Transform>& transform);
-    virtual void LoadCPU() override {};
-    virtual void UnloadCPU() override {};
-    virtual void LoadGPU() override {};
-    virtual void UnloadGPU() override {};
-    virtual void UpdateCPU() override {};
-    virtual void UpdateGPU() override;
-
     std::shared_ptr<BufferAccessor> Weights() const;
     void SetWeights(std::shared_ptr<BufferAccessor> weights);
-
     const std::set<std::shared_ptr<Geometry>> Geometrys();
 
-    void SetNeedsUpdateGPU(bool);
-    bool NeedsUpdateGPU();
+    virtual void UpdateSkin(const std::shared_ptr<Transform>& transform);
 
 protected:
     Mesh(const std::string& name);
 
 private:
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float delta) override;
+    virtual void _FixedUpdateCPU(float /*delta*/) override {};
+    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     std::set<std::shared_ptr<Geometry>> _Geometrys;
     std::vector<std::shared_ptr<Material>> _materials;
     std::shared_ptr<TextureBuffer> _jointMatrices { nullptr };
     std::shared_ptr<BufferAccessor> _weights { nullptr };
     GLenum _cull_mod { GL_BACK };
     bool _loaded { false };
-    bool _needsUpdateGPU { false };
 };
