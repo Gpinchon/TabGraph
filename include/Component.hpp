@@ -35,7 +35,7 @@ public:
     virtual bool LoadedCPU() const final { return _loadedCPU; };
     virtual void SetLoadedCPU(bool loaded) final { _loadedCPU = loaded; };
     /** Calls LoadCPU for all sub Components */
-    void LoadCPU()
+    virtual void LoadCPU() final
     {
         _LoadCPU();
         for (const auto& component : _components) {
@@ -44,7 +44,7 @@ public:
         }
     }
     /** Calls UnloadCPU for all sub Components */
-    void UnloadCPU()
+    virtual void UnloadCPU() final
     {
         _UnloadCPU();
         for (const auto& component : _components) {
@@ -53,7 +53,7 @@ public:
         }
     }
     /** Calls LoadGPU for all sub Components */
-    void LoadGPU()
+    virtual void LoadGPU() final
     {
         _LoadGPU();
         for (const auto& component : _components) {
@@ -62,7 +62,7 @@ public:
         }
     }
     /** Calls UnloadGPU for all sub Components */
-    void UnloadGPU()
+    virtual void UnloadGPU() final
     {
         _UnloadGPU();
         for (const auto& component : _components) {
@@ -71,7 +71,7 @@ public:
         }
     }
     /** Calls UpdateCPU for all sub Components */
-    void UpdateCPU(float delta)
+    virtual void UpdateCPU(float delta) final
     {
         if (NeedsUpdateCPU())
             _UpdateCPU(delta);
@@ -82,7 +82,7 @@ public:
         }
     }
     /** Calls UpdateGPU for all sub Components */
-    void UpdateGPU(float delta)
+    virtual void UpdateGPU(float delta) final
     {
         if (NeedsUpdateGPU())
             _UpdateGPU(delta);
@@ -92,7 +92,7 @@ public:
                 component.second->UpdateGPU(delta);
         }
     }
-    void FixedUpdateCPU(float delta)
+    virtual void FixedUpdateCPU(float delta) final
     {
         _FixedUpdateCPU(delta);
         for (const auto& component : _components) {
@@ -100,7 +100,7 @@ public:
                 component.second->FixedUpdateCPU(delta);
         }
     }
-    void FixedUpdateGPU(float delta)
+    virtual void FixedUpdateGPU(float delta) final
     {
         _FixedUpdateGPU(delta);
         for (const auto& component : _components) {
