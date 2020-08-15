@@ -151,7 +151,7 @@ void SetupCallbacks()
 
 static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
 {
-    /*auto geometry = *CubeMesh::Create("originalMesh", glm::vec3(1.f))->Geometrys().begin();
+    /*auto geometry = CubeMesh::CreateGeometry("originalMesh", glm::vec3(1.f));
     auto rowLength = sqrt(nbr);
     for (auto i = 0u; i < rowLength; ++i) {
         for (auto j = 0u; j < rowLength; ++j) {
@@ -175,7 +175,7 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
         }
     }*/
 
-    auto geometry = *SphereMesh::Create("originalMesh", 1.f)->Geometrys().begin();
+    auto geometry = SphereMesh::CreateGeometry("originalMesh", 1.f);
     for (auto i = 0u; i < nbr; ++i) {
         auto mesh(Mesh::Create());
         auto material(Material::Create("mesh_" + std::to_string(i) + "_material"));
