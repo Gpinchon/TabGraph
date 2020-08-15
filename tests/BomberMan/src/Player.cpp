@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-08 22:47:18
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-15 15:44:50
+* @Last Modified time: 2020-08-15 16:26:06
 */
 
 #include "Camera/Camera.hpp"
@@ -118,8 +118,8 @@ void Player::_FixedUpdateCPU(float delta)
                 continue;
             }
             Contact contact;
-            auto intersects = AABBvsCircle(contact, Position(), 0.3f, entity->Position(), entity->Position() - 0.5f, entity->Position() + 0.5f);
-            if (intersects && contact.penetration > 0) {
+            auto intersects = AABBvsCircle(contact, Position(), 0.4f, entity->Position(), entity->Position() - 0.5f, entity->Position() + 0.5f);
+            if (intersects) {
                 std::cout << entity->Type() << std::endl;
                 std::cout << "contact.normal      : " << contact.normal.x << ' ' << contact.normal.y << std::endl;
                 std::cout << "contact.penetration : " << contact.penetration << std::endl;
