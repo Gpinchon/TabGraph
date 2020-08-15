@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-07-16 08:55:52
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-11 22:48:39
+* @Last Modified time: 2020-08-12 15:49:14
 */
 
 #include "Camera/OrbitCamera.hpp"
@@ -45,6 +45,7 @@ float OrbitCamera::Phi() const
 void OrbitCamera::SetPhi(float phi)
 {
     _phi = phi;
+    SetNeedsUpdateCPU(true);
 }
 
 float OrbitCamera::Theta() const
@@ -55,6 +56,7 @@ float OrbitCamera::Theta() const
 void OrbitCamera::SetTheta(float theta)
 {
     _theta = theta;
+    SetNeedsUpdateCPU(true);
 }
 
 float OrbitCamera::Radius() const
@@ -65,9 +67,11 @@ float OrbitCamera::Radius() const
 void OrbitCamera::SetRadius(float radius)
 {
     _radius = radius;
+    SetNeedsUpdateCPU(true);
 }
 
 void OrbitCamera::SetTarget(const std::shared_ptr<Node>& target)
 {
     _target = target;
+    SetNeedsUpdateCPU(true);
 }
