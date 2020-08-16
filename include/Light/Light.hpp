@@ -52,7 +52,10 @@ public:
     virtual void render_shadow() override;
     virtual LightType type() override;
     virtual glm::mat4 ShadowProjectionMatrix() const override;
+    virtual void SetLimits(glm::vec4 limits);
+    virtual glm::vec4 Limits() const;
 
 protected:
     DirectionnalLight(const std::string& name);
+    glm::vec4 _limits { -100, 100, -100, 100 };
 };

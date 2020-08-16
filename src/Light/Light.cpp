@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-08 14:09:36
+* @Last Modified time: 2020-08-16 22:06:28
 */
 
 #include "Light/Light.hpp"
@@ -105,8 +105,9 @@ void DirectionnalLight::render_shadow()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glClear(GL_DEPTH_BUFFER_BIT);
-    tempCamera->SetZfar(10000);
-    tempCamera->SetFrustum(glm::vec4(-500, 500, -500, 500));
+    tempCamera->SetZnear(0.001f);
+    tempCamera->SetZfar(100);
+    tempCamera->SetFrustum(Limits());
     tempCamera->AddComponent(GetComponent<Transform>());
     //tempCamera->SetPosition(Position());
     //tempCamera->SetViewMatrix(glm::inverse(glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up())));
@@ -122,10 +123,20 @@ void DirectionnalLight::render_shadow()
 
 glm::mat4 DirectionnalLight::ShadowProjectionMatrix() const
 {
-    return glm::ortho(-500.f, 500.f, -500.f, 500.f, 0.1f, 10000.f) * glm::lookAt(GetComponent<Transform>()->WorldPosition(), glm::vec3(0, 0, 0), Common::Up());
+    return glm::ortho(Limits().x, Limits().y, Limits().z, Limits().w, 0.001f, 100.f) * glm::lookAt(GetComponent<Transform>()->WorldPosition(), glm::vec3(0, 0, 0), Common::Up());
 }
 
 LightType DirectionnalLight::type()
 {
     return (Directionnal);
+}
+
+void DirectionnalLight::SetLimits(glm::vec4 limits)
+{
+    _limits = limits;
+}
+
+glm::vec4 DirectionnalLight::Limits() const
+{
+    return _limits;
 }
