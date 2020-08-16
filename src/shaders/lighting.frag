@@ -121,7 +121,7 @@ void	ApplyTechnique()
 				continue ;
 		#endif //SHADOW
 		bvec3	isZero = equal(Light[i].Color, vec3(0));
-		if (isZero.r && isZero.g && isZero.b) {
+		if (all(isZero)) {
 			continue ;
 		}
 		vec3	L = Light[i].Position;
