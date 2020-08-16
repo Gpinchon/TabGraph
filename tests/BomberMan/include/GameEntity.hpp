@@ -12,9 +12,11 @@ public:
     void SetPosition(const glm::vec2& position);
     glm::vec2 Position() const;
     void LookAt(const glm::vec2& position);
+    virtual void Die();
 
 protected:
     GameEntity(const std::string& name, const std::string& entityType);
+    GameEntity(const std::string& entityType);
     glm::vec2 _size { 1.f };
     float _height { 1.f };
 

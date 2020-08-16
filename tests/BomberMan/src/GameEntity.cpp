@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-08 20:02:06
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-15 15:07:40
+* @Last Modified time: 2020-08-16 18:17:12
 */
 
 //#include "Physics/RigidBody.hpp"
@@ -12,6 +12,12 @@
 
 GameEntity::GameEntity(const std::string& name, const std::string& entityType)
     : Node(name)
+    , _type(entityType)
+{
+}
+
+GameEntity::GameEntity(const std::string& entityType)
+    : Node("")
     , _type(entityType)
 {
 }
@@ -49,4 +55,8 @@ glm::vec2 GameEntity::Position() const
 {
     auto position = GetComponent<Transform>()->WorldPosition();
     return glm::vec2(position.x, position.z);
+}
+
+void GameEntity::Die()
+{
 }

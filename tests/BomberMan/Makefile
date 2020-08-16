@@ -4,6 +4,9 @@ else
 APP_NAME			=	Bomberman
 endif
 APP_SRC				=	\
+						src/Bomb.cpp \
+						src/CrispyWall.cpp \
+						src/Flame.cpp \
 						src/Game.cpp \
 						src/GameEntity.cpp \
 						src/Level.cpp \

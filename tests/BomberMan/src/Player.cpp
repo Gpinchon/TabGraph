@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-08 22:47:18
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-15 16:26:06
+* @Last Modified time: 2020-08-16 22:16:55
 */
 
 #include "Camera/Camera.hpp"
@@ -12,6 +12,7 @@
 #include "Mesh/Mesh.hpp"
 #include "Transform.hpp"
 
+#include "Bomb.hpp"
 #include "Game.hpp"
 #include "Level.hpp"
 #include "Player.hpp"
@@ -26,9 +27,10 @@
 Player::Player(const std::string& name, const glm::vec3& color)
     : GameEntity(name, "Player")
 {
-    auto playerMesh = CapsuleMesh::Create("PlayerMesh", 0.5, 0.3f, 5);
+    auto playerMesh = CapsuleMesh::Create("PlayerMesh", 0.5, 0.4f, 5);
     playerMesh->GetMaterial(0)->SetAlbedo(color);
     AddComponent(playerMesh);
+    Keyboard::AddKeyCallback(SDL_SCANCODE_SPACE, Callback<void(const SDL_KeyboardEvent&)>::Create(&Player::DropBomb, this, std::placeholders::_1));
 }
 
 std::shared_ptr<Player> Player::Create(const glm::vec3& color)
@@ -45,6 +47,15 @@ float Player::Speed() const
 void Player::SetSpeed(float speed)
 {
     _speed = speed;
+}
+
+void Player::DropBomb(const SDL_KeyboardEvent& event) const
+{
+    if (event.type != SDL_KEYUP && !event.repeat && Game::CurrentLevel()->GetGameEntity(Position()) == nullptr) {
+        std::cout << Position().x << ' ' << Position().y << std::endl;
+        Bomb::Create(Position());
+    } else if (Game::CurrentLevel()->GetGameEntity(Position()) != nullptr)
+        std::cout << Game::CurrentLevel()->GetGameEntity(Position())->Type() << std::endl;
 }
 
 template <typename T>
@@ -87,25 +98,32 @@ void Player::Move(const glm::vec2& direction, float delta)
     auto axis = dir * Speed() * delta;
     auto newPlayerPosition = Position() + axis;
     //Game::CurrentLevel()->SetGameEntity(Position(), nullptr);
-    LookAt(Position() + direction / dirLength);
+    LookAt(Position() + direction);
     SetPosition(newPlayerPosition);
     //Game::CurrentLevel()->SetGameEntity(newPlayerPosition, std::static_pointer_cast<Player>(shared_from_this()));
 }
 
+void Player::Die()
+{
+    std::cout << "DED" << std::endl;
+}
+
 void Player::_FixedUpdateCPU(float delta)
 {
+    if (Game::CurrentLevel() == nullptr)
+        return;
     glm::vec2 input;
     input.x = Keyboard::key(UPK) - Keyboard::key(DOWNK);
     input.y = Keyboard::key(RIGHTK) - Keyboard::key(LEFTK);
-    if (length(input) == 0.f || Game::CurrentLevel() == nullptr)
-        return;
-    auto cameraT = Game::CurrentLevel()->CurrentCamera()->GetComponent<Transform>();
-    auto cameraPosition = glm::vec2(cameraT->WorldPosition().x, cameraT->WorldPosition().z);
-    auto cameraForward = normalize(glm::vec2(cameraT->Forward().x, cameraT->Forward().z));
-    auto projPlayerPosition = ProjectPointOnPlane(Position(), cameraPosition, cameraForward);
-    auto forward = normalize(Position() - projPlayerPosition);
-    auto right = glm::vec2(cameraT->Right().x, cameraT->Right().z);
-    Move(input * (forward + right), delta);
+    if (length(input) > 0.f) {
+        auto cameraT = Game::CurrentLevel()->CurrentCamera()->GetComponent<Transform>();
+        auto cameraPosition = glm::vec2(cameraT->WorldPosition().x, cameraT->WorldPosition().z);
+        auto cameraForward = normalize(glm::vec2(cameraT->Forward().x, cameraT->Forward().z));
+        auto projPlayerPosition = ProjectPointOnPlane(Position(), cameraPosition, cameraForward);
+        auto forward = normalize(Position() - projPlayerPosition);
+        auto right = glm::vec2(cameraT->Right().x, cameraT->Right().z);
+        Move(input * (forward + right), delta);
+    }
     auto maxX = glm::clamp(int(Position().x + 1), 0, Game::CurrentLevel()->Size().x - 1);
     auto minX = glm::clamp(int(Position().x - 1), 0, Game::CurrentLevel()->Size().x - 1);
     auto maxY = glm::clamp(int(Position().y + 1), 0, Game::CurrentLevel()->Size().y - 1);
@@ -117,13 +135,21 @@ void Player::_FixedUpdateCPU(float delta)
             if (entity == nullptr) {
                 continue;
             }
+            if (x == int(Position().x) && y == int(Position().y) && entity->Type() == "Bomb")
+                continue;
             Contact contact;
             auto intersects = AABBvsCircle(contact, Position(), 0.4f, entity->Position(), entity->Position() - 0.5f, entity->Position() + 0.5f);
             if (intersects) {
                 std::cout << entity->Type() << std::endl;
                 std::cout << "contact.normal      : " << contact.normal.x << ' ' << contact.normal.y << std::endl;
                 std::cout << "contact.penetration : " << contact.penetration << std::endl;
-                SetPosition(Position() - contact.normal * (contact.penetration));
+                if (entity->Type() == "Flame") {
+                    Die();
+                    continue;
+                }
+                SetPosition(Position() - contact.normal * (contact.penetration + 0.001f));
+                x = 0;
+                break;
                 //a->NextTransform().SetPosition(glm::vec3(newPos.x, Height(), newPos.y));
                 /*auto P = glm::vec2(out.Position().x, out.Position().z);
                 auto N = normalize(glm::vec2(out.Normal().x, out.Normal().z));

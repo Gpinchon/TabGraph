@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-08 20:11:05
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-13 23:38:16
+* @Last Modified time: 2020-08-16 21:10:24
 */
 
 #include "Camera/OrbitCamera.hpp"
@@ -12,6 +12,7 @@
 #include "Mesh/PlaneMesh.hpp"
 #include "Transform.hpp"
 
+#include "CrispyWall.hpp"
 #include "Game.hpp"
 #include "Level.hpp"
 #include "Player.hpp"
@@ -25,8 +26,11 @@ Level::Level(const std::string& name, const glm::ivec2& size)
     auto floorMesh = PlaneMesh::Create("FloorMesh", Size());
     auto floorNode = Node::Create("FloorNode");
     floorNode->GetComponent<Transform>()->SetPosition(glm::vec3(Size().x / 2.f, 0, Size().y / 2.f));
-    auto light = DirectionnalLight::Create("MainLight", glm::vec3(1.f), glm::vec3(Size().x * 100.f, 1000.f, Size().y * 100.f), 1.f, true);
-    auto camera = OrbitCamera::Create("MainCamera", 45.f, glm::pi<float>() / 2.f, 1, size.x + size.y);
+    //auto light = DirectionnalLight::Create("MainLight", glm::vec3(1.f), glm::vec3(1.f), 1.f, true);
+    auto radius = size.x + size.y;
+    auto light = DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(radius), 1, true);
+    light->SetLimits(glm::vec4(-radius, radius, -radius, radius));
+    auto camera = OrbitCamera::Create("MainCamera", 45.f, glm::pi<float>() / 2.f, 1, radius);
     camera->SetTarget(floorNode);
     //camera->GetComponent<Transform>()->SetPosition(glm::vec3(0, 10, 1));
     //camera->GetComponent<Transform>()->LookAt(glm::vec3(0, 0, 0));
@@ -88,16 +92,15 @@ std::shared_ptr<Level> Level::Parse(const std::string& path)
             case 1: {
                 auto wall = Wall::Create();
                 level->SetGameEntityPosition(glm::ivec2(x, y), wall);
-                /*wall->GetComponent<Transform>()->SetPosition(glm::vec3(x + 0.5, 0.5, y + 0.5));
-                level->SetGameEntity(glm::ivec2(x, y), wall);*/
                 break;
             }
             case 2: {
-                /*auto wall = Wall::Create();
-                wall->GetComponent<Transform>()->SetPosition(glm::vec3(x + 0.5, 0.5, y + 0.5));
-                level->SetGameEntity(glm::ivec2(x, y), wall);*/
                 level->SetSpawnPoint(glm::ivec2(x, y));
                 break;
+            }
+            case 3: {
+                auto wall = CrispyWall::Create();
+                level->SetGameEntityPosition(glm::ivec2(x, y), wall);
             }
             }
         }
