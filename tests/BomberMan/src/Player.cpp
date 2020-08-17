@@ -147,7 +147,7 @@ void Player::_FixedUpdateCPU(float delta)
                     Die();
                     continue;
                 }
-                SetPosition(Position() - contact.normal * (contact.penetration + 0.001f));
+                SetPosition(Position() - contact.normal * std::max(contact.penetration, 0.001f));
                 x = 0;
                 break;
                 //a->NextTransform().SetPosition(glm::vec3(newPos.x, Height(), newPos.y));
