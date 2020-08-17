@@ -144,11 +144,11 @@ static inline auto ParseTextures(const std::string& path, const rapidjson::Docum
     return textureVector;
 }
 
-static inline std::shared_ptr<Texture2D> GetTexture(const std::vector<std::shared_ptr<Texture2D>> textureVector, size_t index) {
+static inline std::shared_ptr<Texture2D> GetTexture(const std::vector<std::shared_ptr<Texture2D>> textureVector, size_t index)
+{
     try {
         return textureVector.at(index);
-    }
-    catch (std::exception&e) {
+    } catch (std::exception& e) {
         std::cerr << "Error getting texture : " << e.what() << std::endl;
     }
     return nullptr;
@@ -619,10 +619,10 @@ static inline auto SetParenting(const rapidjson::Document& document, const GLTFC
         auto node(container.nodes.at(nodeIndex));
         try {
             auto mesh(container.meshes.at(gltfNode["mesh"].GetInt()));
-            node->AddComponent(mesh);
+            node->SetComponent(mesh);
             try {
                 const auto& skin(container.skins.at(gltfNode["skin"].GetInt()));
-                mesh->AddComponent(skin);
+                mesh->SetComponent(skin);
             } catch (std::exception&) {
                 debugLog("Mesh " + mesh->Name() + " has no skin");
             }

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-09 17:11:29
+* @Last Modified time: 2020-08-17 13:54:17
 */
 
 #include "Parser/OBJ.hpp"
@@ -388,7 +388,7 @@ std::vector<std::shared_ptr<Scene>> OBJ::ParseScene(const std::string& path)
     auto scene(Scene::Create(path));
     auto mesh(OBJ::Parse(path, path));
     auto node(Node::Create(path + "_node"));
-    node->AddComponent(mesh);
+    node->SetComponent(mesh);
     scene->AddRootNode(node);
     std::vector<std::shared_ptr<Scene>> v;
     v.push_back(scene);

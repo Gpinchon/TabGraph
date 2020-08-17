@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-15 16:14:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-16 20:31:01
+* @Last Modified time: 2020-08-17 13:52:03
 */
 
 #include "Mesh/Mesh.hpp"
@@ -20,7 +20,7 @@ Bomb::Bomb()
     , _spawnTime(std::chrono::high_resolution_clock::now())
 {
     auto mesh = SphereMesh::Create("BombMesh", 0.5);
-    AddComponent(mesh);
+    SetComponent(mesh);
 }
 
 std::shared_ptr<Bomb> Bomb::Create(const glm::ivec2& position)

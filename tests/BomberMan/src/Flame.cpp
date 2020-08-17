@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-16 16:10:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-16 18:19:13
+* @Last Modified time: 2020-08-17 13:54:57
 */
 
 #include "Material.hpp"
@@ -20,7 +20,7 @@ Flame::Flame()
     auto mesh = CubeMesh::Create("FlameMesh", glm::vec3(0.5f));
     mesh->GetMaterial(0)->SetAlbedo(glm::vec3(0.886274f, 0.345098f, 0.133333f));
     mesh->GetMaterial(0)->SetEmitting(glm::vec3(0.886274f, 0.345098f, 0.133333f));
-    AddComponent(mesh);
+    SetComponent(mesh);
 }
 
 std::shared_ptr<Flame> Flame::Create(const glm::ivec2& position)

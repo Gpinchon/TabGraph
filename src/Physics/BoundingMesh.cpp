@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-05-01 21:59:49
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-03 20:19:58
+* @Last Modified time: 2020-08-17 13:53:16
 */
 
 #include "Physics/BoundingMesh.hpp"
@@ -27,7 +27,7 @@ std::shared_ptr<Mesh> BoundingMesh::GetMesh() const
 
 void BoundingMesh::SetMesh(const std::shared_ptr<Mesh>& geometry)
 {
-    AddComponent(geometry);
+    SetComponent(geometry);
 }
 
 #include "Buffer/BufferHelper.hpp"

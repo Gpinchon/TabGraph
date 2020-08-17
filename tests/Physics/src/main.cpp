@@ -128,7 +128,7 @@ void ThrowBall(SDL_KeyboardEvent* event)
     mesh->AddGeometry(geometry);
     mesh->AddMaterial(material);
     node->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->WorldPosition());
-    node->AddComponent(mesh);
+    node->SetComponent(mesh);
     rigidBody->SetMass(1);
     rigidBody->SetApplyGravity(true);
     rigidBody->ApplyLocalPush(dir * 100.f, glm::vec3(0.f));
@@ -169,7 +169,7 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
             mesh->AddGeometry(geometry);
             mesh->AddMaterial(material);
             node->GetComponent<Transform>()->SetPosition(position);
-            node->AddComponent(mesh);
+            node->SetComponent(mesh);
             scene->Add(rigidBody);
             scene->Add(node);
         }
@@ -189,7 +189,7 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
         mesh->AddMaterial(material);
         node->GetComponent<Transform>()->SetPosition(glm::vec3(rand() % 50 - 25, rand() % 20 + 1, rand() % 50 - 25));
         //node->GetComponent<Transform>()->SetPosition(glm::vec3(0, 2, -10));
-        node->AddComponent(mesh);
+        node->SetComponent(mesh);
         //mesh->SetImpostor(rigidBody);
 
         rigidBody->SetMass(1);
@@ -272,7 +272,7 @@ void CreateColliders(std::shared_ptr<Scene>& scene)
     planeMesh->GetMaterial(0)->SetMetallic(1.f);
     planeMesh->GetMaterial(0)->SetAlpha(0.5);
     rigidBody->SetStatic(true);
-    planeNode->AddComponent(planeMesh);
+    planeNode->SetComponent(planeMesh);
     scene->Add(planeNode);
     scene->Add(rigidBody);
     CreateCubes(50, scene);

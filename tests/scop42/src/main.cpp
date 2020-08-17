@@ -2,21 +2,21 @@
 * @Author: gpi
 * @Date:   2019-03-26 13:04:12
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-21 10:51:54
+* @Last Modified time: 2020-08-17 13:59:56
 */
 
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
 
+#include "Camera/FPSCamera.hpp" // for FPSCamera
 #include "Config.hpp" // for Config
 #include "Engine.hpp" // for ProgramPath, Init, Start
-#include "Camera/FPSCamera.hpp" // for FPSCamera
 #include "Light/Light.hpp" // for DirectionnalLight, Light
+#include "Mesh/Geometry.hpp"
 #include "Mesh/Mesh.hpp" // for Mesh
 #include "Mesh/MeshParser.hpp" // for MeshParser
 #include "Node.hpp" // for Node
 #include "Scene/Scene.hpp"
-#include "Mesh/Geometry.hpp"
 #include "glm/glm.hpp" // for glm::vec3, glm::vec3
 #include "scop.hpp" // for setup_callbacks
 #include <SDL2/SDL.h> // for SDL_Quit
@@ -52,8 +52,7 @@
 std::vector<std::shared_ptr<Light>> Create_random_lights(unsigned i)
 {
     std::vector<std::shared_ptr<Light>> v;
-    for (auto index = 0u; index < i; index++)
-    {
+    for (auto index = 0u; index < i; index++) {
         glm::vec3 Position = glm::vec3(
             (std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
             (std::rand() / float(RAND_MAX) - 0.5) * 2.0 * i,
@@ -81,7 +80,7 @@ cube->Geometry(0)->material()->set_texture_albedo(texture);
 
 std::shared_ptr<Mesh> mainMesh = nullptr;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     Config::Parse(Engine::ProgramPath() + "./res/config.ini");
     Engine::Init();
@@ -90,12 +89,10 @@ int main(int argc, char *argv[])
     Scene::Current()->SetCurrentCamera(camera);
     //camera->SetTarget(Node::Create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     //camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
-    if (argc >= 2)
-    {
+    if (argc >= 2) {
         mainMesh = MeshParser::parse("main_mesh", argv[1]);
     }
-    if (argc < 2 || mainMesh == nullptr)
-    {
+    if (argc < 2 || mainMesh == nullptr) {
         mainMesh = MeshParser::parse("main_mesh", Engine::ProgramPath() + "./res/obj/chart.obj");
     }
     /*if (mainMesh != nullptr)
@@ -109,13 +106,13 @@ int main(int argc, char *argv[])
         mainMesh->bounding_element->center = glm::vec3(0, 0, 0);
     }*/
     auto node(Node::Create("mainNode"));
-    node->AddComponent(mainMesh);
+    node->SetComponent(mainMesh);
     Scene::Current()->Add(node);
     Scene::Current()->Add(camera);
     Scene::Current()->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 1, true));
     setup_callbacks();
     //Create_random_lights(250);
-    
+
     //DirectionnalLight::Create("BackLight", glm::vec3(0.3, 0.3, 0.3), glm::vec3(-10, -10, 0), 1, false);
     Engine::Start();
     SDL_Quit();

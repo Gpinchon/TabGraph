@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-08 22:47:18
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-16 22:16:55
+* @Last Modified time: 2020-08-17 14:00:36
 */
 
 #include "Camera/Camera.hpp"
@@ -29,7 +29,7 @@ Player::Player(const std::string& name, const glm::vec3& color)
 {
     auto playerMesh = CapsuleMesh::Create("PlayerMesh", 0.5, 0.4f, 5);
     playerMesh->GetMaterial(0)->SetAlbedo(color);
-    AddComponent(playerMesh);
+    SetComponent(playerMesh);
     Keyboard::AddKeyCallback(SDL_SCANCODE_SPACE, Callback<void(const SDL_KeyboardEvent&)>::Create(&Player::DropBomb, this, std::placeholders::_1));
 }
 

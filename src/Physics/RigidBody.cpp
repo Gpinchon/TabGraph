@@ -15,7 +15,7 @@ std::shared_ptr<RigidBody> RigidBody::Create(const std::string& name, const std:
     auto t = std::shared_ptr<RigidBody>(new RigidBody(name));
     t->SetNode(node);
     t->SetCollider(collider);
-    t->AddComponent(Transform::Create());
+    t->SetComponent(Transform::Create());
     return t;
 }
 /*
@@ -48,7 +48,7 @@ std::shared_ptr<Node> RigidBody::GetNode() const
 
 void RigidBody::SetNode(std::shared_ptr<Node> target)
 {
-    AddComponent(target);
+    SetComponent(target);
 }
 
 void RigidBody::ApplyAngularImpulse(const glm::vec3& impulse)
@@ -247,7 +247,7 @@ void RigidBody::SetTotalTorque(glm::vec3 totalTorque)
 
 void RigidBody::SetCollider(const std::shared_ptr<BoundingElement>& collider)
 {
-    AddComponent(collider);
+    SetComponent(collider);
 }
 
 std::shared_ptr<BoundingElement> RigidBody::GetCollider() const

@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-08 20:11:05
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-16 21:10:24
+* @Last Modified time: 2020-08-17 14:00:27
 */
 
 #include "Camera/OrbitCamera.hpp"
@@ -35,7 +35,7 @@ Level::Level(const std::string& name, const glm::ivec2& size)
     //camera->GetComponent<Transform>()->SetPosition(glm::vec3(0, 10, 1));
     //camera->GetComponent<Transform>()->LookAt(glm::vec3(0, 0, 0));
     floorMesh->GetMaterial(0)->SetAlbedo(glm::vec3(1.f));
-    floorNode->AddComponent(floorMesh);
+    floorNode->SetComponent(floorMesh);
     SetCurrentCamera(camera);
     Add(light);
     Add(floorNode);

@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-16 19:44:14
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-16 19:48:30
+* @Last Modified time: 2020-08-17 13:54:25
 */
 
 #include "Material.hpp"
@@ -18,7 +18,7 @@ CrispyWall::CrispyWall()
 {
     auto mesh = CubeMesh::Create("WallMesh", glm::vec3(1.f));
     mesh->GetMaterial(0)->SetAlbedo(glm::vec3(0.5, 0.5, 0.5));
-    AddComponent(mesh);
+    SetComponent(mesh);
 }
 
 std::shared_ptr<CrispyWall> CrispyWall::Create()

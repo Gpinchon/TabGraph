@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-16 22:06:28
+* @Last Modified time: 2020-08-17 13:45:36
 */
 
 #include "Light/Light.hpp"
@@ -108,7 +108,7 @@ void DirectionnalLight::render_shadow()
     tempCamera->SetZnear(0.001f);
     tempCamera->SetZfar(100);
     tempCamera->SetFrustum(Limits());
-    tempCamera->AddComponent(GetComponent<Transform>());
+    tempCamera->SetComponent(GetComponent<Transform>());
     //tempCamera->SetPosition(Position());
     //tempCamera->SetViewMatrix(glm::inverse(glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up())));
     Scene::Current()->RenderDepth(RenderMod::RenderOpaque);

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-12 00:47:22
+* @Last Modified time: 2020-08-17 13:45:24
 */
 
 #include "Node.hpp"
@@ -21,7 +21,7 @@ Node::Node(const std::string& name)
     : Component(name)
     , _bounds(new BoundingAABB(glm::vec3(0), glm::vec3(1)))
 {
-    AddComponent(Transform::Create());
+    SetComponent(Transform::Create());
 }
 
 Node::~Node()
