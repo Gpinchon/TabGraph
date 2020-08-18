@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-08 13:30:04
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 18:13:27
+* @Last Modified time: 2020-08-18 19:47:20
 */
 
 #pragma once
@@ -73,16 +73,18 @@ public:
     template <typename T>
     std::shared_ptr<T> GetComponent() const
     {
-        auto& components = _components.at(typeid(T));
-        if (components.empty())
-            return nullptr;
-        return std::static_pointer_cast<T>(components.at(0));
+        if (_components.find(typeid(T)) != _components.end()) {
+            auto& components = _components.at(typeid(T));
+            if (!components.empty())
+                return std::static_pointer_cast<T>(components.at(0));
+        }
+        return nullptr;
     }
     /** @return all components of the specified type attached to the object */
     template <typename T>
     std::vector<std::shared_ptr<T>> GetComponents()
     {
-        auto components = _components[typeid(T)];
+        auto& components = _components[typeid(T)];
         std::vector<std::shared_ptr<T>> componentsCasted;
         componentsCasted.reserve(components.size());
         for (const auto& component : components)
@@ -93,11 +95,13 @@ public:
     template <typename T>
     std::vector<std::shared_ptr<T>> GetComponents() const
     {
-        auto components = _components.at(typeid(T));
         std::vector<std::shared_ptr<T>> componentsCasted;
-        componentsCasted.reserve(components.size());
-        for (const auto& component : components)
-            componentsCasted.push_back(std::static_pointer_cast<T>(component));
+        if (_components.find(typeid(T)) != _components.end()) {
+            auto& components = _components.at(typeid(T));
+            componentsCasted.reserve(components.size());
+            for (const auto& component : components)
+                componentsCasted.push_back(std::static_pointer_cast<T>(component));
+        }
         return componentsCasted;
     }
     virtual bool NeedsFixedUpdateGPU() const final { return _needsFixedUpdateGPU; };
