@@ -1,3 +1,9 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-06-18 13:31:08
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 18:44:06
+*/
 #include "Animation/Animation.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Buffer/BufferHelper.hpp"
@@ -11,7 +17,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 Animation::Animation()
-    : Object("")
+    : Component("")
 {
     //void (__thiscall Animation::* pFunc)() = &Animation::Play;
     _playCallback = Callback<void()>::Create(std::bind(&Animation::Play, this));
@@ -45,17 +51,19 @@ void Animation::AddSampler(AnimationSampler sampler)
 
 void Animation::Reset()
 {
+    _currentTime = 0;
     for (auto interpolator : _interpolators) {
-        _startTime = SDL_GetTicks();
         interpolator.SetPrevTime(0);
         interpolator.SetNextKey(0);
         interpolator.SetPrevKey(0);
     }
 }
 
-void Animation::Advance()
+void Animation::_FixedUpdateCPU(float delta)
 {
-    _currentTime = (SDL_GetTicks() - _startTime) / 1000.0;
+    if (!Playing())
+        return;
+    _currentTime += delta;
     bool animationPlayed(false);
     for (auto index = 0u; index < _channels.size(); ++index) {
         auto channel(_channels.at(index));
@@ -99,23 +107,23 @@ void Animation::Advance()
         }
         case AnimationChannel::Weights: {
             /*auto mesh(std::dynamic_pointer_cast<Mesh>(channel.Target()));
-				if (mesh == nullptr) {
-					debugLog(channel.Target()->Name() + " is not a Mesh");
-					break;
-				}
-				auto weights(mesh->Weights());
-				if (sampler.Interpolation() == AnimationSampler::CubicSpline)
-				{
-				}
-				else
-				{
-					for (auto i = 0u; i < weights->Count(); ++i) {
-						float prev(BufferHelper::Get<float>(sampler.KeyFrames(), interpolator.PrevKey() + i));
-						float next(BufferHelper::Get<float>(sampler.KeyFrames(), nextKey + i));
-						auto current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
-						BufferHelper::Set(weights, i, current);
-					}
-				}*/
+                if (mesh == nullptr) {
+                    debugLog(channel.Target()->Name() + " is not a Mesh");
+                    break;
+                }
+                auto weights(mesh->Weights());
+                if (sampler.Interpolation() == AnimationSampler::CubicSpline)
+                {
+                }
+                else
+                {
+                    for (auto i = 0u; i < weights->Count(); ++i) {
+                        float prev(BufferHelper::Get<float>(sampler.KeyFrames(), interpolator.PrevKey() + i));
+                        float next(BufferHelper::Get<float>(sampler.KeyFrames(), nextKey + i));
+                        auto current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
+                        BufferHelper::Set(weights, i, current);
+                    }
+                }*/
             break;
         }
         case AnimationChannel::None:
@@ -131,15 +139,20 @@ void Animation::Advance()
     }
 }
 
+void Animation::Advance()
+{
+}
+
 void Animation::Play()
 {
     if (!Playing()) {
         for (auto sampler : _samplers) {
-            sampler.Timings()->GetBufferView()->GetBuffer()->LoadToCPU();
-            sampler.KeyFrames()->GetBufferView()->GetBuffer()->LoadToCPU();
+            sampler.Timings()->GetBufferView()->GetBuffer()->LoadCPU();
+            sampler.KeyFrames()->GetBufferView()->GetBuffer()->LoadCPU();
         }
-        _startTime = SDL_GetTicks();
+        _currentTime = 0;
         _playing = true;
+        SetNeedsFixedUpdateCPU(true);
     }
 }
 
@@ -147,6 +160,7 @@ void Animation::Stop()
 {
     Reset();
     _playing = false;
+    SetNeedsFixedUpdateCPU(false);
 }
 
 bool Animation::Playing() const

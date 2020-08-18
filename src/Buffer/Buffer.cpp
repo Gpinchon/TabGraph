@@ -1,3 +1,9 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-06-18 13:31:08
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 17:25:46
+*/
 #include "Buffer/Buffer.hpp"
 #include "Debug.hpp"
 #include <algorithm>
@@ -7,14 +13,16 @@
 #include <wchar.h>
 
 Buffer::Buffer(size_t byteLength)
-    : Object("")
+    : Component("")
     , _byteLength(byteLength) //_rawData(byteLength, std::byte(0))
 {
 }
 
 Buffer::~Buffer()
 {
-    Unload();
+    //Unload();
+    _UnloadCPU();
+    _UnloadGPU();
 }
 
 std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
@@ -22,7 +30,7 @@ std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
     return std::shared_ptr<Buffer>(new Buffer(byteLength));
 }
 
-void Buffer::UpdateGPU()
+void Buffer::_UpdateGPU(float)
 {
     if (_rawData.empty())
         return;
@@ -125,8 +133,8 @@ void Buffer::Unmap()
 
 void Buffer::Load()
 {
-    LoadToCPU();
-    LoadToGPU();
+    _LoadCPU();
+    _LoadGPU();
 }
 
 static inline bool is_base64(unsigned char c)
@@ -196,9 +204,9 @@ auto ParseData(const std::string& uri)
 
 #include <fstream>
 
-void Buffer::LoadToCPU()
+void Buffer::_LoadCPU()
 {
-    if (LoadedToCPU())
+    if (LoadedCPU())
         return;
     debugLog(Name());
     _rawData.resize(ByteLength(), std::byte(0));
@@ -211,12 +219,12 @@ void Buffer::LoadToCPU()
         } else
             _rawData = data;
     }
-    _loadedToCPU = true;
+    SetLoadedCPU(true);
 }
 
-void Buffer::LoadToGPU()
+void Buffer::_LoadGPU()
 {
-    if (LoadedToGPU())
+    if (LoadedGPU())
         return;
     debugLog(Name());
     Allocate();
@@ -232,44 +240,34 @@ void Buffer::LoadToGPU()
             std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
         }
     } else if (_rawData.size()) {
-        UpdateGPU();
+        _UpdateGPU(0.f);
     }
-    _loadedToGPU = true;
+    SetLoadedGPU(true);
 }
 
-void Buffer::Unload()
-{
-    UnloadFromCPU();
-    UnloadFromGPU();
-}
+//void Buffer::Unload()
+//{
+//    _UnloadCPU();
+//    _UnloadGPU();
+//}
 
-void Buffer::UnloadFromCPU()
+void Buffer::_UnloadCPU()
 {
     _rawData.resize(0);
     _rawData.shrink_to_fit();
-    _loadedToCPU = false;
+    SetLoadedCPU(false);
 }
 
-void Buffer::UnloadFromGPU()
+void Buffer::_UnloadGPU()
 {
     glDeleteBuffers(1, &_glid);
     _glid = 0;
-    _loadedToGPU = false;
-}
-
-bool Buffer::LoadedToCPU()
-{
-    return _loadedToCPU;
-}
-
-bool Buffer::LoadedToGPU()
-{
-    return _loadedToGPU;
+    SetLoadedGPU(false);
 }
 
 std::vector<std::byte>& Buffer::RawData()
 {
-    LoadToCPU();
+    _LoadCPU();
     return _rawData;
 }
 

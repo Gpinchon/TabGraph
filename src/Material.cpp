@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-21 22:17:56
+* @Last Modified time: 2020-08-18 15:48:40
 */
 
 #include "Material.hpp"
@@ -25,7 +25,7 @@ static std::string depth_frag_code =
     ;
 
 Material::Material(const std::string& name)
-    : Object(name)
+    : Component(name)
 {
     _shader = Shader::Create(Name() + "_shader", ForwardShader);
     _shader.lock()->Stage(GL_FRAGMENT_SHADER)->SetTechnique(forward_default_frag_technique);

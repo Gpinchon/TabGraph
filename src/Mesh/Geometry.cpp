@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-25 17:48:22
+* @Last Modified time: 2020-08-18 15:39:25
 */
 
 #include "Mesh/Geometry.hpp"
@@ -84,10 +84,10 @@ void Geometry::Load()
     debugLog(Name());
     for (auto accessor : _accessors) {
         if (accessor != nullptr)
-            accessor->GetBufferView()->GetBuffer()->LoadToGPU();
+            accessor->GetBufferView()->GetBuffer()->LoadGPU();
     }
     if (Indices() != nullptr)
-        Indices()->GetBufferView()->GetBuffer()->LoadToGPU();
+        Indices()->GetBufferView()->GetBuffer()->LoadGPU();
     glGenVertexArrays(1, &_vaoGlid);
     glBindVertexArray(_vaoGlid);
     if (glCheckError(Name()))

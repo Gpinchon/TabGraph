@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-08 13:30:04
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-12 10:12:01
+* @Last Modified time: 2020-08-18 18:13:27
 */
 
 #pragma once
@@ -100,6 +100,10 @@ public:
             componentsCasted.push_back(std::static_pointer_cast<T>(component));
         return componentsCasted;
     }
+    virtual bool NeedsFixedUpdateGPU() const final { return _needsFixedUpdateGPU; };
+    virtual void SetNeedsFixedUpdateGPU(bool changed) final { _needsFixedUpdateGPU = changed; };
+    virtual bool NeedsFixedUpdateCPU() const final { return _needsFixedUpdateCPU; };
+    virtual void SetNeedsFixedUpdateCPU(bool changed) final { _needsFixedUpdateCPU = changed; };
     virtual bool NeedsUpdateGPU() const final { return _needsUpdateGPU; };
     virtual void SetNeedsUpdateGPU(bool changed) final { _needsUpdateGPU = changed; };
     virtual bool NeedsUpdateCPU() const final { return _needsUpdateCPU; };
@@ -113,7 +117,6 @@ public:
     {
         _LoadCPU();
         for (const auto& components : _components) {
-            //if (component.second != nullptr)
             for (auto& component : components.second)
                 component->LoadCPU();
         }
@@ -123,7 +126,6 @@ public:
     {
         _UnloadCPU();
         for (const auto& components : _components) {
-            //if (component.second != nullptr)
             for (auto& component : components.second)
                 component->UnloadCPU();
         }
@@ -133,7 +135,6 @@ public:
     {
         _LoadGPU();
         for (const auto& components : _components) {
-            //if (component.second != nullptr)
             for (auto& component : components.second)
                 component->LoadGPU();
         }
@@ -143,7 +144,6 @@ public:
     {
         _UnloadGPU();
         for (const auto& components : _components) {
-            //if (component.second != nullptr)
             for (auto& component : components.second)
                 component->UnloadGPU();
         }
@@ -153,9 +153,8 @@ public:
     {
         if (NeedsUpdateCPU())
             _UpdateCPU(delta);
-        SetNeedsUpdateCPU(false);
+        //SetNeedsUpdateCPU(false);
         for (const auto& components : _components) {
-            //if (component.second != nullptr)
             for (auto& component : components.second)
                 component->UpdateCPU(delta);
         }
@@ -165,27 +164,28 @@ public:
     {
         if (NeedsUpdateGPU())
             _UpdateGPU(delta);
-        SetNeedsUpdateGPU(false);
+        //SetNeedsUpdateGPU(false);
         for (const auto& components : _components) {
-            //if (component.second != nullptr)
             for (auto& component : components.second)
                 component->UpdateGPU(delta);
         }
     }
     virtual void FixedUpdateCPU(float delta) final
     {
-        _FixedUpdateCPU(delta);
+        if (NeedsFixedUpdateCPU())
+            _FixedUpdateCPU(delta);
+        //SetNeedsFixedUpdateCPU(false);
         for (const auto& components : _components) {
-            //if (component.second != nullptr)
             for (auto& component : components.second)
                 component->FixedUpdateCPU(delta);
         }
     }
     virtual void FixedUpdateGPU(float delta) final
     {
-        _FixedUpdateGPU(delta);
+        if (NeedsFixedUpdateGPU())
+            _FixedUpdateGPU(delta);
+        //SetNeedsFixedUpdateGPU(false);
         for (const auto& components : _components) {
-            //if (component.second != nullptr)
             for (auto& component : components.second)
                 component->FixedUpdateGPU(delta);
         }
@@ -201,8 +201,10 @@ private:
     virtual void _FixedUpdateCPU(float delta) = 0;
     virtual void _FixedUpdateGPU(float delta) = 0;
     ComponentMap _components;
-    bool _needsUpdateGPU { false };
-    bool _needsUpdateCPU { false };
+    bool _needsFixedUpdateGPU { true };
+    bool _needsFixedUpdateCPU { true };
+    bool _needsUpdateGPU { true };
+    bool _needsUpdateCPU { true };
     bool _loadedGPU { false };
     bool _loadedCPU { false };
 };

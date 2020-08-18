@@ -2,13 +2,14 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:09
+* @Last Modified time: 2020-08-18 15:45:42
 */
 
 #pragma once
 
-#include "Object.hpp" // for Object
-#include "glm/glm.hpp" // for glm::vec3, glm::vec2
+#include "Component.hpp" // for Component
+
+#include <glm/glm.hpp> // for glm::vec3, glm::vec2
 #include <memory> // for shared_ptr, weak_ptr
 #include <string> // for string
 #include <vector> // for vector
@@ -16,7 +17,7 @@
 class Shader;
 class Texture2D;
 
-class Material : public Object {
+class Material : public Component {
 public:
     static std::shared_ptr<Material> Create(const std::string&);
     virtual void Bind();
@@ -62,6 +63,14 @@ public:
     void SetDoubleSided(bool doubleSided);
 
 protected:
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float /*delta*/) override {};
+    virtual void _FixedUpdateCPU(float /*delta*/) override {};
+    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     std::weak_ptr<Shader> _shader;
     std::weak_ptr<Shader> _depth_shader;
     std::shared_ptr<Texture2D> _texture_albedo;

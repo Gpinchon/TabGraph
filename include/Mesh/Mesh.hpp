@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-12 12:16:55
+* @Last Modified time: 2020-08-18 18:17:29
 */
 
 #pragma once
@@ -64,9 +64,9 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float delta) override;
+    virtual void _UpdateGPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateGPU(float /*delta*/) override {};
+    virtual void _FixedUpdateGPU(float /*delta*/) override;
     std::set<std::shared_ptr<Geometry>> _Geometrys;
     std::vector<std::shared_ptr<Material>> _materials;
     std::shared_ptr<TextureBuffer> _jointMatrices { nullptr };

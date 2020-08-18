@@ -1,13 +1,19 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-06-18 13:31:08
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 15:31:38
+*/
 #pragma once
 
-#include "Object.hpp"
+#include "Component.hpp"
 #include <GL/glew.h>
 #include <filesystem>
 #include <memory>
 #include <vector>
 
 /** A buffer points to binary geometry, animation, or skins. */
-class Buffer : public Object {
+class Buffer : public Component {
 public:
     enum BufferAccess : GLenum {
         Read = GL_READ_ONLY,
@@ -15,21 +21,21 @@ public:
         ReadWrite = GL_READ_WRITE
     };
     static std::shared_ptr<Buffer> Create(size_t byteLength);
-    void UpdateGPU();
+    //void UpdateGPU();
     /** Calls LoadToCPU() and LoadToGPU() */
     void Load();
     /** Reads the data from the uri into rawData */
-    void LoadToCPU();
+    //void LoadToCPU();
     /**
 	 * Loads the data of rawData into the VRAM
 	 */
-    void LoadToGPU();
+    //void LoadToGPU();
     /** Calls UnloadFromCPU() and UnloadFromGPU() */
-    void Unload();
-    void UnloadFromCPU();
-    void UnloadFromGPU();
-    bool LoadedToCPU();
-    bool LoadedToGPU();
+    //void Unload();
+    //void UnloadFromCPU();
+    //void UnloadFromGPU();
+    //bool LoadedToCPU();
+    //bool LoadedToGPU();
     /** The total byte length of the buffer. */
     size_t ByteLength() const;
     /** Sets the buffer's byte length and RESIZE RAW DATA !!! */
@@ -54,10 +60,16 @@ protected:
     Buffer() = delete;
 
 private:
+    virtual void _LoadCPU() override;
+    virtual void _UnloadCPU() override;
+    virtual void _LoadGPU() override;
+    virtual void _UnloadGPU() override;
+    virtual void _UpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float delta) override;
+    virtual void _FixedUpdateCPU(float /*delta*/) override {};
+    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     std::filesystem::path _uri { "" };
     std::vector<std::byte> _rawData {};
-    bool _loadedToCPU { false };
-    bool _loadedToGPU { false };
     GLuint _glid { 0 };
     GLenum _usage { GL_STATIC_DRAW };
     size_t _byteLength { 0 };

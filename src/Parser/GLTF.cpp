@@ -1,6 +1,14 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-08-07 18:36:53
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 16:18:31
+*/
+
 #include "Parser/GLTF.hpp"
 #include "Animation/Animation.hpp"
 #include "Animation/AnimationSampler.hpp"
+#include "Assets/AssetsContainer.hpp"
 #include "Buffer/Buffer.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Buffer/BufferView.hpp"
@@ -16,6 +24,7 @@
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureParser.hpp"
 #include "Transform.hpp"
+
 #include <filesystem>
 #include <glm/ext.hpp>
 #include <iostream>
@@ -34,16 +43,6 @@ auto __gltfParser = SceneParser::Add("gltf", GLTF::Parse);
 
 struct TextureSampler {
     std::map<std::string, GLenum> settings;
-};
-
-struct GLTFContainer {
-    std::vector<std::shared_ptr<BufferAccessor>> accessors;
-    std::vector<std::shared_ptr<Material>> materials;
-    std::vector<std::shared_ptr<Mesh>> meshes;
-    std::vector<std::shared_ptr<Node>> nodes;
-    std::vector<std::shared_ptr<MeshSkin>> skins;
-    std::vector<std::shared_ptr<Camera>> cameras;
-    std::vector<std::shared_ptr<Animation>> animations;
 };
 
 static inline auto ParseCameras(const rapidjson::Document& document)
@@ -374,7 +373,7 @@ static inline auto ParseBufferAccessors(const std::string& path, const rapidjson
     return bufferAccessorVector;
 }
 
-static inline auto ParseMeshes(const rapidjson::Document& document, const GLTFContainer& container)
+static inline auto ParseMeshes(const rapidjson::Document& document, const AssetsContainer& container)
 {
     debugLog("Start parsing meshes");
     std::vector<std::shared_ptr<Mesh>> meshVector;
@@ -398,17 +397,18 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const GLTFCo
                 auto geometry(Geometry::Create());
                 try {
                     auto& material(primitive["material"]);
-                    if (size_t(material.GetInt()) >= container.materials.size())
-                        std::cerr << "Material index " << material.GetInt() << " out of bound " << container.materials.size() << std::endl;
-                    currentMesh->AddMaterial(*std::find(container.materials.begin(), container.materials.end(), container.materials.at(material.GetInt())));
-                    geometry->SetMaterialIndex(currentMesh->GetMaterialIndex(container.materials.at(material.GetInt())));
+                    auto materials = container.GetComponents<Material>();
+                    if (size_t(material.GetInt()) >= container.GetComponents<Material>().size())
+                        std::cerr << "Material index " << material.GetInt() << " out of bound " << container.GetComponents<Material>().size() << std::endl;
+                    currentMesh->AddMaterial(materials.at(material.GetInt()));
+                    geometry->SetMaterialIndex(currentMesh->GetMaterialIndex(materials.at(material.GetInt())));
                 } catch (std::exception&) {
                     debugLog("Geometry " + geometry->Name() + " has no material")
                 }
                 try {
                     for (const auto& attribute : primitive["attributes"].GetObject()) {
                         auto attributeName(std::string(attribute.name.GetString()));
-                        auto accessor(container.accessors.at(attribute.value.GetInt()));
+                        auto accessor(container.GetComponents<BufferAccessor>().at(attribute.value.GetInt()));
                         auto accessorKey(Geometry::GetAccessorKey(attributeName));
                         if (accessorKey == Geometry::AccessorKey::Invalid) {
                             debugLog("Invalid Accessor Key : " + attributeName);
@@ -419,7 +419,7 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const GLTFCo
                     debugLog("Geometry " + geometry->Name() + " has no material")
                 }
                 try {
-                    auto accessor(container.accessors.at(primitive["indices"].GetInt()));
+                    auto accessor(container.GetComponents<BufferAccessor>().at(primitive["indices"].GetInt()));
                     geometry->SetIndices(accessor);
                 } catch (std::exception&) {
                     debugLog("Geometry " + geometry->Name() + " has no indices property")
@@ -513,7 +513,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
     return nodeVector;
 }
 
-static inline auto ParseAnimations(const rapidjson::Document& document, const GLTFContainer& container)
+static inline auto ParseAnimations(const rapidjson::Document& document, const AssetsContainer& container)
 {
     std::vector<std::shared_ptr<Animation>> animations;
     try {
@@ -525,8 +525,8 @@ static inline auto ParseAnimations(const rapidjson::Document& document, const GL
                 debugLog("No name property found");
             }
             for (const auto& sampler : animation["samplers"].GetArray()) {
-                auto samplerInput(container.accessors.at(sampler["input"].GetInt()));
-                auto samplerOutput(container.accessors.at(sampler["output"].GetInt()));
+                auto samplerInput(container.GetComponents<BufferAccessor>().at(sampler["input"].GetInt()));
+                auto samplerOutput(container.GetComponents<BufferAccessor>().at(sampler["output"].GetInt()));
                 auto newSampler(AnimationSampler(samplerInput, samplerOutput));
                 try {
                     std::string interpolation(sampler["interpolation"].GetString());
@@ -547,7 +547,7 @@ static inline auto ParseAnimations(const rapidjson::Document& document, const GL
                     auto& target = (channel["target"]);
                     std::string path(target["path"].GetString());
                     newChannel.SetSamplerIndex(channel["sampler"].GetInt());
-                    newChannel.SetTarget(container.nodes.at(target["node"].GetInt()));
+                    newChannel.SetTarget(container.GetComponents<Node>().at(target["node"].GetInt()));
                     if (path == "translation")
                         newChannel.SetPath(AnimationChannel::Translation);
                     else if (path == "rotation")
@@ -569,7 +569,7 @@ static inline auto ParseAnimations(const rapidjson::Document& document, const GL
     return animations;
 }
 
-static inline auto ParseSkins(const rapidjson::Document& document, const GLTFContainer& container)
+static inline auto ParseSkins(const rapidjson::Document& document, const AssetsContainer& container)
 {
     debugLog("Start parsing Skins");
     std::vector<std::shared_ptr<MeshSkin>> skins;
@@ -584,18 +584,18 @@ static inline auto ParseSkins(const rapidjson::Document& document, const GLTFCon
                 debugLog("Skin " + newSkin->Name() + " has no name");
             }
             try {
-                newSkin->SetInverseBinMatrices(container.accessors.at(skin["inverseBindMatrices"].GetInt()));
+                newSkin->SetInverseBinMatrices(container.GetComponents<BufferAccessor>().at(skin["inverseBindMatrices"].GetInt()));
             } catch (std::exception&) {
                 debugLog("Skin " + newSkin->Name() + " has no inverseBindMatrices");
             }
             try {
-                newSkin->SetSkeleton(container.nodes.at(skin["skeleton"].GetInt()));
+                newSkin->SetSkeleton(container.GetComponents<Node>().at(skin["skeleton"].GetInt()));
             } catch (std::exception&) {
                 debugLog("Skin " + newSkin->Name() + " has no skeleton");
             }
             try {
                 for (const auto& joint : skin["joints"].GetArray())
-                    newSkin->AddJoint(container.nodes.at(joint.GetInt()));
+                    newSkin->AddJoint(container.GetComponents<Node>().at(joint.GetInt()));
             } catch (std::exception&) {
                 debugLog("Skin " + newSkin->Name() + " has no joints");
             }
@@ -608,7 +608,7 @@ static inline auto ParseSkins(const rapidjson::Document& document, const GLTFCon
     return skins;
 }
 
-static inline auto SetParenting(const rapidjson::Document& document, const GLTFContainer& container)
+static inline auto SetParenting(const rapidjson::Document& document, const AssetsContainer& container)
 {
     auto nodeItr(document.FindMember("nodes"));
     if (nodeItr == document.MemberEnd())
@@ -616,13 +616,12 @@ static inline auto SetParenting(const rapidjson::Document& document, const GLTFC
     //Build parenting relationship
     auto nodeIndex = 0;
     for (const auto& gltfNode : nodeItr->value.GetArray()) {
-        auto node(container.nodes.at(nodeIndex));
+        auto node(container.GetComponents<Node>().at(nodeIndex));
         try {
-            auto mesh(container.meshes.at(gltfNode["mesh"].GetInt()));
+            auto mesh(container.GetComponents<Mesh>().at(gltfNode["mesh"].GetInt()));
             node->SetComponent(mesh);
             try {
-                const auto& skin(container.skins.at(gltfNode["skin"].GetInt()));
-                mesh->SetComponent(skin);
+                mesh->SetComponent(container.GetComponents<MeshSkin>().at(gltfNode["skin"].GetInt()));
             } catch (std::exception&) {
                 debugLog("Mesh " + mesh->Name() + " has no skin");
             }
@@ -630,14 +629,14 @@ static inline auto SetParenting(const rapidjson::Document& document, const GLTFC
             debugLog("Node " + node->Name() + " has no mesh");
         }
         try {
-            container.cameras.at(gltfNode["camera"].GetInt())->SetParent(node);
+            container.GetComponents<Camera>().at(gltfNode["camera"].GetInt())->SetParent(node);
         } catch (std::exception&) {
             debugLog("Node " + node->Name() + " has no camera");
         }
         try {
             for (const auto& child : gltfNode["children"].GetArray()) {
-                container.nodes.at(child.GetInt())->SetParent(node);
-                std::cout << "Node parenting " << node->Name() << " -> " << container.nodes.at(child.GetInt())->Name() << std::endl;
+                container.GetComponents<Node>().at(child.GetInt())->SetParent(node);
+                std::cout << "Node parenting " << node->Name() << " -> " << container.GetComponents<Node>().at(child.GetInt())->Name() << std::endl;
             }
         } catch (std::exception&) {
             debugLog("Node " + node->Name() + " has no skeleton");
@@ -655,14 +654,28 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string& path)
         debugLog("Invalid file !");
         return sceneVector;
     }
-    GLTFContainer container;
-    container.nodes = ParseNodes(document);
-    container.cameras = ParseCameras(document);
-    container.accessors = ParseBufferAccessors(path, document);
-    container.materials = ParseMaterials(path, document);
-    container.meshes = ParseMeshes(document, container);
-    container.skins = ParseSkins(document, container);
-    container.animations = ParseAnimations(document, container);
+    AssetsContainer container;
+    for (const auto& node : ParseNodes(document)) {
+        container.AddComponent(node);
+    }
+    for (const auto& camera : ParseCameras(document)) {
+        container.AddComponent(camera);
+    }
+    for (const auto& accessor : ParseBufferAccessors(path, document)) {
+        container.AddComponent(accessor);
+    }
+    for (const auto& material : ParseMaterials(path, document)) {
+        container.AddComponent(material);
+    }
+    for (const auto& mesh : ParseMeshes(document, container)) {
+        container.AddComponent(mesh);
+    }
+    for (const auto& skin : ParseSkins(document, container)) {
+        container.AddComponent(skin);
+    }
+    for (const auto& animation : ParseAnimations(document, container)) {
+        container.AddComponent(animation);
+    }
     SetParenting(document, container);
     auto scenes(document["scenes"].GetArray());
     int sceneIndex = 0;
@@ -670,11 +683,12 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string& path)
         std::cout << "found scene" << std::endl;
         auto newScene(Scene::Create(std::to_string(sceneIndex)));
         for (const auto& node : scene["nodes"].GetArray()) {
-            newScene->AddRootNode(container.nodes.at(node.GetInt()));
-            std::cout << container.nodes.at(node.GetInt())->Name() << std::endl;
+            newScene->AddRootNode(container.GetComponents<Node>().at(node.GetInt()));
+            std::cout << container.GetComponents<Node>().at(node.GetInt())->Name() << std::endl;
         }
-        for (const auto& animation : container.animations) {
+        for (const auto& animation : container.GetComponents<Animation>()) {
             newScene->Add(animation);
+            std::cout << (animation ? animation->Name() : "nullptr") << std::endl;
             /*for (const auto channel : animation->GetChannels()) {
 				if (newScene->GetNode(channel.Target())) {
 					std::cout << "Found Node" << std::endl;

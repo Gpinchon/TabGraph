@@ -1,3 +1,9 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-06-18 13:31:08
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 18:25:53
+*/
 
 #include "Scene/Scene.hpp"
 #include "Animation/Animation.hpp"
@@ -105,7 +111,7 @@ void Scene::FixedUpdateCPU(float delta)
     Common::SetUp(Up());
     for (auto& animation : Animations()) {
         if (animation->Playing())
-            animation->Advance();
+            animation->FixedUpdateCPU(delta);
     }
     PhysicsUpdate(delta);
     //for (auto &node : RootNodes())
@@ -125,12 +131,12 @@ void NodesFixedUpdateGPU(std::shared_ptr<Node> rootNode, float delta)
 
 void Scene::FixedUpdateGPU(float delta)
 {
-    Common::SetUp(Up());
+    /*Common::SetUp(Up());
     for (auto& animation : Animations()) {
         if (animation->Playing())
             animation->Advance();
     }
-    PhysicsUpdate(delta);
+    PhysicsUpdate(delta);*/
     //for (auto &node : RootNodes())
     //  UpdateTransformMatrix(node);
     for (auto& node : RootNodes())

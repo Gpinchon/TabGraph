@@ -1,6 +1,12 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-06-18 13:31:08
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 17:47:34
+*/
 #pragma once
 
-#include "Object.hpp"
+#include "Component.hpp"
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <memory>
@@ -13,7 +19,7 @@ class BufferView;
 * A bufferView contains raw binary data.
 * An accessor provides a typed view into a bufferView or a subset of a bufferView.
 */
-class BufferAccessor : public Object {
+class BufferAccessor : public Component {
 public:
     enum Type {
         Invalid = -1,
@@ -70,7 +76,14 @@ protected:
     BufferAccessor() = delete;
 
 private:
-    std::shared_ptr<BufferView> _bufferView { nullptr };
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float /*delta*/) override {};
+    virtual void _FixedUpdateCPU(float /*delta*/) override {};
+    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     size_t _byteOffset { 0 };
     GLenum _componentType { 0 };
     bool _normalized { false };

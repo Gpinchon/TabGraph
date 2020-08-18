@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-12 13:58:35
+* @Last Modified time: 2020-08-18 18:17:49
 */
 
 #include "Mesh/Mesh.hpp"
@@ -242,10 +242,12 @@ int64_t Mesh::GetMaterialIndex(const std::string& name)
     return -1;
 }
 
-void Mesh::_UpdateGPU(float)
+void Mesh::_FixedUpdateGPU(float delta)
 {
-    if (_jointMatrices != nullptr)
-        _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU();
+    if (_jointMatrices != nullptr) {
+        _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU(delta);
+    }
+    SetNeedsFixedUpdateGPU(false);
 }
 
 void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
@@ -264,7 +266,7 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
             skinChanged = true;
         BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
     }
-    SetNeedsUpdateGPU(NeedsUpdateGPU() || skinChanged);
+    SetNeedsFixedUpdateGPU(NeedsFixedUpdateGPU() || skinChanged);
 }
 
 std::shared_ptr<BufferAccessor> Mesh::Weights() const
