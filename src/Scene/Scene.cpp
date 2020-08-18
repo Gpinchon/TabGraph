@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 23:07:18
+* @Last Modified time: 2020-08-18 23:59:31
 */
 
 #include "Scene/Scene.hpp"
@@ -12,8 +12,10 @@
 #include "Engine.hpp"
 #include "Light/Light.hpp"
 #include "Node.hpp"
+#include "Physics/PhysicsEngine.hpp"
 #include "Physics/RigidBody.hpp"
 #include "Transform.hpp"
+
 #include <SDL2/SDL_timer.h> // for SDL_GetTicks
 #include <algorithm>
 #include <iostream>
@@ -45,7 +47,9 @@ void Scene::AddRootNode(std::shared_ptr<Node> node)
 
 void Scene::Add(std::shared_ptr<RigidBody> rigidBody)
 {
-    _physicsEngine.AddRigidBody(rigidBody);
+    auto physicsEngine = GetComponent<PhysicsEngine>();
+    if (physicsEngine != nullptr)
+        physicsEngine->AddRigidBody(rigidBody);
 }
 
 void Scene::Add(std::shared_ptr<Node> node)
@@ -64,26 +68,9 @@ void Scene::Add(std::shared_ptr<Animation> animation)
     AddComponent(animation);
 }
 
-void Scene::_FixedUpdateCPU(float delta)
+void Scene::_FixedUpdateCPU(float /*delta*/)
 {
     Common::SetUp(Up());
-    PhysicsUpdate(delta);
-}
-
-void Scene::PhysicsUpdate(float delta)
-{
-    _physicsEngine.Simulate(delta);
-    _physicsEngine.CheckCollision();
-    /*for (auto &node : RootNodes())
-		NodesPhysicsUpdate(node);*/
-    /*static auto time(SDL_GetTicks());
-    time = SDL_GetTicks();
-    static auto lastTime(time);
-    _physicsEngine.Simulate((time - lastTime) / 1000.f);
-    lastTime = time;
-    _physicsEngine.CheckCollision();*/
-    //for (auto &node : RootNodes())
-    //	NodesCollisionCheck(node);
 }
 
 void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode)
@@ -130,6 +117,7 @@ std::shared_ptr<Scene> Scene::Current()
 void Scene::SetCurrent(std::shared_ptr<Scene> scene)
 {
     CurrentScene() = scene;
+    Common::SetUp(scene->Up());
 }
 
 std::shared_ptr<Camera> Scene::CurrentCamera() const

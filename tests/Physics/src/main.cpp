@@ -1,3 +1,9 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-08-09 19:53:58
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 23:42:56
+*/
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
 
@@ -14,6 +20,7 @@
 #include "Mesh/Mesh.hpp"
 #include "Mesh/PlaneMesh.hpp"
 #include "Mesh/SphereMesh.hpp"
+#include "Physics/PhysicsEngine.hpp"
 #include "Physics/RigidBody.hpp"
 #include "Render.hpp"
 #include "Scene/Scene.hpp"
@@ -75,7 +82,7 @@ void MouseWheelCallback(SDL_MouseWheelEvent* event)
     camera->SetFov(glm::clamp(camera->Fov(), 1.0f, 70.f));
 }
 
-void FullscreenCallback(SDL_KeyboardEvent*)
+void FullscreenCallback(const SDL_KeyboardEvent&)
 {
     if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u)) {
         static bool fullscreen = false;
@@ -84,16 +91,16 @@ void FullscreenCallback(SDL_KeyboardEvent*)
     }
 }
 
-void CallbackQuality(SDL_KeyboardEvent* event)
+void CallbackQuality(const SDL_KeyboardEvent& event)
 {
-    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
+    if ((event.type == SDL_KEYUP || (event.repeat != 0u)))
         return;
     Render::SetInternalQuality(CYCLE(Render::InternalQuality() + 0.25, 0.5, 1.5));
 }
 
-void CallbackAnimation(SDL_KeyboardEvent* event)
+void CallbackAnimation(const SDL_KeyboardEvent& event)
 {
-    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
+    if ((event.type == SDL_KEYUP || (event.repeat != 0u)))
         return;
     static auto currentAnimation(0);
     Scene::Current()->Animations().at(currentAnimation)->Stop();
@@ -103,7 +110,7 @@ void CallbackAnimation(SDL_KeyboardEvent* event)
     Scene::Current()->Animations().at(currentAnimation)->Play();
 }
 
-void ExitCallback(SDL_KeyboardEvent*)
+void ExitCallback(const SDL_KeyboardEvent&)
 {
     Engine::Stop();
 }
@@ -114,9 +121,9 @@ void ExitCallback(SDL_KeyboardEvent*)
 #include "Physics/BoundingPlane.hpp"
 #include "Physics/BoundingSphere.hpp"
 
-void ThrowBall(SDL_KeyboardEvent* event)
+void ThrowBall(const SDL_KeyboardEvent& event)
 {
-    if (event == nullptr || (event->type == SDL_KEYUP || (event->repeat != 0u)))
+    if ((event.type == SDL_KEYUP || (event.repeat != 0u)))
         return;
     auto camera = Scene::Current()->CurrentCamera();
     auto dir = camera->GetComponent<Transform>()->Forward();
@@ -138,11 +145,11 @@ void ThrowBall(SDL_KeyboardEvent* event)
 
 void SetupCallbacks()
 {
-    Keyboard::set_callback(SDL_SCANCODE_ESCAPE, ExitCallback);
-    Keyboard::set_callback(SDL_SCANCODE_RETURN, FullscreenCallback);
-    Keyboard::set_callback(SDL_SCANCODE_Q, CallbackQuality);
-    Keyboard::set_callback(SDL_SCANCODE_A, CallbackAnimation);
-    Keyboard::set_callback(SDL_SCANCODE_SPACE, ThrowBall);
+    Keyboard::AddKeyCallback(SDL_SCANCODE_ESCAPE, Callback<void(const SDL_KeyboardEvent&)>::Create(ExitCallback, std::placeholders::_1));
+    Keyboard::AddKeyCallback(SDL_SCANCODE_RETURN, Callback<void(const SDL_KeyboardEvent&)>::Create(FullscreenCallback, std::placeholders::_1));
+    Keyboard::AddKeyCallback(SDL_SCANCODE_Q, Callback<void(const SDL_KeyboardEvent&)>::Create(CallbackQuality, std::placeholders::_1));
+    Keyboard::AddKeyCallback(SDL_SCANCODE_A, Callback<void(const SDL_KeyboardEvent&)>::Create(CallbackAnimation, std::placeholders::_1));
+    Keyboard::AddKeyCallback(SDL_SCANCODE_SPACE, Callback<void(const SDL_KeyboardEvent&)>::Create(ThrowBall, std::placeholders::_1));
     //Mouse::set_relative(SDL_TRUE);
     Mouse::set_move_callback(MouseMoveCallback);
     Mouse::set_wheel_callback(MouseWheelCallback);
@@ -288,6 +295,7 @@ int main(int, char**)
     scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 0.5, false));
     scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
     scene->CurrentCamera()->GetComponent<Transform>()->SetPosition(glm::vec3 { 0, 5, 10 });
+    scene->AddComponent(PhysicsEngine::Create());
     CreateColliders(scene);
     Scene::SetCurrent(scene);
     SetupCallbacks();

@@ -2,13 +2,12 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 23:07:13
+* @Last Modified time: 2020-08-18 23:59:35
 */
 #pragma once
 
 #include "Common.hpp"
 #include "Component.hpp"
-#include "Physics/PhysicsEngine.hpp"
 
 #include <glm/vec3.hpp>
 #include <memory>
@@ -41,7 +40,6 @@ struct Scene : public Component {
     void Add(std::shared_ptr<Node>);
     void Add(std::shared_ptr<Animation>);
     void Add(std::shared_ptr<RigidBody>);
-    virtual void PhysicsUpdate(float delta);
     virtual void Render(const RenderMod&);
     virtual void RenderDepth(const RenderMod&);
     std::shared_ptr<AABB> GetLimits() const;
@@ -73,5 +71,4 @@ private:
     std::string _name;
     std::shared_ptr<Camera> _currentCamera { nullptr };
     std::shared_ptr<AABB> _aabb { nullptr };
-    PhysicsEngine _physicsEngine;
 };

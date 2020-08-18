@@ -1,9 +1,26 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-08-07 18:36:53
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 23:28:41
+*/
 #include "Physics/PhysicsEngine.hpp"
 #include "Node.hpp"
 #include "Physics/IntersectFunctions.hpp"
 #include "Physics/RigidBody.hpp"
 #include <algorithm>
 #include <glm/gtx/norm.hpp>
+
+std::shared_ptr<PhysicsEngine> PhysicsEngine::Create()
+{
+    return std::shared_ptr<PhysicsEngine>(new PhysicsEngine);
+}
+
+void PhysicsEngine::_FixedUpdateCPU(float step)
+{
+    Simulate(step);
+    CheckCollision();
+}
 
 void PhysicsEngine::AddRigidBody(const std::shared_ptr<RigidBody>& rigidBody)
 {
