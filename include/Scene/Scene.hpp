@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 20:07:07
+* @Last Modified time: 2020-08-18 23:07:13
 */
 #pragma once
 
@@ -49,8 +49,8 @@ struct Scene : public Component {
     std::shared_ptr<Node> GetNodeByName(const std::string&) const;
     std::shared_ptr<Light> GetLightByName(const std::string&) const;
     std::shared_ptr<Camera> GetCameraByName(const std::string&) const;
-    const std::vector<std::shared_ptr<Node>>& RootNodes();
-    const std::vector<std::shared_ptr<Node>>& Nodes();
+    const std::vector<std::shared_ptr<Node>> RootNodes() const;
+    const std::vector<std::shared_ptr<Node>> Nodes() const;
     const std::vector<std::shared_ptr<Light>> Lights() const;
     const std::vector<std::shared_ptr<Camera>> Cameras() const;
     const std::vector<std::shared_ptr<Animation>> Animations() const;
@@ -65,15 +65,12 @@ private:
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float delta);
-    virtual void _UpdateGPU(float delta);
-    virtual void _FixedUpdateCPU(float delta);
-    virtual void _FixedUpdateGPU(float delta);
-    void _AddNodeChildren(std::shared_ptr<Node> node);
+    virtual void _UpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float /*delta*/) override {};
+    virtual void _FixedUpdateCPU(float delta) override;
+    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     glm::vec3 _up { Common::Up() };
     std::string _name;
-    std::vector<std::shared_ptr<Node>> _rootNodes;
-    std::vector<std::shared_ptr<Node>> _nodes;
     std::shared_ptr<Camera> _currentCamera { nullptr };
     std::shared_ptr<AABB> _aabb { nullptr };
     PhysicsEngine _physicsEngine;

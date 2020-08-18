@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 20:57:52
+* @Last Modified time: 2020-08-18 23:07:18
 */
 
 #include "Scene/Scene.hpp"
@@ -38,27 +38,9 @@ void Scene::SetName(const std::string& name)
     _name = name;
 }
 
-void Scene::_AddNodeChildren(std::shared_ptr<Node> node)
-{
-    for (auto index(0u); index < node->ChildCount(); ++index) {
-        auto child(node->GetChild(index));
-        if (std::find(_nodes.begin(), _nodes.end(), child) == _nodes.end())
-            _nodes.push_back(child);
-        else
-            return;
-        if (auto camera = std::dynamic_pointer_cast<Camera>(child); camera != nullptr)
-            AddComponent(camera);
-        else if (auto light = std::dynamic_pointer_cast<Light>(child); light != nullptr)
-            AddComponent(light);
-        _AddNodeChildren(child);
-    }
-}
-
 void Scene::AddRootNode(std::shared_ptr<Node> node)
 {
-    _nodes.push_back(node);
-    _rootNodes.push_back(node);
-    _AddNodeChildren(node);
+    AddComponent(node);
 }
 
 void Scene::Add(std::shared_ptr<RigidBody> rigidBody)
@@ -70,11 +52,7 @@ void Scene::Add(std::shared_ptr<Node> node)
 {
     if (node == nullptr)
         return;
-    if (std::find(_nodes.begin(), _nodes.end(), node) == _nodes.end()) {
-        _nodes.push_back(node);
-        _rootNodes.push_back(node);
-    } else
-        return;
+    AddComponent(node);
     if (auto camera = std::dynamic_pointer_cast<Camera>(node); camera != nullptr)
         AddComponent(camera);
     else if (auto light = std::dynamic_pointer_cast<Light>(node); light != nullptr)
@@ -86,32 +64,10 @@ void Scene::Add(std::shared_ptr<Animation> animation)
     AddComponent(animation);
 }
 
-void NodesFixedUpdateCPU(std::shared_ptr<Node> rootNode, float delta)
-{
-    if (rootNode == nullptr)
-        return;
-    rootNode->FixedUpdateCPU(delta);
-}
-
 void Scene::_FixedUpdateCPU(float delta)
 {
     Common::SetUp(Up());
     PhysicsUpdate(delta);
-    for (auto& node : RootNodes())
-        NodesFixedUpdateCPU(node, delta);
-}
-
-void NodesFixedUpdateGPU(std::shared_ptr<Node> rootNode, float delta)
-{
-    if (rootNode == nullptr)
-        return;
-    rootNode->FixedUpdateGPU(delta);
-}
-
-void Scene::_FixedUpdateGPU(float delta)
-{
-    for (auto& node : RootNodes())
-        NodesFixedUpdateGPU(node, delta);
 }
 
 void Scene::PhysicsUpdate(float delta)
@@ -128,32 +84,6 @@ void Scene::PhysicsUpdate(float delta)
     _physicsEngine.CheckCollision();*/
     //for (auto &node : RootNodes())
     //	NodesCollisionCheck(node);
-}
-
-void NodesUpdateGPU(std::shared_ptr<Node> rootNode, float delta)
-{
-    if (rootNode == nullptr)
-        return;
-    rootNode->UpdateGPU(delta);
-}
-
-void Scene::_UpdateGPU(float delta)
-{
-    for (auto& node : RootNodes())
-        NodesUpdateGPU(node, delta);
-}
-
-void NodesUpdateCPU(std::shared_ptr<Node> rootNode, float delta)
-{
-    if (rootNode == nullptr)
-        return;
-    rootNode->UpdateCPU(delta);
-}
-
-void Scene::_UpdateCPU(float delta)
-{
-    for (auto& node : RootNodes())
-        NodesUpdateCPU(node, delta);
 }
 
 void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode)
@@ -243,7 +173,7 @@ std::shared_ptr<T> GetByPointer(std::shared_ptr<Node> node, const std::shared_pt
 
 std::shared_ptr<Node> Scene::GetNode(std::shared_ptr<Node> node) const
 {
-    for (const auto& object : _nodes) {
+    for (const auto& object : Nodes()) {
         auto result(GetByPointer(node, object));
         if (result != nullptr)
             return result;
@@ -253,7 +183,7 @@ std::shared_ptr<Node> Scene::GetNode(std::shared_ptr<Node> node) const
 
 std::shared_ptr<Node> Scene::GetNodeByName(const std::string& name) const
 {
-    for (const auto& object : _nodes) {
+    for (const auto& object : Nodes()) {
         auto result(GetByName(name, object));
         if (result != nullptr)
             return result;
@@ -281,14 +211,14 @@ std::shared_ptr<Camera> Scene::GetCameraByName(const std::string& name) const
     return nullptr;
 }
 
-const std::vector<std::shared_ptr<Node>>& Scene::RootNodes()
+const std::vector<std::shared_ptr<Node>> Scene::RootNodes() const
 {
-    return _rootNodes;
+    return GetComponents<Node>();
 }
 
-const std::vector<std::shared_ptr<Node>>& Scene::Nodes()
+const std::vector<std::shared_ptr<Node>> Scene::Nodes() const
 {
-    return _nodes;
+    return GetComponentsInChildren<Node>();
 }
 
 const std::vector<std::shared_ptr<Light>> Scene::Lights() const
