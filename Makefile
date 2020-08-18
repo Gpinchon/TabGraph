@@ -146,6 +146,7 @@ SRC_FILES		=	\
 					Animation/Animation.cpp \
 					Animation/AnimationInterpolator.cpp \
 					Animation/AnimationSampler.cpp \
+					Assets/AssetsParser.cpp \
 					Buffer/BufferAccessor.cpp \
 					Buffer/Buffer.cpp \
 					Buffer/BufferView.cpp \

@@ -1,15 +1,17 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 12:01:08
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 13:45:28
 */
 
 #pragma once
 
-#include <vector>
 #include <memory> // for shared_ptr
 #include <string> // for string
+#include <vector>
+
+#include "Assets/AssetsContainer.hpp"
 
 class Mesh;
 class Scene;
@@ -18,6 +20,6 @@ class Scene;
 ** .OBJ parsing interface
 */
 namespace OBJ {
-std::shared_ptr<Mesh> Parse(const std::string&, const std::string&);
+AssetsContainer Parse(const std::string& path);
 std::vector<std::shared_ptr<Scene>> ParseScene(const std::string&);
 };
