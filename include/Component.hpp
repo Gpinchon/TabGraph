@@ -80,10 +80,26 @@ public:
     }
     /** @return all components of the specified type attached to the object */
     template <typename T>
-    std::vector<std::shared_ptr<T>> GetComponents();
+    std::vector<std::shared_ptr<T>> GetComponents()
+    {
+        auto components = _components[typeid(T)];
+        std::vector<std::shared_ptr<T>> componentsCasted;
+        componentsCasted.reserve(components.size());
+        for (const auto& component : components)
+            componentsCasted.push_back(std::static_pointer_cast<T>(component));
+        return componentsCasted;
+    }
     /** @return all components of the specified type attached to the object */
     template <typename T>
-    std::vector<std::shared_ptr<T>> GetComponents() const;
+    std::vector<std::shared_ptr<T>> GetComponents() const
+    {
+        auto components = _components.at(typeid(T));
+        std::vector<std::shared_ptr<T>> componentsCasted;
+        componentsCasted.reserve(components.size());
+        for (const auto& component : components)
+            componentsCasted.push_back(std::static_pointer_cast<T>(component));
+        return componentsCasted;
+    }
     virtual bool NeedsUpdateGPU() const final { return _needsUpdateGPU; };
     virtual void SetNeedsUpdateGPU(bool changed) final { _needsUpdateGPU = changed; };
     virtual bool NeedsUpdateCPU() const final { return _needsUpdateCPU; };

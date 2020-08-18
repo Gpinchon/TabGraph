@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-17 14:43:37
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-17 14:44:35
+* @Last Modified time: 2020-08-18 13:33:37
 */
 /*
 * @Author: gpi
@@ -12,12 +12,12 @@
 */
 
 #include "Parser/OBJ.hpp"
+#include "Assets/AssetsParser.hpp" // for MeshParser
 #include "Buffer/BufferHelper.hpp"
 #include "Engine.hpp" // for M_PI
 #include "Material.hpp" // for Material
 #include "Mesh/Geometry.hpp" // for Geometry, CVEC4
 #include "Mesh/Mesh.hpp" // for Mesh
-#include "Mesh/MeshParser.hpp" // for MeshParser
 #include "Parser/InternalTools.hpp" // for count_char, split_...
 #include "Parser/MTLLIB.hpp" // for parse
 #include "Physics/BoundingAABB.hpp" // for BoundingAABB
@@ -44,7 +44,7 @@
 #endif // for access, R_OK
 
 //Add this parser to MeshParser !
-auto __objParser = MeshParser::Add("obj", OBJ::Parse);
+auto __objParser = AssetsParser::Add("obj", OBJ::Parse);
 auto __objSceneParser = SceneParser::Add("obj", OBJ::ParseScene);
 
 struct ObjContainer {
@@ -342,7 +342,7 @@ static void parse_line(ObjContainer& p, const char* line)
     }
 }
 
-static void start_obj_parsing(ObjContainer& p, const std::string& name, const std::string& path)
+static void start_obj_parsing(ObjContainer& p, const std::string& path)
 {
     char line[4096];
 
@@ -353,7 +353,7 @@ static void start_obj_parsing(ObjContainer& p, const std::string& name, const st
     if (fd == nullptr) {
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
-    p.mesh = Mesh::Create(name);
+    p.mesh = Mesh::Create(path);
     auto l = 1;
     while (fgets(line, 4096, fd) != nullptr) {
         try {
@@ -376,25 +376,29 @@ static void start_obj_parsing(ObjContainer& p, const std::string& name, const st
     */
 }
 
-std::shared_ptr<Mesh> OBJ::Parse(const std::string& name, const std::string& path)
+AssetsContainer OBJ::Parse(const std::string& path)
 {
     ObjContainer p;
+    AssetsContainer container;
 
     p.path = path;
     try {
-        start_obj_parsing(p, name, path);
+        start_obj_parsing(p, path);
     } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Error parsing ") + name + " :\n" + e.what());
+        throw std::runtime_error(std::string("Error parsing ") + path + " :\n" + e.what());
     }
-    return (p.mesh);
+    container.AddComponent(p.mesh);
+    return (container);
 }
 
 std::vector<std::shared_ptr<Scene>> OBJ::ParseScene(const std::string& path)
 {
     auto scene(Scene::Create(path));
-    auto mesh(OBJ::Parse(path, path));
+    auto container(OBJ::Parse(path));
     auto node(Node::Create(path + "_node"));
-    node->SetComponent(mesh);
+    for (const auto& mesh : container.GetComponents<Mesh>()) {
+        node->AddComponent(mesh);
+    }
     scene->AddRootNode(node);
     std::vector<std::shared_ptr<Scene>> v;
     v.push_back(scene);
