@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 18:25:53
+* @Last Modified time: 2020-08-18 20:12:34
 */
 
 #include "Scene/Scene.hpp"
@@ -47,9 +47,9 @@ void Scene::_AddNodeChildren(std::shared_ptr<Node> node)
         else
             return;
         if (auto camera = std::dynamic_pointer_cast<Camera>(child); camera != nullptr)
-            _cameras.push_back(camera);
+            AddComponent(camera);
         else if (auto light = std::dynamic_pointer_cast<Light>(child); light != nullptr)
-            _lights.push_back(light);
+            AddComponent(light);
         _AddNodeChildren(child);
     }
 }
@@ -76,16 +76,14 @@ void Scene::Add(std::shared_ptr<Node> node)
     } else
         return;
     if (auto camera = std::dynamic_pointer_cast<Camera>(node); camera != nullptr)
-        _cameras.push_back(camera);
+        AddComponent(camera);
     else if (auto light = std::dynamic_pointer_cast<Light>(node); light != nullptr)
-        _lights.push_back(light);
+        AddComponent(light);
 }
 
 void Scene::Add(std::shared_ptr<Animation> animation)
 {
-    if (animation == nullptr)
-        return;
-    _animations.push_back(animation);
+    AddComponent(animation);
 }
 
 //void UpdateTransformMatrix(std::shared_ptr<Node> rootNode)
@@ -106,13 +104,12 @@ void NodesFixedUpdateCPU(std::shared_ptr<Node> rootNode, float delta)
         NodesFixedUpdateCPU(rootNode->GetChild(index), delta);
 }
 
-void Scene::FixedUpdateCPU(float delta)
+void Scene::_FixedUpdateCPU(float delta)
 {
     Common::SetUp(Up());
-    for (auto& animation : Animations()) {
-        if (animation->Playing())
-            animation->FixedUpdateCPU(delta);
-    }
+    /*for (auto& animation : Animations()) {
+        animation->FixedUpdateCPU(delta);
+    }*/
     PhysicsUpdate(delta);
     //for (auto &node : RootNodes())
     //	UpdateTransformMatrix(node);
@@ -129,7 +126,7 @@ void NodesFixedUpdateGPU(std::shared_ptr<Node> rootNode, float delta)
         NodesFixedUpdateGPU(rootNode->GetChild(index), delta);
 }
 
-void Scene::FixedUpdateGPU(float delta)
+void Scene::_FixedUpdateGPU(float delta)
 {
     /*Common::SetUp(Up());
     for (auto& animation : Animations()) {
@@ -170,7 +167,7 @@ void NodesUpdateGPU(std::shared_ptr<Node> rootNode, float delta)
     //    NodesUpdateGPU(child);
 }
 
-void Scene::UpdateGPU(float delta)
+void Scene::_UpdateGPU(float delta)
 {
     for (auto& node : RootNodes())
         NodesUpdateGPU(node, delta);
@@ -185,7 +182,7 @@ void NodesUpdateCPU(std::shared_ptr<Node> rootNode, float delta)
         NodesUpdateCPU(rootNode->GetChild(index), delta);
 }
 
-void Scene::UpdateCPU(float delta)
+void Scene::_UpdateCPU(float delta)
 {
     for (auto& node : RootNodes())
         NodesUpdateCPU(node, delta);
@@ -244,7 +241,8 @@ std::shared_ptr<Camera> Scene::CurrentCamera() const
 
 void Scene::SetCurrentCamera(std::shared_ptr<Camera> camera)
 {
-    if (std::find(_cameras.begin(), _cameras.end(), camera) == _cameras.end())
+    auto cameras = Cameras();
+    if (std::find(cameras.begin(), cameras.end(), camera) == cameras.end())
         Add(camera);
     _currentCamera = camera;
 }
@@ -297,7 +295,7 @@ std::shared_ptr<Node> Scene::GetNodeByName(const std::string& name) const
 
 std::shared_ptr<Light> Scene::GetLightByName(const std::string& name) const
 {
-    for (const auto& object : _lights) {
+    for (const auto& object : Lights()) {
         auto result(GetByName(name, object));
         if (result != nullptr)
             return result;
@@ -307,7 +305,7 @@ std::shared_ptr<Light> Scene::GetLightByName(const std::string& name) const
 
 std::shared_ptr<Camera> Scene::GetCameraByName(const std::string& name) const
 {
-    for (const auto& object : _cameras) {
+    for (const auto& object : Cameras()) {
         auto result(GetByName(name, object));
         if (result != nullptr)
             return result;
@@ -325,19 +323,19 @@ const std::vector<std::shared_ptr<Node>>& Scene::Nodes()
     return _nodes;
 }
 
-const std::vector<std::shared_ptr<Light>>& Scene::Lights()
+const std::vector<std::shared_ptr<Light>> Scene::Lights() const
 {
-    return _lights;
+    return GetComponents<Light>();
 }
 
-const std::vector<std::shared_ptr<Camera>>& Scene::Cameras()
+const std::vector<std::shared_ptr<Camera>> Scene::Cameras() const
 {
-    return _cameras;
+    return GetComponents<Camera>();
 }
 
-const std::vector<std::shared_ptr<Animation>>& Scene::Animations()
+const std::vector<std::shared_ptr<Animation>> Scene::Animations() const
 {
-    return _animations;
+    return GetComponents<Animation>();
 }
 
 glm::vec3 Scene::Up() const
