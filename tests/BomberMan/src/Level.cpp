@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-08 20:11:05
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-17 14:00:27
+* @Last Modified time: 2020-08-18 22:10:31
 */
 
 #include "Camera/OrbitCamera.hpp"
@@ -141,9 +141,9 @@ std::shared_ptr<GameEntity> Level::GetGameEntity(glm::ivec2 position) const
     return _entities.at(position.x + position.y * Size().x);
 }
 
-void Level::FixedUpdateCPU(float delta)
+void Level::_FixedUpdateCPU(float delta)
 {
-    Scene::FixedUpdateCPU(delta);
+    //Scene::FixedUpdateCPU(delta);
     for (const auto& entity : _entities) {
         if (entity != nullptr)
             entity->FixedUpdateCPU(delta);
