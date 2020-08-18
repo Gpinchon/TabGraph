@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-17 13:45:24
+* @Last Modified time: 2020-08-18 20:59:20
 */
 
 #include "Node.hpp"
@@ -80,17 +80,15 @@ void Node::AddChild(std::shared_ptr<Node> childNode)
         debugLog(childNode->Name() + " is already a child of " + Name());
         return;
     }
-    _children.push_back(childNode);
+    AddComponent(childNode);
 }
 
 void Node::RemoveChild(std::shared_ptr<Node> child)
 {
     if (child == nullptr)
         return;
-    auto it = std::find(_children.begin(), _children.end(), child);
-    if (it != _children.end()) {
-        auto child(*it);
-        _children.erase(it);
+    if (HasChild(child)) {
+        RemoveComponent(child);
         child->SetParent(nullptr);
         child->GetComponent<Transform>()->SetParent(nullptr);
     }

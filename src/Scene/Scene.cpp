@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 20:12:34
+* @Last Modified time: 2020-08-18 20:57:52
 */
 
 #include "Scene/Scene.hpp"
@@ -86,33 +86,17 @@ void Scene::Add(std::shared_ptr<Animation> animation)
     AddComponent(animation);
 }
 
-//void UpdateTransformMatrix(std::shared_ptr<Node> rootNode)
-//{
-//	if (rootNode == nullptr)
-//        return;
-//    rootNode->UpdateTransformMatrix();
-//    for (const auto &child : Nodes())
-//        UpdateTransformMatrix(child);
-//}
-//
 void NodesFixedUpdateCPU(std::shared_ptr<Node> rootNode, float delta)
 {
     if (rootNode == nullptr)
         return;
     rootNode->FixedUpdateCPU(delta);
-    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
-        NodesFixedUpdateCPU(rootNode->GetChild(index), delta);
 }
 
 void Scene::_FixedUpdateCPU(float delta)
 {
     Common::SetUp(Up());
-    /*for (auto& animation : Animations()) {
-        animation->FixedUpdateCPU(delta);
-    }*/
     PhysicsUpdate(delta);
-    //for (auto &node : RootNodes())
-    //	UpdateTransformMatrix(node);
     for (auto& node : RootNodes())
         NodesFixedUpdateCPU(node, delta);
 }
@@ -122,20 +106,10 @@ void NodesFixedUpdateGPU(std::shared_ptr<Node> rootNode, float delta)
     if (rootNode == nullptr)
         return;
     rootNode->FixedUpdateGPU(delta);
-    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
-        NodesFixedUpdateGPU(rootNode->GetChild(index), delta);
 }
 
 void Scene::_FixedUpdateGPU(float delta)
 {
-    /*Common::SetUp(Up());
-    for (auto& animation : Animations()) {
-        if (animation->Playing())
-            animation->Advance();
-    }
-    PhysicsUpdate(delta);*/
-    //for (auto &node : RootNodes())
-    //  UpdateTransformMatrix(node);
     for (auto& node : RootNodes())
         NodesFixedUpdateGPU(node, delta);
 }
@@ -161,10 +135,6 @@ void NodesUpdateGPU(std::shared_ptr<Node> rootNode, float delta)
     if (rootNode == nullptr)
         return;
     rootNode->UpdateGPU(delta);
-    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
-        NodesUpdateGPU(rootNode->GetChild(index), delta);
-    //for (const auto &child : Nodes())
-    //    NodesUpdateGPU(child);
 }
 
 void Scene::_UpdateGPU(float delta)
@@ -178,8 +148,6 @@ void NodesUpdateCPU(std::shared_ptr<Node> rootNode, float delta)
     if (rootNode == nullptr)
         return;
     rootNode->UpdateCPU(delta);
-    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
-        NodesUpdateCPU(rootNode->GetChild(index), delta);
 }
 
 void Scene::_UpdateCPU(float delta)
