@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 18:17:49
+* @Last Modified time: 2020-08-18 21:52:51
 */
 
 #include "Mesh/Mesh.hpp"
@@ -59,16 +59,16 @@ void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
     _Geometrys.insert(group);
 }
 
-void Mesh::Load()
+void Mesh::_LoadGPU()
 {
-    if (_loaded)
+    if (LoadedGPU())
         return;
     debugLog(Name());
     for (auto vg : _Geometrys)
-        vg->Load();
+        vg->LoadGPU();
     if (_jointMatrices != nullptr)
         _jointMatrices->load();
-    _loaded = true;
+    SetLoadedGPU(false);
 }
 
 bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
@@ -81,7 +81,7 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
-    Load();
+    LoadGPU();
     std::shared_ptr<Shader> last_shader;
     for (auto vg : _Geometrys) {
         if (nullptr == vg)
@@ -131,9 +131,7 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, RenderMod mod)
     auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
-    //auto geometryTransform()
-
-    Load();
+    LoadGPU();
     std::shared_ptr<Shader> last_shader;
     for (auto vg : _Geometrys) {
         if (nullptr == vg)

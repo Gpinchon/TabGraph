@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 20:59:20
+* @Last Modified time: 2020-08-18 23:10:12
 */
 
 #include "Node.hpp"
@@ -55,12 +55,6 @@ bool Node::DrawDepth(RenderMod renderMod)
 bool Node::Drawable() const
 {
     return GetComponent<Mesh>() != nullptr;
-}
-
-void Node::Load()
-{
-    if (GetComponent<Mesh>() != nullptr)
-        GetComponent<Mesh>()->Load();
 }
 
 void Node::_FixedUpdateCPU(float)

@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 20:57:57
+* @Last Modified time: 2020-08-18 23:10:06
 */
 
 #pragma once
@@ -34,19 +34,13 @@ public:
     virtual bool Draw(RenderMod = RenderMod::RenderAll);
     virtual bool DrawDepth(RenderMod = RenderMod::RenderAll);
     virtual bool Drawable() const;
-    virtual void Load();
-    //virtual void FixedUpdate();
 
     /** @return the Node's parent */
     std::shared_ptr<Node> Parent() const { return _parent.lock(); };
     /** sets the parent to parent and calls AddChild in parent */
     void SetParent(std::shared_ptr<Node> parent);
     /** @return true if @arg child is in children list */
-    bool HasChild(std::shared_ptr<Node> child)
-    {
-        auto children = GetComponents<Node>();
-        return std::find(children.begin(), children.end(), child) != children.end();
-    };
+    bool HasChild(std::shared_ptr<Node> child) { return HasComponentOfType(child); };
     /** @return the number of children */
     size_t ChildCount() const { return GetComponents<Node>().size(); };
     /** @return the child at @arg index */

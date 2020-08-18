@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 18:17:29
+* @Last Modified time: 2020-08-18 21:51:55
 */
 
 #pragma once
@@ -28,7 +28,6 @@ public:
     static std::shared_ptr<Mesh> Create(std::shared_ptr<Mesh> otherMesh);
     static std::shared_ptr<Mesh> Create(const std::string&);
     static std::shared_ptr<Mesh> Create();
-    void Load();
     bool Draw(const std::shared_ptr<Transform>& transform, RenderMod mod = RenderMod::RenderAll);
     bool DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod = RenderMod::RenderAll);
     bool Drawable() const;
@@ -61,7 +60,7 @@ protected:
 private:
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
+    virtual void _LoadGPU() override;
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
     virtual void _UpdateGPU(float /*delta*/) override {};
@@ -72,5 +71,4 @@ private:
     std::shared_ptr<TextureBuffer> _jointMatrices { nullptr };
     std::shared_ptr<BufferAccessor> _weights { nullptr };
     GLenum _cull_mod { GL_BACK };
-    bool _loaded { false };
 };
