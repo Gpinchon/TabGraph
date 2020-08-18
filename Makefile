@@ -85,7 +85,6 @@ HEADERS_FILES	=	\
 					Mesh/CubeMesh.hpp \
 					Mesh/Geometry.hpp \
 					Mesh/Mesh.hpp \
-					Mesh/MeshParser.hpp \
 					Mesh/MeshSkin.hpp \
 					Mesh/PlaneMesh.hpp \
 					Mesh/SphereMesh.hpp \
@@ -171,7 +170,6 @@ SRC_FILES		=	\
 					Mesh/CubeMesh.cpp \
 					Mesh/Geometry.cpp \
 					Mesh/Mesh.cpp \
-					Mesh/MeshParser.cpp \
 					Mesh/MeshSkin.cpp \
 					Mesh/PlaneMesh.cpp \
 					Mesh/SphereMesh.cpp \
