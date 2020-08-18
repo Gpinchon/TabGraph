@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-17 14:43:37
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 13:33:37
+* @Last Modified time: 2020-08-18 14:24:15
 */
 /*
 * @Author: gpi
@@ -12,7 +12,7 @@
 */
 
 #include "Parser/OBJ.hpp"
-#include "Assets/AssetsParser.hpp" // for MeshParser
+#include "Assets/AssetsParser.hpp"
 #include "Buffer/BufferHelper.hpp"
 #include "Engine.hpp" // for M_PI
 #include "Material.hpp" // for Material
@@ -43,7 +43,6 @@
 #include <sys/io.h>
 #endif // for access, R_OK
 
-//Add this parser to MeshParser !
 auto __objParser = AssetsParser::Add("obj", OBJ::Parse);
 auto __objSceneParser = SceneParser::Add("obj", OBJ::ParseScene);
 
