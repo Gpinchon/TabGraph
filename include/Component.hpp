@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-08 13:30:04
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 19:47:20
+* @Last Modified time: 2020-08-18 22:49:23
 */
 
 #pragma once
@@ -21,6 +21,32 @@ public:
         : Object(name) {};
     ~Component() = default;
     ComponentMap Components() const;
+    /**
+     * @brief Searches for the component of the specified type
+     * @return true if component is found
+     */
+    template <typename T>
+    bool HasComponentOfType(const std::shared_ptr<T>& component) const
+    {
+        auto componentsIt = _components.find(typeid(T));
+        if (componentsIt != _components.end()) {
+            auto& components = componentsIt->second;
+            return std::find(components.begin(), components.end(), component) != components.end();
+        }
+        return false;
+    }
+    /**
+     * @brief Searches for the component in all types
+     * @return true if component is found
+     */
+    bool HasComponent(const std::shared_ptr<Component>& component) const
+    {
+        for (const auto& components : _components) {
+            if (std::find(components.second.begin(), components.second.end(), component) != components.second.end())
+                return true;
+        }
+        return false;
+    }
     /** Attaches the specified component to the object */
     template <typename T>
     void AddComponent(const std::shared_ptr<T>& component)
@@ -36,22 +62,20 @@ public:
     template <typename T>
     void SetComponent(const std::shared_ptr<T>& component)
     {
-        if (component == nullptr) {
-            RemoveComponent(component);
-        } else {
-            auto& components = _components[typeid(T)];
-            if (components.empty())
-                AddComponent(component);
-            else
-                components.at(0) = component;
-            //auto componentIterator = std::find(components.begin(), components.end(), component);
-        }
+        if (component == nullptr)
+            return;
+        auto& components = _components[typeid(T)];
+        if (components.empty())
+            AddComponent(component);
+        else
+            components.at(0) = component;
+        //auto componentIterator = std::find(components.begin(), components.end(), component);
     }
     /** Removes all the components of specified type from the object */
     template <typename T>
     void RemoveComponents()
     {
-        _components[typeid(T)].clear();
+        _components.erase(typeid(T));
     }
     /** Removes the specified component from the object */
     template <typename T>
@@ -62,33 +86,29 @@ public:
     }
     /** @return the first component of the specified type attached to the object, null if not found */
     template <typename T>
-    std::shared_ptr<T> GetComponent()
-    {
-        auto& components = _components[typeid(T)];
-        if (components.empty())
-            return nullptr;
-        return std::static_pointer_cast<T>(components.at(0));
-    }
-    /** @return the first component of the specified type attached to the object, null if not found */
-    template <typename T>
     std::shared_ptr<T> GetComponent() const
     {
-        if (_components.find(typeid(T)) != _components.end()) {
-            auto& components = _components.at(typeid(T));
+        auto componentsIt = _components.find(typeid(T));
+        if (componentsIt != _components.end()) {
+            auto& components = componentsIt->second;
             if (!components.empty())
                 return std::static_pointer_cast<T>(components.at(0));
         }
         return nullptr;
     }
-    /** @return all components of the specified type attached to the object */
+    /** @return all components of the specified type attached to the object and it's children */
     template <typename T>
-    std::vector<std::shared_ptr<T>> GetComponents()
+    std::vector<std::shared_ptr<T>> GetComponentsInChildren() const
     {
-        auto& components = _components[typeid(T)];
         std::vector<std::shared_ptr<T>> componentsCasted;
-        componentsCasted.reserve(components.size());
-        for (const auto& component : components)
-            componentsCasted.push_back(std::static_pointer_cast<T>(component));
+        if (_components.find(typeid(T)) != _components.end()) {
+            auto& components = _components.at(typeid(T));
+            componentsCasted.reserve(components.size());
+            for (const auto& component : components)
+                componentsCasted.push_back(std::static_pointer_cast<T>(component));
+            auto childComponents = GetComponentsInChildren<T>();
+            componentsCasted.insert(componentsCasted.begin(), childComponents.begin(), childComponents.end());
+        }
         return componentsCasted;
     }
     /** @return all components of the specified type attached to the object */
@@ -103,6 +123,15 @@ public:
                 componentsCasted.push_back(std::static_pointer_cast<T>(component));
         }
         return componentsCasted;
+    }
+    std::vector<std::type_index> GetComponentsTypes() const
+    {
+        std::vector<std::type_index> types;
+        types.reserve(_components.size());
+        for (const auto& components : _components) {
+            types.push_back(components.first);
+        }
+        return types;
     }
     virtual bool NeedsFixedUpdateGPU() const final { return _needsFixedUpdateGPU; };
     virtual void SetNeedsFixedUpdateGPU(bool changed) final { _needsFixedUpdateGPU = changed; };
