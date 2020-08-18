@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-10-08 13:59:15
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 21:50:39
 */
 
 #pragma once
@@ -74,9 +74,7 @@ public:
     T GetVertex(const Geometry::AccessorKey key, const size_t index) const;
     uint32_t MaterialIndex();
     void SetMaterialIndex(uint32_t);
-    void Load();
     bool Draw();
-    bool IsLoaded() const;
     /** @return : The accessor corresponding to the key */
     std::shared_ptr<BufferAccessor> Accessor(const Geometry::AccessorKey key) const;
     /** Sets the accessor corresponding to the key */
@@ -99,13 +97,12 @@ protected:
 private:
     virtual void _LoadCPU() {};
     virtual void _UnloadCPU() {};
-    virtual void _LoadGPU() {};
+    virtual void _LoadGPU();
     virtual void _UnloadGPU() {};
     virtual void _UpdateCPU(float) {};
     virtual void _UpdateGPU(float) {};
     virtual void _FixedUpdateCPU(float) {};
     virtual void _FixedUpdateGPU(float) {};
-    bool _isLoaded { false };
     glm::vec3 _centroid { 0 };
     std::shared_ptr<BoundingAABB> _bounds;
     GLenum _drawingMode { GL_TRIANGLES };

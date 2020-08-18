@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 15:39:25
+* @Last Modified time: 2020-08-18 21:53:25
 */
 
 #include "Mesh/Geometry.hpp"
@@ -77,9 +77,9 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
         throw std::runtime_error("Error while binding Accessor " + accessor->Name() + " at " + std::to_string(index));
 }
 
-void Geometry::Load()
+void Geometry::_LoadGPU()
 {
-    if (IsLoaded())
+    if (LoadedGPU())
         return;
     debugLog(Name());
     for (auto accessor : _accessors) {
@@ -101,17 +101,12 @@ void Geometry::Load()
     BindAccessor(Accessor(Geometry::AccessorKey::Joints_0), 6);
     BindAccessor(Accessor(Geometry::AccessorKey::Weights_0), 7);
     glBindVertexArray(0);
-    _isLoaded = true;
-}
-
-bool Geometry::IsLoaded() const
-{
-    return _isLoaded;
+    SetLoadedGPU(true);
 }
 
 bool Geometry::Draw()
 {
-    Load();
+    LoadGPU();
     glBindVertexArray(_vaoGlid);
     if (Indices() != nullptr) {
         auto bufferView(Indices()->GetBufferView());
