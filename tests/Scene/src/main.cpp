@@ -1,3 +1,9 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-08-09 19:54:03
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-18 17:24:59
+*/
 #define USE_HIGH_PERFORMANCE_GPU
 #include "Animation/Animation.hpp"
 #include "Callback.hpp"
@@ -87,7 +93,7 @@ void CallbackQuality(const SDL_KeyboardEvent& event)
 
 void CallbackAnimation(const SDL_KeyboardEvent& event)
 {
-    if (event.type == SDL_KEYUP || !event.repeat != 0u || Scene::Current()->Animations().empty())
+    if (event.type == SDL_KEYUP || (event.repeat != 0u) || Scene::Current()->Animations().empty())
         return;
     static auto currentAnimation(0);
     Scene::Current()->Animations().at(currentAnimation)->Stop();
