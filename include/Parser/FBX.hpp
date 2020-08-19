@@ -1,19 +1,20 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-08-06 11:33:02
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-19 17:40:19
 */
 
 #pragma once
 
+#include "Assets/AssetsContainer.hpp"
+
 #include <memory>
-#include <vector>
 #include <string> // for string
+#include <vector>
 
 class Scene;
 
-namespace FBX
-{
-std::vector<std::shared_ptr<Scene>> Parse(const std::string &path);
+namespace FBX {
+AssetsContainer Parse(const std::string& path);
 };

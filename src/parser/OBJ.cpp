@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-17 14:43:37
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 14:24:15
+* @Last Modified time: 2020-08-19 21:09:26
 */
 /*
 * @Author: gpi
@@ -23,7 +23,6 @@
 #include "Physics/BoundingAABB.hpp" // for BoundingAABB
 #include "Physics/BoundingElement.hpp" // for BoundingElement
 #include "Scene/Scene.hpp"
-#include "Scene/SceneParser.hpp"
 #include "Tools.hpp"
 #include <algorithm> // for max, min
 #include <bits/exception.h> // for exception
@@ -44,7 +43,6 @@
 #endif // for access, R_OK
 
 auto __objParser = AssetsParser::Add("obj", OBJ::Parse);
-auto __objSceneParser = SceneParser::Add("obj", OBJ::ParseScene);
 
 struct ObjContainer {
     std::shared_ptr<Mesh> mesh;
@@ -387,10 +385,17 @@ AssetsContainer OBJ::Parse(const std::string& path)
         throw std::runtime_error(std::string("Error parsing ") + path + " :\n" + e.what());
     }
     container.AddComponent(p.mesh);
+    auto scene(Scene::Create(path));
+    auto node(Node::Create(path + "_node"));
+    for (const auto& mesh : container.GetComponents<Mesh>()) {
+        node->AddComponent(mesh);
+    }
+    scene->AddRootNode(node);
+    container.AddComponent(scene);
     return (container);
 }
 
-std::vector<std::shared_ptr<Scene>> OBJ::ParseScene(const std::string& path)
+/*std::vector<std::shared_ptr<Scene>> OBJ::ParseScene(const std::string& path)
 {
     auto scene(Scene::Create(path));
     auto container(OBJ::Parse(path));
@@ -402,4 +407,4 @@ std::vector<std::shared_ptr<Scene>> OBJ::ParseScene(const std::string& path)
     std::vector<std::shared_ptr<Scene>> v;
     v.push_back(scene);
     return v;
-}
+}*/

@@ -1,27 +1,27 @@
 /*
- * @Author: gpi
- * @Date:   2019-02-22 16:13:28
- * @Last Modified by:   gpinchon
- * @Last Modified time: 2020-05-17 21:07:44
- */
+* @Author: gpinchon
+* @Date:   2020-06-18 13:31:08
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-19 20:27:11
+*/
 
 #include "Parser/FBX.hpp"
+#include "Assets/AssetsParser.hpp"
+#include "Material.hpp"
+#include "Mesh/Geometry.hpp"
+#include "Mesh/Mesh.hpp"
 #include "Parser/FBX/FBXDocument.hpp"
 #include "Parser/FBX/FBXNode.hpp"
 #include "Parser/FBX/FBXObject.hpp"
 #include "Parser/FBX/FBXProperty.hpp"
-#include "Material.hpp"
-#include "Mesh/Mesh.hpp"
 #include "Scene/Scene.hpp"
-#include "Scene/SceneParser.hpp"
-#include "Mesh/Geometry.hpp"
 #include "Transform.hpp"
 #include <glm/glm.hpp>
 #include <iostream>
 #include <memory>
 
 //Add this parser to SceneParser !
-auto __fbxParser = SceneParser::Add("fbx", FBX::Parse);
+auto __fbxParser = AssetsParser::Add("fbx", FBX::Parse);
 
 /*static inline std::vector<glm::vec2> parseUV(FBX::Node *layerElementUV)
 {
@@ -295,12 +295,10 @@ static inline auto parseMeshes(FBX::Document *document)
     return meshMap;
 }
 */
-std::vector<std::shared_ptr<Scene>> FBX::Parse(const std::string &path)
+AssetsContainer FBX::Parse(const std::string& /*path*/)
 {
-    auto scene(Scene::Create(path));
-    std::vector<std::shared_ptr<Scene>> v;
-    v.push_back(scene);
-    return v;
+    AssetsContainer container;
+    return container;
     /*auto document(FBX::Document::Parse(path));
     document->Print();
     auto scene(Scene::Create(path));

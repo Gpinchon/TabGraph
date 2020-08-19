@@ -1,3 +1,9 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-08-18 12:54:57
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-08-19 21:06:41
+*/
 #pragma once
 
 #include <map>
@@ -13,7 +19,7 @@ typedef AssetsContainer (*AssetsParsingFunction)(const std::string& path);
 class AssetsParser {
 public:
     static AssetsParser* Add(const std::string& format, AssetsParsingFunction);
-    static AssetsContainer parse(const std::string& path);
+    static AssetsContainer Parse(const std::string& path);
 
 private:
     AssetsParser() = delete;

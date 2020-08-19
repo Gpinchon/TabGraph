@@ -2,11 +2,11 @@
 * @Author: gpinchon
 * @Date:   2019-08-10 11:52:02
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 14:25:00
+* @Last Modified time: 2020-08-19 20:33:32
 */
 
 #include "Parser/FBX/FBXDocument.hpp"
-#include "Parser/FBX.hpp"
+//#include "Parser/FBX.hpp"
 #include "Parser/FBX/FBXNode.hpp"
 #include "Parser/FBX/FBXProperty.hpp"
 #include <errno.h> // for errno

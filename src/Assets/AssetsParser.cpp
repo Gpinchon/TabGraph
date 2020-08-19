@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-18 13:46:27
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 13:49:52
+* @Last Modified time: 2020-08-19 21:13:58
 */
 
 #include "Assets/AssetsParser.hpp" // for AssetsParser, AssetsParsingFunction
@@ -34,7 +34,7 @@ std::map<std::string, AssetsParser*>& AssetsParser::_getParsers()
     return *_parsers;
 }
 
-AssetsContainer AssetsParser::parse(const std::string& path)
+AssetsContainer AssetsParser::Parse(const std::string& path)
 {
     auto format = path.substr(path.find_last_of(".") + 1);
     debugLog(path);

@@ -2,13 +2,14 @@
 * @Author: gpinchon
 * @Date:   2020-08-07 18:36:53
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 16:18:31
+* @Last Modified time: 2020-08-19 17:15:22
 */
 
 #include "Parser/GLTF.hpp"
 #include "Animation/Animation.hpp"
 #include "Animation/AnimationSampler.hpp"
 #include "Assets/AssetsContainer.hpp"
+#include "Assets/AssetsParser.hpp"
 #include "Buffer/Buffer.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Buffer/BufferView.hpp"
@@ -20,7 +21,6 @@
 #include "Mesh/MeshSkin.hpp"
 #include "Parser/InternalTools.hpp"
 #include "Scene/Scene.hpp"
-#include "Scene/SceneParser.hpp"
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureParser.hpp"
 #include "Transform.hpp"
@@ -39,7 +39,7 @@
     };
 #include "rapidjson/document.h"
 
-auto __gltfParser = SceneParser::Add("gltf", GLTF::Parse);
+auto __gltfParser = AssetsParser::Add("gltf", GLTF::Parse);
 
 struct TextureSampler {
     std::map<std::string, GLenum> settings;
@@ -645,16 +645,44 @@ static inline auto SetParenting(const rapidjson::Document& document, const Asset
     }
 }
 
-std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string& path)
+static inline auto ParseScenes(const rapidjson::Document& document, const AssetsContainer& container)
 {
     std::vector<std::shared_ptr<Scene>> sceneVector;
+    auto scenes(document["scenes"].GetArray());
+    int sceneIndex = 0;
+    for (const auto& scene : scenes) {
+        std::cout << "found scene" << std::endl;
+        auto newScene(Scene::Create(std::to_string(sceneIndex)));
+        for (const auto& node : scene["nodes"].GetArray()) {
+            newScene->AddRootNode(container.GetComponents<Node>().at(node.GetInt()));
+            std::cout << container.GetComponents<Node>().at(node.GetInt())->Name() << std::endl;
+        }
+        for (const auto& animation : container.GetComponents<Animation>()) {
+            newScene->Add(animation);
+            std::cout << (animation ? animation->Name() : "nullptr") << std::endl;
+            /*for (const auto channel : animation->GetChannels()) {
+                if (newScene->GetNode(channel.Target())) {
+                    std::cout << "Found Node" << std::endl;
+                    newScene->Add(animation);
+                    break;
+                }
+            }*/
+        }
+        sceneVector.push_back(newScene);
+        sceneIndex++;
+    }
+    return sceneVector;
+}
+
+AssetsContainer GLTF::Parse(const std::string& path)
+{
+    AssetsContainer container;
     rapidjson::Document document;
     rapidjson::ParseResult parseResult(document.Parse(file_to_str(path).c_str()));
     if (!parseResult) {
         debugLog("Invalid file !");
-        return sceneVector;
+        return container;
     }
-    AssetsContainer container;
     for (const auto& node : ParseNodes(document)) {
         container.AddComponent(node);
     }
@@ -677,28 +705,8 @@ std::vector<std::shared_ptr<Scene>> GLTF::Parse(const std::string& path)
         container.AddComponent(animation);
     }
     SetParenting(document, container);
-    auto scenes(document["scenes"].GetArray());
-    int sceneIndex = 0;
-    for (const auto& scene : scenes) {
-        std::cout << "found scene" << std::endl;
-        auto newScene(Scene::Create(std::to_string(sceneIndex)));
-        for (const auto& node : scene["nodes"].GetArray()) {
-            newScene->AddRootNode(container.GetComponents<Node>().at(node.GetInt()));
-            std::cout << container.GetComponents<Node>().at(node.GetInt())->Name() << std::endl;
-        }
-        for (const auto& animation : container.GetComponents<Animation>()) {
-            newScene->Add(animation);
-            std::cout << (animation ? animation->Name() : "nullptr") << std::endl;
-            /*for (const auto channel : animation->GetChannels()) {
-				if (newScene->GetNode(channel.Target())) {
-					std::cout << "Found Node" << std::endl;
-					newScene->Add(animation);
-					break;
-				}
-			}*/
-        }
-        sceneVector.push_back(newScene);
-        sceneIndex++;
+    for (const auto& scene : ParseScenes(document, container)) {
+        container.AddComponent(scene);
     }
-    return sceneVector;
+    return container;
 }

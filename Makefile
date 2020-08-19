@@ -56,6 +56,7 @@ HEADERS_FILES	=	\
 					Animation/Animation.hpp \
 					Animation/AnimationInterpolator.hpp \
 					Animation/AnimationSampler.hpp \
+					Assets/AssetsParser.hpp \
 					brdfLUT.hpp \
 					Buffer/BufferAccessor.hpp \
 					Buffer/BufferHelper.hpp \
@@ -120,7 +121,6 @@ HEADERS_FILES	=	\
 					Quadtree.hpp \
 					Render.hpp \
 					Scene/Scene.hpp \
-					Scene/SceneParser.hpp \
 					Shader/GLUniformHelper.hpp \
 					Shader/Shader.hpp \
 					Shader/ShaderStage.hpp \
@@ -203,7 +203,6 @@ SRC_FILES		=	\
 					Quadtree.cpp \
 					Render.cpp \
 					Scene/Scene.cpp \
-					Scene/SceneParser.cpp \
 					Shader/GLUniformHelper.cpp \
 					Shader/Shader.cpp \
 					Shader/ShaderStage.cpp \
