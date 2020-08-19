@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-12 00:14:46
+* @Last Modified time: 2020-08-19 16:10:01
 */
 
 #include "Render.hpp"
@@ -63,11 +63,11 @@ public:
 private:
     static void _thread();
     static Render::Private& _instance();
-    std::atomic<double> _deltaTime { 0 };
-    std::atomic<double> _fixedDeltaTime { 0 };
-    std::atomic<float> _internalQuality { 1 };
+    double _deltaTime { 0 };
+    double _fixedDeltaTime { 0 };
+    float _internalQuality { 1 };
+    bool _loop { true };
     std::atomic<bool> _needsUpdate { true };
-    std::atomic<bool> _loop { true };
     std::atomic<bool> _drawing { false };
     uint32_t _frame_nbr { 0 };
     std::thread _rendering_thread;
