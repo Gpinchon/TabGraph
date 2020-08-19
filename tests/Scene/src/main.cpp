@@ -2,10 +2,11 @@
 * @Author: gpinchon
 * @Date:   2020-08-09 19:54:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 17:24:59
+* @Last Modified time: 2020-08-19 21:14:41
 */
 #define USE_HIGH_PERFORMANCE_GPU
 #include "Animation/Animation.hpp"
+#include "Assets/AssetsParser.hpp"
 #include "Callback.hpp"
 #include "Camera/FPSCamera.hpp"
 #include "Config.hpp"
@@ -20,7 +21,6 @@
 #include "Parser/GLTF.hpp"
 #include "Render.hpp"
 #include "Scene/Scene.hpp"
-#include "Scene/SceneParser.hpp"
 #include "Tools.hpp"
 #include "Transform.hpp"
 #include "Window.hpp"
@@ -149,7 +149,8 @@ int main(int argc, char** argv)
     if (!filePath.is_absolute()) {
         filePath = Engine::ExecutionPath() / filePath;
     }
-    auto scene(SceneParser::Parse(filePath.string()).at(0));
+    auto assets(AssetsParser::Parse(filePath.string()));
+    auto scene = assets.GetComponent<Scene>();
     if (scene == nullptr) {
         return -42;
     }
