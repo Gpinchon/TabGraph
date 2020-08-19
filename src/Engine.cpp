@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 23:52:42
+* @Last Modified time: 2020-08-19 13:18:12
 */
 
 #include "Engine.hpp"
@@ -144,7 +144,6 @@ void Engine::Start()
         //std::this_thread::sleep_for(std::chrono::milliseconds(16));
         if (Render::Drawing())
             continue;
-        //EnginePrivate::Get().updateMutex.lock();
         ticks = SDL_GetTicks() / 1000.f;
         EnginePrivate::Get().deltaTime = ticks - lastTicks;
         lastTicks = ticks;
@@ -156,7 +155,6 @@ void Engine::Start()
             Events::refresh();
             Scene::Current()->FixedUpdateCPU(EnginePrivate::Get().fixedDeltaTime);
         }
-        //EnginePrivate::Get().updateMutex.unlock();
         Render::RequestRedraw();
     }
     Render::Stop();

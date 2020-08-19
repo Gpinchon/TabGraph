@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 18:44:06
+* @Last Modified time: 2020-08-19 13:07:33
 */
 #include "Animation/Animation.hpp"
 #include "Buffer/BufferAccessor.hpp"
@@ -12,7 +12,7 @@
 #include "Mesh/Mesh.hpp"
 #include "Node.hpp"
 #include "Transform.hpp"
-#include <SDL2/SDL_timer.h> // for SDL_GetTicks
+
 #include <glm/common.hpp>
 #include <glm/gtc/quaternion.hpp>
 
