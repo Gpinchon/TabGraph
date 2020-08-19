@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 23:59:31
+* @Last Modified time: 2020-08-19 13:07:58
 */
 
 #include "Scene/Scene.hpp"
@@ -16,7 +16,6 @@
 #include "Physics/RigidBody.hpp"
 #include "Transform.hpp"
 
-#include <SDL2/SDL_timer.h> // for SDL_GetTicks
 #include <algorithm>
 #include <iostream>
 
