@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 23:10:06
+* @Last Modified time: 2020-08-20 14:49:45
 */
 
 #pragma once
@@ -33,7 +33,6 @@ public:
     static std::shared_ptr<Node> Create(const std::string& name);
     virtual bool Draw(RenderMod = RenderMod::RenderAll);
     virtual bool DrawDepth(RenderMod = RenderMod::RenderAll);
-    virtual bool Drawable() const;
 
     /** @return the Node's parent */
     std::shared_ptr<Node> Parent() const { return _parent.lock(); };

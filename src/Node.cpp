@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 23:10:12
+* @Last Modified time: 2020-08-20 17:03:04
 */
 
 #include "Node.hpp"
@@ -26,35 +26,29 @@ Node::Node(const std::string& name)
 
 Node::~Node()
 {
-    //if (Parent() != nullptr)
-    //    Parent()->RemoveChild(shared_from_this());
 }
 
 std::shared_ptr<Node> Node::Create(const std::string& name)
 {
-    //t->SetPosition(position);
-    //t->SetRotation(rotation);
-    //t->SetScale(scale);
     return std::shared_ptr<Node>(new Node(name));
 }
 
 bool Node::Draw(RenderMod renderMod)
 {
-    if (GetComponent<Mesh>() != nullptr)
-        return GetComponent<Mesh>()->Draw(GetComponent<Transform>(), renderMod);
+    bool drew = false;
+    for (auto mesh : GetComponents<Mesh>()) {
+        drew |= mesh->Draw(GetComponent<Transform>(), renderMod);
+    }
     return false;
 }
 
 bool Node::DrawDepth(RenderMod renderMod)
 {
-    if (GetComponent<Mesh>() != nullptr)
-        return GetComponent<Mesh>()->DrawDepth(GetComponent<Transform>(), renderMod);
+    bool drew = false;
+    for (auto mesh : GetComponents<Mesh>()) {
+        drew |= mesh->DrawDepth(GetComponent<Transform>(), renderMod);
+    }
     return false;
-}
-
-bool Node::Drawable() const
-{
-    return GetComponent<Mesh>() != nullptr;
 }
 
 void Node::_FixedUpdateCPU(float)
