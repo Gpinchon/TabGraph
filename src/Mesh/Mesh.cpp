@@ -2,7 +2,7 @@
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 21:52:51
+* @Last Modified time: 2020-08-20 15:34:55
 */
 
 #include "Mesh/Mesh.hpp"
@@ -68,7 +68,7 @@ void Mesh::_LoadGPU()
         vg->LoadGPU();
     if (_jointMatrices != nullptr)
         _jointMatrices->load();
-    SetLoadedGPU(false);
+    SetLoadedGPU(true);
 }
 
 bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
