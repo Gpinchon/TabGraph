@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-09 19:54:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-19 21:14:41
+* @Last Modified time: 2020-08-20 17:09:08
 */
 #define USE_HIGH_PERFORMANCE_GPU
 #include "Animation/Animation.hpp"
@@ -149,14 +149,16 @@ int main(int argc, char** argv)
     if (!filePath.is_absolute()) {
         filePath = Engine::ExecutionPath() / filePath;
     }
-    auto assets(AssetsParser::Parse(filePath.string()));
-    auto scene = assets.GetComponent<Scene>();
-    if (scene == nullptr) {
-        return -42;
+    {
+        auto assets(AssetsParser::Parse(filePath.string()));
+        auto scene = assets.GetComponent<Scene>();
+        if (scene == nullptr) {
+            return -42;
+        }
+        scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
+        scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(1000, 1000, 1000), 0.5, true));
+        Scene::SetCurrent(scene);
     }
-    scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
-    scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(1000, 1000, 1000), 0.5, true));
-    Scene::SetCurrent(scene);
     SetupCallbacks();
     Engine::Start();
     return 0;
