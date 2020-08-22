@@ -10,8 +10,8 @@
 #include "Input/InputDevice.hpp" // for InputDevice
 #include "glm/glm.hpp" // for glm::vec2, glm::vec4, s_vec2
 #include <GL/glew.h> // for GLbitfield
-#include <SDL2/SDL_events.h> // for SDL_Event
-#include <SDL2/SDL_video.h> // for SDL_GLContext, SDL_Window
+#include <SDL_events.h> // for SDL_Event
+#include <SDL_video.h> // for SDL_GLContext, SDL_Window
 #include <string> // for string
 
 class Window : InputDevice {

@@ -67,6 +67,7 @@ void StackTracer::set_handler_fd(int fd)
 #include <process.h>
 #include <stdio.h>
 #include <tlhelp32.h>
+#include <signal.h>
 
 int& _get_handler_fd()
 {

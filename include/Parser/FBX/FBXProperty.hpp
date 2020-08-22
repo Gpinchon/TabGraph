@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <string>
 #include <variant>
-#include <zconf.h>
+#include <zlib.h>
 
 namespace FBX
 {

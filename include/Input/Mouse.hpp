@@ -8,8 +8,8 @@
 #pragma once
 
 #include "Input/InputDevice.hpp" // for InputDevice
-#include <SDL2/SDL_events.h> // for SDL_Event, SDL_MouseButtonEvent, SDL_Mo...
-#include <SDL2/SDL_stdinc.h> // for Sint32, Uint8, SDL_bool
+#include <SDL_events.h> // for SDL_Event, SDL_MouseButtonEvent, SDL_Mo...
+#include <SDL_stdinc.h> // for Sint32, Uint8, SDL_bool
 #include <array> // for array
 
 typedef void (*mouse_motion_callback)(SDL_MouseMotionEvent* event);

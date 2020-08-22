@@ -38,7 +38,7 @@ void Property::Print() const
         std::cout << "\"double\": " << std::get<double>(data);
         break;
     case ('S'):
-        std::cout << "\"string\": \"" << std::string(Array(*this)) << "\"";
+        std::cout << "\"string\": \"" << std::get<char*>(std::get<Array>(data).data)/*std::string(Array(*this))*/ << "\"";
         break;
     case ('R'):
         std::cout << "\"Byte *\": " << std::get<Array>(data).length;

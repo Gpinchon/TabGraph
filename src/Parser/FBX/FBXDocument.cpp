@@ -6,7 +6,6 @@
 */
 
 #include "Parser/FBX/FBXDocument.hpp"
-//#include "Parser/FBX.hpp"
 #include "Parser/FBX/FBXNode.hpp"
 #include "Parser/FBX/FBXProperty.hpp"
 #include <errno.h> // for errno
@@ -24,6 +23,9 @@
 
 #ifdef _WIN32
 #include <io.h>
+#ifndef R_OK
+#define R_OK 4
+#endif
 #else
 #include <sys/io.h>
 #endif // for access, R_OK

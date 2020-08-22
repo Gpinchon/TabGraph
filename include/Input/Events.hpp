@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <SDL2/SDL_events.h> // for SDL_Event, SDL_EventType
-#include <SDL2/SDL_stdinc.h> // for Uint32
+#include <SDL_events.h> // for SDL_Event, SDL_EventType
+#include <SDL_stdinc.h> // for Uint32
 #include <map> // for map
 #include <set>
 #include <vector>

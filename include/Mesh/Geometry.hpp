@@ -10,12 +10,14 @@
 #include "Buffer/BufferHelper.hpp"
 #include "Node.hpp" // for RenderAll, RenderMod, Renderable
 #include "Object.hpp"
+
 #include <GL/glew.h> // for GLubyte
 #include <glm/glm.hpp> // for glm::vec2, s_vec2, s_vec3, glm::vec3
 #include <map>
 #include <memory> // for shared_ptr, weak_ptr
 #include <string> // for string
 #include <vector> // for vector
+#include <array>
 
 class Material; // lines 20-20
 class BufferAccessor;

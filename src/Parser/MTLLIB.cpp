@@ -10,7 +10,7 @@
 #include "Material.hpp" // for Material
 #include "Texture/TextureParser.hpp" // for TextureParser
 #include <glm/glm.hpp> // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
-#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
+//#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <memory> // for shared_ptr, allocator, __shared_...
 #include <stdexcept> // for runtime_error
 #include <stdio.h> // for fgets, fclose, fopen
@@ -20,6 +20,9 @@
 
 #ifdef _WIN32
 #include <io.h>
+#ifndef R_OK
+#define R_OK 4
+#endif
 #else
 #include <sys/io.h>
 #endif // for access, R_OK

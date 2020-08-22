@@ -12,9 +12,10 @@
 #include "Debug.hpp"
 #include "Engine.hpp"
 #include "Tools.hpp"
+
 #include <glm/glm.hpp>
 #include <GL/glew.h>
-#include <bits/exception.h>
+//#include <bits/exception.h>
 #include <iostream>
 #include <math.h>
 #include <stdexcept>

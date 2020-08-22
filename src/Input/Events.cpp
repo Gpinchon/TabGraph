@@ -9,7 +9,7 @@
 #include "Input/InputDevice.hpp" // for InputDevice
 #include "Callback.hpp"
 #include "Engine.hpp" // for Stop
-#include <SDL2/SDL_timer.h> // for SDL_GetTicks
+#include <SDL_timer.h> // for SDL_GetTicks
 #include <iostream> // for operator<<, endl, basic_ostream, cout
 #include <utility> // for pair
 

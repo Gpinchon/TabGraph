@@ -23,8 +23,8 @@
 #include "Window.hpp" // for Window
 #include "brdfLUT.hpp" // for brdfLUT
 #include <GL/glew.h> // for GL_TEXTURE0, glDepthFunc, glClear, glDis...
-#include <SDL2/SDL_timer.h> // for SDL_GetTicks
-#include <SDL2/SDL_video.h> // for SDL_GL_MakeCurrent, SDL_GL_SetSwapInterval
+#include <SDL_timer.h> // for SDL_GetTicks
+#include <SDL_video.h> // for SDL_GL_MakeCurrent, SDL_GL_SetSwapInterval
 #include <algorithm> // for max, remove_if
 #include <atomic> // for atomic
 #include <glm/glm.hpp> // for glm::inverse, vec2_scale, vec3_scale

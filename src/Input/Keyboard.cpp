@@ -7,7 +7,7 @@
 
 #include "Input/Keyboard.hpp"
 #include "Input/Events.hpp" // for Events
-#include <SDL2/SDL_keyboard.h> // for SDL_GetKeyboardState, SDL_Keysym
+#include <SDL_keyboard.h> // for SDL_GetKeyboardState, SDL_Keysym
 #include <utility> // for pair
 
 Keyboard* Keyboard::_instance = new Keyboard();
@@ -23,7 +23,7 @@ Keyboard& Keyboard::_get()
     return (*_instance);
 }
 
-Uint8 Keyboard::key(SDL_Scancode key)
+bool Keyboard::key(SDL_Scancode key)
 {
     return (SDL_GetKeyboardState(nullptr)[key]);
 }

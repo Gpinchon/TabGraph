@@ -25,9 +25,9 @@
 #include "Scene/Scene.hpp"
 #include "Tools.hpp"
 #include <algorithm> // for max, min
-#include <bits/exception.h> // for exception
+//#include <bits/exception.h> // for exception
 #include <errno.h> // for errno
-#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
+//#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <filesystem>
 #include <glm/glm.hpp> // for s_vec3, s_vec2, glm::vec2, glm::vec3
 #include <math.h> // for atan2
@@ -38,6 +38,9 @@
 
 #ifdef _WIN32
 #include <io.h>
+#ifndef R_OK
+#define R_OK 4
+#endif
 #else
 #include <sys/io.h>
 #endif // for access, R_OK

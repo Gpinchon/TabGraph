@@ -8,7 +8,7 @@
 #include "Framebuffer.hpp"
 #include "Debug.hpp" // for glCheckError
 #include "Window.hpp" // for Window
-#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
+
 #include <stdexcept> // for runtime_error
 
 std::vector<std::shared_ptr<Framebuffer>> Framebuffer::_framebuffers;

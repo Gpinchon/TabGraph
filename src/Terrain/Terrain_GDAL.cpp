@@ -5,6 +5,8 @@
  * @Last Modified time: 2019-08-18 18:31:38
  */
 
+#ifdef USE_GDAL
+
 #include "Terrain/Terrain_GDAL.hpp" // for Terrain
 #include "Node.hpp" // for Node
 #include "Quadtree.hpp" // for Quadtree
@@ -311,3 +313,4 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string& name,
     return Terrain::Create(name, resolution,
         glm::vec3(size.x * gt[1], 1, size.y * -gt[5]), t);
 }
+#endif

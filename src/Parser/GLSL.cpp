@@ -9,7 +9,7 @@
 #include "Parser/InternalTools.hpp" // for file_to_str
 #include "Debug.hpp" // for glCheckError
 #include <GL/glew.h> // for GLuint, GL_FRAGMENT_SHADER, GL_V...
-#include <bits/exception.h> // for exception
+//#include <bits/exception.h> // for exception
 #include <errno.h> // for errno
 #include <stdexcept> // for runtime_error
 #include <string.h> // for strerror

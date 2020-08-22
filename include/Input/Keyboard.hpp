@@ -10,16 +10,15 @@
 #include "Callback.hpp"
 #include "InputDevice.hpp" // for InputDevice
 
-#include <SDL2/SDL_events.h> // for SDL_Event, SDL_KeyboardEvent
-#include <SDL2/SDL_scancode.h> // for SDL_Scancode
-#include <SDL2/SDL_stdinc.h> // for Uint8
+#include <SDL_events.h> // for SDL_Event, SDL_KeyboardEvent
+#include <SDL_scancode.h> // for SDL_Scancode
 #include <map> // for map
 
 typedef void (*keyboard_callback)(SDL_KeyboardEvent* event);
 
 class Keyboard : InputDevice {
 public:
-    static Uint8 key(SDL_Scancode);
+    static bool key(SDL_Scancode);
     //static void set_callback(SDL_Scancode key, keyboard_callback callback);
     static void AddKeyCallback(SDL_Scancode key, std::shared_ptr<Callback<void(const SDL_KeyboardEvent&)>> callback);
     static void RemoveKeyCallback(SDL_Scancode key, std::shared_ptr<Callback<void(const SDL_KeyboardEvent&)>> callback);

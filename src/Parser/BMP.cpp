@@ -10,7 +10,7 @@
 #include "Texture/Texture2D.hpp" // for Texture2D
 #include <GL/glew.h> // for GLubyte, GLenum, GL_BGR, GL_BGRA
 #include <glm/glm.hpp> // for s_vec2, glm::vec2
-#include <bits/exception.h> // for exception
+//#include <bits/exception.h> // for exception
 #include <errno.h> // for errno
 #include <fcntl.h> // for O_BINARY, O_CREAT, O_RDWR
 #include <stdexcept> // for runtime_error
@@ -20,6 +20,9 @@
 
 #ifdef _WIN32
 #include <io.h>
+#ifndef R_OK
+#define R_OK 4
+#endif
 #else
 #include <sys/io.h>
 #endif // for write, access, close, open, R_OK
@@ -49,12 +52,16 @@ void BMP::save(std::shared_ptr<Texture2D> t, const std::string &imagepath)
     int fd;
 
     prepare_header(&header, &info, t);
+#ifdef _WIN32
+    fd = open(imagepath.c_str(), O_RDWR | O_CREAT | O_BINARY);
+#else
     fd = open(imagepath.c_str(), O_RDWR | O_CREAT | O_BINARY,
-              S_IRWXU | S_IRWXG | S_IRWXO);
+        S_IRWXU | S_IRWXG | S_IRWXO);
+#endif
     write(fd, &header, sizeof(t_bmp_header));
     write(fd, &info, sizeof(t_bmp_info));
     write(fd, t->data(), (t->Size().x * t->Size().y * t->bpp() / 8));
-    padding = new GLubyte[int(info.size - (t->Size().x * t->Size().y * t->bpp() / 8))]();
+    padding = new GLubyte[int(info.size - int64_t(t->Size().x * t->Size().y * t->bpp() / 8))]();
     write(fd, padding, info.size - (t->Size().x * t->Size().y * t->bpp() / 8));
     delete[] padding;
     close(fd);

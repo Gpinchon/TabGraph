@@ -8,9 +8,8 @@
 #include <sstream>
 #include <algorithm> // for max, count, replace
 #include <errno.h> // for ENOENT, EACCES, ELOOP, ENAMETOOLONG
-#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <fstream> // for ifstream
-#include <unistd.h> // for access
+
 #include <iostream> // for basic_ostream::operator<<, char_traits
 #include <iterator> // for istreambuf_iterator, operator!=
 #include <stdexcept> // for runtime_error
@@ -19,6 +18,15 @@
 #include <string.h> // for strerror
 #include <string> // for string, operator+, basic_string<>::con...
 #include <vector> // for allocator, vector
+
+#ifdef WIN32
+#include <io.h> // for access
+ #ifndef R_OK
+  #define R_OK 4
+ #endif
+#else
+#include <unistd.h> // for access
+#endif
 
 std::string access_get_error(const int& access_result)
 {

@@ -7,6 +7,8 @@
 
 #include "Physics/BoundingAABB.hpp"
 #include "Physics/Ray.hpp"
+
+#include <array>
 #include <glm/gtx/matrix_decompose.hpp>
 
 BoundingAABB::BoundingAABB(glm::vec3 min, glm::vec3 max)

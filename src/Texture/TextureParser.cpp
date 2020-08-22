@@ -11,11 +11,11 @@
 #include "Debug.hpp" // for debugLog
 #include <GL/glew.h> // for GL_COMPRESSED_RGB, GL_COMPRESSED...
 #include <glm/glm.hpp> // for glm::vec2
-#include <SDL2/SDL_error.h> // for SDL_GetError
-#include <SDL2/SDL_image.h> // for IMG_Load
-#include <SDL2/SDL_pixels.h> // for SDL_PixelFormat, SDL_PIXELFORMAT...
-#include <SDL2/SDL_stdinc.h> // for Uint8, Uint16
-#include <SDL2/SDL_surface.h> // for SDL_Surface, SDL_UnlockSurface
+#include <SDL_error.h> // for SDL_GetError
+#include <SDL_image.h> // for IMG_Load
+#include <SDL_pixels.h> // for SDL_PixelFormat, SDL_PIXELFORMAT...
+#include <SDL_stdinc.h> // for Uint8, Uint16
+#include <SDL_surface.h> // for SDL_Surface, SDL_UnlockSurface
 #include <string.h> // for memcpy
 #include <map> // for map
 #include <memory> // for allocator, shared_ptr

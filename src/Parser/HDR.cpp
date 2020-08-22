@@ -38,7 +38,7 @@ std::shared_ptr<Texture2D> HDR::parse(const std::string& texture_name, const std
     int i;
     char str[200];
     FILE* file;
-    glm::vec2 size;
+    glm::ivec2 size;
 
     file = fopen(path.c_str(), "rb");
     if (!file)
@@ -143,12 +143,13 @@ bool decrunch(RGBE* scanline, int len, FILE* file)
                 GLubyte val = getc(file);
                 while (code--)
                     scanline[j++][i] = val;
-            } else {
-                GLubyte vals[code];
-                fread(vals, sizeof(GLubyte), code, file);
+            }
+            else {
+                std::vector<GLubyte> vals(code);
+                fread(vals.data(), sizeof(GLubyte), code, file);
                 auto k = 0;
                 while (code--) {
-                    scanline[j++][i] = vals[k++];
+                    scanline[j++][i] = vals.at(k++);
                 }
             }
         }

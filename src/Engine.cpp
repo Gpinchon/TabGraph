@@ -17,14 +17,14 @@
 #include "Texture/Cubemap.hpp" // for Cubemap
 #include "Texture/TextureParser.hpp" // for TextureParser
 #include "Window.hpp" // for Window
-#include <SDL2/SDL_events.h> // for SDL_PumpEvents, SDL_SetEventFilter
-#include <SDL2/SDL_filesystem.h> // for SDL_GetBasePath
-#include <SDL2/SDL_timer.h> // for SDL_GetTicks
-#include <SDL2/SDL_video.h> // for SDL_GL_MakeCurrent
+
+#include <SDL_events.h> // for SDL_PumpEvents, SDL_SetEventFilter
+#include <SDL_filesystem.h> // for SDL_GetBasePath
+#include <SDL_timer.h> // for SDL_GetTicks
+#include <SDL_video.h> // for SDL_GL_MakeCurrent
+#include <filesystem>
 #include <atomic> // for atomic
-#include <bits/exception.h> // for exception
 #include <chrono> // for milliseconds
-#include <dirent.h> // for opendir, readdir, dirent, closedir
 #include <iostream> // for operator<<, endl, basic_ostream
 #include <memory> // for shared_ptr, __shared_ptr_access
 #include <mutex> // for mutex
@@ -32,6 +32,7 @@
 
 #ifdef _WIN32
 #include <io.h> // for getcwd
+#include <direct.h>
 #else
 #include <sys/io.h> // for getcwd
 #endif
@@ -74,28 +75,24 @@ EnginePrivate& EnginePrivate::Get()
 
 void EnginePrivate::LoadRes()
 {
-    DIR* dir;
     struct dirent* e;
     std::string folder;
 
     folder = Engine::ProgramPath() + "res/hdr/";
-    dir = opendir(folder.c_str());
-    while (dir != nullptr && (e = readdir(dir)) != nullptr) {
-        if (e->d_name[0] == '.') {
+    //dir = opendir(folder.c_str());
+    for (const auto& entry : std::filesystem::directory_iterator(folder)) {
+        if (entry.path().string()[0] == '.')
             continue;
-        }
-        std::string name = e->d_name;
+        std::string name = entry.path().string();
         auto newEnv = Environment::Create(name);
         newEnv->set_diffuse(Cubemap::Create(name + "Cube", TextureParser::parse(name, folder + name + "/environment.hdr")));
         newEnv->set_irradiance(Cubemap::Create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", folder + name + "/diffuse.hdr")));
     }
     folder = Engine::ProgramPath() + "res/skybox/";
-    dir = opendir(folder.c_str());
-    while (dir != nullptr && (e = readdir(dir)) != nullptr) {
-        if (e->d_name[0] == '.') {
+    for (const auto& entry : std::filesystem::directory_iterator(folder)) {
+        if (entry.path().string()[0] == '.')
             continue;
-        }
-        std::string name = e->d_name;
+        std::string name = entry.path().string();
         auto newEnv = Environment::Create(name);
         try {
             newEnv->set_diffuse(Cubemap::parse(name, folder));
@@ -109,7 +106,6 @@ void EnginePrivate::LoadRes()
             std::cout << e.what() << std::endl;
         }
     }
-    closedir(dir);
     Environment::set_current(Environment::Get(0));
 }
 

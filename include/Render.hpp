@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory> // for shared_ptr
+#include <atomic>
 
 class Shader; // lines 13-13
 class Geometry; // lines 12-12

@@ -10,10 +10,10 @@
 #include "Debug.hpp" // for glCheckError
 #include "Engine.hpp" // for Stop
 #include "Input/Events.hpp" // for Events
-#include <SDL2/SDL.h> // for SDL_Init, SDL_INIT_EVERYTHING
-#include <SDL2/SDL_error.h> // for SDL_GetError
-#include <SDL2/SDL_gamecontroller.h> // for SDL_GameControllerEventState
-#include <SDL2/SDL_joystick.h> // for SDL_JoystickEventState
+#include <SDL.h> // for SDL_Init, SDL_INIT_EVERYTHING
+#include <SDL_error.h> // for SDL_GetError
+#include <SDL_gamecontroller.h> // for SDL_GameControllerEventState
+#include <SDL_joystick.h> // for SDL_JoystickEventState
 #include <stdexcept> // for runtime_error
 
 Window* Window::_instance = nullptr;

@@ -9,7 +9,7 @@
 #include "Debug.hpp" // for glCheckError, debugLog
 #include "Shader/GLUniformHelper.hpp"
 #include "Texture/Texture.hpp" // for Texture
-#include <bits/exception.h> // for exception
+//#include <bits/exception.h> // for exception
 #include <stdexcept> // for runtime_error
 #include <string.h> // for memset
 #include <utility> // for pair, make_pair
@@ -203,9 +203,10 @@ bool Shader::check_shader(const GLuint id)
     if (result != GL_TRUE) {
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &loglength);
         if (loglength > 1) {
-            char log[loglength];
-            glGetShaderInfoLog(id, loglength, nullptr, &log[0]);
-            throw std::runtime_error(log);
+            std::vector<char> log(loglength, 0);
+            glGetShaderInfoLog(id, loglength, nullptr, log.data());
+            std::string logString(log.begin(), log.end());
+            throw std::runtime_error(logString);
         } else {
             throw std::runtime_error("Unknown Error");
         }
@@ -224,9 +225,10 @@ bool Shader::check_program(const GLuint id)
     glGetProgramiv(id, GL_LINK_STATUS, &result);
     glGetProgramiv(id, GL_INFO_LOG_LENGTH, &loglength);
     if (loglength > 1) {
-        char log[loglength];
-        glGetProgramInfoLog(id, loglength, nullptr, &log[0]);
-        throw std::runtime_error(log);
+        std::vector<char> log(loglength, 0);
+        glGetProgramInfoLog(id, loglength, nullptr, log.data());
+        std::string logString(log.begin(), log.end());
+        throw std::runtime_error(logString);
     }
     if (glCheckError())
         throw std::runtime_error("Error while checking program status");

@@ -8,11 +8,11 @@
 #pragma once
 
 #include "InputDevice.hpp" // for InputDevice
-#include <SDL2/SDL_events.h> // for SDL_Event, SDL_ControllerAxisEvent
-#include <SDL2/SDL_gamecontroller.h> // for SDL_GameController, SDL_GameCon...
-#include <SDL2/SDL_haptic.h> // for SDL_Haptic
-#include <SDL2/SDL_joystick.h> // for SDL_JoystickID
-#include <SDL2/SDL_stdinc.h> // for Uint8
+#include <SDL_events.h> // for SDL_Event, SDL_ControllerAxisEvent
+#include <SDL_gamecontroller.h> // for SDL_GameController, SDL_GameCon...
+#include <SDL_haptic.h> // for SDL_Haptic
+#include <SDL_joystick.h> // for SDL_JoystickID
+#include <SDL_stdinc.h> // for Uint8
 #include <map> // for map
 
 typedef void (*controller_axis_callback)(SDL_ControllerAxisEvent* event);
