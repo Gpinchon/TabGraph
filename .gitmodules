@@ -4,3 +4,18 @@
 [submodule "libs/rapidjson"]
 	path = libs/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "libs/glm"]
+	path = libs/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "libs/glew"]
+	path = libs/glew
+	url = https://github.com/Perlmint/glew-cmake.git
+[submodule "libs/zlib"]
+	path = libs/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "libs/SDL2"]
+	path = libs/SDL2
+	url = https://github.com/spurious/SDL-mirror.git
+[submodule "libs/SDL2-CMake-Scripts"]
+	path = cmake/SDL2
+	url = https://github.com/tcbrindle/sdl2-cmake-scripts.git
