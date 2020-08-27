@@ -39,6 +39,7 @@
 
 # Build folder
 build/
+libs/
 
 # Manual folder
 man/

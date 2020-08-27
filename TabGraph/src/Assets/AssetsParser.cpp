@@ -7,6 +7,8 @@
 
 #include "Assets/AssetsParser.hpp" // for AssetsParser, AssetsParsingFunction
 #include "Debug.hpp" // for debugLog
+
+#include <filesystem>
 #include <map> // for map
 #include <memory> // for shared_ptr
 #include <string> // for string
@@ -22,6 +24,7 @@ AssetsParser::AssetsParser(const std::string& format, AssetsParsingFunction pars
 
 AssetsParser* AssetsParser::Add(const std::string& format, AssetsParsingFunction parsingFunction)
 {
+    debugLog("Add Parser ", format);
     auto parser = new AssetsParser(format, parsingFunction);
     _getParsers()[format] = parser;
     return parser;
@@ -36,10 +39,10 @@ std::map<std::string, AssetsParser*>& AssetsParser::_getParsers()
 
 AssetsContainer AssetsParser::Parse(const std::string& path)
 {
-    auto format = path.substr(path.find_last_of(".") + 1);
+    auto format = std::filesystem::path(path).extension();
     debugLog(path);
     debugLog(format);
-    auto parser = _get(format);
+    auto parser = _get(format.string());
     debugLog(parser);
     return parser ? parser(path) : AssetsContainer();
 }

@@ -27,7 +27,8 @@ enum class RenderMod;
 /**
  * @brief scene container
  */
-struct Scene : public Component {
+class Scene : public Component {
+public:
     static std::shared_ptr<Scene> Create(const std::string& name);
     static std::shared_ptr<Scene> Current();
     static void SetCurrent(std::shared_ptr<Scene>);

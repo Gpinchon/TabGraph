@@ -79,34 +79,39 @@ void EnginePrivate::LoadRes()
     std::string folder;
 
     folder = Engine::ProgramPath() + "res/hdr/";
-    //dir = opendir(folder.c_str());
-    for (const auto& entry : std::filesystem::directory_iterator(folder)) {
-        if (entry.path().string()[0] == '.')
-            continue;
-        std::string name = entry.path().string();
-        auto newEnv = Environment::Create(name);
-        newEnv->set_diffuse(Cubemap::Create(name + "Cube", TextureParser::parse(name, folder + name + "/environment.hdr")));
-        newEnv->set_irradiance(Cubemap::Create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", folder + name + "/diffuse.hdr")));
+    if (std::filesystem::exists(folder)) {
+        for (const auto& entry : std::filesystem::directory_iterator(folder)) {
+            if (entry.path().string()[0] == '.')
+                continue;
+            std::string name = entry.path().string();
+            auto newEnv = Environment::Create(name);
+            newEnv->set_diffuse(Cubemap::Create(name + "Cube", TextureParser::parse(name, folder + name + "/environment.hdr")));
+            newEnv->set_irradiance(Cubemap::Create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", folder + name + "/diffuse.hdr")));
+        }
     }
     folder = Engine::ProgramPath() + "res/skybox/";
-    for (const auto& entry : std::filesystem::directory_iterator(folder)) {
-        if (entry.path().string()[0] == '.')
-            continue;
-        std::string name = entry.path().string();
-        auto newEnv = Environment::Create(name);
-        try {
-            newEnv->set_diffuse(Cubemap::parse(name, folder));
-        } catch (std::exception& e) {
-            std::cout << e.what() << std::endl;
-            continue;
+    if (std::filesystem::exists(folder)) {
+        for (const auto& entry : std::filesystem::directory_iterator(folder)) {
+            if (entry.path().string()[0] == '.')
+                continue;
+            std::string name = entry.path().string();
+            auto newEnv = Environment::Create(name);
+            try {
+                newEnv->set_diffuse(Cubemap::parse(name, folder));
+            }
+            catch (std::exception& e) {
+                std::cout << e.what() << std::endl;
+                continue;
+            }
+            try {
+                newEnv->set_irradiance(Cubemap::parse(name + "/light", folder));
+            }
+            catch (std::exception& e) {
+                std::cout << e.what() << std::endl;
+            }
         }
-        try {
-            newEnv->set_irradiance(Cubemap::parse(name + "/light", folder));
-        } catch (std::exception& e) {
-            std::cout << e.what() << std::endl;
-        }
+        Environment::set_current(Environment::Get(0));
     }
-    Environment::set_current(Environment::Get(0));
 }
 
 void Engine::Init()

@@ -181,7 +181,10 @@ void Framebuffer::setup_attachements()
         if (glCheckError(Name()))
                 throw std::runtime_error("Error while setting Framebuffer Depth attachement " + _depth.first->Name());
     }
-    glDrawBuffers(color_attachements.size(), &color_attachements[0]);
+    if (!color_attachements.empty())
+        glDrawBuffers(color_attachements.size(), &color_attachements.at(0));
+    else
+        glDrawBuffers(0, nullptr);
     if (glCheckError(Name()))
             throw std::runtime_error("Error while setting Framebuffer drawbuffers");
 #ifdef DEBUG_MOD

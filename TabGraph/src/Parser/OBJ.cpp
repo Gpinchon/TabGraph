@@ -45,7 +45,7 @@
 #include <sys/io.h>
 #endif // for access, R_OK
 
-auto __objParser = AssetsParser::Add("obj", OBJ::Parse);
+auto __objParser = AssetsParser::Add(".obj", OBJ::Parse);
 
 struct ObjContainer {
     std::shared_ptr<Mesh> mesh;

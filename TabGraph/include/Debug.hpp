@@ -14,6 +14,9 @@
 #define errorLog(message) std::cerr << message << std::endl;
 
 #ifdef DEBUG_MOD
+#ifndef __PRETTY_FUNCTION__
+# define __PRETTY_FUNCTION__ __FUNCSIG__
+#endif
 #define _debugStream(func, line) std::cerr << __DATE__ << " " << __TIME__ << " | " << func << " at line [" << line << "] : "
 #define debugLog(message) _debugStream(__PRETTY_FUNCTION__, __LINE__) << message << std::endl;
 template <typename ...Args>
@@ -49,8 +52,11 @@ inline auto _glCheckError(const char *func, const int line, Args... args)
             error = "GL_INVALID_FRAMEBUFFER_OPERATION";
             break;
         }
-        if constexpr (sizeof...(Args) == 1)
-            (_debugStream(func, line) << ... << args) << " " << error << std::endl;
+        if constexpr (sizeof...(Args) == 1) {
+            //(_debugStream(func, line) << ... << args) << " " << error << std::endl;
+            ((_debugStream(func, line) << std::forward<Args>(args)), ...);
+            std::cerr << " " << error << std::endl;
+        }
         else
             _debugStream(func, line) << error << std::endl;
     }

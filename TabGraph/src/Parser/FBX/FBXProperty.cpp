@@ -12,8 +12,7 @@ using namespace FBX;
 
 std::shared_ptr<Property> Property::Create()
 {
-    auto ptr = std::shared_ptr<Property>(new Property());
-    return ptr;
+    return std::shared_ptr<Property>(new Property());
 }
 
 void Property::Print() const

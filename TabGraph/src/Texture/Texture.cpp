@@ -106,6 +106,7 @@ void Texture::load()
     if (glCheckError(Name()))
         throw std::runtime_error("Error while setting object label");
     _loaded = true;
+    debugLog(Name(), "Done.");
 }
 
 void Texture::generate_mipmap()

@@ -10,7 +10,6 @@
 #include "Callback.hpp"
 #include "Engine.hpp" // for Stop
 #include <SDL_timer.h> // for SDL_GetTicks
-#include <iostream> // for operator<<, endl, basic_ostream, cout
 #include <utility> // for pair
 
 Events* Events::_instance = nullptr;

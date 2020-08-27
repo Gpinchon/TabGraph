@@ -38,8 +38,9 @@ struct Array
 typedef std::variant<Byte, float, double, int16_t, int32_t, int64_t, Array>
     PropertyData;
 
-struct Property : public Object
+class Property : public Object
 {
+public:
     virtual ~Property() = default;
     static std::shared_ptr<Property> Create();
     unsigned char typeCode;

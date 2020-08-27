@@ -150,10 +150,11 @@ int main(int argc, char** argv)
         filePath = Engine::ExecutionPath() / filePath;
     }
     {
+        std::cout << filePath << std::endl;
         auto assets(AssetsParser::Parse(filePath.string()));
         auto scene = assets.GetComponent<Scene>();
         if (scene == nullptr) {
-            return -42;
+            return -43;
         }
         scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
         scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(1000, 1000, 1000), 0.5, true));
