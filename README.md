@@ -1,6 +1,8 @@
 # TabGraph
 
-*tabGraph* Provides a complete building system, allowing for the generation of portable executables.
+*tabGraph* is a full SceneGraph featuring a flexible Component system, giving a lot of freedome for adding new components to your scene and organizing it.
+
+*tabGraph* Provides a SceneGraph and a complete building system, allowing for the generation of portable executables.
 
 In order to use *tabGraph*, you need to setup your project with a Makefile calling *tabGraph*'s main Makefile.
 
