@@ -45,7 +45,6 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/SphereMesh.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Node.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Object.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/tools.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingAABB.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingBox.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingElement.cpp
@@ -116,8 +115,6 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Mesh/SphereMesh.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Node.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Object.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/InternalTools.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/TABSCENE.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/BoundingAABB.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/BoundingBox.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/BoundingElement.hpp
@@ -174,6 +171,7 @@ set(PLUGINS_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/HDR.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/MTLLIB.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/OBJ.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/tools.cpp
 )
 
 set(PLUGINS_HEADERS
@@ -188,6 +186,8 @@ set(PLUGINS_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/HDR.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/MTLLIB.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/OBJ.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/InternalTools.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/TABSCENE.hpp
 )
 
 add_library(TabGraph STATIC ${TABGRAPH_SOURCE_FILES} ${TABGRAPH_HEADER_FILES} ${TABGRAPH_SHADER_FILES})

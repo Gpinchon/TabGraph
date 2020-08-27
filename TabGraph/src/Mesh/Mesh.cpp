@@ -1,8 +1,8 @@
 /*
 * @Author: gpi
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-20 15:34:55
+* @Last Modified by:   Gpinchon
+* @Last Modified time: 2020-08-27 17:19:14
 */
 
 #include "Mesh/Mesh.hpp"
@@ -256,6 +256,7 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
     if (_jointMatrices == nullptr) {
         _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, BufferHelper::CreateAccessor<glm::mat4>(GetComponent<MeshSkin>()->Joints().size(), GL_TEXTURE_BUFFER));
         skinChanged = true;
+        debugLog(Name() + " : Create Skin");
     }
     for (auto index = 0u; index < GetComponent<MeshSkin>()->Joints().size(); ++index) {
         const auto joint(GetComponent<MeshSkin>()->Joints().at(index));
@@ -264,6 +265,7 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
             skinChanged = true;
         BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
     }
+    debugLog(Name() + (skinChanged ? " Skin Changed" : "Skin Didn't change"));
     SetNeedsFixedUpdateGPU(NeedsFixedUpdateGPU() || skinChanged);
 }
 

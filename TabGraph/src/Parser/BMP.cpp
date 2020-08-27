@@ -27,6 +27,42 @@
 #include <sys/io.h>
 #endif // for write, access, close, open, R_OK
 
+#ifndef O_BINARY
+#define O_BINARY 0x0004
+#endif
+
+#pragma pack(1)
+struct t_bmp_header {
+    short type;
+    unsigned size;
+    short reserved1;
+    short reserved2;
+    unsigned data_offset;
+};
+
+struct t_bmp_info {
+    unsigned header_size;
+    int width;
+    int height;
+    short color_planes;
+    short bpp;
+    unsigned compression_method;
+    unsigned size;
+    int horizontal_resolution;
+    int vertical_resolution;
+    int colors;
+    int important_colors;
+};
+#pragma pack()
+
+struct t_bmp_parser {
+    FILE* fd;
+    t_bmp_info info;
+    t_bmp_header header;
+    GLubyte* data{ nullptr };
+    unsigned size_read;
+};
+
 static void prepare_header(t_bmp_header *header, t_bmp_info *info, std::shared_ptr<Texture2D> t)
 {
     memset(header, 0, sizeof(t_bmp_header));

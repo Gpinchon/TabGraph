@@ -21,7 +21,7 @@
 #include <memory>
 
 //Add this parser to SceneParser !
-auto __fbxParser = AssetsParser::Add("fbx", FBX::Parse);
+auto __fbxParser = AssetsParser::Add(".fbx", FBX::Parse);
 
 /*static inline std::vector<glm::vec2> parseUV(FBX::Node *layerElementUV)
 {

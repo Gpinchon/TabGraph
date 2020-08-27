@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "Assets/AssetsContainer.hpp"
+
 #include <string> // for string
 #include <map> // for map
 #include <memory> // for shared_ptr
@@ -17,5 +19,5 @@ class Material;
 ** .MTLLIB parsing interface
 */
 namespace MTLLIB {
-std::map<std::string, std::shared_ptr<Material>> parse(const std::string& path);
+	AssetsContainer Parse(const std::string& path);
 };

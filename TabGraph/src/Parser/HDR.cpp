@@ -30,7 +30,7 @@ static bool decrunch(RGBE* scanline, int len, FILE* file);
 static bool oldDecrunch(RGBE* scanline, int len, FILE* file);
 
 //Add this parser to TextureParser !
-auto __hdrParser = TextureParser::Add("hdr", HDR::parse);
+auto __hdrParser = TextureParser::Add(".hdr", HDR::parse);
 
 std::shared_ptr<Texture2D> HDR::parse(const std::string& texture_name, const std::string& path)
 {

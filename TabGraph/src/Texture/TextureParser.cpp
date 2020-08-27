@@ -7,7 +7,6 @@
 
 #include "Texture/Texture2D.hpp" // for Texture2D
 #include "Texture/TextureParser.hpp" // for TextureParser, TextureParsingFun...
-#include "Parser/InternalTools.hpp" // for fileFormat
 #include "Debug.hpp" // for debugLog
 #include <GL/glew.h> // for GL_COMPRESSED_RGB, GL_COMPRESSED...
 #include <glm/glm.hpp> // for glm::vec2
@@ -24,6 +23,7 @@
 #include <stdlib.h> // for free, malloc, NULL
 #include <string> // for string, operator+, char_traits
 #include <wchar.h> // for memmove
+#include <filesystem>
 
 #define SDL_LOCKIFMUST(s) (SDL_MUSTLOCK(s) ? SDL_LockSurface(s) : 0)
 #define SDL_UNLOCKIFMUST(s)       \
@@ -138,13 +138,12 @@ std::map<std::string, TextureParser*>& TextureParser::_getParsers()
 
 std::shared_ptr<Texture2D> TextureParser::parse(const std::string& name, const std::string& path)
 {
-    auto format = path.substr(path.find_last_of(".") + 1);
+    auto format = std::filesystem::path(path).extension();
     debugLog(path);
     debugLog(format);
-    auto parser = _get(fileFormat(path));
+    auto parser = _get(format.string());
     debugLog(parser);
-    auto texture(parser ? parser(name, path) : GenericTextureParser(name, path));
-    return texture;
+    return parser ? parser(name, path) : GenericTextureParser(name, path);
 }
 
 TextureParsingFunction TextureParser::_get(const std::string& format)

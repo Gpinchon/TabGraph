@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-cmake_policy(VERSION 3.18)
+cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
+cmake_policy(VERSION 3.17)
 cmake_policy(SET CMP0074 NEW)
 message(STATUS "Platform Generator : ${CMAKE_GENERATOR_PLATFORM}")
 project(TabGraph LANGUAGES CXX)

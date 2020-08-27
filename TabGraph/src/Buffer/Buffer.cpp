@@ -1,8 +1,8 @@
 /*
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 17:25:46
+* @Last Modified by:   Gpinchon
+* @Last Modified time: 2020-08-27 17:43:33
 */
 #include "Buffer/Buffer.hpp"
 #include "Debug.hpp"
@@ -32,9 +32,8 @@ std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
 
 void Buffer::_UpdateGPU(float)
 {
-    if (_rawData.empty())
-        return;
-    std::memcpy(Map(BufferAccess::Write), _rawData.data(), ByteLength());
+    if (!_rawData.empty())
+        std::memcpy(Map(BufferAccess::Write), _rawData.data(), ByteLength());
     Unmap();
 }
 
@@ -100,6 +99,16 @@ void Buffer::Allocate()
     }
 }
 
+bool Buffer::Mapped() const
+{
+    return _mapped;
+}
+
+void* Buffer::MappingPointer() const
+{
+    return _mappingPointer;
+}
+
 void* Buffer::Map(GLenum access)
 {
     if (Glid() == 0)
@@ -109,6 +118,8 @@ void* Buffer::Map(GLenum access)
     if (glCheckError()) {
         debugLog("ERROR");
     }
+    _mapped = true;
+    _mappingPointer = ptr;
     return ptr;
 }
 
@@ -120,15 +131,21 @@ void* Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
     if (glCheckError()) {
         debugLog("ERROR");
     }
+    _mapped = true;
+    _mappingPointer = ptr;
     return ptr;
 }
 
 void Buffer::Unmap()
 {
+    if (!Mapped())
+        debugLog(Name() + " IS NOT MAPPED");
     GetUnmapRangeFunction()(Glid());
     if (glCheckError()) {
         debugLog("ERROR");
     }
+    _mapped = false;
+    _mappingPointer = nullptr;
 }
 
 void Buffer::Load()
@@ -233,13 +250,16 @@ void Buffer::_LoadGPU()
         if (data.empty()) {
             debugLog(Uri());
             std::ifstream is(Uri(), std::ios::binary);
-            if (!is.read((char*)Map(BufferAccess::Write), ByteLength()))
+            if (!is.read((char*)Map(BufferAccess::Write), ByteLength())) {
+                Unmap();
                 throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
+            }
             Unmap();
         } else {
             std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
+            Unmap();
         }
-    } else if (_rawData.size()) {
+    } else if (!_rawData.empty()) {
         _UpdateGPU(0.f);
     }
     SetLoadedGPU(true);
@@ -260,6 +280,7 @@ void Buffer::_UnloadCPU()
 
 void Buffer::_UnloadGPU()
 {
+    Unmap();
     glDeleteBuffers(1, &_glid);
     _glid = 0;
     SetLoadedGPU(false);

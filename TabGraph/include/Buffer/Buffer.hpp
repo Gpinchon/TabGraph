@@ -1,8 +1,8 @@
 /*
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
-* @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 15:31:38
+* @Last Modified by:   Gpinchon
+* @Last Modified time: 2020-08-27 17:00:49
 */
 #pragma once
 
@@ -49,6 +49,8 @@ public:
     GLuint Glid() const;
     GLenum Usage() const;
     void SetUsage(GLenum);
+    bool Mapped() const;
+    void* MappingPointer() const;
     void* Map(GLenum access);
     void* MapRange(size_t offset, size_t length, GLbitfield access);
     void Unmap();
@@ -73,4 +75,6 @@ private:
     GLuint _glid { 0 };
     GLenum _usage { GL_STATIC_DRAW };
     size_t _byteLength { 0 };
+    bool _mapped { false };
+    void* _mappingPointer { nullptr };
 };

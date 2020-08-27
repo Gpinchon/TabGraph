@@ -11,7 +11,6 @@
 #include "Input/Events.hpp" // for Events
 #include "Node.hpp" // for Node
 #include "Parser/GLSL.hpp" // for GLSL, PostShader
-#include "Parser/InternalTools.hpp" // for convert_backslash
 #include "Render.hpp" // for AddPostTreatment, RequestRedraw
 #include "Scene/Scene.hpp"
 #include "Texture/Cubemap.hpp" // for Cubemap
@@ -29,6 +28,7 @@
 #include <memory> // for shared_ptr, __shared_ptr_access
 #include <mutex> // for mutex
 #include <thread> // for sleep_for
+#include <filesystem>
 
 #ifdef _WIN32
 #include <io.h> // for getcwd
@@ -59,8 +59,8 @@ EnginePrivate::EnginePrivate()
 {
     loop = true;
     swapInterval = 1;
-    execPath = convert_backslash(_getcwd(nullptr, 4096)) + "/";
-    programPath = convert_backslash(SDL_GetBasePath());
+    execPath = std::filesystem::current_path().string();
+    programPath = std::filesystem::absolute(SDL_GetBasePath()).string();
     programPath = programPath.substr(0, programPath.find_last_of('/'));
     programPath += "/";
 }
@@ -83,10 +83,10 @@ void EnginePrivate::LoadRes()
         for (const auto& entry : std::filesystem::directory_iterator(folder)) {
             if (entry.path().string()[0] == '.')
                 continue;
-            std::string name = entry.path().string();
+            auto name = entry.path().filename().string();
             auto newEnv = Environment::Create(name);
-            newEnv->set_diffuse(Cubemap::Create(name + "Cube", TextureParser::parse(name, folder + name + "/environment.hdr")));
-            newEnv->set_irradiance(Cubemap::Create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", folder + name + "/diffuse.hdr")));
+            newEnv->set_diffuse(Cubemap::Create(name + "Cube", TextureParser::parse(name, (entry.path() / "environment.hdr").string())));
+            newEnv->set_irradiance(Cubemap::Create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", (entry.path() / "diffuse.hdr").string())));
         }
     }
     folder = Engine::ProgramPath() + "res/skybox/";
@@ -110,8 +110,8 @@ void EnginePrivate::LoadRes()
                 std::cout << e.what() << std::endl;
             }
         }
-        Environment::set_current(Environment::Get(0));
     }
+    Environment::set_current(Environment::Get(0));
 }
 
 void Engine::Init()

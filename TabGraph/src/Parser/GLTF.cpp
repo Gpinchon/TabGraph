@@ -39,7 +39,7 @@
     };
 #include "rapidjson/document.h"
 
-auto __gltfParser = AssetsParser::Add("gltf", GLTF::Parse);
+auto __gltfParser = AssetsParser::Add(".gltf", GLTF::Parse);
 
 struct TextureSampler {
     std::map<std::string, GLenum> settings;
@@ -119,19 +119,26 @@ static inline auto ParseTextures(const std::string& path, const rapidjson::Docum
             } catch (std::exception&) {
                 debugLog("Texture " + std::to_string(textureIndex) + " has no Uri")
             }
-            auto texture(TextureParser::parse("Texture " + std::to_string(textureIndex), uri));
+            std::shared_ptr<Texture2D> texture = nullptr;
             try {
-                auto sampler(samplers.at(textureValue["sampler"].GetInt()));
-                if (sampler.settings["magFilter"] != 0)
-                    texture->set_parameteri(GL_TEXTURE_MAG_FILTER, sampler.settings["magFilter"]);
-                if (sampler.settings["minFilter"] != 0)
-                    texture->set_parameteri(GL_TEXTURE_MIN_FILTER, sampler.settings["minFilter"]);
-                if (sampler.settings["wrapS"] != 0)
-                    texture->set_parameteri(GL_TEXTURE_WRAP_S, sampler.settings["wrapS"]);
-                if (sampler.settings["wrapT"] != 0)
-                    texture->set_parameteri(GL_TEXTURE_WRAP_T, sampler.settings["wrapT"]);
-            } catch (std::exception&) {
-                debugLog("Texture " + std::to_string(textureIndex) + " has no sampler")
+                texture = TextureParser::parse("Texture " + std::to_string(textureIndex), uri);
+                try {
+                    auto sampler(samplers.at(textureValue["sampler"].GetInt()));
+                    if (sampler.settings["magFilter"] != 0)
+                        texture->set_parameteri(GL_TEXTURE_MAG_FILTER, sampler.settings["magFilter"]);
+                    if (sampler.settings["minFilter"] != 0)
+                        texture->set_parameteri(GL_TEXTURE_MIN_FILTER, sampler.settings["minFilter"]);
+                    if (sampler.settings["wrapS"] != 0)
+                        texture->set_parameteri(GL_TEXTURE_WRAP_S, sampler.settings["wrapS"]);
+                    if (sampler.settings["wrapT"] != 0)
+                        texture->set_parameteri(GL_TEXTURE_WRAP_T, sampler.settings["wrapT"]);
+                }
+                catch (std::exception&) {
+                    debugLog("Texture " + std::to_string(textureIndex) + " has no sampler")
+                }
+            }
+            catch (std::exception &e) {
+                debugLog("Error parsing texture " + std::to_string(textureIndex) + ' ' + e.what());
             }
             textureVector.push_back(texture);
             textureIndex++;

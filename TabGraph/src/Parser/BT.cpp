@@ -15,6 +15,33 @@
 #include <stdio.h> // for fclose, fread, size_t
 #include <string> // for operator+, char_traits, to_string
 
+#pragma pack(1)
+struct BTHeader {
+    unsigned char marker[10]; //"binterr1.3"
+    int columns; //Width (east-west) dimension of the height grid.
+    int rows; //Height (north-south) dimension of the height grid.
+    short dataSize; //Bytes per elevation grid point, either 2 or 4.
+    short fPoint; //Floating-point flag
+        //If 1, the data consists of floating point values (float), otherwise they are signed integers.
+    short hUnits; //Horizontal units
+        //0: Degrees
+        //1: Meters
+        //2: Feet (international foot = .3048 meters)
+        //3: Feet (U.S. survey foot = 1200/3937 meters)
+    short UTMZone; //Indicates the UTM zone (1-60) if the file is in UTM.  Negative zone numbers are used for the southern hemisphere.
+    short datum; //Indicates the Datum, see Datum Values below.
+    double leftExtent; //The extents are specified in the coordinate space (projection) of the file.  For example, if the file is using UTM, then the extents are in UTM coordinates.
+    double rightExtent;
+    double bottomExtent;
+    double topExtent;
+    short projection; //External projection
+        //0: Projection is fully described by this header
+        //1: Projection is specified in a external .prj file
+    float verticalScale; // (vertical units) Vertical units in meters, usually 1.0.  The value 0.0 should be interpreted as 1.0 to allow for backward compatibility.
+    unsigned char padding[190]; //unused Bytes of value 0 are used to pad the rest of the header.
+};
+#pragma pack()
+
 std::shared_ptr<Texture2D> BTParse(const std::string& texture_name, const std::string& path)
 {
     BTHeader header;
@@ -48,5 +75,5 @@ std::shared_ptr<Texture2D> BTParse(const std::string& texture_name, const std::s
     return Texture2D::Create(texture_name, glm::vec2(header.columns, header.rows), GL_TEXTURE_2D, GL_RED, internalFormat, dataFormat, data);
 }
 
-auto __btParser = TextureParser::Add("bt", BTParse);
-auto __BTParser = TextureParser::Add("BT", BTParse);
+auto __btParser = TextureParser::Add(".bt", BTParse);
+auto __BTParser = TextureParser::Add(".BT", BTParse);

@@ -65,6 +65,7 @@ void Animation::_FixedUpdateCPU(float delta)
         return;
     _currentTime += delta;
     bool animationPlayed(false);
+    std::cout << _currentTime  << ' ' <<  delta << std::endl;
     for (auto index = 0u; index < _channels.size(); ++index) {
         auto channel(_channels.at(index));
         auto interpolator(_interpolators.at(index));
@@ -72,6 +73,9 @@ void Animation::_FixedUpdateCPU(float delta)
         auto t = _currentTime;
         auto max(BufferHelper::Get<float>(sampler.Timings(), sampler.Timings()->Count() - 1));
         auto min(BufferHelper::Get<float>(sampler.Timings(), 0));
+        std::cout << "Timings " << sampler.Timings()->Count() << std::endl;
+        std::cout << "Min " << min << std::endl;
+        std::cout << "Max " << max << std::endl;
         t = std::clamp(t, min, max);
         interpolator.SetPrevTime(t);
         interpolator.SetNextKey(0u);
@@ -92,6 +96,7 @@ void Animation::_FixedUpdateCPU(float delta)
         switch (channel.Path()) {
         case AnimationChannel::Translation: {
             glm::vec3 current = interpolator.Interpolate<glm::vec3>(sampler, keyDelta, interpolationValue);
+            std::cout << current.x << ' ' << current.y << ' ' << current.z << std::endl;
             channel.Target()->GetComponent<Transform>()->SetPosition(current);
             break;
         }

@@ -9,6 +9,8 @@
 #include "Parser/InternalTools.hpp" // for parse_vec3, t_obj_parser, strspl...
 #include "Material.hpp" // for Material
 #include "Texture/TextureParser.hpp" // for TextureParser
+#include "Assets/AssetsParser.hpp"
+
 #include <glm/glm.hpp> // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
 //#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <memory> // for shared_ptr, allocator, __shared_...
@@ -17,6 +19,7 @@
 #include <stdlib.h> // for errno
 #include <string.h> // for strerror
 #include <vector> // for vector
+#include <filesystem>
 
 #ifdef _WIN32
 #include <io.h>
@@ -43,42 +46,39 @@ static inline void parse_color(std::vector<std::string> &split, std::shared_ptr<
     }
 }
 
-static inline void parse_texture(t_obj_parser *p, std::vector<std::string> &split, std::shared_ptr<Material> mtl)
+static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string &textureType, std::filesystem::path path)
 {
-    std::string path(p->path_split[0]);
-
-    path += split[1];
-    if (split[0] == "map_Kd")
+    if (textureType == "map_Kd")
     {
-        mtl->SetTextureAlbedo(TextureParser::parse(path, path));
+        mtl->SetTextureAlbedo(TextureParser::parse(path.string(), path.string()));
     }
-    else if (split[0] == "map_Ks")
+    else if (textureType == "map_Ks")
     {
-        mtl->SetTextureSpecular(TextureParser::parse(path, path));
+        mtl->SetTextureSpecular(TextureParser::parse(path.string(), path.string()));
     }
-    else if (split[0] == "map_Ke")
+    else if (textureType == "map_Ke")
     {
-        mtl->SetTextureEmitting(TextureParser::parse(path, path));
+        mtl->SetTextureEmitting(TextureParser::parse(path.string(), path.string()));
     }
-    else if (split[0] == "map_Nh")
+    else if (textureType == "map_Nh")
     {
-        mtl->SetTextureHeight(TextureParser::parse(path, path));
+        mtl->SetTextureHeight(TextureParser::parse(path.string(), path.string()));
     }
-    else if (split[0] == "map_No")
+    else if (textureType == "map_No")
     {
-        mtl->SetTextureAO(TextureParser::parse(path, path));
+        mtl->SetTextureAO(TextureParser::parse(path.string(), path.string()));
     }
-    else if (split[0] == "map_Nr")
+    else if (textureType == "map_Nr")
     {
-        mtl->SetTextureRoughness(TextureParser::parse(path, path));
+        mtl->SetTextureRoughness(TextureParser::parse(path.string(), path.string()));
     }
-    else if (split[0] == "map_Nm")
+    else if (textureType == "map_Nm")
     {
-        mtl->SetTextureMetallic(TextureParser::parse(path, path));
+        mtl->SetTextureMetallic(TextureParser::parse(path.string(), path.string()));
     }
-    else if (split[0] == "map_bump" || split[0] == "map_Bump")
+    else if (textureType == "map_bump" || textureType == "map_Bump")
     {
-        mtl->SetTextureNormal(TextureParser::parse(path, path));
+        mtl->SetTextureNormal(TextureParser::parse(path.string(), path.string()));
     }
 }
 
@@ -116,15 +116,13 @@ static inline void parse_number(std::vector<std::string> &split, std::shared_ptr
     }
 }
 
-#include <iostream>
-
-static inline std::map<std::string, std::shared_ptr<Material>> parse_mtl(t_obj_parser *p, std::string &name)
+static inline AssetsContainer parse_mtl(FILE* fd, std::string &name, const std::filesystem::path &basePath)
 {
     char line[4096];
-    std::map<std::string, std::shared_ptr<Material>> materials;
+    AssetsContainer container;
     auto mtl = Material::Create(name);
-    materials[name] = mtl;
-    while (fgets(line, 4096, p->fd) != nullptr)
+    container.AddComponent(mtl);
+    while (fgets(line, 4096, fd) != nullptr)
     {
         try
         {
@@ -141,12 +139,11 @@ static inline std::map<std::string, std::shared_ptr<Material>> parse_mtl(t_obj_p
                 }
                 else if (msplit[0].find("map_") != std::string::npos)
                 {
-                    parse_texture(p, msplit, mtl);
+                    parse_texture(mtl, msplit.at(0), basePath / msplit.at(1));
                 }
                 else if (msplit[0] == "newmtl")
                 {
-                    auto material(parse_mtl(p, msplit[1]));
-                    materials.insert(material.begin(), material.end());
+                    container += parse_mtl(fd, msplit[1], basePath);
                 }
             }
         }
@@ -155,26 +152,26 @@ static inline std::map<std::string, std::shared_ptr<Material>> parse_mtl(t_obj_p
             throw std::runtime_error("Error while parsing " + name + " at line \"" + line + "\" : " + e.what());
         }
     }
-    return materials;
+    return container;
 }
 
-std::map<std::string, std::shared_ptr<Material>> MTLLIB::parse(const std::string &path)
+AssetsContainer MTLLIB::Parse(const std::string &path)
 {
     char line[4096];
-    t_obj_parser p;
-    std::map<std::string, std::shared_ptr<Material>> materials;
+    AssetsContainer container;
 
     if (access(path.c_str(), R_OK) != 0)
     {
         throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
     }
-    if ((p.fd = fopen(path.c_str(), "r")) == nullptr)
+    FILE* fd = nullptr;
+    if ((fd = fopen(path.c_str(), "r")) == nullptr)
     {
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
-    p.path_split = split_path(path);
+    auto basePath = std::filesystem::absolute(path).parent_path();
     auto l = 1;
-    while (fgets(line, 4096, p.fd) != nullptr)
+    while (fgets(line, 4096, fd) != nullptr)
     {
         try
         {
@@ -183,8 +180,7 @@ std::map<std::string, std::shared_ptr<Material>> MTLLIB::parse(const std::string
             {
                 if (split[0] == "newmtl")
                 {
-                    auto mtl(parse_mtl(&p, split[1]));
-                    materials.insert(mtl.begin(), mtl.end());
+                    container += parse_mtl(fd, split[1], basePath);
                 }
             }
         }
@@ -194,6 +190,8 @@ std::map<std::string, std::shared_ptr<Material>> MTLLIB::parse(const std::string
         }
         l++;
     }
-    fclose(p.fd);
-    return materials;
+    fclose(fd);
+    return container;
 }
+
+auto __btParser = AssetsParser::Add(".mtl", MTLLIB::Parse);
