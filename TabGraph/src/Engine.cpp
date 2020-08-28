@@ -134,18 +134,18 @@ int event_filter(void* arg, SDL_Event* event)
 
 void Engine::Start()
 {
-    float ticks;
-    float lastTicks;
-    float fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
+    double ticks;
+    double lastTicks;
+    double fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
 
     SDL_SetEventFilter(event_filter, nullptr);
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
     Render::Start();
     while (EnginePrivate::Get().loop) {
         //std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        if (Render::Drawing())
+        if (Render::NeedsUpdate())
             continue;
-        ticks = SDL_GetTicks() / 1000.f;
+        ticks = SDL_GetTicks() / 1000.0;
         EnginePrivate::Get().deltaTime = ticks - lastTicks;
         lastTicks = ticks;
         SDL_PumpEvents();

@@ -283,9 +283,9 @@ void Render::Private::StopRenderingThread(void)
 
 void Render::Private::_thread(void)
 {
-    float ticks;
-    float lastTicks;
-    float lastTicksFixed = lastTicks = SDL_GetTicks() / 1000.f;
+    double ticks;
+    double lastTicks;
+    double lastTicksFixed = lastTicks = SDL_GetTicks() / 1000.0;
 
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
@@ -295,9 +295,8 @@ void Render::Private::_thread(void)
     Render::Private::SetBRDF(brdf);
     while (_instance()._loop) {
         if (Render::Private::NeedsUpdate()) {
-            ticks = SDL_GetTicks() / 1000.f;
+            ticks = SDL_GetTicks() / 1000.0;
             _instance()._frame_nbr++;
-            _instance()._drawing = true;
             _instance()._deltaTime = ticks - lastTicks;
             lastTicks = ticks;
             Render::Private::Update(_instance()._deltaTime);
@@ -306,9 +305,10 @@ void Render::Private::_thread(void)
                 lastTicksFixed = ticks;
                 Render::Private::FixedUpdate(_instance()._fixedDeltaTime);
             }
+            _instance()._drawing = true;
             Render::Private::Scene();
-            _instance()._needsUpdate = false;
             _instance()._drawing = false;
+            _instance()._needsUpdate = false;
         }
     }
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
@@ -891,6 +891,12 @@ void Render::Private::RemovePostTreatment(std::shared_ptr<Shader> shader)
             PostTreatments().end()); //PostTreatments.erase(shader);
     }
 }
+
+std::atomic<bool>& Render::NeedsUpdate()
+{
+    return Render::Private::NeedsUpdate();
+}
+
 
 void Render::RequestRedraw()
 {

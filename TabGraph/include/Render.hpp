@@ -21,6 +21,7 @@ void Start();
 void Stop();
 /** @brief Asks for a redraw on next loop */
 void RequestRedraw();
+std::atomic<bool>& NeedsUpdate();
 /** @brief Indicates if the rendering still needs update */
 std::atomic<bool>& Drawing();
 /**
