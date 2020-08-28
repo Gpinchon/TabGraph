@@ -12,6 +12,7 @@
 #include <stdint.h> // for uint16_t, int16_t
 #include <string> // for allocator, string
 #include <variant>
+#include <filesystem>
 
 /**
 * @brief Loader for config files
@@ -26,9 +27,9 @@ public:
     * Loads the Config from the specified file
     * Invalid values will be ignored (set to default value) but setting keys will still be registered
     */
-    void Parse(const std::string &path);
+    void Parse(const std::filesystem::path path);
     /** Saves the Config to the specified file */
-    void Save(const std::string &path);
+    void Save(const std::filesystem::path path);
     /** Tries to get the specified setting, set it to the default value if not found */
     template <typename T>
     T Get(const std::string &name, const T defaultValue);
@@ -54,9 +55,9 @@ public:
         * Loads the Config from the specified file
         * Invalid values will be ignored (set to default value) but setting keys will still be registered
         */
-    static void Parse(const std::string &path);
+    static void Parse(const std::filesystem::path path);
     /** Saves the Config to the specified file */
-    static void Save(const std::string &path);
+    static void Save(const std::filesystem::path path);
     /** Tries to get the specified setting, set it to the default value if not found */
     template <typename T>
     static T Get(const std::string &name, const T defaultValue);

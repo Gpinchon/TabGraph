@@ -198,33 +198,34 @@ std::shared_ptr<Cubemap> Cubemap::Create(const std::string& name, std::shared_pt
 
 #include <Config.hpp>
 
-void cubemap_load_side(std::shared_ptr<Cubemap> cubemap, const std::string& path, GLenum iside)
+void cubemap_load_side(std::shared_ptr<Cubemap> cubemap, const std::filesystem::path path, GLenum iside)
 {
-    auto sideTexture = TextureParser::parse(path, path);
+    auto sideTexture = TextureParser::parse(path.string(), path.string());
     if (sideTexture == nullptr) {
         return;
     }
     cubemap->set_side(iside - GL_TEXTURE_CUBE_MAP_POSITIVE_X, sideTexture);
 }
 
-std::shared_ptr<Cubemap> Cubemap::parse(const std::string& name, const std::string& path)
+std::shared_ptr<Cubemap> Cubemap::parse(const std::filesystem::path path)
 {
     try {
+        auto name = path.filename();
         Config cubemapInfo;
-        cubemapInfo.Parse(path + name + "/cubemap.info");
-        auto t = Cubemap::Create(name);
-        cubemap_load_side(t, path + name + "/" + cubemapInfo.Get("POSITIVE_X", std::string("X+.bmp")), GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-        cubemap_load_side(t, path + name + "/" + cubemapInfo.Get("NEGATIVE_X", std::string("X-.bmp")), GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-        cubemap_load_side(t, path + name + "/" + cubemapInfo.Get("POSITIVE_Y", std::string("Y+.bmp")), GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-        cubemap_load_side(t, path + name + "/" + cubemapInfo.Get("NEGATIVE_Y", std::string("Y-.bmp")), GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-        cubemap_load_side(t, path + name + "/" + cubemapInfo.Get("POSITIVE_Z", std::string("Z+.bmp")), GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-        cubemap_load_side(t, path + name + "/" + cubemapInfo.Get("NEGATIVE_Z", std::string("Z-.bmp")), GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+        cubemapInfo.Parse(path / "cubemap.info");
+        auto t = Cubemap::Create(name.string());
+        cubemap_load_side(t, path / cubemapInfo.Get("POSITIVE_X", std::string("X+.bmp")), GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+        cubemap_load_side(t, path / cubemapInfo.Get("NEGATIVE_X", std::string("X-.bmp")), GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+        cubemap_load_side(t, path / cubemapInfo.Get("POSITIVE_Y", std::string("Y+.bmp")), GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+        cubemap_load_side(t, path / cubemapInfo.Get("NEGATIVE_Y", std::string("Y-.bmp")), GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+        cubemap_load_side(t, path / cubemapInfo.Get("POSITIVE_Z", std::string("Z+.bmp")), GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+        cubemap_load_side(t, path / cubemapInfo.Get("NEGATIVE_Z", std::string("Z-.bmp")), GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
         t->generate_mipmap();
         t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         debugLog(t.use_count());
         return (t);
     } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Error parsing Cubemap : " + path + name + " :\n\t") + e.what());
+        throw std::runtime_error(std::string("Error parsing Cubemap : " + path.string() + " :\n\t") + e.what());
     }
     return (nullptr);
 }

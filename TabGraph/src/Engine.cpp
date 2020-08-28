@@ -51,18 +51,16 @@ struct EnginePrivate {
     int8_t swapInterval { 1 };
     double deltaTime { 0 };
     double fixedDeltaTime { 0 };
-    std::string programPath { "" };
-    std::string execPath { "" };
+    std::filesystem::path programPath;
+    std::filesystem::path execPath;
 };
 
 EnginePrivate::EnginePrivate()
 {
     loop = true;
     swapInterval = 1;
-    execPath = std::filesystem::current_path().string();
-    programPath = std::filesystem::absolute(SDL_GetBasePath()).string();
-    programPath = programPath.substr(0, programPath.find_last_of('/'));
-    programPath += "/";
+    execPath = std::filesystem::current_path();
+    programPath = std::filesystem::absolute(SDL_GetBasePath()).parent_path();
 }
 
 EnginePrivate& EnginePrivate::Get()
@@ -76,9 +74,9 @@ EnginePrivate& EnginePrivate::Get()
 void EnginePrivate::LoadRes()
 {
     struct dirent* e;
-    std::string folder;
+    std::filesystem::path folder;
 
-    folder = Engine::ProgramPath() + "res/hdr/";
+    folder = Engine::ProgramPath() / "res/hdr/";
     if (std::filesystem::exists(folder)) {
         for (const auto& entry : std::filesystem::directory_iterator(folder)) {
             if (entry.path().string()[0] == '.')
@@ -89,7 +87,7 @@ void EnginePrivate::LoadRes()
             newEnv->set_irradiance(Cubemap::Create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", (entry.path() / "diffuse.hdr").string())));
         }
     }
-    folder = Engine::ProgramPath() + "res/skybox/";
+    folder = Engine::ProgramPath() / "res/skybox/";
     if (std::filesystem::exists(folder)) {
         for (const auto& entry : std::filesystem::directory_iterator(folder)) {
             if (entry.path().string()[0] == '.')
@@ -97,14 +95,14 @@ void EnginePrivate::LoadRes()
             std::string name = entry.path().string();
             auto newEnv = Environment::Create(name);
             try {
-                newEnv->set_diffuse(Cubemap::parse(name, folder));
+                newEnv->set_diffuse(Cubemap::parse(folder));
             }
             catch (std::exception& e) {
                 std::cout << e.what() << std::endl;
                 continue;
             }
             try {
-                newEnv->set_irradiance(Cubemap::parse(name + "/light", folder));
+                newEnv->set_irradiance(Cubemap::parse(folder / "light"));
             }
             catch (std::exception& e) {
                 std::cout << e.what() << std::endl;
@@ -186,17 +184,17 @@ double Engine::FixedDeltaTime(void)
     return EnginePrivate::Get().fixedDeltaTime;
 }
 
-const std::string& Engine::ProgramPath()
+const std::filesystem::path Engine::ProgramPath()
 {
     return (EnginePrivate::Get().programPath);
 }
 
-const std::string& Engine::ExecutionPath()
+const std::filesystem::path Engine::ExecutionPath()
 {
     return (EnginePrivate::Get().execPath);
 }
 
-const std::string Engine::ResourcePath()
+const std::filesystem::path Engine::ResourcePath()
 {
-    return (Engine::ProgramPath() + "/res/");
+    return (Engine::ProgramPath() / "res");
 }

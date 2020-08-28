@@ -12,12 +12,13 @@
 #include <memory> // for shared_ptr, shared_ptr
 #include <string> // for string
 #include <vector> // for vector
+#include <filesystem>
 
 class Cubemap : public Texture {
 public:
     static std::shared_ptr<Cubemap> Create(const std::string&);
     static std::shared_ptr<Cubemap> Create(const std::string&, std::shared_ptr<Texture2D> fromTexture);
-    static std::shared_ptr<Cubemap> parse(const std::string&, const std::string&);
+    static std::shared_ptr<Cubemap> parse(const std::filesystem::path);
     static std::shared_ptr<Cubemap> Get(unsigned index);
     static std::shared_ptr<Cubemap> GetByName(const std::string&);
     static void Add(std::shared_ptr<Cubemap>);
