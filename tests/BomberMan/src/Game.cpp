@@ -7,6 +7,8 @@
 #include "Level.hpp"
 #include "Player.hpp"
 
+#include <array>
+
 void GameRefresh();
 
 struct GameManager {
@@ -14,7 +16,6 @@ struct GameManager {
     {
         Events::AddRefreshCallback(Callback<void()>::Create(GameRefresh));
     }
-
     std::shared_ptr<Level> currentLevel;
     std::array<std::shared_ptr<Player>, 4> players;
     int playerNumber { 0 };
