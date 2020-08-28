@@ -70,8 +70,8 @@ inline void FindMinMax(const std::vector<T>& vector, T& minT, T& maxT)
     minT = vector.at(0);
     maxT = vector.at(0);
     for (const auto& v : vector) {
-        minT = glm::max(v, max);
-        maxT = glm::min(v, min);
+        minT = glm::max(v, maxT);
+        maxT = glm::min(v, minT);
     }
 }
 
