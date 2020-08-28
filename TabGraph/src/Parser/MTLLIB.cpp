@@ -10,9 +10,9 @@
 #include "Material.hpp" // for Material
 #include "Texture/TextureParser.hpp" // for TextureParser
 #include "Assets/AssetsParser.hpp"
+#include "Debug.hpp"
 
 #include <glm/glm.hpp> // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
-//#include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <memory> // for shared_ptr, allocator, __shared_...
 #include <stdexcept> // for runtime_error
 #include <stdio.h> // for fgets, fclose, fopen
@@ -48,37 +48,42 @@ static inline void parse_color(std::vector<std::string> &split, std::shared_ptr<
 
 static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string &textureType, std::filesystem::path path)
 {
-    if (textureType == "map_Kd")
-    {
-        mtl->SetTextureAlbedo(TextureParser::parse(path.string(), path.string()));
+    try {
+        if (textureType == "map_Kd")
+        {
+            mtl->SetTextureAlbedo(TextureParser::parse(path.string(), path.string()));
+        }
+        else if (textureType == "map_Ks")
+        {
+            mtl->SetTextureSpecular(TextureParser::parse(path.string(), path.string()));
+        }
+        else if (textureType == "map_Ke")
+        {
+            mtl->SetTextureEmitting(TextureParser::parse(path.string(), path.string()));
+        }
+        else if (textureType == "map_Nh")
+        {
+            mtl->SetTextureHeight(TextureParser::parse(path.string(), path.string()));
+        }
+        else if (textureType == "map_No")
+        {
+            mtl->SetTextureAO(TextureParser::parse(path.string(), path.string()));
+        }
+        else if (textureType == "map_Nr")
+        {
+            mtl->SetTextureRoughness(TextureParser::parse(path.string(), path.string()));
+        }
+        else if (textureType == "map_Nm")
+        {
+            mtl->SetTextureMetallic(TextureParser::parse(path.string(), path.string()));
+        }
+        else if (textureType == "map_bump" || textureType == "map_Bump")
+        {
+            mtl->SetTextureNormal(TextureParser::parse(path.string(), path.string()));
+        }
     }
-    else if (textureType == "map_Ks")
-    {
-        mtl->SetTextureSpecular(TextureParser::parse(path.string(), path.string()));
-    }
-    else if (textureType == "map_Ke")
-    {
-        mtl->SetTextureEmitting(TextureParser::parse(path.string(), path.string()));
-    }
-    else if (textureType == "map_Nh")
-    {
-        mtl->SetTextureHeight(TextureParser::parse(path.string(), path.string()));
-    }
-    else if (textureType == "map_No")
-    {
-        mtl->SetTextureAO(TextureParser::parse(path.string(), path.string()));
-    }
-    else if (textureType == "map_Nr")
-    {
-        mtl->SetTextureRoughness(TextureParser::parse(path.string(), path.string()));
-    }
-    else if (textureType == "map_Nm")
-    {
-        mtl->SetTextureMetallic(TextureParser::parse(path.string(), path.string()));
-    }
-    else if (textureType == "map_bump" || textureType == "map_Bump")
-    {
-        mtl->SetTextureNormal(TextureParser::parse(path.string(), path.string()));
+    catch (std::exception& e) {
+        debugLog("Error while parsing texture : " << e.what());
     }
 }
 
