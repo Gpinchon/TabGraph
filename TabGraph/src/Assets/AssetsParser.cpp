@@ -24,7 +24,7 @@ AssetsParser::AssetsParser(const std::string& format, AssetsParsingFunction pars
 
 AssetsParser* AssetsParser::Add(const std::string& format, AssetsParsingFunction parsingFunction)
 {
-    debugLog("Add Parser ", format);
+    debugLog("Add Parser " + format);
     auto parser = new AssetsParser(format, parsingFunction);
     _getParsers()[format] = parser;
     return parser;
