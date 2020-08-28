@@ -113,7 +113,8 @@ void* Buffer::Map(GLenum access)
 {
     if (Glid() == 0)
         Allocate();
-    debugLog(Name());
+    if (Mapped())
+        throw std::runtime_error("Buffer" + Name() + " : is already mapped.");
     auto ptr(GetMapFunction()(Glid(), access));
     if (glCheckError()) {
         debugLog("ERROR");
@@ -127,6 +128,8 @@ void* Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
 {
     if (Glid() == 0)
         Allocate();
+    if (Mapped())
+        throw std::runtime_error("Buffer" + Name() + " : is already mapped.");
     auto ptr(GetMapRangeFunction()(Glid(), offset, length, access));
     if (glCheckError()) {
         debugLog("ERROR");
@@ -138,8 +141,10 @@ void* Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
 
 void Buffer::Unmap()
 {
-    if (!Mapped())
+    if (!Mapped()) {
         debugLog(Name() + " IS NOT MAPPED");
+        return;
+    }
     GetUnmapRangeFunction()(Glid());
     if (glCheckError()) {
         debugLog("ERROR");
@@ -231,8 +236,11 @@ void Buffer::_LoadCPU()
         auto data(ParseData(Uri().string()));
         if (data.empty()) {
             debugLog(Uri());
-            std::ifstream is(Uri());
-            is.read((char*)_rawData.data(), ByteLength());
+            std::ifstream is(Uri(), std::ios::binary);
+            if (!is.read((char*)_rawData.data(), ByteLength()))
+                throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
+            if (is.gcount() != ByteLength())
+                throw std::runtime_error(Name() + " : Incomplete buffer read");
         } else
             _rawData = data;
     }
@@ -249,11 +257,14 @@ void Buffer::_LoadGPU()
         auto data(ParseData(Uri().string()));
         if (data.empty()) {
             debugLog(Uri());
+            debugLog(ByteLength());
             std::ifstream is(Uri(), std::ios::binary);
             if (!is.read((char*)Map(BufferAccess::Write), ByteLength())) {
                 Unmap();
                 throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
             }
+            if (is.gcount() != ByteLength())
+                throw std::runtime_error(Name() + " : Incomplete buffer read");
             Unmap();
         } else {
             std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
