@@ -15,8 +15,8 @@
 std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size, unsigned subdivision)
 {
     auto m = Mesh::Create(name);
-    glm::vec3 max((size.x / 2.f), 0, (size.y / 2.f));
-    glm::vec3 min(-max);
+    glm::vec3 maxV = glm::vec3(size.x / 2.f, 0.f, size.y / 2.f);
+    glm::vec3 minV = -maxV;
     glm::vec3 vn(0, 1, 0);
     std::vector<glm::vec3> planeVertices;
     std::vector<glm::vec3> planeNormals;
@@ -25,7 +25,7 @@ std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size,
     for (auto x = 0u; x <= subdivision; ++x) {
         for (auto y = 0u; y <= subdivision; ++y) {
             auto uv = glm::vec2(x / float(subdivision), y / float(subdivision));
-            auto v(glm::mix(min, max, glm::vec3(uv.x, 0, uv.y)));
+            auto v(glm::mix(minV, maxV, glm::vec3(uv.x, 0, uv.y)));
             planeVertices.push_back(v);
             planeNormals.push_back(vn);
             planeTexCoords.push_back(uv);

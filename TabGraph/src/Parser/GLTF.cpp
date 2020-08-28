@@ -100,7 +100,7 @@ static inline auto ParseTextures(const std::string& path, const rapidjson::Docum
 {
     debugLog("Start parsing textures");
     std::vector<std::shared_ptr<Texture2D>> textureVector;
-    auto samplers(ParseTextureSamplers(document));
+    auto samplers = ParseTextureSamplers(document);
     try {
         auto textureIndex(0);
         for (const auto& textureValue : document["textures"].GetArray()) {
@@ -119,7 +119,7 @@ static inline auto ParseTextures(const std::string& path, const rapidjson::Docum
             } catch (std::exception&) {
                 debugLog("Texture " + std::to_string(textureIndex) + " has no Uri")
             }
-            std::shared_ptr<Texture2D> texture = nullptr;
+            std::shared_ptr<Texture2D> texture = nullptr;//Texture2D::Create("Texture_" + std::to_string(textureIndex), glm::ivec2(0), GL_TEXTURE_2D, GL_RGB, GL_RGB);
             try {
                 texture = TextureParser::parse("Texture " + std::to_string(textureIndex), uri);
                 try {
@@ -163,7 +163,7 @@ static inline std::shared_ptr<Texture2D> GetTexture(const std::vector<std::share
 static inline auto ParseMaterials(const std::string& path, const rapidjson::Document& document)
 {
     debugLog("Start parsing materials");
-    auto textureVector(ParseTextures(path, document));
+    auto textureVector = ParseTextures(path, document);
     std::vector<std::shared_ptr<Material>> materialVector;
     try {
         auto materialIndex(0);

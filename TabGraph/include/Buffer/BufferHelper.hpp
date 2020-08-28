@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 17:26:13
+* @Last Modified time: 2020-08-27 19:59:25
 */
 #pragma once
 
@@ -60,31 +60,31 @@ inline std::shared_ptr<BufferView> BufferHelper::CreateBufferView(std::vector<T>
 }
 
 template <typename T>
-inline void FindMinMax(const std::vector<T>& vector, T& min, T& max)
+inline void FindMinMax(const std::vector<T>& vector, T& minT, T& maxT)
 {
     if (vector.empty()) {
-        min = T(0);
-        max = T(0);
+        minT = T(0);
+        maxT = T(0);
         return;
     }
-    min = vector.at(0);
-    max = vector.at(0);
+    minT = vector.at(0);
+    maxT = vector.at(0);
     for (const auto& v : vector) {
-        max = glm::max(v, max);
-        min = glm::min(v, min);
+        minT = glm::max(v, max);
+        maxT = glm::min(v, min);
     }
 }
 
 template <>
-inline void FindMinMax(const std::vector<glm::mat4>& vector, glm::mat4& min, glm::mat4& max)
+inline void FindMinMax(const std::vector<glm::mat4>& vector, glm::mat4& minM, glm::mat4& maxM)
 {
     if (vector.empty()) {
-        min = glm::mat4(0);
-        max = glm::mat4(0);
+        minM = glm::mat4(0);
+        maxM = glm::mat4(0);
         return;
     }
-    min = vector.at(0);
-    max = vector.at(vector.size() - 1);
+    minM = vector.at(0);
+    maxM = vector.at(vector.size() - 1);
 }
 
 template <>
@@ -92,12 +92,12 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
     auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Mat4));
-    glm::mat4 min, max;
-    FindMinMax(bufferVector, min, max);
+    glm::mat4 minM, maxM;
+    FindMinMax(bufferVector, minM, maxM);
     bufferAccessor->SetBufferView(bufferView);
     bufferAccessor->SetNormalized(normalized);
-    bufferAccessor->SetMin(min);
-    bufferAccessor->SetMax(max);
+    bufferAccessor->SetMin(minM);
+    bufferAccessor->SetMax(maxM);
     return bufferAccessor;
 }
 
@@ -106,12 +106,12 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
     auto bufferAccessor(BufferAccessor::Create(GL_UNSIGNED_INT, bufferVector.size(), BufferAccessor::Type::Scalar));
-    unsigned min, max;
-    FindMinMax(bufferVector, min, max);
+    unsigned minU, maxU;
+    FindMinMax(bufferVector, minU, maxU);
     bufferAccessor->SetBufferView(bufferView);
     bufferAccessor->SetNormalized(normalized);
-    bufferAccessor->SetMin(min);
-    bufferAccessor->SetMax(max);
+    bufferAccessor->SetMin(minU);
+    bufferAccessor->SetMax(maxU);
     return bufferAccessor;
 }
 
@@ -120,12 +120,12 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
     auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec3));
-    glm::vec3 min, max;
-    FindMinMax(bufferVector, min, max);
+    glm::vec3 minV, maxV;
+    FindMinMax(bufferVector, minV, maxV);
     bufferAccessor->SetBufferView(bufferView);
     bufferAccessor->SetNormalized(normalized);
-    bufferAccessor->SetMin(min);
-    bufferAccessor->SetMax(max);
+    bufferAccessor->SetMin(minV);
+    bufferAccessor->SetMax(maxV);
     return bufferAccessor;
 }
 
@@ -163,7 +163,6 @@ inline T BufferHelper::Get(std::shared_ptr<Buffer> buffer, size_t index)
 template <typename T>
 inline T BufferHelper::Get(std::shared_ptr<BufferAccessor> accessor, size_t index)
 {
-
     if (accessor == nullptr)
         return T();
     if (sizeof(T) != accessor->TotalComponentByteSize())
@@ -203,7 +202,7 @@ inline void BufferHelper::Set(std::shared_ptr<BufferAccessor> accessor, size_t i
         return;
     auto buffer(bufferView->GetBuffer());
     if (buffer == nullptr)
-        return;
+       return;
     auto stride(bufferView->ByteStride() ? bufferView->ByteStride() : accessor->TotalComponentByteSize());
     auto bufferIndex(accessor->ByteOffset() + bufferView->ByteOffset() + index * stride);
     BufferHelper::Set(buffer, bufferIndex, value);
@@ -223,8 +222,6 @@ void BufferHelper::PushBack(std::shared_ptr<BufferAccessor> accessor, T value)
     auto buffer(bufferView->GetBuffer());
     if (buffer == nullptr)
         return;
-    auto min(accessor->Min<T>());
-    auto max(accessor->Max<T>());
     accessor->SetCount(accessor->Count() + 1);
     bufferView->SetByteLength(bufferView->ByteLength() + sizeof(T));
     buffer->SetByteLength(buffer->ByteLength() + sizeof(T));

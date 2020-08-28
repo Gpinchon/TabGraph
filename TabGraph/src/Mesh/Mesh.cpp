@@ -265,7 +265,6 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
             skinChanged = true;
         BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
     }
-    debugLog(Name() + (skinChanged ? " Skin Changed" : "Skin Didn't change"));
     SetNeedsFixedUpdateGPU(NeedsFixedUpdateGPU() || skinChanged);
 }
 

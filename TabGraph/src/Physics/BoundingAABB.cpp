@@ -11,10 +11,10 @@
 #include <array>
 #include <glm/gtx/matrix_decompose.hpp>
 
-BoundingAABB::BoundingAABB(glm::vec3 min, glm::vec3 max)
+BoundingAABB::BoundingAABB(glm::vec3 minV, glm::vec3 maxV)
     : BoundingElement(Type::AABB)
-    , _min(min)
-    , _max(max)
+    , _min(minV)
+    , _max(maxV)
 {
 }
 

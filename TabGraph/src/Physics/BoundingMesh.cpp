@@ -105,13 +105,13 @@ BoundingElement::ProjectionInterval BoundingMesh::Project(const glm::vec3& axis,
 
 glm::mat3 BoundingMesh::LocalInertiaTensor(const float& mass) const
 {
-    glm::vec3 max(1.f);
-    glm::vec3 min(-1.f);
-    auto w = fabs(max.x - min.x);
+    auto maxI = glm::vec3(1.f);
+    auto minI = glm::vec3(-1.f);
+    auto w = fabs(maxI.x - minI.x);
     auto w2 = w * w;
-    auto h = fabs(max.y - min.y);
+    auto h = fabs(maxI.y - minI.y);
     auto h2 = h * h;
-    auto d = fabs(max.z - min.z);
+    auto d = fabs(maxI.z - minI.z);
     auto d2 = d * d;
     auto m = 1 / 12.f * mass;
     return {
