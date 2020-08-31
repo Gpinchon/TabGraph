@@ -8,6 +8,8 @@
 #include "Parser/FBX/FBXDocument.hpp"
 #include "Parser/FBX/FBXNode.hpp"
 #include "Parser/FBX/FBXProperty.hpp"
+
+#include <fstream>
 #include <errno.h> // for errno
 #include <iostream> // for operator<<, basic_ostream, cout, ostream, char_...
 #include <map> // for allocator, map
@@ -18,7 +20,6 @@
 #include <utility> // for pair
 #include <variant>
 #include <vector> // for vector
-#include <zconf.h> // for Byte
 #include <zlib.h> // for z_stream, Z_NULL, inflate, inflateEnd, Z_NO_FLUSH
 
 #ifdef _WIN32
@@ -62,133 +63,149 @@ void Document::Print() const
 }
 
 template <typename T>
-void DecompressArray(Array* array)
+void DecompressArray(Array& array)
 {
-    auto data = new T[array->length];
+    auto data = new T[array.length];
     z_stream infstream;
     infstream.zalloc = Z_NULL;
     infstream.zfree = Z_NULL;
     infstream.opaque = Z_NULL;
-    infstream.avail_in = array->compressedLength; // size of input
-    infstream.next_in = std::get<Byte*>(array->data); // input char array
-    infstream.avail_out = array->length * sizeof(T); // size of output
+    infstream.avail_in = array.compressedLength; // size of input
+    infstream.next_in = std::get<Byte*>(array.data); // input char array
+    infstream.avail_out = array.length * sizeof(T); // size of output
     infstream.next_out = (Byte*)data; // output char array
     inflateInit(&infstream);
     inflate(&infstream, Z_NO_FLUSH);
     inflateEnd(&infstream);
-    array->data = (T*)data;
-    array->encoding = 0;
-    array->compressedLength = 0;
+    array.data = (T*)data;
+    array.encoding = 0;
+    array.compressedLength = 0;
 }
 
 template <typename T>
-Array ParseArray(FILE* fd)
+Array ParseArray(std::ifstream& file)
 {
     Array array;
 
-    fread(&array.length, sizeof(array.length), 1, fd);
-    fread(&array.encoding, sizeof(array.encoding), 1, fd);
-    fread(&array.compressedLength, sizeof(array.compressedLength), 1, fd);
+    file.read((char*)&array.length, sizeof(array.length));
+    //fread(&array.length, sizeof(array.length), 1, fd);
+    file.read((char*)&array.encoding, sizeof(array.encoding));
+    //fread(&array.encoding, sizeof(array.encoding), 1, fd);
+    file.read((char*)&array.compressedLength, sizeof(array.compressedLength));
+    //fread(&array.compressedLength, sizeof(array.compressedLength), 1, fd);
     if (array.encoding == 0) {
         array.data = new T[array.length];
-        fread(std::get<T*>(array.data), array.length, sizeof(T), fd);
+        file.read((char*)std::get<T*>(array.data), array.length * sizeof(T));
+        //fread(std::get<T*>(array.data), array.length, sizeof(T), fd);
     } else {
         array.data = new Byte[array.compressedLength];
-        fread(std::get<Byte*>(array.data), array.compressedLength, 1, fd);
-        DecompressArray<T>(&array);
+        file.read((char*)std::get<Byte*>(array.data), array.compressedLength);
+        //fread(std::get<Byte*>(array.data), array.compressedLength, 1, fd);
+        DecompressArray<T>(array);
     }
     return (array);
 }
 
-Array parseRawData(FILE* fd)
+Array parseRawData(std::ifstream &file)
 {
     Array rawData;
-    fread(&rawData.length, sizeof(unsigned), 1, fd);
+    file.read((char*)&rawData.length, sizeof(rawData.length));
+    //fread(&rawData.length, sizeof(unsigned), 1, fd);
     rawData.data = new Byte[rawData.length];
-    fread(std::get<Byte*>(rawData.data), rawData.length, 1, fd);
+    file.read((char*)std::get<Byte*>(rawData.data), rawData.length);
+    //fread(std::get<Byte*>(rawData.data), rawData.length, 1, fd);
     return rawData;
 }
 
-Array parseString(FILE* fd)
+Array parseString(std::ifstream& file)
 {
     Array rawString;
-    fread(&rawString.length, sizeof(unsigned), 1, fd);
+    file.read((char*)&rawString.length, sizeof(rawString.length));
+    //fread(&rawString.length, sizeof(unsigned), 1, fd);
     rawString.data = new char[rawString.length + 1];
     memset(std::get<char*>(rawString.data), 0, rawString.length + 1);
-    fread(std::get<char*>(rawString.data), rawString.length, 1, fd);
+    file.read(std::get<char*>(rawString.data), rawString.length);
+    //fread(std::get<char*>(rawString.data), rawString.length, 1, fd);
     return rawString;
 }
 
-static inline auto ParseProperty(FILE* fd)
+static inline auto ParseProperty(std::ifstream &file)
 {
     auto property(Property::Create());
 
-    fread(&property->typeCode, 1, 1, fd);
+    file.read((char*)&property->typeCode, 1);
+    //fread(&property->typeCode, 1, 1, fd);
     switch (property->typeCode) {
     case ('Y'): {
         int16_t data;
-        fread(&data, sizeof(int16_t), 1, fd);
+        file.read((char*)&data, sizeof(data));
+        //fread(&data, sizeof(int16_t), 1, fd);
         property->data = data;
         break;
     }
     case ('C'): {
         Byte data;
-        fread(&data, sizeof(Byte), 1, fd);
+        file.read((char*)&data, sizeof(data));
+        //fread(&data, sizeof(Byte), 1, fd);
         property->data = data;
         break;
     }
     case ('I'): {
         int32_t data;
-        fread(&data, sizeof(int32_t), 1, fd);
+        file.read((char*)&data, sizeof(data));
+        //fread(&data, sizeof(int32_t), 1, fd);
         property->data = data;
         break;
     }
     case ('F'): {
         float data;
-        fread(&data, sizeof(float), 1, fd);
+        file.read((char*)&data, sizeof(data));
+        //fread(&data, sizeof(float), 1, fd);
         property->data = data;
         break;
     }
     case ('D'): {
         double data;
-        fread(&data, sizeof(double), 1, fd);
+        file.read((char*)&data, sizeof(data));
+        //fread(&data, sizeof(double), 1, fd);
         property->data = data;
         break;
     }
     case ('L'): {
         int64_t data;
-        fread(&data, sizeof(int64_t), 1, fd);
+        file.read((char*)&data, sizeof(data));
+        //fread(&data, sizeof(int64_t), 1, fd);
         property->data = data;
         break;
     }
     case ('R'):
-        property->data = parseRawData(fd);
+        property->data = parseRawData(file);
         break;
     case ('S'):
-        property->data = parseString(fd);
+        property->data = parseString(file);
         break;
     case ('f'):
-        property->data = ParseArray<float>(fd);
+        property->data = ParseArray<float>(file);
         break;
     case ('d'):
-        property->data = ParseArray<double>(fd);
+        property->data = ParseArray<double>(file);
         break;
     case ('l'):
-        property->data = ParseArray<int64_t>(fd);
+        property->data = ParseArray<int64_t>(file);
         break;
     case ('i'):
-        property->data = ParseArray<int32_t>(fd);
+        property->data = ParseArray<int32_t>(file);
         break;
     case ('b'):
-        property->data = ParseArray<Byte>(fd);
+        property->data = ParseArray<Byte>(file);
         break;
     default:
-        throw std::runtime_error(std::string("Unknown FBX property type at ") + std::to_string(ftell(fd)));
+        throw std::runtime_error(std::string("Unknown FBX property type at ") + std::to_string(file.tellg()));
     }
     return (property);
 }
 
-std::shared_ptr<Node> ParseNode(FILE* fd)
+std::shared_ptr<Node> ParseNode(std::ifstream &file)
 {
     uint64_t length64bits;
     uint32_t length32bits;
@@ -199,36 +216,45 @@ std::shared_ptr<Node> ParseNode(FILE* fd)
     char* name = nullptr;
 
     if (is64bits) {
-        fread(&length64bits, sizeof(uint64_t), 1, fd);
+        file.read((char*)&length64bits, sizeof(uint64_t));
+        //fread(&length64bits, sizeof(uint64_t), 1, fd);
         endOffset = length64bits;
-        fread(&length64bits, sizeof(uint64_t), 1, fd);
+        file.read((char*)&length64bits, sizeof(uint64_t));
+        //fread(&length64bits, sizeof(uint64_t), 1, fd);
         numProperties = length64bits;
-        fread(&length64bits, sizeof(uint64_t), 1, fd);
+        file.read((char*)&length64bits, sizeof(uint64_t));
+        //fread(&length64bits, sizeof(uint64_t), 1, fd);
         propertyListLen = length64bits;
     } else {
-        fread(&length32bits, sizeof(uint32_t), 1, fd);
+        file.read((char*)&length32bits, sizeof(uint32_t));
+        //fread(&length32bits, sizeof(uint32_t), 1, fd);
         endOffset = length32bits;
-        fread(&length32bits, sizeof(uint32_t), 1, fd);
+        file.read((char*)&length32bits, sizeof(uint32_t));
+        //fread(&length32bits, sizeof(uint32_t), 1, fd);
         numProperties = length32bits;
-        fread(&length32bits, sizeof(uint32_t), 1, fd);
+        file.read((char*)&length32bits, sizeof(uint32_t));
+        //fread(&length32bits, sizeof(uint32_t), 1, fd);
         propertyListLen = length32bits;
     }
-    fread(&nameLen, sizeof(unsigned char), 1, fd);
+    file.read((char*)&nameLen, sizeof(unsigned char));
+    //fread(&nameLen, sizeof(unsigned char), 1, fd);
     if (endOffset == 0 && numProperties == 0 && propertyListLen == 0 && nameLen == 0)
         return (nullptr);
     if (nameLen == 0)
-        return (ParseNode(fd)); // this is top/invalid node, ignore it
+        return (ParseNode(file)); // this is top/invalid node, ignore it
 
     auto node = Node::Create();
     name = new char[int(nameLen + 1)];
     memset(name, 0, nameLen + 1);
-    fread(name, 1, nameLen, fd);
+    file.read(name, nameLen);
+    //fread(name, 1, nameLen, fd);
     node->SetName(name);
     for (unsigned i = 0; i < numProperties; i++) {
-        node->properties.push_back(ParseProperty(fd));
+        node->properties.push_back(ParseProperty(file));
     }
-    while (ftell(fd) != long(endOffset)) {
-        auto subNode = ParseNode(fd);
+    while (file.tellg() != long(endOffset)) {
+    //while (ftell(fd) != long(endOffset)) {
+        auto subNode = ParseNode(file);
         if (subNode == nullptr)
             break;
         node->SubNodes(subNode->Name()).push_back(subNode);
@@ -248,26 +274,30 @@ std::shared_ptr<Node> ParseNode(FILE* fd)
 
 }*/
 
-Document* Document::Parse(const std::string& path)
+Document* Document::Parse(const std::filesystem::path path)
 {
-    FILE* fd;
+   // FILE* fd;
     auto document(new Document);
 
-    if (access(path.c_str(), R_OK) != 0) {
-        throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
+    if ((std::filesystem::status(path).permissions() & std::filesystem::perms::others_read) == std::filesystem::perms::none) {
+        throw std::runtime_error(std::string("Can't access ") + path.string() + " : " + strerror(errno));
     }
-    if ((fd = fopen(path.c_str(), "rb")) == nullptr) {
-        throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
+    std::ifstream file(path, std::ios::binary);
+    if (!file.is_open()) {
+        /*(fd = fopen(path.c_str(), "rb")) == nullptr*/
+        throw std::runtime_error(std::string("Can't open ") + path.string() + " : " + strerror(errno));
     }
     document->path = path;
-    fread(document->header, 27, 1, fd);
+    std::cout << sizeof(FBX::Header) << std::endl;
+    file.read((char*)document->header, 27);
+    //fread(document->header, 27, 1, fd);
     if (strncmp(document->header->fileMagic, "Kaydara FBX Binary  ", 20)) {
-        fclose(fd);
-        throw std::runtime_error("Invalid FBX header at : " + path);
+        //fclose(fd);
+        throw std::runtime_error("Invalid FBX header at : " + path.string());
     }
     is64bits = document->header->version >= 7500;
-    for (std::shared_ptr<Node> node = nullptr; (node = ParseNode(fd)) != nullptr;)
+    for (std::shared_ptr<Node> node = nullptr; (node = ParseNode(file)) != nullptr;)
         document->SubNodes(node->Name()).push_back(node);
-    fclose(fd);
+    //fclose(fd);
     return document;
 }

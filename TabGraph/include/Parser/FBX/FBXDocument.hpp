@@ -8,7 +8,9 @@
 #pragma once
 
 #include "Parser/FBX/FBXNode.hpp"
+
 #include <string>
+#include <filesystem>
 
 namespace FBX
 {
@@ -17,9 +19,9 @@ struct Header;
 struct Document : public Node
 {
     virtual ~Document() = default;
-    static Document *Parse(const std::string &path);
+    static Document *Parse(const std::filesystem::path path);
     Header *header;
-    std::string path;
+    std::filesystem::path path;
     void Print() const override;
 
 private:

@@ -7,11 +7,12 @@
 
 #pragma once
 
+#include "Assets/AssetsContainer.hpp"
+
 #include <memory> // for shared_ptr
 #include <string> // for string
 #include <vector>
-
-#include "Assets/AssetsContainer.hpp"
+#include <filesystem>
 
 class Mesh;
 class Scene;
@@ -20,6 +21,6 @@ class Scene;
 ** .OBJ parsing interface
 */
 namespace OBJ {
-AssetsContainer Parse(const std::string& path);
-std::vector<std::shared_ptr<Scene>> ParseScene(const std::string&);
+AssetsContainer Parse(const std::filesystem::path path);
+std::vector<std::shared_ptr<Scene>> ParseScene(const std::filesystem::path);
 };

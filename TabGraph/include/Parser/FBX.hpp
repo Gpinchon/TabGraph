@@ -12,9 +12,10 @@
 #include <memory>
 #include <string> // for string
 #include <vector>
+#include <filesystem>
 
 class Scene;
 
 namespace FBX {
-AssetsContainer Parse(const std::string& path);
+	AssetsContainer Parse(const std::filesystem::path path);
 };

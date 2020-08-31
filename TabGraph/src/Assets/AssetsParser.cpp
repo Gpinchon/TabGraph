@@ -37,7 +37,7 @@ std::map<std::string, AssetsParser*>& AssetsParser::_getParsers()
     return *_parsers;
 }
 
-AssetsContainer AssetsParser::Parse(const std::string& path)
+AssetsContainer AssetsParser::Parse(const std::filesystem::path path)
 {
     auto format = std::filesystem::path(path).extension();
     debugLog(path);

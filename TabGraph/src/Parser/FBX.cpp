@@ -351,12 +351,12 @@ static inline AssetsContainer ParseMaterials(FBX::Document* document)
     return container;
 }
 
-AssetsContainer FBX::Parse(const std::string& path)
+AssetsContainer FBX::Parse(const std::filesystem::path path)
 {
     AssetsContainer container;
     auto document(FBX::Document::Parse(path));
     document->Print();
-    auto scene(Scene::Create(path));
+    auto scene(Scene::Create(path.string()));
     container += ParseNodes(document);
     container += ParseMaterials(document);
     container += ParseGeometries(document);

@@ -143,7 +143,7 @@ int main(int argc, char** argv)
 
     std::set_terminate([]() { std::cout << "Unhandled exception\n"; int* p = nullptr; p[0] = 1; });
     StackTracer::set_signal_handler(SIGABRT);
-    Config::Parse(Engine::ResourcePath() + "config.ini");
+    Config::Parse(Engine::ResourcePath() / "config.ini");
     Engine::Init();
     std::filesystem::path filePath = (std::string(argv[1]));
     if (!filePath.is_absolute()) {

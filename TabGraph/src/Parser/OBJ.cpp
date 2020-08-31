@@ -374,20 +374,20 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
     */
 }
 
-AssetsContainer OBJ::Parse(const std::string& path)
+AssetsContainer OBJ::Parse(const std::filesystem::path path)
 {
     ObjContainer p;
     AssetsContainer container;
 
     p.path = path;
     try {
-        start_obj_parsing(p, path);
+        start_obj_parsing(p, path.string());
     } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Error parsing ") + path + " :\n" + e.what());
+        throw std::runtime_error(std::string("Error parsing ") + path.string() + " :\n" + e.what());
     }
     container += p.container;
-    auto scene(Scene::Create(path));
-    auto node(Node::Create(path + "_node"));
+    auto scene(Scene::Create(path.string()));
+    auto node(Node::Create(path.string() + "_node"));
     for (const auto& mesh : container.GetComponents<Mesh>()) {
         node->AddComponent(mesh);
     }

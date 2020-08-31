@@ -160,19 +160,19 @@ static inline AssetsContainer parse_mtl(FILE* fd, std::string &name, const std::
     return container;
 }
 
-AssetsContainer MTLLIB::Parse(const std::string &path)
+AssetsContainer MTLLIB::Parse(const std::filesystem::path path)
 {
     char line[4096];
     AssetsContainer container;
 
-    if (access(path.c_str(), R_OK) != 0)
+    if (access(path.string().c_str(), R_OK) != 0)
     {
-        throw std::runtime_error(std::string("Can't access ") + path + " : " + strerror(errno));
+        throw std::runtime_error(std::string("Can't access ") + path.string() + " : " + strerror(errno));
     }
     FILE* fd = nullptr;
-    if ((fd = fopen(path.c_str(), "r")) == nullptr)
+    if ((fd = fopen(path.string().c_str(), "r")) == nullptr)
     {
-        throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
+        throw std::runtime_error(std::string("Can't open ") + path.string() + " : " + strerror(errno));
     }
     auto basePath = std::filesystem::absolute(path).parent_path();
     auto l = 1;
@@ -191,7 +191,7 @@ AssetsContainer MTLLIB::Parse(const std::string &path)
         }
         catch (std::exception &e)
         {
-            throw std::runtime_error("Error while parsing " + path + " at line " + std::to_string(l) + " : " + e.what());
+            throw std::runtime_error("Error while parsing " + path.string() + " at line " + std::to_string(l) + " : " + e.what());
         }
         l++;
     }

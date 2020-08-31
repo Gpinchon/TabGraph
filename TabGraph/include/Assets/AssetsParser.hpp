@@ -9,17 +9,18 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <filesystem>
 
 #include "Assets/AssetsContainer.hpp"
 
 class Mesh;
 
-typedef AssetsContainer (*AssetsParsingFunction)(const std::string& path);
+typedef AssetsContainer (*AssetsParsingFunction)(const std::filesystem::path path);
 
 class AssetsParser {
 public:
     static AssetsParser* Add(const std::string& format, AssetsParsingFunction);
-    static AssetsContainer Parse(const std::string& path);
+    static AssetsContainer Parse(const std::filesystem::path path);
 
 private:
     AssetsParser() = delete;

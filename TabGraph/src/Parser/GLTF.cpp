@@ -25,10 +25,12 @@
 #include "Texture/TextureParser.hpp"
 #include "Transform.hpp"
 
+#include <fstream>
 #include <filesystem>
 #include <glm/ext.hpp>
 #include <iostream>
 #include <memory>
+
 #define RAPIDJSON_NOEXCEPT_ASSERT(x)
 #define RAPIDJSON_ASSERT(x)                                                                                         \
     {                                                                                                               \
@@ -37,7 +39,8 @@
         else                                                                                                        \
             throw std::runtime_error("JSON error in " + std::string(__FILE__) + " at " + std::to_string(__LINE__)); \
     };
-#include "rapidjson/document.h"
+#include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 
 auto __gltfParser = AssetsParser::Add(".gltf", GLTF::Parse);
 
@@ -96,7 +99,7 @@ static inline auto ParseTextureSamplers(const rapidjson::Document& document)
     return samplerVector;
 }
 
-static inline auto ParseTextures(const std::string& path, const rapidjson::Document& document)
+static inline auto ParseTextures(const std::filesystem::path path, const rapidjson::Document& document)
 {
     debugLog("Start parsing textures");
     std::vector<std::shared_ptr<Texture2D>> textureVector;
@@ -113,7 +116,7 @@ static inline auto ParseTextures(const std::string& path, const rapidjson::Docum
                 if (uri.find(header) != 0) {
                     auto texturePath = std::filesystem::path(uri);
                     if (!texturePath.is_absolute())
-                        texturePath = std::filesystem::path(path).parent_path() / texturePath;
+                        texturePath = path.parent_path() / texturePath;
                     uri = texturePath.string();
                 }
             } catch (std::exception&) {
@@ -160,7 +163,7 @@ static inline std::shared_ptr<Texture2D> GetTexture(const std::vector<std::share
     return nullptr;
 }
 
-static inline auto ParseMaterials(const std::string& path, const rapidjson::Document& document)
+static inline auto ParseMaterials(const std::filesystem::path path, const rapidjson::Document& document)
 {
     debugLog("Start parsing materials");
     auto textureVector = ParseTextures(path, document);
@@ -248,7 +251,7 @@ static inline auto ParseMaterials(const std::string& path, const rapidjson::Docu
     return materialVector;
 }
 
-static inline auto ParseBuffers(const std::string& path, const rapidjson::Document& document)
+static inline auto ParseBuffers(const std::filesystem::path path, const rapidjson::Document& document)
 {
     debugLog("Start parsing buffers");
     std::vector<std::shared_ptr<Buffer>> bufferVector;
@@ -270,7 +273,7 @@ static inline auto ParseBuffers(const std::string& path, const rapidjson::Docume
             try {
                 auto bufferPath(std::filesystem::path(bufferValue["uri"].GetString()));
                 if (!bufferPath.is_absolute())
-                    bufferPath = std::filesystem::path(path).parent_path() / bufferPath;
+                    bufferPath = path.parent_path() / bufferPath;
                 buffer->SetUri(bufferPath.string());
             } catch (std::exception&) {
                 debugLog("Buffer " + buffer->Name() + " has no uri property")
@@ -290,7 +293,7 @@ static inline auto ParseBuffers(const std::string& path, const rapidjson::Docume
     return bufferVector;
 }
 
-static inline auto ParseBufferViews(const std::string& path, const rapidjson::Document& document)
+static inline auto ParseBufferViews(const std::filesystem::path path, const rapidjson::Document& document)
 {
     debugLog("Start parsing bufferViews");
     auto buffers(ParseBuffers(path, document));
@@ -332,7 +335,7 @@ static inline auto ParseBufferViews(const std::string& path, const rapidjson::Do
     return bufferViewVector;
 }
 
-static inline auto ParseBufferAccessors(const std::string& path, const rapidjson::Document& document)
+static inline auto ParseBufferAccessors(const std::filesystem::path path, const rapidjson::Document& document)
 {
     debugLog("Start parsing bufferAccessors");
     auto bufferViews(ParseBufferViews(path, document));
@@ -681,11 +684,14 @@ static inline auto ParseScenes(const rapidjson::Document& document, const Assets
     return sceneVector;
 }
 
-AssetsContainer GLTF::Parse(const std::string& path)
+AssetsContainer GLTF::Parse(const std::filesystem::path path)
 {
     AssetsContainer container;
+    std::cout << path << std::endl;
+    std::ifstream file(path);
+    rapidjson::IStreamWrapper streamWrapper(file);
     rapidjson::Document document;
-    rapidjson::ParseResult parseResult(document.Parse(file_to_str(path).c_str()));
+    rapidjson::ParseResult parseResult(document.ParseStream(streamWrapper));
     if (!parseResult) {
         debugLog("Invalid file !");
         return container;

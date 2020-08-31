@@ -12,6 +12,7 @@
 #include <string> // for string
 #include <map> // for map
 #include <memory> // for shared_ptr
+#include <filesystem>
 
 class Material;
 
@@ -19,5 +20,5 @@ class Material;
 ** .MTLLIB parsing interface
 */
 namespace MTLLIB {
-	AssetsContainer Parse(const std::string& path);
+	AssetsContainer Parse(const std::filesystem::path path);
 };

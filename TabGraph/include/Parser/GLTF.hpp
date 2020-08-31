@@ -11,7 +11,8 @@
 #include <memory>
 #include <string> // for string
 #include <vector>
+#include <filesystem>
 
 namespace GLTF {
-AssetsContainer Parse(const std::string& path);
+AssetsContainer Parse(const std::filesystem::path path);
 }
