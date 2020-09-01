@@ -62,9 +62,6 @@ void Bomb::ResetTimer()
 
 void Bomb::Die()
 {
-    //Keep the pointer alive until the end
-
-    auto disBomb = Game::CurrentLevel()->GetGameEntity(Position());
     auto position = glm::ivec2(Position());
 
     Flame::Create(position);
@@ -72,68 +69,6 @@ void Bomb::Die()
     SpawnFlames(position, glm::ivec2(-1, 0), Range());
     SpawnFlames(position, glm::ivec2(0, 1), Range());
     SpawnFlames(position, glm::ivec2(0, -1), Range());
-    /*for (auto i = 1; i < Range(); ++i) {
-        auto flamePosition = glm::ivec2(position.x, position.y + i);
-        if (flamePosition.x >= 0 && flamePosition.x < level->Size().x
-            && flamePosition.y >= 0 && flamePosition.y < level->Size().y) {
-            if (level->GetGameEntity(flamePosition) == nullptr || level->GetGameEntity(flamePosition)->Type() == "Flame")
-                Flame::Create(flamePosition);
-            else if (level->GetGameEntity(flamePosition)->Type() == "Bomb")
-                std::static_pointer_cast<Bomb>(level->GetGameEntity(flamePosition))->Explode();
-            else {
-                if (level->GetGameEntity(flamePosition)->Type() == "Bomb") {
-                    std::static_pointer_cast<Bomb>(level->GetGameEntity(flamePosition))->Explode();
-                }
-                break;
-            }
-        }
-    }
-    for (auto i = 1; i < Range(); ++i) {
-        auto flamePosition = glm::ivec2(position.x, position.y - i);
-        if (flamePosition.x >= 0 && flamePosition.x < level->Size().x
-            && flamePosition.y >= 0 && flamePosition.y < level->Size().y) {
-            if (level->GetGameEntity(flamePosition) == nullptr || level->GetGameEntity(flamePosition)->Type() == "Flame")
-                Flame::Create(flamePosition);
-            else {
-                if (level->GetGameEntity(flamePosition)->Type() == "Bomb") {
-                    std::static_pointer_cast<Bomb>(level->GetGameEntity(flamePosition))->Explode();
-                }
-                break;
-            }
-        }
-    }
-    for (auto i = 1; i < Range(); ++i) {
-        auto flamePosition = glm::ivec2(position.x + i, position.y);
-        if (flamePosition.x >= 0 && flamePosition.x < level->Size().x
-            && flamePosition.y >= 0 && flamePosition.y < level->Size().y) {
-            if (level->GetGameEntity(flamePosition) == nullptr || level->GetGameEntity(flamePosition)->Type() == "Flame")
-                Flame::Create(flamePosition);
-            else if (level->GetGameEntity(flamePosition)->Type() == "Bomb")
-                std::static_pointer_cast<Bomb>(level->GetGameEntity(flamePosition))->Explode();
-            else {
-                if (level->GetGameEntity(flamePosition)->Type() == "Bomb") {
-                    std::static_pointer_cast<Bomb>(level->GetGameEntity(flamePosition))->Explode();
-                }
-                break;
-            }
-        }
-    }
-    for (auto i = 1; i < Range(); ++i) {
-        auto flamePosition = glm::ivec2(position.x - i, position.y);
-        if (flamePosition.x >= 0 && flamePosition.x < level->Size().x
-            && flamePosition.y >= 0 && flamePosition.y < level->Size().y) {
-            if (level->GetGameEntity(flamePosition) == nullptr || level->GetGameEntity(flamePosition)->Type() == "Flame")
-                Flame::Create(flamePosition);
-            else if (level->GetGameEntity(flamePosition)->Type() == "Bomb")
-                std::static_pointer_cast<Bomb>(level->GetGameEntity(flamePosition))->Explode();
-            else {
-                if (level->GetGameEntity(flamePosition)->Type() == "Bomb") {
-                    std::static_pointer_cast<Bomb>(level->GetGameEntity(flamePosition))->Explode();
-                }
-                break;
-            }
-        }
-    }*/
 }
 
 void Bomb::_FixedUpdateCPU(float delta)

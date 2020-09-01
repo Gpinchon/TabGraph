@@ -8,11 +8,13 @@
 
 #include "Scene/Scene.hpp"
 
+#include <filesystem>
+
 class GameEntity;
 
 class Level : public Scene {
 public:
-    static std::shared_ptr<Level> Parse(const std::string& path);
+    static std::shared_ptr<Level> Parse(const std::filesystem::path path);
     static std::shared_ptr<Level> Create(const std::string& name, const glm::ivec2& size);
     //static std::shared_ptr<Level> CurrentLevel();
     glm::ivec2 Size() const;

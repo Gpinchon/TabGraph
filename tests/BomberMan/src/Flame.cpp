@@ -29,6 +29,7 @@ std::shared_ptr<Flame> Flame::Create(const glm::ivec2& position)
     Game::CurrentLevel()->SetGameEntityPosition(position, flame);
     return flame;
 }
+
 std::chrono::time_point<std::chrono::high_resolution_clock> Flame::SpawnTime() const
 {
     return _spawnTime;

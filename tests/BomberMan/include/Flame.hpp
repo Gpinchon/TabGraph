@@ -14,6 +14,6 @@ public:
 private:
     Flame();
     virtual void _FixedUpdateCPU(float delta) override;
-    std::chrono::duration<double> _timer { 0.5 };
+    std::chrono::duration<double> _timer { 0.5 }; //defaults to seconds
     const std::chrono::time_point<std::chrono::high_resolution_clock> _spawnTime;
 };

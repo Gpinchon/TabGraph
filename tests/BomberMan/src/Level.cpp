@@ -62,7 +62,7 @@ std::shared_ptr<Level> Level::Create(const std::string& name, const glm::ivec2& 
 #include <fstream>
 #include <sstream>
 
-std::shared_ptr<Level> Level::Parse(const std::string& path)
+std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
 {
     std::ifstream file;
     file.open(path);
@@ -85,7 +85,7 @@ std::shared_ptr<Level> Level::Parse(const std::string& path)
         if (row.size() > maxLine)
             maxLine = row.size();
     }
-    auto level = Create(path, glm::ivec2(map.size(), maxLine));
+    auto level = Create(path.string(), glm::ivec2(map.size(), maxLine));
     for (auto x = 0u; x < map.size(); ++x) {
         for (auto y = 0u; y < map.at(x).size(); ++y) {
             switch (map.at(x).at(y)) {
