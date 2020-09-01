@@ -14,7 +14,7 @@ int main(int /*argc*/, char const** /*argv*/)
 {
     std::set_terminate([]() { std::cout << "Unhandled exception\n"; int* p = nullptr; p[0] = 1; });
     Engine::Init();
-    auto level = Level::Parse("./res/maps/test.map");
+    auto level = Level::Parse(Engine::ResourcePath() / "maps/test.map");
     Game::AddPlayer();
     Game::SetCurrentLevel(level);
     Scene::SetCurrent(level);
