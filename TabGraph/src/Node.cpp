@@ -91,12 +91,12 @@ void Node::SetParent(std::shared_ptr<Node> parent)
         return;
     }
     if (Parent() != nullptr) {
-        Parent()->RemoveChild(shared_from_this());
+        Parent()->RemoveChild(std::static_pointer_cast<Node>(shared_from_this()));
     }
     _parent = parent;
     if (parent != nullptr) {
         std::cout << __LINE__ << " " << __FUNCTION__ << " " << Name() << " " << parent->Name() << std::endl;
-        parent->AddChild(shared_from_this());
+        parent->AddChild(std::static_pointer_cast<Node>(shared_from_this()));
     }
     std::cout << __LINE__ << " " << __FUNCTION__ << " Parent " << Parent()->Name() << " Child " << Name() << std::endl;
     if (GetComponent<Transform>()) {

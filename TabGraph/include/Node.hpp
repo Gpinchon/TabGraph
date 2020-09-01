@@ -28,7 +28,7 @@ class Transform;
 class Animation;
 class Mesh;
 
-class Node : public Component, public std::enable_shared_from_this<Node> {
+class Node : public Component {
 public:
     static std::shared_ptr<Node> Create(const std::string& name);
     virtual bool Draw(RenderMod = RenderMod::RenderAll);

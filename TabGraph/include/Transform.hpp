@@ -12,7 +12,7 @@
 #include <vector>
 
 /** Header-only class for performance */
-class Transform : public Component, public std::enable_shared_from_this<Transform> {
+class Transform : public Component {
 public:
     Transform()
         : Component() {};

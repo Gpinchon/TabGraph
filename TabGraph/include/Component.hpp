@@ -364,6 +364,8 @@ inline std::vector<std::type_index> Component::GetComponentsTypes() const
 
 inline void Component::LoadCPU()
 {
+    //Keep this component alive in case is destroys itself
+    auto thisPtr = shared_from_this();
     _LoadCPU();
     for (const auto& components : _components) {
         for (auto& component : components.second)
@@ -373,6 +375,8 @@ inline void Component::LoadCPU()
 
 inline void Component::UnloadCPU()
 {
+    //Keep this component alive in case is destroys itself
+    auto thisPtr = shared_from_this();
     _UnloadCPU();
     for (const auto& components : _components) {
         for (auto& component : components.second)
@@ -382,6 +386,8 @@ inline void Component::UnloadCPU()
 
 inline void Component::LoadGPU()
 {
+    //Keep this component alive in case is destroys itself
+    auto thisPtr = shared_from_this();
     _LoadGPU();
     for (const auto& components : _components) {
         for (auto& component : components.second)
@@ -391,6 +397,8 @@ inline void Component::LoadGPU()
 
 inline void Component::UnloadGPU()
 {
+    //Keep this component alive in case is destroys itself
+    auto thisPtr = shared_from_this();
     _UnloadGPU();
     for (const auto& components : _components) {
         for (auto& component : components.second)
@@ -400,6 +408,8 @@ inline void Component::UnloadGPU()
 
 inline void Component::UpdateCPU(float delta)
 {
+    //Keep this component alive in case is destroys itself
+    auto thisPtr = shared_from_this();
     if (NeedsUpdateCPU())
         _UpdateCPU(delta);
     //SetNeedsUpdateCPU(false);
@@ -411,6 +421,8 @@ inline void Component::UpdateCPU(float delta)
 
 inline void Component::UpdateGPU(float delta)
 {
+    //Keep this component alive in case is destroys itself
+    auto thisPtr = shared_from_this();
     if (NeedsUpdateGPU())
         _UpdateGPU(delta);
     //SetNeedsUpdateGPU(false);
@@ -422,6 +434,8 @@ inline void Component::UpdateGPU(float delta)
 
 inline void Component::FixedUpdateCPU(float delta)
 {
+    //Keep this component alive in case is destroys itself
+    auto thisPtr = shared_from_this();
     if (NeedsFixedUpdateCPU())
         _FixedUpdateCPU(delta);
     //SetNeedsFixedUpdateCPU(false);
@@ -433,6 +447,8 @@ inline void Component::FixedUpdateCPU(float delta)
 
 inline void Component::FixedUpdateGPU(float delta)
 {
+    //Keep this component alive in case is destroys itself
+    auto thisPtr = shared_from_this();
     if (NeedsFixedUpdateGPU())
         _FixedUpdateGPU(delta);
     //SetNeedsFixedUpdateGPU(false);

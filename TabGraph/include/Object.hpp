@@ -19,7 +19,7 @@
 ** ALWAYS STORE IN A SHARED_PTR !!!
 */
 
-class Object {
+class Object : public std::enable_shared_from_this<Object> {
 public:
     int64_t Id() const;
     void SetId(int64_t);

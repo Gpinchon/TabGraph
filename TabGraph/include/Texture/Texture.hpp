@@ -20,7 +20,7 @@
 class Shader;
 class Framebuffer;
 
-class Texture : public Object, public std::enable_shared_from_this<Texture> {
+class Texture : public Object {
 public:
     //static std::shared_ptr<Texture> Create(const std::string &name, glm::ivec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
     static std::shared_ptr<Texture> GetByName(const std::string&);
