@@ -186,12 +186,12 @@ double Engine::FixedDeltaTime(void)
 
 const std::filesystem::path Engine::ProgramPath()
 {
-    return (EnginePrivate::Get().programPath);
+    return EnginePrivate::Get().programPath;
 }
 
 const std::filesystem::path Engine::ExecutionPath()
 {
-    return (EnginePrivate::Get().execPath);
+    return EnginePrivate::Get().execPath;
 }
 
 const std::filesystem::path Engine::ResourcePath()
