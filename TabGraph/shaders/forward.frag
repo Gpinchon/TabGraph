@@ -49,13 +49,6 @@ struct t_StandardValues {
 	float		AO;
 };
 
-struct t_StandardMaterial {
-	t_StandardValues	Value;
-#ifdef USE_TEXTURES
-	t_StandardTextures	Texture;
-#endif
-};
-
 struct t_BRDF {
 	vec3	CDiff;
 	vec3	F0;
@@ -91,6 +84,7 @@ uniform t_Matrix			Matrix;
 uniform t_Environment		Environment;
 uniform vec3				Resolution;
 uniform float				Time;
+uniform vec2				UVScale;
 
 t_StandardValues StandardValues;
 
@@ -166,7 +160,7 @@ void	FillIn()
 	//Frag.Material.AO = 0;
 	Frag.Position = frag_WorldPosition;
 	Frag.Normal = normalize(frag_WorldNormal);
-	Frag.UV = frag_Texcoord;
+	Frag.UV = frag_Texcoord * UVScale;
 	Frag.Depth = gl_FragCoord.z;
 	StandardValues = _StandardValues;
 #if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_NORMAL)
