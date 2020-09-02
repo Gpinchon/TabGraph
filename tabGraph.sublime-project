@@ -61,7 +61,7 @@
 		"flags_sources":
 		[
 			{
-				"file": "Makefile"
+				"file": "CMakeLists.txt"
 			},
 			{
 				"search_in": "${project_path}"
