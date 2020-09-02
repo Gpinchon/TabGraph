@@ -84,7 +84,6 @@ uniform t_Matrix			Matrix;
 uniform t_Environment		Environment;
 uniform vec3				Resolution;
 uniform float				Time;
-uniform vec2				UVScale;
 
 t_StandardValues StandardValues;
 
@@ -160,7 +159,7 @@ void	FillIn()
 	//Frag.Material.AO = 0;
 	Frag.Position = frag_WorldPosition;
 	Frag.Normal = normalize(frag_WorldNormal);
-	Frag.UV = frag_Texcoord * UVScale;
+	Frag.UV = frag_Texcoord;
 	Frag.Depth = gl_FragCoord.z;
 	StandardValues = _StandardValues;
 #if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_NORMAL)
