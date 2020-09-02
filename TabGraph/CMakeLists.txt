@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0074 NEW)
 
 #set(SDL2_BUILDING_LIBRARY ON)
-set(CMAKE_CXX_STANDARD 17)
 
 #set(CMAKE_VERBOSE_MAKEFILE 1)
 #set(CMAKE_FIND_DEBUG_MODE ON)
@@ -152,10 +151,32 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Window.hpp
 )
 
-set(GLOB_RECURSE TABGRAPH_SHADER_FILES 
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert
+set(TABGRAPH_SHADER_FILES 
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/blur.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/deferred.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/deferred.vert
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/depth.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/depth.vert
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/empty.glsl
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.vert
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward_default.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/hzb.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/lighting.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/lighting_env.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.vert
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/present.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/refraction.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/screenSpaceReflection.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/ssao.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/ssaoApply.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SSR.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SSRBlur.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SSRMerge.frag
+	#${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl
+	#${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag
+	#${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert
 	)
 
 set(PLUGINS_SOURCES
@@ -229,28 +250,28 @@ export(TARGETS TabGraph
 
 if(MSVC_IDE)
 	set(CMAKE_DEBUG_POSTFIX "d")
+	#source_group(Sources FILES ${TABGRAPH_SOURCE_FILES})
+	#source_group(Include FILES ${TABGRAPH_HEADER_FILES})
+	source_group(Shaders FILES ${TABGRAPH_SHADER_FILES})
 	# Macro to preserve source files hierarchy in the IDE
 	macro(GroupSources curdir)
 		file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/${curdir} ${CMAKE_CURRENT_SOURCE_DIR}/${curdir}/*)
-
+	
 		foreach(child ${children})
 			if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${curdir}/${child})
 				GroupSources(${curdir}/${child})
 			else()
 				string(REPLACE "/" "\\" groupname ${curdir})
-				string(REPLACE "shaders" "Shaders" groupname ${groupname})
 				string(REPLACE "src" "Sources" groupname ${groupname})
 				string(REPLACE "include" "Includes" groupname ${groupname})
+				#string(REPLACE "shaders" "Shaders" groupname ${groupname})
 				source_group(${groupname} FILES ${CMAKE_CURRENT_SOURCE_DIR}/${curdir}/${child})
 			endif()
 		endforeach()
 	endmacro()
-
+	
 	# Run macro
 	GroupSources(src)
-	GroupSources(shaders)
 	GroupSources(include)
+	#GroupSources(shaders)
 endif()
-
-#add_dependencies(Scene TabGraph)
-#target_link_libraries(Scene Tabgraph)
