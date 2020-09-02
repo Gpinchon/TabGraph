@@ -1,25 +1,32 @@
 R""(
-struct t_Textures {
-	vec2		Scale;
-#ifdef TEXTURE_USE_ALBEDO
-	sampler2D	Albedo;
-#endif
+struct t_StandardValues {
+	float		Opacity;
 };
+
+#ifdef TEXTURE_USE_DIFFUSE
+struct t_Textures {
+	sampler2D	Diffuse;
+};
+#endif
 
 struct t_Material {
 	float		Alpha;
 };
 
-uniform t_Material		Material;
-uniform t_Textures		Texture;
+#ifdef USE_TEXTURES
+uniform t_Textures			StandardTextures;
+#endif
+uniform t_StandardValues	_StandardValues;
+uniform t_Material			Material;
+uniform vec2				UVScale;
 
-in vec2				frag_Texcoord;
+in vec2						frag_Texcoord;
 
 void main()
 {
-	float alpha = Material.Alpha;
-#ifdef TEXTURE_USE_ALBEDO
-	alpha *= texture(Texture.Albedo, frag_Texcoord).a;
+	float alpha = _StandardValues.Opacity;
+#ifdef TEXTURE_USE_DIFFUSE
+	alpha *= texture(StandardTextures.Diffuse, frag_Texcoord * UVScale).a;
 #endif
 	if (alpha <= 0.05f)
 		discard;
