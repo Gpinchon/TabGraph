@@ -22,9 +22,9 @@ struct t_BackTextures {
 #endif //LIGHTSHADER
 
 struct t_Textures {
-	sampler2D		Albedo;
+	sampler2D		CDiff;
 	sampler2D		Emitting;
-	sampler2D		Specular;
+	sampler2D		F0;
 	sampler2D		MaterialValues;
 	sampler2D		AO;
 	sampler2D		Normal;
@@ -36,15 +36,10 @@ struct t_Textures {
 #endif //LIGHTSHADER
 };
 
-struct t_Material {
-	vec3		Albedo;
-	vec3		Emitting;
-	vec3		Specular;
-	float		Roughness;
-	float		Metallic;
-	float		Ior;
-	float		Alpha;
-	float		AO;
+struct t_BRDF {
+	vec3	CDiff;
+	vec3	F0;
+	float	Alpha;
 };
 
 struct t_Frag {
@@ -53,7 +48,12 @@ struct t_Frag {
 	vec3		CubeUV;
 	vec3		Position;
 	vec3		Normal;
-	t_Material	Material;
+	vec3		Emitting;
+	float		Ior;
+	float		Opacity;
+	float		AO;
+	//t_Material	Material;
+	t_BRDF		BRDF;
 };
 
 struct t_CameraMatrix {
@@ -94,10 +94,10 @@ struct t_Out {
 	vec3		Normal;
 };
 
-layout(location = 0) out vec4	out_Albedo;
+layout(location = 0) out vec4	out_CDiff;
 layout(location = 1) out vec3	out_Emitting;
 layout(location = 2) out vec3	out_Fresnel;
-layout(location = 3) out vec3	out_Material_Values; //Roughness, Metallic, Ior
+layout(location = 3) out vec3	out_Material_Values; //BRDF Alpha, Metallic, Ior
 layout(location = 4) out float	out_AO;
 layout(location = 5) out vec3	out_Normal;
 #endif //POSTSHADER
@@ -329,10 +329,10 @@ vec3	WorldPosition()
 	return ScreenToWorld(Frag.UV, Frag.Depth);
 }
 
-vec3	DiffuseFactor()
-{
-	return mix(Frag.Material.Albedo.rgb * vec3(1 - Frag.Material.Specular), vec3(0), Frag.Material.Metallic);
-}
+//vec3	DiffuseFactor()
+//{
+//	return mix(Frag.BRDF.CDiff.rgb * vec3(1 - Frag.BRDF.F0), vec3(0), Frag.Metallic);
+//}
 
 void	FillFrag()
 {
@@ -341,16 +341,15 @@ void	FillFrag()
 	Frag.Depth = gl_FragDepth = texture(Texture.Depth, frag_UV).r;
 	Frag.Position = WorldPosition();
 	Frag.Normal = texture(Texture.Normal, frag_UV).xyz;
-	vec4	albedo_sample = texture(Texture.Albedo, frag_UV);
-	Frag.Material.Albedo = albedo_sample.rgb;
-	Frag.Material.Alpha = albedo_sample.a;
-	Frag.Material.Specular = texture(Texture.Specular, frag_UV).xyz;
-	Frag.Material.Emitting = texture(Texture.Emitting, frag_UV).xyz;
+	vec4	albedo_sample = texture(Texture.CDiff, frag_UV);
+	Frag.BRDF.CDiff = albedo_sample.rgb;
+	Frag.Opacity = albedo_sample.a;
+	Frag.BRDF.F0 = texture(Texture.F0, frag_UV).xyz;
+	Frag.Emitting = texture(Texture.Emitting, frag_UV).xyz;
 	vec3	MaterialValues = texture(Texture.MaterialValues, frag_UV).xyz;
-	Frag.Material.Roughness = MaterialValues.x;
-	Frag.Material.Metallic = MaterialValues.y;
-	Frag.Material.Ior = MaterialValues.z;
-	Frag.Material.AO = texture(Texture.AO, frag_UV).r;
+	Frag.BRDF.Alpha = MaterialValues.x;
+	Frag.Ior = MaterialValues.z;
+	Frag.AO = texture(Texture.AO, frag_UV).r;
 #ifdef LIGHTSHADER
 	Out.Color = texture(Texture.Back.Color, frag_UV);
 	Out.Emitting = texture(Texture.Back.Emitting, frag_UV).rgb;
@@ -367,11 +366,11 @@ void	FillOut(in vec3 OriginalPosition)
 		vec4	NDC = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Frag.Position, 1.0);
 		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
 	}
-	out_Albedo = vec4(Frag.Material.Albedo, Frag.Material.Alpha);
-	out_Fresnel = Frag.Material.Specular;
-	out_Emitting = Frag.Material.Emitting;
-	out_Material_Values = vec3(Frag.Material.Roughness, Frag.Material.Metallic, Frag.Material.Ior);
-	out_AO = Frag.Material.AO;
+	out_CDiff = vec4(Frag.BRDF.CDiff, Frag.Opacity);
+	out_Fresnel = Frag.BRDF.F0;
+	out_Emitting = Frag.Emitting;
+	out_Material_Values = vec3(Frag.BRDF.Alpha, 0, Frag.Ior);
+	out_AO = Frag.AO;
 	out_Normal = Frag.Normal;
 }
 #endif
@@ -392,7 +391,7 @@ void	FillOut(in vec3 OriginalPosition)
 
 vec2	BRDF(in float NdV, in float Roughness)
 {
-	return (texture(Texture.BRDF, vec2(NdV, Frag.Material.Roughness)).xy);
+	return (texture(Texture.BRDF, vec2(NdV, Frag.BRDF.Alpha)).xy);
 }
 
 void	ApplyTechnique();

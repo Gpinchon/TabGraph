@@ -49,12 +49,10 @@ uint ReverseBits32(uint bits)
 	return bits;
 }
 
-vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
-{
-    float a = roughness*roughness;
-	
+vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float alpha)
+{	
     float phi = 2.0 * PI * Xi.x;
-    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
+    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (alpha*alpha - 1.0) * Xi.y));
     float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
 	
     // from spherical coordinates to cartesian coordinates
@@ -194,7 +192,7 @@ vec4	castRay(vec3 R, float StepOffset)
 			break;
 		}
 		LastDiff = DepthDiff.w;
-		Level += Frag.Material.Roughness * (16.0 * Step);
+		Level += Frag.BRDF.Alpha * (16.0 * Step);
 		SampleTime += 4.0 * Step;
 	}
 	*/
@@ -202,7 +200,7 @@ vec4	castRay(vec3 R, float StepOffset)
 	for (int i = 0; i < NumSteps; ++i)
 	{
 		vec3 UVz = RayStartUVz + RayStepUVz * SampleTime;
-		float Level = Frag.Material.Roughness * (i * 4.0 / NumSteps);
+		float Level = Frag.BRDF.Alpha * (i * 4.0 / NumSteps);
 		float SampleZ = textureLod(Texture.Depth, UVz.xy, Level).r;
 		float DepthDiff = SampleZ - UVz.z;
 		if (abs(-DepthDiff - CompareTolerance) < CompareTolerance)
@@ -229,7 +227,7 @@ vec4	SampleScreenColor(vec3 UVz)
 float GetRoughnessFade()
 {
 	// mask SSR to reduce noise and for better performance, roughness of 0 should have SSR, at MaxRoughness we fade to 0
-	return min(Frag.Material.Roughness * ROUGHNESSMASKSCALE + 2, 1.0);
+	return min(sqrt(Frag.BRDF.Alpha) * ROUGHNESSMASKSCALE + 2, 1.0);
 }
 
 //Use Rodrigues' rotation formula to rotate v about k
@@ -258,7 +256,7 @@ vec4	SSR()
 		vec2	E = Hammersley(i, NumRays, Random);
 		//Compute Half vector using GGX Importance Sampling
 		//Project Half vector from Tangent space to World space
-		vec3	H = ImportanceSampleGGX(E, Frag.Normal, Frag.Material.Roughness);
+		vec3	H = ImportanceSampleGGX(E, Frag.Normal, Frag.BRDF.Alpha);
 		H = rotateAround(H, Frag.Normal, sampleAngle);
 		vec3	R = reflect(V, H);
 		vec4	SSRResult = castRay(R, StepOffset);
@@ -278,7 +276,7 @@ vec4	SSR()
 }
 
 void	ApplyTechnique() {
-		Out.Color = SSR();
+	Out.Color = SSR();
 }
 
 )""

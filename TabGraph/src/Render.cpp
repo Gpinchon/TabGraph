@@ -135,6 +135,14 @@ const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
 std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string& name, const glm::ivec2& size)
 {
     auto buffer = Framebuffer::Create(name, size, 0, 1);
+    /*buffer->Create_attachement(GL_RGBA, GL_RGBA8); //BRDF CDiff
+    buffer->Create_attachement(GL_RGBA, GL_RGBA8); //BRDF F0
+    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
+    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // MaterialValues -> Roughness, Metallic, Ior
+    buffer->Create_attachement(GL_RED, GL_R8); //AO
+    buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); // Normal;
+    buffer->setup_attachements();*/
+
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // Albedo;
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
     buffer->Create_attachement(GL_RGB, GL_RGB8); // Fresnel;
@@ -382,9 +390,9 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer>& currentGeo
         }
         if (lightIndex == 0)
             continue;
-        shader->SetUniform("Texture.Albedo", currentGeometryBuffer->attachement(0), GL_TEXTURE0);
+        shader->SetUniform("Texture.CDiff", currentGeometryBuffer->attachement(0), GL_TEXTURE0);
         shader->SetUniform("Texture.Emitting", currentGeometryBuffer->attachement(1), GL_TEXTURE1);
-        shader->SetUniform("Texture.Specular", currentGeometryBuffer->attachement(2), GL_TEXTURE2);
+        shader->SetUniform("Texture.F0", currentGeometryBuffer->attachement(2), GL_TEXTURE2);
         shader->SetUniform("Texture.MaterialValues", currentGeometryBuffer->attachement(3), GL_TEXTURE3);
         shader->SetUniform("Texture.Normal", currentGeometryBuffer->attachement(5), GL_TEXTURE5);
         shader->SetUniform("Texture.Depth", currentGeometryBuffer->depth(), GL_TEXTURE6);
@@ -692,9 +700,9 @@ std::shared_ptr<Framebuffer> RefractionPass(std::shared_ptr<Framebuffer> geometr
         refractionShader->Stage(GL_FRAGMENT_SHADER)->SetTechnique(refractionFragmentCode);
     }
     auto i = 0;
-    refractionShader->SetUniform("Texture.Albedo", geometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.CDiff", geometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.Emitting", geometryBuffer->attachement(1), GL_TEXTURE0 + (++i));
-    refractionShader->SetUniform("Texture.Specular", geometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.F0", geometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.MaterialValues", geometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.AO", geometryBuffer->attachement(4), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.Normal", geometryBuffer->attachement(5), GL_TEXTURE0 + (++i));
@@ -739,9 +747,9 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     SSAOPass(opaqueGeometryBuffer);
 
     auto i = 0;
-    elighting_shader->SetUniform("Texture.Albedo", opaqueGeometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.CDiff", opaqueGeometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Emitting", opaqueGeometryBuffer->attachement(1), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Specular", opaqueGeometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.F0", opaqueGeometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.MaterialValues", opaqueGeometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.AO", opaqueGeometryBuffer->attachement(4), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Normal", opaqueGeometryBuffer->attachement(5), GL_TEXTURE0 + (++i));
@@ -793,9 +801,9 @@ std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender,
     auto refractionResult(RefractionPass(transpGeometryBuffer, opaqueRenderBuffer));
 
     auto i = 0;
-    elighting_shader->SetUniform("Texture.Albedo", transpGeometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.CDiff", transpGeometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Emitting", transpGeometryBuffer->attachement(1), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.Specular", transpGeometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.F0", transpGeometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.MaterialValues", transpGeometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.AO", transpGeometryBuffer->attachement(4), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Normal", transpGeometryBuffer->attachement(5), GL_TEXTURE0 + (++i));

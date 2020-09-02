@@ -5,8 +5,8 @@ uniform vec2		in_Direction;
 void ApplyTechnique()
 {
 	Out.Color = vec4(0);
-	vec2 offset1 = in_Direction / textureSize(in_Texture_Color, 0);// * max(Frag.Material.Roughness, 0.1);
-	vec2 offset2 = (in_Direction * 2.f) / textureSize(in_Texture_Color, 0);// * max(Frag.Material.Roughness, 0.1);
+	vec2 offset1 = in_Direction / textureSize(in_Texture_Color, 0);// * max(Frag.BRDF.Alpha, 0.1);
+	vec2 offset2 = (in_Direction * 2.f) / textureSize(in_Texture_Color, 0);// * max(Frag.BRDF.Alpha, 0.1);
 	vec4 sample0 = texture(in_Texture_Color, frag_UV);
 	vec4 sample1 = texture(in_Texture_Color, frag_UV + offset1);
 	vec4 sample2 = texture(in_Texture_Color, frag_UV - offset1);
@@ -31,8 +31,8 @@ void ApplyTechnique()
 	Out.Color /= totalWeight;
 	/*
 	Out.Color = vec4(0);
-	vec2 offset1 = in_Direction / textureSize(in_Texture_Color, 0) * max(Frag.Material.Roughness, 0.1);
-	vec2 offset2 = (in_Direction * 2.f) / textureSize(in_Texture_Color, 0) * max(Frag.Material.Roughness, 0.1);
+	vec2 offset1 = in_Direction / textureSize(in_Texture_Color, 0) * max(Frag.BRDF.Alpha, 0.1);
+	vec2 offset2 = (in_Direction * 2.f) / textureSize(in_Texture_Color, 0) * max(Frag.BRDF.Alpha, 0.1);
 	vec4 sample0 = texture(in_Texture_Color, frag_UV);
 	vec4 sample1 = texture(in_Texture_Color, frag_UV + offset1);
 	vec4 sample2 = texture(in_Texture_Color, frag_UV - offset1);

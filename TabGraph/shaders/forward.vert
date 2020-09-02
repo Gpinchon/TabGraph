@@ -4,48 +4,47 @@ precision lowp int;
 precision lowp sampler2D;
 precision lowp samplerCube;
 
-struct t_Textures {
-	vec2		Scale;
-#ifdef TEXTURE_USE_ALBEDO
-	sampler2D	Albedo;
-#endif
-#ifdef TEXTURE_USE_SPECULAR
-	sampler2D	Specular;
-#endif
-#ifdef TEXTURE_USE_ROUGHNESS
-	sampler2D	Roughness;
-#endif
-#ifdef TEXTURE_USE_METALLIC
-	sampler2D	Metallic;
-#endif
-#ifdef TEXTURE_USE_METALLICROUGHNESS
-	sampler2D	MetallicRoughness;
-#endif
-#ifdef TEXTURE_USE_EMITTING
-	sampler2D	Emitting;
-#endif
-#ifdef TEXTURE_USE_NORMAL
-	sampler2D	Normal;
-#endif
-#ifdef TEXTURE_USE_HEIGHT
-	sampler2D	Height;
-#endif
-#ifdef TEXTURE_USE_AO
-	sampler2D	AO;
-#endif
-};
+//struct t_Textures {
+//#ifdef TEXTURE_USE_ALBEDO
+//	sampler2D	Albedo;
+//#endif
+//#ifdef TEXTURE_USE_SPECULAR
+//	sampler2D	Specular;
+//#endif
+//#ifdef TEXTURE_USE_ROUGHNESS
+//	sampler2D	Roughness;
+//#endif
+//#ifdef TEXTURE_USE_METALLIC
+//	sampler2D	Metallic;
+//#endif
+//#ifdef TEXTURE_USE_METALLICROUGHNESS
+//	sampler2D	MetallicRoughness;
+//#endif
+//#ifdef TEXTURE_USE_EMITTING
+//	sampler2D	Emitting;
+//#endif
+//#ifdef TEXTURE_USE_NORMAL
+//	sampler2D	Normal;
+//#endif
+//#ifdef TEXTURE_USE_HEIGHT
+//	sampler2D	Height;
+//#endif
+//#ifdef TEXTURE_USE_AO
+//	sampler2D	AO;
+//#endif
+//};
 
-struct t_Material {
-	vec3		Albedo;
-	vec3		Specular;
-	vec3		Emitting;
-	float		Roughness;
-	float		Metallic;
-	float		Alpha;
-	float		Parallax;
-	float		Ior;
-	float		AO;
-};
+//struct t_Material {
+//	vec3		Albedo;
+//	vec3		Specular;
+//	vec3		Emitting;
+//	float		Roughness;
+//	float		Metallic;
+//	float		Alpha;
+//	float		Parallax;
+//	float		Ior;
+//	float		AO;
+//};
 
 struct t_Matrix {
 	mat4	Model;
@@ -83,11 +82,11 @@ layout(location = 5) in vec4	in_Color_0;
 layout(location = 6) in vec4	in_Joints_0;
 layout(location = 7) in vec4	in_Weight_0;
 
-uniform t_Textures				Texture;
 uniform t_Camera				Camera;
 uniform t_Matrix				Matrix;
 uniform samplerBuffer			Joints;
 uniform bool					Skinned;
+uniform vec2					UVScale;
 
 out vec3						frag_WorldPosition;
 out lowp vec3					frag_WorldNormal;
@@ -126,7 +125,7 @@ void	FillIn()
 		Vert.Position = vec3(Matrix.Model * vec4(in_Position, 1.0));
 		Vert.Normal = mat3(Matrix.Normal) * in_Normal;
 	}
-	Vert.UV = in_Texcoord_0 * Texture.Scale;
+	Vert.UV = in_Texcoord_0 * UVScale;
 }
 
 void	FillOut()

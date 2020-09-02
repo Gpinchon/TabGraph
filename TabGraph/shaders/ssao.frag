@@ -31,7 +31,7 @@ void	ApplyTechnique()
 		occlusion += samplingOcclusion / SAMPLES;
 	}
 	occlusion /= float(KERNEL_SIZE);
-	Out.Color.rgb = vec3(Frag.Material.AO + max(0, occlusion));
+	Out.Color.rgb = vec3(Frag.AO + max(0, occlusion));
 	Out.Color.a = 1;
 	Out.Emitting = vec3(0);
 }

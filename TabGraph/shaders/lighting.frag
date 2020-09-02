@@ -26,37 +26,28 @@ uniform sampler2DShadow	Shadow[SHADOWNBR];
 const vec3	brightnessDotValue = vec3(0.299, 0.587, 0.114); //For optimization, not meant to be set
 const vec3	envGammaCorrection = vec3(2.2); //For optimization, not meant to be set
 
-vec3	Fresnel(in float factor, in vec3 F0, in float roughness)
+float	GGX_Geometry(in float NdV, in float alpha2)
 {
-	return ((max(vec3(1 - roughness), F0)) * pow(max(0, 1 - factor), 5) + F0);
+	return NdV / (NdV * (1 - alpha2) + alpha2);
 }
 
-/* float	GGX_Geometry(in float NdV, in float alpha)
+float	GGX_Distribution(in float NdH, in float alpha2)
 {
-	float	alpha2 = alpha * alpha;
-	return (2 * NdV) / (NdV + sqrt(alpha2 + (1 - alpha2) * (NdV * NdV)));
-} */
-
-float	GGX_Geometry(in float NdV, in float alpha)
-{
-	float k = (alpha * alpha) / 2.f;
-	float denom = NdV * (1.f - k) + k;
-	return (NdV / denom);
+	float den = (NdH * NdH) * (alpha2 - 1) + 1;
+	return (alpha2 / (M_PI * den * den));
 }
 
-float	GGX_Distribution(in float NdH, in float alpha)
+vec3 BRDFFresnel(const in vec3 F0, const in float VdH)
 {
-	float den = (NdH * NdH) * (alpha - 1) + 1;
-	return (alpha / (M_PI * den * den));
+	return F0 + (1 - F0) * pow(1 - VdH, 5);
 }
 
-float	Specular(in float NdV, in float NdH, in float roughness)
+float BRDFSpecular(const in float NdH, const in float NdV)
 {
-	float	alpha = roughness * roughness;
-	alpha *= alpha;
-	float	D = GGX_Distribution(NdH, alpha);
-	float	G = GGX_Geometry(NdV, alpha);
-	return (max(D * G, 0));
+	float	alpha2 = clamp(Frag.BRDF.Alpha * Frag.BRDF.Alpha, 0.0005f, 1.f);
+	float	D = GGX_Distribution(NdH, alpha2);
+	float	G = GGX_Geometry(NdV, alpha2);
+	return (D * G);
 }
 
 #ifdef SHADOW
@@ -90,20 +81,19 @@ float	SampleShadowMap(in t_Light light, in vec2 sampleRotation)
 
 void	ApplyTechnique()
 {
-	if (Frag.Material.Alpha == 0) {
+	if (Frag.Opacity == 0) {
 		return ;
 	}
 	vec3	V = normalize(Camera.Position - Frag.Position);
 	vec3	N = Frag.Normal;
 	float	NdV = dot(N, V);
-	if (Frag.Material.Alpha < 1 && NdV < 0)
+	if (Frag.Opacity < 1 && NdV < 0)
 	{
 		N = -N;
 		NdV = -NdV;
 	}
 	NdV = max(0, NdV);
 	vec3	R = reflect(V, N);
-	vec3	fresnel = Fresnel(NdV, Frag.Material.Specular, Frag.Material.Roughness);
 	vec3	diffuse = vec3(0);
 	vec3	specular = vec3(0);
 	vec3	reflection = vec3(0);
@@ -138,20 +128,21 @@ void	ApplyTechnique()
 		float	NdL = dot(N, L);
 		NdL = max(0, NdL);
 		vec3	H = normalize(L + V);
+		float	VdH = max(0, dot(V, H));
 		float	NdH = max(0, dot(N, H));
-		float	LdH = max(0, dot(L, H));
 		vec3	lightColor = Light[i].Color * Attenuation;
-		diffuse += lightColor * NdL * DiffuseFactor();
-		//specular += lightColor * min(fresnel + 1, fresnel * DistributionGGX(NdH, Frag.Material.Roughness));
-		specular += lightColor * min(fresnel + 1, fresnel * Specular(LdH, NdH, Frag.Material.Roughness));
+		vec3	F = BRDFFresnel(Frag.BRDF.F0, VdH);
+		specular += lightColor * F * BRDFSpecular(NdH, NdV);
+		diffuse += lightColor * ((1 - F) * Frag.BRDF.CDiff / M_PI);
+		//diffuse += lightColor * NdL * Frag.BRDF.CDiff;
 	}
 
-	float	alpha = Frag.Material.Alpha + dot(specular, brightnessDotValue);
+	float	alpha = Frag.Opacity + dot(specular, brightnessDotValue);
 	alpha = min(1, alpha);
 
 	Out.Color.rgb += (specular + diffuse + reflection) * alpha;
 	Out.Color.a = 1;
-	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Material.Emitting;
+	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Emitting;
 }
 
 )""
