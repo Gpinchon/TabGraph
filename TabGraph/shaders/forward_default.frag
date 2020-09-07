@@ -57,10 +57,7 @@ void FillMetallicRoughness() {
 	MetallicRoughnessValues.Roughness *= metallicRoughness_sample.x;
 	MetallicRoughnessValues.Metallic *= metallicRoughness_sample.y;
 #endif
-	vec3 viewDir = normalize(Camera.Position - Frag.Position);
-	if (dot(viewDir, Frag.Normal) < 0)
-		Frag.Normal = -Frag.Normal;
-	MetallicRoughnessValues.Roughness = map(MetallicRoughnessValues.Roughness, 0, 1, 0.05, 1);
+	//MetallicRoughnessValues.Roughness = map(MetallicRoughnessValues.Roughness, 0, 1, 0.05, 1);
 	//Frag.Material.Specular = mix(Frag.Material.Specular, Frag.Material.Albedo.rgb, MetallicRoughnessValues.Metallic);
 }
 
@@ -72,7 +69,7 @@ void	ApplyTechnique()
 	const vec3 dielectricSpecular = vec3(0.04);
 	Frag.BRDF.CDiff = mix(StandardValues.Diffuse.rgb * (1 - dielectricSpecular), vec3(0), MetallicRoughnessValues.Metallic);
 	Frag.BRDF.F0 = mix(dielectricSpecular, StandardValues.Diffuse.rgb, MetallicRoughnessValues.Metallic);
-	Frag.BRDF.Alpha = MetallicRoughnessValues.Roughness * MetallicRoughnessValues.Roughness;
+	Frag.BRDF.Alpha = map(MetallicRoughnessValues.Roughness * MetallicRoughnessValues.Roughness, 0, 1, 0.05, 1);
 }
 
 )""

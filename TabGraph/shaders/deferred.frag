@@ -96,7 +96,7 @@ struct t_Out {
 
 layout(location = 0) out vec4	out_CDiff;
 layout(location = 1) out vec3	out_Emitting;
-layout(location = 2) out vec3	out_Fresnel;
+layout(location = 2) out vec4	out_F0;
 layout(location = 3) out vec3	out_Material_Values; //BRDF Alpha, Metallic, Ior
 layout(location = 4) out float	out_AO;
 layout(location = 5) out vec3	out_Normal;
@@ -341,13 +341,14 @@ void	FillFrag()
 	Frag.Depth = gl_FragDepth = texture(Texture.Depth, frag_UV).r;
 	Frag.Position = WorldPosition();
 	Frag.Normal = texture(Texture.Normal, frag_UV).xyz;
-	vec4	albedo_sample = texture(Texture.CDiff, frag_UV);
-	Frag.BRDF.CDiff = albedo_sample.rgb;
-	Frag.Opacity = albedo_sample.a;
-	Frag.BRDF.F0 = texture(Texture.F0, frag_UV).xyz;
-	Frag.Emitting = texture(Texture.Emitting, frag_UV).xyz;
 	vec3	MaterialValues = texture(Texture.MaterialValues, frag_UV).xyz;
-	Frag.BRDF.Alpha = MaterialValues.x;
+	vec4	CDiff_sample = texture(Texture.CDiff, frag_UV);
+	vec4	F0_sample = texture(Texture.F0, frag_UV);
+	Frag.BRDF.CDiff = CDiff_sample.rgb;
+	Frag.BRDF.F0 = F0_sample.xyz;
+	Frag.BRDF.Alpha = F0_sample.a;
+	Frag.Opacity = CDiff_sample.a;
+	Frag.Emitting = texture(Texture.Emitting, frag_UV).rgb;
 	Frag.Ior = MaterialValues.z;
 	Frag.AO = texture(Texture.AO, frag_UV).r;
 #ifdef LIGHTSHADER
@@ -367,9 +368,10 @@ void	FillOut(in vec3 OriginalPosition)
 		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
 	}
 	out_CDiff = vec4(Frag.BRDF.CDiff, Frag.Opacity);
-	out_Fresnel = Frag.BRDF.F0;
+	out_F0.rgb = Frag.BRDF.F0;
+	out_F0.a = Frag.BRDF.Alpha;
 	out_Emitting = Frag.Emitting;
-	out_Material_Values = vec3(Frag.BRDF.Alpha, 0, Frag.Ior);
+	out_Material_Values = vec3(0, 0, Frag.Ior);
 	out_AO = Frag.AO;
 	out_Normal = Frag.Normal;
 }

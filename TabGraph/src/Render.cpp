@@ -143,10 +143,10 @@ std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string& name, const
     buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); // Normal;
     buffer->setup_attachements();*/
 
-    buffer->Create_attachement(GL_RGBA, GL_RGBA8); // Albedo;
+    buffer->Create_attachement(GL_RGBA, GL_RGBA8); // BRDF CDiff, Transparency;
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
-    buffer->Create_attachement(GL_RGB, GL_RGB8); // Fresnel;
-    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // MaterialValues -> Roughness, Metallic, Ior
+    buffer->Create_attachement(GL_RGBA, GL_RGBA8); // BRDF F0, BRDF Alpha;
+    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // MaterialValues -> NOTHING, NOTHING, Ior
     buffer->Create_attachement(GL_RED, GL_R8); //AO
     buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); // Normal;
     //buffer->setup_attachements();
@@ -555,7 +555,7 @@ std::shared_ptr<Texture2D> SSRPass1(std::shared_ptr<Framebuffer> gBuffer, std::s
     HZBPass(gBuffer->depth());
     SSRShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE0);
     SSRShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE1);
-    SSRShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE2);
+    SSRShader->SetUniform("Texture.F0", gBuffer->attachement(2), GL_TEXTURE2);
     SSRShader->SetUniform("LastColor", lastRender->attachement(0), GL_TEXTURE3);
     SSRShader->SetUniform("FrameBufferResolution", res);
     SSRShader->SetUniform("FrameNumber", Render::FrameNumber());
@@ -662,7 +662,7 @@ SSRPass0(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> last
     HZBPass(gBuffer->depth());
     SSRShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE0);
     SSRShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE1);
-    SSRShader->SetUniform("Texture.MaterialValues", gBuffer->attachement(3), GL_TEXTURE2);
+    SSRShader->SetUniform("Texture.F0", gBuffer->attachement(2), GL_TEXTURE2);
     SSRShader->SetUniform("LastColor", lastRender->attachement(0), GL_TEXTURE3);
     SSRShader->SetUniform("FrameBufferResolution", res);
     SSRShader->SetUniform("FrameNumber", Render::FrameNumber());

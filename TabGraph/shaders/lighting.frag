@@ -37,14 +37,14 @@ float	GGX_Distribution(in float NdH, in float alpha2)
 	return (alpha2 / (M_PI * den * den));
 }
 
-vec3 BRDFFresnel(const in vec3 F0, const in float VdH)
+vec3 BRDFFresnel(const in vec3 F0, const in float factor)
 {
-	return F0 + (1 - F0) * pow(1 - VdH, 5);
+	return F0 + (1 - F0) * pow(1 - factor, 5);
 }
 
 float BRDFSpecular(const in float NdH, const in float NdV)
 {
-	float	alpha2 = clamp(Frag.BRDF.Alpha * Frag.BRDF.Alpha, 0.0005f, 1.f);
+	float	alpha2 = Frag.BRDF.Alpha * Frag.BRDF.Alpha;
 	float	D = GGX_Distribution(NdH, alpha2);
 	float	G = GGX_Geometry(NdV, alpha2);
 	return (D * G);
@@ -125,16 +125,16 @@ void	ApplyTechnique()
 			continue ;
 		L = normalize(L);
 		N = Frag.Normal;
-		float	NdL = dot(N, L);
-		NdL = max(0, NdL);
 		vec3	H = normalize(L + V);
+		float	NdL = max(0, dot(N, L));
 		float	VdH = max(0, dot(V, H));
 		float	NdH = max(0, dot(N, H));
+		float	LdH = max(0, dot(L, H));
 		vec3	lightColor = Light[i].Color * Attenuation;
-		vec3	F = BRDFFresnel(Frag.BRDF.F0, VdH);
-		specular += lightColor * F * BRDFSpecular(NdH, NdV);
-		diffuse += lightColor * ((1 - F) * Frag.BRDF.CDiff / M_PI);
-		//diffuse += lightColor * NdL * Frag.BRDF.CDiff;
+		vec3	F = BRDFFresnel(Frag.BRDF.F0, LdH);
+		specular += lightColor * (F * BRDFSpecular(NdH, NdV));
+		//diffuse += lightColor * ((1 - F) * Frag.BRDF.CDiff / M_PI);
+		diffuse += lightColor * NdL * Frag.BRDF.CDiff;
 	}
 
 	float	alpha = Frag.Opacity + dot(specular, brightnessDotValue);

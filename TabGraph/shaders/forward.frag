@@ -93,7 +93,7 @@ in vec2	frag_Texcoord;
 
 layout(location = 0) out vec4	out_CDiff;
 layout(location = 1) out vec3	out_Emitting;
-layout(location = 2) out vec3	out_F0;
+layout(location = 2) out vec4	out_F0;
 layout(location = 3) out vec3	out_Material_Values; // BRDF Alpha, Metallic, Ior
 layout(location = 4) out float	out_AO;
 layout(location = 5) out vec3	out_Normal;
@@ -109,7 +109,7 @@ void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out float parallaxHeight)
 	int	tries = int(numLayers);
 	float layerHeight = 1.0 / numLayers;
 	float curLayerHeight = 0;
-	vec2 dtex = StandardMaterial.Parallax * tbnV.xy / tbnV.z / numLayers;
+	vec2 dtex = StandardValues.Parallax * tbnV.xy / tbnV.z / numLayers;
 	vec2 currentTextureCoords = T;
 	float heightFromTexture = 1 - texture(StandardTextures.Height, currentTextureCoords).r;
 	while(tries > 0 && heightFromTexture > curLayerHeight) 
@@ -126,7 +126,7 @@ void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out float parallaxHeight)
 	float weight = nextH / (nextH - prevH);
 	vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0 - weight);
 	parallaxHeight = (curLayerHeight + prevH * weight + nextH * (1.0 - weight));
-	parallaxHeight *= StandardMaterial.Parallax;
+	parallaxHeight *= StandardValues.Parallax;
 	parallaxHeight = isnan(parallaxHeight) ? 0 : parallaxHeight;
 	T = finalTexCoords;
 }
@@ -162,6 +162,9 @@ void	FillIn()
 	Frag.UV = frag_Texcoord;
 	Frag.Depth = gl_FragCoord.z;
 	StandardValues = _StandardValues;
+	vec3 viewDir = normalize(Camera.Position - Frag.Position);
+	if (dot(viewDir, Frag.Normal) < 0)
+		Frag.Normal = -Frag.Normal;
 #if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_NORMAL)
 	mat3	tbn = tbn_matrix();
 #endif
@@ -197,10 +200,9 @@ void	FillIn()
 void	FillOut()
 {
 	out_CDiff = vec4(Frag.BRDF.CDiff, StandardValues.Opacity);
-	out_F0 = Frag.BRDF.F0;
+	out_F0.rgb = Frag.BRDF.F0;
+	out_F0.a = Frag.BRDF.Alpha;
 	out_Emitting = max(vec3(0), StandardValues.Emitting + StandardValues.Diffuse.rgb - 1);
-	out_Material_Values.x = Frag.BRDF.Alpha;
-	//out_Material_Values.y = StandardValues.Metallic;
 	out_Material_Values.z = StandardValues.Ior;
 	out_AO = StandardValues.AO;
 	out_Normal = normalize(Frag.Normal);
