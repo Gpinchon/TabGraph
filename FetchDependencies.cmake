@@ -1,6 +1,5 @@
 include(FetchContent)
 include(ExternalProject)
-include(BuildSubProject.cmake)
 option(BUILD_EXECUTABLES "Build executables" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_STATIC_LIBS "Build static libraries" ON)
