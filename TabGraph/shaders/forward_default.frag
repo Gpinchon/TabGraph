@@ -27,9 +27,6 @@ struct t_MetallicRoughnessValues {
 
 struct t_MetallicRoughness {
 	t_MetallicRoughnessValues	Value;
-#ifdef USE_TEXTURES_METALLIC_ROUGHNESS
-	t_MetallicRoughnessTextures	Texture;
-#endif
 };
 
 uniform t_MetallicRoughnessValues	_MetallicRoughnessValues;
@@ -46,6 +43,8 @@ void FillMetallicRoughness() {
 //	Frag.Material.Specular = texture(Texture.Specular, Frag.UV).rgb;
 //#endif
 	MetallicRoughnessValues = _MetallicRoughnessValues;
+	MetallicRoughnessValues.Roughness = _MetallicRoughnessValues.Roughness;
+	MetallicRoughnessValues.Metallic = _MetallicRoughnessValues.Metallic;
 #ifdef TEXTURE_USE_ROUGHNESS
 	MetallicRoughnessValues.Roughness *= texture(MetallicRoughnessTextures.Roughness, Frag.UV).r;
 #endif

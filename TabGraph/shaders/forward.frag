@@ -41,7 +41,6 @@ struct t_StandardTextures {
 
 struct t_StandardValues {
 	vec3		Diffuse;
-	//vec3		Specular;
 	vec3		Emitting;
 	float		Opacity;
 	float		Parallax;
@@ -161,7 +160,14 @@ void	FillIn()
 	Frag.Normal = normalize(frag_WorldNormal);
 	Frag.UV = frag_Texcoord;
 	Frag.Depth = gl_FragCoord.z;
-	StandardValues = _StandardValues;
+	//StandardValues = _StandardValues;
+	StandardValues.Diffuse = _StandardValues.Diffuse;
+	StandardValues.Emitting = _StandardValues.Emitting;
+	StandardValues.Opacity = _StandardValues.Opacity;
+	StandardValues.Parallax = _StandardValues.Parallax;
+	StandardValues.Ior = _StandardValues.Ior;
+	StandardValues.AO = _StandardValues.AO;
+	StandardValues.Opacity = _StandardValues.Opacity;
 	vec3 viewDir = normalize(Camera.Position - Frag.Position);
 	if (dot(viewDir, Frag.Normal) < 0)
 		Frag.Normal = -Frag.Normal;

@@ -172,27 +172,13 @@ float	randomAngle(in vec3 seed)
 	return random(seed) * 6.283285;
 }
 
-int		textureMaxLod(in samplerCube tex)
-{
-#ifdef textureQueryLevels
-	return textureQueryLevels(tex);
-#else
-	//Try to guess the max LOD
-	ivec2	texRes = textureSize(tex, 0);
-	return int(log2(max(texRes.x, texRes.y)));
+#ifndef textureQueryLevels
+float compMax(vec3 v) { return max(max(v.x, v.y), v.z); }
+float compMax(vec2 v) { return max(v.x, v.y); }
+#define textureQueryLevels(tex) int(log2(compMax(textureSize(tex, 0))))
 #endif
-}
 
-int		textureMaxLod(in sampler2D tex)
-{
-#ifdef textureQueryLevels
-	return textureQueryLevels(tex);
-#else
-	//Try to guess the max LOD
-	ivec2	texRes = textureSize(tex, 0);
-	return int(log2(max(texRes.x, texRes.y)));
-#endif
-}
+#define sampleLod(tex, uv, lod) textureLod(tex, uv, lod * textureQueryLevels(tex))
 
 vec4	texelFetchLod(in sampler2D tex, in vec2 uv, in float mipLevel)
 {
@@ -202,33 +188,10 @@ vec4	texelFetchLod(in sampler2D tex, in vec2 uv, in float mipLevel)
 
 vec4	texelFetchLod(in sampler2D tex, in vec2 uv, in int mipLevel)
 {
-	ivec2	Resolution = textureSize(tex, 0);
-	return texelFetch(tex, ivec2(Resolution * uv), mipLevel);
+	return texelFetch(tex, ivec2(textureSize(tex, 0) * uv), mipLevel);
 }
 
-/* vec4	texelFetchLod(in sampler2D tex, in vec2 uv, in float value)
-{
-	int		maxLOD = textureMaxLod(tex);
-	int		lodValue = maxLOD * value;
-	return texelFetchLod(tex, uv, lodValue);
-} */
-
-vec4	sampleLod(in samplerCube tex, in vec3 uv, in float value)
-{
-	float maxLOD = textureMaxLod(tex);
-	return textureLod(tex, uv, value * maxLOD);
-}
-
-vec4	sampleLod(in sampler2D tex, in vec2 uv, in float value)
-{
-	float maxLOD = textureMaxLod(tex);
-	return textureLod(tex, uv, value * maxLOD);
-}
-
-float	map(in float value, in float low1, in float high1, in float low2, in float high2)
-{
-	return (low2 + (value - low1) * (high2 - low2) / (high1 - low1));
-}
+#define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
 
 float	smootherstep(float edge0, float edge1, float x) {
 	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
@@ -242,15 +205,10 @@ bool	isZero(in float v)
 
 bool	isZero(in vec2 v)
 {
-	bvec2	eq = equal(v, vec2(0));
-	return (eq.x && eq.y);
+	return all(equal(v, vec2(0)));
 }
 
-bool	lequal(in vec2 v, in vec2 v1)
-{
-	bvec2	eq = lessThanEqual(v, v1);
-	return (eq.x && eq.y);
-}
+#define lequal(a, b) all(lessThanEqual(a, b))
 
 float Luminance(vec3 LinearColor)
 {

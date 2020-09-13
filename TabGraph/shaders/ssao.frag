@@ -1,6 +1,18 @@
 R""(
-#define	KERNEL_SIZE 24
+#if SSAO_QUALITY == 1
+#define	KERNEL_SIZE 6
+#define SAMPLES 3
+#elif SSAO_QUALITY == 2
+#define	KERNEL_SIZE 10
+#define SAMPLES 3
+#elif SSAO_QUALITY == 3
+#define	KERNEL_SIZE 10
+#define SAMPLES 6
+#else //SSAO_QUALITY == 4
+#define	KERNEL_SIZE 16
 #define SAMPLES 8
+#endif
+
 #define STRENGTH 1.f
 #define RADIUS 0.05f
 

@@ -6,17 +6,17 @@ uniform mat4		LastViewMatrix;
 uniform mat4		LastProjectionMatrix;
 
 #if SSR_QUALITY == 1
-	const int NumSteps = 4;
-	const int NumRays = 2;
+#define NumSteps 4
+#define NumRays 2
 #elif SSR_QUALITY == 2
-	const int NumSteps = 8;
-	const int NumRays = 2;
+#define NumSteps 8
+#define NumRays 2
 #elif SSR_QUALITY == 3
-	const int NumSteps = 8;
-	const int NumRays = 4;
+#define NumSteps 8
+#define NumRays 4
 #else // SSR_QUALITY == 4
-	const int NumSteps = 12;
-	const int NumRays = 12;
+#define NumSteps 12
+#define NumRays 12
 #endif
 
 float vec2cross(in vec2 a, in vec2 b)

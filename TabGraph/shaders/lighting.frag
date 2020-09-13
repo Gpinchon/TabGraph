@@ -1,5 +1,15 @@
 R""(
-#define	KERNEL_SIZE				9
+#if SHADOW_QUALITY == 1
+#define SHADOW_SAMPLES	1
+#elif SHADOW_QUALITY == 2
+#define SHADOW_SAMPLES	3
+#elif SHADOW_QUALITY == 3
+#define SHADOW_SAMPLES	5
+#else //SHADOW_QUALITY == 4
+#define SHADOW_SAMPLES	9
+#endif
+
+#define	KERNEL_SIZE		9
 
 const vec2 poissonDisk[] = vec2[KERNEL_SIZE](
 	vec2(0.95581, -0.18159), vec2(0.50147, -0.35807), vec2(0.69607, 0.35559),
@@ -51,31 +61,31 @@ float BRDFSpecular(const in float NdH, const in float NdV)
 }
 
 #ifdef SHADOW
-float	SampleShadowMap(in t_Light light)
+float	SampleShadowMap(in int lightIndex)
 {
-	if (light.ShadowIndex < 0)
+	if (Light[lightIndex].ShadowIndex < 0)
 		return (1);
-	vec4	shadowPos = light.Projection * vec4(Frag.Position, 1.0);
+	vec4	shadowPos = Light[lightIndex].Projection * vec4(Frag.Position, 1.0);
 	vec3	projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
-	return (texture(Shadow[light.ShadowIndex], vec3(projCoord.xy, projCoord.z - 0.001)));
+	return (texture(Shadow[Light[lightIndex].ShadowIndex], vec3(projCoord.xy, projCoord.z - 0.001)));
 }
 
-float	SampleShadowMap(in t_Light light, in vec2 sampleRotation)
+float	SampleShadowMap(in int lightIndex, in vec2 sampleRotation)
 {
-	if (light.ShadowIndex < 0)
+	if (Light[lightIndex].ShadowIndex < 0)
 		return (1);
-	vec4	shadowPos = light.Projection * vec4(Frag.Position, 1.0);
+	vec4	shadowPos = Light[lightIndex].Projection * vec4(Frag.Position, 1.0);
 	vec3	projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
 	float	sampleOffset = 1 / 512.f;
 	float	shadow = 0;
-	for (int i = 0; i < KERNEL_SIZE; i++)
+	for (int i = 0; i < SHADOW_SAMPLES; i++)
 	{
 		vec2	sampleUV = projCoord.xy + poissonDisk[i] * sampleRotation * sampleOffset;
-		vec4	sampleDepth = textureGather(Shadow[light.ShadowIndex], sampleUV, projCoord.z - 0.001);
+		vec4	sampleDepth = textureGather(Shadow[Light[lightIndex].ShadowIndex], sampleUV, projCoord.z - 0.001);
 		//shadow += (sampleDepth[0] + sampleDepth[1] + sampleDepth[2] + sampleDepth[2]) / 4.f;
-		shadow += texture(Shadow[light.ShadowIndex], vec3(sampleUV, projCoord.z - 0.001));
+		shadow += texture(Shadow[Light[lightIndex].ShadowIndex], vec3(sampleUV, projCoord.z - 0.001));
 	}
-	return (shadow / float(KERNEL_SIZE));
+	return (shadow / float(SHADOW_SAMPLES));
 }
 #endif //SHADOW
 
@@ -106,7 +116,7 @@ void	ApplyTechnique()
 	{
 		float	Attenuation = 1;
 		#ifdef SHADOW
-			Attenuation *= SampleShadowMap(Light[i], sampleRotation);
+			Attenuation *= SampleShadowMap(i, sampleRotation);
 			if (Attenuation == 0)
 				continue ;
 		#endif //SHADOW

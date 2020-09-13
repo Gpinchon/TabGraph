@@ -68,8 +68,12 @@ void	ApplyTechnique()
 	vec2	brdf = BRDF(NdV, Frag.BRDF.Alpha);
 	vec4	ssrResult = SSR();
 	vec3	diffuse = Frag.AO * texture(Texture.Environment.Irradiance, -N).rgb;
-	vec3	envReflection = sampleLod(Texture.Environment.Diffuse, R, sqrt(Frag.BRDF.Alpha) * 2.f).rgb;
-	vec3	envIrradiance = sampleLod(Texture.Environment.Irradiance, R, Frag.BRDF.Alpha).rgb;
+	vec3	envReflection = 
+	//textureLod(Texture.Environment.Diffuse, R, sqrt(Frag.BRDF.Alpha) * 2.f * textureQueryLevels(Texture.Environment.Diffuse)).rgb;
+	sampleLod(Texture.Environment.Diffuse, R, sqrt(Frag.BRDF.Alpha) * 2.f).rgb;
+	vec3	envIrradiance =
+	//textureLod(Texture.Environment.Irradiance, R, Frag.BRDF.Alpha * textureQueryLevels(Texture.Environment.Irradiance)).rgb;
+	sampleLod(Texture.Environment.Irradiance, R, Frag.BRDF.Alpha).rgb;
 	vec3	fresnel = Fresnel(NdV, Frag.BRDF.F0, Frag.BRDF.Alpha);
 	vec3	specularIntensity = min(fresnel, fresnel * Env_Specular(NdV, Frag.BRDF.Alpha));
 	vec3	ENVSpecular = envIrradiance * (fresnel * brdf.x + brdf.y);// * Luminance(envIrradiance);

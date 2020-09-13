@@ -39,6 +39,9 @@ vec3	F0(in float ior)
 	return (vec3(f0 * f0));
 }
 
+void	ApplyTechnique(){}
+
+/*
 void	ApplyTechnique()
 {
 	vec2	refract_UV = Frag.UV;
@@ -70,7 +73,7 @@ void	ApplyTechnique()
 	Out.Emitting.rgb = mix(Back_Emitting * refractionColor, 
 						vec3(0),
 						Frag.Opacity);
-}
+}*/
 
 
 )""
