@@ -39,18 +39,10 @@ void TextureBuffer::load()
 
     Accessor()->GetBufferView()->GetBuffer()->LoadGPU();
     glBindBuffer(GL_TEXTURE_BUFFER, Accessor()->GetBufferView()->GetBuffer()->Glid());
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while binding Texture Buffer " + std::to_string(Accessor()->GetBufferView()->GetBuffer()->Glid()));
     //Texture::load();
     glGenTextures(1, &_glid);
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while generating texture");
     glBindTexture(GL_TEXTURE_BUFFER, glid());
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while binding texture " + std::to_string(glid()) + " to target GL_TEXTURE_BUFFER");
     glTexBuffer(GL_TEXTURE_BUFFER, InternalFormat(), Accessor()->GetBufferView()->GetBuffer()->Glid());
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while setting Buffer to Texture");
     glBindTexture(GL_TEXTURE_BUFFER, 0);
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
     _loaded = true;

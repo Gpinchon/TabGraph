@@ -6,32 +6,24 @@ void SetUniform1fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<GLfloat>>(&variable.data));
     if (value != nullptr)
         glUniform1fv(variable.loc, glm::min(value->size(), variable.size), value->data());
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform2fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::vec2>>(&variable.data));
     if (value != nullptr)
         glUniform2fv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform3fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::vec3>>(&variable.data));
     if (value != nullptr)
         glUniform3fv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform4fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::vec4>>(&variable.data));
     if (value != nullptr)
         glUniform4fv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform1dv (const ShaderVariable &variable) {
@@ -42,8 +34,6 @@ void SetUniform1dv (const ShaderVariable &variable) {
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
     glUniform1fv(variable.loc, v.size(), v.data());
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform2dv (const ShaderVariable &variable) {
@@ -54,8 +44,6 @@ void SetUniform2dv (const ShaderVariable &variable) {
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
     glUniform2fv(variable.loc, v.size(), glm::value_ptr(v.at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform3dv (const ShaderVariable &variable) {
@@ -66,8 +54,6 @@ void SetUniform3dv (const ShaderVariable &variable) {
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
     glUniform3fv(variable.loc, v.size(), glm::value_ptr(v.at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform4dv (const ShaderVariable &variable) {
@@ -78,8 +64,6 @@ void SetUniform4dv (const ShaderVariable &variable) {
     for (auto i = 0u; i < v.size(); ++i)
         v[i] = value->at(i);
     glUniform4fv(variable.loc, v.size(), glm::value_ptr(v.at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform1bv (const ShaderVariable &variable) {
@@ -91,8 +75,6 @@ void SetUniform1bv (const ShaderVariable &variable) {
         v[i] = value->at(i);
     if (value != nullptr)
         glUniform1iv(variable.loc, glm::min(value->size(), variable.size), v.data());
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform2bv (const ShaderVariable &variable) {
@@ -104,8 +86,6 @@ void SetUniform2bv (const ShaderVariable &variable) {
         v[i] = value->at(i);
     if (value != nullptr)
         glUniform2iv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr(v.at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform3bv (const ShaderVariable &variable) {
@@ -117,8 +97,6 @@ void SetUniform3bv (const ShaderVariable &variable) {
         v[i] = value->at(i);
     if (value != nullptr)
         glUniform3iv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr(v.at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform4bv (const ShaderVariable &variable) {
@@ -130,144 +108,108 @@ void SetUniform4bv (const ShaderVariable &variable) {
         v[i] = value->at(i);
     if (value != nullptr)
         glUniform4iv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr(v.at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform1iv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<GLint>>(&variable.data));
     if (value != nullptr)
         glUniform1iv(variable.loc, glm::min(value->size(), variable.size), value->data());
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform2iv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::ivec2>>(&variable.data));
     if (value != nullptr)
         glUniform2iv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform3iv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::ivec3>>(&variable.data));
     if (value != nullptr)
         glUniform3iv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform4iv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::ivec4>>(&variable.data));
     if (value != nullptr)
         glUniform4iv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform1uiv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<GLuint>>(&variable.data));
     if (value != nullptr)
         glUniform1uiv(variable.loc, glm::min(value->size(), variable.size), value->data());
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform2uiv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::uvec2>>(&variable.data));
     if (value != nullptr)
         glUniform2uiv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform3uiv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::uvec3>>(&variable.data));
     if (value != nullptr)
         glUniform3uiv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniform4uiv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::uvec4>>(&variable.data));
     if (value != nullptr)
         glUniform4uiv(variable.loc, glm::min(value->size(), variable.size), glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix2fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::mat2>>(&variable.data));
     if (value != nullptr)
         glUniformMatrix2fv(variable.loc, glm::min(value->size(), variable.size), GL_FALSE, glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix3fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::mat3>>(&variable.data));
     if (value != nullptr)
         glUniformMatrix3fv(variable.loc, glm::min(value->size(), variable.size), GL_FALSE, glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix4fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::mat4>>(&variable.data));
     if (value != nullptr)
         glUniformMatrix4fv(variable.loc, glm::min(value->size(), variable.size), GL_FALSE, glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix2x3fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<GLfloat>>(&variable.data));
     if (value != nullptr)
         glUniformMatrix2x3fv(variable.loc, glm::min(value->size(), variable.size), GL_FALSE, value->data());
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix3x2fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::mat3x2>>(&variable.data));
     if (value != nullptr)
         glUniformMatrix3x2fv(variable.loc, glm::min(value->size(), variable.size), GL_FALSE, glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix2x4fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::mat2x4>>(&variable.data));
     if (value != nullptr)
         glUniformMatrix2x4fv(variable.loc, glm::min(value->size(), variable.size), GL_FALSE, glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix4x2fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::mat4x2>>(&variable.data));
     if (value != nullptr)
         glUniformMatrix4x2fv(variable.loc, glm::min(value->size(), variable.size), GL_FALSE, glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix3x4fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::mat3x4>>(&variable.data));
     if (value != nullptr)
         glUniformMatrix3x4fv(variable.loc, glm::min(value->size(), variable.size), GL_FALSE, glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix4x3fv (const ShaderVariable &variable) {
     auto value(std::get_if<std::vector<glm::mat4x3>>(&variable.data));
     if (value != nullptr)
         glUniformMatrix4x3fv(variable.loc, glm::min(value->size(), variable.size), GL_FALSE, glm::value_ptr((*value).at(0)));
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 void SetUniformMatrix2dv(const ShaderVariable &)
@@ -321,19 +263,13 @@ void SetUniformSampler (const ShaderVariable &variable) {
     if (value == nullptr || value->second == 0)
         return;
     glActiveTexture(value->second);
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
     if (value->first != nullptr) {
         value->first->load();
         glBindTexture(value->first->target(), value->first->glid());
     }
     else
         glBindTexture(GL_TEXTURE_2D, 0);
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
     glUniform1i(variable.loc, value->second - GL_TEXTURE0);
-    if (glCheckError(variable.name))
-        throw std::runtime_error("Error while setting uniform");
 }
 
 std::function<void(const ShaderVariable&)> GetSetUniformCallback(GLenum type)

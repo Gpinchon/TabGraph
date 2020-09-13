@@ -48,22 +48,10 @@ void ComputeObject::run()
         shaderPtr->bind_image("inout_data", inTexturePtr, 0, false, 0, GL_READ_WRITE, GL_TEXTURE0);
     } else {
         shaderPtr->bind_image("in_data", inTexturePtr, 0, false, 0, GL_READ_ONLY, GL_TEXTURE0);
-        if (glCheckError(Name())) {
-            throw std::runtime_error(" : Error while binding image 'in_data'");
-        }
         shaderPtr->bind_image("out_data", outTexturePtr, 0, false, 0, GL_WRITE_ONLY, GL_TEXTURE1);
-        if (glCheckError(Name())) {
-            throw std::runtime_error(" : Error while binding image 'out_data'");
-        }
     }
     glDispatchCompute(30, 40, 1);
-    if (glCheckError(Name())) {
-        throw std::runtime_error(" : Error while dispatching workgroup");
-    }
     glMemoryBarrier(memory_barrier());
-    if (glCheckError(Name())) {
-        throw std::runtime_error(" : Error while trying to execute ComputeObject");
-    }
     shaderPtr->use(false);
 }
 

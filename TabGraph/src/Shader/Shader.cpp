@@ -101,15 +101,8 @@ void Shader::use(const bool& use_program)
     if (NeedsRecompile())
         Recompile();
     Compile();
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while trying to use program");
     glUseProgram(_program);
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while trying to use program");
     _UpdateVariables();
-    if (glCheckError(Name())) {
-        throw std::runtime_error("Error while trying to use program");
-    }
 }
 
 void Shader::unbind_texture(GLenum texture_unit)
@@ -120,8 +113,6 @@ void Shader::unbind_texture(GLenum texture_unit)
     }
     glActiveTexture(texture_unit);
     glBindTexture(GL_TEXTURE_2D, 0);
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while tryign to bind texture 0 to texture unit " + std::to_string(texture_unit));
     if (!bound) {
         use(false);
     }
@@ -143,8 +134,6 @@ void Shader::bind_image(const std::string& name,
         glBindImageTexture(texture_unit - GL_TEXTURE0,
             texture->glid(), level, layered,
             layer, access, texture->InternalFormat());
-        if (glCheckError(Name()))
-            throw std::runtime_error("Error while binding image texture");
         //glBindTexture(texture->target(), texture->glid());
     }
     SetUniform(name, int(texture_unit - GL_TEXTURE0));
@@ -170,7 +159,7 @@ void Shader::_UpdateVariables()
         _uniformsChanged = false;
     }
     if (_attributesChanged) {
-        for (const auto& uniform : _uniforms) {
+        for (const auto& uniform : _attributes) {
             auto v(uniform.second);
             _UpdateVariable(v);
         }
@@ -181,8 +170,6 @@ void Shader::_UpdateVariables()
 void Shader::Link()
 {
     glLinkProgram(_program);
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while binding program");
     glObjectLabel(GL_PROGRAM, _program, Name().length(), Name().c_str());
     try {
         check_program(_program);
@@ -211,8 +198,6 @@ bool Shader::check_shader(const GLuint id)
             throw std::runtime_error("Unknown Error");
         }
     }
-    if (glCheckError())
-        throw std::runtime_error("Error while checking shader status");
     return (false);
 }
 
@@ -230,8 +215,6 @@ bool Shader::check_program(const GLuint id)
         std::string logString(log.begin(), log.end());
         throw std::runtime_error(logString);
     }
-    if (glCheckError())
-        throw std::runtime_error("Error while checking program status");
     return (false);
 }
 
@@ -394,8 +377,6 @@ void Shader::_get_variables(GLenum variableType)
     GLsizei length;
 
     glGetProgramiv(_program, variableType, &ivcount);
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while getting program variables");
     debugLog(this->Name());
     debugLog(ivcount);
     debugLog((variableType == GL_ACTIVE_UNIFORMS ? "GL_ACTIVE_UNIFORMS" : "GL_ACTIVE_ATTRIBUTES"));
@@ -405,8 +386,6 @@ void Shader::_get_variables(GLenum variableType)
         GLenum type;
         glGetActiveUniform(_program, static_cast<GLuint>(ivcount), 4096, &length, &size, &type, name);
         debugLog(name);
-        if (glCheckError(Name()))
-            throw std::runtime_error("Error while getting active uniform");
         auto& v(variableType == GL_ACTIVE_UNIFORMS ? _uniforms[name] : _attributes[name]);
         v.name = name;
         v.size = size;
@@ -420,8 +399,6 @@ void Shader::_get_variables(GLenum variableType)
         else if (variableType == GL_ACTIVE_ATTRIBUTES)
             _attributes[name] = v;
         debugLog(v.name + " " + std::to_string(v.size) + " " + std::to_string(v.type) + " " + std::to_string(v.loc));
-        if (glCheckError(Name()))
-            throw std::runtime_error("Error while getting uniform informations");
     }
 }
 
@@ -450,8 +427,6 @@ void Shader::Compile()
         glDetachShader(_program, stage->Glid());
         stage->Delete();
     }
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while trying to delete shader stages");
 }
 
 void Shader::Recompile()

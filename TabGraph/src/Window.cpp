@@ -105,8 +105,11 @@ void Window::init(const std::string& name, glm::ivec2 resolution)
     PrintExtensions();
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    if (glCheckError(name))
-        throw std::runtime_error("Error while initializing Window");
+#ifdef DEBUG_MOD
+    // During init, enable debug output
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, 0);
+#endif
 }
 
 GLbitfield& Window::clear_mask()

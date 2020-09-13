@@ -80,9 +80,6 @@ void Buffer::Allocate()
             ByteLength(),
             nullptr,
             Usage());
-        if (glCheckError()) {
-            return;
-        }
     } else {
         glCreateBuffers(1, &_glid);
         glNamedBufferData(
@@ -90,12 +87,6 @@ void Buffer::Allocate()
             ByteLength(),
             nullptr,
             Usage());
-        if (glCheckError()) {
-            return;
-        }
-    }
-    if (glCheckError()) {
-        return;
     }
 }
 
@@ -116,9 +107,6 @@ void* Buffer::Map(GLenum access)
     if (Mapped())
         throw std::runtime_error("Buffer" + Name() + " : is already mapped.");
     auto ptr(GetMapFunction()(Glid(), access));
-    if (glCheckError()) {
-        debugLog("ERROR");
-    }
     _mapped = true;
     _mappingPointer = ptr;
     return ptr;
@@ -131,9 +119,6 @@ void* Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
     if (Mapped())
         throw std::runtime_error("Buffer" + Name() + " : is already mapped.");
     auto ptr(GetMapRangeFunction()(Glid(), offset, length, access));
-    if (glCheckError()) {
-        debugLog("ERROR");
-    }
     _mapped = true;
     _mappingPointer = ptr;
     return ptr;
@@ -146,9 +131,6 @@ void Buffer::Unmap()
         return;
     }
     GetUnmapRangeFunction()(Glid());
-    if (glCheckError()) {
-        debugLog("ERROR");
-    }
     _mapped = false;
     _mappingPointer = nullptr;
 }

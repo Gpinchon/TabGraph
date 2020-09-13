@@ -95,16 +95,10 @@ void Texture::load()
         glGenTextures(1, &_glid);
         glBindTexture(target(), glid());
         glBindTexture(target(), 0);
-        if (glCheckError(Name()))
-            throw std::runtime_error("Error while generating Texture");
     } else {
         glCreateTextures(target(), 1, &_glid);
-        if (glCheckError(Name()))
-            throw std::runtime_error("Error while generating Texture");
     }
     glObjectLabel(GL_TEXTURE, glid(), Name().length(), Name().c_str());
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while setting object label");
     _loaded = true;
     debugLog(Name() + " : Done.");
 }
@@ -112,14 +106,8 @@ void Texture::load()
 void Texture::generate_mipmap()
 {
     glBindTexture(_target, _glid);
-    if (glCheckError(Name()))
-        throw std::runtime_error("");
     glGenerateMipmap(_target);
-    if (glCheckError(Name()))
-        throw std::runtime_error("");
     glBindTexture(_target, 0);
-    if (glCheckError(Name()))
-        throw std::runtime_error("");
     _mipMapsGenerated = true;
 }
 
@@ -181,8 +169,6 @@ void Texture::set_parameterf(GLenum p, float v)
     } else {
         glTextureParameterf(_glid, p, v);
     }
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while setting float parameter");
 }
 
 void Texture::set_parameteri(GLenum p, int v)
@@ -197,8 +183,6 @@ void Texture::set_parameteri(GLenum p, int v)
     } else {
         glTextureParameteri(_glid, p, v);
     }
-    if (glCheckError(Name()))
-        throw std::runtime_error("Error while setting interger parameter");
 }
 
 void Texture::restore_parameters()

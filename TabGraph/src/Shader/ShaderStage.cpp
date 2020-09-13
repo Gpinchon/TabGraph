@@ -46,8 +46,6 @@ void ShaderStage::Compile()
         _glid = glCreateShader(Stage());
         glShaderSource(_glid, 1, &codeBuff, nullptr);
         glCompileShader(_glid);
-        if (glCheckError())
-            throw std::runtime_error("Error while compiling shader source " + std::string(codeBuff));
         Shader::check_shader(_glid);
     } catch (std::exception& e) {
         throw std::runtime_error(std::string("Error compiling Shader Stage ") + e.what());

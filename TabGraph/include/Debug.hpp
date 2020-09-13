@@ -19,50 +19,19 @@
 #endif
 #define _debugStream(func, line) std::cerr << __DATE__ << " " << __TIME__ << " | " << func << " at line [" << line << "] : "
 #define debugLog(message) _debugStream(__PRETTY_FUNCTION__, __LINE__) << message << std::endl;
-template <typename ...Args>
-inline auto _glCheckError(const char *func, const int line, Args... args)
+inline void GLAPIENTRY
+MessageCallback(GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar* message,
+    const void* userParam)
 {
-    GLenum errorCode;
-    GLenum errorRet = GL_NO_ERROR;
-    while ((errorCode = glGetError()) != GL_NO_ERROR)
-    {
-        errorRet |= errorCode;
-        std::string error;
-        switch (errorCode)
-        {
-        case GL_INVALID_ENUM:
-            error = "GL_INVALID_ENUM";
-            break;
-        case GL_INVALID_VALUE:
-            error = "GL_INVALID_VALUE";
-            break;
-        case GL_INVALID_OPERATION:
-            error = "GL_INVALID_OPERATION";
-            break;
-        case GL_STACK_OVERFLOW:
-            error = "GL_STACK_OVERFLOW";
-            break;
-        case GL_STACK_UNDERFLOW:
-            error = "GL_STACK_UNDERFLOW";
-            break;
-        case GL_OUT_OF_MEMORY:
-            error = "GL_OUT_OF_MEMORY";
-            break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
-            error = "GL_INVALID_FRAMEBUFFER_OPERATION";
-            break;
-        }
-        if constexpr (sizeof...(Args) == 1) {
-            //(_debugStream(func, line) << ... << args) << " " << error << std::endl;
-            ((_debugStream(func, line) << std::forward<Args>(args)), ...);
-            std::cerr << " " << error << std::endl;
-        }
-        else
-            _debugStream(func, line) << error << std::endl;
-    }
-    return errorRet;
+    fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+        (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+        type, severity, message);
 }
-#define glCheckError(...) _glCheckError(__PRETTY_FUNCTION__, __LINE__ , ##__VA_ARGS__)
 #else
 #define debugLog(message)
 #define glCheckError(message) GL_NO_ERROR

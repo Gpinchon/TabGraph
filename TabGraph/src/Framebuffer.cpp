@@ -110,33 +110,21 @@ void Framebuffer::bind(bool to_bind)
         _depth.first->load();
     if (_glid == 0u) {
         glGenFramebuffers(1, &_glid);
-        if (glCheckError(Name()))
-                throw std::runtime_error("Error while generating Framebuffer");
         glBindFramebuffer(GL_FRAMEBUFFER, _glid);
         glObjectLabel(GL_FRAMEBUFFER, _glid, Name().length(), Name().c_str());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        if (glCheckError(Name()))
-                throw std::runtime_error("Error while bind default Framebuffer");
     }
     if (_attachementsChanged) {
         setup_attachements();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, _glid);
-    if (glCheckError(Name()))
-            throw std::runtime_error("Error while binding Framebuffer");
     glViewport(0, 0, Size().x, Size().y);
-    if (glCheckError(Name()))
-            throw std::runtime_error("Error while setting viewport");
 }
 
 void Framebuffer::bind_default()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    if (glCheckError())
-        throw std::runtime_error("Error while binding default framebuffer");
     glViewport(0, 0, Window::size().x, Window::size().y);
-    if (glCheckError())
-        throw std::runtime_error("Error while setting viewport");
 }
 
 std::shared_ptr<Texture2D> Framebuffer::Create_attachement(GLenum format, GLenum iformat)
@@ -164,29 +152,21 @@ void Framebuffer::setup_attachements()
     std::vector<GLenum> color_attachements;
 
     glBindFramebuffer(GL_FRAMEBUFFER, _glid);
-    if (glCheckError(Name()))
-            throw std::runtime_error("Error while binding Framebuffer");
     for (auto i = 0u; i < _color_attachements.size(); ++i) {
         auto attachement(_color_attachements.at(i));
         attachement.first->format(&format[0], &format[1]);
         if (format[0] != GL_DEPTH_COMPONENT) {
             glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attachement.first->glid(), attachement.second);
-            if (glCheckError(Name()))
-                    throw std::runtime_error("Error while setting Framebuffer texture " + attachement.first->Name());
             color_attachements.push_back(GL_COLOR_ATTACHMENT0 + i);
         }
     }
     if (_depth.first != nullptr) {
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth.first->glid(), _depth.second);
-        if (glCheckError(Name()))
-                throw std::runtime_error("Error while setting Framebuffer Depth attachement " + _depth.first->Name());
     }
     if (!color_attachements.empty())
         glDrawBuffers(color_attachements.size(), &color_attachements.at(0));
     else
         glDrawBuffers(0, nullptr);
-    if (glCheckError(Name()))
-            throw std::runtime_error("Error while setting Framebuffer drawbuffers");
 #ifdef DEBUG_MOD
     auto status(glCheckFramebufferStatus(GL_FRAMEBUFFER));
     if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -219,8 +199,6 @@ void Framebuffer::setup_attachements()
     }
 #endif
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    if (glCheckError(Name()))
-            throw std::runtime_error("Error while binding default Framebuffer");
     _attachementsChanged = false;
 }
 /*
