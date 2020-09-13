@@ -80,6 +80,7 @@ struct ShaderVariable {
 };
 
 enum ShaderType {
+    Invalid = -1,
     Other,
     ForwardShader,
     LightingShader,
@@ -130,7 +131,7 @@ private:
     std::unordered_map<std::string, ShaderVariable> _uniforms;
     std::unordered_map<std::string, ShaderVariable> _attributes;
     std::unordered_map<std::string, std::string> _defines;
-    ShaderType _type;
+    ShaderType _type{ ShaderType::Invalid };
 };
 
 #include "Debug.hpp"
