@@ -118,14 +118,14 @@ const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
 {
     static std::shared_ptr<Geometry> vao;
     if (vao != nullptr) {
-        return (vao);
+        return vao;
     }
     std::vector<glm::vec2> quad(4);
     quad.at(0) = { -1.0f, -1.0f };
     quad.at(1) = { 1.0f, -1.0f };
     quad.at(2) = { -1.0f, 1.0f };
     quad.at(3) = { 1.0f, 1.0f };
-    auto accessor(BufferHelper::CreateAccessor(quad, GL_ARRAY_BUFFER));
+    auto accessor(BufferHelper::CreateAccessor(quad));
     vao = Geometry::Create("DisplayQuad");
     vao->SetMode(GL_TRIANGLE_STRIP);
     vao->SetAccessor(Geometry::Position, accessor);
@@ -493,6 +493,7 @@ void SSAOPass(std::shared_ptr<Framebuffer> gBuffer)
         SSAOApplyShader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, passthrough_vertex_code));
         SSAOApplyShader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, SSAOApplyFragmentCode));
     }
+    SSAOShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSAO_QUALITY", std::to_string(Config::Get("SSAOQuality", 4)));
     SSAOShader->SetUniform("Texture.AO", gBuffer->attachement(4), GL_TEXTURE0);
     SSAOShader->SetUniform("Texture.Normal", gBuffer->attachement(5), GL_TEXTURE1);
     SSAOShader->SetUniform("Texture.Depth", gBuffer->depth(), GL_TEXTURE2);
@@ -515,14 +516,12 @@ void SSAOPass(std::shared_ptr<Framebuffer> gBuffer)
     glDepthMask(true);
 }
 
-#define SSRQUALITY 3
-
 float ComputeRoughnessMaskScale()
 {
     float MaxRoughness = std::clamp(Config::Get("SSRMaxRoughness", 0.8f), 0.01f, 1.0f);
 
     float RoughnessMaskScale = -2.0f / MaxRoughness;
-    return RoughnessMaskScale * (SSRQUALITY < 3 ? 2.0f : 1.0f);
+    return RoughnessMaskScale * (Config::Get("SSRQuality", 4) < 3 ? 2.0f : 1.0f);
 }
 
 static std::shared_ptr<Shader> SSRShader;
@@ -798,6 +797,8 @@ std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender,
     //SSAOPass(transpGeometryBuffer);
 
     auto SSRResult(SSRPass1(transpGeometryBuffer, lastRender));
+
+    
     auto refractionResult(RefractionPass(transpGeometryBuffer, opaqueRenderBuffer));
 
     auto i = 0;
