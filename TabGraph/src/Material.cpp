@@ -195,6 +195,7 @@ void Material::SetTextureRoughness(std::shared_ptr<Texture2D> t)
 {
     _texture_roughness = t;
     shader()->SetUniform("MetallicRoughnessTextures.Roughness", TextureRoughness(), GL_TEXTURE3);
+    
 }
 
 void Material::SetTextureMetallic(std::shared_ptr<Texture2D> t)
