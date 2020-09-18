@@ -34,11 +34,6 @@ MessageCallback(GLenum source,
 }
 #else
 #define debugLog(message)
-#define glCheckError(message) GL_NO_ERROR
-/*inline auto glCheckError(const std::string &)
-{
-    return (GL_NO_ERROR);
-}*/
 #endif
 
 #ifdef _WIN32
