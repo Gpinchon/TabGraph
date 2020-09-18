@@ -5,7 +5,7 @@
 * @Last Modified time: 2020-08-18 15:48:40
 */
 
-#include "Material.hpp"
+#include "Material/Material.hpp"
 #include "Environment.hpp" // for Environment
 #include "Parser/GLSL.hpp" // for GLSL, ForwardShader
 #include "Shader/Shader.hpp" // for Shader

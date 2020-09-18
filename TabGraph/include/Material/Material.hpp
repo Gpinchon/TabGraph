@@ -89,7 +89,7 @@ protected:
     glm::vec3 _specular { 0.04, 0.04, 0.04 };
     glm::vec3 _emitting { 0, 0, 0 };
     glm::vec2 _uv_scale { 1, 1 };
-    float _roughness { 0.5 };
+    float _roughness { 1 };
     float _metallic { 0 };
     float _alpha { 1 };
     float _parallax { 0.01 };
