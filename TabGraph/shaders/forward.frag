@@ -90,12 +90,12 @@ in vec3	frag_WorldPosition;
 in vec3	frag_WorldNormal;
 in vec2	frag_Texcoord;
 
-layout(location = 0) out vec4	out_CDiff;
+layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
 layout(location = 1) out vec3	out_Emitting;
-layout(location = 2) out vec4	out_F0;
-layout(location = 3) out vec3	out_Material_Values; // BRDF Alpha, Metallic, Ior
+layout(location = 2) out vec4	out_F0; //BRDF F0, BRDF Alpha
+layout(location = 3) out float	out_Ior;
 layout(location = 4) out float	out_AO;
-layout(location = 5) out vec3	out_Normal;
+layout(location = 5) out vec2	out_Normal;
 
 t_Frag	Frag;
 
@@ -142,9 +142,42 @@ mat3x3	tbn_matrix()
 	return(transpose(mat3(T, B, Frag.Normal)));
 }
 
-float	map(in float value, in float low1, in float high1, in float low2, in float high2)
+#define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
+
+void sincos(const in float x, out float sinX, out float cosX)
 {
-	return (low2 + (value - low1) * (high2 - low2) / (high1 - low1));
+	sinX = sin(x);
+	cosX = cos(x);
+}
+
+vec2 encodeNormal(const in vec3 n)
+{
+	/*vec2 enc = normalize(n.xy) * (sqrt(-n.z*0.5+0.5));
+    enc = enc*0.5+0.5;
+    return enc;*/
+	//vec3 n = normalize(normal);
+	float phi = atan(n.y, n.x);
+	float theta = acos(n.z);
+	return vec2((phi + M_PI) / (2.f * M_PI), theta / M_PI);
+}
+
+vec3 decodeNormal(const in vec2 encoded)
+{
+	/*vec4 nn = vec4(enc, 0, 0)*vec4(2,2,0,0) + vec4(-1,-1,1,-1);
+    float l = dot(nn.xyz,-nn.xyw);
+    nn.z = l;
+    nn.xy *= sqrt(l);
+    return nn.xyz * 2 + vec3(0,0,-1);*/
+	vec2 enc = vec2(encoded.x * 2 * M_PI - M_PI, encoded.y * M_PI);
+	float sinPhi = sin(enc.x);
+	float cosPhi = cos(enc.x);
+	float sinTheta = sin(enc.y);
+	float cosTheta = cos(enc.y);
+	return vec3(
+		sinTheta * cosPhi,
+		sinTheta * sinPhi,
+		cosTheta
+	);
 }
 
 void	FillIn()
@@ -194,7 +227,7 @@ void	FillIn()
 #endif
 #ifdef TEXTURE_USE_NORMAL
 	vec3	normal_sample = texture(StandardTextures.Normal, Frag.UV).xyz * 2 - 1;
-	vec3	new_normal = normal_sample * tbn;
+	vec3	new_normal = normalize(normal_sample) * tbn;
 	if (dot(new_normal, new_normal) > 0)
 		Frag.Normal = new_normal;
 #endif
@@ -209,9 +242,9 @@ void	FillOut()
 	out_F0.rgb = Frag.BRDF.F0;
 	out_F0.a = Frag.BRDF.Alpha;
 	out_Emitting = max(vec3(0), StandardValues.Emitting + StandardValues.Diffuse.rgb - 1);
-	out_Material_Values.z = StandardValues.Ior;
+	out_Ior = StandardValues.Ior;
 	out_AO = StandardValues.AO;
-	out_Normal = normalize(Frag.Normal);
+	out_Normal = encodeNormal(normalize(Frag.Normal));
 #ifdef FORCEDEPTHWRITE
 	gl_FragDepth = Frag.Depth;
 	bvec3	positionsEqual = notEqual(Frag.Position, frag_WorldPosition);

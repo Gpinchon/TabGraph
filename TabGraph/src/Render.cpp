@@ -146,9 +146,9 @@ std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string& name, const
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // BRDF CDiff, Transparency;
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // BRDF F0, BRDF Alpha;
-    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // MaterialValues -> NOTHING, NOTHING, Ior
+    buffer->Create_attachement(GL_RED, GL_R16F); // Ior
     buffer->Create_attachement(GL_RED, GL_R8); //AO
-    buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); // Normal;
+    buffer->Create_attachement(GL_RG, GL_RG8); // Normal;
     //buffer->setup_attachements();
     return (buffer);
 }
@@ -393,7 +393,7 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer>& currentGeo
         shader->SetUniform("Texture.CDiff", currentGeometryBuffer->attachement(0), GL_TEXTURE0);
         shader->SetUniform("Texture.Emitting", currentGeometryBuffer->attachement(1), GL_TEXTURE1);
         shader->SetUniform("Texture.F0", currentGeometryBuffer->attachement(2), GL_TEXTURE2);
-        shader->SetUniform("Texture.MaterialValues", currentGeometryBuffer->attachement(3), GL_TEXTURE3);
+        shader->SetUniform("Texture.Ior", currentGeometryBuffer->attachement(3), GL_TEXTURE3);
         shader->SetUniform("Texture.Normal", currentGeometryBuffer->attachement(5), GL_TEXTURE5);
         shader->SetUniform("Texture.Depth", currentGeometryBuffer->depth(), GL_TEXTURE6);
         shader->SetUniform("Texture.Back.Color", lightRenderBuffer1->attachement(0), GL_TEXTURE7);
@@ -702,7 +702,7 @@ std::shared_ptr<Framebuffer> RefractionPass(std::shared_ptr<Framebuffer> geometr
     refractionShader->SetUniform("Texture.CDiff", geometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.Emitting", geometryBuffer->attachement(1), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.F0", geometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
-    refractionShader->SetUniform("Texture.MaterialValues", geometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
+    refractionShader->SetUniform("Texture.Ior", geometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.AO", geometryBuffer->attachement(4), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.Normal", geometryBuffer->attachement(5), GL_TEXTURE0 + (++i));
     refractionShader->SetUniform("Texture.Depth", geometryBuffer->depth(), GL_TEXTURE0 + (++i));
@@ -749,7 +749,7 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     elighting_shader->SetUniform("Texture.CDiff", opaqueGeometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Emitting", opaqueGeometryBuffer->attachement(1), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.F0", opaqueGeometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.MaterialValues", opaqueGeometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Ior", opaqueGeometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.AO", opaqueGeometryBuffer->attachement(4), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Normal", opaqueGeometryBuffer->attachement(5), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Depth", opaqueGeometryBuffer->depth(), GL_TEXTURE0 + (++i));
@@ -805,7 +805,7 @@ std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender,
     elighting_shader->SetUniform("Texture.CDiff", transpGeometryBuffer->attachement(0), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Emitting", transpGeometryBuffer->attachement(1), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.F0", transpGeometryBuffer->attachement(2), GL_TEXTURE0 + (++i));
-    elighting_shader->SetUniform("Texture.MaterialValues", transpGeometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
+    elighting_shader->SetUniform("Texture.Ior", transpGeometryBuffer->attachement(3), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.AO", transpGeometryBuffer->attachement(4), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Normal", transpGeometryBuffer->attachement(5), GL_TEXTURE0 + (++i));
     elighting_shader->SetUniform("Texture.Depth", transpGeometryBuffer->depth(), GL_TEXTURE0 + (++i));

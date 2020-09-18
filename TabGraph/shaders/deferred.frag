@@ -25,7 +25,7 @@ struct t_Textures {
 	sampler2D		CDiff;
 	sampler2D		Emitting;
 	sampler2D		F0;
-	sampler2D		MaterialValues;
+	sampler2D		Ior;
 	sampler2D		AO;
 	sampler2D		Normal;
 	sampler2D		Depth;
@@ -94,12 +94,12 @@ struct t_Out {
 	vec3		Normal;
 };
 
-layout(location = 0) out vec4	out_CDiff;
+layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
 layout(location = 1) out vec3	out_Emitting;
-layout(location = 2) out vec4	out_F0;
-layout(location = 3) out vec3	out_Material_Values; //BRDF Alpha, Metallic, Ior
+layout(location = 2) out vec4	out_F0; //BRDF F0, BRDF Alpha
+layout(location = 3) out float	out_Ior;
 layout(location = 4) out float	out_AO;
-layout(location = 5) out vec3	out_Normal;
+layout(location = 5) out vec2	out_Normal;
 #endif //POSTSHADER
 
 t_Frag	Frag;
@@ -287,10 +287,41 @@ vec3	WorldPosition()
 	return ScreenToWorld(Frag.UV, Frag.Depth);
 }
 
-//vec3	DiffuseFactor()
-//{
-//	return mix(Frag.BRDF.CDiff.rgb * vec3(1 - Frag.BRDF.F0), vec3(0), Frag.Metallic);
-//}
+void sincos(const in float x, out float sinX, out float cosX)
+{
+	sinX = sin(x);
+	cosX = cos(x);
+}
+
+vec2 encodeNormal(const in vec3 n)
+{
+	/*vec2 enc = normalize(n.xy) * (sqrt(-n.z*0.5+0.5));
+    enc = enc*0.5+0.5;
+    return enc;*/
+	//vec3 n = normalize(normal);
+	float phi = atan(n.y, n.x);
+	float theta = acos(n.z);
+	return vec2((phi + M_PI) / (2.f * M_PI), theta / M_PI);
+}
+
+vec3 decodeNormal(const in vec2 encoded)
+{
+	/*vec4 nn = vec4(enc, 0, 0)*vec4(2,2,0,0) + vec4(-1,-1,1,-1);
+    float l = dot(nn.xyz,-nn.xyw);
+    nn.z = l;
+    nn.xy *= sqrt(l);
+    return nn.xyz * 2 + vec3(0,0,-1);*/
+	vec2 enc = vec2(encoded.x * 2 * M_PI - M_PI, encoded.y * M_PI);
+	float sinPhi = sin(enc.x);
+	float cosPhi = cos(enc.x);
+	float sinTheta = sin(enc.y);
+	float cosTheta = cos(enc.y);
+	return normalize(vec3(
+		sinTheta * cosPhi,
+		sinTheta * sinPhi,
+		cosTheta
+	));
+}
 
 void	FillFrag()
 {
@@ -298,8 +329,8 @@ void	FillFrag()
 	Frag.CubeUV = frag_Cube_UV;
 	Frag.Depth = gl_FragDepth = texture(Texture.Depth, frag_UV).r;
 	Frag.Position = WorldPosition();
-	Frag.Normal = texture(Texture.Normal, frag_UV).xyz;
-	vec3	MaterialValues = texture(Texture.MaterialValues, frag_UV).xyz;
+	Frag.Normal = decodeNormal(texture(Texture.Normal, frag_UV).xy);
+	Frag.Ior = texture(Texture.Ior, frag_UV).x;
 	vec4	CDiff_sample = texture(Texture.CDiff, frag_UV);
 	vec4	F0_sample = texture(Texture.F0, frag_UV);
 	Frag.BRDF.CDiff = CDiff_sample.rgb;
@@ -307,7 +338,6 @@ void	FillFrag()
 	Frag.BRDF.Alpha = F0_sample.a;
 	Frag.Opacity = CDiff_sample.a;
 	Frag.Emitting = texture(Texture.Emitting, frag_UV).rgb;
-	Frag.Ior = MaterialValues.z;
 	Frag.AO = texture(Texture.AO, frag_UV).r;
 #ifdef LIGHTSHADER
 	Out.Color = texture(Texture.Back.Color, frag_UV);
@@ -329,9 +359,9 @@ void	FillOut(in vec3 OriginalPosition)
 	out_F0.rgb = Frag.BRDF.F0;
 	out_F0.a = Frag.BRDF.Alpha;
 	out_Emitting = Frag.Emitting;
-	out_Material_Values = vec3(0, 0, Frag.Ior);
+	out_Ior = Frag.Ior;
 	out_AO = Frag.AO;
-	out_Normal = Frag.Normal;
+	out_Normal = encodeNormal(normalize(Frag.Normal));
 }
 #endif
 
