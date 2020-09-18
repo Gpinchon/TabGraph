@@ -34,7 +34,7 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Input/Keyboard.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Input/Mouse.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Material.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/Material.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/CapsuleMesh.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/CubeMesh.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/Geometry.cpp
@@ -104,7 +104,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Input/Keyboard.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Input/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Light.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Material.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/Material.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Mesh/CapsuleMesh.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Mesh/CubeMesh.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Mesh/Geometry.hpp
