@@ -7,7 +7,7 @@
 
 #include "Camera/Camera.hpp"
 #include "Input/Keyboard.hpp"
-#include "Material.hpp"
+#include "Material/Material.hpp"
 #include "Mesh/CapsuleMesh.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Transform.hpp"

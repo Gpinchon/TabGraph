@@ -15,7 +15,7 @@
 #include "Assets/AssetsParser.hpp"
 #include "Buffer/BufferHelper.hpp"
 #include "Engine.hpp" // for M_PI
-#include "Material.hpp" // for Material
+#include "Material/Material.hpp" // for Material
 #include "Mesh/Geometry.hpp" // for Geometry, CVEC4
 #include "Mesh/Mesh.hpp" // for Mesh
 #include "Parser/InternalTools.hpp" // for count_char, split_...

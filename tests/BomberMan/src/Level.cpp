@@ -7,7 +7,7 @@
 
 #include "Camera/OrbitCamera.hpp"
 #include "Light/Light.hpp"
-#include "Material.hpp"
+#include "Material/Material.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Mesh/PlaneMesh.hpp"
 #include "Transform.hpp"

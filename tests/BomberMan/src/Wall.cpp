@@ -4,7 +4,7 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2020-08-17 14:00:45
 */
-#include "Material.hpp"
+#include "Material/Material.hpp"
 #include "Mesh/CubeMesh.hpp"
 #include "Mesh/Mesh.hpp"
 

@@ -11,7 +11,7 @@
 #include "Buffer/BufferView.hpp"
 #include "Camera/Camera.hpp" // for Camera
 #include "Debug.hpp"
-#include "Material.hpp" // for Material
+#include "Material/Material.hpp" // for Material
 #include "Physics/BoundingAABB.hpp" // for AABB
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Texture.hpp" // for Texture

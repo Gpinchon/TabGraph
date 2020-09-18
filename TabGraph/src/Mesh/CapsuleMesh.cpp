@@ -5,7 +5,7 @@
 * @Last Modified time: 2020-08-09 19:51:52
 */
 #include "Mesh/CapsuleMesh.hpp"
-#include "Material.hpp"
+#include "Material/Material.hpp"
 #include "Mesh/Geometry.hpp"
 #include "Mesh/Mesh.hpp"
 #include <glm/gtc/constants.hpp>

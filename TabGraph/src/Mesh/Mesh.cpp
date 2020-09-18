@@ -9,7 +9,7 @@
 #include "Buffer/BufferHelper.hpp"
 #include "Camera/Camera.hpp" // for Camera
 #include "Debug.hpp"
-#include "Material.hpp" // for Material
+#include "Material/Material.hpp" // for Material
 #include "Mesh/Geometry.hpp" // for Geometry
 #include "Mesh/MeshSkin.hpp"
 #include "Node.hpp" // for Node

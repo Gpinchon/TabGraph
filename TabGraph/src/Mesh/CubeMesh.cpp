@@ -7,7 +7,7 @@
 
 #include "Mesh/CubeMesh.hpp"
 #include "Buffer/BufferHelper.hpp"
-#include "Material.hpp" // for Material
+#include "Material/Material.hpp" // for Material
 #include "Mesh/Geometry.hpp" // for CVEC4, Geometry
 #include "Mesh/Mesh.hpp" // for Mesh
 #include <vector> // for vector

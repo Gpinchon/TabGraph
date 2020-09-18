@@ -6,7 +6,7 @@
 */
 
 #include "Mesh/SphereMesh.hpp"
-#include "Material.hpp"
+#include "Material/Material.hpp"
 #include "Mesh/Geometry.hpp"
 #include "Mesh/Mesh.hpp"
 #include <map>

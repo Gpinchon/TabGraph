@@ -7,7 +7,7 @@
 
 #include "Parser/MTLLIB.hpp"
 #include "Parser/InternalTools.hpp" // for parse_vec3, t_obj_parser, strspl...
-#include "Material.hpp" // for Material
+#include "Material/Material.hpp" // for Material
 #include "Texture/TextureParser.hpp" // for TextureParser
 #include "Assets/AssetsParser.hpp"
 #include "Debug.hpp"

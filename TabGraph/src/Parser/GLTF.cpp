@@ -15,7 +15,7 @@
 #include "Buffer/BufferView.hpp"
 #include "Camera/Camera.hpp"
 #include "Debug.hpp"
-#include "Material.hpp"
+#include "Material/Material.hpp"
 #include "Mesh/Geometry.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Mesh/MeshSkin.hpp"
@@ -204,6 +204,8 @@ static inline auto ParseMaterials(const std::filesystem::path path, const rapidj
                 try {
                     auto textureObject(pbrMetallicRoughness["metallicRoughnessTexture"].GetObject());
                     material->SetTextureMetallicRoughness(GetTexture(textureVector, textureObject["index"].GetInt()));
+                    material->SetRoughness(1);
+                    material->SetMetallic(1);
                 } catch (std::exception&) {
                     debugLog("No metallicRoughnessTexture property")
                 }
