@@ -4,48 +4,6 @@ precision lowp int;
 precision lowp sampler2D;
 precision lowp samplerCube;
 
-//struct t_Textures {
-//#ifdef TEXTURE_USE_ALBEDO
-//	sampler2D	Albedo;
-//#endif
-//#ifdef TEXTURE_USE_SPECULAR
-//	sampler2D	Specular;
-//#endif
-//#ifdef TEXTURE_USE_ROUGHNESS
-//	sampler2D	Roughness;
-//#endif
-//#ifdef TEXTURE_USE_METALLIC
-//	sampler2D	Metallic;
-//#endif
-//#ifdef TEXTURE_USE_METALLICROUGHNESS
-//	sampler2D	MetallicRoughness;
-//#endif
-//#ifdef TEXTURE_USE_EMITTING
-//	sampler2D	Emitting;
-//#endif
-//#ifdef TEXTURE_USE_NORMAL
-//	sampler2D	Normal;
-//#endif
-//#ifdef TEXTURE_USE_HEIGHT
-//	sampler2D	Height;
-//#endif
-//#ifdef TEXTURE_USE_AO
-//	sampler2D	AO;
-//#endif
-//};
-
-//struct t_Material {
-//	vec3		Albedo;
-//	vec3		Specular;
-//	vec3		Emitting;
-//	float		Roughness;
-//	float		Metallic;
-//	float		Alpha;
-//	float		Parallax;
-//	float		Ior;
-//	float		AO;
-//};
-
 struct t_Matrix {
 	mat4	Model;
 	mat4	Normal;
