@@ -295,32 +295,43 @@ void sincos(const in float x, out float sinX, out float cosX)
 
 vec2 encodeNormal(const in vec3 n)
 {
-	/*vec2 enc = normalize(n.xy) * (sqrt(-n.z*0.5+0.5));
-    enc = enc*0.5+0.5;
-    return enc;*/
-	//vec3 n = normalize(normal);
+	vec2 xy = normalize(n.xy);
+	return vec2(atan(xy.y, xy.x) / M_PI, n.z) * 0.5 + 0.5;
+	/*vec3 n = normal * 0.5 + 0.5;
+	float p = sqrt(n.z*8+8);
+    return vec2(n.xy/p + 0.5);*/
+	/*vec3 n = normalize(normal) * 0.5 + 0.5;
 	float phi = atan(n.y, n.x);
 	float theta = acos(n.z);
-	return vec2((phi + M_PI) / (2.f * M_PI), theta / M_PI);
+	vec2 encoded = vec2(phi, theta) / M_PI;
+	return vec2(encoded.x * 0.5 + 0.5, encoded.y);*/
 }
 
-vec3 decodeNormal(const in vec2 encoded)
+vec3 decodeNormal(const in vec2 enc)
 {
-	/*vec4 nn = vec4(enc, 0, 0)*vec4(2,2,0,0) + vec4(-1,-1,1,-1);
-    float l = dot(nn.xyz,-nn.xyw);
-    nn.z = l;
-    nn.xy *= sqrt(l);
-    return nn.xyz * 2 + vec3(0,0,-1);*/
-	vec2 enc = vec2(encoded.x * 2 * M_PI - M_PI, encoded.y * M_PI);
+	vec2 ang = enc * 2 - 1;
+    vec2 scth;
+    sincos(ang.x * M_PI, scth.x, scth.y);
+    vec2 scphi = vec2(sqrt(1.0 - ang.y*ang.y), ang.y);
+	vec2 xy = vec2(scth.y * scphi.x, scth.x * scphi.x);
+    return normalize(vec3(xy.x, xy.y, scphi.y));
+	/*vec2 fenc = enc*4-2;
+    float f = dot(fenc,fenc);
+    float g = sqrt(1-f/4);
+    vec3 n;
+    n.xy = fenc*g;
+    n.z = 1-f/2;
+    return normalize(n * 2 - 1);*/
+	/*vec2 enc = vec2(encoded.x * 2 - 1, encoded.y) * M_PI;
 	float sinPhi = sin(enc.x);
 	float cosPhi = cos(enc.x);
 	float sinTheta = sin(enc.y);
 	float cosTheta = cos(enc.y);
-	return normalize(vec3(
+	return vec3(
 		sinTheta * cosPhi,
 		sinTheta * sinPhi,
 		cosTheta
-	));
+	) * 2 - 1;*/
 }
 
 void	FillFrag()
@@ -368,8 +379,7 @@ void	FillOut(in vec3 OriginalPosition)
 #ifdef LIGHTSHADER
 void	FillOut(in vec3 OriginalPosition)
 {
-	bvec3	positionsEqual = notEqual(Frag.Position, OriginalPosition);
-	if (positionsEqual.x || positionsEqual.y || positionsEqual.z)
+	if (any(notEqual(Frag.Position, OriginalPosition)))
 	{
 		vec4	NDC = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Frag.Position, 1.0);
 		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
