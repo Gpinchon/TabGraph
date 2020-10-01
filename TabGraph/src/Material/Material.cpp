@@ -6,6 +6,7 @@
 */
 
 #include "Material/Material.hpp"
+#include "Material/MaterialExtension.hpp"
 #include "Environment.hpp" // for Environment
 #include "Parser/GLSL.hpp" // for GLSL, ForwardShader
 #include "Shader/Shader.hpp" // for Shader
@@ -32,23 +33,15 @@ Material::Material(const std::string& name)
     _depth_shader = Shader::Create(Name() + "_depth_shader", ForwardShader);
     _depth_shader.lock()->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, depth_frag_code));
     shader()->SetUniform("UVScale", UVScale());
-    shader()->SetUniform("_StandardValues.Diffuse", Albedo());
-    shader()->SetUniform("_StandardValues.Specular", Specular());
-    shader()->SetUniform("_StandardValues.Emitting", Emitting());
-    shader()->SetUniform("_StandardValues.Opacity", Alpha());
+    shader()->SetUniform("_StandardValues.Emissive", Emissive());
+    shader()->SetUniform("_StandardValues.Opacity", Opacity());
     shader()->SetUniform("_StandardValues.Parallax", Parallax());
     shader()->SetUniform("_StandardValues.Ior", Ior());
-    shader()->SetUniform("_MetallicRoughnessValues.Roughness", Roughness());
-    shader()->SetUniform("_MetallicRoughnessValues.Metallic", Metallic());
     depth_shader()->SetUniform("UVScale", UVScale());
-    depth_shader()->SetUniform("_StandardValues.Diffuse", Albedo());
-    depth_shader()->SetUniform("_StandardValues.Specular", Specular());
-    depth_shader()->SetUniform("_StandardValues.Emitting", Emitting());
-    depth_shader()->SetUniform("_StandardValues.Opacity", Alpha());
+    depth_shader()->SetUniform("_StandardValues.Emissive", Emissive());
+    depth_shader()->SetUniform("_StandardValues.Opacity", Opacity());
     depth_shader()->SetUniform("_StandardValues.Parallax", Parallax());
     depth_shader()->SetUniform("_StandardValues.Ior", Ior());
-    depth_shader()->SetUniform("_MetallicRoughnessValues.Roughness", Roughness());
-    depth_shader()->SetUniform("_MetallicRoughnessValues.Metallic", Metallic());
 }
 
 std::shared_ptr<Material> Material::Create(const std::string& name)
@@ -57,10 +50,16 @@ std::shared_ptr<Material> Material::Create(const std::string& name)
     return mtl;
 }
 
+void Material::AddExtension(std::shared_ptr<MaterialExtension> extension)
+{
+    AddComponent(extension);
+}
+
 void Material::Bind()
 {
     if (nullptr == shader())
         return;
+    /*
     if (TextureMetallicRoughness() != nullptr) {
         shader()->SetDefine("TEXTURE_USE_METALLICROUGHNESS");
         shader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
@@ -69,7 +68,8 @@ void Material::Bind()
         shader()->RemoveDefine("TEXTURE_USE_METALLICROUGHNESS");
         TextureRoughness() ? shader()->SetDefine("TEXTURE_USE_ROUGHNESS") : shader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
         TextureMetallic() ? shader()->SetDefine("TEXTURE_USE_METALLIC") : shader()->RemoveDefine("TEXTURE_USE_METALLIC");
-    }
+    }*/
+
     //shader()->use();
     bind_textures();
     bind_values();
@@ -86,6 +86,11 @@ void Material::bind_textures()
 
 void Material::bind_values()
 {
+    for (const auto extension : GetComponents<MaterialExtension>()) {
+        for (const auto stage : extension->ShaderExtension()->Stages()) {
+            for (const auto )
+        }
+    }
 }
 
 std::shared_ptr<Shader> Material::shader()
@@ -98,17 +103,7 @@ std::shared_ptr<Shader> Material::depth_shader()
     return _depth_shader.lock();
 }
 
-std::shared_ptr<Texture2D> Material::TextureAlbedo()
-{
-    return _texture_albedo;
-}
-
-std::shared_ptr<Texture2D> Material::TextureSpecular()
-{
-    return _texture_specular;
-}
-
-std::shared_ptr<Texture2D> Material::TextureEmitting()
+std::shared_ptr<Texture2D> Material::TextureEmissive()
 {
     return _texture_emitting;
 }
@@ -123,45 +118,16 @@ std::shared_ptr<Texture2D> Material::TextureHeight()
     return _texture_height;
 }
 
-std::shared_ptr<Texture2D> Material::TextureMetallicRoughness()
-{
-    return _texture_metallicRoughness;
-}
-
-std::shared_ptr<Texture2D> Material::TextureRoughness()
-{
-    return _texture_roughness;
-}
-
-std::shared_ptr<Texture2D> Material::TextureMetallic()
-{
-    return _texture_metallic;
-}
-
 std::shared_ptr<Texture2D> Material::TextureAO()
 {
     return _texture_ao;
 }
 
-void Material::SetTextureAlbedo(std::shared_ptr<Texture2D> t)
-{
-    _texture_albedo = t;
-    shader()->SetUniform("StandardTextures.Diffuse", TextureAlbedo(), GL_TEXTURE0);
-    TextureAlbedo() ? shader()->SetDefine("TEXTURE_USE_DIFFUSE") : shader()->RemoveDefine("TEXTURE_USE_DIFFUSE");
-}
-
-void Material::SetTextureSpecular(std::shared_ptr<Texture2D> t)
-{
-    _texture_specular = t;
-    shader()->SetUniform("StandardTextures.Specular", TextureSpecular(), GL_TEXTURE1);
-    TextureSpecular() ? shader()->SetDefine("TEXTURE_USE_SPECULAR") : shader()->RemoveDefine("TEXTURE_USE_SPECULAR");
-}
-
-void Material::SetTextureEmitting(std::shared_ptr<Texture2D> t)
+void Material::SetTextureEmissive(std::shared_ptr<Texture2D> t)
 {
     _texture_emitting = t;
-    shader()->SetUniform("StandardTextures.Emitting", TextureEmitting(), GL_TEXTURE5);
-    TextureEmitting() ? shader()->SetDefine("TEXTURE_USE_EMITTING") : shader()->RemoveDefine("TEXTURE_USE_EMITTING");
+    shader()->SetUniform("StandardTextures.Emissive", TextureEmissive(), GL_TEXTURE5);
+    TextureEmissive() ? shader()->SetDefine("TEXTURE_USE_EMITTING") : shader()->RemoveDefine("TEXTURE_USE_EMITTING");
 }
 
 void Material::SetTextureNormal(std::shared_ptr<Texture2D> t)
@@ -185,56 +151,15 @@ void Material::SetTextureAO(std::shared_ptr<Texture2D> t)
     TextureHeight() ? shader()->SetDefine("TEXTURE_USE_AO") : shader()->RemoveDefine("TEXTURE_USE_AO");
 }
 
-void Material::SetTextureMetallicRoughness(std::shared_ptr<Texture2D> t)
+glm::vec3 Material::Emissive() const
 {
-    _texture_metallicRoughness = t;
-    shader()->SetUniform("MetallicRoughnessTextures.MetallicRoughness", TextureMetallicRoughness(), GL_TEXTURE2);
+    return _emissive;
 }
 
-void Material::SetTextureRoughness(std::shared_ptr<Texture2D> t)
+void Material::SetEmissive(glm::vec3 value)
 {
-    _texture_roughness = t;
-    shader()->SetUniform("MetallicRoughnessTextures.Roughness", TextureRoughness(), GL_TEXTURE3);
-    
-}
-
-void Material::SetTextureMetallic(std::shared_ptr<Texture2D> t)
-{
-    _texture_metallic = t;
-    shader()->SetUniform("MetallicRoughnessTextures.Metallic", TextureMetallic(), GL_TEXTURE4);
-}
-
-glm::vec3 Material::Albedo() const
-{
-    return _albedo;
-}
-
-void Material::SetAlbedo(glm::vec3 value)
-{
-    shader()->SetUniform("_StandardValues.Diffuse", value);
-    _albedo = value;
-}
-
-glm::vec3 Material::Specular() const
-{
-    return _specular;
-}
-
-void Material::SetSpecular(glm::vec3 value)
-{
-    shader()->SetUniform("_StandardValues.Specular", value);
-    _specular = value;
-}
-
-glm::vec3 Material::Emitting() const
-{
-    return _emitting;
-}
-
-void Material::SetEmitting(glm::vec3 value)
-{
-    shader()->SetUniform("_StandardValues.Emitting", value);
-    _emitting = value;
+    shader()->SetUniform("_StandardValues.Emissive", value);
+    _emissive = value;
 }
 
 glm::vec2 Material::UVScale() const
@@ -248,37 +173,15 @@ void Material::SetUVScale(glm::vec2 value)
     _uv_scale = value;
 }
 
-float Material::Roughness() const
+float Material::Opacity() const
 {
-    return _roughness;
+    return _opacity;
 }
 
-void Material::SetRoughness(float value)
-{
-    shader()->SetUniform("_MetallicRoughnessValues.Roughness", value);
-    _roughness = value;
-}
-
-float Material::Metallic() const
-{
-    return _metallic;
-}
-
-void Material::SetMetallic(float value)
-{
-    shader()->SetUniform("_MetallicRoughnessValues.Metallic", value);
-    _metallic = value;
-}
-
-float Material::Alpha() const
-{
-    return _alpha;
-}
-
-void Material::SetAlpha(float value)
+void Material::SetOpacity(float value)
 {
     shader()->SetUniform("_StandardValues.Opacity", value);
-    _alpha = value;
+    _opacity = value;
 }
 
 float Material::Parallax() const

@@ -13,20 +13,8 @@
 			"path": "."
 		},
 		{
-			"name": "Includes",
-			"path": "include"
-		},
-		{
-			"name": "Sources",
-			"path": "src"
-		},
-		{
-			"name": "Shaders",
-			"path": "src\\shaders"
-		},
-		{
-			"name": "Libraries",
-			"path": "libs"
+			"name": "TabGraph",
+			"path": "TabGraph"
 		},
 		{
 			"name": "Tests",

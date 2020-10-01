@@ -322,7 +322,7 @@ static inline AssetsContainer ParseMaterials(FBX::Document* document)
                 std::cout << name << " " << propertyName << " " << propertyType << std::endl;
                 propertiesMap[P->Property(0)] = P;
             }
-            auto P(propertiesMap["DiffuseColor"]);
+            /*auto P(propertiesMap["DiffuseColor"]);
             material->SetAlbedo(P ? glm::vec3(
                                     double(P->Property(4)),
                                     double(P->Property(5)),
@@ -345,7 +345,7 @@ static inline AssetsContainer ParseMaterials(FBX::Document* document)
             P = propertiesMap["SpecularFactor"];
             material->SetRoughness(P ? glm::clamp(1.f / (1.f + double(P->Property(4))) * 50.f, 0.0, 1.0) : 0.5);
             P = propertiesMap["ReflectionFactor"];
-            material->SetMetallic(P ? double(P->Property(4)) : 0.0);
+            material->SetMetallic(P ? double(P->Property(4)) : 0.0);*/
         }
     }
     return container;

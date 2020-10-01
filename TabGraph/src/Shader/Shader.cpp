@@ -461,6 +461,11 @@ void Shader::RemoveDefine(const std::string define)
     _defines.erase(define);
 }
 
+std::unordered_map<GLenum, std::shared_ptr<ShaderStage>> Shader::Stages() const
+{
+    return _shaderStages;
+}
+
 std::shared_ptr<ShaderStage>& Shader::Stage(GLenum stage)
 {
     return _shaderStages[stage];
@@ -469,6 +474,11 @@ std::shared_ptr<ShaderStage>& Shader::Stage(GLenum stage)
 void Shader::SetStage(const std::shared_ptr<ShaderStage>& stage)
 {
     _shaderStages[stage->Stage()] = stage;
+}
+
+void Shader::RemoveStage(GLenum stage)
+{
+    _shaderStages.erase(stage);
 }
 
 bool Shader::Compiled() const

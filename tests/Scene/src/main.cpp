@@ -4,7 +4,9 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2020-08-20 17:09:08
 */
-#define USE_HIGH_PERFORMANCE_GPU
+//#define USE_HIGH_PERFORMANCE_GPU
+//#include "DLLExport.hpp"
+
 #include "Animation/Animation.hpp"
 #include "Assets/AssetsParser.hpp"
 #include "Callback.hpp"
@@ -15,7 +17,7 @@
 #include "Input/Keyboard.hpp"
 #include "Input/Mouse.hpp"
 #include "Light/Light.hpp"
-#include "Material.hpp"
+#include "Material/Material.hpp"
 #include "Mesh/CubeMesh.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Parser/GLTF.hpp"
@@ -47,9 +49,9 @@ void CameraCallback()
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() - float(Events::delta_time() * laxis.x * 100) * camera->GetComponent<Transform>()->Right());
-    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() - float(Events::delta_time() * laxis.y * 100) * camera->GetComponent<Transform>()->Forward());
-    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() + float(Events::delta_time() * taxis * 100) * Common::Up());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() - float(Events::delta_time() * laxis.x * 1) * camera->GetComponent<Transform>()->Right());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() - float(Events::delta_time() * laxis.y * 1) * camera->GetComponent<Transform>()->Forward());
+    camera->GetComponent<Transform>()->SetPosition(camera->GetComponent<Transform>()->Position() + float(Events::delta_time() * taxis * 1) * Common::Up());
 }
 
 void MouseMoveCallback(SDL_MouseMotionEvent* event)

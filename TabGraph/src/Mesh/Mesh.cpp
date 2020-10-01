@@ -89,7 +89,7 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
         auto material(GetMaterial(vg->MaterialIndex()));
         if (nullptr == material)
             continue;
-        auto isTransparent(material->Alpha() < 1); // || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4));
+        auto isTransparent(material->Opacity() < 1); // || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4));
         if (mod == RenderMod::RenderOpaque && isTransparent)
             continue;
         else if (mod == RenderMod::RenderTransparent && !isTransparent)
@@ -141,11 +141,12 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, RenderMod mod)
             errorLog("Error : Invalid Material Index while rendering Mesh");
             continue;
         }
+        auto isTransparent(material->Opacity() < 1); // || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4));
         if (mod == RenderMod::RenderOpaque
-            && (material->Alpha() < 1 || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4)))
+            && (material->Opacity() < 1 || isTransparent))
             continue;
         else if (mod == RenderMod::RenderTransparent
-            && !(material->Alpha() < 1 || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4)))
+            && !(material->Opacity() < 1 || isTransparent))
             continue;
         if (nullptr == material->shader())
             continue;

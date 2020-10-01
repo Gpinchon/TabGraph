@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Object.hpp" // for Object
+#include "Component.hpp" // for Component
 #include "Shader/ShaderStage.hpp"
 #include "Tools.hpp"
 #include <GL/glew.h> // for GLuint, GLenum, GLint
@@ -28,6 +28,7 @@ struct ShaderVariable {
     size_t size { 0 };
     GLenum type { 0 };
     GLint loc { -1 };
+    std::string typeName{};
     size_t byteSize { 0 };
     //std::byte *data{ nullptr };
     std::function<void(const ShaderVariable&)> updateFunction {};
@@ -88,7 +89,7 @@ enum ShaderType {
     ComputeShader
 };
 
-class Shader : public Object {
+class Shader : public Component {
 public:
     static std::shared_ptr<Shader> Create(const std::string&, ShaderType type = Other);
     static std::shared_ptr<Shader> Get(unsigned index);
@@ -108,6 +109,7 @@ public:
     void Recompile();
     void SetDefine(const std::string define, const std::string value = "");
     void RemoveDefine(const std::string define);
+    std::unordered_map<GLenum, std::shared_ptr<ShaderStage>> Stages() const;
     std::shared_ptr<ShaderStage>& Stage(GLenum stage);
     void SetStage(const std::shared_ptr<ShaderStage>& stage);
     void RemoveStage(GLenum stage);
