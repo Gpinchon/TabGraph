@@ -38,6 +38,8 @@ public:
     /** Sets the first component attached to this object to component, adds it if component type is missing */
     template <typename T>
     void SetComponent(const std::shared_ptr<T>& component);
+    template <typename T>
+    void SetComponets(const std::vector<std::shared_ptr<T>>& components);
     /** Removes all the components of specified type from the object */
     template <typename T>
     void RemoveComponents();
@@ -155,6 +157,11 @@ inline bool Component::HasComponentOfType(const std::shared_ptr<T>& component) c
     return false;
 }
 
+inline Component::ComponentMap Component::Components() const
+{
+    return _components;
+}
+
 inline bool Component::HasComponent(const std::shared_ptr<Component>& component) const
 {
     for (const auto& components : _components) {
@@ -185,6 +192,12 @@ inline void Component::SetComponent(const std::shared_ptr<T>& component)
         AddComponent(component);
     else
         components.at(0) = component;
+}
+
+template<typename T>
+inline void Component::SetComponets(const std::vector<std::shared_ptr<T>>& components)
+{
+    _components[typeid(T)] = components;
 }
 
 template <typename T>
@@ -364,7 +377,7 @@ inline std::vector<std::type_index> Component::GetComponentsTypes() const
 
 inline void Component::LoadCPU()
 {
-    //Keep this component alive in case is destroys itself
+    //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     _LoadCPU();
     for (const auto& components : _components) {
@@ -375,7 +388,7 @@ inline void Component::LoadCPU()
 
 inline void Component::UnloadCPU()
 {
-    //Keep this component alive in case is destroys itself
+    //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     _UnloadCPU();
     for (const auto& components : _components) {
@@ -386,7 +399,7 @@ inline void Component::UnloadCPU()
 
 inline void Component::LoadGPU()
 {
-    //Keep this component alive in case is destroys itself
+    //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     _LoadGPU();
     for (const auto& components : _components) {
@@ -397,7 +410,7 @@ inline void Component::LoadGPU()
 
 inline void Component::UnloadGPU()
 {
-    //Keep this component alive in case is destroys itself
+    //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     _UnloadGPU();
     for (const auto& components : _components) {
@@ -408,7 +421,7 @@ inline void Component::UnloadGPU()
 
 inline void Component::UpdateCPU(float delta)
 {
-    //Keep this component alive in case is destroys itself
+    //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     if (NeedsUpdateCPU())
         _UpdateCPU(delta);
@@ -421,7 +434,7 @@ inline void Component::UpdateCPU(float delta)
 
 inline void Component::UpdateGPU(float delta)
 {
-    //Keep this component alive in case is destroys itself
+    //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     if (NeedsUpdateGPU())
         _UpdateGPU(delta);
@@ -434,7 +447,7 @@ inline void Component::UpdateGPU(float delta)
 
 inline void Component::FixedUpdateCPU(float delta)
 {
-    //Keep this component alive in case is destroys itself
+    //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     if (NeedsFixedUpdateCPU())
         _FixedUpdateCPU(delta);
@@ -447,7 +460,7 @@ inline void Component::FixedUpdateCPU(float delta)
 
 inline void Component::FixedUpdateGPU(float delta)
 {
-    //Keep this component alive in case is destroys itself
+    //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     if (NeedsFixedUpdateGPU())
         _FixedUpdateGPU(delta);
