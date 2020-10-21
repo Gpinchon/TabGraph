@@ -258,7 +258,8 @@ void SetUniformMatrix4x3dv(const ShaderVariable &)
 }
 
 
-void SetUniformSampler (const ShaderVariable &variable) {
+void SetUniformSampler(const ShaderVariable &variable)
+{
     auto value(std::get_if<std::pair<std::shared_ptr<Texture>, GLenum>>(&variable.data));
     if (value == nullptr || value->second == 0)
         return;
@@ -272,7 +273,84 @@ void SetUniformSampler (const ShaderVariable &variable) {
     glUniform1i(variable.loc, value->second - GL_TEXTURE0);
 }
 
-std::function<void(const ShaderVariable&)> GetSetUniformCallback(GLenum type)
+bool IsTextureType(GLenum type)
+{
+    switch (type) {
+        case (GL_SAMPLER_1D):
+        case (GL_SAMPLER_2D):
+        case (GL_SAMPLER_3D):
+        case (GL_SAMPLER_CUBE):
+        case (GL_SAMPLER_1D_SHADOW):
+        case (GL_SAMPLER_2D_SHADOW):
+        case (GL_SAMPLER_1D_ARRAY):
+        case (GL_SAMPLER_2D_ARRAY):
+        case (GL_SAMPLER_1D_ARRAY_SHADOW):
+        case (GL_SAMPLER_2D_ARRAY_SHADOW):
+        case (GL_SAMPLER_2D_MULTISAMPLE):
+        case (GL_SAMPLER_2D_MULTISAMPLE_ARRAY):
+        case (GL_SAMPLER_CUBE_SHADOW):
+        case (GL_SAMPLER_BUFFER):
+        case (GL_SAMPLER_2D_RECT):
+        case (GL_SAMPLER_2D_RECT_SHADOW):
+        case (GL_INT_SAMPLER_1D):
+        case (GL_INT_SAMPLER_2D):
+        case (GL_INT_SAMPLER_3D):
+        case (GL_INT_SAMPLER_CUBE):
+        case (GL_INT_SAMPLER_1D_ARRAY):
+        case (GL_INT_SAMPLER_2D_ARRAY):
+        case (GL_INT_SAMPLER_2D_MULTISAMPLE):
+        case (GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY):
+        case (GL_INT_SAMPLER_BUFFER):
+        case (GL_INT_SAMPLER_2D_RECT):
+        case (GL_UNSIGNED_INT_SAMPLER_1D):
+        case (GL_UNSIGNED_INT_SAMPLER_2D):
+        case (GL_UNSIGNED_INT_SAMPLER_3D):
+        case (GL_UNSIGNED_INT_SAMPLER_CUBE):
+        case (GL_UNSIGNED_INT_SAMPLER_1D_ARRAY):
+        case (GL_UNSIGNED_INT_SAMPLER_2D_ARRAY):
+        case (GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE):
+        case (GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY):
+        case (GL_UNSIGNED_INT_SAMPLER_BUFFER):
+        case (GL_UNSIGNED_INT_SAMPLER_2D_RECT):
+        case (GL_IMAGE_1D):
+        case (GL_IMAGE_2D):
+        case (GL_IMAGE_3D):
+        case (GL_IMAGE_2D_RECT):
+        case (GL_IMAGE_CUBE):
+        case (GL_IMAGE_BUFFER):
+        case (GL_IMAGE_1D_ARRAY):
+        case (GL_IMAGE_2D_ARRAY):
+        case (GL_IMAGE_2D_MULTISAMPLE):
+        case (GL_IMAGE_2D_MULTISAMPLE_ARRAY):
+        case (GL_INT_IMAGE_1D):
+        case (GL_INT_IMAGE_2D):
+        case (GL_INT_IMAGE_3D):
+        case (GL_INT_IMAGE_2D_RECT):
+        case (GL_INT_IMAGE_CUBE):
+        case (GL_INT_IMAGE_BUFFER):
+        case (GL_INT_IMAGE_1D_ARRAY):
+        case (GL_INT_IMAGE_2D_ARRAY):
+        case (GL_INT_IMAGE_2D_MULTISAMPLE):
+        case (GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY):
+        case (GL_UNSIGNED_INT_IMAGE_1D):
+        case (GL_UNSIGNED_INT_IMAGE_2D):
+        case (GL_UNSIGNED_INT_IMAGE_3D):
+        case (GL_UNSIGNED_INT_IMAGE_2D_RECT):
+        case (GL_UNSIGNED_INT_IMAGE_CUBE):
+        case (GL_UNSIGNED_INT_IMAGE_BUFFER):
+        case (GL_UNSIGNED_INT_IMAGE_1D_ARRAY):
+        case (GL_UNSIGNED_INT_IMAGE_2D_ARRAY):
+        case (GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE):
+        case (GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY):
+            return true;
+        default:
+            return false;
+    }
+}
+
+typedef void (*SetUniformFunction)(const ShaderVariable&);
+
+SetUniformFunction GetSetUniformCallback(GLenum type)
 {
     switch (type) {
         case(GL_FLOAT) :

@@ -16,7 +16,7 @@ uniform sampler2D	in_Texture_Depth;
 
 in vec2	frag_UV;
 
-void main()
+void PassThrough()
 {
 	out_Buffer0 = texture(in_Buffer0, frag_UV);
 	out_Buffer1 = texture(in_Buffer1, frag_UV);

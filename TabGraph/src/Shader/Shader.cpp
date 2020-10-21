@@ -6,6 +6,12 @@
 */
 
 #include "Shader/Shader.hpp"
+#include "Shader/ShaderExtension.hpp"
+#include "Scene/Scene.hpp"
+#include "Camera/Camera.hpp"
+#include "Window.hpp"
+#include "Render.hpp"
+#include "Transform.hpp"
 #include "Debug.hpp" // for glCheckError, debugLog
 #include "Shader/GLUniformHelper.hpp"
 #include "Texture/Texture.hpp" // for Texture
@@ -14,52 +20,64 @@
 #include <string.h> // for memset
 #include <utility> // for pair, make_pair
 
-static std::string forward_vert_code =
-#include "forward.vert"
-    ;
-
-static std::string forward_frag_code =
-#include "forward.frag"
-    ;
-
-static std::string deferred_vert_code =
-#include "deferred.vert"
-    ;
-static std::string deferred_frag_code =
-#include "deferred.frag"
-    ;
-
-std::vector<std::shared_ptr<Shader>> Shader::_shaders;
+//std::vector<std::shared_ptr<Shader>> Shader::_shaders;
 
 Shader::Shader(const std::string& name)
-    : Object(name)
+    : Component(name)
 {
+}
+
+void Shader::_FixedUpdateGPU(float)
+{
+    auto InvViewMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix());
+    auto InvProjMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    glm::ivec2 res = glm::vec2(Window::size()) * Render::InternalQuality();
+    SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->GetComponent<Transform>()->WorldPosition());
+    SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+    SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    SetUniform("Camera.InvMatrix.View", InvViewMatrix);
+    SetUniform("Camera.InvMatrix.Projection", InvProjMatrix);
+    SetUniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));
+    SetUniform("Time", SDL_GetTicks() / 1000.f);
 }
 
 std::shared_ptr<Shader> Shader::Create(const std::string& name, ShaderType type)
 {
+    static std::string forward_vert_code =
+#include "forward.vert"
+        ;
+    static std::string forward_frag_code =
+#include "forward.frag"
+        ;
+
+    static std::string deferred_vert_code =
+#include "deferred.vert"
+        ;
+    static std::string deferred_frag_code =
+#include "deferred.frag"
+        ;
     auto shader = std::shared_ptr<Shader>(new Shader(name));
     shader->_type = type;
     if (ForwardShader == type) {
         shader->SetDefine("FORWARDSHADER");
-        shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, forward_vert_code));
-        shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, forward_frag_code));
+        shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, ShaderCode::Create(forward_vert_code, "FillVertexData();")));
+        shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(forward_frag_code, "FillFragmentData();")));
     } else if (LightingShader == type) {
         shader->SetDefine("LIGHTSHADER");
-        shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, deferred_vert_code));
-        shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, deferred_frag_code));
+        shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, ShaderCode::Create(deferred_vert_code, "FillVertexData();")));
+        shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(deferred_frag_code, "FillFragmentData();")));
     } else if (PostShader == type) {
         shader->SetDefine("POSTSHADER");
-        shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, deferred_vert_code));
-        shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, deferred_frag_code));
+        shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, ShaderCode::Create(deferred_vert_code, "FillVertexData();")));
+        shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(deferred_frag_code, "FillFragmentData();")));
     } else if (ComputeShader == type) {
         shader->SetDefine("COMPUTESHADER");
     }
-    _shaders.push_back(shader);
+    //_shaders.push_back(shader);
     return (shader);
 }
 
-std::shared_ptr<Shader> Shader::Get(unsigned index)
+/*std::shared_ptr<Shader> Shader::Get(unsigned index)
 {
     if (index >= _shaders.size())
         return (nullptr);
@@ -73,6 +91,16 @@ std::shared_ptr<Shader> Shader::GetByName(const std::string& name)
             return (s);
     }
     return (nullptr);
+}*/
+
+void Shader::AddExtension(const std::shared_ptr<ShaderExtension>& extension)
+{
+    AddComponent(extension);
+    for (auto stage : extension->Stages()) {
+        for (auto stageExtension : stage.second->Extensions())
+            Stage(stage.first)->AddExtension(stageExtension);
+            //stage.second->AddExtension(extension->Stage(stage.first));
+    }
 }
 
 ShaderVariable& Shader::get_attribute(const std::string& name)
@@ -105,6 +133,21 @@ void Shader::use(const bool& use_program)
     _UpdateVariables();
 }
 
+std::unordered_map<std::string, ShaderVariable> Shader::Textures() const
+{
+    return _textures;
+}
+
+std::unordered_map<std::string, ShaderVariable> Shader::Uniforms() const
+{
+	return _uniforms;
+}
+
+std::unordered_map<std::string, ShaderVariable> Shader::Attributes() const
+{
+    return _attributes;
+}
+
 void Shader::unbind_texture(GLenum texture_unit)
 {
     bool bound = in_use();
@@ -116,6 +159,44 @@ void Shader::unbind_texture(GLenum texture_unit)
     if (!bound) {
         use(false);
     }
+}
+
+void Shader::SetAttribute(const ShaderVariable& attribute)
+{
+    _attributesChanged |= attribute.data != _attributes[attribute.name].data;
+    _attributes[attribute.name].byteSize = attribute.byteSize;
+    _attributes[attribute.name].data = attribute.data;
+    _attributes[attribute.name].name = attribute.name;
+}
+
+void Shader::SetUniform(const ShaderVariable& uniform)
+{
+    _uniformsChanged |= uniform.data != _uniforms[uniform.name].data;
+    _uniforms[uniform.name].byteSize = uniform.byteSize;
+    _uniforms[uniform.name].data = uniform.data;
+    _uniforms[uniform.name].name = uniform.name;
+}
+
+void Shader::SetTexture(const ShaderVariable& variable)
+{
+    //_texturesChanged |= texture.data != _textures[texture.name].data;
+    //_textures[texture.name] = texture;
+    auto value(std::get_if<std::pair<std::shared_ptr<Texture>, GLenum>>(&variable.data));
+    if (value == nullptr)
+        return;
+    auto textureChanged = _texturesChanged || variable.data != _textures[variable.name].data;
+    SetTexture(variable.name, value->first);
+    _texturesChanged = textureChanged;
+}
+
+void Shader::SetTexture(const std::string& uname, const std::shared_ptr<Texture>& value)
+{
+    _textures[uname].Set(value, 0);
+    auto textureIterator = _textures.find(uname);
+    auto index = std::distance(_textures.begin(), textureIterator);
+    textureIterator->second.Set(value, GL_TEXTURE0 + index);
+    textureIterator->second.name = uname;
+    _texturesChanged = true;//|= value.data != _textures[value.name].data;
 }
 
 void Shader::bind_image(const std::string& name,
@@ -151,6 +232,25 @@ void Shader::_UpdateVariable(const ShaderVariable& variable)
 
 void Shader::_UpdateVariables()
 {
+    for (auto extension : GetComponents<ShaderExtension>())
+    {
+        for (auto texture : extension->_textures) {
+            SetTexture(texture.second);
+        }
+        for (auto uniform : extension->_uniforms) {
+            SetUniform(uniform.second);
+        }
+        for (auto attribute : extension->_attributes) {
+            SetAttribute(attribute.second);
+        }
+    }
+    if (_texturesChanged) {
+        for (const auto& texture : _textures) {
+            auto v(texture.second);
+            _UpdateVariable(v);
+        }
+        _texturesChanged = false;
+    }
     if (_uniformsChanged) {
         for (const auto& uniform : _uniforms) {
             auto v(uniform.second);
@@ -370,6 +470,8 @@ static inline size_t VariableSize(GLenum type)
     return (0);
 }
 
+//#define VARIABLEMAP ()
+
 void Shader::_get_variables(GLenum variableType)
 {
     char name[4096];
@@ -385,19 +487,36 @@ void Shader::_get_variables(GLenum variableType)
         GLint size;
         GLenum type;
         glGetActiveUniform(_program, static_cast<GLuint>(ivcount), 4096, &length, &size, &type, name);
-        debugLog(name);
-        auto& v(variableType == GL_ACTIVE_UNIFORMS ? _uniforms[name] : _attributes[name]);
+        auto updateFunction = GetSetUniformCallback(type);
+        auto& variableMap = variableType == GL_ACTIVE_UNIFORMS ? (updateFunction == SetUniformSampler ? _textures : _uniforms) : _attributes;
+        auto& v = variableMap[name];
+        //ShaderVariable v;
+
+        /*if (variableType == GL_ACTIVE_UNIFORMS) {
+            if (updateFunction == SetUniformSampler)
+                v = _textures[name];
+            else
+                v = _uniforms[name];
+        }
+        else if (variableType == GL_ACTIVE_ATTRIBUTES)
+            v = _attributes[name];*/
+        //auto& v(variableType == GL_ACTIVE_UNIFORMS ? _uniforms[name] : _attributes[name]);
         v.name = name;
         v.size = size;
         v.type = type;
         v.loc = glGetUniformLocation(_program, name);
         v.byteSize = VariableSize(v.type);
         //v.data = (void*)nullptr;
-        v.updateFunction = GetSetUniformCallback(v.type);
-        if (variableType == GL_ACTIVE_UNIFORMS)
-            _uniforms[name] = v;
+        //auto updateFunction = GetSetUniformCallback(v.type);
+        v.updateFunction = updateFunction;
+        /*if (variableType == GL_ACTIVE_UNIFORMS) {
+            if (updateFunction == SetUniformSampler)
+                _textures[name] = v;
+            else
+                _uniforms[name] = v;
+        }
         else if (variableType == GL_ACTIVE_ATTRIBUTES)
-            _attributes[name] = v;
+            _attributes[name] = v;*/
         debugLog(v.name + " " + std::to_string(v.size) + " " + std::to_string(v.type) + " " + std::to_string(v.loc));
     }
 }
@@ -440,6 +559,11 @@ void Shader::Recompile()
     _needsRecompile = false;
 }
 
+std::unordered_map<std::string, std::string> Shader::Defines() const
+{
+    return _defines;
+}
+
 bool Shader::NeedsRecompile() const
 {
     return _needsRecompile;
@@ -466,9 +590,12 @@ std::unordered_map<GLenum, std::shared_ptr<ShaderStage>> Shader::Stages() const
     return _shaderStages;
 }
 
-std::shared_ptr<ShaderStage>& Shader::Stage(GLenum stage)
+std::shared_ptr<ShaderStage> Shader::Stage(GLenum stage) const
 {
-    return _shaderStages[stage];
+    auto stageIt = _shaderStages.find(stage);
+    if (stageIt == _shaderStages.end())
+        return nullptr;
+    return stageIt->second;
 }
 
 void Shader::SetStage(const std::shared_ptr<ShaderStage>& stage)
@@ -481,14 +608,12 @@ void Shader::RemoveStage(GLenum stage)
     _shaderStages.erase(stage);
 }
 
+ShaderType Shader::Type()
+{
+    return _type;
+}
+
 bool Shader::Compiled() const
 {
     return _compiled;
-}
-
-void ShaderVariable::Set(const std::shared_ptr<Texture> texture, const size_t index)
-{
-    auto value(std::pair(texture, index));
-    byteSize = sizeof(value);
-    data = value;
 }

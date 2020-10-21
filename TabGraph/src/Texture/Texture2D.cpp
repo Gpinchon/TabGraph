@@ -243,8 +243,8 @@ void Texture2D::blur(const int& pass, const float& radius, std::shared_ptr<Shade
     static std::shared_ptr<Shader> defaultBlurShader;
     if (defaultBlurShader == nullptr) {
         defaultBlurShader = Shader::Create("blur");
-        defaultBlurShader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, blurVertexCode));
-        defaultBlurShader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, blurFragmentCode));
+        defaultBlurShader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, ShaderCode::Create(blurVertexCode, "PassThrough();")));
+        defaultBlurShader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(blurFragmentCode, "Blur();")));
     }
     if (blurShader == nullptr)
         blurShader = defaultBlurShader;
@@ -264,7 +264,7 @@ void Texture2D::blur(const int& pass, const float& radius, std::shared_ptr<Shade
         }
         cbuffer->bind();
         blurShader->SetUniform("in_Direction", direction);
-        blurShader->SetUniform("in_Texture_Color", ctexture, GL_TEXTURE0);
+        blurShader->SetTexture("in_Texture_Color", ctexture);
         blurShader->use();
         Render::DisplayQuad()->Draw();
         blurShader->use(false);

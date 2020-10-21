@@ -115,9 +115,9 @@ std::shared_ptr<Geometry> CubeMesh::CreateGeometry(const std::string& name, glm:
     for (auto& v : thisCubeVertices) {
         v *= size;
     }
-    vg->SetAccessor(Geometry::Position, BufferHelper::CreateAccessor(thisCubeVertices, GL_ARRAY_BUFFER));
-    vg->SetAccessor(Geometry::Normal, BufferHelper::CreateAccessor(cubeNormals, GL_ARRAY_BUFFER, true));
-    vg->SetAccessor(Geometry::TexCoord_0, BufferHelper::CreateAccessor(cubeTexCoords, GL_ARRAY_BUFFER));
+    vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(thisCubeVertices, GL_ARRAY_BUFFER));
+    vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(cubeNormals, GL_ARRAY_BUFFER, true));
+    vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(cubeTexCoords, GL_ARRAY_BUFFER));
     vg->SetIndices(BufferHelper::CreateAccessor(cubeIndices, GL_ELEMENT_ARRAY_BUFFER));
     return vg;
 }

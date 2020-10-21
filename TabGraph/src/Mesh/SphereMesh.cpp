@@ -159,9 +159,9 @@ std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, fl
         sphereIndices.push_back(tri[2]);
     }
     auto vg = Geometry::Create(name);
-    vg->SetAccessor(Geometry::Position, BufferHelper::CreateAccessor(sphereVertices, GL_ARRAY_BUFFER));
-    vg->SetAccessor(Geometry::Normal, BufferHelper::CreateAccessor(sphereNormals, GL_ARRAY_BUFFER, true));
-    vg->SetAccessor(Geometry::TexCoord_0, BufferHelper::CreateAccessor(sphereTexCoords, GL_ARRAY_BUFFER));
+    vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(sphereVertices, GL_ARRAY_BUFFER));
+    vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(sphereNormals, GL_ARRAY_BUFFER, true));
+    vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(sphereTexCoords, GL_ARRAY_BUFFER));
     vg->SetIndices(BufferHelper::CreateAccessor(sphereIndices, GL_ELEMENT_ARRAY_BUFFER));
     return vg;
 }

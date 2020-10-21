@@ -123,10 +123,10 @@ vec4 SampleDepthTexture(float Level, vec4 SampleUV0, vec4 SampleUV1 )
 {
 	vec4 SampleDepth;
 	// SampleUV{0,1}.{xy,zw} should already be in the HZB UV frame using HZBUvFactorAndInvFactor.xy
-	SampleDepth.x = textureLod(Texture.Depth, SampleUV0.xy, (Level)).r;
-	SampleDepth.y = textureLod(Texture.Depth, SampleUV0.zw, (Level)).r;
-	SampleDepth.z = textureLod(Texture.Depth, SampleUV1.xy, (Level)).r;
-	SampleDepth.w = textureLod(Texture.Depth, SampleUV1.zw, (Level)).r;
+	SampleDepth.x = textureLod(Texture.Geometry.Depth, SampleUV0.xy, (Level)).r;
+	SampleDepth.y = textureLod(Texture.Geometry.Depth, SampleUV0.zw, (Level)).r;
+	SampleDepth.z = textureLod(Texture.Geometry.Depth, SampleUV1.xy, (Level)).r;
+	SampleDepth.w = textureLod(Texture.Geometry.Depth, SampleUV1.zw, (Level)).r;
 	return SampleDepth;
 }
 
@@ -152,8 +152,8 @@ void IntersectClippingBounds(const in vec3 origin, const in vec3 dir, out vec3 c
 vec4	castRay(vec3 R, float StepOffset)
 {
 	const float Step = 1 / float(NumSteps + 1);
-	vec4 RayStartClip	= WorldToClip(Frag.Position);
-	vec4 RayEndClip	= WorldToClip(Frag.Position + R * RayStartClip.w);
+	vec4 RayStartClip	= WorldToClip(WorldPosition());
+	vec4 RayEndClip	= WorldToClip(WorldPosition() + R * RayStartClip.w);
 	vec3 RayStartScreen = RayStartClip.xyz / RayStartClip.w;
 	vec3 RayEndScreen = RayEndClip.xyz / RayEndClip.w;
 	vec3 RayDirScreen = normalize(RayEndScreen - RayStartScreen);
@@ -192,7 +192,7 @@ vec4	castRay(vec3 R, float StepOffset)
 			break;
 		}
 		LastDiff = DepthDiff.w;
-		Level += Frag.BRDF.Alpha * (16.0 * Step);
+		Level += Alpha() * (16.0 * Step);
 		SampleTime += 4.0 * Step;
 	}
 	*/
@@ -200,8 +200,8 @@ vec4	castRay(vec3 R, float StepOffset)
 	for (int i = 0; i < NumSteps; ++i)
 	{
 		vec3 UVz = RayStartUVz + RayStepUVz * SampleTime;
-		float Level = Frag.BRDF.Alpha * (i * 4.0 / NumSteps);
-		float SampleZ = textureLod(Texture.Depth, UVz.xy, Level).r;
+		float Level = Alpha() * (i * 4.0 / NumSteps);
+		float SampleZ = textureLod(Texture.Geometry.Depth, UVz.xy, Level).r;
 		float DepthDiff = SampleZ - UVz.z;
 		if (abs(-DepthDiff - CompareTolerance) < CompareTolerance)
 		{
@@ -227,7 +227,7 @@ vec4	SampleScreenColor(vec3 UVz)
 float GetRoughnessFade()
 {
 	// mask SSR to reduce noise and for better performance, roughness of 0 should have SSR, at MaxRoughness we fade to 0
-	return min(sqrt(Frag.BRDF.Alpha) * ROUGHNESSMASKSCALE + 2, 1.0);
+	return min(sqrt(Alpha()) * ROUGHNESSMASKSCALE + 2, 1.0);
 }
 
 //Use Rodrigues' rotation formula to rotate v about k
@@ -236,18 +236,18 @@ vec3 rotateAround(vec3 v, vec3 k, float angle)
 	return v * cos(angle) + cross(k, v) * sin(angle) + k * dot(k, v) * (1 - cos(angle));
 }
 
-vec4	SSR()
+void	SSR()
 {
-	vec3	V = normalize(Frag.Position - Camera.Position);
+	vec3	V = normalize(WorldPosition() - Camera.Position);
 	uint	FrameRandom = FrameNumber % 8 * 1551;
 	vec4	outColor = vec4(0);
-	float	SceneDepth = WorldToClip(Frag.Position).w;
-	uvec2	PixelPos = ivec2(FrameBufferResolution * Frag.UV.xy);
+	float	SceneDepth = WorldToClip(WorldPosition()).w;
+	uvec2	PixelPos = ivec2(FrameBufferResolution * TexCoord());
 	//Get the pixel Dithering Value and reverse Bits
 	uint	Morton = MortonCode(PixelPos.x & 3) | ( MortonCode(PixelPos.y & 3) * 2);
 	uint	PixelIndex = ReverseUIntBits(Morton);
 	uvec2	Random = uvec2(PseudoRandom(vec2(PixelPos + FrameRandom * uvec2(97, 71)))) * uvec2(0x3127352, 0x11229256);
-	float	sampleAngle = randomAngle(Frag.Position);
+	float	sampleAngle = randomAngle(WorldPosition());
 	for( int i = 0; i < NumRays; i++ ) {
 		uint	Offset = (PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15;
 		float	StepOffset = Offset / 15.f;
@@ -256,8 +256,8 @@ vec4	SSR()
 		vec2	E = Hammersley(i, NumRays, Random);
 		//Compute Half vector using GGX Importance Sampling
 		//Project Half vector from Tangent space to World space
-		vec3	H = ImportanceSampleGGX(E, Frag.Normal, Frag.BRDF.Alpha);
-		H = rotateAround(H, Frag.Normal, sampleAngle);
+		vec3	H = ImportanceSampleGGX(E, WorldNormal(), Alpha());
+		H = rotateAround(H, WorldNormal(), sampleAngle);
 		vec3	R = reflect(V, H);
 		vec4	SSRResult = castRay(R, StepOffset);
 		if (SSRResult.w < 1)
@@ -272,11 +272,6 @@ vec4	SSR()
 	outColor /= NumRays;
 	outColor.rgb /= 1 - Luminance(outColor.rgb);
 	outColor *= GetRoughnessFade();
-	return outColor;
+	SetBackColor(outColor);
 }
-
-void	ApplyTechnique() {
-	Out.Color = SSR();
-}
-
 )""

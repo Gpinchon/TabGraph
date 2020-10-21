@@ -1,9 +1,4 @@
 R""(
-precision lowp float;
-precision lowp int;
-precision lowp sampler2D;
-precision lowp samplerCube;
-
 struct t_Matrix {
 	mat4	Model;
 	mat4	Normal;
@@ -25,17 +20,17 @@ struct t_Camera {
 	t_CameraMatrix	InvMatrix;
 };
 
-struct	t_Vert {
+/*struct	t_Vert {
 	vec3	Position;
 	vec3	Normal;
 	vec2	UV;
-};
+};*/
 
 layout(location = 0) in vec3	in_Position;
 layout(location = 1) in vec3	in_Normal;
 layout(location = 2) in vec3	in_Tangent;
-layout(location = 3) in vec2	in_Texcoord_0;
-layout(location = 4) in vec2	in_Texcoord_1;
+layout(location = 3) in vec2	in_TexCoord_0;
+layout(location = 4) in vec2	in_TexCoord_1;
 layout(location = 5) in vec4	in_Color_0;
 layout(location = 6) in vec4	in_Joints_0;
 layout(location = 7) in vec4	in_Weight_0;
@@ -46,11 +41,71 @@ uniform samplerBuffer			Joints;
 uniform bool					Skinned;
 uniform vec2					UVScale;
 
-out vec3						frag_WorldPosition;
-out lowp vec3					frag_WorldNormal;
-out lowp vec2					frag_Texcoord;
+out VertexData {
+	vec3	WorldPosition;
+	vec3	WorldNormal;
+	vec2	TexCoord;
+} Output;
 
-t_Vert	Vert;
+bool _WorldPositionSet = false;
+
+void SetWorldPosition(in vec3 worldPosition)
+{
+	Output.WorldPosition = worldPosition;
+	_WorldPositionSet = true;
+}
+
+vec3 WorldPosition()
+{
+	if (!_WorldPositionSet)
+		SetWorldPosition(vec3(Matrix.Model * vec4(in_Position, 1.0)));
+	return Output.WorldPosition;
+}
+
+bool _WorldNormalSet = false;
+
+void SetWorldNormal(in vec3 worldNormal)
+{
+	Output.WorldNormal = worldNormal;
+	_WorldNormalSet = true;
+}
+
+vec3 WorldNormal()
+{
+	if (!_WorldNormalSet)
+		SetWorldNormal(mat3(Matrix.Normal) * in_Normal);
+	return Output.WorldNormal;
+}
+
+bool _TexCoordSet = false;
+
+void SetTexCoord(in vec2 texCoord)
+{
+	Output.TexCoord = texCoord;
+	_TexCoordSet = true;
+}
+
+vec2 TexCoord()
+{
+	if (!_TexCoordSet)
+		SetTexCoord(in_TexCoord_0);
+	return Output.TexCoord;
+}
+
+bool _ClipSpacePositionSet = false;
+
+void SetClipSpacePosition(in vec4 clipSpacePosition)
+{
+	gl_Position = clipSpacePosition;
+	_ClipSpacePositionSet = true;
+}
+
+vec4 ClipSpacePosition()
+{
+	if (!_ClipSpacePositionSet)
+		SetClipSpacePosition(Camera.Matrix.Projection * Camera.Matrix.View * vec4(WorldPosition(), 1));
+	return gl_Position;
+}
 
 mat4	GetJointMatrix(int index)
 {
@@ -62,7 +117,7 @@ mat4	GetJointMatrix(int index)
 	);
 }
 
-void	FillIn()
+void	FillVertexData()
 {
 	mat4 Joint[4];
 	Joint[0] = GetJointMatrix(int(in_Joints_0.x));
@@ -76,31 +131,32 @@ void	FillIn()
         in_Weight_0.z * Joint[2] +
         in_Weight_0.w * Joint[3];
         mat4 NewModelMatrix = Matrix.Model * SkinMatrix;
-        Vert.Position = vec3(NewModelMatrix * vec4(in_Position, 1.0));
-        Vert.Normal = mat3(inverse(transpose(NewModelMatrix))) * in_Normal;
+		SetWorldPosition(vec3(NewModelMatrix * vec4(in_Position, 1.0)));
+		SetWorldNormal(mat3(inverse(transpose(NewModelMatrix))) * in_Normal);
 	}
 	else {
-		Vert.Position = vec3(Matrix.Model * vec4(in_Position, 1.0));
-		Vert.Normal = mat3(Matrix.Normal) * in_Normal;
+		SetWorldPosition(WorldPosition());
+		SetWorldNormal(WorldNormal());
 	}
-	Vert.UV = in_Texcoord_0 * UVScale;
+	SetTexCoord(TexCoord() * UVScale);
+	SetClipSpacePosition(ClipSpacePosition());
 }
 
-void	FillOut()
+/*void	FillOut()
 {
-	frag_WorldPosition = Vert.Position;
-	frag_WorldNormal = Vert.Normal;
-	frag_Texcoord = Vert.UV;
-	gl_Position = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Vert.Position, 1);
-}
+	frag_WorldPosition = Output.Position;
+	frag_WorldNormal = Output.Normal;
+	frag_TexCoord = Output.UV;
+	gl_Position = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Output.Position, 1);
+}*/
 
-void	ApplyTechnique();
+/*void	ApplyTechnique();
 
 void main()
 {
 	FillIn();
 	ApplyTechnique();
 	FillOut();
-}
+}*/
 
 )""

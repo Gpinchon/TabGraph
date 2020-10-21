@@ -22,6 +22,7 @@ public:
 	void SetBaseColor(glm::vec4);;
 
 private:
+	MetallicRoughness();
 	std::shared_ptr<Texture2D> _texture_baseColor;
 	std::shared_ptr<Texture2D> _texture_metallicRoughness;
 	std::shared_ptr<Texture2D> _texture_roughness;

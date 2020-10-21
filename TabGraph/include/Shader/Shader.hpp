@@ -21,7 +21,7 @@
 #include <variant>
 #include <vector> // for vector
 
-class Texture; // lines 16-16
+class Texture;
 
 struct ShaderVariable {
     std::string name { "" };
@@ -30,13 +30,13 @@ struct ShaderVariable {
     GLint loc { -1 };
     std::string typeName{};
     size_t byteSize { 0 };
-    //std::byte *data{ nullptr };
     std::function<void(const ShaderVariable&)> updateFunction {};
     template <typename T, typename = IsNotSharedPointerOfType<Texture, T>>
     void Set(const T& value, const size_t index = 0);
     //template<typename T, typename std::enable_if<std::is_convertible<T, std::shared_ptr<Texture>>::value> * = nullptr>
     void Set(const std::shared_ptr<Texture> value, const size_t index = 0);
     std::variant<
+        //std::shared_ptr<Texture>,
         std::pair<std::shared_ptr<Texture>, GLenum>,
         std::vector<float>,
         std::vector<glm::vec2>,
@@ -80,6 +80,8 @@ struct ShaderVariable {
     //std::variant<bool, int, unsigned, float, glm::vec2, glm::vec3, glm::mat4, std::pair<std::shared_ptr<Texture>, GLenum>> value;
 };
 
+class ShaderExtension;
+
 enum ShaderType {
     Invalid = -1,
     Other,
@@ -92,25 +94,34 @@ enum ShaderType {
 class Shader : public Component {
 public:
     static std::shared_ptr<Shader> Create(const std::string&, ShaderType type = Other);
-    static std::shared_ptr<Shader> Get(unsigned index);
-    static std::shared_ptr<Shader> GetByName(const std::string&);
+    //static std::shared_ptr<Shader> Get(unsigned index);
+    //static std::shared_ptr<Shader> GetByName(const std::string&);
+    void AddExtension(const std::shared_ptr<ShaderExtension>& extension);
     static bool check_shader(const GLuint id);
     static bool check_program(const GLuint id);
     void bind_image(const std::string& uname, std::shared_ptr<Texture> texture, const GLint level, const bool layered, const GLint layer, const GLenum access, const GLenum texture_unit);
     void unbind_texture(GLenum texture_unit);
-    template <typename T>
+    void SetAttribute(const ShaderVariable& attribute);
+    void SetUniform(const ShaderVariable& uniform);
+    void SetTexture(const ShaderVariable& texture);
+    template <typename T, typename = IsNotSharedPointerOfType<Texture, T>>
     void SetUniform(const std::string& uname, const T& value, const size_t index = 0);
+    void SetTexture(const std::string& uname, const std::shared_ptr<Texture>& value);
     void use(const bool& use_program = true);
+    std::unordered_map<std::string, ShaderVariable> Textures() const;
+    std::unordered_map<std::string, ShaderVariable> Uniforms() const;
+    std::unordered_map<std::string, ShaderVariable> Attributes() const;
     ShaderVariable& get_uniform(const std::string& name);
     ShaderVariable& get_attribute(const std::string& name);
     bool in_use();
     bool Compiled() const;
     bool NeedsRecompile() const;
     void Recompile();
+    std::unordered_map<std::string, std::string> Defines() const;
     void SetDefine(const std::string define, const std::string value = "");
     void RemoveDefine(const std::string define);
     std::unordered_map<GLenum, std::shared_ptr<ShaderStage>> Stages() const;
-    std::shared_ptr<ShaderStage>& Stage(GLenum stage);
+    std::shared_ptr<ShaderStage> Stage(GLenum stage) const;
     void SetStage(const std::shared_ptr<ShaderStage>& stage);
     void RemoveStage(GLenum stage);
     ShaderType Type();
@@ -118,10 +129,20 @@ public:
     void Link();
 
 protected:
-private:
     Shader(const std::string& name);
-    static std::vector<std::shared_ptr<Shader>> _shaders;
+
+private:
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float /*delta*/) override {};
+    virtual void _FixedUpdateCPU(float /*delta*/) override {};
+    virtual void _FixedUpdateGPU(float /*delta*/) override;
+    //static std::vector<std::shared_ptr<Shader>> _shaders;
     GLuint _program { 0 };
+    bool _texturesChanged{ false };
     bool _uniformsChanged { false };
     bool _attributesChanged { false };
     bool _compiled { false };
@@ -130,6 +151,7 @@ private:
     void _UpdateVariable(const ShaderVariable& variable);
     std::unordered_map<GLenum, std::shared_ptr<ShaderStage>> _shaderStages;
     void _get_variables(GLenum type);
+    std::unordered_map<std::string, ShaderVariable> _textures;
     std::unordered_map<std::string, ShaderVariable> _uniforms;
     std::unordered_map<std::string, ShaderVariable> _attributes;
     std::unordered_map<std::string, std::string> _defines;
@@ -156,12 +178,20 @@ inline void ShaderVariable::Set(const T& value, const size_t index)
     }
 }
 
-template <typename T>
+inline void ShaderVariable::Set(const std::shared_ptr<Texture> texture, const size_t index)
+{
+    auto value(std::pair(texture, index));
+    byteSize = sizeof(value);
+    data = value;
+}
+
+template <typename T, typename>
 inline void Shader::SetUniform(const std::string& uname, const T& value, const size_t index)
 {
     if (in_use()) {
         debugLog(" Warning setting uniform " + uname + " Shader " + Name() + " in use");
     }
     _uniforms[uname].Set(value, index);
+    _uniforms[uname].name = uname;
     _uniformsChanged = true;
 }

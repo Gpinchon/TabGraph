@@ -4,11 +4,6 @@ R""(
 #define USE_TEXTURES
 #endif
 
-precision highp float;
-precision lowp int;
-precision lowp sampler2D;
-precision lowp samplerCube;
-
 struct t_Matrix {
 	mat4	Model;
 	mat4	Normal;
@@ -56,10 +51,9 @@ struct t_BRDF {
 
 struct t_Frag {
 	float		Depth;
-	vec2		UV;
-	vec3		Position;
-	vec3		Normal;
-	t_BRDF		BRDF;
+	vec2		TexCoord;
+	vec3		WorldPosition;
+	vec3		WorldNormal;
 };
 
 struct t_CameraMatrix {
@@ -78,17 +72,17 @@ uniform t_Camera			Camera;
 #ifdef USE_TEXTURES
 uniform t_StandardTextures	StandardTextures;
 #endif
-uniform t_StandardValues	_StandardValues;
+uniform t_StandardValues	StandardValues;
 uniform t_Matrix			Matrix;
 uniform t_Environment		Environment;
 uniform vec3				Resolution;
 uniform float				Time;
 
-t_StandardValues StandardValues;
-
-in vec3	frag_WorldPosition;
-in vec3	frag_WorldNormal;
-in vec2	frag_Texcoord;
+in VertexData {
+	vec3	WorldPosition;
+	vec3	WorldNormal;
+	vec2	TexCoord;
+} Input;
 
 layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
 layout(location = 1) out vec3	out_Emitting;
@@ -97,18 +91,151 @@ layout(location = 3) out float	out_Ior;
 layout(location = 4) out float	out_AO;
 layout(location = 5) out vec2	out_Normal;
 
+#define Opacity() (out_CDiff.a)
+#define SetOpacity(opacity) (out_CDiff.a = opacity)
+
+#define CDiff() (out_CDiff.rgb)
+#define SetCDiff(cDiff) (out_CDiff.rgb = cDiff)
+
+#define F0() (out_F0.rgb)
+#define SetF0(f0) (out_F0.rgb = f0)
+
+#define Alpha() (out_F0.a)
+#define SetAlpha(alpha) (out_F0.a = alpha)
+
+#define Emitting() (out_Emitting)
+#define SetEmitting(emitting) (out_Emitting = emitting)
+
+#define Ior() (out_Ior)
+#define SetIor(ior) (out_Ior = ior)
+
+#define AO() (out_AO)
+#define SetAO(aO) (out_AO = aO)
+
+#define EncodedNormal() (out_Normal)
+#define SetEncodedNormal(normal) (out_Normal = normal)
+
 t_Frag	Frag;
 
-#ifdef TEXTURE_USE_HEIGHT
-void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out float parallaxHeight)
+#define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
+
+vec2 sign_not_zero(vec2 v) {
+    return fma(step(vec2(0.0), v), vec2(2.0), vec2(-1.0));
+}
+
+vec2 encodeNormal(vec3 v) {
+	v = map(v, vec3(-1), vec3(1), vec3(-1), vec3(0.9));
+	//v += 0.05;
+	//v = v * 0.5 + 0.5;
+	// Faster version using newer GLSL capatibilities
+	v.xy /= dot(abs(v), vec3(1));
+	// Branch-Less version
+	v.xy = mix(v.xy, (1.0 - abs(v.yx)) * sign_not_zero(v.xy), step(v.z, 0.0));
+	return v.xy;// * 0.5 + 0.5;
+}
+
+vec3 decodeNormal(vec2 packed_nrm) {
+	//packed_nrm = packed_nrm * 2 - 1;
+    // Version using newer GLSL capatibilities
+    vec3 v = vec3(packed_nrm.xy, 1.0 - abs(packed_nrm.x) - abs(packed_nrm.y));
+    #if 1
+        // Version with branches, seems to take less cycles than the
+        // branch-less version
+        if (v.z < 0)
+        	v.xy = (1.0 - abs(v.yx)) * sign_not_zero(v.xy);
+    #else
+        // Branch-Less version
+        v.xy = mix(v.xy, (1.0 - abs(v.yx)) * sign_not_zero(v.xy), step(v.z, 0));
+    #endif
+    return map(v, vec3(-1), vec3(0.9), vec3(-1), vec3(1));
+}
+ 
+/*vec3 decodeNormal(in vec2 f)
 {
+	vec3 n;
+	n.xy = -enc*enc+enc;
+	n.z = -1;
+	float f = dot(n, vec3(1,1,0.25));
+	float m = sqrt(f);
+	n.xy = (enc*8-4) * m;
+	n.z = 1 - 8*f;
+	return n;
+}*/
+
+bool _WorldPositionSet = false;
+bool _WorldNormalSet = false;
+bool _TexCoordSet = false;
+bool _DepthSet = false;
+
+void SetWorldPosition(in vec3 worldPosition)
+{
+	Frag.WorldPosition = worldPosition;
+	_WorldPositionSet = true;
+}
+
+vec3 WorldPosition()
+{
+	if (!_WorldPositionSet)
+		SetWorldPosition(Input.WorldPosition);
+	return Frag.WorldPosition;
+}
+
+void SetWorldNormal(in vec3 worldNormal)
+{
+	Frag.WorldNormal = normalize(worldNormal);
+	SetEncodedNormal(encodeNormal(Frag.WorldNormal));
+	_WorldNormalSet = true;
+}
+
+vec3 WorldNormal()
+{
+	if (!_WorldNormalSet)
+		SetWorldNormal(Input.WorldNormal);
+	return Frag.WorldNormal;
+}
+
+void SetTexCoord(vec2 texCoord)
+{
+	Frag.TexCoord = texCoord;
+	_TexCoordSet = true;
+}
+
+vec2 TexCoord()
+{
+	if (!_TexCoordSet)
+		SetTexCoord(Input.TexCoord);
+	return Frag.TexCoord;
+}
+
+void SetDepth(in float depth)
+{
+	Frag.Depth = depth;
+#ifdef FORCEDEPTHWRITE
+	gl_FragDepth = depth;
+#endif //FORCEDEPTHWRITE
+	_DepthSet = true;
+}
+
+float Depth()
+{
+	if (!_DepthSet)
+		SetDepth(gl_FragCoord.z);
+	return Frag.Depth;
+}
+
+#define Parallax() (StandardValues.Parallax)
+
+#ifdef TEXTURE_USE_HEIGHT
+void	Parallax_Mapping(in vec3 tbnV, out float parallaxHeight)
+{
+	vec2 T = TexCoord();
 	const float minLayers = 10;
 	const float maxLayers = 15;
 	float numLayers = mix(maxLayers, minLayers, abs(tbnV.z));
 	int	tries = int(numLayers);
 	float layerHeight = 1.0 / numLayers;
 	float curLayerHeight = 0;
-	vec2 dtex = StandardValues.Parallax * tbnV.xy / tbnV.z / numLayers;
+	vec2 dtex = Parallax() * tbnV.xy / tbnV.z / numLayers;
 	vec2 currentTextureCoords = T;
 	float heightFromTexture = 1 - texture(StandardTextures.Height, currentTextureCoords).r;
 	while(tries > 0 && heightFromTexture > curLayerHeight) 
@@ -125,129 +252,70 @@ void	Parallax_Mapping(in vec3 tbnV, inout vec2 T, out float parallaxHeight)
 	float weight = nextH / (nextH - prevH);
 	vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0 - weight);
 	parallaxHeight = (curLayerHeight + prevH * weight + nextH * (1.0 - weight));
-	parallaxHeight *= StandardValues.Parallax;
+	parallaxHeight *= Parallax();
 	parallaxHeight = isnan(parallaxHeight) ? 0 : parallaxHeight;
-	T = finalTexCoords;
+	SetTexCoord(finalTexCoords);
 }
 #endif
 
 mat3x3	tbn_matrix()
 {
-	vec3 Q1 = dFdx(Frag.Position);
-	vec3 Q2 = dFdy(Frag.Position);
-	vec2 st1 = dFdx(Frag.UV);
-	vec2 st2 = dFdy(Frag.UV);
+	vec3 Q1 = dFdx(WorldPosition());
+	vec3 Q2 = dFdy(WorldPosition());
+	vec2 st1 = dFdx(TexCoord());
+	vec2 st2 = dFdy(TexCoord());
 	vec3 T = normalize(Q1*st2.t - Q2*st1.t);
 	vec3 B = normalize(-Q1*st2.s + Q2*st1.s);
-	return(transpose(mat3(T, B, Frag.Normal)));
+	return(transpose(mat3(T, B, WorldNormal())));
 }
 
-#define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
-
-void sincos(const in float x, out float sinX, out float cosX)
+void	FillFragmentData()
 {
-	sinX = sin(x);
-	cosX = cos(x);
-}
-
-vec2 encodeNormal(const in vec3 n)
-{
-	vec2 xy = normalize(n.xy);
-	return vec2(atan(xy.y, xy.x) / M_PI, n.z) * 0.5 + 0.5;
-	/*vec3 n = normal * 0.5 + 0.5;
-	float p = sqrt(n.z*8+8);
-    return vec2(n.xy/p + 0.5);*/
-	/*vec3 n = normalize(normal) * 0.5 + 0.5;
-	float phi = atan(n.y, n.x);
-	float theta = acos(n.z);
-	vec2 encoded = vec2(phi, theta) / M_PI;
-	return vec2(encoded.x * 0.5 + 0.5, encoded.y);*/
-}
-
-vec3 decodeNormal(const in vec2 enc)
-{
-	vec2 ang = enc * 2 - 1;
-    vec2 scth;
-    sincos(ang.x * M_PI, scth.x, scth.y);
-    vec2 scphi = vec2(sqrt(1.0 - ang.y*ang.y), ang.y);
-	vec2 xy = vec2(scth.y * scphi.x, scth.x * scphi.x);
-    return normalize(vec3(xy.x, xy.y, scphi.y));
-	/*vec2 fenc = enc*4-2;
-    float f = dot(fenc,fenc);
-    float g = sqrt(1-f/4);
-    vec3 n;
-    n.xy = fenc*g;
-    n.z = 1-f/2;
-    return normalize(n * 2 - 1);*/
-	/*vec2 enc = vec2(encoded.x * 2 - 1, encoded.y) * M_PI;
-	float sinPhi = sin(enc.x);
-	float cosPhi = cos(enc.x);
-	float sinTheta = sin(enc.y);
-	float cosTheta = cos(enc.y);
-	return vec3(
-		sinTheta * cosPhi,
-		sinTheta * sinPhi,
-		cosTheta
-	) * 2 - 1;*/
-}
-
-void	FillIn()
-{
-	//Frag.Material = Material;
-	//Frag.Material.Emitting = Material.Emitting;
-	//Frag.Material.Specular = Material.Specular;
-	//MetallicRoughness.Value.Roughness = Material.Roughness;
-	//MetallicRoughness.Value.Metallic = Material.Metallic;
-	//Frag.Material.Ior = Material.Ior;
-	//Frag.Material.AO = 0;
-	Frag.Position = frag_WorldPosition;
-	Frag.Normal = normalize(frag_WorldNormal);
-	Frag.UV = frag_Texcoord;
-	Frag.Depth = gl_FragCoord.z;
-	//StandardValues = _StandardValues;
-	StandardValues.Diffuse = _StandardValues.Diffuse;
-	StandardValues.Emitting = _StandardValues.Emitting;
-	StandardValues.Opacity = _StandardValues.Opacity;
-	StandardValues.Parallax = _StandardValues.Parallax;
-	StandardValues.Ior = _StandardValues.Ior;
-	StandardValues.AO = _StandardValues.AO;
-	StandardValues.Opacity = _StandardValues.Opacity;
-	vec3 viewDir = normalize(Camera.Position - Frag.Position);
-	if (dot(viewDir, Frag.Normal) < 0)
-		Frag.Normal = -Frag.Normal;
+	SetF0(vec3(0.04f));
+	SetAlpha(1.f);
+	SetWorldNormal(Input.WorldNormal);
+	SetIor(StandardValues.Ior);
+	vec3 viewDir = normalize(Camera.Position - WorldPosition());
+	if (dot(viewDir, WorldNormal()) < 0)
+		SetWorldNormal(-WorldNormal());
 #if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_NORMAL)
 	mat3	tbn = tbn_matrix();
 #endif
-//#ifdef USE_TEXTURES
-//	StandardTextures = StandardTextures;
-//#endif
 #ifdef TEXTURE_USE_HEIGHT
 	float ph = 0;
-	Parallax_Mapping(tbn * viewDir, Frag.UV, ph);
+	Parallax_Mapping(tbn * viewDir, ph);
 #endif
 #ifdef TEXTURE_USE_DIFFUSE
-	vec4	albedo_sample = texture(StandardTextures.Diffuse, Frag.UV);
-	StandardValues.Diffuse *= albedo_sample.rgb;
-	StandardValues.Opacity *= albedo_sample.a;
+	vec4	albedo_sample = texture(StandardTextures.Diffuse, TexCoord());
+	SetCDiff(StandardValues.Diffuse * albedo_sample.rgb);
+	SetOpacity(StandardValues.Opacity * albedo_sample.a);
+#else
+	SetCDiff(StandardValues.Diffuse);
+	SetOpacity(StandardValues.Opacity);
 #endif
 #ifdef TEXTURE_USE_EMITTING
-	StandardValues.Emitting *= texture(StandardTextures.Emitting, Frag.UV).rgb;
+	vec3 emitting = texture(StandardTextures.Emitting, TexCoord()).rgb;
+	SetEmitting(StandardValues.Emitting * emitting);
+#else
+	SetEmitting(StandardValues.Emitting);
 #endif
 #ifdef TEXTURE_USE_AO
-	StandardValues.AO = texture(StandardTextures.AO, Frag.UV).r;
+	SetAO(StandardValues.AO + texture(StandardTextures.AO, TexCoord()).r);
+#else
+	SetAO(StandardValues.AO);
 #endif
 #ifdef TEXTURE_USE_NORMAL
-	vec3	normal_sample = texture(StandardTextures.Normal, Frag.UV).xyz * 2 - 1;
-	vec3	new_normal = normalize(normal_sample) * tbn;
-	if (dot(new_normal, new_normal) > 0)
-		Frag.Normal = new_normal;
+	vec3	normal_sample = texture(StandardTextures.Normal, TexCoord()).xyz * 2 - 1;
+	vec3	new_normal = normal_sample * tbn;
+	SetWorldNormal(normalize(new_normal));
 #endif
 #ifdef TEXTURE_USE_HEIGHT
-	Frag.Position = Frag.Position - (Frag.Normal * ph);
+	SetWorldPosition(WorldPosition() - (WorldNormal() * ph));
 #endif
+
 }
 
-void	FillOut()
+/*void	FillOut()
 {
 	out_CDiff = vec4(Frag.BRDF.CDiff, StandardValues.Opacity);
 	out_F0.rgb = Frag.BRDF.F0;
@@ -255,25 +323,15 @@ void	FillOut()
 	out_Emitting = max(vec3(0), StandardValues.Emitting + StandardValues.Diffuse.rgb - 1);
 	out_Ior = StandardValues.Ior;
 	out_AO = StandardValues.AO;
-	out_Normal = encodeNormal(normalize(Frag.Normal));
+	out_Normal = encodeNormal(normalize(WorldNormal()));
 #ifdef FORCEDEPTHWRITE
 	gl_FragDepth = Frag.Depth;
-	bvec3	positionsEqual = notEqual(Frag.Position, frag_WorldPosition);
+	bvec3	positionsEqual = notEqual(WorldPosition(), frag_WorldPosition);
 	if (positionsEqual.x || positionsEqual.y || positionsEqual.z)
 	{
-		vec4	NDC = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Frag.Position, 1.0);
+		vec4	NDC = Camera.Matrix.Projection * Camera.Matrix.View * vec4(WorldPosition(), 1.0);
 		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
 	}
 #endif //FORCEDEPTHWRITE
-}
-
-void	ApplyTechnique();
-
-void	main()
-{
-	FillIn();
-	ApplyTechnique();
-	FillOut();
-}
-
+}*/
 )""

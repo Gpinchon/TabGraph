@@ -53,7 +53,7 @@ private:
 
 class Geometry : public Component {
 public:
-    enum AccessorKey {
+    enum class AccessorKey {
         Invalid = -1,
         Position,
         Normal,
@@ -110,7 +110,7 @@ private:
     GLenum _drawingMode { GL_TRIANGLES };
     uint32_t _materialIndex { 0 };
     GLuint _vaoGlid { 0 };
-    std::array<std::shared_ptr<BufferAccessor>, Geometry::AccessorKey::MaxAccessorKey> _accessors;
+    std::array<std::shared_ptr<BufferAccessor>, size_t(Geometry::AccessorKey::MaxAccessorKey)> _accessors;
     std::shared_ptr<BufferAccessor> _indices { nullptr };
     std::vector<GeometryMorthTarget> _morphTargets;
 };

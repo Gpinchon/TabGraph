@@ -44,9 +44,9 @@ std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size,
         }
     }
     auto vg = Geometry::Create(m->Name() + "_Geometry");
-    vg->SetAccessor(Geometry::Position, BufferHelper::CreateAccessor(planeVertices, GL_ARRAY_BUFFER));
-    vg->SetAccessor(Geometry::Normal, BufferHelper::CreateAccessor(planeNormals, GL_ARRAY_BUFFER, true));
-    vg->SetAccessor(Geometry::TexCoord_0, BufferHelper::CreateAccessor(planeTexCoords, GL_ARRAY_BUFFER));
+    vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(planeVertices, GL_ARRAY_BUFFER));
+    vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(planeNormals, GL_ARRAY_BUFFER, true));
+    vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(planeTexCoords, GL_ARRAY_BUFFER));
     vg->SetIndices(BufferHelper::CreateAccessor(planeIndices, GL_ELEMENT_ARRAY_BUFFER));
     m->AddGeometry(vg);
     m->AddMaterial(Material::Create(m->Name() + "_material"));

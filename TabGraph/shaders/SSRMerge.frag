@@ -32,19 +32,20 @@ vec3	GetLastUVz(in vec2 UV, in float z)
 	return GetLastUVz(vec3(UV, z));
 }
 
-void ApplyTechnique()
+void SSRMerge()
 {
-	vec4 color = texture2D(in_Texture_Color, frag_UV);
-	vec4 lastColor = texture2D(in_Last_Texture_Color, GetLastUVz(frag_UV, Frag.Depth).xy);
+	vec4 color = texture2D(in_Texture_Color, TexCoord());
+	vec4 lastColor = texture2D(in_Last_Texture_Color, GetLastUVz(TexCoord(), Depth()).xy);
 	float totalWeigh = 0;
-	Out.Color = vec4(0);
+
 	totalWeigh += color.a;
 	totalWeigh += lastColor.a;
-	Out.Color += color * color.a;
-	Out.Color += lastColor * lastColor.a;
+	SetBackColor(vec4(0));
+	SetBackColor(BackColor() + color * color.a);
+	SetBackColor(BackColor() + lastColor * lastColor.a);
 	//avoid dividing by zero
-	Out.Color /= max(totalWeigh, 0.0001);
-	Out.Color *= Frag.Depth < 1 ? 1 : 0;
+	SetBackColor(BackColor() / max(totalWeigh, 0.0001));
+	SetBackColor(BackColor() * (Depth() < 1 ? 1 : 0));
 }
 
 )""

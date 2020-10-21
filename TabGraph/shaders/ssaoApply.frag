@@ -11,7 +11,7 @@ uniform sampler2D   in_Texture_SSAO;
 
 in vec2             frag_UV;
 
-void main()
+void SSAOApply()
 {
     out_Buffer4.r = texture(in_Texture_SSAO, frag_UV).r;
 }

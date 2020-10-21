@@ -136,16 +136,16 @@ static void parse_vn(ObjContainer& p, int vindex[3][3], glm::vec3 v[3], glm::vec
 
 static void push_values(ObjContainer& p, glm::vec3* v, glm::vec3* vn, glm::vec2* vt)
 {
-    if (p.currentGeometry->Accessor(Geometry::Position) == nullptr)
-        p.currentGeometry->SetAccessor(Geometry::Position, BufferHelper::CreateAccessor<glm::vec3>(0));
-    if (p.currentGeometry->Accessor(Geometry::Normal) == nullptr)
-        p.currentGeometry->SetAccessor(Geometry::Normal, BufferHelper::CreateAccessor<glm::vec3>(0));
-    if (p.currentGeometry->Accessor(Geometry::TexCoord_0) == nullptr)
-        p.currentGeometry->SetAccessor(Geometry::TexCoord_0, BufferHelper::CreateAccessor<glm::vec2>(0));
+    if (p.currentGeometry->Accessor(Geometry::AccessorKey::Position) == nullptr)
+        p.currentGeometry->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor<glm::vec3>(0));
+    if (p.currentGeometry->Accessor(Geometry::AccessorKey::Normal) == nullptr)
+        p.currentGeometry->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor<glm::vec3>(0));
+    if (p.currentGeometry->Accessor(Geometry::AccessorKey::TexCoord_0) == nullptr)
+        p.currentGeometry->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor<glm::vec2>(0));
     for (auto index(0u); index < 3; ++index) {
-        BufferHelper::PushBack(p.currentGeometry->Accessor(Geometry::Position), v[index]);
-        BufferHelper::PushBack(p.currentGeometry->Accessor(Geometry::Normal), vn[index]);
-        BufferHelper::PushBack(p.currentGeometry->Accessor(Geometry::TexCoord_0), vt[index]);
+        BufferHelper::PushBack(p.currentGeometry->Accessor(Geometry::AccessorKey::Position), v[index]);
+        BufferHelper::PushBack(p.currentGeometry->Accessor(Geometry::AccessorKey::Normal), vn[index]);
+        BufferHelper::PushBack(p.currentGeometry->Accessor(Geometry::AccessorKey::TexCoord_0), vt[index]);
     }
 }
 
@@ -326,7 +326,7 @@ static void parse_line(ObjContainer& p, const char* line)
         parse_vg(p, split[1]);
         p.currentGeometry->SetMaterialIndex(mtlIndex);
     } else if (split[0] == "usemtl") {
-        if (p.currentGeometry == nullptr || p.currentGeometry->Accessor(Geometry::Position))
+        if (p.currentGeometry == nullptr || p.currentGeometry->Accessor(Geometry::AccessorKey::Position))
             parse_vg(p);
         auto mtl = p.container.GetComponentByName<Material>(split.at(1));
         auto mtlIndex(p.container.GetComponent<Mesh>()->GetMaterialIndex(mtl));

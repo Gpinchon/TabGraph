@@ -141,13 +141,13 @@ void Geometry::SetMode(GLenum drawingMode)
 
 std::shared_ptr<BufferAccessor> Geometry::Accessor(const Geometry::AccessorKey key) const
 {
-    return _accessors.at(key);
+    return _accessors.at(size_t(key));
 }
 
 void Geometry::SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<BufferAccessor> accessor)
 {
     if (key != Geometry::AccessorKey::Invalid)
-        _accessors.at(key) = accessor;
+        _accessors.at(size_t(key)) = accessor;
 }
 
 std::shared_ptr<BufferAccessor> Geometry::Indices() const
@@ -331,7 +331,7 @@ glm::ivec2 Geometry::GetEdge(const size_t index) const
 
 size_t Geometry::VertexCount() const
 {
-    return Indices() ? Indices()->Count() : Accessor(Position)->Count();
+    return Indices() ? Indices()->Count() : Accessor(AccessorKey::Position)->Count();
 }
 
 /*void Geometry::center(glm::vec3 &center)

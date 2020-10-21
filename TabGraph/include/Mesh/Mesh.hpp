@@ -67,7 +67,7 @@ private:
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
     virtual void _FixedUpdateGPU(float /*delta*/) override;
     std::set<std::shared_ptr<Geometry>> _Geometrys;
-    std::vector<std::shared_ptr<Material>> _materials;
+    std::vector<std::weak_ptr<Material>> _materials;
     std::shared_ptr<TextureBuffer> _jointMatrices { nullptr };
     std::shared_ptr<BufferAccessor> _weights { nullptr };
     GLenum _cull_mod { GL_BACK };

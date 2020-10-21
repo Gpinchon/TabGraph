@@ -34,7 +34,7 @@ static inline void parse_color(std::vector<std::string> &split, std::shared_ptr<
 {
     if (split[0] == "Kd")
     {
-        //mtl->SetAlbedo(parse_vec3(split));
+        mtl->SetDiffuse(parse_vec3(split));
     }
     else if (split[0] == "Ks")
     {
@@ -42,8 +42,21 @@ static inline void parse_color(std::vector<std::string> &split, std::shared_ptr<
     }
     else if (split[0] == "Ke")
     {
-        //mtl->SetEmitting(parse_vec3(split));
+        mtl->SetEmissive(parse_vec3(split));
     }
+}
+
+#include "Material/MetallicRoughness.hpp"
+
+std::shared_ptr<MetallicRoughness> GetOrCreateExtention(std::shared_ptr<Material> mtl)
+{
+    auto extension = std::static_pointer_cast<MetallicRoughness>(mtl->GetExtension("MetallicRoughness"));
+    if (extension == nullptr) {
+        extension = MetallicRoughness::Create();
+        extension->SetMetallic(0.f);
+        mtl->AddExtension(extension);
+    }
+    return extension;
 }
 
 static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string &textureType, std::filesystem::path path)
@@ -51,7 +64,7 @@ static inline void parse_texture(std::shared_ptr<Material> mtl, const std::strin
     try {
         if (textureType == "map_Kd")
         {
-            //mtl->SetTextureAlbedo(TextureParser::parse(path.string(), path.string()));
+            mtl->SetTextureDiffuse(TextureParser::parse(path.string(), path.string()));
         }
         else if (textureType == "map_Ks")
         {
@@ -59,7 +72,7 @@ static inline void parse_texture(std::shared_ptr<Material> mtl, const std::strin
         }
         else if (textureType == "map_Ke")
         {
-            //mtl->SetTextureEmitting(TextureParser::parse(path.string(), path.string()));
+            mtl->SetTextureEmissive(TextureParser::parse(path.string(), path.string()));
         }
         else if (textureType == "map_Nh")
         {
@@ -71,11 +84,13 @@ static inline void parse_texture(std::shared_ptr<Material> mtl, const std::strin
         }
         else if (textureType == "map_Nr")
         {
-            //mtl->SetTextureRoughness(TextureParser::parse(path.string(), path.string()));
+            auto extension = GetOrCreateExtention(mtl);
+            extension->SetTextureRoughness(TextureParser::parse(path.string(), path.string()));
         }
         else if (textureType == "map_Nm")
         {
-            //mtl->SetTextureMetallic(TextureParser::parse(path.string(), path.string()));
+            auto extension = GetOrCreateExtention(mtl);
+            extension->SetTextureMetallic(TextureParser::parse(path.string(), path.string()));
         }
         else if (textureType == "map_bump" || textureType == "map_Bump")
         {
@@ -100,24 +115,26 @@ static inline void parse_number(std::vector<std::string> &split, std::shared_ptr
     }
     else if (split[0] == "Nr")
     {
-        //mtl->SetRoughness(std::stof(split[1]));
+        auto extension = GetOrCreateExtention(mtl);
+        extension->SetRoughness(std::stof(split[1]));
     }
     else if (split[0] == "Nm")
     {
-        //mtl->SetMetallic(std::stof(split[1]));
+        auto extension = GetOrCreateExtention(mtl);
+        extension->SetMetallic(std::stof(split[1]));
     }
     else if (split[0] == "Ni")
     {
         float ior;
         ior = std::stof(split[1]);
         mtl->SetIor(ior);
-        ior = (ior - 1) / (ior + 1);
-        ior *= ior;
+        //ior = (ior - 1) / (ior + 1);
+        //ior *= ior;
         //mtl->SetSpecular(glm::vec3(ior, ior, ior));
     }
     else if (split[0] == "Tr")
     {
-        //mtl->SetAlpha(1 - std::stof(split[1]));
+        mtl->SetOpacity(1 - std::stof(split[1]));
     }
 }
 

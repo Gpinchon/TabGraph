@@ -6,7 +6,7 @@ in vec2				frag_UV;
 
 out vec4			out_Color;
 
-void main()
+void Blur()
 {
 	out_Color = vec4(0);
 	vec2 offset1 = in_Direction / 1024.f;

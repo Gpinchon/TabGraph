@@ -73,9 +73,9 @@ std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, f
         }
     }
 
-    vg->SetAccessor(Geometry::Position, BufferHelper::CreateAccessor(vertices, GL_ARRAY_BUFFER));
-    vg->SetAccessor(Geometry::Normal, BufferHelper::CreateAccessor(normals, GL_ARRAY_BUFFER, true));
-    vg->SetAccessor(Geometry::TexCoord_0, BufferHelper::CreateAccessor(texCoords, GL_ARRAY_BUFFER));
+    vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(vertices, GL_ARRAY_BUFFER));
+    vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(normals, GL_ARRAY_BUFFER, true));
+    vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(texCoords, GL_ARRAY_BUFFER));
     vg->SetIndices(BufferHelper::CreateAccessor(indices, GL_ELEMENT_ARRAY_BUFFER));
     return vg;
 }

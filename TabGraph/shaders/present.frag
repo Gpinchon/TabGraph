@@ -7,7 +7,7 @@ uniform sampler2D	in_Texture_Depth;
 
 in vec2	frag_UV;
 
-void main()
+void Present()
 {
 	out_Color.rgb = texture(in_Texture_Color, frag_UV).rgb + texture(in_Texture_Emitting, frag_UV).rgb;
 	out_Color.a = 1;

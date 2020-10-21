@@ -64,6 +64,7 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/Scene.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/GLUniformHelper.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Shader.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/ShaderExtension.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/ShaderStage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/StackTracer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Cubemap.cpp
@@ -139,6 +140,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Scene/Scene.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/GLUniformHelper.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Shader.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/ShaderExtension.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/ShaderStage.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/StackTracer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/State.hpp
@@ -170,6 +172,7 @@ set(TABGRAPH_SHADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/hzb.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/lighting.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/lighting_env.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/metallicRoughness.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.vert
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/present.frag

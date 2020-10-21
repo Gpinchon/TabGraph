@@ -106,10 +106,10 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             if (GetComponent<MeshSkin>() != nullptr) {
-                shader->SetUniform("Joints", _jointMatrices, GL_TEXTURE11);
+                shader->SetTexture("Joints", _jointMatrices);
                 shader->SetUniform("Skinned", true);
             } else {
-                shader->SetUniform("Joints", nullptr, GL_TEXTURE11);
+                shader->SetTexture("Joints", nullptr);
                 shader->SetUniform("Skinned", false);
             }
             last_shader = shader;
@@ -157,10 +157,10 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, RenderMod mod)
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             if (GetComponent<MeshSkin>() != nullptr) {
-                shader->SetUniform("Joints", _jointMatrices, GL_TEXTURE11);
+                shader->SetTexture("Joints", _jointMatrices);
                 shader->SetUniform("Skinned", true);
             } else {
-                shader->SetUniform("Joints", nullptr, GL_TEXTURE11);
+                shader->SetTexture("Joints", nullptr);
                 shader->SetUniform("Skinned", false);
             }
             last_shader = shader;
@@ -204,15 +204,19 @@ void Mesh::center()
 
 void Mesh::AddMaterial(std::shared_ptr<Material> material)
 {
+    AddComponent(material);
     _materials.push_back(material);
 }
 
-void Mesh::RemoveMaterial(std::shared_ptr<Material>)
+void Mesh::RemoveMaterial(std::shared_ptr<Material> material)
 {
+    SetMaterial(nullptr, GetMaterialIndex(material));
+    RemoveComponent(material);
 }
 
 void Mesh::SetMaterial(std::shared_ptr<Material> material, uint32_t index)
 {
+    AddMaterial(material);
     if (index >= _materials.size())
         _materials.resize(index + 1);
     _materials.at(index) = material;
@@ -220,13 +224,13 @@ void Mesh::SetMaterial(std::shared_ptr<Material> material, uint32_t index)
 
 std::shared_ptr<Material> Mesh::GetMaterial(uint32_t index)
 {
-    return index >= _materials.size() ? nullptr : _materials.at(index);
+    return index >= _materials.size() ? nullptr : _materials.at(index).lock();
 }
 
 int64_t Mesh::GetMaterialIndex(std::shared_ptr<Material> mtl)
 {
     for (auto i(0u); i < _materials.size(); ++i) {
-        if (_materials.at(i) == mtl)
+        if (_materials.at(i).lock() == mtl)
             return i;
     }
     return -1;
@@ -234,11 +238,8 @@ int64_t Mesh::GetMaterialIndex(std::shared_ptr<Material> mtl)
 
 int64_t Mesh::GetMaterialIndex(const std::string& name)
 {
-    for (auto i(0u); i < _materials.size(); ++i) {
-        if (_materials.at(i)->Name() == name)
-            return i;
-    }
-    return -1;
+    auto material = GetComponentByName<Material>(name);
+    return GetMaterialIndex(material);
 }
 
 void Mesh::_FixedUpdateGPU(float delta)
@@ -255,7 +256,7 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
         return;
     bool skinChanged(false);
     if (_jointMatrices == nullptr) {
-        _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, BufferHelper::CreateAccessor<glm::mat4>(GetComponent<MeshSkin>()->Joints().size(), GL_TEXTURE_BUFFER));
+        _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, BufferHelper::CreateAccessor<glm::mat4>(GetComponent<MeshSkin>()->Joints().size(), GL_TEXTURE_BUFFER, false, GL_DYNAMIC_DRAW));
         skinChanged = true;
         debugLog(Name() + " : Create Skin");
     }

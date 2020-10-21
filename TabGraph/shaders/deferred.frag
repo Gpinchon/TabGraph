@@ -3,57 +3,14 @@ R""(
 #define PI		M_PI
 #define EPSILON	0.0001
 
-precision lowp float;
-precision lowp int;
-precision lowp sampler2D;
-precision lowp samplerCube;
-
 struct t_Environment {
 	samplerCube	Diffuse;
 	samplerCube	Irradiance;
 };
 
-#ifdef LIGHTSHADER
-struct t_BackTextures {
-	sampler2D	Color;
-	sampler2D	Emitting;
-	sampler2D	Normal;
-};
-#endif //LIGHTSHADER
-
-struct t_Textures {
-	sampler2D		CDiff;
-	sampler2D		Emitting;
-	sampler2D		F0;
-	sampler2D		Ior;
-	sampler2D		AO;
-	sampler2D		Normal;
-	sampler2D		Depth;
-	sampler2D		BRDF;
-	t_Environment	Environment;
-#ifdef LIGHTSHADER
-	t_BackTextures	Back;
-#endif //LIGHTSHADER
-};
-
-struct t_BRDF {
-	vec3	CDiff;
-	vec3	F0;
-	float	Alpha;
-};
-
 struct t_Frag {
-	float		Depth;
-	vec2		UV;
-	vec3		CubeUV;
-	vec3		Position;
-	vec3		Normal;
-	vec3		Emitting;
-	float		Ior;
-	float		Opacity;
-	float		AO;
-	//t_Material	Material;
-	t_BRDF		BRDF;
+	vec3		WorldPosition;
+	vec3		WorldNormal;
 };
 
 struct t_CameraMatrix {
@@ -67,52 +24,273 @@ struct t_Camera {
 	t_CameraMatrix	InvMatrix;
 };
 
-#ifdef LIGHTSHADER
-struct t_Out {
-	vec4		Color;
-	vec3		Emitting;
+struct t_BRDF {
+	vec3	CDiff;
+	vec3	F0;
+	float	Alpha;
 };
 
-layout(location = 0) out vec4	out_Color;
-layout(location = 1) out vec3	out_Emitting;
-t_Out	Out;
+struct t_GeometryTextures {
+	sampler2D		CDiff;
+	sampler2D		F0;
+	sampler2D		Normal;
+	sampler2D		Depth;
+	sampler2D		Emitting;
+	sampler2D		Ior;
+	sampler2D		AO;
+};
+
+in VertexData {
+	vec2	TexCoord;
+	vec3	CubeTexCoord;
+} Input;
+
+vec2 TexCoord() {
+	return Input.TexCoord;
+}
+
+vec3 CubeTexCoord() {
+	return Input.CubeTexCoord;
+}
+
+#define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
+
+vec2 sign_not_zero(vec2 v) {
+    return fma(step(vec2(0.0), v), vec2(2.0), vec2(-1.0));
+}
+
+vec2 encodeNormal(vec3 v) {
+	v = map(v, vec3(-1), vec3(1), vec3(-1), vec3(0.9));
+	//v += 0.05;
+	//v = v * 0.5 + 0.5;
+	// Faster version using newer GLSL capatibilities
+	v.xy /= dot(abs(v), vec3(1));
+	// Branch-Less version
+	v.xy = mix(v.xy, (1.0 - abs(v.yx)) * sign_not_zero(v.xy), step(v.z, 0.0));
+	return v.xy;// * 0.5 + 0.5;
+}
+
+vec3 decodeNormal(vec2 packed_nrm) {
+	//packed_nrm = packed_nrm * 2 - 1;
+    // Version using newer GLSL capatibilities
+    vec3 v = vec3(packed_nrm.xy, 1.0 - abs(packed_nrm.x) - abs(packed_nrm.y));
+    #if 1
+        // Version with branches, seems to take less cycles than the
+        // branch-less version
+        if (v.z < 0)
+        	v.xy = (1.0 - abs(v.yx)) * sign_not_zero(v.xy);
+    #else
+        // Branch-Less version
+        v.xy = mix(v.xy, (1.0 - abs(v.yx)) * sign_not_zero(v.xy), step(v.z, 0));
+    #endif
+    return map(v, vec3(-1), vec3(0.9), vec3(-1), vec3(1));
+}
+
+
+#ifdef LIGHTSHADER
+	struct t_BackTextures {
+		sampler2D	Color;
+		sampler2D	Emitting;
+	};
+	
+	struct t_Textures {
+		sampler2D			BRDF;
+		t_BackTextures		Back;
+		t_GeometryTextures	Geometry;
+		t_Environment		Environment;
+	};
+	
+	uniform t_Textures		Texture;
+	uniform t_Camera		Camera;
+	uniform vec3			Resolution;
+	uniform float			Time;
+	uniform uint			FrameNumber;
+	
+	layout(location = 0) out vec4	out_Color;
+	layout(location = 1) out vec3	out_Emitting;
+	
+	float _opacity = 1; 
+	#define Opacity() (_opacity)
+	#define SetOpacity(opacity) (_opacity = opacity)
+	
+	vec3 _cdiff = vec3(1);
+	#define CDiff() (_cdiff)
+	#define SetCDiff(cDiff) (_cdiff = cDiff)
+	
+	vec3 _f0 = vec3(0.04);
+	#define F0() (_f0)
+	#define SetF0(f0) (_f0 = f0)
+	
+	float _alpha = 1;
+	#define Alpha() (_alpha)
+	#define SetAlpha(alpha) (_alpha = alpha)
+	
+	vec3 _emitting = vec3(0);
+	#define Emitting() (_emitting)
+	#define SetEmitting(emitting) (_emitting = emitting)
+	
+	float _ior = 1;
+	#define Ior() (_ior)
+	#define SetIor(ior) (_ior = ior)
+	
+	float _ao = 0;
+	#define AO() (_ao)
+	#define SetAO(aO) (_ao = aO)
+	
+	vec2 _normal = vec2(0);
+	#define EncodedNormal() (_normal)
+	#define SetEncodedNormal(normal) (_normal = normal)
+
+	//#define WorldNormal() (decodeNormal(_normal))
+	//#define SetWorldNormal(normal) (_normal = encodeNormal(normal))
+	
+	#define BackColor() (out_Color)
+	#define SetBackColor(backColor) (out_Color = backColor)
+	
+	#define BackEmitting() (out_Emitting)
+	#define SetBackEmitting(backEmitting) (out_Emitting = backEmitting)
 #endif //LIGHTSHADER
 
-uniform t_Textures		Texture;
-uniform t_Camera		Camera;
-uniform vec3			Resolution;
-uniform float			Time;
-uniform uint			FrameNumber;
-
-in vec2				frag_UV;
-in vec3				frag_Cube_UV;
-
 #ifdef POSTSHADER
-struct t_Out {
-	t_Material	Material;
-	float		Depth;
-	vec3		Normal;
-};
+	struct t_BackTextures {
+		sampler2D	Color;
+		sampler2D	Emitting;
+	};
+	
+	struct t_Textures {
+		sampler2D			BRDF;
+		t_BackTextures		Back;
+		t_GeometryTextures	Geometry;
+		t_Environment		Environment;
+	};
+	layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
+	layout(location = 1) out vec3	out_Emitting;
+	layout(location = 2) out vec4	out_F0; //BRDF F0, BRDF Alpha
+	layout(location = 3) out float	out_Ior;
+	layout(location = 4) out float	out_AO;
+	layout(location = 5) out vec2	out_Normal;
 
-layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
-layout(location = 1) out vec3	out_Emitting;
-layout(location = 2) out vec4	out_F0; //BRDF F0, BRDF Alpha
-layout(location = 3) out float	out_Ior;
-layout(location = 4) out float	out_AO;
-layout(location = 5) out vec2	out_Normal;
+	#define Opacity() (out_CDiff.a)
+	#define SetOpacity(opacity) (out_CDiff.a = opacity)
+
+	#define CDiff() (out_CDiff.rgb)
+	#define SetCDiff(cDiff) (out_CDiff.rgb = cDiff)
+
+	#define F0() (out_F0.rgb)
+	#define SetF0(f0) (out_F0.rgb = f0)
+
+	#define Alpha() (out_F0.a)
+	#define SetAlpha(alpha) (out_F0.a = alpha)
+
+	#define Emitting() (out_Emitting)
+	#define SetEmitting(emitting) (out_Emitting = emitting)
+
+	#define Ior() (out_Ior)
+	#define SetIor(ior) (out_Ior = ior)
+
+	#define AO() (out_AO)
+	#define SetAO(aO) (out_AO = aO)
+
+	#define EncodedNormal() (out_Normal)
+	#define SetEncodedNormal(normal) (out_Normal = normal)
 #endif //POSTSHADER
+
+float Depth() { return gl_FragDepth; }
+float Depth(vec2 uv) { return textureLod(Texture.Geometry.Depth, uv, 0).r; }
+#define SetDepth(depth) (gl_FragDepth = depth)
 
 t_Frag	Frag;
 
+vec3	ScreenToWorld(in vec2 uv, in float depth)
+{
+	vec4	projectedCoord = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
+	return (projectedCoord.xyz / projectedCoord.w);
+}
+
+/*bool _worldPositionSet = false;
+void SetWorldPosition(in vec3 worldPosition) {
+	Frag.WorldPosition = worldPosition;
+	_worldPositionSet = true;
+}*/
+
+#define SetWorldPosition(worldPosition) (Frag.WorldPosition = worldPosition)
+
+vec3	WorldPosition(in vec2 uv)
+{
+	return ScreenToWorld(uv, Depth(uv));
+}
+
+vec3 WorldPosition()
+{
+	return Frag.WorldPosition;
+}
+
+void SetWorldNormal(in vec3 worldNormal)
+{
+	Frag.WorldNormal = normalize(worldNormal);
+	SetEncodedNormal(encodeNormal(Frag.WorldNormal));
+}
+
+vec3 WorldNormal()
+{
+	return Frag.WorldNormal;
+}
+
+float SceneDepth(vec2 UV, float depth)
+{
+	vec4	projectedCoord = vec4(UV * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
+	return projectedCoord.w;
+}
+
 mat3x3	tbn_matrix()
 {
-	vec3 Q1 = dFdx(Frag.Position);
-	vec3 Q2 = dFdy(Frag.Position);
-	vec2 st1 = dFdx(Frag.UV);
-	vec2 st2 = dFdy(Frag.UV);
+	vec3 Q1 = dFdx(gl_FragCoord.xyz);
+	vec3 Q2 = dFdy(gl_FragCoord.xyz);
+	vec2 st1 = dFdx(TexCoord());
+	vec2 st2 = dFdy(TexCoord());
 	vec3 T = normalize(Q1*st2.t - Q2*st1.t);
 	vec3 B = normalize(-Q1*st2.s + Q2*st1.s);
-	return(transpose(mat3(T, B, Frag.Normal)));
+	return(transpose(mat3(T, B, WorldNormal())));
+}
+
+vec4	WorldToView(in vec3 position)
+{
+	return Camera.Matrix.View * vec4(position, 1);
+}
+
+vec4	ViewToClip(in vec4 position)
+{
+	return Camera.Matrix.Projection * position;
+}
+
+vec4	ClipToScreen(in vec4 position)
+{
+	position.xyz /= position.w;
+	position.xyz = position.xyz * 0.5 + 0.5;
+	return position;
+}
+
+/** Returns the World position and the scene depth in world units */
+vec4	WorldToScreen(in vec3 position)
+{
+	return ClipToScreen(ViewToClip(WorldToView(position)));
+}
+
+vec4	WorldToClip(in vec3 position)
+{
+	return ViewToClip(WorldToView(position));
+}
+
+vec3 TangentToWorld(in vec3 vec)
+{
+	return normalize(vec * tbn_matrix());
+}
+
+vec3	TangentToWorld(in vec2 vec)
+{
+	return TangentToWorld(vec3(vec, 1));
 }
 
 //Generate Pseudo random numbers using TEA (Tiny Encription Algorithm)
@@ -191,8 +369,6 @@ vec4	texelFetchLod(in sampler2D tex, in vec2 uv, in int mipLevel)
 	return texelFetch(tex, ivec2(textureSize(tex, 0) * uv), mipLevel);
 }
 
-#define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
-
 float	smootherstep(float edge0, float edge1, float x) {
 	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
 	return x * x * x * (x * (x * 6 - 15) + 10);
@@ -215,148 +391,57 @@ float Luminance(vec3 LinearColor)
 	return dot(LinearColor, vec3(0.299, 0.587, 0.114));
 }
 
-vec4	WorldToView(in vec3 position)
+void FillFragmentData(void)
 {
-	return Camera.Matrix.View * vec4(position, 1);
-}
-
-vec4	ViewToClip(in vec4 position)
-{
-	return Camera.Matrix.Projection * position;
-}
-
-vec4	ClipToScreen(in vec4 position)
-{
-	position.xyz /= position.w;
-	position.xyz = position.xyz * 0.5 + 0.5;
-	return position;
-}
-
-/** Returns the World position and the scene depth in world units */
-vec4	WorldToScreen(in vec3 position)
-{
-	return ClipToScreen(ViewToClip(WorldToView(position)));
-}
-
-vec4	WorldToClip(in vec3 position)
-{
-	return ViewToClip(WorldToView(position));
-}
-
-vec3 TangentToWorld(in vec3 vec)
-{
-	return normalize(vec * tbn_matrix());
-}
-
-vec3	TangentToWorld(in vec2 vec)
-{
-	return TangentToWorld(vec3(vec, 1));
-}
-
-vec3	ScreenToWorld(in vec2 UV, in float depth)
-{
-	vec4	projectedCoord = vec4(UV * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
-	return (projectedCoord.xyz / projectedCoord.w);
-}
-
-float SceneDepth(vec2 UV, float depth)
-{
-	vec4	projectedCoord = vec4(UV * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
-	return projectedCoord.w;
-}
-
-float SceneDepth()
-{
-	return SceneDepth(Frag.UV, Frag.Depth);
-}
-
-float	Depth(in vec2 UV)
-{
-	return texture(Texture.Depth, UV, 0).r;
-}
-
-vec3	WorldPosition(in vec2 UV)
-{
-	return ScreenToWorld(UV, Depth(UV));
-}
-
-vec3	WorldPosition()
-{
-	return ScreenToWorld(Frag.UV, Frag.Depth);
-}
-
-void sincos(const in float x, out float sinX, out float cosX)
-{
-	sinX = sin(x);
-	cosX = cos(x);
-}
-
-vec2 encodeNormal(const in vec3 n)
-{
-	vec2 xy = normalize(n.xy);
-	return vec2(atan(xy.y, xy.x) / M_PI, n.z) * 0.5 + 0.5;
-	/*vec3 n = normal * 0.5 + 0.5;
-	float p = sqrt(n.z*8+8);
-    return vec2(n.xy/p + 0.5);*/
-	/*vec3 n = normalize(normal) * 0.5 + 0.5;
-	float phi = atan(n.y, n.x);
-	float theta = acos(n.z);
-	vec2 encoded = vec2(phi, theta) / M_PI;
-	return vec2(encoded.x * 0.5 + 0.5, encoded.y);*/
-}
-
-vec3 decodeNormal(const in vec2 enc)
-{
-	vec2 ang = enc * 2 - 1;
-    vec2 scth;
-    sincos(ang.x * M_PI, scth.x, scth.y);
-    vec2 scphi = vec2(sqrt(1.0 - ang.y*ang.y), ang.y);
-	vec2 xy = vec2(scth.y * scphi.x, scth.x * scphi.x);
-    return normalize(vec3(xy.x, xy.y, scphi.y));
-	/*vec2 fenc = enc*4-2;
-    float f = dot(fenc,fenc);
-    float g = sqrt(1-f/4);
-    vec3 n;
-    n.xy = fenc*g;
-    n.z = 1-f/2;
-    return normalize(n * 2 - 1);*/
-	/*vec2 enc = vec2(encoded.x * 2 - 1, encoded.y) * M_PI;
-	float sinPhi = sin(enc.x);
-	float cosPhi = cos(enc.x);
-	float sinTheta = sin(enc.y);
-	float cosTheta = cos(enc.y);
-	return vec3(
-		sinTheta * cosPhi,
-		sinTheta * sinPhi,
-		cosTheta
-	) * 2 - 1;*/
-}
-
-void	FillFrag()
-{
-	Frag.UV = frag_UV;
-	Frag.CubeUV = frag_Cube_UV;
-	Frag.Depth = gl_FragDepth = texture(Texture.Depth, frag_UV).r;
-	Frag.Position = WorldPosition();
-	Frag.Normal = decodeNormal(texture(Texture.Normal, frag_UV).xy);
-	Frag.Ior = texture(Texture.Ior, frag_UV).x;
-	vec4	CDiff_sample = texture(Texture.CDiff, frag_UV);
-	vec4	F0_sample = texture(Texture.F0, frag_UV);
-	Frag.BRDF.CDiff = CDiff_sample.rgb;
-	Frag.BRDF.F0 = F0_sample.xyz;
-	Frag.BRDF.Alpha = F0_sample.a;
-	Frag.Opacity = CDiff_sample.a;
-	Frag.Emitting = texture(Texture.Emitting, frag_UV).rgb;
-	Frag.AO = texture(Texture.AO, frag_UV).r;
+	vec4	CDiff_sample = textureLod(Texture.Geometry.CDiff, TexCoord(), 0);
+	vec4	F0_sample = textureLod(Texture.Geometry.F0, TexCoord(), 0);
+	vec2	Normal_sample = textureLod(Texture.Geometry.Normal, TexCoord(), 0).xy;
+	float	Depth_sample = textureLod(Texture.Geometry.Depth, TexCoord(), 0).x;
+	vec3	Emitting_sample = textureLod(Texture.Geometry.Emitting, TexCoord(), 0).rgb;
+	float	Ior_sample = textureLod(Texture.Geometry.Ior, TexCoord(), 0).x;
+	float	AO_sample = textureLod(Texture.Geometry.AO, TexCoord(), 0).x;
+	SetCDiff(CDiff_sample.rgb);
+	SetF0(F0_sample.rgb);
+	SetAlpha(F0_sample.a);
+	SetOpacity(CDiff_sample.a);
+	SetEncodedNormal(Normal_sample);
+	SetDepth(Depth_sample);
+	SetEmitting(Emitting_sample);
+	SetIor(Ior_sample);
+	SetAO(AO_sample);
 #ifdef LIGHTSHADER
-	Out.Color = texture(Texture.Back.Color, frag_UV);
-	Out.Emitting = texture(Texture.Back.Emitting, frag_UV).rgb;
-#endif
+	vec4 BackColor_sample = textureLod(Texture.Back.Color, TexCoord(), 0);
+	vec3 BackEmitting_sample = textureLod(Texture.Back.Emitting, TexCoord(), 0).rgb;
+	SetBackColor(BackColor_sample);
+	SetBackEmitting(BackEmitting_sample);
+#endif //LIGHTSHADER
+	SetWorldNormal(decodeNormal(EncodedNormal()));
+	SetWorldPosition(WorldPosition(TexCoord()));
 }
 
-#ifdef POSTSHADER
+#define BRDF(NdV) (texture(Texture.BRDF, vec2(NdV, Alpha())).xy)
+
+/*void	FillFrag()
+{
+	SetDepth(Depth(TexCoord()));
+	SetWorldPosition(WorldPosition(TexCoord()));
+	WorldNormal() = decodeNormal(texture(Texture.Normal, TexCoord()).xy);
+	Frag.Ior = texture(Texture.Ior, TexCoord()).x;
+	vec4	CDiff_sample = texture(Texture.CDiff, TexCoord());
+	vec4	F0_sample = texture(Texture.F0, TexCoord());
+	SetCDiff(CDiff_sample.rgb);
+	SetF0(F0_sample.rgb);
+	SetAlpha(F0_sample.a);
+	SetOpacity(CDiff_sample.a);
+	Frag.Emitting = texture(Texture.Emitting, TexCoord()).rgb;
+	Frag.AO = texture(Texture.AO, TexCoord()).r;
+#ifdef LIGHTSHADER
+	Out.Color = texture(Texture.Back.Color, TexCoord());
+	Out.Emitting = texture(Texture.Back.Emitting, TexCoord()).rgb;
+#endif
+}*/
+
+/*#ifdef POSTSHADER
 void	FillOut(in vec3 OriginalPosition)
 {
 	gl_FragDepth = Frag.Depth;
@@ -372,11 +457,11 @@ void	FillOut(in vec3 OriginalPosition)
 	out_Emitting = Frag.Emitting;
 	out_Ior = Frag.Ior;
 	out_AO = Frag.AO;
-	out_Normal = encodeNormal(normalize(Frag.Normal));
+	out_Normal = encodeNormal(normalize(WorldNormal()));
 }
-#endif
+#endif*/
 
-#ifdef LIGHTSHADER
+/*#ifdef LIGHTSHADER
 void	FillOut(in vec3 OriginalPosition)
 {
 	if (any(notEqual(Frag.Position, OriginalPosition)))
@@ -387,14 +472,11 @@ void	FillOut(in vec3 OriginalPosition)
 	out_Color = Out.Color;
 	out_Emitting = Out.Emitting;
 }
-#endif
+#endif*/
 
-vec2	BRDF(in float NdV, in float Roughness)
-{
-	return (texture(Texture.BRDF, vec2(NdV, Frag.BRDF.Alpha)).xy);
-}
 
-void	ApplyTechnique();
+
+/*void	ApplyTechnique();
 
 void main()
 {
@@ -402,6 +484,6 @@ void main()
 	vec3	OriginalPosition = Frag.Position;
 	ApplyTechnique();
 	FillOut(OriginalPosition);
-}
+}*/
 
 )""

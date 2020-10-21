@@ -4,7 +4,12 @@
 
 class ShaderVariable;
 
-std::function<void(const ShaderVariable&)> GetSetUniformCallback(GLenum type);
+typedef void (*SetUniformFunction)(const ShaderVariable&);
+
+bool IsTextureType(GLenum type);
+
+//std::function<void(const ShaderVariable&)> GetSetUniformCallback(GLenum type);
+SetUniformFunction GetSetUniformCallback(GLenum type);
 void SetUniform1fv (const ShaderVariable &variable);
 void SetUniform2fv (const ShaderVariable &variable);
 void SetUniform3fv (const ShaderVariable &variable);

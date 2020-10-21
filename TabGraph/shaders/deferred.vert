@@ -1,12 +1,6 @@
 R""(
 layout(location = 0) in vec2	in_Position;
 
-struct t_Vert {
-	vec2	UV;
-	vec3	CubeUV;
-	vec3	Position;
-};
-
 struct t_CameraMatrix {
 	mat4	View;
 	mat4	Projection;
@@ -20,32 +14,61 @@ struct t_Camera {
 
 uniform t_Camera	Camera;
 
-out vec2		frag_UV;
-out vec3		frag_Cube_UV;
+out VertexData {
+	vec2	TexCoord;
+	vec3	CubeTexCoord;
+} Vert;
 
-t_Vert			Vert;
+bool _ClipSpacePositionSet = false;
 
-void	FillIn()
+void SetClipSpacePosition(in vec4 position)
 {
-	Vert.Position = vec3(in_Position, 0);
-	Vert.UV = vec2(in_Position.x == -1 ? 0 : 1, in_Position.y == -1 ? 0 : 1);
-	Vert.CubeUV = -mat3(Camera.InvMatrix.View) * (Camera.InvMatrix.Projection * vec4(Vert.Position, 1)).xyz;
+	gl_Position = position;
+	_ClipSpacePositionSet = true;
 }
 
-void	FillOut()
+vec4 ClipSpacePosition()
 {
-	gl_Position = vec4(Vert.Position, 1);
-	frag_UV = Vert.UV;
-	frag_Cube_UV = Vert.CubeUV;
+	if (!_ClipSpacePositionSet)
+		SetClipSpacePosition(vec4(in_Position, 0, 1));
+	return gl_Position;
 }
 
-void	ApplyTechnique();
+bool _TexCoordSet = false;
 
-void main()
+void SetTexCoord(in vec2 texCoord)
 {
-	FillIn();
-	ApplyTechnique();
-	FillOut();
+	Vert.TexCoord = texCoord;
+	_TexCoordSet = true;
+}
+
+vec2 TexCoord()
+{
+	if (!_TexCoordSet)
+		SetTexCoord(vec2(in_Position.x == -1 ? 0 : 1, in_Position.y == -1 ? 0 : 1));
+	return Vert.TexCoord;
+}
+
+bool _CubeTexCoordSet = false;
+
+void SetCubeTexCoord(in vec3 cubeTexCoord)
+{
+	Vert.CubeTexCoord = cubeTexCoord;
+	_CubeTexCoordSet = true;
+}
+
+vec3 CubeTexCoord()
+{
+	if (!_CubeTexCoordSet)
+		SetCubeTexCoord(-mat3(Camera.InvMatrix.View) * (Camera.InvMatrix.Projection * vec4(in_Position, 0, 1)).xyz);
+	return Vert.CubeTexCoord;
+}
+
+void	FillVertexData()
+{
+	SetClipSpacePosition(ClipSpacePosition());
+	SetTexCoord(TexCoord());
+	SetCubeTexCoord(CubeTexCoord());
 }
 
 )""

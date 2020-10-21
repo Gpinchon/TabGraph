@@ -13,26 +13,17 @@ float	Env_Specular(in float NdV, in float alpha)
 	return (max(D * G, 0));
 }
 
-vec3	Fresnel(in float factor, in vec3 F0, in float alpha)
+vec3	Fresnel(in float factor, in vec3 f0, in float alpha)
 {
-	return ((max(vec3(1 - alpha), F0)) * pow(max(0, 1 - factor), 5) + F0);
+	return ((max(vec3(1 - alpha), f0)) * pow(max(0, 1 - factor), 5) + f0);
 }
 
-vec3	Fresnel(in float cosT, in vec3 F0)
+vec3	Fresnel(in float cosT, in vec3 f0)
 {
-  return (F0 + (1 - F0) * pow(1 - cosT, 5));
+  return (f0 + (1 - f0) * pow(1 - cosT, 5));
 }
 
-vec3	F0(in float ior)
-{
-	float	f0 = abs((1.0 - ior) / (1.0 + ior));
-	return (vec3(f0 * f0));
-}
-
-vec4	SSR()
-{
-	return texture(SSRResult, Frag.UV, 0);
-}
+#define SSR() (textureLod(SSRResult, TexCoord(), 0))
 
 float	warpUV(float min, float max, float percent)
 {
@@ -46,14 +37,13 @@ vec2	warpUV(vec2 min, vec2 max, vec2 percent)
 	return (vec2(warpUV(min.x, max.x, percent.x), warpUV(min.y, max.y, percent.y)));
 }
 
-void	ApplyTechnique()
+void	Lighting()
 {
-	Frag.AO = 1 - Frag.AO;
-	vec3	V = normalize(Camera.Position - Frag.Position);
-	vec3	N = Frag.Normal;
+	vec3	V = normalize(Camera.Position - WorldPosition());
+	vec3	N = WorldNormal();
 #ifdef TRANSPARENT
 	float	NdV = dot(N, V);
-	if (Frag.Opacity < 1 && NdV < 0) {
+	if (Opacity() < 1 && NdV < 0) {
 		N = -N;
 		NdV = -NdV;
 	}
@@ -65,17 +55,17 @@ void	ApplyTechnique()
 #endif //TRANSPARENT
 	vec3	R = reflect(V, N);
 
-	vec2	brdf = BRDF(NdV, Frag.BRDF.Alpha);
+	vec2	brdf = BRDF(NdV);
 	vec4	ssrResult = SSR();
-	vec3	diffuse = Frag.AO * texture(Texture.Environment.Irradiance, -N).rgb;
+	vec3	diffuse = (1 - AO()) * texture(Texture.Environment.Irradiance, -N).rgb;
 	vec3	envReflection = 
-	//textureLod(Texture.Environment.Diffuse, R, sqrt(Frag.BRDF.Alpha) * 2.f * textureQueryLevels(Texture.Environment.Diffuse)).rgb;
-	sampleLod(Texture.Environment.Diffuse, R, sqrt(Frag.BRDF.Alpha) * 2.f).rgb;
+	//textureLod(Texture.Environment.Diffuse, R, sqrt(Alpha()) * 2.f * textureQueryLevels(Texture.Environment.Diffuse)).rgb;
+	sampleLod(Texture.Environment.Diffuse, R, sqrt(Alpha()) * 2.f).rgb;
 	vec3	envIrradiance =
-	//textureLod(Texture.Environment.Irradiance, R, Frag.BRDF.Alpha * textureQueryLevels(Texture.Environment.Irradiance)).rgb;
-	sampleLod(Texture.Environment.Irradiance, R, Frag.BRDF.Alpha).rgb;
-	vec3	fresnel = Fresnel(NdV, Frag.BRDF.F0, Frag.BRDF.Alpha);
-	vec3	specularIntensity = min(fresnel, fresnel * Env_Specular(NdV, Frag.BRDF.Alpha));
+	//textureLod(Texture.Environment.Irradiance, R, Alpha() * textureQueryLevels(Texture.Environment.Irradiance)).rgb;
+	sampleLod(Texture.Environment.Irradiance, R, Alpha()).rgb;
+	vec3	fresnel = Fresnel(NdV, F0(), Alpha());
+	vec3	specularIntensity = min(fresnel, fresnel * Env_Specular(NdV, Alpha()));
 	vec3	ENVSpecular = envIrradiance * (fresnel * brdf.x + brdf.y);// * Luminance(envIrradiance);
 	vec3	SSRSpecular = ssrResult.rgb;// * Luminance(ssrResult.rgb);
 	vec3	specular;
@@ -83,23 +73,24 @@ void	ApplyTechnique()
 	reflection = mix(envReflection, ssrResult.rgb, ssrResult.a) * fresnel;
 	specular = mix(ENVSpecular, SSRSpecular, ssrResult.a) * specularIntensity;
 	specular *= Luminance(pow(specular, envGammaCorrection));
-	//specular = envIrradiance * Luminance(envIrradiance);// * min(fresnel, fresnel * Env_Specular(NdV, Frag.BRDF.Alpha));
-	//specular += ssrResult.rgb * Luminance(ssrResult.rgb) * ssrResult.a;// * min(fresnel, fresnel * Env_Specular(NdV, Frag.BRDF.Alpha));
+	//specular = envIrradiance * Luminance(envIrradiance);// * min(fresnel, fresnel * Env_Specular(NdV, Alpha()));
+	//specular += ssrResult.rgb * Luminance(ssrResult.rgb) * ssrResult.a;// * min(fresnel, fresnel * Env_Specular(NdV, Alpha()));
 	//specular *= fresnel * brdf.x + brdf.y;
-	//diffuse *= (1 - fresnel) * Frag.BRDF.CDiff;
-	diffuse *= Frag.BRDF.CDiff;
+	//diffuse *= (1 - fresnel) * CDiff();
+	diffuse *= CDiff();
 
-	float	alpha = Frag.Opacity + max(specular.r, max(specular.g, specular.b));
+	float	alpha = Opacity() + max(specular.r, max(specular.g, specular.b));
 	alpha = min(1, alpha);
+	vec3 outColor = BackColor().rgb;
 	//Out.Color.rgb += mix(envReflection, ssrResult.rgb * fresnel, ssrResult.a) * alpha;
-	Out.Color.rgb += (specular + reflection) * alpha;
-	Out.Color.rgb += (diffuse + Frag.Emitting) * alpha;
+	outColor += (specular + reflection) * alpha;
+	outColor += (diffuse + Emitting()) * alpha;
 #ifndef TRANSPARENT
-	vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, Frag.CubeUV).rgb;
-	Out.Color.rgb += EnvDiffuse * floor(Frag.Depth) * (1 - alpha);
+	vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, CubeTexCoord()).rgb;
+	outColor += EnvDiffuse * floor(Depth()) * (1 - alpha);
 #endif
-	Out.Color.a = 1;
-	Out.Emitting.rgb += max(vec3(0), Out.Color.rgb - 1) + Frag.Emitting;
+	SetBackColor(vec4(outColor, 1));
+	SetBackEmitting(BackEmitting() + max(vec3(0), BackColor().rgb - 1) + Emitting());
 }
 
 )""
