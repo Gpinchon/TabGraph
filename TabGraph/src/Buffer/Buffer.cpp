@@ -1,8 +1,8 @@
 /*
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
-* @Last Modified by:   Gpinchon
-* @Last Modified time: 2020-08-27 17:43:33
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2020-10-21 14:25:51
 */
 #include "Buffer/Buffer.hpp"
 #include "Debug.hpp"
@@ -12,9 +12,10 @@
 #include <stdio.h>
 #include <wchar.h>
 
-Buffer::Buffer(size_t byteLength)
+Buffer::Buffer(size_t byteLength, GLenum usage)
     : Component("")
     , _byteLength(byteLength) //_rawData(byteLength, std::byte(0))
+    , _usage(usage)
 {
 }
 
@@ -25,9 +26,9 @@ Buffer::~Buffer()
     _UnloadGPU();
 }
 
-std::shared_ptr<Buffer> Buffer::Create(size_t byteLength)
+std::shared_ptr<Buffer> Buffer::Create(size_t byteLength, GLenum usage)
 {
-    return std::shared_ptr<Buffer>(new Buffer(byteLength));
+    return std::shared_ptr<Buffer>(new Buffer(byteLength, usage));
 }
 
 void Buffer::_UpdateGPU(float)
@@ -245,9 +246,9 @@ void Buffer::_LoadGPU()
                 Unmap();
                 throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
             }
+            Unmap();
             if (is.gcount() != ByteLength())
                 throw std::runtime_error(Name() + " : Incomplete buffer read");
-            Unmap();
         } else {
             std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
             Unmap();

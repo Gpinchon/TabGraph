@@ -20,7 +20,7 @@ public:
         Write = GL_WRITE_ONLY,
         ReadWrite = GL_READ_WRITE
     };
-    static std::shared_ptr<Buffer> Create(size_t byteLength);
+    static std::shared_ptr<Buffer> Create(size_t byteLength, GLenum usage = GL_STATIC_DRAW);
     //void UpdateGPU();
     /** Calls LoadToCPU() and LoadToGPU() */
     void Load();
@@ -58,7 +58,7 @@ public:
     ~Buffer();
 
 protected:
-    Buffer(size_t byteLength);
+    Buffer(size_t byteLength, GLenum usage);
     Buffer() = delete;
 
 private:

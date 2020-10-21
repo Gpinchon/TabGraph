@@ -22,13 +22,13 @@ namespace BufferHelper {
 	 * @argument target : the buffer's target, see https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml
 	 */
 template <typename T>
-std::shared_ptr<BufferAccessor> CreateAccessor(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER, bool normalized = false);
+std::shared_ptr<BufferAccessor> CreateAccessor(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER, bool normalized = false, GLenum usage = GL_STATIC_DRAW);
 template <typename T>
-std::shared_ptr<BufferAccessor> CreateAccessor(size_t size, GLenum target = GL_ARRAY_BUFFER, bool normalized = false);
+std::shared_ptr<BufferAccessor> CreateAccessor(size_t size, GLenum target = GL_ARRAY_BUFFER, bool normalized = false, GLenum usage = GL_STATIC_DRAW);
 template <typename T>
-std::shared_ptr<BufferView> CreateBufferView(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER);
+std::shared_ptr<BufferView> CreateBufferView(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_STATIC_DRAW);
 template <typename T>
-std::shared_ptr<Buffer> CreateBuffer(std::vector<T> bufferVector);
+std::shared_ptr<Buffer> CreateBuffer(std::vector<T> bufferVector, GLenum usage = GL_STATIC_DRAW);
 template <typename T>
 T Get(std::shared_ptr<Buffer>, size_t index);
 template <typename T>
@@ -42,18 +42,18 @@ void PushBack(std::shared_ptr<BufferAccessor>, T value);
 }
 
 template <typename T>
-inline std::shared_ptr<Buffer> BufferHelper::CreateBuffer(std::vector<T> bufferVector)
+inline std::shared_ptr<Buffer> BufferHelper::CreateBuffer(std::vector<T> bufferVector, GLenum usage)
 {
     auto byteLength(bufferVector.size() * sizeof(T));
-    auto buffer(Buffer::Create(byteLength));
+    auto buffer(Buffer::Create(byteLength, usage));
     std::memcpy(buffer->RawData().data(), bufferVector.data(), byteLength);
     return buffer;
 }
 
 template <typename T>
-inline std::shared_ptr<BufferView> BufferHelper::CreateBufferView(std::vector<T> bufferVector, GLenum target)
+inline std::shared_ptr<BufferView> BufferHelper::CreateBufferView(std::vector<T> bufferVector, GLenum target, GLenum usage)
 {
-    auto buffer(BufferHelper::CreateBuffer(bufferVector));
+    auto buffer(BufferHelper::CreateBuffer(bufferVector, usage));
     auto bufferView(BufferView::Create(buffer->ByteLength(), buffer));
     bufferView->SetTarget(target);
     return bufferView;
@@ -88,7 +88,7 @@ inline void FindMinMax(const std::vector<glm::mat4>& vector, glm::mat4& minM, gl
 }
 
 template <>
-inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::mat4> bufferVector, GLenum target, bool normalized)
+inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::mat4> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
     auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Mat4));
@@ -102,7 +102,7 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 }
 
 template <>
-inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<unsigned> bufferVector, GLenum target, bool normalized)
+inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<unsigned> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
     auto bufferAccessor(BufferAccessor::Create(GL_UNSIGNED_INT, bufferVector.size(), BufferAccessor::Type::Scalar));
@@ -116,7 +116,7 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 }
 
 template <>
-inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec3> bufferVector, GLenum target, bool normalized)
+inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec3> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
     auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec3));
@@ -130,7 +130,7 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 }
 
 template <>
-inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec2> bufferVector, GLenum target, bool normalized)
+inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec2> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
     auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec2));
@@ -144,9 +144,9 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 }
 
 template <typename T>
-std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(size_t size, GLenum target, bool normalized)
+std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(size_t size, GLenum target, bool normalized, GLenum usage)
 {
-    return BufferHelper::CreateAccessor(std::vector<T>(size), target, normalized);
+    return BufferHelper::CreateAccessor(std::vector<T>(size), target, normalized, usage);
 }
 
 template <typename T>
