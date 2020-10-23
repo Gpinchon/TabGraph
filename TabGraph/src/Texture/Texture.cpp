@@ -14,7 +14,7 @@
 #include <utility> // for pair
 
 Texture::Texture(const std::string& name)
-    : Object(name)
+    : Component(name)
 {
 }
 

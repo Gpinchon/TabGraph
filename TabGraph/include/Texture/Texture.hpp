@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Object.hpp" // for Object
+#include "Component.hpp" // for Component
 #include <GL/glew.h> // for GLenum, GLubyte, GL_UNSIGNED_BYTE, GLuint
 #include <glm/glm.hpp> // for s_vec2, glm::vec2, glm::vec2, CLAMP, glm::vec4, s_vec4
 #include <math.h> // for round
@@ -20,7 +20,7 @@
 class Shader;
 class Framebuffer;
 
-class Texture : public Object {
+class Texture : public Component {
 public:
     //static std::shared_ptr<Texture> Create(const std::string &name, glm::ivec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
     static std::shared_ptr<Texture> GetByName(const std::string&);
@@ -49,6 +49,14 @@ public:
 
 protected:
     Texture(const std::string& name);
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float /*delta*/) override {};
+    virtual void _FixedUpdateCPU(float /*delta*/) override {};
+    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     //Texture(const std::string &name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
     GLuint _glid { 0 };
     char _bpp { 0 };
