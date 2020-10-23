@@ -256,7 +256,8 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
         return;
     bool skinChanged(false);
     if (_jointMatrices == nullptr) {
-        _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, BufferHelper::CreateAccessor<glm::mat4>(GetComponent<MeshSkin>()->Joints().size(), GL_TEXTURE_BUFFER, false, GL_DYNAMIC_DRAW));
+        auto bufferAccessor = BufferHelper::CreateAccessor<glm::mat4>(GetComponent<MeshSkin>()->Joints().size(), GL_TEXTURE_BUFFER, false, GL_DYNAMIC_DRAW);
+        _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, bufferAccessor);
         skinChanged = true;
         debugLog(Name() + " : Create Skin");
     }
