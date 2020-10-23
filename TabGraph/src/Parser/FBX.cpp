@@ -329,7 +329,7 @@ static inline AssetsContainer ParseMaterials(FBX::Document* document)
                                     double(P->Property(6)))
                                   : glm::vec3(0.5));
             P = propertiesMap["EmissiveColor"];
-            material->SetEmitting(P ? glm::vec3(
+            material->SetEmissive(P ? glm::vec3(
                                       double(P->Property(4)),
                                       double(P->Property(5)),
                                       double(P->Property(6)))
@@ -341,7 +341,7 @@ static inline AssetsContainer ParseMaterials(FBX::Document* document)
                                       double(P->Property(6)))
                                     : glm::vec3(0.04));
             P = propertiesMap["EmissiveFactor"];
-            material->SetEmitting(material->Emitting() * float(P ? double(P->Property(4)) : 1.0));
+            material->SetEmissive(material->Emissive() * float(P ? double(P->Property(4)) : 1.0));
             P = propertiesMap["SpecularFactor"];
             material->SetRoughness(P ? glm::clamp(1.f / (1.f + double(P->Property(4))) * 50.f, 0.0, 1.0) : 0.5);
             P = propertiesMap["ReflectionFactor"];
