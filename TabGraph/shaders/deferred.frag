@@ -35,7 +35,7 @@ struct t_GeometryTextures {
 	sampler2D		F0;
 	sampler2D		Normal;
 	sampler2D		Depth;
-	sampler2D		Emitting;
+	sampler2D		Emissive;
 	sampler2D		Ior;
 	sampler2D		AO;
 };
@@ -90,7 +90,7 @@ vec3 decodeNormal(vec2 packed_nrm) {
 #ifdef LIGHTSHADER
 	struct t_BackTextures {
 		sampler2D	Color;
-		sampler2D	Emitting;
+		sampler2D	Emissive;
 	};
 	
 	struct t_Textures {
@@ -107,7 +107,7 @@ vec3 decodeNormal(vec2 packed_nrm) {
 	uniform uint			FrameNumber;
 	
 	layout(location = 0) out vec4	out_Color;
-	layout(location = 1) out vec3	out_Emitting;
+	layout(location = 1) out vec3	out_Emissive;
 	
 	float _opacity = 1; 
 	#define Opacity() (_opacity)
@@ -125,9 +125,9 @@ vec3 decodeNormal(vec2 packed_nrm) {
 	#define Alpha() (_alpha)
 	#define SetAlpha(alpha) (_alpha = alpha)
 	
-	vec3 _emitting = vec3(0);
-	#define Emitting() (_emitting)
-	#define SetEmitting(emitting) (_emitting = emitting)
+	vec3 _emissive = vec3(0);
+	#define Emissive() (_emissive)
+	#define SetEmissive(emissive) (_emissive = emissive)
 	
 	float _ior = 1;
 	#define Ior() (_ior)
@@ -147,14 +147,14 @@ vec3 decodeNormal(vec2 packed_nrm) {
 	#define BackColor() (out_Color)
 	#define SetBackColor(backColor) (out_Color = backColor)
 	
-	#define BackEmitting() (out_Emitting)
-	#define SetBackEmitting(backEmitting) (out_Emitting = backEmitting)
+	#define BackEmissive() (out_Emissive)
+	#define SetBackEmissive(backEmissive) (out_Emissive = backEmissive)
 #endif //LIGHTSHADER
 
 #ifdef POSTSHADER
 	struct t_BackTextures {
 		sampler2D	Color;
-		sampler2D	Emitting;
+		sampler2D	Emissive;
 	};
 	
 	struct t_Textures {
@@ -164,7 +164,7 @@ vec3 decodeNormal(vec2 packed_nrm) {
 		t_Environment		Environment;
 	};
 	layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
-	layout(location = 1) out vec3	out_Emitting;
+	layout(location = 1) out vec3	out_Emissive;
 	layout(location = 2) out vec4	out_F0; //BRDF F0, BRDF Alpha
 	layout(location = 3) out float	out_Ior;
 	layout(location = 4) out float	out_AO;
@@ -182,8 +182,8 @@ vec3 decodeNormal(vec2 packed_nrm) {
 	#define Alpha() (out_F0.a)
 	#define SetAlpha(alpha) (out_F0.a = alpha)
 
-	#define Emitting() (out_Emitting)
-	#define SetEmitting(emitting) (out_Emitting = emitting)
+	#define Emissive() (out_Emissive)
+	#define SetEmissive(emissive) (out_Emissive = emissive)
 
 	#define Ior() (out_Ior)
 	#define SetIor(ior) (out_Ior = ior)
@@ -397,7 +397,7 @@ void FillFragmentData(void)
 	vec4	F0_sample = textureLod(Texture.Geometry.F0, TexCoord(), 0);
 	vec2	Normal_sample = textureLod(Texture.Geometry.Normal, TexCoord(), 0).xy;
 	float	Depth_sample = textureLod(Texture.Geometry.Depth, TexCoord(), 0).x;
-	vec3	Emitting_sample = textureLod(Texture.Geometry.Emitting, TexCoord(), 0).rgb;
+	vec3	Emissive_sample = textureLod(Texture.Geometry.Emissive, TexCoord(), 0).rgb;
 	float	Ior_sample = textureLod(Texture.Geometry.Ior, TexCoord(), 0).x;
 	float	AO_sample = textureLod(Texture.Geometry.AO, TexCoord(), 0).x;
 	SetCDiff(CDiff_sample.rgb);
@@ -406,14 +406,14 @@ void FillFragmentData(void)
 	SetOpacity(CDiff_sample.a);
 	SetEncodedNormal(Normal_sample);
 	SetDepth(Depth_sample);
-	SetEmitting(Emitting_sample);
+	SetEmissive(Emissive_sample);
 	SetIor(Ior_sample);
 	SetAO(AO_sample);
 #ifdef LIGHTSHADER
 	vec4 BackColor_sample = textureLod(Texture.Back.Color, TexCoord(), 0);
-	vec3 BackEmitting_sample = textureLod(Texture.Back.Emitting, TexCoord(), 0).rgb;
+	vec3 BackEmissive_sample = textureLod(Texture.Back.Emissive, TexCoord(), 0).rgb;
 	SetBackColor(BackColor_sample);
-	SetBackEmitting(BackEmitting_sample);
+	SetBackEmissive(BackEmissive_sample);
 #endif //LIGHTSHADER
 	SetWorldNormal(decodeNormal(EncodedNormal()));
 	SetWorldPosition(WorldPosition(TexCoord()));
@@ -433,11 +433,11 @@ void FillFragmentData(void)
 	SetF0(F0_sample.rgb);
 	SetAlpha(F0_sample.a);
 	SetOpacity(CDiff_sample.a);
-	Frag.Emitting = texture(Texture.Emitting, TexCoord()).rgb;
+	Frag.Emissive = texture(Texture.Emissive, TexCoord()).rgb;
 	Frag.AO = texture(Texture.AO, TexCoord()).r;
 #ifdef LIGHTSHADER
 	Out.Color = texture(Texture.Back.Color, TexCoord());
-	Out.Emitting = texture(Texture.Back.Emitting, TexCoord()).rgb;
+	Out.Emissive = texture(Texture.Back.Emissive, TexCoord()).rgb;
 #endif
 }*/
 
@@ -454,7 +454,7 @@ void	FillOut(in vec3 OriginalPosition)
 	out_CDiff = vec4(Frag.BRDF.CDiff, Frag.Opacity);
 	out_F0.rgb = Frag.BRDF.F0;
 	out_F0.a = Frag.BRDF.Alpha;
-	out_Emitting = Frag.Emitting;
+	out_Emissive = Frag.Emissive;
 	out_Ior = Frag.Ior;
 	out_AO = Frag.AO;
 	out_Normal = encodeNormal(normalize(WorldNormal()));
@@ -470,7 +470,7 @@ void	FillOut(in vec3 OriginalPosition)
 		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
 	}
 	out_Color = Out.Color;
-	out_Emitting = Out.Emitting;
+	out_Emissive = Out.Emissive;
 }
 #endif*/
 

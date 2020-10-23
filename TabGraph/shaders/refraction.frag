@@ -1,6 +1,6 @@
 R""(
 uniform sampler2D	opaqueBackColor;
-uniform sampler2D	opaqueBackEmitting;
+uniform sampler2D	opaqueBackEmissive;
 uniform sampler2D	opaqueBackNormal;
 uniform sampler2D	opaqueBackDepth;
 
@@ -55,16 +55,16 @@ void	Refraction()
 		refract_UV = warpUV(vec2(0), vec2(1), refract_UV);
 	}
 	vec3	Back_Color = sampleLod(Texture.Back.Color, refract_UV, Alpha()).rgb;
-	vec3	Back_Emitting = sampleLod(Texture.Back.Emitting, refract_UV, Alpha()).rgb;
+	vec3	Back_Emissive = sampleLod(Texture.Back.Emissive, refract_UV, Alpha()).rgb;
 	vec3	Back_Normal = texture(opaqueBackNormal, refract_UV).rgb;
 	if (Opacity() == 0) {
 		return ;
 	}
 	vec3 refractionColor = mix(vec3(1), CDiff(), Opacity());
 	vec3 backColor = mix(Back_Color * refractionColor, vec3(0), Opacity());
-	vec3 backEmitting = mix(Back_Emitting * refractionColor, vec3(0), Opacity());
+	vec3 backEmissive = mix(Back_Emissive * refractionColor, vec3(0), Opacity());
 	SetBackColor(vec4(backColor, 1));
-	SetBackEmitting(backEmitting);
+	SetBackEmissive(backEmissive);
 }
 
 

@@ -1,6 +1,6 @@
 R""(
 #define M_PI 3.1415926535897932384626433832795
-#if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_DIFFUSE) || defined(TEXTURE_USE_EMITTING) || defined(TEXTURE_USE_NORMAL) || defined(TEXTURE_USE_AO)
+#if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_DIFFUSE) || defined(TEXTURE_USE_EMISSIVE) || defined(TEXTURE_USE_NORMAL) || defined(TEXTURE_USE_AO)
 #define USE_TEXTURES
 #endif
 
@@ -22,8 +22,8 @@ struct t_StandardTextures {
 #ifdef TEXTURE_USE_DIFFUSE
 	sampler2D	Diffuse;
 #endif
-#ifdef TEXTURE_USE_EMITTING
-	sampler2D	Emitting;
+#ifdef TEXTURE_USE_EMISSIVE
+	sampler2D	Emissive;
 #endif
 #ifdef TEXTURE_USE_NORMAL
 	sampler2D	Normal;
@@ -36,7 +36,7 @@ struct t_StandardTextures {
 
 struct t_StandardValues {
 	vec3		Diffuse;
-	vec3		Emitting;
+	vec3		Emissive;
 	float		Opacity;
 	float		Parallax;
 	float		Ior;
@@ -85,7 +85,7 @@ in VertexData {
 } Input;
 
 layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
-layout(location = 1) out vec3	out_Emitting;
+layout(location = 1) out vec3	out_Emissive;
 layout(location = 2) out vec4	out_F0; //BRDF F0, BRDF Alpha
 layout(location = 3) out float	out_Ior;
 layout(location = 4) out float	out_AO;
@@ -103,8 +103,8 @@ layout(location = 5) out vec2	out_Normal;
 #define Alpha() (out_F0.a)
 #define SetAlpha(alpha) (out_F0.a = alpha)
 
-#define Emitting() (out_Emitting)
-#define SetEmitting(emitting) (out_Emitting = emitting)
+#define Emissive() (out_Emissive)
+#define SetEmissive(emissive) (out_Emissive = emissive)
 
 #define Ior() (out_Ior)
 #define SetIor(ior) (out_Ior = ior)
@@ -293,11 +293,11 @@ void	FillFragmentData()
 	SetCDiff(StandardValues.Diffuse);
 	SetOpacity(StandardValues.Opacity);
 #endif
-#ifdef TEXTURE_USE_EMITTING
-	vec3 emitting = texture(StandardTextures.Emitting, TexCoord()).rgb;
-	SetEmitting(StandardValues.Emitting * emitting);
+#ifdef TEXTURE_USE_EMISSIVE
+	vec3 emissive = texture(StandardTextures.Emissive, TexCoord()).rgb;
+	SetEmissive(StandardValues.Emissive * emissive);
 #else
-	SetEmitting(StandardValues.Emitting);
+	SetEmissive(StandardValues.Emissive);
 #endif
 #ifdef TEXTURE_USE_AO
 	SetAO(StandardValues.AO + texture(StandardTextures.AO, TexCoord()).r);
@@ -320,7 +320,7 @@ void	FillFragmentData()
 	out_CDiff = vec4(Frag.BRDF.CDiff, StandardValues.Opacity);
 	out_F0.rgb = Frag.BRDF.F0;
 	out_F0.a = Frag.BRDF.Alpha;
-	out_Emitting = max(vec3(0), StandardValues.Emitting + StandardValues.Diffuse.rgb - 1);
+	out_Emissive = max(vec3(0), StandardValues.Emissive + StandardValues.Diffuse.rgb - 1);
 	out_Ior = StandardValues.Ior;
 	out_AO = StandardValues.AO;
 	out_Normal = encodeNormal(normalize(WorldNormal()));

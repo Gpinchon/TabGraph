@@ -1,3 +1,4 @@
+#pragma once
 #include "MaterialExtension.hpp"
 
 #include <glm/vec4.hpp>

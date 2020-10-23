@@ -84,13 +84,13 @@ void	Lighting()
 	vec3 outColor = BackColor().rgb;
 	//Out.Color.rgb += mix(envReflection, ssrResult.rgb * fresnel, ssrResult.a) * alpha;
 	outColor += (specular + reflection) * alpha;
-	outColor += (diffuse + Emitting()) * alpha;
+	outColor += (diffuse + Emissive()) * alpha;
 #ifndef TRANSPARENT
 	vec3	EnvDiffuse = texture(Texture.Environment.Diffuse, CubeTexCoord()).rgb;
 	outColor += EnvDiffuse * floor(Depth()) * (1 - alpha);
 #endif
 	SetBackColor(vec4(outColor, 1));
-	SetBackEmitting(BackEmitting() + max(vec3(0), BackColor().rgb - 1) + Emitting());
+	SetBackEmissive(BackEmissive() + max(vec3(0), BackColor().rgb - 1) + Emissive());
 }
 
 )""

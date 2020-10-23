@@ -64,7 +64,7 @@ protected:
     std::shared_ptr<Shader> _shader;
     std::shared_ptr<Shader> _depth_shader;
     std::shared_ptr<Texture2D> _texture_diffuse;
-    std::shared_ptr<Texture2D> _texture_emitting;
+    std::shared_ptr<Texture2D> _texture_emissive;
     std::shared_ptr<Texture2D> _texture_normal;
     std::shared_ptr<Texture2D> _texture_height;
     std::shared_ptr<Texture2D> _texture_ao;

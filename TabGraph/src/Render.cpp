@@ -146,14 +146,14 @@ std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string& name, const
     auto buffer = Framebuffer::Create(name, size, 0, 1);
     /*buffer->Create_attachement(GL_RGBA, GL_RGBA8); //BRDF CDiff
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); //BRDF F0
-    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
+    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emissive;
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // MaterialValues -> Roughness, Metallic, Ior
     buffer->Create_attachement(GL_RED, GL_R8); //AO
     buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); // Normal;
     buffer->setup_attachements();*/
 
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // BRDF CDiff, Transparency;
-    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
+    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emissive;
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // BRDF F0, BRDF Alpha;
     buffer->Create_attachement(GL_RED, GL_R16F); // Ior
     buffer->Create_attachement(GL_RED, GL_R8); //AO
@@ -166,7 +166,7 @@ std::shared_ptr<Framebuffer> CreateRenderBuffer(const std::string& name, const g
 {
     auto buffer = Framebuffer::Create(name, size, 0, 1);
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // Color;
-    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emitting;
+    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emissive;
     //buffer->Create_attachement(GL_RGB, GL_RGB16_SNORM); //Normal
     //buffer->setup_attachements();
     return (buffer);
@@ -181,7 +181,7 @@ void present(std::shared_ptr<Framebuffer> back_buffer)
         presentShader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(present_fragment_code, "Present();")));
     }
     presentShader->SetTexture("in_Texture_Color", back_buffer->attachement(0));
-    presentShader->SetTexture("in_Texture_Emitting", back_buffer->attachement(1));
+    presentShader->SetTexture("in_Texture_Emissive", back_buffer->attachement(1));
     presentShader->SetTexture("in_Texture_Depth", back_buffer->depth());
     glDepthFunc(GL_ALWAYS);
     glDisable(GL_CULL_FACE);
@@ -411,13 +411,13 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer>& currentGeo
         if (lightIndex == 0)
             continue;
         shader->SetTexture("Texture.Geometry.CDiff", currentGeometryBuffer->attachement(0));
-        shader->SetTexture("Texture.Geometry.Emitting", currentGeometryBuffer->attachement(1));
+        shader->SetTexture("Texture.Geometry.Emissive", currentGeometryBuffer->attachement(1));
         shader->SetTexture("Texture.Geometry.F0", currentGeometryBuffer->attachement(2));
         shader->SetTexture("Texture.Geometry.Ior", currentGeometryBuffer->attachement(3));
         shader->SetTexture("Texture.Geometry.Normal", currentGeometryBuffer->attachement(5));
         shader->SetTexture("Texture.Geometry.Depth", currentGeometryBuffer->depth());
         shader->SetTexture("Texture.Back.Color", lightRenderBuffer1->attachement(0));
-        shader->SetTexture("Texture.Back.Emitting", lightRenderBuffer1->attachement(1));
+        shader->SetTexture("Texture.Back.Emissive", lightRenderBuffer1->attachement(1));
         //shader->SetUniform("Texture.Back.Normal", lightRenderBuffer1->attachement(2), GL_TEXTURE8);
         lightRenderBuffer0->bind();
         shader->use();
@@ -727,7 +727,7 @@ std::shared_ptr<Framebuffer> RefractionPass(std::shared_ptr<Framebuffer> geometr
     }
     auto i = 0;
     refractionShader->SetTexture("Texture.Geometry.CDiff", geometryBuffer->attachement(0));
-    refractionShader->SetTexture("Texture.Geometry.Emitting", geometryBuffer->attachement(1));
+    refractionShader->SetTexture("Texture.Geometry.Emissive", geometryBuffer->attachement(1));
     refractionShader->SetTexture("Texture.Geometry.F0", geometryBuffer->attachement(2));
     refractionShader->SetTexture("Texture.Geometry.Ior", geometryBuffer->attachement(3));
     refractionShader->SetTexture("Texture.Geometry.AO", geometryBuffer->attachement(4));
@@ -735,7 +735,7 @@ std::shared_ptr<Framebuffer> RefractionPass(std::shared_ptr<Framebuffer> geometr
     refractionShader->SetTexture("Texture.Geometry.Depth", geometryBuffer->depth());
     refractionShader->SetTexture("Texture.BRDF", Render::Private::BRDF());
     refractionShader->SetTexture("Texture.Back.Color", opaqueRenderBuffer->attachement(0));
-    refractionShader->SetTexture("Texture.Back.Emitting", opaqueRenderBuffer->attachement(1));
+    refractionShader->SetTexture("Texture.Back.Emissive", opaqueRenderBuffer->attachement(1));
     //refractionShader->SetUniform("Texture.Back.Normal", opaqueRenderBuffer->attachement(2));
     refractionRenderBuffer->Resize(res);
     refractionRenderBuffer->bind();
@@ -775,7 +775,7 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
 
     auto i = 0;
     elighting_shader->SetTexture("Texture.Geometry.CDiff", opaqueGeometryBuffer->attachement(0));
-    elighting_shader->SetTexture("Texture.Geometry.Emitting", opaqueGeometryBuffer->attachement(1));
+    elighting_shader->SetTexture("Texture.Geometry.Emissive", opaqueGeometryBuffer->attachement(1));
     elighting_shader->SetTexture("Texture.Geometry.F0", opaqueGeometryBuffer->attachement(2));
     elighting_shader->SetTexture("Texture.Geometry.Ior", opaqueGeometryBuffer->attachement(3));
     elighting_shader->SetTexture("Texture.Geometry.AO", opaqueGeometryBuffer->attachement(4));
@@ -783,7 +783,7 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     elighting_shader->SetTexture("Texture.Geometry.Depth", opaqueGeometryBuffer->depth());
     elighting_shader->SetTexture("Texture.BRDF", Render::Private::BRDF());
     elighting_shader->SetTexture("Texture.Back.Color", lightResult->attachement(0));
-    elighting_shader->SetTexture("Texture.Back.Emitting", lightResult->attachement(1));
+    elighting_shader->SetTexture("Texture.Back.Emissive", lightResult->attachement(1));
     elighting_shader->SetTexture("SSRResult", SSRResult);
     if (Environment::current() != nullptr) {
         elighting_shader->SetTexture("Texture.Environment.Diffuse", Environment::current()->diffuse());
@@ -831,7 +831,7 @@ std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender,
 
     auto i = 0;
     elighting_shader->SetTexture("Texture.Geometry.CDiff", transpGeometryBuffer->attachement(0));
-    elighting_shader->SetTexture("Texture.Geometry.Emitting", transpGeometryBuffer->attachement(1));
+    elighting_shader->SetTexture("Texture.Geometry.Emissive", transpGeometryBuffer->attachement(1));
     elighting_shader->SetTexture("Texture.Geometry.F0", transpGeometryBuffer->attachement(2));
     elighting_shader->SetTexture("Texture.Geometry.Ior", transpGeometryBuffer->attachement(3));
     elighting_shader->SetTexture("Texture.Geometry.AO", transpGeometryBuffer->attachement(4));
@@ -839,7 +839,7 @@ std::shared_ptr<Framebuffer> TranspPass(std::shared_ptr<Framebuffer> lastRender,
     elighting_shader->SetTexture("Texture.Geometry.Depth", transpGeometryBuffer->depth());
     elighting_shader->SetTexture("Texture.BRDF", Render::Private::BRDF());
     elighting_shader->SetTexture("Texture.Back.Color", refractionResult->attachement(0));
-    elighting_shader->SetTexture("Texture.Back.Emitting", refractionResult->attachement(1));
+    elighting_shader->SetTexture("Texture.Back.Emissive", refractionResult->attachement(1));
     elighting_shader->SetTexture("SSRResult", SSRResult);
     if (Environment::current() != nullptr) {
         elighting_shader->SetTexture("Texture.Environment.Diffuse", Environment::current()->diffuse());

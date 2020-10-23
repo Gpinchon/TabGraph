@@ -1,3 +1,4 @@
+#pragma once
 #include "Component.hpp"
 #include "Shader/ShaderExtension.hpp"
 

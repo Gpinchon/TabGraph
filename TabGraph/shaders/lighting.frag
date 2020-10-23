@@ -151,14 +151,14 @@ void	Lighting()
 	alpha = min(1, alpha);
 
 	vec4 backColor = BackColor();
-	vec3 backEmitting = BackEmitting().rgb;
+	vec3 backEmissive = BackEmissive().rgb;
 
 	
 	backColor.rgb += (specular + diffuse + reflection) * alpha;
 	backColor.a = 1;
-	backEmitting.rgb += max(vec3(0), BackColor().rgb - 1);
+	backEmissive.rgb += max(vec3(0), BackColor().rgb - 1);
 	SetBackColor(backColor);
-	SetBackEmitting(backEmitting);
+	SetBackEmissive(backEmissive);
 }
 
 )""

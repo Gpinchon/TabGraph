@@ -49,10 +49,10 @@ void	SSAO()
 	}
 	occlusion /= float(KERNEL_SIZE);
 	SetBackColor(vec4(vec3(AO() + max(0, occlusion)), 1));
-	SetBackEmitting(vec3(0));
+	SetBackEmissive(vec3(0));
 	//Out.Color.rgb = vec3(sampleAngle);
 	//Out.Color.a = 1;
-	//Out.Emitting = vec3(0);
+	//Out.Emissive = vec3(0);
 }
 
 )""

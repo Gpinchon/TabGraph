@@ -134,7 +134,7 @@ std::shared_ptr<Texture2D> Material::TextureDiffuse() const
 
 std::shared_ptr<Texture2D> Material::TextureEmissive() const
 {
-    return _texture_emitting;
+    return _texture_emissive;
 }
 
 std::shared_ptr<Texture2D> Material::TextureNormal() const
@@ -161,9 +161,9 @@ void Material::SetTextureDiffuse(std::shared_ptr<Texture2D> t)
 
 void Material::SetTextureEmissive(std::shared_ptr<Texture2D> t)
 {
-    _texture_emitting = t;
+    _texture_emissive = t;
     shader()->SetTexture("StandardTextures.Emissive", TextureEmissive());
-    TextureEmissive() ? shader()->SetDefine("TEXTURE_USE_EMITTING") : shader()->RemoveDefine("TEXTURE_USE_EMITTING");
+    TextureEmissive() ? shader()->SetDefine("TEXTURE_USE_EMISSIVE") : shader()->RemoveDefine("TEXTURE_USE_EMISSIVE");
 }
 
 void Material::SetTextureNormal(std::shared_ptr<Texture2D> t)
