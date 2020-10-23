@@ -8,6 +8,8 @@
 #include "Parser/MTLLIB.hpp"
 #include "Parser/InternalTools.hpp" // for parse_vec3, t_obj_parser, strspl...
 #include "Material/Material.hpp" // for Material
+#include "Material/MetallicRoughness.hpp"
+#include "Material/SpecularGlossiness.hpp"
 #include "Texture/TextureParser.hpp" // for TextureParser
 #include "Assets/AssetsParser.hpp"
 #include "Debug.hpp"
@@ -30,6 +32,28 @@
 #include <sys/io.h>
 #endif // for access, R_OK
 
+std::shared_ptr<MetallicRoughness> GetOrCreateMetallicRoughnessExtention(std::shared_ptr<Material> mtl)
+{
+    auto extension = std::static_pointer_cast<MetallicRoughness>(mtl->GetExtension("MetallicRoughness"));
+    if (extension == nullptr) {
+        extension = MetallicRoughness::Create();
+        extension->SetMetallic(0.f);
+        mtl->AddExtension(extension);
+    }
+    return extension;
+}
+
+std::shared_ptr<SpecularGlossiness> GetOrCreateSpecularGlossinessExtention(std::shared_ptr<Material> mtl)
+{
+    auto extension = std::static_pointer_cast<SpecularGlossiness>(mtl->GetExtension("SpecularGlossiness"));
+    if (extension == nullptr) {
+        extension = SpecularGlossiness::Create();
+        extension->SetSpecular(glm::vec3(0));
+        mtl->AddExtension(extension);
+    }
+    return extension;
+}
+
 static inline void parse_color(std::vector<std::string> &split, std::shared_ptr<Material> mtl)
 {
     if (split[0] == "Kd")
@@ -39,24 +63,13 @@ static inline void parse_color(std::vector<std::string> &split, std::shared_ptr<
     else if (split[0] == "Ks")
     {
         //mtl->SetSpecular(parse_vec3(split) / (1 + (1 - mtl->Metallic()) * 24));
+        auto extension = GetOrCreateSpecularGlossinessExtention(mtl);
+        extension->SetSpecular(parse_vec3(split) / 10.f);
     }
     else if (split[0] == "Ke")
     {
         mtl->SetEmissive(parse_vec3(split));
     }
-}
-
-#include "Material/MetallicRoughness.hpp"
-
-std::shared_ptr<MetallicRoughness> GetOrCreateExtention(std::shared_ptr<Material> mtl)
-{
-    auto extension = std::static_pointer_cast<MetallicRoughness>(mtl->GetExtension("MetallicRoughness"));
-    if (extension == nullptr) {
-        extension = MetallicRoughness::Create();
-        extension->SetMetallic(0.f);
-        mtl->AddExtension(extension);
-    }
-    return extension;
 }
 
 static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string &textureType, std::filesystem::path path)
@@ -68,10 +81,12 @@ static inline void parse_texture(std::shared_ptr<Material> mtl, const std::strin
         }
         else if (textureType == "map_Ks")
         {
-            //mtl->SetTextureSpecular(TextureParser::parse(path.string(), path.string()));
+            auto extension = GetOrCreateSpecularGlossinessExtention(mtl);
+            extension->SetTextureSpecular(TextureParser::parse(path.string(), path.string()));
         }
         else if (textureType == "map_Ke")
         {
+            mtl->SetEmissive(glm::vec3(1));
             mtl->SetTextureEmissive(TextureParser::parse(path.string(), path.string()));
         }
         else if (textureType == "map_Nh")
@@ -84,12 +99,12 @@ static inline void parse_texture(std::shared_ptr<Material> mtl, const std::strin
         }
         else if (textureType == "map_Nr")
         {
-            auto extension = GetOrCreateExtention(mtl);
+            auto extension = GetOrCreateMetallicRoughnessExtention(mtl);
             extension->SetTextureRoughness(TextureParser::parse(path.string(), path.string()));
         }
         else if (textureType == "map_Nm")
         {
-            auto extension = GetOrCreateExtention(mtl);
+            auto extension = GetOrCreateMetallicRoughnessExtention(mtl);
             extension->SetTextureMetallic(TextureParser::parse(path.string(), path.string()));
         }
         else if (textureType == "map_bump" || textureType == "map_Bump")
@@ -111,16 +126,18 @@ static inline void parse_number(std::vector<std::string> &split, std::shared_ptr
     }
     else if (split[0] == "Ns")
     {
+        auto extension = GetOrCreateSpecularGlossinessExtention(mtl);
+        extension->SetGlossiness(glm::clamp(std::stof(split[1]), 0.f, 250.f) / 250.f);
         //mtl->SetRoughness(glm::clamp(1.f / (1.f + std::stof(split[1])) * 50.f, 0.f, 1.f));
     }
     else if (split[0] == "Nr")
     {
-        auto extension = GetOrCreateExtention(mtl);
+        auto extension = GetOrCreateMetallicRoughnessExtention(mtl);
         extension->SetRoughness(std::stof(split[1]));
     }
     else if (split[0] == "Nm")
     {
-        auto extension = GetOrCreateExtention(mtl);
+        auto extension = GetOrCreateMetallicRoughnessExtention(mtl);
         extension->SetMetallic(std::stof(split[1]));
     }
     else if (split[0] == "Ni")

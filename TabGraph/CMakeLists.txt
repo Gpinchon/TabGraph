@@ -173,6 +173,7 @@ set(TABGRAPH_SHADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/lighting.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/lighting_env.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/metallicRoughness.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/specularGlossiness.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.vert
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/present.frag
