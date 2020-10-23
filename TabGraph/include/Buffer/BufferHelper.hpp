@@ -90,7 +90,7 @@ inline void FindMinMax(const std::vector<glm::mat4>& vector, glm::mat4& minM, gl
 template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::mat4> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
-    auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
+    auto bufferView(BufferHelper::CreateBufferView(bufferVector, target, usage));
     auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Mat4));
     glm::mat4 minM, maxM;
     FindMinMax(bufferVector, minM, maxM);
@@ -104,7 +104,7 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<unsigned> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
-    auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
+    auto bufferView(BufferHelper::CreateBufferView(bufferVector, target, usage));
     auto bufferAccessor(BufferAccessor::Create(GL_UNSIGNED_INT, bufferVector.size(), BufferAccessor::Type::Scalar));
     unsigned minU, maxU;
     FindMinMax(bufferVector, minU, maxU);
@@ -118,7 +118,7 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec3> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
-    auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
+    auto bufferView(BufferHelper::CreateBufferView(bufferVector, target, usage));
     auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec3));
     glm::vec3 minV, maxV;
     FindMinMax(bufferVector, minV, maxV);
@@ -132,7 +132,7 @@ inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<
 template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec2> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
-    auto bufferView(BufferHelper::CreateBufferView(bufferVector, target));
+    auto bufferView(BufferHelper::CreateBufferView(bufferVector, target, usage));
     auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec2));
     glm::vec2 min, max;
     FindMinMax(bufferVector, min, max);
