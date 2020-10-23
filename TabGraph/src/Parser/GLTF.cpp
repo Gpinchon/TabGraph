@@ -164,11 +164,74 @@ static inline std::shared_ptr<Texture2D> GetTexture(const std::vector<std::share
 }
 
 #include "Material/MetallicRoughness.hpp"
+#include "Material/SpecularGlossiness.hpp"
 
-static inline auto ParseMaterials(const std::filesystem::path path, const rapidjson::Document& document)
+static inline auto ParseMaterialExtensions(const AssetsContainer& container, const rapidjson::Value& materialValue, std::shared_ptr<Material> material)
+{
+    try {
+        for (const auto& extension : materialValue["extensions"].GetObject())
+        {
+            if (std::string(extension.name.GetString()) == "KHR_materials_pbrSpecularGlossiness")
+            {
+                const auto& pbrSpecularGlossiness = extension.value;
+                auto materialExtension = SpecularGlossiness::Create();
+                material->AddExtension(materialExtension);
+                try {
+                    auto diffuseFactor(pbrSpecularGlossiness["diffuseFactor"].GetArray());
+                    materialExtension->SetDiffuse(glm::vec4(
+                        diffuseFactor[0].GetFloat(),
+                        diffuseFactor[1].GetFloat(),
+                        diffuseFactor[2].GetFloat(),
+                        diffuseFactor[3].GetFloat()
+                    ));
+                }
+                catch (const std::exception&) {
+                    debugLog("No diffuseFactor found for " + material->Name());
+                }
+                try {
+                    auto diffuseFactor(pbrSpecularGlossiness["specularFactor"].GetArray());
+                    materialExtension->SetSpecular(glm::vec3(
+                        diffuseFactor[0].GetFloat(),
+                        diffuseFactor[1].GetFloat(),
+                        diffuseFactor[2].GetFloat()
+                        ));
+                }
+                catch (const std::exception&) {
+                    debugLog("No specularFactor found for " + material->Name());
+                }
+                try {
+                    auto glossinessFactor(pbrSpecularGlossiness["glossinessFactor"].GetFloat());
+                    materialExtension->SetGlossiness(glossinessFactor);
+                }
+                catch (const std::exception&) {
+                    debugLog("No glossinessFactor found for " + material->Name());
+                }
+                try {
+                    auto textureObject(pbrSpecularGlossiness["diffuseTexture"].GetObject());
+                    materialExtension->SetTextureDiffuse(GetTexture(container.GetComponents<Texture2D>(), textureObject["index"].GetInt()));
+                }
+                catch (std::exception&) {
+                    debugLog("No diffuseTexture found for " + material->Name());
+                }
+                try {
+                    auto textureObject(pbrSpecularGlossiness["specularGlossinessTexture"].GetObject());
+                    materialExtension->SetTextureSpecularGlossiness(GetTexture(container.GetComponents<Texture2D>(), textureObject["index"].GetInt()));
+                }
+                catch (std::exception&) {
+                    debugLog("No specularGlossinessTexture found for " + material->Name());
+                }
+            }
+        }
+    }
+    catch (std::exception&) {
+        debugLog("No extension found");
+    }
+}
+
+static inline auto ParseMaterials(const rapidjson::Document& document, const AssetsContainer& container)
 {
     debugLog("Start parsing materials");
-    auto textureVector = ParseTextures(path, document);
+    //auto textureVector = ParseTextures(path, document);
     std::vector<std::shared_ptr<Material>> materialVector;
     try {
         auto materialIndex(0);
@@ -191,19 +254,19 @@ static inline auto ParseMaterials(const std::filesystem::path path, const rapidj
             }
             try {
                 auto textureObject(materialValue["normalTexture"].GetObject());
-                material->SetTextureNormal(GetTexture(textureVector, textureObject["index"].GetInt()));
+                material->SetTextureNormal(GetTexture(container.GetComponents<Texture2D>(), textureObject["index"].GetInt()));
             } catch (std::exception&) {
                 debugLog("No normalTexture property")
             }
             try {
                 auto textureObject(materialValue["emissiveTexture"].GetObject());
-                material->SetTextureEmissive(GetTexture(textureVector, textureObject["index"].GetInt()));
+                material->SetTextureEmissive(GetTexture(container.GetComponents<Texture2D>(), textureObject["index"].GetInt()));
             } catch (std::exception&) {
                 debugLog("No emissiveTexture property")
             }
             try {
                 auto textureObject(materialValue["occlusionTexture"].GetObject());
-                material->SetTextureAO(GetTexture(textureVector, textureObject["index"].GetInt()));
+                material->SetTextureAO(GetTexture(container.GetComponents<Texture2D>(), textureObject["index"].GetInt()));
             }
             catch (std::exception&) {
                 debugLog("No occlusionTexture property")
@@ -216,7 +279,7 @@ static inline auto ParseMaterials(const std::filesystem::path path, const rapidj
                 materialExtension->SetMetallic(1);
                 try {
                     auto textureObject(pbrMetallicRoughness["metallicRoughnessTexture"].GetObject());
-                    materialExtension->SetTextureMetallicRoughness(GetTexture(textureVector, textureObject["index"].GetInt()));
+                    materialExtension->SetTextureMetallicRoughness(GetTexture(container.GetComponents<Texture2D>(), textureObject["index"].GetInt()));
                 } catch (std::exception&) {
                     debugLog("No metallicRoughnessTexture property")
                 }
@@ -241,13 +304,14 @@ static inline auto ParseMaterials(const std::filesystem::path path, const rapidj
                 }
                 try {
                     auto textureObject(pbrMetallicRoughness["baseColorTexture"].GetObject());
-                    materialExtension->SetTextureBaseColor(GetTexture(textureVector, textureObject["index"].GetInt()));
+                    materialExtension->SetTextureBaseColor(GetTexture(container.GetComponents<Texture2D>(), textureObject["index"].GetInt()));
                 } catch (std::exception&) {
                     debugLog("No baseColorTexture property")
                 }
             } catch (std::exception&) {
                 debugLog("Not a pbrMetallicRoughness material")
             }
+            ParseMaterialExtensions(container, materialValue, material);
             materialVector.push_back(material);
             materialIndex++;
         }
@@ -415,8 +479,8 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const Assets
                 try {
                     auto& material(primitive["material"]);
                     auto materials = container.GetComponents<Material>();
-                    if (size_t(material.GetInt()) >= container.GetComponents<Material>().size())
-                        std::cerr << "Material index " << material.GetInt() << " out of bound " << container.GetComponents<Material>().size() << std::endl;
+                    if (size_t(material.GetInt()) >= materials.size())
+                        std::cerr << "Material index " << material.GetInt() << " out of bound " << materials.size() << std::endl;
                     currentMesh->AddMaterial(materials.at(material.GetInt()));
                     geometry->SetMaterialIndex(currentMesh->GetMaterialIndex(materials.at(material.GetInt())));
                 } catch (std::exception&) {
@@ -712,7 +776,10 @@ AssetsContainer GLTF::Parse(const std::filesystem::path path)
     for (const auto& accessor : ParseBufferAccessors(path, document)) {
         container.AddComponent(accessor);
     }
-    for (const auto& material : ParseMaterials(path, document)) {
+    for (const auto& texture : ParseTextures(path, document)) {
+        container.AddComponent(texture);
+    }
+    for (const auto& material : ParseMaterials(document, container)) {
         container.AddComponent(material);
     }
     for (const auto& mesh : ParseMeshes(document, container)) {
