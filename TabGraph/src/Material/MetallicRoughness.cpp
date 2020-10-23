@@ -8,9 +8,9 @@ MetallicRoughness::MetallicRoughness() : MaterialExtension("MetallicRoughness")
 #include "metallicRoughness.frag"
     ;
     GetShaderExtension()->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(extensionCode, "MetallicRoughness();")));
-    GetShaderExtension()->SetUniform("_MetallicRoughnessValues.BaseColor", BaseColor());
-    GetShaderExtension()->SetUniform("_MetallicRoughnessValues.Metallic", Metallic());
-    GetShaderExtension()->SetUniform("_MetallicRoughnessValues.Roughness", Roughness());
+    GetShaderExtension()->SetUniform("MetallicRoughnessValues.BaseColor", BaseColor());
+    GetShaderExtension()->SetUniform("MetallicRoughnessValues.Metallic", Metallic());
+    GetShaderExtension()->SetUniform("MetallicRoughnessValues.Roughness", Roughness());
 }
 
 std::shared_ptr<MetallicRoughness> MetallicRoughness::Create()
@@ -83,18 +83,18 @@ glm::vec4 MetallicRoughness::BaseColor() const
 
 void MetallicRoughness::SetRoughness(float value)
 {
-    GetShaderExtension()->SetUniform("_MetallicRoughnessValues.Roughness", value);
+    GetShaderExtension()->SetUniform("MetallicRoughnessValues.Roughness", value);
     _roughness = value;
 }
 
 void MetallicRoughness::SetMetallic(float value)
 {
-    GetShaderExtension()->SetUniform("_MetallicRoughnessValues.Metallic", value);
+    GetShaderExtension()->SetUniform("MetallicRoughnessValues.Metallic", value);
     _metallic = value;
 }
 
 void MetallicRoughness::SetBaseColor(glm::vec4 value)
 {
-    GetShaderExtension()->SetUniform("_MetallicRoughnessValues.BaseColor", value);
+    GetShaderExtension()->SetUniform("MetallicRoughnessValues.BaseColor", value);
     _baseColor = value;
 }
