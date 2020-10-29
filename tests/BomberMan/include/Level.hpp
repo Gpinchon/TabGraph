@@ -14,6 +14,7 @@ class GameEntity;
 
 class Level : public Scene {
 public:
+    Level(const std::string& name, const glm::ivec2& size);
     static std::shared_ptr<Level> Parse(const std::filesystem::path path);
     static std::shared_ptr<Level> Create(const std::string& name, const glm::ivec2& size);
     //static std::shared_ptr<Level> CurrentLevel();
@@ -28,7 +29,7 @@ public:
 
 private:
     virtual void _FixedUpdateCPU(float delta) override;
-    Level(const std::string& name, const glm::ivec2& size);
+    virtual void _FixedUpdateGPU(float delta) override;
     const glm::ivec2 _size;
     glm::ivec2 _spawnPoint;
     std::vector<std::shared_ptr<GameEntity>> _entities;

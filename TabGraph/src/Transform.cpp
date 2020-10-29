@@ -2,7 +2,7 @@
 
 std::shared_ptr<Transform> Transform::Create()
 {
-    return std::shared_ptr<Transform>(new Transform());
+    return tools::make_shared<Transform>();
 }
 
 /*std::shared_ptr<Transform> Transform::shared_from_this()
@@ -10,24 +10,26 @@ std::shared_ptr<Transform> Transform::Create()
     return std::static_pointer_cast<Transform>(shared_from_this());
 }*/
 
+#define WORLDTRANSFORMMATRIX(transform) (transform ? transform->WorldTransformMatrix() : glm::mat4(1.f))
+
 glm::mat4 Transform::WorldTransformMatrix()
 {
-    return Parent() ? Parent()->WorldTransformMatrix() * LocalTransformMatrix() : LocalTransformMatrix();
+    return WORLDTRANSFORMMATRIX(Parent()) * LocalTransformMatrix();
 }
 
 glm::mat4 Transform::WorldTranslationMatrix() const
 {
-    return Parent() ? Parent()->WorldTransformMatrix() * LocalTranslationMatrix() : LocalTranslationMatrix();
+    return WORLDTRANSFORMMATRIX(Parent()) * LocalTranslationMatrix();
 }
 
 glm::mat4 Transform::WorldRotationMatrix() const
 {
-    return Parent() ? Parent()->WorldTransformMatrix() * LocalRotationMatrix() : LocalRotationMatrix();
+    return WORLDTRANSFORMMATRIX(Parent()) * LocalRotationMatrix();
 }
 
 glm::mat4 Transform::WorldScaleMatrix() const
 {
-    return Parent() ? Parent()->WorldTransformMatrix() * LocalScaleMatrix() : LocalScaleMatrix();
+    return WORLDTRANSFORMMATRIX(Parent()) * LocalScaleMatrix();
 }
 
 glm::mat4 Transform::LocalTransformMatrix()
@@ -56,17 +58,17 @@ glm::mat4 Transform::LocalScaleMatrix() const
 
 glm::vec3 Transform::WorldPosition() const
 {
-    return Parent() ? Parent()->WorldTransformMatrix() * glm::vec4(Position(), 1.f) : Position();
+    return WORLDTRANSFORMMATRIX(Parent()) * glm::vec4(Position(), 1.f);
 }
 
 glm::quat Transform::WorldRotation() const
 {
-    return Parent() ? Parent()->WorldTransformMatrix() * glm::mat4_cast(Rotation()) : Rotation();
+    return WORLDTRANSFORMMATRIX(Parent()) * glm::mat4_cast(Rotation());
 }
 
 glm::vec3 Transform::WorldScale() const
 {
-    return Parent() ? Parent()->WorldTransformMatrix() * glm::vec4(Scale(), 1.f) : Scale();
+    return WORLDTRANSFORMMATRIX(Parent()) * glm::vec4(Scale(), 1.f);
 }
 
 /** @return the node local position */
@@ -158,12 +160,12 @@ void Transform::LookAt(const std::shared_ptr<Transform>& target, const glm::vec3
 
 std::shared_ptr<Transform> Transform::Parent() const
 {
-    return _parent;
+    return _transformParent;
 }
 
 void Transform::SetParent(std::shared_ptr<Transform> parent)
 {
     if (parent == shared_from_this() || Parent() == parent)
         return;
-    _parent = parent;
+    _transformParent = parent;
 }

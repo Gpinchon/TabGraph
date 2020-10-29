@@ -49,7 +49,7 @@ Material::Material(const std::string& name)
 
 std::shared_ptr<Material> Material::Create(const std::string& name)
 {
-    auto mtl = std::shared_ptr<Material>(new Material(name));
+    auto mtl = tools::make_shared<Material>(name);
     return mtl;
 }
 

@@ -4,6 +4,7 @@
 
 class Texture2D : public Texture {
 public:
+    Texture2D(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
     static std::shared_ptr<Texture2D> Create(const std::string& name, glm::ivec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
     /**@brief Fetches a texel with pixel coordinate and returns it as raw bytes*/
     virtual GLubyte* texelfetch(const glm::ivec2& uv);
@@ -19,7 +20,9 @@ public:
     T* at(float u, float v);
 
 protected:
-    Texture2D(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Texture2D>(*this);
+    }
     glm::ivec2 _size { 0, 0 };
     std::shared_ptr<Framebuffer> _blur_buffer0;
     std::shared_ptr<Framebuffer> _blur_buffer1;

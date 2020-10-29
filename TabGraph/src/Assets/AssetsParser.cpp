@@ -37,14 +37,14 @@ std::map<std::string, AssetsParser*>& AssetsParser::_getParsers()
     return *_parsers;
 }
 
-AssetsContainer AssetsParser::Parse(const std::filesystem::path path)
+std::shared_ptr<AssetsContainer> AssetsParser::Parse(const std::filesystem::path path)
 {
     auto format = std::filesystem::path(path).extension();
     debugLog(path);
     debugLog(format);
     auto parser = _get(format.string());
     debugLog(parser);
-    return parser ? parser(path) : AssetsContainer();
+    return parser ? parser(path) : nullptr;
 }
 
 AssetsParsingFunction AssetsParser::_get(const std::string& format)

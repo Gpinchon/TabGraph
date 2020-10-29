@@ -6,15 +6,17 @@
 #include "empty.glsl"
     ;*/
 
-ShaderStage::ShaderStage(GLenum stage, const std::shared_ptr<ShaderCode>& code)
+ShaderStage::ShaderStage(GLenum stage)
     : _stage(stage)
 {
-    AddExtension(code);
+    
 }
 
 std::shared_ptr<ShaderStage> ShaderStage::Create(GLenum stage, const std::shared_ptr<ShaderCode>& code)
 {
-    return std::shared_ptr<ShaderStage>(new ShaderStage(stage, code));
+    auto shaderStage(tools::make_shared<ShaderStage>(stage));
+    shaderStage->AddExtension(code);
+    return shaderStage;
 }
 
 ShaderStage::~ShaderStage()
@@ -138,7 +140,7 @@ GLuint ShaderStage::Glid() const
 
 std::shared_ptr<ShaderCode> ShaderCode::Create(const std::string& code, const std::string& technique)
 {
-    return std::shared_ptr<ShaderCode>(new ShaderCode(code, technique));
+    return tools::make_shared<ShaderCode>(code, technique);
 }
 
 std::string ShaderCode::Code() const

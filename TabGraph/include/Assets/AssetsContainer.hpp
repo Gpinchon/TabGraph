@@ -4,10 +4,14 @@
 
 class AssetsContainer : public Component {
 public:
-    //AssetsContainer();
-    //~AssetsContainer();
+    static std::shared_ptr<AssetsContainer> Create() {
+        return tools::make_shared<AssetsContainer>();
+    }
 
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<AssetsContainer>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

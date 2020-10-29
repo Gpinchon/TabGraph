@@ -17,14 +17,13 @@ CrispyWall::CrispyWall()
     : GameEntity("CrispyWall")
 {
     auto mesh = CubeMesh::Create("WallMesh", glm::vec3(1.f));
-    mesh->GetMaterial(0)->SetAlbedo(glm::vec3(0.5, 0.5, 0.5));
+    mesh->GetMaterial(0)->SetDiffuse(glm::vec3(0.5, 0.5, 0.5));
     SetComponent(mesh);
 }
 
 std::shared_ptr<CrispyWall> CrispyWall::Create()
 {
-    std::shared_ptr<CrispyWall> Crispywall(new CrispyWall);
-    return Crispywall;
+    return tools::make_shared<CrispyWall>();
 }
 
 void CrispyWall::Die()

@@ -155,12 +155,12 @@ static inline void parse_number(std::vector<std::string> &split, std::shared_ptr
     }
 }
 
-static inline AssetsContainer parse_mtl(FILE* fd, std::string &name, const std::filesystem::path &basePath)
+static inline std::shared_ptr<AssetsContainer> parse_mtl(FILE* fd, std::string &name, const std::filesystem::path &basePath)
 {
     char line[4096];
-    AssetsContainer container;
+    std::shared_ptr<AssetsContainer> container;
     auto mtl = Material::Create(name);
-    container.AddComponent(mtl);
+    container->AddComponent(mtl);
     while (fgets(line, 4096, fd) != nullptr)
     {
         try
@@ -194,10 +194,10 @@ static inline AssetsContainer parse_mtl(FILE* fd, std::string &name, const std::
     return container;
 }
 
-AssetsContainer MTLLIB::Parse(const std::filesystem::path path)
+std::shared_ptr<AssetsContainer> MTLLIB::Parse(const std::filesystem::path path)
 {
     char line[4096];
-    AssetsContainer container;
+    std::shared_ptr<AssetsContainer> container = AssetsContainer::Create();
 
     if (access(path.string().c_str(), R_OK) != 0)
     {

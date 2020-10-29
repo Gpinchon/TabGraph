@@ -7,6 +7,11 @@
 
 #include "Mesh/Mesh.hpp"
 #include "Mesh/SphereMesh.hpp"
+#include "Material/Material.hpp"
+#include "Assets/AssetsParser.hpp"
+#include "Engine.hpp"
+#include "Transform.hpp"
+#include "Animation/Animation.hpp"
 
 #include <chrono>
 
@@ -19,15 +24,34 @@ Bomb::Bomb()
     : GameEntity("Bomb")
     , _spawnTime(std::chrono::high_resolution_clock::now())
 {
-    auto mesh = SphereMesh::Create("BombMesh", 0.5);
-    SetComponent(mesh);
+    _height = 0;
 }
 
 std::shared_ptr<Bomb> Bomb::Create(const glm::ivec2& position)
 {
-    auto bomb = std::shared_ptr<Bomb>(new Bomb);
+    auto bomb = tools::make_shared<Bomb>();
+    static auto bombAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomb/scene.gltf");
+    auto bombAssetClone = bombAsset->Clone();
+    auto bombNode = bombAssetClone->GetComponent<Scene>()->RootNodes().at(0);
+    bombNode->SetScale(glm::vec3(0.4f));
+    bomb->AddChild(bombNode);
+    //bombNode->SetParent(bomb);
+    for (auto animation : bombAssetClone->GetComponents<Animation>())
+        bomb->AddAnimation(animation);
+    bomb->PlayAnimation("Armature|idle", true);
     Game::CurrentLevel()->SetGameEntityPosition(position, bomb);
+    //Keyboard::AddKeyCallback(SDL_SCANCODE_SPACE, Callback<void(const SDL_KeyboardEvent&)>::Create(&Player::DropBomb, player, std::placeholders::_1));
     return bomb;
+    /*auto bomb = std::shared_ptr<Bomb>(new Bomb);
+    static auto asset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomb/scene.gltf");
+    auto node = asset.GetComponent<Scene>()->RootNodes().at(0);
+    node->GetComponent<Transform>()->SetScale(glm::vec3(0.01f));
+    node->SetParent(bomb);
+    for (auto animation : asset.GetComponents<Animation>())
+        bomb->AddAnimation(animation);
+    bomb->PlayAnimation("Armature|idle", true);
+    Game::CurrentLevel()->SetGameEntityPosition(position, bomb);
+    return bomb;*/
 }
 
 void SpawnFlames(const glm::ivec2& position, const glm::ivec2& direction, int range)

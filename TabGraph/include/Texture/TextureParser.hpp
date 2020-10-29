@@ -17,12 +17,11 @@ typedef std::shared_ptr<Texture2D> (*TextureParsingFunction)(const std::string&,
 
 class TextureParser {
 public:
+    TextureParser(const std::string& format, TextureParsingFunction);
     static TextureParser* Add(const std::string& format, TextureParsingFunction);
     static std::shared_ptr<Texture2D> parse(const std::string& name, const std::string& path);
 
 private:
-    TextureParser() = delete;
-    TextureParser(const std::string& format, TextureParsingFunction);
     static TextureParsingFunction _get(const std::string& format);
     static std::map<std::string, TextureParser*>& _getParsers();
     static std::map<std::string, TextureParser*>* _parsers;

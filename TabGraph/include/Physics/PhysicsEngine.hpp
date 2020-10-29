@@ -42,6 +42,9 @@ public:
     void CheckCollision();
 
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<PhysicsEngine>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

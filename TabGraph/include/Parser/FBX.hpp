@@ -17,5 +17,5 @@
 class Scene;
 
 namespace FBX {
-	AssetsContainer Parse(const std::filesystem::path path);
+	std::shared_ptr<AssetsContainer> Parse(const std::filesystem::path path);
 };

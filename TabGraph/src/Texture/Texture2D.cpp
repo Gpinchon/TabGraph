@@ -39,8 +39,7 @@ std::shared_ptr<Texture2D> Texture2D::Create(const std::string& name, glm::ivec2
     GLenum target, GLenum f, GLenum fi,
     GLenum data_format, void* data)
 {
-    auto t = std::shared_ptr<Texture2D>(
-        new Texture2D(name, s, target, f, fi, data_format, data));
+    auto t = tools::make_shared<Texture2D>(name, s, target, f, fi, data_format, data);
     t->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     t->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Get("Anisotropy", 16.f));

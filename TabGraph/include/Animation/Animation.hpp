@@ -16,6 +16,7 @@ class Callback;
 
 class Animation : public Component {
 public:
+    Animation();
     static std::shared_ptr<Animation> Create();
     AnimationChannel GetChannel(AnimationChannel::Channel channel);
 
@@ -35,10 +36,10 @@ public:
     bool Repeat() const;
     void Reset();
 
-protected:
-    Animation();
-
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Animation>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

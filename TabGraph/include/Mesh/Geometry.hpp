@@ -53,6 +53,7 @@ private:
 
 class Geometry : public Component {
 public:
+    Geometry(const std::string&);
     enum class AccessorKey {
         Invalid = -1,
         Position,
@@ -93,10 +94,10 @@ public:
     GeometryMorthTarget& GetMorphTarget(size_t index);
     void SetMorphTarget(const GeometryMorthTarget& morphTarget);
 
-protected:
-    Geometry(const std::string&);
-
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Geometry>(*this);
+    }
     virtual void _LoadCPU() {};
     virtual void _UnloadCPU() {};
     virtual void _LoadGPU();

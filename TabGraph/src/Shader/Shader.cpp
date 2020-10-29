@@ -32,7 +32,7 @@ void Shader::_FixedUpdateGPU(float)
     auto InvViewMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix());
     auto InvProjMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix());
     glm::ivec2 res = glm::vec2(Window::size()) * Render::InternalQuality();
-    SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->GetComponent<Transform>()->WorldPosition());
+    SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
     SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
     SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
     SetUniform("Camera.InvMatrix.View", InvViewMatrix);
@@ -56,7 +56,7 @@ std::shared_ptr<Shader> Shader::Create(const std::string& name, ShaderType type)
     static std::string deferred_frag_code =
 #include "deferred.frag"
         ;
-    auto shader = std::shared_ptr<Shader>(new Shader(name));
+    auto shader = tools::make_shared<Shader>(name);
     shader->_type = type;
     if (ForwardShader == type) {
         shader->SetDefine("FORWARDSHADER");

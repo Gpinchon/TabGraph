@@ -32,6 +32,8 @@ public:
         Mat4,
         MaxType
     };
+    BufferAccessor() = delete;
+    BufferAccessor(GLenum componentType, size_t count, const BufferAccessor::Type type);
     static std::shared_ptr<BufferAccessor> Create(GLenum componentType, size_t count, const BufferAccessor::Type type);
     /** The BufferView. */
     std::shared_ptr<BufferView> GetBufferView() const;
@@ -71,11 +73,10 @@ public:
     template <typename T>
     void SetMin(const T min);
 
-protected:
-    BufferAccessor(GLenum componentType, size_t count, const BufferAccessor::Type type);
-    BufferAccessor() = delete;
-
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<BufferAccessor>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

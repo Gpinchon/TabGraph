@@ -12,6 +12,7 @@
 
 class FPSCamera : public Camera {
 public:
+    FPSCamera(const std::string& name, float fov, Camera::Projection proj = Perspective);
     static std::shared_ptr<FPSCamera> Create(const std::string& name, float fov, Camera::Projection proj = Perspective);
     virtual float Yaw() const;
     virtual void SetYaw(float);
@@ -22,7 +23,6 @@ public:
     //virtual glm::quat Rotation() const override;
 
 protected:
-    FPSCamera(const std::string& name, float fov, Camera::Projection proj = Perspective);
     float _yaw { 0 };
     float _pitch { 0 };
     float _roll { 0 };

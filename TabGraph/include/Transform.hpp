@@ -14,12 +14,11 @@
 /** Header-only class for performance */
 class Transform : public Component {
 public:
-    Transform()
-        : Component() {};
+    Transform() : Component() {};
+    Transform(const std::string& name) : Component(name) {};
     static std::shared_ptr<Transform> Create();
     glm::vec3 TransformPoint(glm::vec3 position) { return glm::vec4(position, 1.f) * WorldTransformMatrix(); };
     glm::vec3 operator()(glm::vec3 position) { return TransformPoint(position); };
-    //std::shared_ptr<Transform> shared_from_this();
     glm::mat4 WorldTransformMatrix();
     glm::mat4 WorldTranslationMatrix() const;
     glm::mat4 WorldRotationMatrix() const;
@@ -67,6 +66,9 @@ public:
     ~Transform() = default;
 
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Transform>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};
@@ -75,7 +77,7 @@ private:
     virtual void _UpdateGPU(float) override {};
     virtual void _FixedUpdateCPU(float) override {};
     virtual void _FixedUpdateGPU(float) override {};
-    std::shared_ptr<Transform> _parent;
+    std::shared_ptr<Transform> _transformParent;
     glm::vec3 _position { 0, 0, 0 };
     glm::quat _rotation { glm::vec3(0.0, 0.0, 0.0) };
     glm::vec3 _scale { 1, 1, 1 };

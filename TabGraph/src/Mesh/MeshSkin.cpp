@@ -11,7 +11,7 @@ MeshSkin::MeshSkin()
 
 std::shared_ptr<MeshSkin> MeshSkin::Create()
 {
-    return std::shared_ptr<MeshSkin>(new MeshSkin);
+    return tools::make_shared<MeshSkin>();
 }
 
 std::shared_ptr<Node> MeshSkin::Skeleton() const

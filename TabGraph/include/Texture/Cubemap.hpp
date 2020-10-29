@@ -16,6 +16,8 @@
 
 class Cubemap : public Texture {
 public:
+    Cubemap(const std::string&);
+    ~Cubemap();
     static std::shared_ptr<Cubemap> Create(const std::string&);
     static std::shared_ptr<Cubemap> Create(const std::string&, std::shared_ptr<Texture2D> fromTexture);
     static std::shared_ptr<Cubemap> parse(const std::filesystem::path);
@@ -26,10 +28,12 @@ public:
     virtual void unload() override;
     std::shared_ptr<Texture2D> side(unsigned index);
     void set_side(unsigned index, std::shared_ptr<Texture2D>);
-    ~Cubemap();
 
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Cubemap>(*this);
+    }
     static std::vector<std::shared_ptr<Cubemap>> _cubemaps;
     std::array<std::shared_ptr<Texture2D>, 6> _sides;
-    Cubemap(const std::string&);
+    
 };

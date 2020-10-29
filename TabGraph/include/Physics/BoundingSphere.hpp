@@ -17,6 +17,9 @@ public:
     void SetRadius(float radius);
 
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<BoundingSphere>(*this);
+    }
     glm::vec3 _center { 0 };
     float _radius { 0 };
 };

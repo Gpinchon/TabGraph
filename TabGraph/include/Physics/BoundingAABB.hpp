@@ -30,6 +30,9 @@ public:
     void SetMax(glm::vec3 max);
 
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<BoundingAABB>(*this);
+    }
     glm::vec3 _min { 0 };
     glm::vec3 _max { 0 };
 };

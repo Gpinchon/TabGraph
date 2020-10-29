@@ -21,7 +21,7 @@ TextureArray::TextureArray(const std::string& name, glm::ivec2 s, GLenum target,
 
 std::shared_ptr<TextureArray> TextureArray::Create(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity)
 {
-    auto t = std::shared_ptr<TextureArray>(new TextureArray(name, s, target, fi, capacity));
+    auto t = tools::make_shared<TextureArray>(name, s, target, fi, capacity);
     glGenTextures(1, &t->_glid);
     glObjectLabel(GL_TEXTURE, t->_glid, -1, t->Name().c_str());
     glBindTexture(t->_target, t->_glid);

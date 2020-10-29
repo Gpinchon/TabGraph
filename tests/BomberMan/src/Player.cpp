@@ -5,12 +5,16 @@
 * @Last Modified time: 2020-08-17 14:00:36
 */
 
+#include "Engine.hpp"
+#include "Animation/Animation.hpp"
+#include "Assets/AssetsParser.hpp"
 #include "Camera/Camera.hpp"
 #include "Input/Keyboard.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/CapsuleMesh.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Transform.hpp"
+#include "Scene/Scene.hpp"
 
 #include "Bomb.hpp"
 #include "Game.hpp"
@@ -27,15 +31,20 @@
 Player::Player(const std::string& name, const glm::vec3& color)
     : GameEntity(name, "Player")
 {
-    auto playerMesh = CapsuleMesh::Create("PlayerMesh", 0.5, 0.4f, 5);
-    playerMesh->GetMaterial(0)->SetAlbedo(color);
-    SetComponent(playerMesh);
-    Keyboard::AddKeyCallback(SDL_SCANCODE_SPACE, Callback<void(const SDL_KeyboardEvent&)>::Create(&Player::DropBomb, this, std::placeholders::_1));
+    _height = 0;
 }
 
 std::shared_ptr<Player> Player::Create(const glm::vec3& color)
 {
-    std::shared_ptr<Player> player(new Player("Player1", color));
+    auto player = tools::make_shared<Player>("Player1", color);
+    auto playerAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomberman/scene.gltf");
+    auto playerNode = playerAsset->GetComponent<Scene>()->RootNodes().at(0);
+    playerNode->SetScale(glm::vec3(0.01f));
+    player->AddChild(playerNode);
+    //playerNode->SetParent(player);
+    for (auto animation : playerAsset->GetComponents<Animation>())
+        player->AddAnimation(animation);
+    Keyboard::AddKeyCallback(SDL_SCANCODE_SPACE, Callback<void(const SDL_KeyboardEvent&)>::Create(&Player::DropBomb, player, std::placeholders::_1));
     return player;
 }
 
@@ -113,13 +122,15 @@ void Player::Move(const glm::vec2& direction, float delta)
     auto axis = dir * Speed() * delta;
     auto newPlayerPosition = Position() + axis;
     //Game::CurrentLevel()->SetGameEntity(Position(), nullptr);
-    LookAt(Position() + direction);
+    LookAt(Position() - direction);
     SetPosition(newPlayerPosition);
+    PlayAnimation("Armature|run", true);
     //Game::CurrentLevel()->SetGameEntity(newPlayerPosition, std::static_pointer_cast<Player>(shared_from_this()));
 }
 
 void Player::Die()
 {
+    PlayAnimation("Armature|death", true);
     std::cout << "DED" << std::endl;
 }
 
@@ -133,7 +144,7 @@ void Player::_FixedUpdateCPU(float delta)
     auto inputLength = length(input);
     if (inputLength > 0.f) {
         input /= inputLength;
-        auto cameraT = Game::CurrentLevel()->CurrentCamera()->GetComponent<Transform>();
+        auto cameraT = Game::CurrentLevel()->CurrentCamera();
         auto cameraPosition = glm::vec2(cameraT->WorldPosition().x, cameraT->WorldPosition().z);
         auto cameraForward = normalize(glm::vec2(cameraT->Forward().x, cameraT->Forward().z));
         auto projPlayerPosition = ProjectPointOnPlane(Position(), cameraPosition, cameraForward);
@@ -141,6 +152,8 @@ void Player::_FixedUpdateCPU(float delta)
         auto right = normalize(glm::vec2(cameraT->Right().x, cameraT->Right().z));
         Move(input * (forward + right), delta);
     }
+    else
+        PlayAnimation("Armature|idle", true);
     bool collides;
     do {
         collides = false;

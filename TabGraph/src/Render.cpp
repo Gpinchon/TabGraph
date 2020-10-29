@@ -63,6 +63,10 @@ public:
     static void SetBRDF(std::shared_ptr<Texture2D>);
 
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return Instance();
+        //return tools::make_shared<Private>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _UpdateCPU(float) override {};
@@ -302,7 +306,7 @@ uint32_t Render::Private::FrameNumber()
 
 std::shared_ptr<Render::Private> Render::Private::Create()
 {
-    return std::make_shared<Render::Private>();
+    return tools::make_shared<Render::Private>();
 }
 
 std::shared_ptr<Render::Private> Render::Private::Instance()
@@ -340,7 +344,7 @@ void Render::Private::_FixedUpdateGPU(float delta)
     /*index = 0;
     while (auto shader = Shader::Get(index)) {
         //shader->use();
-        shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->GetComponent<Transform>()->WorldPosition());
+        shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
         shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
         shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
         shader->SetUniform("Camera.InvMatrix.View", InvViewMatrix);
@@ -362,13 +366,23 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer>& currentGeo
     static std::shared_ptr<Framebuffer> lightRenderBuffer1 = CreateRenderBuffer("lightRenderBuffer1", glm::vec2(currentGeometryBuffer->Size()));
     lightRenderBuffer0->Resize(glm::vec2(currentGeometryBuffer->Size()));
     lightRenderBuffer1->Resize(glm::vec2(currentGeometryBuffer->Size()));
-    static auto lighting_shader = Shader::Create("lighting", LightingShader);
-    lighting_shader->Stage(GL_FRAGMENT_SHADER)->AddExtension(ShaderCode::Create(lightingFragmentCode, "Lighting();"));
+    static std::shared_ptr<Shader> lighting_shader;
+    if (lighting_shader == nullptr)
+    {
+        lighting_shader = Shader::Create("lighting", LightingShader);
+        lighting_shader->Stage(GL_FRAGMENT_SHADER)->AddExtension(ShaderCode::Create(lightingFragmentCode, "Lighting();"));
+        Render::Private::Instance()->AddComponent(lighting_shader);
+    }
     lighting_shader->SetDefine("LIGHTNBR", std::to_string(lightsPerPass));
     lighting_shader->SetDefine("PointLight", std::to_string(Point));
     lighting_shader->SetDefine("DirectionnalLight", std::to_string(Directionnal));
-    static auto slighting_shader = Shader::Create("shadow_lighting", LightingShader);
-    slighting_shader->Stage(GL_FRAGMENT_SHADER)->AddExtension(ShaderCode::Create(lightingFragmentCode, "Lighting();"));
+    static std::shared_ptr<Shader> slighting_shader;
+    if (slighting_shader == nullptr)
+    {
+        slighting_shader = Shader::Create("shadow_lighting", LightingShader);
+        slighting_shader->Stage(GL_FRAGMENT_SHADER)->AddExtension(ShaderCode::Create(lightingFragmentCode, "Lighting();"));
+        Render::Private::Instance()->AddComponent(slighting_shader);
+    }
     slighting_shader->SetDefine(("SHADOWNBR"), std::to_string(shadowsPerPass));
     slighting_shader->SetDefine(("LIGHTNBR"), std::to_string(lightsPerPass));
     slighting_shader->SetDefine(("PointLight"), std::to_string(Point));
@@ -388,7 +402,7 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer>& currentGeo
         auto lightIndex = 0u;
         while (lightIndex < lightsPerPass && i < normalLights.size()) {
             auto light = normalLights.at(i);
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->GetComponent<Transform>()->WorldPosition());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->WorldPosition());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", -1);
@@ -398,7 +412,7 @@ std::shared_ptr<Framebuffer> light_pass(std::shared_ptr<Framebuffer>& currentGeo
         auto shadowIndex = 0u;
         while (lightIndex < lightsPerPass && shadowIndex < actualShadowNbr && j < shadowLights.size()) {
             auto light = shadowLights.at(j);
-            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->GetComponent<Transform>()->WorldPosition());
+            shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Position", light->WorldPosition());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Color", light->color() * light->power());
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].Type", int(light->type()));
             shader->SetUniform("Light[" + std::to_string(lightIndex) + "].ShadowIndex", int(shadowIndex));

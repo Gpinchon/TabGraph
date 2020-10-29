@@ -23,17 +23,17 @@ Camera::Camera(const std::string& name, float ifov, Camera::Projection proj)
 
 std::shared_ptr<Camera> Camera::Create(const std::string& name, float ifov, Camera::Projection proj)
 {
-    return std::shared_ptr<Camera>(new Camera(name, ifov, proj));
+    return tools::make_shared<Camera>(name, ifov, proj);
 }
 
 std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
 {
-    return std::shared_ptr<Camera>(new Camera(*otherCamera));
+    return tools::make_shared<Camera>(*otherCamera);
 }
 
-glm::mat4 Camera::ViewMatrix() const
+glm::mat4 Camera::ViewMatrix()
 {
-    return glm::inverse(GetComponent<Transform>()->WorldTransformMatrix());
+    return glm::inverse(WorldTransformMatrix());
 }
 
 glm::mat4 Camera::ProjectionMatrix() const

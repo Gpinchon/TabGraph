@@ -13,13 +13,15 @@
 Wall::Wall()
     : GameEntity("Wall")
 {
-    auto mesh = CubeMesh::Create("WallMesh", glm::vec3(1.f));
-    mesh->GetMaterial(0)->SetAlbedo(glm::vec3(1, 0.2, 0.2));
-    SetComponent(mesh);
+    
 }
 
 std::shared_ptr<Wall> Wall::Create()
 {
-    std::shared_ptr<Wall> wall(new Wall);
+    auto wall(tools::make_shared<Wall>());
+    //std::shared_ptr<Wall> wall(new Wall);
+    auto mesh = CubeMesh::Create("WallMesh", glm::vec3(1.f));
+    mesh->GetMaterial(0)->SetDiffuse(glm::vec3(1, 0.2, 0.2));
+    wall->SetComponent(mesh);
     return wall;
 }

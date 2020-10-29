@@ -93,6 +93,7 @@ enum ShaderType {
 
 class Shader : public Component {
 public:
+    Shader(const std::string& name);
     static std::shared_ptr<Shader> Create(const std::string&, ShaderType type = Other);
     //static std::shared_ptr<Shader> Get(unsigned index);
     //static std::shared_ptr<Shader> GetByName(const std::string&);
@@ -128,10 +129,10 @@ public:
     void Compile();
     void Link();
 
-protected:
-    Shader(const std::string& name);
-
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Shader>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

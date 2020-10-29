@@ -18,14 +18,14 @@ Flame::Flame()
     , _spawnTime(std::chrono::high_resolution_clock::now())
 {
     auto mesh = CubeMesh::Create("FlameMesh", glm::vec3(0.5f));
-    mesh->GetMaterial(0)->SetAlbedo(glm::vec3(0.886274f, 0.345098f, 0.133333f));
-    mesh->GetMaterial(0)->SetEmitting(glm::vec3(0.886274f, 0.345098f, 0.133333f));
+    mesh->GetMaterial(0)->SetDiffuse(glm::vec3(0.886274f, 0.345098f, 0.133333f));
+    mesh->GetMaterial(0)->SetEmissive(glm::vec3(0.886274f, 0.345098f, 0.133333f));
     SetComponent(mesh);
 }
 
 std::shared_ptr<Flame> Flame::Create(const glm::ivec2& position)
 {
-    auto flame = std::shared_ptr<Flame>(new Flame);
+    auto flame = tools::make_shared<Flame>();
     Game::CurrentLevel()->SetGameEntityPosition(position, flame);
     return flame;
 }

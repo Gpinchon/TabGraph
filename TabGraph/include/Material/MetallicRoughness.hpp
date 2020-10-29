@@ -6,6 +6,7 @@
 class MetallicRoughness : public MaterialExtension
 {
 public:
+	MetallicRoughness();
 	static std::shared_ptr<MetallicRoughness> Create();
 	std::shared_ptr<Texture2D> TextureBaseColor() const;
 	std::shared_ptr<Texture2D> TextureMetallicRoughness() const;
@@ -23,7 +24,6 @@ public:
 	void SetBaseColor(glm::vec4);;
 
 private:
-	MetallicRoughness();
 	std::shared_ptr<Texture2D> _texture_baseColor;
 	std::shared_ptr<Texture2D> _texture_metallicRoughness;
 	std::shared_ptr<Texture2D> _texture_roughness;

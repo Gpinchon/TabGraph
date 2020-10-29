@@ -21,6 +21,6 @@ class Scene;
 ** .OBJ parsing interface
 */
 namespace OBJ {
-AssetsContainer Parse(const std::filesystem::path path);
-std::vector<std::shared_ptr<Scene>> ParseScene(const std::filesystem::path);
+	std::shared_ptr<AssetsContainer> Parse(const std::filesystem::path path);
+	std::vector<std::shared_ptr<Scene>> ParseScene(const std::filesystem::path);
 };

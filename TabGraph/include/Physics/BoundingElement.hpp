@@ -125,6 +125,9 @@ public:
     //void SetIntersectionCallback(BoundingElement::Type type, Intersection (*function)(const BoundingElement &));
 
 private:
+    /*virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<BoundingElement>(*this);
+    }*/
     void _LoadCPU() override {};
     void _UnloadCPU() override {};
     void _LoadGPU() override {};

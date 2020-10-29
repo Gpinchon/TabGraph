@@ -16,6 +16,8 @@
 
 class Framebuffer : public Object {
 public:
+    Framebuffer() = delete;
+    Framebuffer(const std::string& name);
     /**
     * @brief Creates a framebuffer
     * @argument name : name of the framebuffer
@@ -48,8 +50,6 @@ public:
 
 private:
     static std::vector<std::shared_ptr<Framebuffer>> _framebuffers;
-    Framebuffer() = delete;
-    Framebuffer(const std::string& name);
     //void _resize_depth(const glm::vec2&);
     //void _resize_attachement(const int&, const glm::vec2&);
     void resize_attachement(const int&, const glm::vec2&);

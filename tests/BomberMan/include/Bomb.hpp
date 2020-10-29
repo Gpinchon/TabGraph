@@ -6,6 +6,7 @@
 
 class Bomb : public GameEntity {
 public:
+    Bomb();
     static std::shared_ptr<Bomb> Create(const glm::ivec2& position);
     virtual void Die() override;
     void ResetTimer();
@@ -17,8 +18,6 @@ public:
     ~Bomb() { std::cout << "BOOM !" << std::endl; };
 
 private:
-    Bomb();
-
     virtual void _FixedUpdateCPU(float delta) override;
     int _range { 5 };
     std::chrono::duration<double> _timer { 3 };

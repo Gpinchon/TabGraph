@@ -20,6 +20,7 @@ class MaterialExtension;
 
 class Material : public Component {
 public:
+    Material(const std::string& name);
     static std::shared_ptr<Material> Create(const std::string&);
     virtual void AddExtension(std::shared_ptr<MaterialExtension> extension) final;
     virtual std::shared_ptr<MaterialExtension> GetExtension(const std::string& name) const final;
@@ -53,6 +54,9 @@ public:
     void SetDoubleSided(bool doubleSided);
 
 protected:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Material>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};
@@ -68,7 +72,6 @@ protected:
     std::shared_ptr<Texture2D> _texture_normal;
     std::shared_ptr<Texture2D> _texture_height;
     std::shared_ptr<Texture2D> _texture_ao;
-    Material(const std::string& name);
     void bind_values();
     void bind_textures();
     glm::vec3 _diffuse{ 1, 1, 1 };

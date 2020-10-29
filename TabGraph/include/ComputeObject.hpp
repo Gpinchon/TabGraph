@@ -19,6 +19,7 @@ class Texture; // lines 13-13
 
 class ComputeObject : public Node {
 public:
+    ComputeObject(const std::string& name);
     static std::shared_ptr<ComputeObject> Create(const std::string& name, std::shared_ptr<Shader> computeShader = nullptr);
     virtual std::shared_ptr<Shader> shader();
     virtual std::shared_ptr<Texture> in_texture();
@@ -40,7 +41,6 @@ protected:
     std::weak_ptr<Shader> _shader;
     GLbitfield _memory_barrier { GL_ALL_BARRIER_BITS };
     glm::ivec3 _num_groups { 0, 0, 0 };
-    ComputeObject(const std::string& name);
 
 private:
     virtual void _LoadCPU() override {};

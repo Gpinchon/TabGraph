@@ -11,6 +11,7 @@
 
 class SpecularGlossiness : public MaterialExtension {
 public:
+    SpecularGlossiness();
     static std::shared_ptr<SpecularGlossiness> Create();
     std::shared_ptr<Texture2D> TextureDiffuse() const;
     std::shared_ptr<Texture2D> TextureSpecular() const;
@@ -28,7 +29,6 @@ public:
     void SetGlossiness(float);
 
 private:
-    SpecularGlossiness();
     std::shared_ptr<Texture2D> _texture_diffuse;
     std::shared_ptr<Texture2D> _texture_specular;
     std::shared_ptr<Texture2D> _texture_glossiness;

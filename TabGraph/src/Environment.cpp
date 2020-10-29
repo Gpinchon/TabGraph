@@ -18,7 +18,7 @@ Environment::Environment(const std::string& name)
 
 std::shared_ptr<Environment> Environment::Create(const std::string& name)
 {
-    auto e = std::shared_ptr<Environment>(new Environment(name));
+    auto e = tools::make_shared<Environment>(name);
     _environments.push_back(e);
     return (e);
 }

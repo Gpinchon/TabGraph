@@ -19,13 +19,12 @@
 Animation::Animation()
     : Component("")
 {
-    //void (__thiscall Animation::* pFunc)() = &Animation::Play;
     _playCallback = Callback<void()>::Create(std::bind(&Animation::Play, this));
 }
 
 std::shared_ptr<Animation> Animation::Create()
 {
-    return std::shared_ptr<Animation>(new Animation);
+    return tools::make_shared<Animation>();
 }
 
 std::vector<AnimationChannel> Animation::GetChannels() const
@@ -92,17 +91,17 @@ void Animation::_FixedUpdateCPU(float delta)
         switch (channel.Path()) {
         case AnimationChannel::Translation: {
             glm::vec3 current = interpolator.Interpolate<glm::vec3>(sampler, keyDelta, interpolationValue);
-            channel.Target()->GetComponent<Transform>()->SetPosition(current);
+            channel.Target()->SetPosition(current);
             break;
         }
         case AnimationChannel::Rotation: {
             glm::quat current = interpolator.Interpolate<glm::quat>(sampler, keyDelta, interpolationValue);
-            channel.Target()->GetComponent<Transform>()->SetRotation(glm::normalize(current));
+            channel.Target()->SetRotation(glm::normalize(current));
             break;
         }
         case AnimationChannel::Scale: {
             glm::vec3 current(interpolator.Interpolate<glm::vec3>(sampler, keyDelta, interpolationValue));
-            channel.Target()->GetComponent<Transform>()->SetScale(current);
+            channel.Target()->SetScale(current);
             break;
         }
         case AnimationChannel::Weights: {

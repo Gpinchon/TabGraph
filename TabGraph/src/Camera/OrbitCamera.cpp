@@ -19,8 +19,7 @@ OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float 
 
 std::shared_ptr<OrbitCamera> OrbitCamera::Create(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
 {
-    std::shared_ptr<OrbitCamera> camera(new OrbitCamera(iname, ifov, phi, theta, radius, proj));
-    return (camera);
+    return tools::make_shared<OrbitCamera>(iname, ifov, phi, theta, radius, proj);
 }
 
 std::shared_ptr<Node> OrbitCamera::Target() const
@@ -31,10 +30,10 @@ std::shared_ptr<Node> OrbitCamera::Target() const
 void OrbitCamera::_UpdateCPU(float)
 {
     glm::vec3 targetPosition(0);
-    if (Target() != nullptr && Target()->GetComponent<Transform>() != nullptr)
-        targetPosition = Target()->GetComponent<Transform>()->WorldPosition();
-    GetComponent<Transform>()->SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
-    GetComponent<Transform>()->LookAt(targetPosition);
+    if (Target() != nullptr)
+        targetPosition = Target()->WorldPosition();
+    SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
+    LookAt(targetPosition);
 }
 
 float OrbitCamera::Phi() const

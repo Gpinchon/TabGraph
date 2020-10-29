@@ -16,6 +16,7 @@ class Node;
 */
 class RigidBody : public Component {
 public:
+    RigidBody(const std::string& name);
     static std::shared_ptr<RigidBody> Create(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider);
     template <typename T, typename U,
         typename = IsSharedPointerOfType<RigidBody, T>,
@@ -76,11 +77,10 @@ public:
     std::shared_ptr<BoundingElement> GetCollider() const;
     Intersection Collides(const std::shared_ptr<RigidBody>& objectB);
 
-protected:
-    //std::vector<Ray> _rays;
-    RigidBody(const std::string& name);
-
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<RigidBody>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

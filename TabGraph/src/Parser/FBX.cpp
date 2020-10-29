@@ -180,9 +180,9 @@ static inline auto getMappedIndices(const std::string& mappingInformationType, c
 
 #include "Buffer/BufferHelper.hpp"
 
-AssetsContainer ParseGeometries(FBX::Document* document)
+std::shared_ptr<AssetsContainer> ParseGeometries(FBX::Document* document)
 {
-    AssetsContainer container;
+    std::shared_ptr<AssetsContainer> container = AssetsContainer::Create();
     //std::map<int64_t, std::vector<std::shared_ptr<Geometry>>> groupMap;
     for (const auto& objects : document->SubNodes("Objects")) {
         for (const auto& geometryNode : objects->SubNodes("Geometry")) {
@@ -225,7 +225,7 @@ AssetsContainer ParseGeometries(FBX::Document* document)
                         geometry->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor<glm::vec3>(0));
                         geometry->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor<glm::vec3>(0, GL_ARRAY_BUFFER, true));
                         //geometry->SetIndices(BufferHelper::CreateAccessor(0, GL_ELEMENT_ARRAY_BUFFER));
-                        container.AddComponent(geometry);
+                        container->AddComponent(geometry);
                     } else if (materialIndex != geometry->MaterialIndex()) {
                         std::cout << "Material Indices : Last " << geometry->MaterialIndex() << " New " << materialIndex << std::endl;
                         std::cout << "Material index changed, create new Geometry" << std::endl;
@@ -235,7 +235,7 @@ AssetsContainer ParseGeometries(FBX::Document* document)
                         geometry->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor<glm::vec3>(0));
                         geometry->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor<glm::vec3>(0, GL_ARRAY_BUFFER, true));
                         //geometry->SetIndices(BufferHelper::CreateAccessor(0, GL_ELEMENT_ARRAY_BUFFER));
-                        container.AddComponent(geometry);
+                        container->AddComponent(geometry);
                     }
                 }
 
@@ -243,7 +243,7 @@ AssetsContainer ParseGeometries(FBX::Document* document)
                     if (geometry == nullptr) {
                         geometry = Geometry::Create("");
                         geometry->SetId(geometryId);
-                        container.AddComponent(geometry);
+                        container->AddComponent(geometry);
                     }
                     BufferHelper::PushBack(geometry->Accessor(Geometry::AccessorKey::Position), vertices.at(polygonIndex.at(0)));
                     BufferHelper::PushBack(geometry->Accessor(Geometry::AccessorKey::Position), vertices.at(polygonIndex.at(1)));
@@ -281,9 +281,9 @@ AssetsContainer ParseGeometries(FBX::Document* document)
     return container;
 }
 
-static inline AssetsContainer ParseNodes(FBX::Document* document)
+static inline std::shared_ptr<AssetsContainer> ParseNodes(FBX::Document* document)
 {
-    AssetsContainer container;
+    std::shared_ptr<AssetsContainer> container;
     for (const auto& objects : document->SubNodes("Objects")) {
         for (const auto& model : objects->SubNodes("Model")) {
             auto node = Node::Create(model->Property(1));
@@ -291,15 +291,15 @@ static inline AssetsContainer ParseNodes(FBX::Document* document)
             node->SetId(model->Property(0));
             node->SetComponent(mesh);
             mesh->SetId(model->Property(0));
-            container.AddComponent(node);
+            container->AddComponent(node);
         }
     }
     return container;
 }
 
-static inline AssetsContainer ParseMaterials(FBX::Document* document)
+static inline std::shared_ptr<AssetsContainer> ParseMaterials(FBX::Document* document)
 {
-    AssetsContainer container;
+    std::shared_ptr<AssetsContainer> container;
     for (const auto& objects : document->SubNodes("Objects")) {
         if (objects == nullptr)
             continue;
@@ -307,7 +307,7 @@ static inline AssetsContainer ParseMaterials(FBX::Document* document)
             int64_t id(fbxMaterial->Property(0));
             std::string name(fbxMaterial->Property(1));
             auto material(Material::Create(name));
-            container.AddComponent(material);
+            container->AddComponent(material);
             material->SetId(id);
             auto P70(fbxMaterial->SubNode("Properties70"));
             if (P70 == nullptr)
@@ -351,20 +351,20 @@ static inline AssetsContainer ParseMaterials(FBX::Document* document)
     return container;
 }
 
-AssetsContainer FBX::Parse(const std::filesystem::path path)
+std::shared_ptr<AssetsContainer> FBX::Parse(const std::filesystem::path path)
 {
-    AssetsContainer container;
+    std::shared_ptr<AssetsContainer> container = AssetsContainer::Create();
     auto document(FBX::Document::Parse(path));
     document->Print();
     auto scene(Scene::Create(path.string()));
-    container += ParseNodes(document);
-    container += ParseMaterials(document);
-    container += ParseGeometries(document);
+    *container += ParseNodes(document);
+    *container += ParseMaterials(document);
+    *container += ParseGeometries(document);
     for (const auto& objects : document->SubNodes("Objects")) {
         if (objects == nullptr)
             continue;
         for (const auto& model : objects->SubNodes("Model")) {
-            auto node(container.GetComponentByID<::Node>(model->Property(0)));
+            auto node(container->GetComponentByID<::Node>(model->Property(0)));
             if (node == nullptr) {
                 std::cout << "WE DID NOT GET NODE" << int64_t(model->Property(0)) << "FOR SOME REASON" << std::endl;
                 continue;
@@ -423,7 +423,7 @@ AssetsContainer FBX::Parse(const std::filesystem::path path)
         }
     }
     std::cout << "Parsing done, printing Container\n";
-    for (const auto& components : container.GetComponentsInChildren()) {
+    for (const auto& components : container->GetComponentsInChildren()) {
         std::cout << "Type : " << components.first.name() << '\n';
         for (const auto& component : components.second) {
             std::cout << component->Id() << ' ' << component->Name() << '\n';
@@ -437,14 +437,15 @@ AssetsContainer FBX::Parse(const std::filesystem::path path)
             int64_t destinationId(c->Property(2));
             if (std::string(c->Property(0)) == "OO") {
                 {
-                    auto source = container.GetComponentByID<::Node>(sourceId);
+                    auto source = container->GetComponentByID<::Node>(sourceId);
                     if (source != nullptr) {
                         std::cout << "Got Node " << source->Id() << std::endl;
                         {
-                            auto destination = container.GetComponentByID<::Node>(destinationId);
+                            auto destination = container->GetComponentByID<::Node>(destinationId);
                             if (destination != nullptr) {
                                 std::cout << source->Id() << " : IS CHILD OF : " << destination->Id() << std::endl;
-                                source->SetParent(destination);
+                                destination->AddComponent(source);
+                                //source->SetParent(destination);
                             } else if (destinationId == 0) {
                                 std::cout << source->Id() << " : IS CHILD OF : "
                                           << "*ROOT*" << std::endl;
@@ -455,11 +456,11 @@ AssetsContainer FBX::Parse(const std::filesystem::path path)
                     }
                 }
                 {
-                    auto source = container.GetComponentsByID<::Geometry>(sourceId);
+                    auto source = container->GetComponentsByID<::Geometry>(sourceId);
                     if (!source.empty()) {
                         std::cout << "Got Geometry " << sourceId << std::endl;
                         {
-                            auto destination = container.GetComponentByID<::Node>(destinationId);
+                            auto destination = container->GetComponentByID<::Node>(destinationId);
                             if (destination != nullptr) {
                                 std::cout << "Mesh " << destinationId << " uses Geometry " << sourceId << std::endl;
                                 for (auto vg : source)
@@ -470,11 +471,11 @@ AssetsContainer FBX::Parse(const std::filesystem::path path)
                     }
                 }
                 {
-                    auto source = container.GetComponentByID<::Material>(sourceId);
+                    auto source = container->GetComponentByID<::Material>(sourceId);
                     if (source != nullptr) {
                         std::cout << "Got Material " << source->Id() << std::endl;
                         {
-                            auto destination = container.GetComponentByID<::Node>(destinationId);
+                            auto destination = container->GetComponentByID<::Node>(destinationId);
                             if (destination != nullptr) {
                                 std::cout << "Mesh " << destinationId << " uses Material " << source->Id() << std::endl;
                                 destination->GetComponent<Mesh>()->AddMaterial(source);
@@ -487,6 +488,6 @@ AssetsContainer FBX::Parse(const std::filesystem::path path)
         }
     }
     delete document;
-    container.AddComponent(scene);
+    container->AddComponent(scene);
     return container;
 }

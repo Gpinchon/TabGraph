@@ -131,7 +131,7 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string& name,
 {
     resolution.x = resolution.x > texture->size().x ? texture->size().x : resolution.x;
     resolution.y = resolution.y > texture->size().y ? texture->size().y : resolution.y;
-    auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
+    auto terrain = tools::make_sharedr<Terrain>(name);
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
     terrain->_terrainSize = scale;

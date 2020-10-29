@@ -16,6 +16,7 @@ class Cubemap;
 
 class Environment : public Object {
 public:
+    Environment(const std::string& name);
     static std::shared_ptr<Environment> Create(const std::string& name);
     static std::shared_ptr<Environment> Get(unsigned index);
     static std::shared_ptr<Environment> current();
@@ -31,5 +32,4 @@ protected:
     static std::weak_ptr<Environment> _current;
     std::shared_ptr<Cubemap> _diffuse;
     std::shared_ptr<Cubemap> _irradiance;
-    Environment(const std::string& name);
 };

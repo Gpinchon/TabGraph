@@ -28,7 +28,7 @@ Buffer::~Buffer()
 
 std::shared_ptr<Buffer> Buffer::Create(size_t byteLength, GLenum usage)
 {
-    return std::shared_ptr<Buffer>(new Buffer(byteLength, usage));
+    return tools::make_shared<Buffer>(byteLength, usage);
 }
 
 void Buffer::_UpdateGPU(float)

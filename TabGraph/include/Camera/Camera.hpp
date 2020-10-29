@@ -24,6 +24,7 @@ public:
         Ortho,
         Perspective
     };
+    Camera(const std::string& name, float fov, Camera::Projection proj = Perspective);
     static std::shared_ptr<Camera> Create(const std::string&, float fov, Camera::Projection proj = Perspective);
     static std::shared_ptr<Camera> Create(std::shared_ptr<Camera> otherCamera);
     /** Overload this to change Camera's behavior */
@@ -32,7 +33,7 @@ public:
      * @brief alias for TransformMatrix
      * @return the camera's view matrix
      */
-    glm::mat4 ViewMatrix() const;
+    glm::mat4 ViewMatrix();
     /**
      * @brief READONLY : Computed on demand
      */
@@ -58,9 +59,6 @@ public:
     virtual Camera::Projection ProjectionType() const;
     virtual void SetProjectionType(Camera::Projection projectionType);
     virtual ~Camera() = default;
-
-protected:
-    Camera(const std::string& name, float fov, Camera::Projection proj = Perspective);
 
 private:
     virtual void _LoadCPU() override {};

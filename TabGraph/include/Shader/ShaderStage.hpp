@@ -8,6 +8,7 @@
 
 class ShaderCode : public Component {
 public:
+    ShaderCode(const std::string& code = "", const std::string& technique = "") : _code(code), _technique(technique) {};
     static std::shared_ptr<ShaderCode> Create(const std::string &code = "", const std::string &technique = "");
     std::string Code() const;
     void SetCode(const std::string& code);
@@ -15,7 +16,9 @@ public:
     void SetTechnique(const std::string);
 
 private:
-    ShaderCode(const std::string& code = "", const std::string& technique = "") : _code(code), _technique(technique) {};
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<ShaderCode>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};
@@ -30,6 +33,7 @@ private:
 
 class ShaderStage : public Component {
 public:
+    ShaderStage(GLenum stage = 0);
     static std::shared_ptr<ShaderStage> Create(GLenum stage = 0, const std::shared_ptr<ShaderCode>& code = nullptr);
     void Compile();
     void Recompile();
@@ -56,7 +60,9 @@ public:
     ~ShaderStage();
 
 private:
-    ShaderStage(GLenum stage = 0, const std::shared_ptr<ShaderCode>& code = nullptr);
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<ShaderStage>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

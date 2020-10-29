@@ -11,6 +11,7 @@
 
 class OrbitCamera : public Camera {
 public:
+    OrbitCamera(const std::string&, float fov, float phi, float theta, float radius, Camera::Projection proj);
     static std::shared_ptr<OrbitCamera> Create(const std::string&, float fov, float phi, float theta, float radius, Camera::Projection proj = Perspective);
     std::shared_ptr<Node> Target() const;
     void SetTarget(const std::shared_ptr<Node>& target);
@@ -22,7 +23,6 @@ public:
     void SetRadius(float);
 
 private:
-    OrbitCamera(const std::string&, float fov, float phi, float theta, float radius, Camera::Projection proj);
     virtual void _UpdateCPU(float delta) override;
     float _phi { 0 };
     float _theta { 0 };

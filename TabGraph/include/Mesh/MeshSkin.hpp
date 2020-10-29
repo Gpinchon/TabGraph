@@ -7,6 +7,7 @@ class BufferAccessor;
 
 class MeshSkin : public Component {
 public:
+    MeshSkin();
     static std::shared_ptr<MeshSkin> Create();
     std::shared_ptr<Node> Skeleton() const;
     void SetSkeleton(std::shared_ptr<Node> skeleton);
@@ -17,10 +18,10 @@ public:
     void AddJoint(std::shared_ptr<Node> joint);
     void RemoveJoint(std::shared_ptr<Node> joint);
 
-protected:
-    MeshSkin();
-
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<MeshSkin>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

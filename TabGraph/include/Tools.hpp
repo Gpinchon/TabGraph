@@ -30,7 +30,7 @@ void PrintEventName(SDL_Event*);
 ** @arg V : return type
 */
 template<typename T, typename U, typename V = void>
-using IsSharedPointerOfType = std::enable_if_t<std::is_constructible_v<std::shared_ptr<T>, U>, V>;
+using IsSharedPointerOfType = std::enable_if_t<std::is_constructible_v<std::shared_ptr<T>, std::shared_ptr<U>>, V>;
 
 /*
 ** Useful to secure for templates

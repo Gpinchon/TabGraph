@@ -7,7 +7,9 @@
 
 #pragma once
 
-#include <memory> // for enable_shared_from_this, shared_ptr
+#include "Tools/memory.hpp"
+
+//#include <memory> // for enable_shared_from_this, shared_ptr
 #include <string> // for string
 #include <typeindex>
 #include <typeinfo>
@@ -19,17 +21,15 @@
 ** ALWAYS STORE IN A SHARED_PTR !!!
 */
 
-class Object : public std::enable_shared_from_this<Object> {
+class Object : public tools::enable_shared_from_this<Object> {
 public:
+    Object();
+    Object(const std::string& name);
     int64_t Id() const;
     void SetId(int64_t);
     std::string Name() const;
     void SetName(const std::string& name);
     virtual ~Object();
-
-protected:
-    Object();
-    Object(const std::string& name);
 
 private:
     std::string _name { "" };

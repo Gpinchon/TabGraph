@@ -29,6 +29,7 @@ enum class RenderMod;
  */
 class Scene : public Component {
 public:
+    Scene(const std::string& name);
     static std::shared_ptr<Scene> Create(const std::string& name);
     static std::shared_ptr<Scene> Current();
     static void SetCurrent(std::shared_ptr<Scene>);
@@ -56,10 +57,10 @@ public:
     glm::vec3 Up() const;
     void SetUp(glm::vec3);
 
-protected:
-    Scene(const std::string& name);
-
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Scene>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

@@ -48,7 +48,7 @@
 auto __objParser = AssetsParser::Add(".obj", OBJ::Parse);
 
 struct ObjContainer {
-    AssetsContainer container;
+    std::shared_ptr<AssetsContainer> container;
     std::shared_ptr<Geometry> currentGeometry;
     std::vector<glm::vec3> v;
     std::vector<glm::vec3> vn;
@@ -185,11 +185,11 @@ void parse_vg(ObjContainer& p, const std::string& name = "")
     childNbr++;
 
     if (name == "") {
-        p.currentGeometry = Geometry::Create(p.container.GetComponent<Mesh>()->Name() + "_Geometry_" + std::to_string(childNbr));
+        p.currentGeometry = Geometry::Create(p.container->GetComponent<Mesh>()->Name() + "_Geometry_" + std::to_string(childNbr));
     } else {
         p.currentGeometry = Geometry::Create(name);
     }
-    p.container.GetComponent<Mesh>()->AddGeometry(p.currentGeometry);
+    p.container->GetComponent<Mesh>()->AddGeometry(p.currentGeometry);
 }
 
 void correct_vt(glm::vec2* vt)
@@ -328,11 +328,11 @@ static void parse_line(ObjContainer& p, const char* line)
     } else if (split[0] == "usemtl") {
         if (p.currentGeometry == nullptr || p.currentGeometry->Accessor(Geometry::AccessorKey::Position))
             parse_vg(p);
-        auto mtl = p.container.GetComponentByName<Material>(split.at(1));
-        auto mtlIndex(p.container.GetComponent<Mesh>()->GetMaterialIndex(mtl));
+        auto mtl = p.container->GetComponentByName<Material>(split.at(1));
+        auto mtlIndex(p.container->GetComponent<Mesh>()->GetMaterialIndex(mtl));
         if (mtlIndex == -1) {
-            p.container.GetComponent<Mesh>()->AddMaterial(mtl);
-            mtlIndex = p.container.GetComponent<Mesh>()->GetMaterialIndex(mtl);
+            p.container->GetComponent<Mesh>()->AddMaterial(mtl);
+            mtlIndex = p.container->GetComponent<Mesh>()->GetMaterialIndex(mtl);
         }
         p.currentGeometry->SetMaterialIndex(mtlIndex);
     } else if (split[0] == "mtllib") {
@@ -351,7 +351,7 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
     if (fd == nullptr) {
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
-    p.container.AddComponent(Mesh::Create(path));
+    p.container->AddComponent(Mesh::Create(path));
     auto l = 1;
     while (fgets(line, 4096, fd) != nullptr) {
         try {
@@ -374,10 +374,10 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
     */
 }
 
-AssetsContainer OBJ::Parse(const std::filesystem::path path)
+std::shared_ptr<AssetsContainer> OBJ::Parse(const std::filesystem::path path)
 {
     ObjContainer p;
-    AssetsContainer container;
+    std::shared_ptr<AssetsContainer> container;
 
     p.path = path;
     try {
@@ -388,10 +388,10 @@ AssetsContainer OBJ::Parse(const std::filesystem::path path)
     container += p.container;
     auto scene(Scene::Create(path.string()));
     auto node(Node::Create(path.string() + "_node"));
-    for (const auto& mesh : container.GetComponents<Mesh>()) {
+    for (const auto& mesh : container->GetComponents<Mesh>()) {
         node->AddComponent(mesh);
     }
     scene->AddRootNode(node);
-    container.AddComponent(scene);
+    container->AddComponent(scene);
     return (container);
 }

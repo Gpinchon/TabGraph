@@ -13,7 +13,7 @@
 
 std::shared_ptr<PhysicsEngine> PhysicsEngine::Create()
 {
-    return std::shared_ptr<PhysicsEngine>(new PhysicsEngine);
+    return tools::make_shared<PhysicsEngine>();
 }
 
 void PhysicsEngine::_FixedUpdateCPU(float step)
@@ -35,9 +35,9 @@ void SimulateBody(std::shared_ptr<RigidBody> rigidBody, float step)
     auto& currTransform(rigidBody->CurrentTransform());
     auto& nextTransform(rigidBody->NextTransform());
     auto node(rigidBody->GetNode());
-    if (node != nullptr && node->GetComponent<Transform>() != nullptr) {
-        currTransform.SetPosition(node->GetComponent<Transform>()->WorldPosition());
-        currTransform.SetRotation(node->GetComponent<Transform>()->WorldRotation());
+    if (node != nullptr) {
+        currTransform.SetPosition(node->WorldPosition());
+        currTransform.SetRotation(node->WorldRotation());
     }
     nextTransform.SetPosition(currTransform.Position() + rigidBody->LinearVelocity() * step);
     nextTransform.SetRotation(normalize(currTransform.Rotation() + step * 0.5f * rigidBody->AngularSpin() * currTransform.Rotation()));
@@ -405,8 +405,8 @@ void PhysicsEngine::CheckCollision()
     //HandleCollisions();
     //Simulate(lastStep);
     for (auto& rigidBody : _rigidBodies) {
-        rigidBody->GetComponent<Node>()->GetComponent<Transform>()->SetPosition(rigidBody->NextTransform().WorldPosition());
-        rigidBody->GetComponent<Node>()->GetComponent<Transform>()->SetRotation(normalize(rigidBody->NextTransform().WorldRotation()));
+        rigidBody->GetComponent<Node>()->SetPosition(rigidBody->NextTransform().WorldPosition());
+        rigidBody->GetComponent<Node>()->SetRotation(normalize(rigidBody->NextTransform().WorldRotation()));
     }
     _collideesPairs.clear();
 }

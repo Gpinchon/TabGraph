@@ -22,13 +22,13 @@
 
 Geometry::Geometry(const std::string& name)
     : Component(name)
-    , _bounds(new BoundingAABB(glm::vec3(0), glm::vec3(0)))
+    , _bounds(tools::make_shared<BoundingAABB>(glm::vec3(0), glm::vec3(0)))
 {
 }
 
 std::shared_ptr<Geometry> Geometry::Create(const std::string& name)
 {
-    auto vg = std::shared_ptr<Geometry>(new Geometry(name));
+    auto vg = tools::make_shared<Geometry>(name);
     return (vg);
 }
 

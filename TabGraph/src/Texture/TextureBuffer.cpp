@@ -21,7 +21,7 @@ TextureBuffer::TextureBuffer(const std::string& name)
 
 std::shared_ptr<TextureBuffer> TextureBuffer::Create(const std::string& name, GLenum internalFormat, const std::shared_ptr<BufferAccessor> bufferAccessor)
 {
-    auto texture(std::shared_ptr<TextureBuffer>(new TextureBuffer(name)));
+    auto texture(tools::make_shared<TextureBuffer>(name));
     texture->SetAccessor(bufferAccessor);
     texture->SetInternalFormat(internalFormat);
     texture->SetTarget(GL_TEXTURE_BUFFER);

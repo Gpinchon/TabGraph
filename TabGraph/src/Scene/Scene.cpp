@@ -21,7 +21,7 @@
 
 std::shared_ptr<Scene> Scene::Create(const std::string& name)
 {
-    return std::shared_ptr<Scene>(new Scene(name));
+    return tools::make_shared<Scene>(name);
 }
 
 Scene::Scene(const std::string& name)
@@ -72,34 +72,16 @@ void Scene::_FixedUpdateCPU(float /*delta*/)
     Common::SetUp(Up());
 }
 
-void DrawNodes(std::shared_ptr<Node> rootNode, RenderMod mode)
-{
-    if (rootNode == nullptr)
-        return;
-    rootNode->Draw(mode);
-    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
-        DrawNodes(rootNode->GetChild(index), mode);
-}
-
 void Scene::Render(const RenderMod& mode)
 {
     for (auto node : Scene::Current()->RootNodes())
-        DrawNodes(node, mode);
-}
-
-void DrawNodesDepth(std::shared_ptr<Node> rootNode, RenderMod mode)
-{
-    if (rootNode == nullptr)
-        return;
-    rootNode->DrawDepth(mode);
-    for (auto index = 0u; index < rootNode->ChildCount(); ++index)
-        DrawNodesDepth(rootNode->GetChild(index), mode);
+        node->Draw(mode, true);
 }
 
 void Scene::RenderDepth(const RenderMod& mode)
 {
     for (auto node : Scene::Current()->RootNodes())
-        DrawNodesDepth(node, mode);
+        node->DrawDepth(mode, true);
 }
 
 std::shared_ptr<Scene>& CurrentScene()

@@ -15,7 +15,7 @@ MetallicRoughness::MetallicRoughness() : MaterialExtension("MetallicRoughness")
 
 std::shared_ptr<MetallicRoughness> MetallicRoughness::Create()
 {
-    return std::shared_ptr<MetallicRoughness>(new MetallicRoughness);
+    return tools::make_shared<MetallicRoughness>();
 }
 
 std::shared_ptr<Texture2D> MetallicRoughness::TextureBaseColor() const

@@ -5,10 +5,11 @@
 * @Last Modified time: 2020-08-16 18:17:12
 */
 
-//#include "Physics/RigidBody.hpp"
-#include "Transform.hpp"
-
 #include "GameEntity.hpp"
+
+//#include "Physics/RigidBody.hpp"
+#include "Animation/Animation.hpp"
+#include "Transform.hpp"
 
 GameEntity::GameEntity(const std::string& name, const std::string& entityType)
     : Node(name)
@@ -40,7 +41,7 @@ float GameEntity::Height() const
 void GameEntity::SetPosition(const glm::vec2& position)
 {
     auto pos3D = glm::vec3(position.x, Height() / 2.f, position.y);
-    GetComponent<Transform>()->SetPosition(pos3D);
+    Transform::SetPosition(pos3D);
     //GetComponent<RigidBody>()->CurrentTransform().SetPosition(pos3D);
     //GetComponent<RigidBody>()->NextTransform().SetPosition(pos3D);
 }
@@ -48,15 +49,36 @@ void GameEntity::SetPosition(const glm::vec2& position)
 void GameEntity::LookAt(const glm::vec2& position)
 {
     auto pos3D = glm::vec3(position.x, Height() / 2.f, position.y);
-    GetComponent<Transform>()->LookAt(pos3D);
+    Transform::LookAt(pos3D);
 }
 
 glm::vec2 GameEntity::Position() const
 {
-    auto position = GetComponent<Transform>()->WorldPosition();
+    auto position = WorldPosition();
     return glm::vec2(position.x, position.z);
 }
 
 void GameEntity::Die()
 {
+}
+
+void GameEntity::AddAnimation(const std::shared_ptr<Animation> &animation)
+{
+    AddComponent(animation);
+    _animations[animation->Name()] = animation;
+}
+
+void GameEntity::PlayAnimation(const std::string& name, bool repeat)
+{
+    auto animation = _animations[name].lock();
+    if (animation != nullptr && !animation->Playing()) {
+        animation->SetRepeat(repeat);
+        animation->Play();
+        auto currentAnimation = _currentAnimation.lock();
+        if (currentAnimation != nullptr) {
+            currentAnimation->Reset();
+            currentAnimation->Stop();
+        }
+        _currentAnimation = animation;
+    }
 }

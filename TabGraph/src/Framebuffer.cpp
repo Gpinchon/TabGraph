@@ -61,7 +61,7 @@ std::shared_ptr<Framebuffer> Framebuffer::Create(const std::string& name, glm::i
 {
     int i;
 
-    auto f = std::shared_ptr<Framebuffer>(new Framebuffer(name));
+    auto f = tools::make_shared<Framebuffer>(name);
     f->_size = size;
     i = 0;
     while (i < color_attachements) {

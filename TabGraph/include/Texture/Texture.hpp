@@ -22,6 +22,7 @@ class Framebuffer;
 
 class Texture : public Component {
 public:
+    Texture(const std::string& name);
     //static std::shared_ptr<Texture> Create(const std::string &name, glm::ivec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
     static std::shared_ptr<Texture> GetByName(const std::string&);
     static std::shared_ptr<Texture> Get(unsigned index);
@@ -48,7 +49,9 @@ public:
     virtual size_t values_per_pixel();
 
 protected:
-    Texture(const std::string& name);
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Texture>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};

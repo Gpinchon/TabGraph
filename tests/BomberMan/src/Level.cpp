@@ -23,22 +23,7 @@ Level::Level(const std::string& name, const glm::ivec2& size)
     , _size(size)
     , _entities(size.x * size.y)
 {
-    auto floorMesh = PlaneMesh::Create("FloorMesh", Size());
-    auto floorNode = Node::Create("FloorNode");
-    floorNode->GetComponent<Transform>()->SetPosition(glm::vec3(Size().x / 2.f, 0, Size().y / 2.f));
-    //auto light = DirectionnalLight::Create("MainLight", glm::vec3(1.f), glm::vec3(1.f), 1.f, true);
-    auto radius = size.x + size.y;
-    auto light = DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(radius), 1, true);
-    light->SetLimits(glm::vec4(-radius, radius, -radius, radius));
-    auto camera = OrbitCamera::Create("MainCamera", 45.f, glm::pi<float>() / 2.f, 1, radius);
-    camera->SetTarget(floorNode);
-    //camera->GetComponent<Transform>()->SetPosition(glm::vec3(0, 10, 1));
-    //camera->GetComponent<Transform>()->LookAt(glm::vec3(0, 0, 0));
-    floorMesh->GetMaterial(0)->SetAlbedo(glm::vec3(1.f));
-    floorNode->SetComponent(floorMesh);
-    SetCurrentCamera(camera);
-    Add(light);
-    Add(floorNode);
+    
     /*
     for (auto x = 0; x < Size().x; ++x) {
         if (x != 0 && x != Size().x - 1)
@@ -56,7 +41,24 @@ Level::Level(const std::string& name, const glm::ivec2& size)
 
 std::shared_ptr<Level> Level::Create(const std::string& name, const glm::ivec2& size)
 {
-    return std::shared_ptr<Level>(new Level(name, size));
+    auto level(std::make_shared<Level>(name, size));
+    auto floorMesh = PlaneMesh::Create("FloorMesh", level->Size());
+    auto floorNode = Node::Create("FloorNode");
+    floorNode->SetPosition(glm::vec3(level->Size().x / 2.f, 0, level->Size().y / 2.f));
+    //auto light = DirectionnalLight::Create("MainLight", glm::vec3(1.f), glm::vec3(1.f), 1.f, true);
+    auto radius = size.x + size.y;
+    auto light = DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(radius), 1, true);
+    light->SetLimits(glm::vec4(-radius, radius, -radius, radius));
+    auto camera = OrbitCamera::Create("MainCamera", 45.f, glm::pi<float>() / 2.f, 1, radius / 2.f);
+    camera->SetTarget(floorNode);
+    //camera->GetComponent<Transform>()->SetPosition(glm::vec3(0, 10, 1));
+    //camera->GetComponent<Transform>()->LookAt(glm::vec3(0, 0, 0));
+    floorMesh->GetMaterial(0)->SetDiffuse(glm::vec3(1.f));
+    floorNode->SetComponent(floorMesh);
+    level->SetCurrentCamera(camera);
+    level->Add(light);
+    level->Add(floorNode);
+    return level;
 }
 
 #include <fstream>
@@ -154,15 +156,29 @@ void Level::_FixedUpdateCPU(float delta)
     //std::cout << __FUNCTION__ << '\n';
 }
 
+void Level::_FixedUpdateGPU(float delta)
+{
+    //Scene::FixedUpdateCPU(delta);
+    for (const auto& entity : _entities) {
+        if (entity != nullptr)
+            entity->FixedUpdateGPU(delta);
+    }
+    for (auto index = 0; index < Game::PlayerNumber(); ++index) {
+        Game::GetPlayer(index)->FixedUpdateGPU(delta);
+    }
+    //std::cout << __FUNCTION__ << '\n';
+}
+
 void Level::Render(const RenderMod& mod)
 {
     Scene::Render(mod);
     for (const auto& entity : _entities) {
         if (entity != nullptr)
-            entity->Draw(mod);
+            entity->Draw(mod, true);
     }
     for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-        Game::GetPlayer(index)->Draw(mod);
+        auto player(Game::GetPlayer(index));
+        player->Draw(mod, true);
     }
     /*for (auto i = 0; i < Game::PlayerNumber(); ++i) {
         auto player = Game::GetPlayer(i);
@@ -176,10 +192,10 @@ void Level::RenderDepth(const RenderMod& mod)
     Scene::RenderDepth(mod);
     for (const auto& entity : _entities) {
         if (entity != nullptr)
-            entity->DrawDepth(mod);
+            entity->DrawDepth(mod, true);
     }
     for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-        Game::GetPlayer(index)->DrawDepth(mod);
+        Game::GetPlayer(index)->DrawDepth(mod, true);
     }
     /*for (auto i = 0; i < Game::PlayerNumber(); ++i) {
         auto player = Game::GetPlayer(i);

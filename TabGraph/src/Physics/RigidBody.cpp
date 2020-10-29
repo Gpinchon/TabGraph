@@ -12,7 +12,7 @@ RigidBody::RigidBody(const std::string& name)
 
 std::shared_ptr<RigidBody> RigidBody::Create(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider)
 {
-    auto t = std::shared_ptr<RigidBody>(new RigidBody(name));
+    auto t = tools::make_shared<RigidBody>(name);
     t->SetNode(node);
     t->SetCollider(collider);
     t->SetComponent(Transform::Create());

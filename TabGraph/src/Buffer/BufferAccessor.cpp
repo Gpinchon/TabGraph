@@ -18,7 +18,7 @@ BufferAccessor::BufferAccessor(GLenum componentType, size_t count, const BufferA
 
 std::shared_ptr<BufferAccessor> BufferAccessor::Create(GLenum componentType, size_t count, const BufferAccessor::Type type)
 {
-    return std::shared_ptr<BufferAccessor>(new BufferAccessor(componentType, count, type));
+    return tools::make_shared<BufferAccessor>(componentType, count, type);
 }
 
 std::shared_ptr<BufferView> BufferAccessor::GetBufferView() const

@@ -14,7 +14,7 @@ SpecularGlossiness::SpecularGlossiness() : MaterialExtension("SpecularGlossiness
 
 std::shared_ptr<SpecularGlossiness> SpecularGlossiness::Create()
 {
-	return std::shared_ptr<SpecularGlossiness>(new SpecularGlossiness);
+	return tools::make_shared<SpecularGlossiness>();
 }
 
 std::shared_ptr<Texture2D> SpecularGlossiness::TextureDiffuse() const

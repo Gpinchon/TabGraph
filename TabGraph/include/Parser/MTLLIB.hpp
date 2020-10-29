@@ -20,5 +20,5 @@ class Material;
 ** .MTLLIB parsing interface
 */
 namespace MTLLIB {
-	AssetsContainer Parse(const std::filesystem::path path);
+	std::shared_ptr<AssetsContainer> Parse(const std::filesystem::path path);
 };

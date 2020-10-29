@@ -30,21 +30,19 @@ Mesh::Mesh(const std::string& name)
 
 std::shared_ptr<Mesh> Mesh::Create(std::shared_ptr<Mesh> otherMesh) /*static*/
 {
-    std::shared_ptr<Mesh> newMesh(new Mesh(*otherMesh));
-    //newMesh->SetTransform(Transform::Create(newMesh->Name() + "_geometryTransform"));
-    return newMesh;
+    return tools::make_shared<Mesh>(*otherMesh);
 }
 
 std::shared_ptr<Mesh> Mesh::Create(const std::string& name) /*static*/
 {
-    return std::shared_ptr<Mesh>(new Mesh(name));
+    return tools::make_shared<Mesh>(name);
 }
 
 std::shared_ptr<Mesh> Mesh::Create() /*static*/
 {
     static uint64_t meshNbr(0);
     ++meshNbr;
-    return std::shared_ptr<Mesh>(new Mesh("Mesh_" + std::to_string(meshNbr)));
+    return tools::make_shared<Mesh>("Mesh_" + std::to_string(meshNbr));
 }
 
 const std::set<std::shared_ptr<Geometry>> Mesh::Geometrys()
@@ -99,7 +97,7 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
         auto shader(material->depth_shader());
         material->Bind();
         if (last_shader != shader) {
-            shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->GetComponent<Transform>()->WorldPosition());
+            shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
             shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
             shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
             shader->SetUniform("Camera.Matrix.ViewProjection", viewProjectionMatrix);
@@ -263,7 +261,7 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
     }
     for (auto index = 0u; index < GetComponent<MeshSkin>()->Joints().size(); ++index) {
         const auto joint(GetComponent<MeshSkin>()->Joints().at(index));
-        auto jointMatrix = glm::inverse(transform->Parent()->WorldTransformMatrix()) * joint.lock()->GetComponent<Transform>()->WorldTransformMatrix() * BufferHelper::Get<glm::mat4>(GetComponent<MeshSkin>()->InverseBindMatrices(), index);
+        auto jointMatrix = glm::inverse(transform->Parent()->WorldTransformMatrix()) * joint.lock()->WorldTransformMatrix() * BufferHelper::Get<glm::mat4>(GetComponent<MeshSkin>()->InverseBindMatrices(), index);
         if (jointMatrix != BufferHelper::Get<glm::mat4>(_jointMatrices->Accessor(), index))
             skinChanged = true;
         BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);

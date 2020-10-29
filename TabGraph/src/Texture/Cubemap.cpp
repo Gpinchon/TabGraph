@@ -37,7 +37,7 @@ Cubemap::~Cubemap()
 
 std::shared_ptr<Cubemap> Cubemap::Create(const std::string& name)
 {
-    auto cubemap = std::shared_ptr<Cubemap>(new Cubemap(name));
+    auto cubemap = tools::make_shared<Cubemap>(name);
     cubemap->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     cubemap->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     cubemap->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Get("Anisotropy", 16.f));

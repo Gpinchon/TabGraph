@@ -6,6 +6,7 @@ class SDL_KeyboardEvent;
 
 class Player : public GameEntity {
 public:
+    Player(const std::string& name, const glm::vec3& color);
     static std::shared_ptr<Player> Create(const glm::vec3& color);
     void Move(const glm::vec2& direction, float delta);
     float Speed() const;
@@ -15,6 +16,5 @@ public:
 
 private:
     virtual void _FixedUpdateCPU(float delta) override;
-    Player(const std::string& name, const glm::vec3& color);
-    float _speed { 5.f };
+    float _speed { 4.f };
 };

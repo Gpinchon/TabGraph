@@ -15,6 +15,9 @@
 /** A buffer points to binary geometry, animation, or skins. */
 class Buffer : public Component {
 public:
+    Buffer() = delete;
+    Buffer(size_t byteLength, GLenum usage);
+    ~Buffer();
     enum BufferAccess : GLenum {
         Read = GL_READ_ONLY,
         Write = GL_WRITE_ONLY,
@@ -55,13 +58,11 @@ public:
     void* MapRange(size_t offset, size_t length, GLbitfield access);
     void Unmap();
     void Allocate();
-    ~Buffer();
-
-protected:
-    Buffer(size_t byteLength, GLenum usage);
-    Buffer() = delete;
 
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Buffer>(*this);
+    }
     virtual void _LoadCPU() override;
     virtual void _UnloadCPU() override;
     virtual void _LoadGPU() override;

@@ -15,12 +15,12 @@
 
 class Mesh;
 
-typedef AssetsContainer (*AssetsParsingFunction)(const std::filesystem::path path);
+typedef std::shared_ptr<AssetsContainer> (*AssetsParsingFunction)(const std::filesystem::path path);
 
 class AssetsParser {
 public:
     static AssetsParser* Add(const std::string& format, AssetsParsingFunction);
-    static AssetsContainer Parse(const std::filesystem::path path);
+    static std::shared_ptr<AssetsContainer> Parse(const std::filesystem::path path);
 
 private:
     AssetsParser() = delete;

@@ -25,6 +25,7 @@ class BufferAccessor;
 
 class Mesh : public Component {
 public:
+    Mesh(const std::string& name);
     static std::shared_ptr<Mesh> Create(std::shared_ptr<Mesh> otherMesh);
     static std::shared_ptr<Mesh> Create(const std::string&);
     static std::shared_ptr<Mesh> Create();
@@ -54,10 +55,10 @@ public:
 
     virtual void UpdateSkin(const std::shared_ptr<Transform>& transform);
 
-protected:
-    Mesh(const std::string& name);
-
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Mesh>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override;

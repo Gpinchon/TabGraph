@@ -31,7 +31,7 @@ Terrain::Terrain(const std::string &name)
 
 std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 /*resolution*/, glm::vec3 /*scale*/, std::shared_ptr<Texture2D> /*texture*/)
 {
-    auto terrain = std::shared_ptr<Terrain>(new Terrain(name));
+    auto terrain = tools::make_shared<Terrain>(name);
     /*
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
