@@ -8,7 +8,7 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Component.hpp" // for Component
+#include "Transform.hpp" // for Transform
 #include <algorithm>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
@@ -24,26 +24,29 @@ enum class RenderMod {
 
 class BoundingAABB;
 class RigidBody;
-class Transform;
 class Animation;
 class Mesh;
 
-class Node : public Component {
+class Node : public Transform {
 public:
+    Node(const std::string& name);
     static std::shared_ptr<Node> Create(const std::string& name);
-    virtual bool Draw(RenderMod = RenderMod::RenderAll);
-    virtual bool DrawDepth(RenderMod = RenderMod::RenderAll);
+    virtual bool Draw(RenderMod = RenderMod::RenderAll, bool drawChildren = false);
+    virtual bool DrawDepth(RenderMod = RenderMod::RenderAll, bool drawChildren = false);
 
     /** @return the Node's parent */
-    std::shared_ptr<Node> Parent() const { return _parent.lock(); };
+    //std::shared_ptr<Node> Parent() const { return _parent.lock(); };
     /** sets the parent to parent and calls AddChild in parent */
-    void SetParent(std::shared_ptr<Node> parent);
+    //void SetParent(std::shared_ptr<Node> parent);
+    void AddChild(std::shared_ptr<Node>);
     /** @return true if @arg child is in children list */
     bool HasChild(std::shared_ptr<Node> child) { return HasComponentOfType(child); };
     /** @return the number of children */
     size_t ChildCount() const { return GetComponents<Node>().size(); };
     /** @return the child at @arg index */
     std::shared_ptr<Node> GetChild(const size_t index) const { return GetComponents<Node>().at(index); };
+    /** @return all the children */
+    std::vector <std::shared_ptr<Node>> GetChildren() const { return GetComponents<Node>(); }
     /** removes parenting for specified @arg child */
     void RemoveChild(std::shared_ptr<Node> child);
     /** removes parenting for all children */
@@ -53,11 +56,10 @@ public:
 
     virtual ~Node() /*= default*/;
 
-protected:
-    Node(const std::string& name);
-    void AddChild(std::shared_ptr<Node>);
-
 private:
+    virtual std::shared_ptr<Component> _Clone() const override {
+        return tools::make_shared<Node>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};
@@ -67,5 +69,4 @@ private:
     virtual void _FixedUpdateCPU(float /*delta*/) override;
     virtual void _FixedUpdateGPU(float /*delta*/) override {};
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
-    std::weak_ptr<Node> _parent;
 };

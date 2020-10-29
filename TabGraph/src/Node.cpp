@@ -18,10 +18,9 @@
 #include <iostream>
 
 Node::Node(const std::string& name)
-    : Component(name)
-    , _bounds(new BoundingAABB(glm::vec3(0), glm::vec3(1)))
+    : Transform(name)
+    , _bounds(tools::make_shared<BoundingAABB>(glm::vec3(0), glm::vec3(1)))
 {
-    SetComponent(Transform::Create());
 }
 
 Node::~Node()
@@ -30,31 +29,40 @@ Node::~Node()
 
 std::shared_ptr<Node> Node::Create(const std::string& name)
 {
-    return std::shared_ptr<Node>(new Node(name));
+    auto node(tools::make_shared<Node>(name));
+    return node;
 }
 
-bool Node::Draw(RenderMod renderMod)
+bool Node::Draw(RenderMod renderMod, bool drawChildren)
 {
     bool drew = false;
     for (auto mesh : GetComponents<Mesh>()) {
-        drew |= mesh->Draw(GetComponent<Transform>(), renderMod);
+        drew |= mesh->Draw(std::static_pointer_cast<Transform>(shared_from_this()), renderMod);
     }
-    return false;
+    if (drawChildren) {
+        for (auto child : GetChildren())
+            drew |= child->Draw(renderMod, drawChildren);
+    }
+    return drew;
 }
 
-bool Node::DrawDepth(RenderMod renderMod)
+bool Node::DrawDepth(RenderMod renderMod, bool drawChildren)
 {
     bool drew = false;
     for (auto mesh : GetComponents<Mesh>()) {
-        drew |= mesh->DrawDepth(GetComponent<Transform>(), renderMod);
+        drew |= mesh->DrawDepth(std::static_pointer_cast<Transform>(shared_from_this()), renderMod);
     }
-    return false;
+    if (drawChildren) {
+        for (auto child : GetChildren())
+            drew |= child->DrawDepth(renderMod, drawChildren);
+    }
+    return drew;
 }
 
 void Node::_FixedUpdateCPU(float)
 {
     if (GetComponent<Mesh>() != nullptr)
-        GetComponent<Mesh>()->UpdateSkin(GetComponent<Transform>());
+        GetComponent<Mesh>()->UpdateSkin(std::static_pointer_cast<Transform>(shared_from_this()));
 }
 
 #include <iostream>
@@ -69,6 +77,8 @@ void Node::AddChild(std::shared_ptr<Node> childNode)
         return;
     }
     AddComponent(childNode);
+    childNode->SetParent(std::static_pointer_cast<Transform>(shared_from_this()));
+    //AddComponent();
 }
 
 void Node::RemoveChild(std::shared_ptr<Node> child)
@@ -78,20 +88,21 @@ void Node::RemoveChild(std::shared_ptr<Node> child)
     if (HasChild(child)) {
         RemoveComponent(child);
         child->SetParent(nullptr);
-        child->GetComponent<Transform>()->SetParent(nullptr);
+        //RemoveComponent(child->GetComponent<Transform>());
     }
 }
 
 /*
 ** /!\ BEWARE OF THE BIG BAD LOOP !!! /!\
 */
+/*
 void Node::SetParent(std::shared_ptr<Node> parent)
 {
     if (parent.get() == this || Parent() == parent) {
         return;
     }
     if (Parent() != nullptr) {
-        Parent()->RemoveChild(std::static_pointer_cast<Node>(shared_from_this()));
+        Parent()->RemoveComponent(std::static_pointer_cast<Node>(shared_from_this()));
     }
     _parent = parent;
     if (parent != nullptr) {
@@ -101,9 +112,10 @@ void Node::SetParent(std::shared_ptr<Node> parent)
     std::cout << __LINE__ << " " << __FUNCTION__ << " Parent " << Parent()->Name() << " Child " << Name() << std::endl;
     if (GetComponent<Transform>()) {
         std::cout << __LINE__ << " " << __FUNCTION__ << " Parent " << Parent()->Name() << " Child " << Name() << std::endl;
-        GetComponent<Transform>()->SetParent(parent ? parent->GetComponent<Transform>() : nullptr);
+        SetParent(parent ? parent->GetComponent<Transform>() : nullptr);
     }
 }
+*/
 
 std::shared_ptr<BoundingAABB> Node::GetBounds() const
 {
