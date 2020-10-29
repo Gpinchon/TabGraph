@@ -36,7 +36,7 @@ namespace tools
     public:
         std::shared_ptr<T> *_construct_pself{ nullptr };
         std::weak_ptr<T> _construct_self;
-        std::shared_ptr<T> shared_from_this()
+        std::shared_ptr<T> shared_from_this() const
         {
             if (_construct_pself)
             {
