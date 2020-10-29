@@ -128,7 +128,7 @@ public:
     /** Calls FixedUpdateGPU for all sub Components */
     virtual void FixedUpdateGPU(float delta) final;
 
-    virtual std::shared_ptr<Component>& operator+=(const std::shared_ptr<Component>& other)
+    virtual std::shared_ptr<Component> operator+=(const std::shared_ptr<Component>& other)
     {
         if (other != nullptr) {
             for (const auto& otherTypes : other->_components) {
@@ -223,10 +223,11 @@ inline std::shared_ptr<Component> Component::Parent() const
 template<typename T>
 inline std::shared_ptr<T> Component::Parent() const
 {
-    auto parent = Parent();
+    return std::dynamic_pointer_cast<T>(Parent());
+    /*auto parent = Parent();
     if (parent != nullptr && typeid(T) == typeid(parent))
         return std::static_pointer_cast<T>(parent);
-    return nullptr;
+    return nullptr;*/
 }
 
 inline Component::ComponentMap Component::Components() const
