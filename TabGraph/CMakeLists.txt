@@ -154,6 +154,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureBuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureParser.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/memory.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Transform.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Window.hpp
