@@ -19,14 +19,12 @@
  */
 class Camera : public Node {
 public:
-    enum Projection {
+    enum class Projection {
         Invalid = -1,
         Ortho,
         Perspective
     };
-    Camera(const std::string& name, float fov, Camera::Projection proj = Perspective);
-    static std::shared_ptr<Camera> Create(const std::string&, float fov, Camera::Projection proj = Perspective);
-    static std::shared_ptr<Camera> Create(std::shared_ptr<Camera> otherCamera);
+    Camera(const std::string& name, Camera::Projection proj = Projection::Perspective);
     /** Overload this to change Camera's behavior */
     //virtual void UpdateProjectionMatrix();
     /**
@@ -61,6 +59,9 @@ public:
     virtual ~Camera() = default;
 
 private:
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<Camera>(*this);
+    }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};
@@ -69,10 +70,10 @@ private:
     virtual void _UpdateGPU(float) override {};
     virtual void _FixedUpdateCPU(float) override {};
     virtual void _FixedUpdateGPU(float) override {};
-    Camera::Projection _projection_type { Perspective };
+    Camera::Projection _projection_type { Projection::Perspective };
     //glm::mat4 _projection { 0 };
     glm::vec4 _frustum { -50, 50, -50, 50 };
     float _fov { 45 };
     float _znear { 0.1 };
-    float _zfar { 0 };
+    float _zfar { 1000.f };
 };

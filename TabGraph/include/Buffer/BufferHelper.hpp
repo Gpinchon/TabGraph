@@ -17,35 +17,35 @@
 #include <vector>
 
 namespace BufferHelper {
-/** 
-	 * @brief Creates a buffer accessor with BufferView and Buffer from vector
-	 * @argument target : the buffer's target, see https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml
-	 */
-template <typename T>
-std::shared_ptr<BufferAccessor> CreateAccessor(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER, bool normalized = false, GLenum usage = GL_STATIC_DRAW);
-template <typename T>
-std::shared_ptr<BufferAccessor> CreateAccessor(size_t size, GLenum target = GL_ARRAY_BUFFER, bool normalized = false, GLenum usage = GL_STATIC_DRAW);
-template <typename T>
-std::shared_ptr<BufferView> CreateBufferView(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_STATIC_DRAW);
-template <typename T>
-std::shared_ptr<Buffer> CreateBuffer(std::vector<T> bufferVector, GLenum usage = GL_STATIC_DRAW);
-template <typename T>
-T Get(std::shared_ptr<Buffer>, size_t index);
-template <typename T>
-T Get(std::shared_ptr<BufferAccessor>, size_t index);
-template <typename T>
-void Set(std::shared_ptr<Buffer>, size_t index, T value);
-template <typename T>
-void Set(std::shared_ptr<BufferAccessor>, size_t index, T value);
-template <typename T>
-void PushBack(std::shared_ptr<BufferAccessor>, T value);
-}
+    /**
+         * @brief Creates a buffer accessor with BufferView and Buffer from vector
+         * @argument target : the buffer's target, see https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml
+         */
+    template <typename T>
+    std::shared_ptr<BufferAccessor> CreateAccessor(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER, bool normalized = false, GLenum usage = GL_STATIC_DRAW);
+    template <typename T>
+    std::shared_ptr<BufferAccessor> CreateAccessor(size_t size, GLenum target = GL_ARRAY_BUFFER, bool normalized = false, GLenum usage = GL_STATIC_DRAW);
+    template <typename T>
+    std::shared_ptr<BufferView> CreateBufferView(std::vector<T> bufferVector, GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_STATIC_DRAW);
+    template <typename T>
+    std::shared_ptr<Buffer> CreateBuffer(std::vector<T> bufferVector, GLenum usage = GL_STATIC_DRAW);
+    template <typename T>
+    T& Get(std::shared_ptr<Buffer>, size_t index);
+    template <typename T>
+    T& Get(std::shared_ptr<BufferAccessor>, size_t index);
+    template <typename T>
+    void Set(std::shared_ptr<Buffer>, size_t index, T value);
+    template <typename T>
+    void Set(std::shared_ptr<BufferAccessor>, size_t index, T value);
+    template <typename T>
+    void PushBack(std::shared_ptr<BufferAccessor>, T value);
+};
 
 template <typename T>
 inline std::shared_ptr<Buffer> BufferHelper::CreateBuffer(std::vector<T> bufferVector, GLenum usage)
 {
     auto byteLength(bufferVector.size() * sizeof(T));
-    auto buffer(Buffer::Create(byteLength, usage));
+    auto buffer(Component::Create<Buffer>(byteLength, usage));
     std::memcpy(buffer->RawData().data(), bufferVector.data(), byteLength);
     return buffer;
 }
@@ -54,7 +54,7 @@ template <typename T>
 inline std::shared_ptr<BufferView> BufferHelper::CreateBufferView(std::vector<T> bufferVector, GLenum target, GLenum usage)
 {
     auto buffer(BufferHelper::CreateBuffer(bufferVector, usage));
-    auto bufferView(BufferView::Create(buffer->ByteLength(), buffer));
+    auto bufferView(Component::Create<BufferView>(buffer->ByteLength(), buffer));
     bufferView->SetTarget(target);
     return bufferView;
 }
@@ -91,7 +91,7 @@ template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::mat4> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target, usage));
-    auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Mat4));
+    auto bufferAccessor(Component::Create<BufferAccessor>(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Mat4));
     glm::mat4 minM, maxM;
     FindMinMax(bufferVector, minM, maxM);
     bufferAccessor->SetBufferView(bufferView);
@@ -105,7 +105,7 @@ template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<unsigned> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target, usage));
-    auto bufferAccessor(BufferAccessor::Create(GL_UNSIGNED_INT, bufferVector.size(), BufferAccessor::Type::Scalar));
+    auto bufferAccessor(Component::Create<BufferAccessor>(GL_UNSIGNED_INT, bufferVector.size(), BufferAccessor::Type::Scalar));
     unsigned minU, maxU;
     FindMinMax(bufferVector, minU, maxU);
     bufferAccessor->SetBufferView(bufferView);
@@ -119,7 +119,7 @@ template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec3> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target, usage));
-    auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec3));
+    auto bufferAccessor(Component::Create<BufferAccessor>(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec3));
     glm::vec3 minV, maxV;
     FindMinMax(bufferVector, minV, maxV);
     bufferAccessor->SetBufferView(bufferView);
@@ -133,7 +133,7 @@ template <>
 inline std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(std::vector<glm::vec2> bufferVector, GLenum target, bool normalized, GLenum usage)
 {
     auto bufferView(BufferHelper::CreateBufferView(bufferVector, target, usage));
-    auto bufferAccessor(BufferAccessor::Create(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec2));
+    auto bufferAccessor(Component::Create<BufferAccessor>(GL_FLOAT, bufferVector.size(), BufferAccessor::Type::Vec2));
     glm::vec2 min, max;
     FindMinMax(bufferVector, min, max);
     bufferAccessor->SetBufferView(bufferView);
@@ -150,28 +150,24 @@ std::shared_ptr<BufferAccessor> BufferHelper::CreateAccessor(size_t size, GLenum
 }
 
 template <typename T>
-inline T BufferHelper::Get(std::shared_ptr<Buffer> buffer, size_t index)
+inline T &BufferHelper::Get(std::shared_ptr<Buffer> buffer, size_t index)
 {
-    if (buffer == nullptr)
-        return T();
+    assert(buffer != nullptr);
     if (index + sizeof(T) > buffer->ByteLength())
         throw std::runtime_error(std::string("Buffer index(") + std::to_string(index + sizeof(T)) + ") out of bound(" + std::to_string(buffer->ByteLength()) + ")");
-    auto pointer(buffer->RawData().data() + index);
-    return *reinterpret_cast<T*>(pointer);
+    return *reinterpret_cast<T*>(&buffer->RawData().at(index));
 }
 
 template <typename T>
-inline T BufferHelper::Get(std::shared_ptr<BufferAccessor> accessor, size_t index)
+inline T &BufferHelper::Get(std::shared_ptr<BufferAccessor> accessor, size_t index)
 {
-    if (accessor == nullptr)
-        return T();
+    assert(accessor != nullptr);
     if (sizeof(T) != accessor->TotalComponentByteSize())
         throw std::runtime_error(std::string(__FUNCTION__) + " Accessor total byte size(" + std::to_string(accessor->TotalComponentByteSize()) + ") different from size of " + typeid(T).name() + "(" + std::to_string(sizeof(T)) + ")");
     if (index >= accessor->Count())
         throw std::runtime_error(std::string("Index(") + std::to_string(index) + ") greater or equal to accessor Count(" + std::to_string(accessor->Count()) + ")");
     auto bufferView(accessor->GetBufferView());
-    if (bufferView == nullptr)
-        return T();
+    assert(bufferView != nullptr);
     auto stride(bufferView->ByteStride() ? bufferView->ByteStride() : accessor->TotalComponentByteSize());
     auto bufferIndex(accessor->ByteOffset() + bufferView->ByteOffset() + index * stride);
     return BufferHelper::Get<T>(bufferView->GetBuffer(), bufferIndex);

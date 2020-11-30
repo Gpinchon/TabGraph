@@ -8,6 +8,7 @@
 
 #include "Common.hpp"
 #include "Component.hpp"
+#include "Node.hpp"
 
 #include <glm/vec3.hpp>
 #include <memory>
@@ -18,10 +19,11 @@
 class PhysicsImpostor;
 class Camera;
 class Light;
-class Node;
 class Animation;
 class AABB;
 class RigidBody;
+class Environment;
+enum class RenderPass;
 enum class RenderMod;
 
 /**
@@ -30,7 +32,6 @@ enum class RenderMod;
 class Scene : public Component {
 public:
     Scene(const std::string& name);
-    static std::shared_ptr<Scene> Create(const std::string& name);
     static std::shared_ptr<Scene> Current();
     static void SetCurrent(std::shared_ptr<Scene>);
     std::shared_ptr<Camera> CurrentCamera() const;
@@ -42,24 +43,17 @@ public:
     void Add(std::shared_ptr<Node>);
     void Add(std::shared_ptr<Animation>);
     void Add(std::shared_ptr<RigidBody>);
-    virtual void Render(const RenderMod&);
+    virtual void Render(const RenderPass&, const RenderMod&);
     virtual void RenderDepth(const RenderMod&);
     std::shared_ptr<AABB> GetLimits() const;
-    std::shared_ptr<Node> GetNode(std::shared_ptr<Node>) const;
-    std::shared_ptr<Node> GetNodeByName(const std::string&) const;
-    std::shared_ptr<Light> GetLightByName(const std::string&) const;
-    std::shared_ptr<Camera> GetCameraByName(const std::string&) const;
-    const std::vector<std::shared_ptr<Node>> RootNodes() const;
-    const std::vector<std::shared_ptr<Node>> Nodes() const;
-    const std::vector<std::shared_ptr<Light>> Lights() const;
-    const std::vector<std::shared_ptr<Camera>> Cameras() const;
-    const std::vector<std::shared_ptr<Animation>> Animations() const;
+    std::shared_ptr<Environment> GetEnvironment() const;
+    void SetEnvironment(const std::shared_ptr<Environment>& env);
     glm::vec3 Up() const;
     void SetUp(glm::vec3);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<Scene>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<Scene>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
@@ -71,6 +65,7 @@ private:
     virtual void _FixedUpdateGPU(float /*delta*/) override {};
     glm::vec3 _up { Common::Up() };
     std::string _name;
-    std::shared_ptr<Camera> _currentCamera { nullptr };
     std::shared_ptr<AABB> _aabb { nullptr };
+    int64_t _currentCamera{ -1 };
+    int64_t _environmentIndex{ -1 };
 };

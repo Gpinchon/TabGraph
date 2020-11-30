@@ -12,7 +12,6 @@
 class SpecularGlossiness : public MaterialExtension {
 public:
     SpecularGlossiness();
-    static std::shared_ptr<SpecularGlossiness> Create();
     std::shared_ptr<Texture2D> TextureDiffuse() const;
     std::shared_ptr<Texture2D> TextureSpecular() const;
     std::shared_ptr<Texture2D> TextureGlossiness() const;
@@ -29,10 +28,13 @@ public:
     void SetGlossiness(float);
 
 private:
-    std::shared_ptr<Texture2D> _texture_diffuse;
-    std::shared_ptr<Texture2D> _texture_specular;
-    std::shared_ptr<Texture2D> _texture_glossiness;
-    std::shared_ptr<Texture2D> _texture_specularGlossiness;
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<SpecularGlossiness>(*this);
+    }
+    int64_t _texture_diffuse{ -1 };
+    int64_t _texture_specular{ -1 };
+    int64_t _texture_glossiness{ -1 };
+    int64_t _texture_specularGlossiness{ -1 };
     glm::vec4 _diffuse { 1, 1, 1, 1 };
     glm::vec3 _specular { 1, 1, 1 };
     float _glossiness { 1 };

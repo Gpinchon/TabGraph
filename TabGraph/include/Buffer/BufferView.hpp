@@ -16,8 +16,7 @@ class Buffer;
 class BufferView : public Component {
 public:
     BufferView() = delete;
-    BufferView(size_t byteLength);
-    static std::shared_ptr<BufferView> Create(size_t byteLength, std::shared_ptr<Buffer> buffer);
+    BufferView(size_t byteLength, std::shared_ptr<Buffer> buffer);
     /** The buffer. */
     std::shared_ptr<Buffer> GetBuffer();
     void SetBuffer(std::shared_ptr<Buffer>);
@@ -39,8 +38,8 @@ public:
     void SetUsage(GLenum);
     
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<BufferView>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<BufferView>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};

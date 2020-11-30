@@ -17,11 +17,10 @@ class Callback;
 class Animation : public Component {
 public:
     Animation();
-    static std::shared_ptr<Animation> Create();
     AnimationChannel GetChannel(AnimationChannel::Channel channel);
 
-    std::vector<AnimationChannel> GetChannels() const;
-    std::vector<AnimationSampler> GetSamplers() const;
+    std::vector<AnimationChannel> &GetChannels();
+    std::vector<AnimationSampler> &GetSamplers();
     void AddChannel(AnimationChannel);
     void AddSampler(AnimationSampler);
     /** start playing the animation */
@@ -37,9 +36,15 @@ public:
     void Reset();
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<Animation>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<Animation>(*this);
     }
+    virtual void _Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent) {
+        for (auto &channel : GetChannels()) {
+            if (channel.Target() == oldComponent)
+                channel.SetTarget(std::static_pointer_cast<Node>(newComponent));
+        }
+    };
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
     virtual void _LoadGPU() override {};
@@ -54,5 +59,5 @@ private:
     bool _playing { false };
     bool _repeat { false };
     float _currentTime { 0 };
-    std::shared_ptr<Callback<void()>> _playCallback { nullptr };
+    //std::shared_ptr<Callback<void()>> _playCallback { nullptr };
 };

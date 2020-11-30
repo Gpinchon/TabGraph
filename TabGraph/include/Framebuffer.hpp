@@ -14,10 +14,12 @@
 #include <string> // for string
 #include <vector> // for vector
 
-class Framebuffer : public Object {
+class Framebuffer : public Component {
 public:
     Framebuffer() = delete;
-    Framebuffer(const std::string& name);
+    Framebuffer(const std::string& name, glm::ivec2 size, int color_attachements, int depth);
+    /** @return the currently bound Framebuffer resolution */
+    static glm::ivec2 CurrentSize();
     /**
     * @brief Creates a framebuffer
     * @argument name : name of the framebuffer
@@ -25,10 +27,6 @@ public:
     * @argument color_attachements : number of color attachements to be Created
     * @argument depth : set to 1 to enable depth buffer
     */
-    static std::shared_ptr<Framebuffer> Create(const std::string& name, glm::ivec2 size, int color_attachements, int depth);
-    static std::shared_ptr<Framebuffer> GetByName(const std::string& name);
-    static std::shared_ptr<Framebuffer> Get(unsigned index);
-    static void Add(std::shared_ptr<Framebuffer>);
     static void bind_default();
     void bind(bool to_bind = true);
     /** @return the specified color attachement */
@@ -49,9 +47,20 @@ public:
     virtual ~Framebuffer() override;
 
 private:
-    static std::vector<std::shared_ptr<Framebuffer>> _framebuffers;
     //void _resize_depth(const glm::vec2&);
     //void _resize_attachement(const int&, const glm::vec2&);
+    virtual std::shared_ptr<Component> _Clone() override {
+        auto framebuffer(Component::Create<Framebuffer>(*this));
+        return framebuffer;
+    }
+    virtual void _LoadCPU() override {};
+    virtual void _UnloadCPU() override {};
+    virtual void _LoadGPU() override {};
+    virtual void _UnloadGPU() override {};
+    virtual void _UpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float /*delta*/) override {};
+    virtual void _FixedUpdateCPU(float /*delta*/) override {};
+    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     void resize_attachement(const int&, const glm::vec2&);
     void setup_attachements();
     std::vector<std::pair<std::shared_ptr<Texture2D>, unsigned>> _color_attachements;
@@ -60,19 +69,3 @@ private:
     GLuint _glid { 0 };
     bool _attachementsChanged { true };
 };
-
-/*
-** Framebuffer Attachements are always loaded by default and cannot be loaded into GPU
-*/
-/*
-class Attachement : public Texture2D {
-public:
-    static std::shared_ptr<Attachement> Create(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi);
-    bool is_loaded() override;
-    void load() override;
-    void unload() override;
-
-private:
-    Attachement(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format);
-};
-*/

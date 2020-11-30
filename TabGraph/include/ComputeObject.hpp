@@ -19,8 +19,7 @@ class Texture; // lines 13-13
 
 class ComputeObject : public Node {
 public:
-    ComputeObject(const std::string& name);
-    static std::shared_ptr<ComputeObject> Create(const std::string& name, std::shared_ptr<Shader> computeShader = nullptr);
+    ComputeObject(const std::string& name, std::shared_ptr<Shader> computeShader = nullptr);
     virtual std::shared_ptr<Shader> shader();
     virtual std::shared_ptr<Texture> in_texture();
     virtual std::shared_ptr<Texture> out_texture();

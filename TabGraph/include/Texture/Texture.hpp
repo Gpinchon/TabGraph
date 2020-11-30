@@ -19,13 +19,11 @@
 
 class Shader;
 class Framebuffer;
+class BufferData;
 
 class Texture : public Component {
 public:
-    Texture(const std::string& name);
-    //static std::shared_ptr<Texture> Create(const std::string &name, glm::ivec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
-    static std::shared_ptr<Texture> GetByName(const std::string&);
-    static std::shared_ptr<Texture> Get(unsigned index);
+    Texture(const std::string& name, GLenum target);
     static size_t get_data_size(GLenum data_type);
     static size_t get_bpp(GLenum texture_format, GLenum data_type);
     virtual bool is_loaded();
@@ -44,13 +42,13 @@ public:
     virtual GLenum data_format();
     virtual size_t data_size();
     virtual GLuint glid() const;
-    virtual void* data() const;
+    //auto data() const { return _data.data(); };
     virtual GLubyte bpp() const;
     virtual size_t values_per_pixel();
 
 protected:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<Texture>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<Texture>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
@@ -68,13 +66,11 @@ protected:
     GLenum _target { 0 };
     GLenum _format { 0 };
     GLenum _internal_format { 0 };
-    GLubyte* _data { nullptr };
+    //BufferData& _data;
+    //std::vector<GLubyte> _data { };
     bool _loaded { false };
     bool _needsReload { false };
     bool _mipMapsGenerated { false };
     std::unordered_map<GLenum, int> _parametersi;
     std::unordered_map<GLenum, float> _parametersf;
-
-private:
-    //static std::vector<std::shared_ptr<Texture>> _textures;
 };

@@ -4,10 +4,11 @@
 
 class Texture2D : public Texture {
 public:
-    Texture2D(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
-    static std::shared_ptr<Texture2D> Create(const std::string& name, glm::ivec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
+    Texture2D(const std::string& name, glm::vec2 s, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
+    //Texture2D(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
     /**@brief Fetches a texel with pixel coordinate and returns it as raw bytes*/
-    virtual GLubyte* texelfetch(const glm::ivec2& uv);
+    virtual std::byte* texelfetch(const glm::ivec2& uv);
+    virtual std::byte *data();
     virtual glm::vec4 sample(const glm::vec2& uv);
     virtual glm::ivec2 Size() const;
     virtual void Resize(const glm::ivec2& ns);
@@ -20,9 +21,13 @@ public:
     T* at(float u, float v);
 
 protected:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<Texture2D>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<Texture2D>(*this);
     }
+    /*virtual void _LoadCPU() override;
+    virtual void _UnloadCPU() override;
+    virtual void _LoadGPU() override;
+    virtual void _UnloadGPU() override;*/
     glm::ivec2 _size { 0, 0 };
     std::shared_ptr<Framebuffer> _blur_buffer0;
     std::shared_ptr<Framebuffer> _blur_buffer1;

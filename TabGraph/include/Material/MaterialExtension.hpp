@@ -11,8 +11,8 @@ public:
 
 protected:
 	MaterialExtension(const std::string& name);
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<MaterialExtension>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<MaterialExtension>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};

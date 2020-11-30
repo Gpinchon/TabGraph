@@ -10,15 +10,14 @@ public:
     virtual std::set<glm::vec3, compareVec> GetSATAxis(const glm::mat4& transform) const override;
     virtual ProjectionInterval Project(const glm::vec3& axis, const glm::mat4& transform = glm::mat4(1.f)) const override;
     virtual std::vector<glm::vec3> Clip(glm::vec3 axis, const glm::mat4& transform = glm::mat4(1.f)) const override;
-    static std::shared_ptr<BoundingSphere> Create(const glm::vec3& center, float radius);
     glm::vec3 GetCenter() const;
     void SetCenter(glm::vec3 center);
     float GetRadius() const;
     void SetRadius(float radius);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<BoundingSphere>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<BoundingSphere>(*this);
     }
     glm::vec3 _center { 0 };
     float _radius { 0 };

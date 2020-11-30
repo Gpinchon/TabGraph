@@ -8,9 +8,7 @@ class BufferAccessor;
 class TextureBuffer : public Texture
 {
 public:
-	TextureBuffer(const std::string& name);
-	//static std::shared_ptr<TextureBuffer> Create(const std::string &name, const size_t byteLength);
-	static std::shared_ptr<TextureBuffer> Create(const std::string &name, GLenum internalFormat, const std::shared_ptr<BufferAccessor> bufferAccessor);
+	TextureBuffer(const std::string& name, GLenum internalFormat, const std::shared_ptr<BufferAccessor> bufferAccessor);
 	virtual void load() override;
 	virtual void unload() override;
 	virtual void generate_mipmap() override;
@@ -18,8 +16,11 @@ public:
 	void SetAccessor(const std::shared_ptr<BufferAccessor> bufferAccessor);
 
 private:
-	virtual std::shared_ptr<Component> _Clone() const override {
-		return tools::make_shared<TextureBuffer>(*this);
+	virtual std::shared_ptr<Component> _Clone() override {
+		auto textureBuffer = Component::Create<TextureBuffer>(*this);
+		textureBuffer->_glid = 0;
+		textureBuffer->_loaded = false;
+		return textureBuffer;
 	}
-	std::shared_ptr<BufferAccessor> _accessor { nullptr };
+	//std::shared_ptr<BufferAccessor> _accessor { nullptr };
 };

@@ -25,7 +25,7 @@ namespace GLSL {
     std::shared_ptr<Shader> parse(const std::string& name,
         const std::string& vertex_file_path, const std::string& fragment_file_path);
     std::shared_ptr<Shader> parse(const std::string& name,
-        const std::string& vertex_file_path, const std::string& fragment_file_path, ShaderType type, const std::string& defines = "");
+        const std::string& vertex_file_path, const std::string& fragment_file_path, Shader::Type type, const std::string& defines = "");
     std::shared_ptr<Shader> parse(const std::string& name,
-        const std::string& fragment_file_path, ShaderType type, const std::string& defines = "");
+        const std::string& fragment_file_path, Shader::Type type, const std::string& defines = "");
 };

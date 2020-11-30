@@ -7,9 +7,13 @@
 
 #pragma once
 
-#include "Tools/memory.hpp"
+//#include "Tools/memory.hpp"
 
-//#include <memory> // for enable_shared_from_this, shared_ptr
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
+#include <memory> // for enable_shared_from_this, shared_ptr
 #include <string> // for string
 #include <typeindex>
 #include <typeinfo>
@@ -21,7 +25,7 @@
 ** ALWAYS STORE IN A SHARED_PTR !!!
 */
 
-class Object : public tools::enable_shared_from_this<Object> {
+class Object : public std::enable_shared_from_this<Object> {
 public:
     Object();
     Object(const std::string& name);
@@ -33,5 +37,5 @@ public:
 
 private:
     std::string _name { "" };
-    int64_t _id { 0 };
+    int64_t _id { reinterpret_cast<int64_t>(this) };
 };

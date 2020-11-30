@@ -4,7 +4,7 @@
 #include "BoundingSphere.hpp"
 #include "Common.hpp"
 #include "Component.hpp"
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 #include "Transform.hpp"
 #include <glm/glm.hpp>
 
@@ -16,8 +16,7 @@ class Node;
 */
 class RigidBody : public Component {
 public:
-    RigidBody(const std::string& name);
-    static std::shared_ptr<RigidBody> Create(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider);
+    RigidBody(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider);
     template <typename T, typename U,
         typename = IsSharedPointerOfType<RigidBody, T>,
         typename = IsSharedPointerOfType<RigidBody, U>>
@@ -78,8 +77,8 @@ public:
     Intersection Collides(const std::shared_ptr<RigidBody>& objectB);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<RigidBody>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<RigidBody>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};

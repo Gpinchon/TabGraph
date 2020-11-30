@@ -3,14 +3,9 @@
 #include "Component.hpp"
 
 class AssetsContainer : public Component {
-public:
-    static std::shared_ptr<AssetsContainer> Create() {
-        return tools::make_shared<AssetsContainer>();
-    }
-
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<AssetsContainer>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<AssetsContainer>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};

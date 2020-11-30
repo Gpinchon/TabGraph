@@ -6,7 +6,7 @@ class Node;
 class AnimationChannel
 {
 public:
-	enum Channel
+	enum class Channel
 	{
 		None,
 		Translation,

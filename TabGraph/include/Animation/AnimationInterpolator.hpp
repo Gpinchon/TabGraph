@@ -34,7 +34,7 @@ static inline T cubicSpline(T previousPoint, T prevTangent, T nextPoint, T nextT
 template <typename T>
 inline T AnimationInterpolator::Interpolate(const AnimationSampler &sampler, float delta, float interpolationValue)
 {
-	if (sampler.Interpolation() == AnimationSampler::CubicSpline)
+	if (sampler.Interpolation() == AnimationSampler::AnimationInterpolation::CubicSpline)
 	{
 		T prev				(BufferHelper::Get<T>(sampler.KeyFrames(), PrevKey() * 3 + 1));
 		T prevOutputTangent	(BufferHelper::Get<T>(sampler.KeyFrames(), PrevKey() * 3 + 2));
@@ -48,12 +48,12 @@ inline T AnimationInterpolator::Interpolate(const AnimationSampler &sampler, flo
 	T next(BufferHelper::Get<T>(sampler.KeyFrames(), NextKey()));
 	switch (sampler.Interpolation())
 	{
-		case AnimationSampler::Linear: {
+		case AnimationSampler::AnimationInterpolation::Linear: {
 			if constexpr (std::is_same_v<T, glm::quat>)
 				return glm::slerp(prev, next, interpolationValue); 
 			return glm::mix(prev, next, interpolationValue);
 		}
-		case AnimationSampler::Step:
+		case AnimationSampler::AnimationInterpolation::Step:
 			return prev;
 		default:
 			break;

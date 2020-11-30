@@ -9,7 +9,7 @@
 
 #include "Component.hpp" // for Component
 #include "Shader/ShaderStage.hpp"
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 #include <GL/glew.h> // for GLuint, GLenum, GLint
 #include <cstdlib>
 #include <functional>
@@ -17,7 +17,7 @@
 #include <memory> // for shared_ptr
 #include <stddef.h> // for size_t
 #include <string> // for string
-#include <unordered_map> // for unordered_map
+#include <map> // for unordered_map
 #include <variant>
 #include <vector> // for vector
 
@@ -82,22 +82,22 @@ struct ShaderVariable {
 
 class ShaderExtension;
 
-enum ShaderType {
-    Invalid = -1,
-    Other,
-    ForwardShader,
-    LightingShader,
-    PostShader,
-    ComputeShader
-};
-
 class Shader : public Component {
 public:
-    Shader(const std::string& name);
-    static std::shared_ptr<Shader> Create(const std::string&, ShaderType type = Other);
+    enum class Type {
+        Invalid = -1,
+        Other,
+        ForwardGeometryShader,
+        ForwardMaterialShader,
+        LightingShader,
+        PostShader,
+        ComputeShader
+    };
+    Shader(const std::string& name, const Shader::Type& type = Shader::Type::Other);
     //static std::shared_ptr<Shader> Get(unsigned index);
     //static std::shared_ptr<Shader> GetByName(const std::string&);
     void AddExtension(const std::shared_ptr<ShaderExtension>& extension);
+    void RemoveExtension(const std::shared_ptr<ShaderExtension>& extension);
     static bool check_shader(const GLuint id);
     static bool check_program(const GLuint id);
     void bind_image(const std::string& uname, std::shared_ptr<Texture> texture, const GLint level, const bool layered, const GLint layer, const GLenum access, const GLenum texture_unit);
@@ -125,13 +125,13 @@ public:
     std::shared_ptr<ShaderStage> Stage(GLenum stage) const;
     void SetStage(const std::shared_ptr<ShaderStage>& stage);
     void RemoveStage(GLenum stage);
-    ShaderType Type();
+    Shader::Type GetType();
     void Compile();
     void Link();
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<Shader>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<Shader>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
@@ -156,7 +156,7 @@ private:
     std::unordered_map<std::string, ShaderVariable> _uniforms;
     std::unordered_map<std::string, ShaderVariable> _attributes;
     std::unordered_map<std::string, std::string> _defines;
-    ShaderType _type{ ShaderType::Invalid };
+    Shader::Type _type{ Shader::Type::Invalid };
 };
 
 #include "Debug.hpp"

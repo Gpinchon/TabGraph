@@ -5,19 +5,26 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <fstream>
+#include <sstream>
 
 class ShaderCode : public Component {
 public:
     ShaderCode(const std::string& code = "", const std::string& technique = "") : _code(code), _technique(technique) {};
-    static std::shared_ptr<ShaderCode> Create(const std::string &code = "", const std::string &technique = "");
+    /*ShaderCode(const std::filesystem::path &path, const std::string& technique = "") :  _technique(technique) {
+        std::ifstream fileStream(path);
+        std::stringstream buffer;
+        buffer << fileStream.rdbuf();
+        _code = buffer.str();
+    };*/
     std::string Code() const;
     void SetCode(const std::string& code);
     std::string Technique() const;
     void SetTechnique(const std::string);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<ShaderCode>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<ShaderCode>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
@@ -33,8 +40,7 @@ private:
 
 class ShaderStage : public Component {
 public:
-    ShaderStage(GLenum stage = 0);
-    static std::shared_ptr<ShaderStage> Create(GLenum stage = 0, const std::shared_ptr<ShaderCode>& code = nullptr);
+    ShaderStage(GLenum stage = 0, const std::shared_ptr<ShaderCode>& code = nullptr);
     void Compile();
     void Recompile();
     /**
@@ -42,6 +48,7 @@ public:
     * @arg extension : the extension
     */
     void AddExtension(const std::shared_ptr<ShaderCode>& extension);
+    void RemoveExtension(const std::shared_ptr<ShaderCode>& extension);
     //void AddExtension(const std::shared_ptr<ShaderStage>& extension);
     void RemoveExtension(const std::string& name);
     auto Extensions() const { return GetComponents<ShaderCode>(); };
@@ -60,8 +67,8 @@ public:
     ~ShaderStage();
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<ShaderStage>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<ShaderStage>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};

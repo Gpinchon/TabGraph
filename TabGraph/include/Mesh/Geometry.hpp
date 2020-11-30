@@ -53,7 +53,8 @@ private:
 
 class Geometry : public Component {
 public:
-    Geometry(const std::string&);
+    Geometry();
+    Geometry(const std::string& name);
     enum class AccessorKey {
         Invalid = -1,
         Position,
@@ -67,7 +68,6 @@ public:
         Weights_0,
         MaxAccessorKey
     };
-    static std::shared_ptr<Geometry> Create(const std::string& = "");
     static Geometry::AccessorKey GetAccessorKey(const std::string& key);
     glm::vec3 Centroid() const;
     size_t EdgeCount() const;
@@ -95,8 +95,8 @@ public:
     void SetMorphTarget(const GeometryMorthTarget& morphTarget);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<Geometry>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<Geometry>(*this);
     }
     virtual void _LoadCPU() {};
     virtual void _UnloadCPU() {};

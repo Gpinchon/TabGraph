@@ -12,8 +12,7 @@
 
 class FPSCamera : public Camera {
 public:
-    FPSCamera(const std::string& name, float fov, Camera::Projection proj = Perspective);
-    static std::shared_ptr<FPSCamera> Create(const std::string& name, float fov, Camera::Projection proj = Perspective);
+    FPSCamera(const std::string& name, float fov, Camera::Projection proj = Projection::Perspective);
     virtual float Yaw() const;
     virtual void SetYaw(float);
     virtual float Pitch() const;
@@ -26,4 +25,8 @@ protected:
     float _yaw { 0 };
     float _pitch { 0 };
     float _roll { 0 };
+private:
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<FPSCamera>(*this);
+    }
 };

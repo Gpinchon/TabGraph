@@ -23,6 +23,7 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/FPSCamera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/OrbitCamera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Component.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
@@ -34,6 +35,9 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Input/Keyboard.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Input/Mouse.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionnalLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/PointLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SpotLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/Material.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MaterialExtension.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MetallicRoughness.cpp
@@ -102,12 +106,16 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Environment.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Framebuffer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Input/Events.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Input/GameController.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Input/InputDevice.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Input/Keyboard.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Input/Mouse.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Signal.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Events.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/GameController.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Keyboard.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Light.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/DirectionnalLight.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/PointLight.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/SpotLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/Material.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/MaterialExtension.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/MetallicRoughness.hpp
@@ -154,41 +162,32 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureBuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureParser.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/memory.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/Tools.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Transform.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Window.hpp
 )
 
 set(TABGRAPH_SHADER_FILES 
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/blur.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/checkOpacity.glsl
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/compositing.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/deferred.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/deferred.vert
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/depth.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/depth.vert
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/empty.glsl
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/directionnalLight.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.vert
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward_default.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/hzb.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/lighting.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/lighting_env.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/light.vert
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/material.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/metallicRoughness.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/specularGlossiness.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.vert
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/present.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/refraction.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/screenSpaceReflection.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/setInstanceID.glsl
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/specularGlossiness.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/ssao.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/ssaoApply.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SSR.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SSRBlur.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SSRMerge.frag
-	#${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.glsl
-	#${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag
-	#${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert
-	)
+)
 
 set(PLUGINS_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/BMP.cpp

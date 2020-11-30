@@ -22,6 +22,11 @@ enum class RenderMod {
     RenderTransparent
 };
 
+enum class RenderPass {
+    Geometry,
+    Material
+};
+
 class BoundingAABB;
 class RigidBody;
 class Animation;
@@ -29,9 +34,9 @@ class Mesh;
 
 class Node : public Transform {
 public:
+    Node();
     Node(const std::string& name);
-    static std::shared_ptr<Node> Create(const std::string& name);
-    virtual bool Draw(RenderMod = RenderMod::RenderAll, bool drawChildren = false);
+    virtual bool Draw(RenderPass pass, RenderMod = RenderMod::RenderAll, bool drawChildren = false);
     virtual bool DrawDepth(RenderMod = RenderMod::RenderAll, bool drawChildren = false);
 
     /** @return the Node's parent */
@@ -40,13 +45,11 @@ public:
     //void SetParent(std::shared_ptr<Node> parent);
     void AddChild(std::shared_ptr<Node>);
     /** @return true if @arg child is in children list */
-    bool HasChild(std::shared_ptr<Node> child) { return HasComponentOfType(child); };
+    bool HasChild(std::shared_ptr<Node> child) { return HasComponent(child); };
     /** @return the number of children */
     size_t ChildCount() const { return GetComponents<Node>().size(); };
-    /** @return the child at @arg index */
-    std::shared_ptr<Node> GetChild(const size_t index) const { return GetComponents<Node>().at(index); };
     /** @return all the children */
-    std::vector <std::shared_ptr<Node>> GetChildren() const { return GetComponents<Node>(); }
+    auto GetChildren() const { return GetComponents<Node>(); }
     /** removes parenting for specified @arg child */
     void RemoveChild(std::shared_ptr<Node> child);
     /** removes parenting for all children */
@@ -57,8 +60,8 @@ public:
     virtual ~Node() /*= default*/;
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<Node>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<Node>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};

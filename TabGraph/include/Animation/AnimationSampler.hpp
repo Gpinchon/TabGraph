@@ -6,7 +6,7 @@ class BufferAccessor;
 class AnimationSampler
 {
 public:
-	enum AnimationInterpolation
+	enum class AnimationInterpolation
 	{
 		Linear,
 		Step,

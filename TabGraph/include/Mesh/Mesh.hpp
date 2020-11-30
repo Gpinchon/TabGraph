@@ -9,6 +9,9 @@
 
 #include "Component.hpp"
 #include "Node.hpp"
+#include "Texture/TextureBuffer.hpp"
+#include "Mesh/Geometry.hpp" // for Geometry
+
 #include <GL/glew.h> // for GLenum, GL_BACK
 #include <glm/gtc/quaternion.hpp>
 #include <iostream>
@@ -17,47 +20,48 @@
 #include <string> // for string
 #include <vector> // for vector
 
-class Geometry;
 class MeshSkin;
 class Material;
-class TextureBuffer;
 class BufferAccessor;
 
 class Mesh : public Component {
 public:
+    Mesh();
     Mesh(const std::string& name);
-    static std::shared_ptr<Mesh> Create(std::shared_ptr<Mesh> otherMesh);
-    static std::shared_ptr<Mesh> Create(const std::string&);
-    static std::shared_ptr<Mesh> Create();
-    bool Draw(const std::shared_ptr<Transform>& transform, RenderMod mod = RenderMod::RenderAll);
+    bool Draw(const std::shared_ptr<Transform>& transform, const RenderPass &pass, RenderMod mod = RenderMod::RenderAll);
     bool DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod = RenderMod::RenderAll);
     bool Drawable() const;
     void center();
     void set_cull_mod(GLenum);
     /** Adds the Geometry to Geometrys list */
-    void AddGeometry(std::shared_ptr<Geometry>);
+    void AddGeometry(std::shared_ptr<Geometry> geometry);
     /** Adds the material to materials list */
     void AddMaterial(std::shared_ptr<Material>);
     /** Removes the material from materials list */
     void RemoveMaterial(std::shared_ptr<Material>);
-    /** Sets the material at specified index */
-    void SetMaterial(std::shared_ptr<Material>, uint32_t index);
     /** @return the material at specified index */
     std::shared_ptr<Material> GetMaterial(uint32_t index);
     /** @return the material index in this mesh material table, -1 if not found */
     int64_t GetMaterialIndex(std::shared_ptr<Material>);
     /** @return the material index in this mesh material table using its name, -1 if not found */
     int64_t GetMaterialIndex(const std::string&);
+    std::shared_ptr<TextureBuffer> JointMatrices() const;
+    void SetJointMatrices(const std::shared_ptr<TextureBuffer>&);
 
     std::shared_ptr<BufferAccessor> Weights() const;
     void SetWeights(std::shared_ptr<BufferAccessor> weights);
-    const std::set<std::shared_ptr<Geometry>> Geometrys();
+
+    const auto Geometrys() const {
+        return GetComponents<Geometry>();
+    }
 
     virtual void UpdateSkin(const std::shared_ptr<Transform>& transform);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<Mesh>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        //return std::static_pointer_cast<Mesh>(shared_from_this());
+        auto mesh(Component::Create<Mesh>(*this));
+        return mesh;
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
@@ -67,9 +71,5 @@ private:
     virtual void _UpdateGPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
     virtual void _FixedUpdateGPU(float /*delta*/) override;
-    std::set<std::shared_ptr<Geometry>> _Geometrys;
-    std::vector<std::weak_ptr<Material>> _materials;
-    std::shared_ptr<TextureBuffer> _jointMatrices { nullptr };
-    std::shared_ptr<BufferAccessor> _weights { nullptr };
     GLenum _cull_mod { GL_BACK };
 };

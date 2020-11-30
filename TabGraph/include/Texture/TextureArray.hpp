@@ -17,14 +17,13 @@
 class TextureArray : public Texture {
 public:
     TextureArray(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity);
-    static std::shared_ptr<TextureArray> Create(const std::string& name, glm::ivec2 s, GLenum target, GLenum fi, unsigned capacity);
     virtual void set(std::shared_ptr<Texture>, int index);
     //virtual int		AddTexture *texture);
     virtual void load() override;
 
 protected:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<TextureArray>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<TextureArray>(*this);
     }
     unsigned _capacity { 0 };
     std::vector<std::shared_ptr<Texture>> _array;

@@ -21,7 +21,7 @@ class BufferView;
 */
 class BufferAccessor : public Component {
 public:
-    enum Type {
+    enum class Type {
         Invalid = -1,
         Scalar,
         Vec2,
@@ -34,7 +34,6 @@ public:
     };
     BufferAccessor() = delete;
     BufferAccessor(GLenum componentType, size_t count, const BufferAccessor::Type type);
-    static std::shared_ptr<BufferAccessor> Create(GLenum componentType, size_t count, const BufferAccessor::Type type);
     /** The BufferView. */
     std::shared_ptr<BufferView> GetBufferView() const;
     void SetBufferView(std::shared_ptr<BufferView>);
@@ -74,8 +73,8 @@ public:
     void SetMin(const T min);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<BufferAccessor>(*this);
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<BufferAccessor>(*this);
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
@@ -89,7 +88,7 @@ private:
     GLenum _componentType { 0 };
     bool _normalized { false };
     size_t _count { 0 };
-    const BufferAccessor::Type _type { Invalid };
+    const BufferAccessor::Type _type { Type::Invalid };
     typedef std::variant<unsigned, int, double, glm::vec2, glm::vec3, glm::vec4, glm::mat2, glm::mat3, glm::mat4> boundsVar;
     boundsVar _max {};
     boundsVar _min {};

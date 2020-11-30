@@ -10,7 +10,7 @@
 #include "Component.hpp"
 #include "Intersection.hpp"
 //#include "Callback.hpp"
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 #include <glm/glm.hpp>
 #include <limits>
 
@@ -125,8 +125,8 @@ public:
     //void SetIntersectionCallback(BoundingElement::Type type, Intersection (*function)(const BoundingElement &));
 
 private:
-    /*virtual std::shared_ptr<Component> _Clone() const override {
-        return tools::make_shared<BoundingElement>(*this);
+    /*virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<BoundingElement>(*this);
     }*/
     void _LoadCPU() override {};
     void _UnloadCPU() override {};
