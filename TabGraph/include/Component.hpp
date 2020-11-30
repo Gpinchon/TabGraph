@@ -8,109 +8,181 @@
 #pragma once
 
 #include "Object.hpp"
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 
+#include <unordered_set>
 #include <algorithm>
 #include <vector>
 #include <cassert>
 #include <stdexcept>
 
+#include "Event/Signal.hpp"
+
+/** Use this to declare a new property */
+#define PROPERTY(type, var, ...) \
+public: \
+    Signal<type> var##Changed; \
+    type Get##var() const \
+    {\
+        return _##var; \
+    }\
+    void Set##var(const type& val) \
+    {\
+        bool changed = val != _##var;\
+        _##var = val; \
+        if (changed) \
+            var##Changed.Emit(val);\
+    }\
+private: \
+    type _##var { __VA_ARGS__ }; \
+
 class Component : public Object {
 public:
-    std::shared_ptr<Component> Clone() const;
-    typedef std::unordered_map<std::type_index, std::vector<std::shared_ptr<Component>>> ComponentMap;
+    std::shared_ptr<Component> Clone();
+    //typedef std::unordered_map<std::type_index, std::vector<std::shared_ptr<Component>>> ComponentMap;
+    typedef std::unordered_map<std::type_index, std::vector<std::shared_ptr<Component>>> ComponentTypesMap;
+    //typedef std::unordered_map<std::type_index, std::vector<int64_t>> ComponentTypesMap;
     Component()
         : Object() {};
     Component(const std::string& name)
         : Object(name) {};
     ~Component() = default;
-    std::shared_ptr<Component> Parent() const;
-    template<typename T>
-    std::shared_ptr<T> Parent() const;
+    //std::shared_ptr<Component> Parent() const;
+    //template<typename T>
+    //std::shared_ptr<T> Parent() const;
     /**
      * @return every sub-components
      */
-    ComponentMap Components() const;
+    //ComponentMap Components() const;
     /**
      * @brief Searches for the component of the specified type
      * @return true if component is found
      */
-    template <typename T>
+    template <typename T, typename = IsSharedPointerOfType<Component, T> >
     bool HasComponentOfType(const std::shared_ptr<T>& component) const;
+    template <typename T>
+    bool HasComponentOfType() const noexcept {
+        return _componentsMap.find(typeid(T)) != _componentsMap.end();
+    }
     /**
      * @brief Searches for the component in all types
      * @return true if component is found
      */
-    bool HasComponent(const std::shared_ptr<Component>& component) const;
+    bool HasComponent(const std::shared_ptr<Component>& component) const noexcept {
+        return std::find(GetComponents().begin(), GetComponents().end(), component) != GetComponents().end();
+    }
     /** Attaches the specified component to the object */
     template <typename T>
-    void AddComponent(const std::shared_ptr<T>& component);
+    int64_t AddComponent(const std::shared_ptr<T>& component);
     /** Sets the first component attached to this object to component, adds it if component type is missing */
     template <typename T>
-    void SetComponent(const std::shared_ptr<T>& component);
+    void SetComponent(const std::shared_ptr<T>& component) noexcept {
+        SetComponent(typeid(T), component);
+    }
     template <typename T>
-    void SetComponets(const std::vector<std::shared_ptr<T>>& components);
+    void SetComponents(const std::vector<std::shared_ptr<T>>& components) noexcept {
+        _componentsMap[typeid(T)] = components;
+    }
+    auto SetComponent(std::type_index type, const std::shared_ptr<Component>& component) {
+        AddComponent(component);
+        auto& comps = _componentsMap[type];
+        comps.resize(std::max(comps.size(), size_t(1u)));
+        comps.at(0) = component;
+    }
     /** Removes all the components of specified type from the object */
     template <typename T>
-    void RemoveComponents();
+    void RemoveComponents() {
+        _componentsMap.erase(typeid(T));
+    }
     /** Removes the specified component from the object */
     template <typename T>
     void RemoveComponent(const std::shared_ptr<T>& component);
     /** @return the first component of the specified type attached to the object, null if not found */
     template <typename T>
-    std::shared_ptr<T> GetComponent() const;
+    std::shared_ptr<T> GetComponent() const {
+        return std::static_pointer_cast<T>(GetComponent(typeid(T), 0));
+    }
+    template <typename T>
+    std::shared_ptr<T> GetComponent(size_t index) const {
+        return std::static_pointer_cast<T>(GetComponent(typeid(T), index));
+    }
+    auto GetComponent(std::type_index type, size_t index) const {
+        return _componentsMap.at(type).at(index);
+    }
+    auto GetComponent(std::type_index type) const {
+        return GetComponent(type, 0);
+    }
 
     /** @return all components of the specified type with matching id */
     template <typename T>
-    std::vector<std::shared_ptr<T>> GetComponentsByID(int64_t id) const;
+    std::unordered_set<std::shared_ptr<T>> GetComponentsByID(int64_t id) const noexcept;
     /** @return all components of the specified type with matching name */
     template <typename T>
-    std::vector<std::shared_ptr<T>> GetComponentsByName(const std::string& name) const;
+    std::unordered_set<std::shared_ptr<T>> GetComponentsByName(const std::string& name) const noexcept;
     /** @return all components of the specified type with matching id in this component and its children */
     template <typename T>
-    std::vector<std::shared_ptr<T>> GetComponentsInChildrenByID(int64_t id) const;
+    std::unordered_set<std::shared_ptr<T>> GetComponentsInChildrenByID(int64_t id) const noexcept;
     /** @return all components of the specified type with matching id in this component and its children */
     template <typename T>
-    std::vector<std::shared_ptr<T>> GetComponentsInChildrenByName(const std::string& name) const;
+    std::unordered_set<std::shared_ptr<T>> GetComponentsInChildrenByName(const std::string& name) const noexcept;
 
     /** @return the first component of the specified type with matching id */
     template <typename T>
-    std::shared_ptr<T> GetComponentByID(int64_t id) const;
+    std::shared_ptr<T> GetComponentByID(int64_t id) const noexcept;
     /** @return the first component of the specified type with matching name */
     template <typename T>
-    std::shared_ptr<T> GetComponentByName(const std::string& name) const;
+    std::shared_ptr<T> GetComponentByName(const std::string& name) const noexcept;
     /** @return the first component of the specified type with matching id in this component and its children */
     template <typename T>
-    std::shared_ptr<T> GetComponentInChildrenByID(int64_t id) const;
+    std::shared_ptr<T> GetComponentInChildrenByID(int64_t id) const noexcept;
     /** @return the first component of the specified type with matching id in this component and its children */
     template <typename T>
-    std::shared_ptr<T> GetComponentInChildrenByName(const std::string& name) const;
+    std::shared_ptr<T> GetComponentInChildrenByName(const std::string& name) const noexcept;
 
-    /** @return all components of the specified type attached to the object and it's children */
     template <typename T>
-    std::vector<std::shared_ptr<T>> GetComponentsInChildren() const;
+    int64_t GetComponentIndex(const std::shared_ptr<T>& component) const noexcept {
+        return GetComponentIndex(typeid(T), component);
+    }
+
+    /** @return the number of components of the specified type */
+    template <typename T = Component>
+    size_t GetComponentsNbr() const noexcept;
     /** @return all components of the specified type attached to the object */
-    template <typename T>
-    std::vector<std::shared_ptr<T>> GetComponents() const;
+    template <typename T = Component>
+    std::vector<std::shared_ptr<T>> GetComponents() const noexcept;
+    /** @return all components of the specified type attached to the object and it's children */
+    template <typename T = Component>
+    std::unordered_set<std::shared_ptr<T>> GetComponentsInChildren() const noexcept;
+    
+    /** @return the number of components */
+    auto GetComponentsNbr() const noexcept {
+        return GetComponents().size();
+    }
     /** @returns all components */
-    Component::ComponentMap GetComponents() const;
+    const std::vector<std::shared_ptr<Component>>& GetComponents() const noexcept {
+        return _components;
+    }
+    std::vector<std::shared_ptr<Component>>& GetComponents() noexcept {
+        return _components;
+    }
+
     /** @returns all components in children */
-    Component::ComponentMap GetComponentsInChildren() const;
+    std::unordered_set<std::shared_ptr<Component>> GetComponentsInChildren() const noexcept;
 
     /** @return types of component attached to this object */
-    std::vector<std::type_index> GetComponentsTypes() const;
-    virtual bool NeedsFixedUpdateGPU() const final { return _needsFixedUpdateGPU; };
-    virtual void SetNeedsFixedUpdateGPU(bool changed) final { _needsFixedUpdateGPU = changed; };
-    virtual bool NeedsFixedUpdateCPU() const final { return _needsFixedUpdateCPU; };
-    virtual void SetNeedsFixedUpdateCPU(bool changed) final { _needsFixedUpdateCPU = changed; };
-    virtual bool NeedsUpdateGPU() const final { return _needsUpdateGPU; };
-    virtual void SetNeedsUpdateGPU(bool changed) final { _needsUpdateGPU = changed; };
-    virtual bool NeedsUpdateCPU() const final { return _needsUpdateCPU; };
-    virtual void SetNeedsUpdateCPU(bool changed) final { _needsUpdateCPU = changed; };
-    virtual bool LoadedGPU() const final { return _loadedGPU; };
-    virtual void SetLoadedGPU(bool loaded) final { _loadedGPU = loaded; };
-    virtual bool LoadedCPU() const final { return _loadedCPU; };
-    virtual void SetLoadedCPU(bool loaded) final { _loadedCPU = loaded; };
+    std::unordered_set<std::type_index> GetComponentsTypes() const noexcept;
+    virtual bool NeedsFixedUpdateGPU() const noexcept final { return _needsFixedUpdateGPU; };
+    virtual void SetNeedsFixedUpdateGPU(bool changed) noexcept final { _needsFixedUpdateGPU = changed; };
+    virtual bool NeedsFixedUpdateCPU() const noexcept final { return _needsFixedUpdateCPU; };
+    virtual void SetNeedsFixedUpdateCPU(bool changed) noexcept final { _needsFixedUpdateCPU = changed; };
+    virtual bool NeedsUpdateGPU() const noexcept final { return _needsUpdateGPU; };
+    virtual void SetNeedsUpdateGPU(bool changed) noexcept final { _needsUpdateGPU = changed; };
+    virtual bool NeedsUpdateCPU() const noexcept final { return _needsUpdateCPU; };
+    virtual void SetNeedsUpdateCPU(bool changed) noexcept final { _needsUpdateCPU = changed; };
+    virtual bool LoadedGPU() const noexcept final { return _loadedGPU; };
+    virtual void SetLoadedGPU(bool loaded) noexcept final { _loadedGPU = loaded; };
+    virtual bool LoadedCPU() const noexcept final { return _loadedCPU; };
+    virtual void SetLoadedCPU(bool loaded) noexcept final { _loadedCPU = loaded; };
     /** Calls LoadCPU for all sub Components */
     virtual void LoadCPU() final;
     /** Calls UnloadCPU for all sub Components */
@@ -131,24 +203,75 @@ public:
     virtual std::shared_ptr<Component> operator+=(const std::shared_ptr<Component>& other)
     {
         if (other != nullptr) {
-            for (const auto& otherTypes : other->_components) {
+            for (const auto& otherTypes : other->_componentsMap) {
                 for (const auto& component : otherTypes.second) {
-                    _components[otherTypes.first].push_back(component);
+                    AddComponent(otherTypes.first, component);
                 }
             }
         }
         return std::static_pointer_cast<Component>(shared_from_this());
     }
 
-    virtual std::shared_ptr<Component> operator+(const std::shared_ptr<Component>& other) const
+    virtual std::shared_ptr<Component> operator+(const std::shared_ptr<Component>& other)
     {
-        auto clone = Clone();
+        auto clone = _Clone();
         *clone += other;
         return clone;
     }
 
+    template <class T, typename... Params>
+    static std::shared_ptr<T> Create(Params&&... args)
+    {
+        auto component = std::make_shared<T>(args...);
+        component->_typeIndex = typeid(T);
+        return component;
+        //component->GetComponentManager()->AddComponent(component);
+        //return Reference(component, ComponentManager::CurrentManager());
+    }
+
+    void Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent)
+    {
+        _Replace(oldComponent, newComponent);
+        for (auto& type : _componentsMap) {
+            std::replace(type.second.begin(), type.second.end(), oldComponent, newComponent);
+        }
+        std::replace(GetComponents().begin(), GetComponents().end(), oldComponent, newComponent);
+    }
+
+    template<typename T>
+    void Replace(const std::shared_ptr<T> &oldComponent, const std::shared_ptr<T> &newComponent)
+    {
+        _Replace(oldComponent, newComponent);
+        auto componentsIt = _componentsMap.find(typeid(T));
+        if (componentsIt != _componentsMap.end())
+            std::replace(componentsIt->second.begin(), componentsIt->second.end(), oldComponent, newComponent);
+        std::replace(GetComponents().begin(), GetComponents().end(), oldComponent, newComponent);
+    }
+
 private:
-    virtual std::shared_ptr<Component> _Clone() const = 0;
+    void AddToGetComponents(const std::shared_ptr<Component>& component) {
+        if (std::find(GetComponents().begin(), GetComponents().end(), component) == GetComponents().end())
+            GetComponents().emplace_back(component);
+    }
+    int64_t GetComponentIndex(std::type_index typeIndex, const std::shared_ptr<Component>& component) const noexcept {
+        auto componentsIt = _componentsMap.find(typeIndex);
+        if (componentsIt == _componentsMap.end())
+            return -1;
+        auto componentIt = std::find(componentsIt->second.begin(), componentsIt->second.end(), component);
+        if (componentIt == componentsIt->second.end())
+            return -1;
+        return std::distance(componentsIt->second.begin(), componentIt);
+    }
+    int64_t AddComponent(std::type_index typeIndex, const std::shared_ptr<Component>& component) noexcept
+    {
+        AddToGetComponents(component);
+        if (std::find(_componentsMap[typeIndex].begin(), _componentsMap[typeIndex].end(), component) == _componentsMap[typeIndex].end()) {
+            _componentsMap[typeIndex].emplace_back(component);
+        }
+        return GetComponentIndex(typeIndex, component);
+    }
+    virtual void _Replace(const std::shared_ptr<Component> &oldComponent, const std::shared_ptr<Component> &newComponent) {};
+    virtual std::shared_ptr<Component> _Clone() = 0;
     virtual void _LoadCPU() = 0;
     virtual void _UnloadCPU() = 0;
     virtual void _LoadGPU() = 0;
@@ -157,23 +280,17 @@ private:
     virtual void _UpdateGPU(float delta) = 0;
     virtual void _FixedUpdateCPU(float delta) = 0;
     virtual void _FixedUpdateGPU(float delta) = 0;
-    std::weak_ptr<Component> _parent;
-    ComponentMap _components;
+    //std::weak_ptr<Component> _parent;
+    std::vector<std::shared_ptr<Component>> _components;
+    ComponentTypesMap _componentsMap;
     bool _needsFixedUpdateGPU { true };
     bool _needsFixedUpdateCPU { true };
     bool _needsUpdateGPU { true };
     bool _needsUpdateCPU { true };
     bool _loadedGPU { false };
     bool _loadedCPU { false };
+    std::type_index _typeIndex { typeid(*this) };
 };
-
-/*template<typename T>
-std::shared_ptr<T>& operator+=(std::shared_ptr<T>& a, const std::shared_ptr<T>& b)
-{
-    std::shared_ptr<Component> compA(std::static_pointer_cast<Component>(a));
-    std::shared_ptr<Component> compB(std::static_pointer_cast<Component>(b));
-    return *compA += compB;
-}*/
 
 template <typename T, typename = IsSharedPointerOfType<Component, T>>
 inline auto operator+=(std::shared_ptr<T>& a, const std::shared_ptr<T>& b)
@@ -187,168 +304,149 @@ inline auto operator+(const std::shared_ptr<T>& a, const std::shared_ptr<T>& b)
     return std::static_pointer_cast<T>(a->operator+(b));
 }
 
-template <typename T>
+template <typename T, typename>
 inline bool Component::HasComponentOfType(const std::shared_ptr<T>& component) const
 {
-    auto componentsIt = _components.find(typeid(T));
-    if (componentsIt != _components.end()) {
+    auto componentsIt = _componentsMap.find(typeid(T));
+    if (componentsIt != _componentsMap.end()) {
         auto& components = componentsIt->second;
         return std::find(components.begin(), components.end(), component) != components.end();
     }
     return false;
 }
 
-inline std::shared_ptr<Component> Component::Clone() const
+#include "Debug.hpp"
+
+inline std::shared_ptr<Component> Component::Clone()
 {
     auto clone = _Clone();
-    for (auto components : _components) {
-        clone->_components[components.first].reserve(components.second.size());
-        for (const auto component : components.second) {
-            auto componentClone = component->Clone();
-            if (std::type_index(typeid(*componentClone)) != components.first)
-                throw std::runtime_error(typeid(*componentClone).name() + std::string(" != ") + typeid(component).name());
-            //assert(typeid(*componentClone) == typeid(*this));
-            clone->_components[components.first].push_back(componentClone);
+    debugLog(typeid(*this).name());
+    debugLog(typeid(*clone).name());
+    if (_typeIndex != clone->_typeIndex)
+        throw std::runtime_error(_typeIndex.name() + std::string(" != ") + clone->_typeIndex.name());
+    //clone->Replace(std::static_pointer_cast<Component>(shared_from_this()), clone);
+    auto components = GetComponentsInChildren();
+    std::vector<std::pair<std::shared_ptr<Component>, std::shared_ptr<Component>>> newComponents;
+    newComponents.reserve(components.size());
+    for (const auto &oldComponent : components) {
+        auto newComponent = oldComponent->_Clone();
+        if (oldComponent->_typeIndex != newComponent->_typeIndex)
+            throw std::runtime_error(oldComponent->_typeIndex.name() + std::string(" != ") + newComponent->_typeIndex.name());
+        newComponent->Replace(std::static_pointer_cast<Component>(shared_from_this()), clone);
+        clone->Replace(oldComponent, newComponent);
+        newComponents.emplace_back(oldComponent, newComponent);
+    }
+    for (auto componentA : newComponents) {
+        //componentA.second->Replace(componentA.first, componentA.second);
+        for (auto componentB : newComponents) {
+            componentB.second->Replace(componentA.first, componentA.second);
         }
-            
     }
     return clone;
 }
 
-inline std::shared_ptr<Component> Component::Parent() const
-{
-    return _parent.lock();
-}
-
-template<typename T>
-inline std::shared_ptr<T> Component::Parent() const
-{
-    return std::dynamic_pointer_cast<T>(Parent());
-    /*auto parent = Parent();
-    if (parent != nullptr && typeid(T) == typeid(parent))
-        return std::static_pointer_cast<T>(parent);
-    return nullptr;*/
-}
-
-inline Component::ComponentMap Component::Components() const
-{
-    return _components;
-}
-
-inline bool Component::HasComponent(const std::shared_ptr<Component>& component) const
-{
-    for (const auto& components : _components) {
-        if (std::find(components.second.begin(), components.second.end(), component) != components.second.end())
-            return true;
-    }
-    return false;
-}
-
 template <typename T>
-inline void Component::AddComponent(const std::shared_ptr<T>& component)
+inline int64_t Component::AddComponent(const std::shared_ptr<T>& component)
+{
+    if (component == nullptr || component.get() == this)
+        return -1;
+    return AddComponent(typeid(T), component);
+}
+/*
+template <typename T>
+inline void Component::SetComponent(const std::shared_ptr<T>& component) noexcept
 {
     if (component == nullptr || component.get() == this)
         return;
-    auto& components = _components[typeid(T)];
-    auto componentIterator = std::find(components.begin(), components.end(), component);
-    if (componentIterator == components.end()) {
-        components.push_back(component);
-        component->_parent = std::static_pointer_cast<Component>(shared_from_this());
-    }
-}
-
-template <typename T>
-inline void Component::SetComponent(const std::shared_ptr<T>& component)
-{
-    if (component == nullptr || component.get() == this)
-        return;
-    auto& components = _components[typeid(T)];
-    if (components.empty())
-        AddComponent(component);
+    if (_componentsMap[typeid(T)].empty())
+        AddComponent(typeid(T), component);
     else {
-        components.at(0) = component;
-        component->_parent = std::static_pointer_cast<Component>(shared_from_this());
+        AddToGetComponents(component);
+        _componentsMap[typeid(T)].at(0) = component;
     }
 }
-
-template<typename T>
-inline void Component::SetComponets(const std::vector<std::shared_ptr<T>>& components)
-{
-    _components[typeid(T)] = components;
-}
-
-template <typename T>
-inline void Component::RemoveComponents()
-{
-    _components.erase(typeid(T));
-}
-
+*/
 template <typename T>
 inline void Component::RemoveComponent(const std::shared_ptr<T>& component)
 {
-    auto componentsIt = _components.find(typeid(T));
-    if (componentsIt == _components.end()) return;
+    auto componentsIt = _componentsMap.find(typeid(T));
+    if (componentsIt == _componentsMap.end()) return;
     const auto last = std::remove(componentsIt->second.begin(), componentsIt->second.end(), component);
     if (last == componentsIt->second.end()) return;
     componentsIt->second.erase(last, componentsIt->second.end());
-    component->_parent.reset();
+    if (component.use_count() == 2) //There only is the ptr inside vector and "component" variable
+        GetComponents().erase(std::remove(GetComponents().begin(), GetComponents().end(), component), GetComponents().end());
 }
-
+/*
 template <typename T>
-inline std::shared_ptr<T> Component::GetComponent() const
+inline std::shared_ptr<T> Component::GetComponent() const noexcept
 {
-    auto componentsIt = _components.find(typeid(T));
-    if (componentsIt != _components.end()) {
+    std::shared_ptr<T> ptr;
+    auto componentsIt = _componentsMap.find(typeid(T));
+    if (componentsIt != _componentsMap.end()) {
         auto& components = componentsIt->second;
         if (!components.empty())
-            return std::static_pointer_cast<T>(components.at(0));
+            ptr = std::static_pointer_cast<T>(components.at(0));
     }
-    return nullptr;
+    return ptr;
 }
 
-template <typename T>
-inline std::vector<std::shared_ptr<T>> Component::GetComponentsByID(int64_t id) const
+template<typename T>
+inline std::shared_ptr<T> Component::GetComponent(size_t index) const noexcept
 {
-    std::vector<std::shared_ptr<T>> components;
-    auto componentsIt = _components.find(typeid(T));
-    if (componentsIt != _components.end()) {
+    std::shared_ptr<T> ptr;
+    auto componentsIt = _componentsMap.find(typeid(T));
+    if (componentsIt != _componentsMap.end()) {
+        auto& components = componentsIt->second;
+        if (!components.empty() && components.size() >= index)
+            ptr = std::static_pointer_cast<T>(components.at(index));
+    }
+    return ptr;
+}
+*/
+template <typename T>
+inline std::unordered_set<std::shared_ptr<T>> Component::GetComponentsByID(int64_t id) const noexcept
+{
+    std::unordered_set<std::shared_ptr<T>> components;
+    auto componentsIt = _componentsMap.find(typeid(T));
+    if (componentsIt != _componentsMap.end()) {
         for (const auto& component : componentsIt->second) {
             if (component->Id() == id)
-                components.push_back(std::static_pointer_cast<T>(component));
+                components.insert(std::static_pointer_cast<T>(component));
         }
     }
     return components;
 }
 
 template <typename T>
-inline std::vector<std::shared_ptr<T>> Component::GetComponentsByName(const std::string& name) const
+inline std::unordered_set<std::shared_ptr<T>> Component::GetComponentsByName(const std::string& name) const noexcept
 {
-    std::vector<std::shared_ptr<T>> components;
-    auto componentsIt = _components.find(typeid(T));
-    if (componentsIt != _components.end()) {
+    std::unordered_set<std::shared_ptr<T>> components;
+    auto componentsIt = _componentsMap.find(typeid(T));
+    if (componentsIt != _componentsMap.end()) {
         for (const auto& component : componentsIt->second) {
             if (component->Name() == name)
-                components.push_back(std::static_pointer_cast<T>(component));
+                components.insert(std::static_pointer_cast<T>(component));
         }
     }
     return components;
 }
 
 template <typename T>
-inline std::vector<std::shared_ptr<T>> Component::GetComponentsInChildrenByID(int64_t id) const
+inline std::unordered_set<std::shared_ptr<T>> Component::GetComponentsInChildrenByID(int64_t id) const noexcept
 {
-    std::vector<std::shared_ptr<T>> components;
+    std::unordered_set<std::shared_ptr<T>> components;
     for (const auto& component : GetComponentsInChildren<T>()) {
         if (component->Id() == id)
-            components.push_back(std::static_pointer_cast<T>(component));
+            components.insert(std::static_pointer_cast<T>(component));
     }
     return components;
 }
 
 template <typename T>
-inline std::vector<std::shared_ptr<T>> Component::GetComponentsInChildrenByName(const std::string& name) const
+inline std::unordered_set<std::shared_ptr<T>> Component::GetComponentsInChildrenByName(const std::string& name) const noexcept
 {
-    std::vector<std::shared_ptr<T>> components;
+    std::unordered_set<std::shared_ptr<T>> components;
     for (const auto& component : GetComponentsInChildren<T>()) {
         if (component->Name() == name)
             components.push_back(std::static_pointer_cast<T>(component));
@@ -357,10 +455,10 @@ inline std::vector<std::shared_ptr<T>> Component::GetComponentsInChildrenByName(
 }
 
 template <typename T>
-inline std::shared_ptr<T> Component::GetComponentByID(int64_t id) const
+inline std::shared_ptr<T> Component::GetComponentByID(int64_t id) const noexcept
 {
-    auto componentsIt = _components.find(typeid(T));
-    if (componentsIt != _components.end()) {
+    auto componentsIt = _componentsMap.find(typeid(T));
+    if (componentsIt != _componentsMap.end()) {
         for (const auto& component : componentsIt->second) {
             if (component->Id() == id)
                 return std::static_pointer_cast<T>(component);
@@ -370,10 +468,10 @@ inline std::shared_ptr<T> Component::GetComponentByID(int64_t id) const
 }
 
 template <typename T>
-inline std::shared_ptr<T> Component::GetComponentByName(const std::string& name) const
+inline std::shared_ptr<T> Component::GetComponentByName(const std::string& name) const noexcept
 {
-    auto componentsIt = _components.find(typeid(T));
-    if (componentsIt != _components.end()) {
+    auto componentsIt = _componentsMap.find(typeid(T));
+    if (componentsIt != _componentsMap.end()) {
         for (const auto& component : componentsIt->second) {
             if (component->Name() == name)
                 return std::static_pointer_cast<T>(component);
@@ -383,7 +481,7 @@ inline std::shared_ptr<T> Component::GetComponentByName(const std::string& name)
 }
 
 template <typename T>
-inline std::shared_ptr<T> Component::GetComponentInChildrenByID(int64_t id) const
+inline std::shared_ptr<T> Component::GetComponentInChildrenByID(int64_t id) const noexcept
 {
     for (const auto& component : GetComponentsInChildren<T>()) {
         if (component->Id() == id)
@@ -391,8 +489,9 @@ inline std::shared_ptr<T> Component::GetComponentInChildrenByID(int64_t id) cons
     }
     return nullptr;
 }
+
 template <typename T>
-inline std::shared_ptr<T> Component::GetComponentInChildrenByName(const std::string& name) const
+inline std::shared_ptr<T> Component::GetComponentInChildrenByName(const std::string& name) const noexcept
 {
     for (const auto& component : GetComponentsInChildren<T>()) {
         if (component->Name() == name)
@@ -401,57 +500,61 @@ inline std::shared_ptr<T> Component::GetComponentInChildrenByName(const std::str
     return nullptr;
 }
 
+template<typename T>
+inline size_t Component::GetComponentsNbr() const noexcept
+{
+    auto componentsIt = _componentsMap.find(typeid(T));
+    return (componentsIt == _componentsMap.end()) ? 0 : componentsIt->second.size();
+}
+
+#include <algorithm>
+#include <iterator>
+
 template <typename T>
-inline std::vector<std::shared_ptr<T>> Component::GetComponentsInChildren() const
+inline std::vector<std::shared_ptr<T>> Component::GetComponents() const noexcept
+{
+    std::vector<std::shared_ptr<T>> vec;
+    auto it = _componentsMap.find(typeid(T));
+    if (it != _componentsMap.end()) {
+        vec.reserve(it->second.size());
+        std::transform(it->second.begin(), it->second.end(), std::back_inserter(vec),
+            [](const std::shared_ptr<Component>& shptr)
+            {
+                return std::static_pointer_cast<T>(shptr);
+            }
+        );
+        //return std::unordered_set<std::shared_ptr<T>>(it->second.begin(), it->second.end());
+    }
+    return vec;
+}
+
+template <typename T>
+inline std::unordered_set<std::shared_ptr<T>> Component::GetComponentsInChildren() const noexcept
 {
     auto components = GetComponents<T>();
-    for (const auto& type : _components) {
-        for (const auto& childComponent : type.second) {
-            auto childComponents = childComponent->GetComponentsInChildren<T>();
-            components.insert(components.begin(), childComponents.begin(), childComponents.end());
-        }
+    for (const auto& child : GetComponents()) {
+        auto childComponents = child->GetComponentsInChildren<T>();
+        components.insert(components.end(), childComponents.begin(), childComponents.end());
     }
-    return components;
+    return std::unordered_set<std::shared_ptr<T>>(components.begin(), components.end());
 }
 
-template <typename T>
-inline std::vector<std::shared_ptr<T>> Component::GetComponents() const
-{
-    std::vector<std::shared_ptr<T>> componentsCasted;
-    if (_components.find(typeid(T)) != _components.end()) {
-        auto& components = _components.at(typeid(T));
-        componentsCasted.reserve(components.size());
-        for (const auto& component : components)
-            componentsCasted.push_back(std::static_pointer_cast<T>(component));
-    }
-    return componentsCasted;
-}
-
-inline Component::ComponentMap Component::GetComponentsInChildren() const
+inline std::unordered_set<std::shared_ptr<Component>> Component::GetComponentsInChildren() const noexcept
 {
     auto components = GetComponents();
-    for (const auto& type : _components) {
-        for (const auto& childComponent : type.second) {
-            auto childComponents = childComponent->GetComponentsInChildren();
-            for (auto childType : childComponents) {
-                components[childType.first].insert(components[childType.first].begin(), childType.second.begin(), childType.second.end());
-            }
-        }
+    for (const auto& component : GetComponents()) {
+        auto childComponents = component->GetComponentsInChildren();
+        components.insert(components.end(), childComponents.begin(), childComponents.end());
     }
-    return components;
+    return std::unordered_set<std::shared_ptr<Component>>(components.begin(), components.end());
 }
 
-inline Component::ComponentMap Component::GetComponents() const
+inline std::unordered_set<std::type_index> Component::GetComponentsTypes() const noexcept
 {
-    return _components;
-}
-
-inline std::vector<std::type_index> Component::GetComponentsTypes() const
-{
-    std::vector<std::type_index> types;
-    types.reserve(_components.size());
-    for (const auto& components : _components) {
-        types.push_back(components.first);
+    std::unordered_set<std::type_index> types;
+    types.reserve(_componentsMap.size());
+    for (const auto& components : _componentsMap) {
+        types.insert(components.first);
     }
     return types;
 }
@@ -461,9 +564,8 @@ inline void Component::LoadCPU()
     //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     _LoadCPU();
-    for (const auto& components : _components) {
-        for (auto& component : components.second)
-            component->LoadCPU();
+    for (const auto& component : GetComponents()) {
+        component->LoadCPU();
     }
 }
 
@@ -472,9 +574,8 @@ inline void Component::UnloadCPU()
     //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     _UnloadCPU();
-    for (const auto& components : _components) {
-        for (auto& component : components.second)
-            component->UnloadCPU();
+    for (const auto& component : GetComponents()) {
+        component->UnloadCPU();
     }
 }
 
@@ -483,9 +584,8 @@ inline void Component::LoadGPU()
     //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     _LoadGPU();
-    for (const auto& components : _components) {
-        for (auto& component : components.second)
-            component->LoadGPU();
+    for (const auto& component : GetComponents()) {
+        component->LoadGPU();
     }
 }
 
@@ -494,9 +594,8 @@ inline void Component::UnloadGPU()
     //Keep this component alive in case it destroys itself
     auto thisPtr = shared_from_this();
     _UnloadGPU();
-    for (const auto& components : _components) {
-        for (auto& component : components.second)
-            component->UnloadGPU();
+    for (const auto& component : GetComponents()) {
+        component->UnloadGPU();
     }
 }
 
@@ -507,9 +606,8 @@ inline void Component::UpdateCPU(float delta)
     if (NeedsUpdateCPU())
         _UpdateCPU(delta);
     //SetNeedsUpdateCPU(false);
-    for (const auto& components : _components) {
-        for (auto& component : components.second)
-            component->UpdateCPU(delta);
+    for (const auto& component : GetComponents()) {
+        component->UpdateCPU(delta);
     }
 }
 
@@ -520,9 +618,8 @@ inline void Component::UpdateGPU(float delta)
     if (NeedsUpdateGPU())
         _UpdateGPU(delta);
     //SetNeedsUpdateGPU(false);
-    for (const auto& components : _components) {
-        for (auto& component : components.second)
-            component->UpdateGPU(delta);
+    for (const auto& component : GetComponents()) {
+        component->UpdateGPU(delta);
     }
 }
 
@@ -533,9 +630,8 @@ inline void Component::FixedUpdateCPU(float delta)
     if (NeedsFixedUpdateCPU())
         _FixedUpdateCPU(delta);
     //SetNeedsFixedUpdateCPU(false);
-    for (const auto& components : _components) {
-        for (auto& component : components.second)
-            component->FixedUpdateCPU(delta);
+    for (const auto& component : GetComponents()) {
+        component->FixedUpdateCPU(delta);
     }
 }
 
@@ -546,8 +642,7 @@ inline void Component::FixedUpdateGPU(float delta)
     if (NeedsFixedUpdateGPU())
         _FixedUpdateGPU(delta);
     //SetNeedsFixedUpdateGPU(false);
-    for (const auto& components : _components) {
-        for (auto& component : components.second)
-            component->FixedUpdateGPU(delta);
+    for (const auto& component : GetComponents()) {
+        component->FixedUpdateGPU(delta);
     }
 }
