@@ -27,31 +27,29 @@ Bomb::Bomb()
     _height = 0;
 }
 
+auto CreateBomb() {
+    auto bomb = Component::Create<Bomb>();
+    auto bombAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomb/bomb.gltf");
+    auto bombNode = bombAsset->GetComponentByName<Node>("Bomb");
+    //for (auto& node : bombAsset->GetComponents<Node>())
+    //    bomb->AddComponent(node);
+    //bombNode->SetParent(bomb);
+    //bombNode->SetScale(glm::vec3(0.4f));
+    bomb->AddChild(bombNode);
+    for (auto &animation : bombAsset->GetComponents<Animation>())
+        bomb->AddAnimation(animation);
+    bomb->PlayAnimation("idle", true);
+    return bomb;
+}
+
 std::shared_ptr<Bomb> Bomb::Create(const glm::ivec2& position)
 {
-    auto bomb = tools::make_shared<Bomb>();
-    static auto bombAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomb/scene.gltf");
-    auto bombAssetClone = bombAsset->Clone();
-    auto bombNode = bombAssetClone->GetComponent<Scene>()->RootNodes().at(0);
-    bombNode->SetScale(glm::vec3(0.4f));
-    bomb->AddChild(bombNode);
-    //bombNode->SetParent(bomb);
-    for (auto animation : bombAssetClone->GetComponents<Animation>())
-        bomb->AddAnimation(animation);
-    bomb->PlayAnimation("Armature|idle", true);
-    Game::CurrentLevel()->SetGameEntityPosition(position, bomb);
-    //Keyboard::AddKeyCallback(SDL_SCANCODE_SPACE, Callback<void(const SDL_KeyboardEvent&)>::Create(&Player::DropBomb, player, std::placeholders::_1));
-    return bomb;
-    /*auto bomb = std::shared_ptr<Bomb>(new Bomb);
-    static auto asset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomb/scene.gltf");
-    auto node = asset.GetComponent<Scene>()->RootNodes().at(0);
-    node->GetComponent<Transform>()->SetScale(glm::vec3(0.01f));
-    node->SetParent(bomb);
-    for (auto animation : asset.GetComponents<Animation>())
-        bomb->AddAnimation(animation);
-    bomb->PlayAnimation("Armature|idle", true);
-    Game::CurrentLevel()->SetGameEntityPosition(position, bomb);
-    return bomb;*/
+    static auto bomb = CreateBomb();
+    auto bombClone = std::static_pointer_cast<Bomb>(bomb->Clone());
+    bombClone->_bombMaterial = bombClone->GetComponentInChildrenByName<Material>("Body");
+    bombClone->_spawnTime = std::chrono::high_resolution_clock::now();
+    Game::CurrentLevel()->SetGameEntityPosition(position, bombClone);
+    return bombClone;
 }
 
 void SpawnFlames(const glm::ivec2& position, const glm::ivec2& direction, int range)
@@ -97,8 +95,9 @@ void Bomb::Die()
 
 void Bomb::_FixedUpdateCPU(float delta)
 {
-    auto now = std::chrono::high_resolution_clock::now();
-    if (now - SpawnTime() > Timer())
+    auto deltaTime = std::chrono::high_resolution_clock::now() - SpawnTime();
+    _bombMaterial->SetEmissive(glm::mix(glm::vec3(0), glm::vec3(0.3, 0, 0), deltaTime / Timer()));
+    if (deltaTime > Timer())
         Die();
 }
 

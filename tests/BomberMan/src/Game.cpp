@@ -1,6 +1,6 @@
 #include "Callback.hpp"
 #include "Camera/Camera.hpp"
-#include "Input/Events.hpp"
+#include "Event/Events.hpp"
 #include "Transform.hpp"
 
 #include "Game.hpp"

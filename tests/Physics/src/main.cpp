@@ -25,7 +25,7 @@
 #include "Render.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneParser.hpp"
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 #include "Transform.hpp"
 #include "Window.hpp"
 
@@ -129,8 +129,8 @@ void ThrowBall(const SDL_KeyboardEvent& event)
     auto dir = camera->GetComponent<Transform>()->Forward();
     static auto geometry = *SphereMesh::Create("BallMesh", 1.f)->Geometrys().begin();
     static auto material = Material::Create("BallMaterial");
-    auto mesh(Mesh::Create());
-    auto node(Node::Create("node"));
+    auto mesh(Component::Create<Mesh>());
+    auto node(Component::Create<Node>("node"));
     auto rigidBody(RigidBody::Create("cubeRigidBody", node, BoundingSphere::Create(glm::vec3(0.f), 1.f)));
     mesh->AddGeometry(geometry);
     mesh->AddMaterial(material);
@@ -164,9 +164,9 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
         for (auto j = 0u; j < rowLength; ++j) {
             glm::vec3 position((i - (rowLength / 2.f)) * 1.1f, (j + 1) * 1.1f, 0);
             std::cout << position.x << ' ' << position.y << ' ' << position.z << '\n';
-            auto mesh(Mesh::Create());
+            auto mesh(Component::Create<Mesh>());
             auto material(Material::Create("mesh_" + std::to_string(i) + "_material"));
-            auto node(Node::Create("node"));
+            auto node(Component::Create<Node>("node"));
             auto rigidBody(RigidBody::Create("cubeRigidBody", node, BoundingAABB::Create(glm::vec3(-0.5), glm::vec3(0.5))));
             //auto rigidBody(RigidBody::Create("cubeRigidBody", node, BoundingMesh::Create(mesh)));
             material->SetAlbedo(glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f));
@@ -184,9 +184,9 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
 
     auto geometry = SphereMesh::CreateGeometry("originalMesh", 1.f);
     for (auto i = 0u; i < nbr; ++i) {
-        auto mesh(Mesh::Create());
+        auto mesh(Component::Create<Mesh>());
         auto material(Material::Create("mesh_" + std::to_string(i) + "_material"));
-        auto node(Node::Create("node"));
+        auto node(Component::Create<Node>("node"));
         auto rigidBody(RigidBody::Create("cubeRigidBody", node, BoundingSphere::Create(glm::vec3(0.f), 1.f)));
         //auto rigidBody(RigidBody::Create("cubeRigidBody", node, BoundingAABB::Create(glm::vec3(-0.5), glm::vec3(0.5))));
         //auto rigidBody(RigidBody::Create("cubeRigidBody", node, BoundingMesh::Create(mesh)));
@@ -216,10 +216,10 @@ static inline void CreateCubes(unsigned nbr, std::shared_ptr<Scene> scene)
 
 void CollidersTest()
 {
-    //auto sphere1(RigidBody::Create("sphere1", Node::Create("sphere1_Node"), BoundingSphere::Create(glm::vec3(0, 0, 0), 1)));
-    //auto sphere2(RigidBody::Create("sphere2", Node::Create("sphere2_Node"), BoundingSphere::Create(glm::vec3(0, 3, 0), 1)));
-    //auto sphere3(RigidBody::Create("sphere3", Node::Create("sphere3_Node"), BoundingSphere::Create(glm::vec3(0, 0, 2), 1)));
-    //auto sphere4(RigidBody::Create("sphere4", Node::Create("sphere4_Node"), BoundingSphere::Create(glm::vec3(1, 0, 0), 1)));
+    //auto sphere1(RigidBody::Create("sphere1", Component::Create<Node>("sphere1_Node"), BoundingSphere::Create(glm::vec3(0, 0, 0), 1)));
+    //auto sphere2(RigidBody::Create("sphere2", Component::Create<Node>("sphere2_Node"), BoundingSphere::Create(glm::vec3(0, 3, 0), 1)));
+    //auto sphere3(RigidBody::Create("sphere3", Component::Create<Node>("sphere3_Node"), BoundingSphere::Create(glm::vec3(0, 0, 2), 1)));
+    //auto sphere4(RigidBody::Create("sphere4", Component::Create<Node>("sphere4_Node"), BoundingSphere::Create(glm::vec3(1, 0, 0), 1)));
     //
     //auto aIntersectB(sphere1->Collides(sphere2));
     //auto aIntersectC(sphere1->Collides(sphere3));
@@ -231,11 +231,11 @@ void CollidersTest()
     //std::cout << "sphere1 intersect sphere4 : " << aIntersectD.GetIntersects()
     //          << ", distance : " << aIntersectD.GetDistance() << std::endl;
     //
-    //auto AABB1(RigidBody::Create("AABB1", Node::Create("AABB1_Node"), BoundingAABB::Create(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1))));
-    //auto AABB2(RigidBody::Create("AABB2", Node::Create("AABB2_Node"), BoundingAABB::Create(glm::vec3(1, 1, 1), glm::vec3(2, 2, 2))));
-    //auto AABB3(RigidBody::Create("AABB3", Node::Create("AABB3_Node"), BoundingAABB::Create(glm::vec3(1, 0, 0), glm::vec3(2, 1, 1))));
-    //auto AABB4(RigidBody::Create("AABB4", Node::Create("AABB4_Node"), BoundingAABB::Create(glm::vec3(0, 0, -2), glm::vec3(1, 1, -1))));
-    //auto AABB5(RigidBody::Create("AABB5", Node::Create("AABB5_Node"), BoundingAABB::Create(glm::vec3(0, 0.5, 0), glm::vec3(1, 1.5, 1))));
+    //auto AABB1(RigidBody::Create("AABB1", Component::Create<Node>("AABB1_Node"), BoundingAABB::Create(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1))));
+    //auto AABB2(RigidBody::Create("AABB2", Component::Create<Node>("AABB2_Node"), BoundingAABB::Create(glm::vec3(1, 1, 1), glm::vec3(2, 2, 2))));
+    //auto AABB3(RigidBody::Create("AABB3", Component::Create<Node>("AABB3_Node"), BoundingAABB::Create(glm::vec3(1, 0, 0), glm::vec3(2, 1, 1))));
+    //auto AABB4(RigidBody::Create("AABB4", Component::Create<Node>("AABB4_Node"), BoundingAABB::Create(glm::vec3(0, 0, -2), glm::vec3(1, 1, -1))));
+    //auto AABB5(RigidBody::Create("AABB5", Component::Create<Node>("AABB5_Node"), BoundingAABB::Create(glm::vec3(0, 0.5, 0), glm::vec3(1, 1.5, 1))));
     //
     //auto AABB1IntersectAABB2(AABB1->Collides(AABB2));
     //auto AABB1IntersectAABB3(AABB1->Collides(AABB3));
@@ -270,7 +270,7 @@ void CollidersTest()
 void CreateColliders(std::shared_ptr<Scene>& scene)
 {
     auto planeMesh(PlaneMesh::Create("PlaneMesh", glm::vec2(100, 100)));
-    auto planeNode(Node::Create("PlaneNode"));
+    auto planeNode(Component::Create<Node>("PlaneNode"));
     //auto boundingElement(BoundingMesh::Create(planeMesh));
     auto boundingElement(BoundingAABB::Create(glm::vec3(-50, -5, -50), glm::vec3(50, 0, 50)));
     //auto boundingElement(BoundingSphere::Create(glm::vec3(0, 0, 0), 1));
@@ -291,7 +291,7 @@ int main(int, char**)
     //return 0;
     Config::Parse(Engine::ResourcePath() + "config.ini");
     Engine::Init();
-    auto scene(Scene::Create("mainScene"));
+    auto scene(Component::Create<Scene>("mainScene"));
     scene->Add(DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(10, 10, 10), 0.5, false));
     scene->SetCurrentCamera(FPSCamera::Create("main_camera", 45));
     scene->CurrentCamera()->GetComponent<Transform>()->SetPosition(glm::vec3 { 0, 5, 10 });

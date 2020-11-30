@@ -6,11 +6,14 @@
 */
 
 #include "Camera/OrbitCamera.hpp"
-#include "Light/Light.hpp"
+#include "Light/DirectionnalLight.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Mesh/PlaneMesh.hpp"
 #include "Transform.hpp"
+#include "Environment.hpp"
+#include "Texture/Cubemap.hpp"
+#include "Texture/TextureParser.hpp"
 
 #include "CrispyWall.hpp"
 #include "Game.hpp"
@@ -39,21 +42,30 @@ Level::Level(const std::string& name, const glm::ivec2& size)
     //Add(cameraNode);
 }
 
+#include "Texture/Texture2D.hpp"
+
 std::shared_ptr<Level> Level::Create(const std::string& name, const glm::ivec2& size)
 {
-    auto level(std::make_shared<Level>(name, size));
+    auto level(Component::Create<Level>(name, size));
     auto floorMesh = PlaneMesh::Create("FloorMesh", level->Size());
-    auto floorNode = Node::Create("FloorNode");
+    auto floorNode = Component::Create<Node>("FloorNode");
     floorNode->SetPosition(glm::vec3(level->Size().x / 2.f, 0, level->Size().y / 2.f));
     //auto light = DirectionnalLight::Create("MainLight", glm::vec3(1.f), glm::vec3(1.f), 1.f, true);
     auto radius = size.x + size.y;
-    auto light = DirectionnalLight::Create("MainLight", glm::vec3(1, 1, 1), glm::vec3(radius), 1, true);
-    light->SetLimits(glm::vec4(-radius, radius, -radius, radius));
-    auto camera = OrbitCamera::Create("MainCamera", 45.f, glm::pi<float>() / 2.f, 1, radius / 2.f);
+    auto light = Component::Create<DirectionnalLight>("MainLight", glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), true);
+    light->SetHalfSize(glm::vec3(size.x / 2.f, 1.5, size.y / 2.f));
+    light->SetPosition(glm::vec3(size.x / 2.f, 0, size.y / 2.f));
+    light->SetInfinite(false);
+    auto camera = Component::Create<OrbitCamera>("MainCamera", 45.f, glm::pi<float>() / 2.f, 1, radius / 2.f);
     camera->SetTarget(floorNode);
+    
+    //auto floorTexture = Component::Create<Texture2D>("floorTexture", size, GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE, data.data());
+    //floorTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //floorTexture->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     //camera->GetComponent<Transform>()->SetPosition(glm::vec3(0, 10, 1));
     //camera->GetComponent<Transform>()->LookAt(glm::vec3(0, 0, 0));
     floorMesh->GetMaterial(0)->SetDiffuse(glm::vec3(1.f));
+    //floorMesh->GetMaterial(0)->SetTextureDiffuse(floorTexture);
     floorNode->SetComponent(floorMesh);
     level->SetCurrentCamera(camera);
     level->Add(light);
@@ -87,13 +99,25 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
         if (row.size() > maxLine)
             maxLine = row.size();
     }
-    auto level = Create(path.string(), glm::ivec2(map.size(), maxLine));
+    auto size = glm::ivec2(map.size(), maxLine);
+    auto level = Create(path.string(), size);
+    auto textureData = std::vector<glm::u8vec4>(size_t(size.x) * size.y);
+    for (auto y = 0; y < size.y; ++y) {
+        for (auto x = 0; x < size.x; ++x) {
+            auto index = x + y * size.x;
+            auto color1 = glm::u8vec4(34, 69, 0, 255);
+            auto color0 = glm::u8vec4(49, 99, 0, 255);
+            textureData.at(index) = index % 2 ? color1 : color0;
+        }
+    }
     for (auto x = 0u; x < map.size(); ++x) {
         for (auto y = 0u; y < map.at(x).size(); ++y) {
+            auto index = x + y * size.x;
             switch (map.at(x).at(y)) {
             case 1: {
                 auto wall = Wall::Create();
                 level->SetGameEntityPosition(glm::ivec2(x, y), wall);
+                textureData.at(index) = glm::u8vec4(70, 13, 13, 255);
                 break;
             }
             case 2: {
@@ -107,6 +131,52 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             }
         }
     }
+    auto floorTexture = Component::Create<Texture2D>("floorTexture", size, GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE, textureData.data());
+    floorTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    floorTexture->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    level->GetComponentInChildrenByName<Mesh>("FloorMesh")->GetMaterial(0)->SetTextureDiffuse(floorTexture);
+    struct dirent* e;
+    std::filesystem::path folder;
+
+    folder = path.parent_path() / "env/hdr/";
+    std::cout << folder << std::endl;
+    if (std::filesystem::exists(folder)) {
+        for (const auto& entry : std::filesystem::directory_iterator(folder)) {
+            if (entry.path().string()[0] == '.')
+                continue;
+            auto name = entry.path().filename().string();
+            auto newEnv = Component::Create<Environment>(name);
+            newEnv->set_diffuse(Component::Create<Cubemap>(name + "Cube", TextureParser::parse(name, (entry.path() / "environment.hdr").string())));
+            newEnv->set_irradiance(Component::Create<Cubemap>(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", (entry.path() / "diffuse.hdr").string())));
+            level->AddComponent(newEnv);
+        }
+    }
+    folder = path.parent_path() / "env/skybox/";
+    if (std::filesystem::exists(folder)) {
+        for (const auto& entry : std::filesystem::directory_iterator(folder)) {
+            if (entry.path().string()[0] == '.')
+                continue;
+            std::string name = entry.path().string();
+            auto newEnv = Component::Create<Environment>(name);
+            try {
+                newEnv->set_diffuse(Cubemap::parse(folder));
+            }
+            catch (std::exception& e) {
+                std::cout << e.what() << std::endl;
+                continue;
+            }
+            try {
+                newEnv->set_irradiance(Cubemap::parse(folder / "light"));
+            }
+            catch (std::exception& e) {
+                std::cout << e.what() << std::endl;
+            }
+            level->AddComponent(newEnv);
+        }
+    }
+    
+    level->SetEnvironment(level->GetComponent<Environment>(0));
+    std::cout << level->GetEnvironment() << std::endl;
     return level;
 }
 
@@ -133,7 +203,6 @@ void Level::SetGameEntityPosition(glm::ivec2 position, std::shared_ptr<GameEntit
 
 void Level::SetGameEntity(glm::ivec2 position, const std::shared_ptr<GameEntity> entity)
 {
-    std::cout << position.x << " " << position.y << std::endl;
     position = glm::clamp(position, glm::ivec2(0), Size() - 1);
     _entities.at(position.x + position.y * Size().x) = entity;
 }
@@ -141,6 +210,28 @@ void Level::SetGameEntity(glm::ivec2 position, const std::shared_ptr<GameEntity>
 std::shared_ptr<GameEntity> Level::GetGameEntity(glm::ivec2 position) const
 {
     return _entities.at(position.x + position.y * Size().x);
+}
+
+void Level::_UpdateCPU(float delta)
+{
+    for (const auto& entity : _entities) {
+        if (entity != nullptr)
+            entity->UpdateCPU(delta);
+    }
+    for (auto index = 0; index < Game::PlayerNumber(); ++index) {
+        Game::GetPlayer(index)->UpdateCPU(delta);
+    }
+}
+
+void Level::_UpdateGPU(float delta)
+{
+    for (const auto& entity : _entities) {
+        if (entity != nullptr)
+            entity->UpdateGPU(delta);
+    }
+    for (auto index = 0; index < Game::PlayerNumber(); ++index) {
+        Game::GetPlayer(index)->UpdateGPU(delta);
+    }
 }
 
 void Level::_FixedUpdateCPU(float delta)
@@ -153,7 +244,6 @@ void Level::_FixedUpdateCPU(float delta)
     for (auto index = 0; index < Game::PlayerNumber(); ++index) {
         Game::GetPlayer(index)->FixedUpdateCPU(delta);
     }
-    //std::cout << __FUNCTION__ << '\n';
 }
 
 void Level::_FixedUpdateGPU(float delta)
@@ -166,25 +256,19 @@ void Level::_FixedUpdateGPU(float delta)
     for (auto index = 0; index < Game::PlayerNumber(); ++index) {
         Game::GetPlayer(index)->FixedUpdateGPU(delta);
     }
-    //std::cout << __FUNCTION__ << '\n';
 }
 
-void Level::Render(const RenderMod& mod)
+void Level::Render(const RenderPass& pass, const RenderMod& mod)
 {
-    Scene::Render(mod);
+    Scene::Render(pass, mod);
     for (const auto& entity : _entities) {
         if (entity != nullptr)
-            entity->Draw(mod, true);
+            entity->Draw(pass, mod, true);
     }
     for (auto index = 0; index < Game::PlayerNumber(); ++index) {
         auto player(Game::GetPlayer(index));
-        player->Draw(mod, true);
+        player->Draw(pass, mod, true);
     }
-    /*for (auto i = 0; i < Game::PlayerNumber(); ++i) {
-        auto player = Game::GetPlayer(i);
-        player->Draw(mod);
-    }*/
-    //std::cout << __FUNCTION__ << '\n';
 }
 
 void Level::RenderDepth(const RenderMod& mod)
@@ -197,9 +281,4 @@ void Level::RenderDepth(const RenderMod& mod)
     for (auto index = 0; index < Game::PlayerNumber(); ++index) {
         Game::GetPlayer(index)->DrawDepth(mod, true);
     }
-    /*for (auto i = 0; i < Game::PlayerNumber(); ++i) {
-        auto player = Game::GetPlayer(i);
-        player->DrawDepth(mod);
-    }*/
-    //std::cout << __FUNCTION__ << '\n';
 }

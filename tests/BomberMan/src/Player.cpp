@@ -9,7 +9,7 @@
 #include "Animation/Animation.hpp"
 #include "Assets/AssetsParser.hpp"
 #include "Camera/Camera.hpp"
-#include "Input/Keyboard.hpp"
+#include "Event/Keyboard.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/CapsuleMesh.hpp"
 #include "Mesh/Mesh.hpp"
@@ -34,15 +34,25 @@ Player::Player(const std::string& name, const glm::vec3& color)
     _height = 0;
 }
 
+auto PlayerAsset()
+{
+    static auto playerAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomberman/bomberman.gltf");
+    return playerAsset->Clone();
+}
+
 std::shared_ptr<Player> Player::Create(const glm::vec3& color)
 {
-    auto player = tools::make_shared<Player>("Player1", color);
-    auto playerAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomberman/scene.gltf");
-    auto playerNode = playerAsset->GetComponent<Scene>()->RootNodes().at(0);
+    auto player = Component::Create<Player>("Player1", color);
+    auto playerAsset = PlayerAsset();
+    auto playerNode = playerAsset->GetComponent<Scene>()->GetComponent<Node>();
+    //for (auto &node : playerAsset->GetComponents<Node>())
+    //    player->AddComponent(node);
     playerNode->SetScale(glm::vec3(0.01f));
+    playerAsset->GetComponentInChildrenByName<Material>("White")->SetDiffuse(color);
     player->AddChild(playerNode);
+    //player->AddComponent(playerNode);
     //playerNode->SetParent(player);
-    for (auto animation : playerAsset->GetComponents<Animation>())
+    for (auto &animation : playerAsset->GetComponents<Animation>())
         player->AddAnimation(animation);
     Keyboard::AddKeyCallback(SDL_SCANCODE_SPACE, Callback<void(const SDL_KeyboardEvent&)>::Create(&Player::DropBomb, player, std::placeholders::_1));
     return player;
@@ -170,7 +180,7 @@ void Player::_FixedUpdateCPU(float delta)
                 if (x == int(Position().x) && y == int(Position().y) && entity->Type() == "Bomb")
                     continue;
                 Contact contact;
-                auto intersects = AABBvsCircle(contact, Position(), 0.4f, entity->Position(), entity->Size() * 0.5f);
+                auto intersects = AABBvsCircle(contact, Position(), 0.3f, entity->Position(), entity->Size() * 0.5f);
                 if (intersects) {
                     if (entity->Type() == "Flame") {
                         Die();

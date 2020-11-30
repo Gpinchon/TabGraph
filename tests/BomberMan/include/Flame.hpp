@@ -13,6 +13,9 @@ public:
     void SetTimer(std::chrono::duration<double> timer);
 
 private:
+    virtual std::shared_ptr<Component> _Clone() override {
+        return Component::Create<Flame>(*this);
+    }
     virtual void _FixedUpdateCPU(float delta) override;
     std::chrono::duration<double> _timer { 0.5 }; //defaults to seconds
     const std::chrono::time_point<std::chrono::high_resolution_clock> _spawnTime;
