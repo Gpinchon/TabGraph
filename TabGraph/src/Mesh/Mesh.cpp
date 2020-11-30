@@ -10,7 +10,7 @@
 #include "Camera/Camera.hpp" // for Camera
 #include "Debug.hpp"
 #include "Material/Material.hpp" // for Material
-#include "Mesh/Geometry.hpp" // for Geometry
+
 #include "Mesh/MeshSkin.hpp"
 #include "Node.hpp" // for Node
 #include "Physics/BoundingAABB.hpp" // for BoundingAABB
@@ -23,38 +23,23 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/transform.hpp>
 
+size_t meshNbr(0);
+
+Mesh::Mesh()
+    : Component("Mesh_" + std::to_string(meshNbr))
+{
+    meshNbr++;
+}
+
 Mesh::Mesh(const std::string& name)
     : Component(name)
 {
-}
-
-std::shared_ptr<Mesh> Mesh::Create(std::shared_ptr<Mesh> otherMesh) /*static*/
-{
-    return tools::make_shared<Mesh>(*otherMesh);
-}
-
-std::shared_ptr<Mesh> Mesh::Create(const std::string& name) /*static*/
-{
-    return tools::make_shared<Mesh>(name);
-}
-
-std::shared_ptr<Mesh> Mesh::Create() /*static*/
-{
-    static uint64_t meshNbr(0);
-    ++meshNbr;
-    return tools::make_shared<Mesh>("Mesh_" + std::to_string(meshNbr));
-}
-
-const std::set<std::shared_ptr<Geometry>> Mesh::Geometrys()
-{
-    return (_Geometrys);
+    meshNbr++;
 }
 
 void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
 {
-    if (nullptr == group)
-        return;
-    _Geometrys.insert(group);
+    AddComponent(group);
 }
 
 void Mesh::_LoadGPU()
@@ -62,54 +47,46 @@ void Mesh::_LoadGPU()
     if (LoadedGPU())
         return;
     debugLog(Name());
-    for (auto vg : _Geometrys)
-        vg->LoadGPU();
-    if (_jointMatrices != nullptr)
-        _jointMatrices->load();
+    if (HasComponentOfType<TextureBuffer>())
+        JointMatrices()->load();
     SetLoadedGPU(true);
 }
 
 bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    auto geometryTransform(GetComponent<Transform>());
+    std::shared_ptr<Transform> geometryTransform(HasComponentOfType<Transform>() ? GetComponent<Transform>() : nullptr);
     auto finalTranformMatrix(transform->WorldTransformMatrix() * (geometryTransform ? geometryTransform->WorldTransformMatrix() : glm::mat4(1.f)));
 
     bool ret = false;
-    auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
     LoadGPU();
     std::shared_ptr<Shader> last_shader;
-    for (auto vg : _Geometrys) {
+    for (auto vg : Geometrys()) {
         if (nullptr == vg)
             continue;
         auto material(GetMaterial(vg->MaterialIndex()));
         if (nullptr == material)
             continue;
-        auto isTransparent(material->Opacity() < 1); // || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4));
+        auto isTransparent(material->OpacityMode() == Material::OpacityModeValue::Blend);
         if (mod == RenderMod::RenderOpaque && isTransparent)
             continue;
         else if (mod == RenderMod::RenderTransparent && !isTransparent)
             continue;
-        if (nullptr == material->depth_shader())
+        auto shader(material->GeometryShader());
+        if (nullptr == shader)
             continue;
-        auto shader(material->depth_shader());
         material->Bind();
         if (last_shader != shader) {
+            shader->SetUniform("DrawID", unsigned(vg->Id()));
             shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
             shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
             shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
-            shader->SetUniform("Camera.Matrix.ViewProjection", viewProjectionMatrix);
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
-            if (GetComponent<MeshSkin>() != nullptr) {
-                shader->SetTexture("Joints", _jointMatrices);
-                shader->SetUniform("Skinned", true);
-            } else {
-                shader->SetTexture("Joints", nullptr);
-                shader->SetUniform("Skinned", false);
-            }
+            shader->SetTexture("Joints", HasComponentOfType<TextureBuffer>() ? JointMatrices() : nullptr);
+            shader->SetUniform("Skinned", HasComponentOfType<MeshSkin>());
             last_shader = shader;
         }
         shader->use();
@@ -119,19 +96,22 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
     return ret;
 }
 
-bool Mesh::Draw(const std::shared_ptr<Transform>& transform, RenderMod mod)
+#include "Window.hpp"
+#include "Render.hpp"
+#include "Framebuffer.hpp"
+
+bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& pass, RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    auto geometryTransform(GetComponent<Transform>());
+    std::shared_ptr<Transform> geometryTransform(HasComponentOfType<Transform>() ? GetComponent<Transform>() : nullptr);
     auto finalTranformMatrix(transform->WorldTransformMatrix() * (geometryTransform ? geometryTransform->WorldTransformMatrix() : glm::mat4(1.f)));
 
     bool ret = false;
-    auto viewProjectionMatrix = currentCamera->ProjectionMatrix() * currentCamera->ViewMatrix();
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
     LoadGPU();
     std::shared_ptr<Shader> last_shader;
-    for (auto vg : _Geometrys) {
+    for (auto vg : Geometrys()) {
         if (nullptr == vg)
             continue;
         auto material(GetMaterial(vg->MaterialIndex()));
@@ -139,28 +119,37 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, RenderMod mod)
             errorLog("Error : Invalid Material Index while rendering Mesh");
             continue;
         }
-        auto isTransparent(material->Opacity() < 1); // || (material->TextureAlbedo() != nullptr && material->TextureAlbedo()->values_per_pixel() == 4));
-        if (mod == RenderMod::RenderOpaque
-            && (material->Opacity() < 1 || isTransparent))
+        auto isTransparent(material->OpacityMode() == Material::OpacityModeValue::Blend);
+        if (mod == RenderMod::RenderOpaque && isTransparent)
             continue;
-        else if (mod == RenderMod::RenderTransparent
-            && !(material->Opacity() < 1 || isTransparent))
+        else if (mod == RenderMod::RenderTransparent && !isTransparent)
             continue;
-        if (nullptr == material->shader())
+        std::shared_ptr<Shader> shader;
+        if (pass == RenderPass::Geometry)
+            shader = material->GeometryShader();
+        else if (pass == RenderPass::Material)
+            shader = material->MaterialShader();
+        if (nullptr == shader)
             continue;
-        auto shader(material->shader());
         material->Bind();
+        //std::cout << unsigned(vg->Id()) << std::endl;
+        shader->SetUniform("DrawID", unsigned(vg->Id()));
         if (last_shader != shader) {
-            shader->SetUniform("Camera.Matrix.ViewProjection", viewProjectionMatrix);
+            shader->SetUniform("WindowSize", Window::size());
+            if (pass == RenderPass::Material) {
+                shader->SetTexture("DiffuseTexture", Render::LightBuffer()->attachement(0));
+                shader->SetTexture("SpecularTexture", Render::LightBuffer()->attachement(1));
+                shader->SetTexture("AOTexture", Render::GeometryBuffer()->attachement(3));
+                shader->SetTexture("NormalTexture", Render::GeometryBuffer()->attachement(4));
+                shader->SetTexture("IDTexture", Render::GeometryBuffer()->attachement(5));
+                shader->SetUniform("RenderPass", int(mod));
+            }
+            shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+            shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
-            if (GetComponent<MeshSkin>() != nullptr) {
-                shader->SetTexture("Joints", _jointMatrices);
-                shader->SetUniform("Skinned", true);
-            } else {
-                shader->SetTexture("Joints", nullptr);
-                shader->SetUniform("Skinned", false);
-            }
+            shader->SetTexture("Joints", HasComponentOfType<TextureBuffer>() ? JointMatrices() : nullptr);
+            shader->SetUniform("Skinned", HasComponentOfType<MeshSkin>());
             last_shader = shader;
         }
         if (material->DoubleSided())
@@ -203,35 +192,29 @@ void Mesh::center()
 void Mesh::AddMaterial(std::shared_ptr<Material> material)
 {
     AddComponent(material);
-    _materials.push_back(material);
+    //_materials.push_back(material);
 }
 
 void Mesh::RemoveMaterial(std::shared_ptr<Material> material)
 {
-    SetMaterial(nullptr, GetMaterialIndex(material));
+    //SetMaterial(nullptr, GetMaterialIndex(material));
     RemoveComponent(material);
-}
-
-void Mesh::SetMaterial(std::shared_ptr<Material> material, uint32_t index)
-{
-    AddMaterial(material);
-    if (index >= _materials.size())
-        _materials.resize(index + 1);
-    _materials.at(index) = material;
 }
 
 std::shared_ptr<Material> Mesh::GetMaterial(uint32_t index)
 {
-    return index >= _materials.size() ? nullptr : _materials.at(index).lock();
+    return GetComponent<Material>(index);
+    //return index >= _materials.size() ? nullptr : _materials.at(index).lock();
 }
 
 int64_t Mesh::GetMaterialIndex(std::shared_ptr<Material> mtl)
 {
-    for (auto i(0u); i < _materials.size(); ++i) {
+    return GetComponentIndex(mtl);
+    /*for (auto i(0u); i < _materials.size(); ++i) {
         if (_materials.at(i).lock() == mtl)
             return i;
     }
-    return -1;
+    return -1;*/
 }
 
 int64_t Mesh::GetMaterialIndex(const std::string& name)
@@ -240,41 +223,48 @@ int64_t Mesh::GetMaterialIndex(const std::string& name)
     return GetMaterialIndex(material);
 }
 
+std::shared_ptr<TextureBuffer> Mesh::JointMatrices() const
+{
+    return GetComponent<TextureBuffer>();
+}
+
+void Mesh::SetJointMatrices(const std::shared_ptr<TextureBuffer>& jointMatrices)
+{
+    RemoveComponent(jointMatrices);
+    SetComponent(jointMatrices);
+}
+
 void Mesh::_FixedUpdateGPU(float delta)
 {
-    if (_jointMatrices != nullptr) {
-        _jointMatrices->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU(delta);
+    /*if (JointMatrices() != nullptr) {
+        JointMatrices()->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU(delta);
     }
-    SetNeedsFixedUpdateGPU(false);
+    SetNeedsFixedUpdateGPU(false);*/
 }
 
 void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
 {
-    if (GetComponent<MeshSkin>() == nullptr)
+    if (!HasComponentOfType<MeshSkin>())
         return;
-    bool skinChanged(false);
-    if (_jointMatrices == nullptr) {
+    if (!HasComponentOfType<TextureBuffer>()) {
         auto bufferAccessor = BufferHelper::CreateAccessor<glm::mat4>(GetComponent<MeshSkin>()->Joints().size(), GL_TEXTURE_BUFFER, false, GL_DYNAMIC_DRAW);
-        _jointMatrices = TextureBuffer::Create("jointMatrices", GL_RGBA32F, bufferAccessor);
-        skinChanged = true;
+        SetJointMatrices(Component::Create<TextureBuffer>("jointMatrices", GL_RGBA32F, bufferAccessor));
         debugLog(Name() + " : Create Skin");
     }
+    auto invMatrix = glm::inverse(transform->Parent()->WorldTransformMatrix());
     for (auto index = 0u; index < GetComponent<MeshSkin>()->Joints().size(); ++index) {
         const auto joint(GetComponent<MeshSkin>()->Joints().at(index));
-        auto jointMatrix = glm::inverse(transform->Parent()->WorldTransformMatrix()) * joint.lock()->WorldTransformMatrix() * BufferHelper::Get<glm::mat4>(GetComponent<MeshSkin>()->InverseBindMatrices(), index);
-        if (jointMatrix != BufferHelper::Get<glm::mat4>(_jointMatrices->Accessor(), index))
-            skinChanged = true;
-        BufferHelper::Set(_jointMatrices->Accessor(), index, jointMatrix);
+        auto jointMatrix = invMatrix * joint->WorldTransformMatrix() * BufferHelper::Get<glm::mat4>(GetComponent<MeshSkin>()->InverseBindMatrices(), index);
+        BufferHelper::Set(JointMatrices()->Accessor(), index, jointMatrix);
     }
-    SetNeedsFixedUpdateGPU(NeedsFixedUpdateGPU() || skinChanged);
 }
 
 std::shared_ptr<BufferAccessor> Mesh::Weights() const
 {
-    return _weights;
+    return GetComponent<BufferAccessor>();
 }
 
 void Mesh::SetWeights(std::shared_ptr<BufferAccessor> weights)
 {
-    _weights = weights;
+    SetComponent(weights);
 }

@@ -15,21 +15,22 @@
 #include "Physics/BoundingAABB.hpp" // for AABB
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Texture.hpp" // for Texture
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 #include <algorithm>
 
-//std::vector<std::shared_ptr<Geometry>> Geometry::_Geometrys;
+size_t geometryNbr(0);
+
+Geometry::Geometry()
+    : Component("Geometry_" + std::to_string(geometryNbr))
+{
+    geometryNbr++;
+}
 
 Geometry::Geometry(const std::string& name)
     : Component(name)
-    , _bounds(tools::make_shared<BoundingAABB>(glm::vec3(0), glm::vec3(0)))
+    , _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(0)))
 {
-}
-
-std::shared_ptr<Geometry> Geometry::Create(const std::string& name)
-{
-    auto vg = tools::make_shared<Geometry>(name);
-    return (vg);
+    geometryNbr++;
 }
 
 Geometry::AccessorKey Geometry::GetAccessorKey(const std::string& key)

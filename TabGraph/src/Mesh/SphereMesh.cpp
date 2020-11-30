@@ -158,7 +158,7 @@ std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, fl
         sphereIndices.push_back(tri[1]);
         sphereIndices.push_back(tri[2]);
     }
-    auto vg = Geometry::Create(name);
+    auto vg = Component::Create<Geometry>(name);
     vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(sphereVertices, GL_ARRAY_BUFFER));
     vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(sphereNormals, GL_ARRAY_BUFFER, true));
     vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(sphereTexCoords, GL_ARRAY_BUFFER));
@@ -168,9 +168,9 @@ std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, fl
 
 std::shared_ptr<Mesh> SphereMesh::Create(const std::string& name, float radius, unsigned subdivision)
 {
-    auto m = Mesh::Create(name);
+    auto m = Component::Create<Mesh>(name);
     auto vg = SphereMesh::CreateGeometry(name + "Geometry", radius, subdivision);
     m->AddGeometry(vg);
-    m->AddMaterial(Material::Create(name + "Material"));
+    m->AddMaterial(Component::Create<Material>(name + "Material"));
     return (m);
 }

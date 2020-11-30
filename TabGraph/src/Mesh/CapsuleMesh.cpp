@@ -25,7 +25,7 @@ std::vector<glm::vec3> getUnitCircleVertices(int sectorCount)
 
 std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, float height, float radius, int sectorCount, int stackCount)
 {
-    auto vg = Geometry::Create(name);
+    auto vg = Component::Create<Geometry>(name);
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec2> texCoords;
@@ -82,9 +82,9 @@ std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, f
 
 std::shared_ptr<Mesh> CapsuleMesh::Create(const std::string& name, float heigth, float radius, int sectorCount, int heightSubdivision)
 {
-    auto m = Mesh::Create(name);
+    auto m = Component::Create<Mesh>(name);
     auto vg = CapsuleMesh::CreateGeometry(name + "Geometry", heigth, radius, sectorCount, heightSubdivision);
     m->AddGeometry(vg);
-    m->AddMaterial(Material::Create(name + "Material"));
+    m->AddMaterial(Component::Create<Material>(name + "Material"));
     return m;
 }

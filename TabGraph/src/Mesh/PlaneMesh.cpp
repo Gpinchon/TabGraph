@@ -14,7 +14,7 @@
 
 std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size, unsigned subdivision)
 {
-    auto m = Mesh::Create(name);
+    auto m = Component::Create<Mesh>(name);
     glm::vec3 maxV = glm::vec3(size.x / 2.f, 0.f, size.y / 2.f);
     glm::vec3 minV = -maxV;
     glm::vec3 vn(0, 1, 0);
@@ -43,12 +43,12 @@ std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size,
             }
         }
     }
-    auto vg = Geometry::Create(m->Name() + "_Geometry");
+    auto vg = Component::Create<Geometry>(m->Name() + "_Geometry");
     vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(planeVertices, GL_ARRAY_BUFFER));
     vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(planeNormals, GL_ARRAY_BUFFER, true));
     vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(planeTexCoords, GL_ARRAY_BUFFER));
     vg->SetIndices(BufferHelper::CreateAccessor(planeIndices, GL_ELEMENT_ARRAY_BUFFER));
     m->AddGeometry(vg);
-    m->AddMaterial(Material::Create(m->Name() + "_material"));
+    m->AddMaterial(Component::Create<Material>(m->Name() + "_material"));
     return (m);
 }
