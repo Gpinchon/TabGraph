@@ -20,61 +20,33 @@
 #include <string.h> // for memset
 #include <utility> // for pair, make_pair
 
-//std::vector<std::shared_ptr<Shader>> Shader::_shaders;
-
-Shader::Shader(const std::string& name)
+Shader::Shader(const std::string& name, const Shader::Type& type)
     : Component(name)
 {
-}
-
-void Shader::_FixedUpdateGPU(float)
-{
-    auto InvViewMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix());
-    auto InvProjMatrix = glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix());
-    glm::ivec2 res = glm::vec2(Window::size()) * Render::InternalQuality();
-    SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
-    SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
-    SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
-    SetUniform("Camera.InvMatrix.View", InvViewMatrix);
-    SetUniform("Camera.InvMatrix.Projection", InvProjMatrix);
-    SetUniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));
-    SetUniform("Time", SDL_GetTicks() / 1000.f);
-}
-
-std::shared_ptr<Shader> Shader::Create(const std::string& name, ShaderType type)
-{
-    static std::string forward_vert_code =
-#include "forward.vert"
-        ;
-    static std::string forward_frag_code =
-#include "forward.frag"
-        ;
-
     static std::string deferred_vert_code =
 #include "deferred.vert"
         ;
     static std::string deferred_frag_code =
 #include "deferred.frag"
         ;
-    auto shader = tools::make_shared<Shader>(name);
-    shader->_type = type;
-    if (ForwardShader == type) {
-        shader->SetDefine("FORWARDSHADER");
-        shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, ShaderCode::Create(forward_vert_code, "FillVertexData();")));
-        shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(forward_frag_code, "FillFragmentData();")));
-    } else if (LightingShader == type) {
-        shader->SetDefine("LIGHTSHADER");
-        shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, ShaderCode::Create(deferred_vert_code, "FillVertexData();")));
-        shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(deferred_frag_code, "FillFragmentData();")));
-    } else if (PostShader == type) {
-        shader->SetDefine("POSTSHADER");
-        shader->SetStage(ShaderStage::Create(GL_VERTEX_SHADER, ShaderCode::Create(deferred_vert_code, "FillVertexData();")));
-        shader->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(deferred_frag_code, "FillFragmentData();")));
-    } else if (ComputeShader == type) {
-        shader->SetDefine("COMPUTESHADER");
+    _type = type;
+    if (Shader::Type::LightingShader == type) {
+        SetDefine("LIGHTSHADER");
+        SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(deferred_vert_code, "FillVertexData();")));
+        SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(deferred_frag_code, "FillFragmentData();")));
     }
-    //_shaders.push_back(shader);
-    return (shader);
+    else if (Shader::Type::PostShader == type) {
+        SetDefine("POSTSHADER");
+        SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(deferred_vert_code, "FillVertexData();")));
+        SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(deferred_frag_code, "FillFragmentData();")));
+    }
+    else if (Shader::Type::ComputeShader == type) {
+        SetDefine("COMPUTESHADER");
+    }
+}
+
+void Shader::_FixedUpdateGPU(float)
+{
 }
 
 /*std::shared_ptr<Shader> Shader::Get(unsigned index)
@@ -103,6 +75,16 @@ void Shader::AddExtension(const std::shared_ptr<ShaderExtension>& extension)
     }
 }
 
+void Shader::RemoveExtension(const std::shared_ptr<ShaderExtension>& extension)
+{
+    RemoveComponent(extension);
+    for (auto stage : extension->Stages()) {
+        for (auto stageExtension : stage.second->Extensions())
+            Stage(stage.first)->RemoveExtension(stageExtension);
+        //stage.second->AddExtension(extension->Stage(stage.first));
+    }
+}
+
 ShaderVariable& Shader::get_attribute(const std::string& name)
 {
     return _attributes[name];
@@ -120,6 +102,8 @@ bool Shader::in_use()
     return (_program != 0 && GLuint(program) == _program);
 }
 
+#include "Framebuffer.hpp"
+
 void Shader::use(const bool& use_program)
 {
     if (!use_program) {
@@ -129,6 +113,14 @@ void Shader::use(const bool& use_program)
     if (NeedsRecompile())
         Recompile();
     Compile();
+    auto res = Framebuffer::CurrentSize();
+    SetUniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));
+    SetUniform("Time", SDL_GetTicks() / 1000.f);
+    SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
+    SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+    SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    SetUniform("Camera.InvMatrix.View", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
+    SetUniform("Camera.InvMatrix.Projection", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
     glUseProgram(_program);
     _UpdateVariables();
 }
@@ -247,6 +239,9 @@ void Shader::_UpdateVariables()
     if (_texturesChanged) {
         for (const auto& texture : _textures) {
             auto v(texture.second);
+            auto value(std::get<std::pair<std::shared_ptr<Texture>, GLenum>>(v.data));
+            auto index = std::distance(_textures.begin(), _textures.find(texture.first));
+            v.Set(value.first, GL_TEXTURE0 + index);
             _UpdateVariable(v);
         }
         _texturesChanged = false;
@@ -608,7 +603,7 @@ void Shader::RemoveStage(GLenum stage)
     _shaderStages.erase(stage);
 }
 
-ShaderType Shader::Type()
+Shader::Type Shader::GetType()
 {
     return _type;
 }

@@ -2,21 +2,10 @@
 #include "Debug.hpp"
 #include "Shader/Shader.hpp"
 
-/*static std::string empty_technique =
-#include "empty.glsl"
-    ;*/
-
-ShaderStage::ShaderStage(GLenum stage)
+ShaderStage::ShaderStage(GLenum stage, const std::shared_ptr<ShaderCode>& code)
     : _stage(stage)
 {
-    
-}
-
-std::shared_ptr<ShaderStage> ShaderStage::Create(GLenum stage, const std::shared_ptr<ShaderCode>& code)
-{
-    auto shaderStage(tools::make_shared<ShaderStage>(stage));
-    shaderStage->AddExtension(code);
-    return shaderStage;
+    AddExtension(code);
 }
 
 ShaderStage::~ShaderStage()
@@ -42,27 +31,14 @@ void ShaderStage::Compile()
         for (auto define : _defines) {
             _fullCode += "#define " + define.first + " " + define.second + "\n";
         }
-        //_fullCode += Code();
         auto extensions = GetComponents<ShaderCode>();
         for (const auto& extension : extensions) {
             _fullCode += extension->Code() + '\n';
-            //{
-            //    std::string str = "/*EXTENSIONS_CODE*/";
-            //    auto pos = _fullCode.find(str);
-            //    _fullCode.insert(pos + str.size(), extension.second->Code());
-            //}
         }
         _fullCode += "void main() {\n";
-        /*if (!Technique().empty())
-            _fullCode += Technique() + "();\n";*/
         for (const auto& extension : extensions) {
             if (!extension->Technique().empty())
                 _fullCode += extension->Technique() + '\n';
-            //{
-            //    std::string str = "/*EXTENSIONS_FUNCTIONS*/";
-            //    auto pos = _fullCode.find(str);
-            //    _fullCode.insert(pos + str.size(), extension.first + "();");
-            //}
         }
         _fullCode += "}\n";
         auto codeBuff = _fullCode.c_str();
@@ -101,6 +77,12 @@ void ShaderStage::AddExtension(const std::shared_ptr<ShaderCode>& extension)
     _compiled = false;
 }
 
+void ShaderStage::RemoveExtension(const std::shared_ptr<ShaderCode>& extension)
+{
+    Component::RemoveComponent(extension);
+    _compiled = false;
+}
+
 void ShaderStage::RemoveExtension(const std::string& name)
 {
 }
@@ -136,11 +118,6 @@ void ShaderStage::RemoveDefine(const std::string define)
 GLuint ShaderStage::Glid() const
 {
     return _glid;
-}
-
-std::shared_ptr<ShaderCode> ShaderCode::Create(const std::string& code, const std::string& technique)
-{
-    return tools::make_shared<ShaderCode>(code, technique);
 }
 
 std::string ShaderCode::Code() const
