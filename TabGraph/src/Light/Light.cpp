@@ -6,140 +6,50 @@
 */
 
 #include "Light/Light.hpp"
-#include "Camera/Camera.hpp"
-#include "Common.hpp"
-#include "Config.hpp" // for Config
-#include "Framebuffer.hpp" // for Framebuffer
-#include "Scene/Scene.hpp"
 #include "Texture/Texture.hpp" // for Texture
 #include "Transform.hpp"
-#include <GL/glew.h> // for GL_COMPARE_REF_TO_TEXTURE, GL_DEPTH_COMPO...
-#include <glm/ext.hpp>
 
-Light::Light(const std::string& name)
-    : Node(name)
+auto g_lightNbr = 0u;
+
+Light::Light() : Node("Light_" + std::to_string(g_lightNbr))
 {
+    ++g_lightNbr;
 }
 
-std::shared_ptr<Light> Light::Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power)
+Light::Light(const std::string& name, glm::vec3 color, glm::vec3 position, float power)
+    : Light()
 {
-    auto light = tools::make_shared<Light>(name);
-    light->SetPosition(position);
-    light->color() = color;
-    light->power() = power;
-    return (light);
+    SetPosition(position);
+    SetColor(color);
+    SetPower(power);
 }
 
-/*TextureArray	*Light::shadow_array()
+glm::vec3 Light::Color() const
 {
-	if (nullptr == _shadow_array)
-		_shadow_array = TextureArray::Create("ShadowArray", glm::vec2(Config::ShadowRes(), Config::ShadowRes()), GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, 128);
-	return (_shadow_array);
-}*/
-
-std::shared_ptr<Framebuffer> Light::render_buffer()
-{
-    return (_render_buffer.lock());
+    return _color;
 }
 
-glm::vec3& Light::color()
+void Light::SetPower(const float& power)
 {
-    return (_color);
+    _power = power;
 }
 
-float& Light::power()
+float Light::Power() const
 {
-    return (_power);
+    return _power;
 }
 
-bool& Light::cast_shadow()
+void Light::SetCastShadow(bool castShadow)
+{
+    _cast_shadow = castShadow;
+}
+
+bool Light::CastShadow() const
 {
     return (_cast_shadow);
 }
 
-LightType Light::type()
+void Light::SetColor(const glm::vec3& color)
 {
-    return (Point);
-}
-
-glm::mat4 Light::ShadowProjectionMatrix() const
-{
-    return glm::mat4(1.0);
-}
-
-void Light::render_shadow()
-{
-}
-
-DirectionnalLight::DirectionnalLight(const std::string& name)
-    : Light(name)
-{
-}
- 
-std::shared_ptr<DirectionnalLight> DirectionnalLight::Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power, bool cast_shadow)
-{
-    auto light = tools::make_shared<DirectionnalLight>(name);
-    light->AddComponent(Transform::Create());
-    light->SetPosition(position);
-    light->color() = color;
-    light->power() = power;
-    light->cast_shadow() = cast_shadow;
-    if (cast_shadow) {
-        light->_render_buffer = Framebuffer::Create(light->Name() + "_shadowMap", glm::vec2(Config::Get("ShadowRes", 1024)), 0, 0);
-        auto renderBuffer = light->_render_buffer.lock();
-        renderBuffer->Create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT24);
-        renderBuffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-        renderBuffer->depth()->set_parameteri(GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-        //shadow_array()->Add(light->_render_buffer->depth());
-        //shadow_array()->load();
-    }
-    return (light);
-}
-
-void DirectionnalLight::render_shadow()
-{
-    auto camera = Scene::Current()->CurrentCamera();
-    static auto tempCamera = Camera::Create("light_camera", 45, Camera::Projection::Ortho);
-    LookAt(glm::vec3(0));
-    Scene::Current()->SetCurrentCamera(tempCamera);
-    render_buffer()->bind();
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    //std::static_pointer_cast<Transform>(tempCamera) = std::static_pointer_cast<Transform>(shared_from_this());
-    tempCamera->SetZnear(0.001f);
-    tempCamera->SetZfar(100);
-    tempCamera->SetFrustum(Limits());
-    //tempCamera->SetComponent(std::static_pointer_cast<Transform>(shared_from_this()));
-    tempCamera->SetPosition(WorldPosition());
-    tempCamera->SetRotation(WorldRotation());
-    //tempCamera->SetViewMatrix(glm::inverse(glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up())));
-    Scene::Current()->RenderDepth(RenderMod::RenderOpaque);
-    render_buffer()->bind(false);
-    Scene::Current()->SetCurrentCamera(camera);
-}
-
-//void DirectionnalLight::UpdateTransformMatrix()
-//{
-//    SetTransformMatrix(glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up()));
-//}
-
-glm::mat4 DirectionnalLight::ShadowProjectionMatrix() const
-{
-    return glm::ortho(Limits().x, Limits().y, Limits().z, Limits().w, 0.001f, 100.f) * glm::lookAt(WorldPosition(), glm::vec3(0, 0, 0), Common::Up());
-}
-
-LightType DirectionnalLight::type()
-{
-    return (Directionnal);
-}
-
-void DirectionnalLight::SetLimits(glm::vec4 limits)
-{
-    _limits = limits;
-}
-
-glm::vec4 DirectionnalLight::Limits() const
-{
-    return _limits;
+    _color = color;
 }
