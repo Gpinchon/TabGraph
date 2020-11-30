@@ -78,7 +78,8 @@ std::string hexToString(int hex)
 
 std::shared_ptr<Texture2D> GenericTextureParser(const std::string& name, const std::string& path)
 {
-    auto surface = IMG_Load(path.c_str());
+    auto rwOps = SDL_RWFromFile(path.c_str(), "rb");
+    auto surface = IMG_Load_RW(rwOps, 1);
     if (!surface || !surface->format)
         throw std::runtime_error(std::string("Error parsing ") + path + " : " + SDL_GetError());
     auto textureFormat = surface->format->Amask ? GL_RGBA : GL_RGB;
@@ -107,7 +108,7 @@ std::shared_ptr<Texture2D> GenericTextureParser(const std::string& name, const s
     debugLog(hexToString(surface->format->Bmask));
     debugLog(hexToString(surface->format->Amask));
 
-    auto texture = Texture2D::Create(name, glm::vec2(surface->w, surface->h), GL_TEXTURE_2D,
+    auto texture = Component::Create<Texture2D>(name, glm::vec2(surface->w, surface->h),
         textureFormat, textureInternalFormat, GL_UNSIGNED_BYTE, surface->pixels);
     SDL_FreeSurface(surface);
     return (texture);

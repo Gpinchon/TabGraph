@@ -11,7 +11,7 @@
 #include "Texture/Cubemap.hpp"
 #include "Debug.hpp"
 #include "Engine.hpp"
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 
 #include <glm/glm.hpp>
 #include <GL/glew.h>
@@ -21,72 +21,6 @@
 #include <stdexcept>
 #include <thread>
 
-std::vector<std::shared_ptr<Cubemap>> Cubemap::_cubemaps;
-
-Cubemap::Cubemap(const std::string& name)
-    : Texture(name)
-{
-    _target = GL_TEXTURE_CUBE_MAP;
-}
-
-Cubemap::~Cubemap()
-{
-    debugLog(Name());
-    unload();
-}
-
-std::shared_ptr<Cubemap> Cubemap::Create(const std::string& name)
-{
-    auto cubemap = tools::make_shared<Cubemap>(name);
-    cubemap->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    cubemap->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    cubemap->set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Get("Anisotropy", 16.f));
-    Cubemap::Add(cubemap);
-    return (cubemap);
-}
-
-/*void Texture::assign(Texture &dest_texture, GLenum target)
-{
-    if (!_loaded)
-        load();
-    glBindTexture(_target, _glid);
-    glBindTexture(dest_texture._target, dest_texture._glid);
-    glTexImage2D(target, 0, dest_texture._internal_format, dest_texture._size.x,
-                 dest_texture._size.y, 0, dest_texture._format,
-                 dest_texture._data_format, dest_texture._data);
-    glBindTexture(_target, 0);
-    glBindTexture(dest_texture._target, 0);
-}*/
-
-void Cubemap::load()
-{
-    if (_loaded) {
-        return;
-    }
-    debugLog(Name());
-    Texture::load();
-    glBindTexture(_target, _glid);
-    for (auto i = 0u; i < 6; i++) {
-        auto t = side(i);
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t->InternalFormat(),
-                    t->Size().x, t->Size().y, 0, t->format(),
-                    t->data_format(), t->data());
-    }
-    glBindTexture(_target, 0);
-    generate_mipmap();
-    restore_parameters();
-}
-
-void Cubemap::unload()
-{
-    if (!_loaded) {
-        return;
-    }
-    for (auto i = 0; i < 6; i++)
-        side(i)->unload();
-    Texture::unload();
-    _loaded = false;
-}
 
 glm::vec3 outImgToXYZ(float u, float v, int faceIdx)
 {
@@ -138,11 +72,13 @@ void generate_side(std::shared_ptr<Texture2D> fromTexture, std::shared_ptr<Textu
                 u = atan2(nx, ak);
                 v = atan2(ny * cos(u), ak);
                 u += ftu;
-            } else if (ftv > 0) {
+            }
+            else if (ftv > 0) {
                 float d = sqrt(nx * nx + ny * ny);
                 v = M_PI / 2.f - atan2(d, ak);
                 u = atan2(ny, nx);
-            } else {
+            }
+            else {
                 float d = sqrt(nx * nx + ny * ny);
                 v = -M_PI / 2.f + atan2(d, ak);
                 u = atan2(-ny, nx);
@@ -173,26 +109,81 @@ void generate_side(std::shared_ptr<Texture2D> fromTexture, std::shared_ptr<Textu
     std::cout << "." << std::flush;
 }
 
-std::shared_ptr<Cubemap> Cubemap::Create(const std::string& name, std::shared_ptr<Texture2D> fromTexture)
+Cubemap::Cubemap(const std::string& name)
+    : Texture(name, GL_TEXTURE_CUBE_MAP)
+{
+    set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Get("Anisotropy", 16.f));
+}
+
+Cubemap::Cubemap(const std::string& name, std::shared_ptr<Texture2D> fromTexture)
+    : Cubemap(name)
 {
     std::cout << "Converting " << fromTexture->Name() << " into Cubemap";
-    auto cubemap = Cubemap::Create(name);
     GLenum formats[2];
     fromTexture->format(&formats[0], &formats[1]);
     std::vector<std::thread> threads;
     for (auto i = 0; i < 6; ++i) {
         auto side_res = fromTexture->Size().x / 4.f;
-        auto sideTexture = Texture2D::Create(fromTexture->Name() + "_side_" + std::to_string(i), glm::vec2(side_res, side_res), GL_TEXTURE_2D, formats[0], formats[1], fromTexture->data_format());
+        auto sideTexture = Component::Create<Texture2D>(fromTexture->Name() + "_side_" + std::to_string(i), glm::vec2(side_res, side_res), formats[0], formats[1], fromTexture->data_format());
         threads.push_back(std::thread(generate_side, fromTexture, sideTexture, i));
-        cubemap->set_side(i, sideTexture);
+        set_side(i, sideTexture);
     }
-    for (auto &thread : threads)
+    for (auto& thread : threads)
         thread.join();
-    cubemap->generate_mipmap();
-    cubemap->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    generate_mipmap();
+    set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     std::cout << " Done." << std::endl;
-    debugLog(cubemap.use_count());
-    return (cubemap);
+}
+
+Cubemap::~Cubemap()
+{
+    debugLog(Name());
+    unload();
+}
+
+/*void Texture::assign(Texture &dest_texture, GLenum target)
+{
+    if (!_loaded)
+        load();
+    glBindTexture(_target, _glid);
+    glBindTexture(dest_texture._target, dest_texture._glid);
+    glTexImage2D(target, 0, dest_texture._internal_format, dest_texture._size.x,
+                 dest_texture._size.y, 0, dest_texture._format,
+                 dest_texture._data_format, dest_texture._data);
+    glBindTexture(_target, 0);
+    glBindTexture(dest_texture._target, 0);
+}*/
+
+void Cubemap::load()
+{
+    if (_loaded) {
+        return;
+    }
+    debugLog(Name());
+    Texture::load();
+    glBindTexture(_target, _glid);
+    for (auto i = 0u; i < 6; i++) {
+        auto t = side(i);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t->InternalFormat(),
+                    t->Size().x, t->Size().y, 0, t->format(),
+                    t->data_format(), t->data());
+    }
+    glBindTexture(_target, 0);
+    generate_mipmap();
+    restore_parameters();
+}
+
+void Cubemap::unload()
+{
+    if (!_loaded) {
+        return;
+    }
+    for (auto i = 0; i < 6; i++)
+        side(i)->unload();
+    Texture::unload();
+    _loaded = false;
 }
 
 #include <Config.hpp>
@@ -212,7 +203,7 @@ std::shared_ptr<Cubemap> Cubemap::parse(const std::filesystem::path path)
         auto name = path.filename();
         Config cubemapInfo;
         cubemapInfo.Parse(path / "cubemap.info");
-        auto t = Cubemap::Create(name.string());
+        auto t = Component::Create<Cubemap>(name.string());
         cubemap_load_side(t, path / cubemapInfo.Get("POSITIVE_X", std::string("X+.bmp")), GL_TEXTURE_CUBE_MAP_POSITIVE_X);
         cubemap_load_side(t, path / cubemapInfo.Get("NEGATIVE_X", std::string("X-.bmp")), GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
         cubemap_load_side(t, path / cubemapInfo.Get("POSITIVE_Y", std::string("Y+.bmp")), GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
@@ -227,12 +218,6 @@ std::shared_ptr<Cubemap> Cubemap::parse(const std::filesystem::path path)
         throw std::runtime_error(std::string("Error parsing Cubemap : " + path.string() + " :\n\t") + e.what());
     }
     return (nullptr);
-}
-
-void Cubemap::Add(std::shared_ptr<Cubemap> cubemap)
-{
-    _cubemaps.push_back(cubemap);
-    debugLog(cubemap.use_count());
 }
 
 std::shared_ptr<Texture2D> Cubemap::side(unsigned index)

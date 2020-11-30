@@ -8,24 +8,11 @@
 #include "Buffer/BufferHelper.hpp"
 #include "Debug.hpp"
 
-TextureBuffer::TextureBuffer(const std::string& name)
-    : Texture(name)
+TextureBuffer::TextureBuffer(const std::string& name, GLenum internalFormat, const std::shared_ptr<BufferAccessor> bufferAccessor)
+    : Texture(name, GL_TEXTURE_BUFFER)
 {
-}
-
-//std::shared_ptr<TextureBuffer> TextureBuffer::Create(const std::string &name, const size_t byteLength)
-//{
-//	auto texture(std::shared_ptr<TextureBuffer>(new TextureBuffer(name)));
-//	texture->SetAccessor(BufferHelper::CreateAccessor<std::byte>(byteLength));
-//}
-
-std::shared_ptr<TextureBuffer> TextureBuffer::Create(const std::string& name, GLenum internalFormat, const std::shared_ptr<BufferAccessor> bufferAccessor)
-{
-    auto texture(tools::make_shared<TextureBuffer>(name));
-    texture->SetAccessor(bufferAccessor);
-    texture->SetInternalFormat(internalFormat);
-    texture->SetTarget(GL_TEXTURE_BUFFER);
-    return texture;
+    SetAccessor(bufferAccessor);
+    SetInternalFormat(internalFormat);
 }
 
 void TextureBuffer::generate_mipmap()
@@ -64,10 +51,10 @@ void TextureBuffer::unload()
 
 std::shared_ptr<BufferAccessor> TextureBuffer::Accessor() const
 {
-    return _accessor;
+    return GetComponent<BufferAccessor>();
 }
 
 void TextureBuffer::SetAccessor(const std::shared_ptr<BufferAccessor> bufferAccessor)
 {
-    _accessor = bufferAccessor;
+    SetComponent<BufferAccessor>(bufferAccessor);
 }

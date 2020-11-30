@@ -6,6 +6,7 @@
 */
 
 #include "Texture/Texture.hpp"
+#include "Buffer/Buffer.hpp"
 #include "Config.hpp" // for Config
 #include "Debug.hpp" // for glCheckError, debugLog
 #include <algorithm> // for min
@@ -13,9 +14,12 @@
 #include <stdint.h> // for int16_t, uint64_t
 #include <utility> // for pair
 
-Texture::Texture(const std::string& name)
-    : Component(name)
+Texture::Texture(const std::string& name, GLenum target)
+    : Component(name), _target(target)
 {
+    //auto buffer = Component::Create<BufferData>();
+    //SetComponent(buffer);
+    //_data = *buffer;
 }
 
 size_t Texture::get_bpp(GLenum texture_format, GLenum data_format)
@@ -67,11 +71,6 @@ void Texture::SetTarget(GLenum target)
 GLenum Texture::target() const
 {
     return (_target);
-}
-
-void* Texture::data() const
-{
-    return (_data);
 }
 
 void Texture::unload()
