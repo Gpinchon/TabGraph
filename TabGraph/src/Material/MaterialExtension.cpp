@@ -4,7 +4,7 @@
 
 MaterialExtension::MaterialExtension(const std::string& name) : Component(name)
 {
-	SetComponent(ShaderExtension::Create("ShaderExtension"));
+	SetComponent(Component::Create<ShaderExtension>("ShaderExtension"));
 }
 
 std::shared_ptr<ShaderExtension> MaterialExtension::GetShaderExtension() const

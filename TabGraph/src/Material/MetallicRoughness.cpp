@@ -7,61 +7,56 @@ MetallicRoughness::MetallicRoughness() : MaterialExtension("MetallicRoughness")
     static auto extensionCode =
 #include "metallicRoughness.frag"
     ;
-    GetShaderExtension()->SetStage(ShaderStage::Create(GL_FRAGMENT_SHADER, ShaderCode::Create(extensionCode, "MetallicRoughness();")));
+    GetShaderExtension()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(extensionCode, "MetallicRoughness();")));
     GetShaderExtension()->SetUniform("MetallicRoughnessValues.BaseColor", BaseColor());
     GetShaderExtension()->SetUniform("MetallicRoughnessValues.Metallic", Metallic());
     GetShaderExtension()->SetUniform("MetallicRoughnessValues.Roughness", Roughness());
 }
 
-std::shared_ptr<MetallicRoughness> MetallicRoughness::Create()
-{
-    return tools::make_shared<MetallicRoughness>();
-}
-
 std::shared_ptr<Texture2D> MetallicRoughness::TextureBaseColor() const
 {
-    return _texture_baseColor;
+    return GetComponent<Texture2D>(_texture_baseColor);
 }
 
 std::shared_ptr<Texture2D> MetallicRoughness::TextureMetallicRoughness() const
 {
-    return _texture_metallicRoughness;
+    return GetComponent<Texture2D>(_texture_metallicRoughness);
 }
 
 std::shared_ptr<Texture2D> MetallicRoughness::TextureRoughness() const
 {
-    return _texture_roughness;
+    return GetComponent<Texture2D>(_texture_roughness);
 }
 
 std::shared_ptr<Texture2D> MetallicRoughness::TextureMetallic() const
 {
-    return _texture_metallic;
+    return GetComponent<Texture2D>(_texture_metallic);
 }
 
 void MetallicRoughness::SetTextureBaseColor(std::shared_ptr<Texture2D> texture)
 {
-    _texture_baseColor = texture;
+    _texture_baseColor = AddComponent(texture);
     GetShaderExtension()->SetTexture("MetallicRoughnessTextures.BaseColor", texture);
     texture ? GetShaderExtension()->SetDefine("METALLIC_ROUGHNESS_TEXTURE_USE_BASECOLOR") : GetShaderExtension()->RemoveDefine("METALLIC_ROUGHNESS_TEXTURE_USE_BASECOLOR");
 }
 
 void MetallicRoughness::SetTextureMetallicRoughness(std::shared_ptr<Texture2D> texture)
 {
-    _texture_metallicRoughness = texture;
+    _texture_metallicRoughness = AddComponent(texture);
     GetShaderExtension()->SetTexture("MetallicRoughnessTextures.MetallicRoughness", texture);
     texture ? GetShaderExtension()->SetDefine("METALLIC_ROUGHNESS_TEXTURE_USE_METALLICROUGHNESS") : GetShaderExtension()->RemoveDefine("METALLIC_ROUGHNESS_TEXTURE_USE_METALLICROUGHNESS");
 }
 
 void MetallicRoughness::SetTextureRoughness(std::shared_ptr<Texture2D> texture)
 {
-    _texture_roughness = texture;
+    _texture_roughness = AddComponent(texture);
     GetShaderExtension()->SetTexture("MetallicRoughnessTextures.Roughness", texture);
     texture ? GetShaderExtension()->SetDefine("METALLIC_ROUGHNESS_TEXTURE_USE_ROUGHNESS") : GetShaderExtension()->RemoveDefine("METALLIC_ROUGHNESS_TEXTURE_USE_ROUGHNESS");
 }
 
 void MetallicRoughness::SetTextureMetallic(std::shared_ptr<Texture2D> texture)
 {
-    _texture_metallic = texture;
+    _texture_metallic = AddComponent(texture);
     GetShaderExtension()->SetTexture("MetallicRoughnessTextures.Metallic", texture);
     texture ? GetShaderExtension()->SetDefine("METALLIC_ROUGHNESS_TEXTURE_USE_METALLIC") : GetShaderExtension()->RemoveDefine("METALLIC_ROUGHNESS_TEXTURE_USE_METALLIC");
 }
