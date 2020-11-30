@@ -183,7 +183,7 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string& name,
     }
     std::cout << std::endl;
     Subdivide(&quadTree, texture, scale);
-    auto vg = Geometry::Create(name + "_Geometry");
+    auto vg = Component::Create<Geometry>(name + "_Geometry");
     // auto medZ = (maxDepth + minDepth) / 2.f * scale.y;
     for (auto& data : quadTree.GetAllData()) {
         for (auto& patch : *data) {
@@ -307,8 +307,7 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string& name,
     std::string proj = data->GetProjectionRef();
     debugLog(proj);
     GDALClose(data);
-    auto t = Texture::Create(name + "_terrainData", size, GL_TEXTURE_2D, GL_RED,
-        GL_COMPRESSED_RED, GL_FLOAT, scanLine);
+    auto t = Texture::Create(name + "_terrainData", size, GL_RED, GL_COMPRESSED_RED, GL_FLOAT, scanLine);
     CPLFree(scanLine);
     return Terrain::Create(name, resolution,
         glm::vec3(size.x * gt[1], 1, size.y * -gt[5]), t);

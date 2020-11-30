@@ -31,12 +31,12 @@ Terrain::Terrain(const std::string &name)
 
 std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 /*resolution*/, glm::vec3 /*scale*/, std::shared_ptr<Texture2D> /*texture*/)
 {
-    auto terrain = tools::make_shared<Terrain>(name);
+    auto terrain = Component::Create<Terrain>(name);
     /*
     terrain->_terrainData = texture;
     terrain->_terrainResolution = resolution;
     terrain->_terrainSize = scale;
-    auto vg = Geometry::Create(name + "Geometry");
+    auto vg = Component::Create<Geometry>(name + "Geometry");
     vg->v.resize(uint32_t(resolution.x * resolution.y));
     vg->vn.resize(vg->v.size());
     vg->vt.resize(vg->v.size());
