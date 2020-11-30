@@ -12,6 +12,7 @@
 
 class Shader; // lines 13-13
 class Geometry; // lines 12-12
+class Framebuffer;
 
 /** @brief Render manages the graphical rendering and frame pacing */
 namespace Render {
@@ -57,6 +58,9 @@ double DeltaTime();
 double FixedDeltaTime();
 
 uint32_t FrameNumber();
+
+const std::shared_ptr<Framebuffer> GeometryBuffer();
+const std::shared_ptr<Framebuffer> LightBuffer();
 
 const std::shared_ptr<Geometry> DisplayQuad();
 };
