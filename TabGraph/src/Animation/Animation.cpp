@@ -16,23 +16,21 @@
 #include <glm/common.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+size_t animationNbr = 0;
+
 Animation::Animation()
-    : Component("")
+    : Component("Animation_" + std::to_string(animationNbr))
 {
-    _playCallback = Callback<void()>::Create(std::bind(&Animation::Play, this));
+    //_playCallback = Callback<void()>::Create(std::bind(&Animation::Play, this));
+    animationNbr++;
 }
 
-std::shared_ptr<Animation> Animation::Create()
-{
-    return tools::make_shared<Animation>();
-}
-
-std::vector<AnimationChannel> Animation::GetChannels() const
+std::vector<AnimationChannel> &Animation::GetChannels()
 {
     return _channels;
 }
 
-std::vector<AnimationSampler> Animation::GetSamplers() const
+std::vector<AnimationSampler> &Animation::GetSamplers()
 {
     return _samplers;
 }
@@ -89,22 +87,22 @@ void Animation::_FixedUpdateCPU(float delta)
         if (keyDelta != 0)
             interpolationValue = (t - prevTime) / keyDelta;
         switch (channel.Path()) {
-        case AnimationChannel::Translation: {
+        case AnimationChannel::Channel::Translation: {
             glm::vec3 current = interpolator.Interpolate<glm::vec3>(sampler, keyDelta, interpolationValue);
             channel.Target()->SetPosition(current);
             break;
         }
-        case AnimationChannel::Rotation: {
+        case AnimationChannel::Channel::Rotation: {
             glm::quat current = interpolator.Interpolate<glm::quat>(sampler, keyDelta, interpolationValue);
             channel.Target()->SetRotation(glm::normalize(current));
             break;
         }
-        case AnimationChannel::Scale: {
+        case AnimationChannel::Channel::Scale: {
             glm::vec3 current(interpolator.Interpolate<glm::vec3>(sampler, keyDelta, interpolationValue));
             channel.Target()->SetScale(current);
             break;
         }
-        case AnimationChannel::Weights: {
+        case AnimationChannel::Channel::Weights: {
             /*auto mesh(std::dynamic_pointer_cast<Mesh>(channel.Target()));
                 if (mesh == nullptr) {
                     debugLog(channel.Target()->Name() + " is not a Mesh");
@@ -125,7 +123,7 @@ void Animation::_FixedUpdateCPU(float delta)
                 }*/
             break;
         }
-        case AnimationChannel::None:
+        case AnimationChannel::Channel::None:
             break;
         }
         animationPlayed |= t < maxT;
