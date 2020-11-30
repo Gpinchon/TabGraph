@@ -15,14 +15,10 @@
 #include "Physics/PhysicsEngine.hpp"
 #include "Physics/RigidBody.hpp"
 #include "Transform.hpp"
+#include "Environment.hpp"
 
 #include <algorithm>
 #include <iostream>
-
-std::shared_ptr<Scene> Scene::Create(const std::string& name)
-{
-    return tools::make_shared<Scene>(name);
-}
 
 Scene::Scene(const std::string& name)
     : _name(name)
@@ -72,15 +68,15 @@ void Scene::_FixedUpdateCPU(float /*delta*/)
     Common::SetUp(Up());
 }
 
-void Scene::Render(const RenderMod& mode)
+void Scene::Render(const RenderPass&pass, const RenderMod& mode)
 {
-    for (auto node : Scene::Current()->RootNodes())
-        node->Draw(mode, true);
+    for (auto node : Scene::Current()->GetComponents<Node>())
+        node->Draw(pass, mode, true);
 }
 
 void Scene::RenderDepth(const RenderMod& mode)
 {
-    for (auto node : Scene::Current()->RootNodes())
+    for (auto node : Scene::Current()->GetComponents<Node>())
         node->DrawDepth(mode, true);
 }
 
@@ -103,15 +99,15 @@ void Scene::SetCurrent(std::shared_ptr<Scene> scene)
 
 std::shared_ptr<Camera> Scene::CurrentCamera() const
 {
-    return _currentCamera;
+    return GetComponent<Camera>(_currentCamera);
 }
 
 void Scene::SetCurrentCamera(std::shared_ptr<Camera> camera)
 {
-    auto cameras = Cameras();
+    /*auto cameras = Cameras();
     if (std::find(cameras.begin(), cameras.end(), camera) == cameras.end())
-        Add(camera);
-    _currentCamera = camera;
+        Add(camera);*/
+    _currentCamera = AddComponent(camera);
 }
 
 template <typename T>
@@ -139,7 +135,7 @@ std::shared_ptr<T> GetByPointer(std::shared_ptr<Node> node, const std::shared_pt
     //}
     return nullptr;
 }
-
+/*
 std::shared_ptr<Node> Scene::GetNode(std::shared_ptr<Node> node) const
 {
     for (const auto& object : Nodes()) {
@@ -179,30 +175,15 @@ std::shared_ptr<Camera> Scene::GetCameraByName(const std::string& name) const
     }
     return nullptr;
 }
-
-const std::vector<std::shared_ptr<Node>> Scene::RootNodes() const
+*/
+std::shared_ptr<Environment> Scene::GetEnvironment() const
 {
-    return GetComponents<Node>();
+    return GetComponent<Environment>(_environmentIndex);
 }
 
-const std::vector<std::shared_ptr<Node>> Scene::Nodes() const
+void Scene::SetEnvironment(const std::shared_ptr<Environment>& env)
 {
-    return GetComponentsInChildren<Node>();
-}
-
-const std::vector<std::shared_ptr<Light>> Scene::Lights() const
-{
-    return GetComponents<Light>();
-}
-
-const std::vector<std::shared_ptr<Camera>> Scene::Cameras() const
-{
-    return GetComponents<Camera>();
-}
-
-const std::vector<std::shared_ptr<Animation>> Scene::Animations() const
-{
-    return GetComponents<Animation>();
+    _environmentIndex = AddComponent(env);
 }
 
 glm::vec3 Scene::Up() const
