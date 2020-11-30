@@ -11,11 +11,6 @@ BoundingSphere::BoundingSphere(const glm::vec3& center, float radius)
 {
 }
 
-std::shared_ptr<BoundingSphere> BoundingSphere::Create(const glm::vec3& center, float radius)
-{
-    return tools::make_shared<BoundingSphere>(center, radius);
-}
-
 glm::vec3 BoundingSphere::GetCenter() const
 {
     return _center;

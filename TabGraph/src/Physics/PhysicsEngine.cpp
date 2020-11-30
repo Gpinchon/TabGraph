@@ -13,7 +13,7 @@
 
 std::shared_ptr<PhysicsEngine> PhysicsEngine::Create()
 {
-    return tools::make_shared<PhysicsEngine>();
+    return Component::Create<PhysicsEngine>();
 }
 
 void PhysicsEngine::_FixedUpdateCPU(float step)
@@ -39,8 +39,8 @@ void SimulateBody(std::shared_ptr<RigidBody> rigidBody, float step)
         currTransform.SetPosition(node->WorldPosition());
         currTransform.SetRotation(node->WorldRotation());
     }
-    nextTransform.SetPosition(currTransform.Position() + rigidBody->LinearVelocity() * step);
-    nextTransform.SetRotation(normalize(currTransform.Rotation() + step * 0.5f * rigidBody->AngularSpin() * currTransform.Rotation()));
+    nextTransform.SetPosition(currTransform.GetPosition() + rigidBody->LinearVelocity() * step);
+    nextTransform.SetRotation(normalize(currTransform.GetRotation() + step * 0.5f * rigidBody->AngularSpin() * currTransform.GetRotation()));
 }
 
 void PhysicsEngine::Simulate(float step)

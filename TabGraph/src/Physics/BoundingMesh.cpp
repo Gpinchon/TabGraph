@@ -15,11 +15,6 @@ BoundingMesh::BoundingMesh(const std::shared_ptr<Mesh>& geometry)
     SetMesh(geometry);
 }
 
-std::shared_ptr<BoundingMesh> BoundingMesh::Create(const std::shared_ptr<Mesh>& geometry)
-{
-    return tools::make_shared<BoundingMesh>(geometry);
-}
-
 std::shared_ptr<Mesh> BoundingMesh::GetMesh() const
 {
     return GetComponent<Mesh>();

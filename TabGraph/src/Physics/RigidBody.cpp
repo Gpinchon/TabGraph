@@ -5,19 +5,14 @@
 #include "Transform.hpp"
 #include <glm/gtc/quaternion.hpp>
 
-RigidBody::RigidBody(const std::string& name)
+RigidBody::RigidBody(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider)
     : Component(name)
 {
+    SetNode(node);
+    SetCollider(collider);
+    SetComponent(Component::Create<Transform>());
 }
 
-std::shared_ptr<RigidBody> RigidBody::Create(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider)
-{
-    auto t = tools::make_shared<RigidBody>(name);
-    t->SetNode(node);
-    t->SetCollider(collider);
-    t->SetComponent(Transform::Create());
-    return t;
-}
 /*
 const std::vector<Ray> RigidBody::GatherRays()
 {
@@ -255,7 +250,7 @@ std::shared_ptr<BoundingElement> RigidBody::GetCollider() const
     return GetComponent<BoundingElement>();
 }
 
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 
 #define HALF_PI (M_PI * 0.5f)
 

@@ -18,11 +18,6 @@ BoundingAABB::BoundingAABB(glm::vec3 minV, glm::vec3 maxV)
 {
 }
 
-std::shared_ptr<BoundingAABB> BoundingAABB::Create(glm::vec3 min, glm::vec3 max)
-{
-    return tools::make_shared<BoundingAABB>(min, max);
-}
-
 glm::vec3 BoundingAABB::Min() const
 {
     return _min;
