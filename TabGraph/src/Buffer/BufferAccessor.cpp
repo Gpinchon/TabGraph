@@ -8,17 +8,15 @@
 #include "Buffer/BufferView.hpp"
 #include <algorithm>
 
+size_t bufferAccessorNbr = 0;
+
 BufferAccessor::BufferAccessor(GLenum componentType, size_t count, const BufferAccessor::Type type)
-    : Component("")
+    : Component("BufferAccessor_" + std::to_string(bufferAccessorNbr))
     , _componentType(componentType)
     , _count(count)
     , _type(type)
 {
-}
-
-std::shared_ptr<BufferAccessor> BufferAccessor::Create(GLenum componentType, size_t count, const BufferAccessor::Type type)
-{
-    return tools::make_shared<BufferAccessor>(componentType, count, type);
+    bufferAccessorNbr++;
 }
 
 std::shared_ptr<BufferView> BufferAccessor::GetBufferView() const
@@ -66,19 +64,19 @@ size_t BufferAccessor::ComponentByteSize() const
 size_t BufferAccessor::ComponentSize() const
 {
     switch (GetType()) {
-    case Scalar:
+    case Type::Scalar:
         return 1;
-    case Vec2:
+    case Type::Vec2:
         return 2;
-    case Vec3:
+    case Type::Vec3:
         return 3;
-    case Vec4:
+    case Type::Vec4:
         return 4;
-    case Mat2:
+    case Type::Mat2:
         return 4;
-    case Mat3:
+    case Type::Mat3:
         return 9;
-    case Mat4:
+    case Type::Mat4:
         return 16;
     default:
         return 0;
@@ -125,18 +123,18 @@ BufferAccessor::Type BufferAccessor::GetType(const std::string& type)
     std::string lowerType(type);
     std::transform(lowerType.begin(), lowerType.end(), lowerType.begin(), ::tolower);
     if (lowerType == "scalar")
-        return Scalar;
+        return Type::Scalar;
     if (lowerType == "vec2")
-        return Vec2;
+        return Type::Vec2;
     if (lowerType == "vec3")
-        return Vec3;
+        return Type::Vec3;
     if (lowerType == "vec4")
-        return Vec4;
+        return Type::Vec4;
     if (lowerType == "mat2")
-        return Mat2;
+        return Type::Mat2;
     if (lowerType == "mat3")
-        return Mat3;
+        return Type::Mat3;
     if (lowerType == "mat4")
-        return Mat4;
-    return Invalid;
+        return Type::Mat4;
+    return Type::Invalid;
 }

@@ -12,11 +12,15 @@
 #include <stdio.h>
 #include <wchar.h>
 
+size_t bufferNbr = 0;
+
 Buffer::Buffer(size_t byteLength, GLenum usage)
-    : Component("")
+    : Component("Buffer_" + std::to_string(bufferNbr))
     , _byteLength(byteLength) //_rawData(byteLength, std::byte(0))
     , _usage(usage)
 {
+    SetComponent(Component::Create <BufferData>(nullptr, byteLength));
+    bufferNbr++;
 }
 
 Buffer::~Buffer()
@@ -26,15 +30,11 @@ Buffer::~Buffer()
     _UnloadGPU();
 }
 
-std::shared_ptr<Buffer> Buffer::Create(size_t byteLength, GLenum usage)
-{
-    return tools::make_shared<Buffer>(byteLength, usage);
-}
-
 void Buffer::_UpdateGPU(float)
 {
-    if (!_rawData.empty())
-        std::memcpy(Map(BufferAccess::Write), _rawData.data(), ByteLength());
+    auto data = GetComponent<BufferData>();
+    if (!data->empty())
+        std::memcpy(Map(BufferAccess::Write), data->data(), ByteLength());
     Unmap();
 }
 
@@ -54,7 +54,7 @@ auto GetMapRangeFunction()
     return f;
 }
 
-auto GetUnmapRangeFunction()
+auto GetUnmapFunction()
 {
     static auto f = glUnmapNamedBuffer ? glUnmapNamedBuffer : glUnmapNamedBufferEXT;
     assert(f);
@@ -131,7 +131,7 @@ void Buffer::Unmap()
         debugLog(Name() + " IS NOT MAPPED");
         return;
     }
-    GetUnmapRangeFunction()(Glid());
+    GetUnmapFunction()(Glid());
     _mapped = false;
     _mappingPointer = nullptr;
 }
@@ -214,18 +214,19 @@ void Buffer::_LoadCPU()
     if (LoadedCPU())
         return;
     debugLog(Name());
-    _rawData.resize(ByteLength(), std::byte(0));
+    auto rawData = GetComponent<BufferData>();
+    rawData->resize(ByteLength(), std::byte(0));
     if (Uri() != "") {
         auto data(ParseData(Uri().string()));
         if (data.empty()) {
             debugLog(Uri());
             std::ifstream is(Uri(), std::ios::binary);
-            if (!is.read((char*)_rawData.data(), ByteLength()))
+            if (!is.read((char*)rawData->data(), ByteLength()))
                 throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
             if (is.gcount() != ByteLength())
                 throw std::runtime_error(Name() + " : Incomplete buffer read");
         } else
-            _rawData = data;
+            *rawData = data;
     }
     SetLoadedCPU(true);
 }
@@ -253,7 +254,7 @@ void Buffer::_LoadGPU()
             std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
             Unmap();
         }
-    } else if (!_rawData.empty()) {
+    } else if (!GetComponent<BufferData>()->empty()) {
         _UpdateGPU(0.f);
     }
     SetLoadedGPU(true);
@@ -267,8 +268,7 @@ void Buffer::_LoadGPU()
 
 void Buffer::_UnloadCPU()
 {
-    _rawData.resize(0);
-    _rawData.shrink_to_fit();
+    GetComponent<BufferData>()->resize(0);
     SetLoadedCPU(false);
 }
 
@@ -283,7 +283,7 @@ void Buffer::_UnloadGPU()
 std::vector<std::byte>& Buffer::RawData()
 {
     _LoadCPU();
-    return _rawData;
+    return *GetComponent<BufferData>();
 }
 
 std::filesystem::path Buffer::Uri() const
@@ -322,3 +322,25 @@ GLuint Buffer::Glid() const
 {
     return _glid;
 }
+
+#include <cstdio>
+#include "Engine.hpp"
+
+BufferData::BufferData() : _cachePath(tmpnam(nullptr))
+{
+}
+
+BufferData::BufferData(std::byte* data, size_t totalByteSize) : BufferData()
+{
+    _data.resize(totalByteSize);
+    if (data != nullptr) {
+        for (size_t i = 0; i < totalByteSize; ++i)
+            _data.push_back(data[i]);
+    }
+}
+
+BufferData::BufferData(std::vector<std::byte> data) : BufferData()
+{
+    _data = data;
+}
+

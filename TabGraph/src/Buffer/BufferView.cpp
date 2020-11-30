@@ -7,17 +7,13 @@
 #include "Buffer/BufferView.hpp"
 #include "Buffer/Buffer.hpp"
 
-BufferView::BufferView(size_t byteLength)
-    : Component("")
+size_t bufferViewNbr = 0;
+
+BufferView::BufferView(size_t byteLength, std::shared_ptr<Buffer> buffer)
+    : Component("BufferView_" + std::to_string(bufferViewNbr))
     , _byteLength(byteLength)
 {
-}
-
-std::shared_ptr<BufferView> BufferView::Create(size_t byteLength, std::shared_ptr<Buffer> buffer)
-{
-    auto bufferView(tools::make_shared<BufferView>(byteLength));
-    bufferView->SetComponent(buffer);
-    return bufferView;
+    SetComponent(buffer);
 }
 
 /** The buffer. */
