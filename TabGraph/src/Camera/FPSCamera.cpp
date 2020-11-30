@@ -10,16 +10,12 @@
 #include <memory>
 
 FPSCamera::FPSCamera(const std::string& name, float fov, Camera::Projection proj)
-    : Camera(name, fov, proj)
+    : Camera(name, proj)
 {
+    SetFov(fov);
 }
 
-std::shared_ptr<FPSCamera> FPSCamera::Create(const std::string& name, float ifov, Camera::Projection proj)
-{
-    return tools::make_shared<FPSCamera>(name, ifov, proj);
-}
-
-static inline auto GetRotation(const float Yaw, const float Pitch, const float Roll)
+static inline auto GetRotationFromYPR(const float Yaw, const float Pitch, const float Roll)
 {
     auto radPitch(glm::radians(Pitch));
     auto radYaw(glm::radians(Yaw));
@@ -40,7 +36,7 @@ float FPSCamera::Yaw() const
 void FPSCamera::SetYaw(float yaw)
 {
     _yaw = yaw;
-    SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
+    SetRotation(GetRotationFromYPR(Yaw(), Pitch(), Roll()));
     //SetNeedsTranformUpdate(true);
 }
 
@@ -52,7 +48,7 @@ float FPSCamera::Pitch() const
 void FPSCamera::SetPitch(float pitch)
 {
     _pitch = pitch;
-    SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
+    SetRotation(GetRotationFromYPR(Yaw(), Pitch(), Roll()));
     //SetNeedsTranformUpdate(true);
 }
 
@@ -64,7 +60,7 @@ float FPSCamera::Roll() const
 void FPSCamera::SetRoll(float roll)
 {
     _roll = roll;
-    SetRotation(GetRotation(Yaw(), Pitch(), Roll()));
+    SetRotation(GetRotationFromYPR(Yaw(), Pitch(), Roll()));
     //SetNeedsTranformUpdate(true);
 }
 

@@ -14,21 +14,10 @@
 #include <glm/gtx/transform.hpp>
 #include <math.h> // for sin, cos
 
-Camera::Camera(const std::string& name, float ifov, Camera::Projection proj)
+Camera::Camera(const std::string& name, Camera::Projection proj)
     : Node(name)
 {
-    _fov = ifov;
     _projection_type = proj;
-}
-
-std::shared_ptr<Camera> Camera::Create(const std::string& name, float ifov, Camera::Projection proj)
-{
-    return tools::make_shared<Camera>(name, ifov, proj);
-}
-
-std::shared_ptr<Camera> Camera::Create(std::shared_ptr<Camera> otherCamera)
-{
-    return tools::make_shared<Camera>(*otherCamera);
 }
 
 glm::mat4 Camera::ViewMatrix()

@@ -6,23 +6,19 @@
 */
 
 #include "Camera/OrbitCamera.hpp"
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 #include "Transform.hpp"
 
 OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
-    : Camera(iname, ifov, proj)
+    : Camera(iname, proj)
 {
     _phi = phi;
     _theta = theta;
     _radius = radius;
+    SetFov(ifov);
 }
 
-std::shared_ptr<OrbitCamera> OrbitCamera::Create(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
-{
-    return tools::make_shared<OrbitCamera>(iname, ifov, phi, theta, radius, proj);
-}
-
-std::shared_ptr<Node> OrbitCamera::Target() const
+std::shared_ptr<Transform> OrbitCamera::Target() const
 {
     return _target.lock();
 }
@@ -69,7 +65,7 @@ void OrbitCamera::SetRadius(float radius)
     SetNeedsUpdateCPU(true);
 }
 
-void OrbitCamera::SetTarget(const std::shared_ptr<Node>& target)
+void OrbitCamera::SetTarget(const std::shared_ptr<Transform>& target)
 {
     _target = target;
     SetNeedsUpdateCPU(true);
