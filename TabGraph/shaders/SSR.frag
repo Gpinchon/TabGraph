@@ -15,8 +15,8 @@ uniform mat4		LastProjectionMatrix;
 #define NumSteps 8
 #define NumRays 4
 #else // SSR_QUALITY == 4
-#define NumSteps 12
-#define NumRays 12
+#define NumSteps 8
+#define NumRays 8
 #endif
 
 float vec2cross(in vec2 a, in vec2 b)
@@ -272,6 +272,6 @@ void	SSR()
 	outColor /= NumRays;
 	outColor.rgb /= 1 - Luminance(outColor.rgb);
 	outColor *= GetRoughnessFade();
-	SetBackColor(outColor);
+	SetBackEmissive(max(outColor, 0));
 }
 )""
