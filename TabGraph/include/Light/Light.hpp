@@ -15,42 +15,22 @@
 
 class Framebuffer;
 
-enum LightType {
-    Point,
-    Directionnal
-};
-
 class Light : public Node {
 public:
-    Light(const std::string& name);
-    static std::shared_ptr<Light> Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power);
-    static std::shared_ptr<Light> GetByName(const std::string&);
-    static std::shared_ptr<Light> Get(unsigned index);
-    virtual void render_shadow();
-    glm::vec3& color();
-    float& power();
-    bool& cast_shadow();
-    std::shared_ptr<Framebuffer> render_buffer();
-    virtual LightType type();
-    virtual glm::mat4 ShadowProjectionMatrix() const;
+    Light(const std::string& name, glm::vec3 color, glm::vec3 position, float power);
+    Light();
+
+    void SetColor(const glm::vec3& color);
+    glm::vec3 Color() const;
+    void SetPower(const float& color);
+    float Power() const;
+    void SetCastShadow(bool castShadow);
+    bool CastShadow() const;
+    virtual void render_shadow() = 0;
+    virtual void Draw() = 0;
 
 protected:
-    glm::vec3 _color { 0, 0, 0 };
-    float _power { 0 };
+    glm::vec3 _color { 1 };
+    float _power { 1 };
     bool _cast_shadow { false };
-    std::weak_ptr<Framebuffer> _render_buffer;
-};
-
-class DirectionnalLight : public Light {
-public:
-    DirectionnalLight(const std::string& name);
-    static std::shared_ptr<DirectionnalLight> Create(const std::string& name, glm::vec3 color, glm::vec3 position, float power, bool cast_shadow = false);
-    virtual void render_shadow() override;
-    virtual LightType type() override;
-    virtual glm::mat4 ShadowProjectionMatrix() const override;
-    virtual void SetLimits(glm::vec4 limits);
-    virtual glm::vec4 Limits() const;
-
-protected:
-    glm::vec4 _limits { -100, 100, -100, 100 };
 };
