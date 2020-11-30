@@ -3,11 +3,11 @@ R""(
 #define	KERNEL_SIZE 6
 #define SAMPLES 3
 #elif SSAO_QUALITY == 2
-#define	KERNEL_SIZE 10
-#define SAMPLES 3
+#define	KERNEL_SIZE 8
+#define SAMPLES 4
 #elif SSAO_QUALITY == 3
-#define	KERNEL_SIZE 10
-#define SAMPLES 6
+#define	KERNEL_SIZE 8
+#define SAMPLES 8
 #else //SSAO_QUALITY == 4
 #define	KERNEL_SIZE 16
 #define SAMPLES 8
@@ -48,8 +48,7 @@ void	SSAO()
 		occlusion += samplingOcclusion / SAMPLES;
 	}
 	occlusion /= float(KERNEL_SIZE);
-	SetBackColor(vec4(vec3(AO() + max(0, occlusion)), 1));
-	SetBackEmissive(vec3(0));
+	SetAO(max(0, occlusion));
 	//Out.Color.rgb = vec3(sampleAngle);
 	//Out.Color.a = 1;
 	//Out.Emissive = vec3(0);

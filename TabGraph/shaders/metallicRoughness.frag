@@ -60,9 +60,9 @@ void MetallicRoughness() {
 	values.Roughness *= metallicRoughness_sample.x;
 	values.Metallic *= metallicRoughness_sample.y;
 #endif
-	SetCDiff(CDiff() * mix(values.BaseColor.rgb * (1 - F0()), vec3(0), values.Metallic));
-	SetF0(mix(F0(), values.BaseColor.rgb, values.Metallic));
-	SetAlpha(Alpha() * map(values.Roughness * values.Roughness, 0, 1, 0.05, 1));
+	SetCDiff(CDiff() * mix(values.BaseColor.rgb * (1. - 0.04), vec3(0), values.Metallic));
+	SetF0(mix(vec3(0.04), values.BaseColor.rgb , values.Metallic));
+	SetAlpha(max(0.05, values.Roughness * values.Roughness));
 	SetOpacity(Opacity() * values.BaseColor.a);
 }
 

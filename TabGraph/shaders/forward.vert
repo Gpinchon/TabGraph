@@ -11,7 +11,6 @@ struct t_Joint {
 struct t_CameraMatrix {
 	mat4	View;
 	mat4	Projection;
-	mat4	ViewProjection;
 };
 
 struct t_Camera {

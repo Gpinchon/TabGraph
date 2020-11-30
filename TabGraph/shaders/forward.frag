@@ -1,8 +1,18 @@
 R""(
 #define M_PI 3.1415926535897932384626433832795
-#if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_DIFFUSE) || defined(TEXTURE_USE_EMISSIVE) || defined(TEXTURE_USE_NORMAL) || defined(TEXTURE_USE_AO)
+#define Luminance(linearColor) dot(linearColor, vec3(0.299, 0.587, 0.114))
+
+/*#if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_DIFFUSE) || defined(TEXTURE_USE_EMISSIVE) || defined(TEXTURE_USE_NORMAL) || defined(TEXTURE_USE_AO)
 #define USE_TEXTURES
+#endif*/
+
+#ifndef textureQueryLevels
+float compMax(vec3 v) { return max(max(v.x, v.y), v.z); }
+float compMax(vec2 v) { return max(v.x, v.y); }
+#define textureQueryLevels(tex) int(log2(compMax(textureSize(tex, 0))))
 #endif
+
+#define sampleLod(tex, uv, lod) textureLod(tex, uv, lod * textureQueryLevels(tex))
 
 struct t_Matrix {
 	mat4	Model;
@@ -14,7 +24,6 @@ struct t_Environment {
 	samplerCube	Irradiance;
 };
 
-#ifdef USE_TEXTURES
 struct t_StandardTextures {
 #ifdef TEXTURE_USE_HEIGHT
 	sampler2D	Height;
@@ -31,12 +40,18 @@ struct t_StandardTextures {
 #ifdef TEXTURE_USE_AO
 	sampler2D	AO;
 #endif
+	sampler2D	BRDFLUT;
 };
-#endif
+
+#define OPAQUE	0
+#define MASK	1
+#define BLEND	2
 
 struct t_StandardValues {
 	vec3		Diffuse;
 	vec3		Emissive;
+	int			OpacityMode;
+	float		OpacityCutoff;
 	float		Opacity;
 	float		Parallax;
 	float		Ior;
@@ -59,7 +74,6 @@ struct t_Frag {
 struct t_CameraMatrix {
 	mat4	View;
 	mat4	Projection;
-	mat4	ViewProjection;
 };
 
 struct t_Camera {
@@ -69,9 +83,7 @@ struct t_Camera {
 };
 
 uniform t_Camera			Camera;
-#ifdef USE_TEXTURES
 uniform t_StandardTextures	StandardTextures;
-#endif
 uniform t_StandardValues	StandardValues;
 uniform t_Matrix			Matrix;
 uniform t_Environment		Environment;
@@ -84,12 +96,21 @@ in VertexData {
 	vec2	TexCoord;
 } Input;
 
+#ifdef GEOMETRY
 layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
 layout(location = 1) out vec3	out_Emissive;
 layout(location = 2) out vec4	out_F0; //BRDF F0, BRDF Alpha
-layout(location = 3) out float	out_Ior;
-layout(location = 4) out float	out_AO;
-layout(location = 5) out vec2	out_Normal;
+layout(location = 3) out float	out_AO;
+layout(location = 4) out vec2	out_Normal;
+#elif defined(MATERIAL) || defined(DEPTH)
+vec4	out_CDiff; //BRDF CDiff, Transparency
+vec3	out_Emissive;
+vec4	out_F0; //BRDF F0, BRDF Alpha
+float	out_AO;
+vec2	out_Normal;
+#endif
+
+#define ScreenTexCoord() (gl_FragCoord.xy / Resolution.xy)
 
 #define Opacity() (out_CDiff.a)
 #define SetOpacity(opacity) (out_CDiff.a = opacity)
@@ -106,8 +127,7 @@ layout(location = 5) out vec2	out_Normal;
 #define Emissive() (out_Emissive)
 #define SetEmissive(emissive) (out_Emissive = emissive)
 
-#define Ior() (out_Ior)
-#define SetIor(ior) (out_Ior = ior)
+#define Ior() (StandardValues.Ior)
 
 #define AO() (out_AO)
 #define SetAO(aO) (out_AO = aO)
@@ -115,10 +135,28 @@ layout(location = 5) out vec2	out_Normal;
 #define EncodedNormal() (out_Normal)
 #define SetEncodedNormal(normal) (out_Normal = normal)
 
+#define BRDF(NdV, Roughness) (texture(StandardTextures.BRDFLUT, vec2(NdV, Roughness)).xy)
+
 t_Frag	Frag;
 
 #define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
 
+vec2 encodeNormal(vec3 n) {
+	float p = sqrt(n.z*8+8);
+    return n.xy/p + 0.5;
+}
+
+vec3 decodeNormal(vec2 enc) {
+	vec2 fenc = enc*4-2;
+    float f = dot(fenc,fenc);
+    float g = sqrt(1-f/4);
+    vec3 n;
+    n.xy = fenc*g;
+    n.z = 1-f/2;
+    return n;
+}
+
+/*
 vec2 sign_not_zero(vec2 v) {
     return fma(step(vec2(0.0), v), vec2(2.0), vec2(-1.0));
 }
@@ -149,7 +187,7 @@ vec3 decodeNormal(vec2 packed_nrm) {
     #endif
     return map(v, vec3(-1), vec3(0.9), vec3(-1), vec3(1));
 }
- 
+ */
 /*vec3 decodeNormal(in vec2 f)
 {
 	vec3 n;
@@ -274,7 +312,6 @@ void	FillFragmentData()
 	SetF0(vec3(0.04f));
 	SetAlpha(1.f);
 	SetWorldNormal(Input.WorldNormal);
-	SetIor(StandardValues.Ior);
 	vec3 viewDir = normalize(Camera.Position - WorldPosition());
 	if (dot(viewDir, WorldNormal()) < 0)
 		SetWorldNormal(-WorldNormal());
@@ -300,7 +337,7 @@ void	FillFragmentData()
 	SetEmissive(StandardValues.Emissive);
 #endif
 #ifdef TEXTURE_USE_AO
-	SetAO(StandardValues.AO + texture(StandardTextures.AO, TexCoord()).r);
+	SetAO(StandardValues.AO + max(1 - texture(StandardTextures.AO, TexCoord()).r, 0));
 #else
 	SetAO(StandardValues.AO);
 #endif
@@ -314,24 +351,4 @@ void	FillFragmentData()
 #endif
 
 }
-
-/*void	FillOut()
-{
-	out_CDiff = vec4(Frag.BRDF.CDiff, StandardValues.Opacity);
-	out_F0.rgb = Frag.BRDF.F0;
-	out_F0.a = Frag.BRDF.Alpha;
-	out_Emissive = max(vec3(0), StandardValues.Emissive + StandardValues.Diffuse.rgb - 1);
-	out_Ior = StandardValues.Ior;
-	out_AO = StandardValues.AO;
-	out_Normal = encodeNormal(normalize(WorldNormal()));
-#ifdef FORCEDEPTHWRITE
-	gl_FragDepth = Frag.Depth;
-	bvec3	positionsEqual = notEqual(WorldPosition(), frag_WorldPosition);
-	if (positionsEqual.x || positionsEqual.y || positionsEqual.z)
-	{
-		vec4	NDC = Camera.Matrix.Projection * Camera.Matrix.View * vec4(WorldPosition(), 1.0);
-		gl_FragDepth = NDC.z / NDC.w * 0.5 + 0.5;
-	}
-#endif //FORCEDEPTHWRITE
-}*/
 )""
