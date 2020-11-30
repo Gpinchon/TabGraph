@@ -44,7 +44,6 @@
 struct EnginePrivate {
     EnginePrivate();
     static EnginePrivate& Get();
-    static void LoadRes(void);
     static void Update(void);
     static void FixedUpdate(void);
     std::atomic<bool> loop { false };
@@ -65,66 +64,13 @@ EnginePrivate::EnginePrivate()
 
 EnginePrivate& EnginePrivate::Get()
 {
-    static EnginePrivate* _instance = nullptr;
-    if (_instance == nullptr)
-        _instance = new EnginePrivate();
-    return (*_instance);
-}
-
-void EnginePrivate::LoadRes()
-{
-    struct dirent* e;
-    std::filesystem::path folder;
-
-    folder = Engine::ProgramPath() / "res/hdr/";
-    if (std::filesystem::exists(folder)) {
-        for (const auto& entry : std::filesystem::directory_iterator(folder)) {
-            if (entry.path().string()[0] == '.')
-                continue;
-            auto name = entry.path().filename().string();
-            auto newEnv = Environment::Create(name);
-            newEnv->set_diffuse(Cubemap::Create(name + "Cube", TextureParser::parse(name, (entry.path() / "environment.hdr").string())));
-            newEnv->set_irradiance(Cubemap::Create(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", (entry.path() / "diffuse.hdr").string())));
-        }
-    }
-    folder = Engine::ProgramPath() / "res/skybox/";
-    if (std::filesystem::exists(folder)) {
-        for (const auto& entry : std::filesystem::directory_iterator(folder)) {
-            if (entry.path().string()[0] == '.')
-                continue;
-            std::string name = entry.path().string();
-            auto newEnv = Environment::Create(name);
-            try {
-                newEnv->set_diffuse(Cubemap::parse(folder));
-            }
-            catch (std::exception& e) {
-                std::cout << e.what() << std::endl;
-                continue;
-            }
-            try {
-                newEnv->set_irradiance(Cubemap::parse(folder / "light"));
-            }
-            catch (std::exception& e) {
-                std::cout << e.what() << std::endl;
-            }
-        }
-    }
-    Environment::set_current(Environment::Get(0));
+    static EnginePrivate _instance;
+    return _instance;
 }
 
 void Engine::Init()
 {
     Window::init(Config::Get("WindowName", std::string("")), Config::Get("WindowSize", glm::vec2(1280, 720)));
-    static auto SSAOShaderCode =
-#include "ssao.frag"
-        ;
-    static auto SSAOShader = Shader::Create("SSAO", PostShader);
-    static auto shaderCode = ShaderCode::Create();
-    shaderCode->SetCode(SSAOShaderCode);
-    shaderCode->SetTechnique("SSAO");
-    SSAOShader->Stage(GL_FRAGMENT_SHADER)->AddExtension(shaderCode);
-    Render::AddPostTreatment(SSAOShader);
-    EnginePrivate::Get().LoadRes();
     Engine::SetSwapInterval(Config::Get("SwapInterval", -1));
 }
 
@@ -156,8 +102,8 @@ void Engine::Start()
             fixedTiming = ticks;
             Events::refresh();
             Scene::Current()->FixedUpdateCPU(EnginePrivate::Get().fixedDeltaTime);
+            Render::RequestRedraw();
         }
-        Render::RequestRedraw();
     }
     Render::Stop();
 }

@@ -11,8 +11,6 @@
 
 #include <stdexcept> // for runtime_error
 
-std::vector<std::shared_ptr<Framebuffer>> Framebuffer::_framebuffers;
-
 GLenum get_data_format(GLenum internal_format)
 {
     switch (internal_format) {
@@ -47,55 +45,32 @@ GLenum get_data_format(GLenum internal_format)
     }
 }
 
-Framebuffer::Framebuffer(const std::string& name)
-    : Object(name)
+Framebuffer::Framebuffer(const std::string& name, glm::ivec2 size, int color_attachements, int depth)
+    : Component(name)
 {
+    int i;
+
+    _size = size;
+    i = 0;
+    while (i < color_attachements) {
+        Create_attachement(GL_RGBA, GL_RGBA);
+        i++;
+    }
+    if (depth != 0) {
+        Create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+    }
+}
+
+glm::ivec2 Framebuffer::CurrentSize()
+{
+    glm::ivec4 resolution;
+    glGetIntegerv(GL_VIEWPORT, &resolution[0]);
+	return glm::ivec2(resolution.z, resolution.w);
 }
 
 Framebuffer::~Framebuffer()
 {
     glDeleteFramebuffers(1, &_glid);
-}
-
-std::shared_ptr<Framebuffer> Framebuffer::Create(const std::string& name, glm::ivec2 size, int color_attachements, int depth)
-{
-    int i;
-
-    auto f = tools::make_shared<Framebuffer>(name);
-    f->_size = size;
-    i = 0;
-    while (i < color_attachements) {
-        f->Create_attachement(GL_RGBA, GL_RGBA);
-        i++;
-    }
-    if (depth != 0) {
-        f->Create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
-    }
-    //f->setup_attachements();
-    Framebuffer::Add(f);
-    return (f);
-}
-
-void Framebuffer::Add(std::shared_ptr<Framebuffer> framebuffer)
-{
-    //Texture2D::Add(framebuffer);
-    _framebuffers.push_back(framebuffer);
-}
-
-std::shared_ptr<Framebuffer> Framebuffer::Get(unsigned index)
-{
-    if (index >= _framebuffers.size())
-        return (nullptr);
-    return (_framebuffers.at(index));
-}
-
-std::shared_ptr<Framebuffer> Framebuffer::GetByName(const std::string& name)
-{
-    for (auto f : _framebuffers) {
-        if (name == f->Name())
-            return (f);
-    }
-    return (nullptr);
 }
 
 void Framebuffer::bind(bool to_bind)
@@ -134,7 +109,7 @@ std::shared_ptr<Texture2D> Framebuffer::Create_attachement(GLenum format, GLenum
         tname = (Name() + "_depth");
     else
         tname = (Name() + "_attachement_" + std::to_string(_color_attachements.size()));
-    auto a = Texture2D::Create(tname, Size(), GL_TEXTURE_2D, format, iformat);
+    auto a = Component::Create<Texture2D>(tname, Size(), format, iformat);
     a->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     a->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     if (format == GL_DEPTH_COMPONENT) {

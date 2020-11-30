@@ -9,21 +9,15 @@
 #include "Debug.hpp"
 #include "Shader/Shader.hpp"
 
-ComputeObject::ComputeObject(const std::string& name)
+ComputeObject::ComputeObject(const std::string& name, std::shared_ptr<Shader> computeShader)
     : Node(name)
-{
-}
-
-std::shared_ptr<ComputeObject> ComputeObject::Create(const std::string& name, std::shared_ptr<Shader> computeShader)
 {
     int workgroup_count[3];
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &workgroup_count[0]);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &workgroup_count[1]);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &workgroup_count[2]);
-    auto obj = tools::make_shared<ComputeObject>(name);
-    obj->_shader = computeShader;
-    obj->_num_groups = glm::vec3(workgroup_count[0], workgroup_count[1], workgroup_count[2]);
-    return (obj);
+    _shader = computeShader;
+    _num_groups = glm::vec3(workgroup_count[0], workgroup_count[1], workgroup_count[2]);
 }
 
 std::shared_ptr<Shader> ComputeObject::shader()

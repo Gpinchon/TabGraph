@@ -17,31 +17,34 @@
 #include <glm/gtx/transform.hpp>
 #include <iostream>
 
+size_t nodeNbr = 0;
+
+Node::Node()
+    : Transform("Node_" + std::to_string(nodeNbr))
+{
+    nodeNbr++;
+}
+
 Node::Node(const std::string& name)
     : Transform(name)
-    , _bounds(tools::make_shared<BoundingAABB>(glm::vec3(0), glm::vec3(1)))
+    , _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(1)))
 {
+    nodeNbr++;
 }
 
 Node::~Node()
 {
 }
 
-std::shared_ptr<Node> Node::Create(const std::string& name)
-{
-    auto node(tools::make_shared<Node>(name));
-    return node;
-}
-
-bool Node::Draw(RenderMod renderMod, bool drawChildren)
+bool Node::Draw(RenderPass pass, RenderMod renderMod, bool drawChildren)
 {
     bool drew = false;
-    for (auto mesh : GetComponents<Mesh>()) {
-        drew |= mesh->Draw(std::static_pointer_cast<Transform>(shared_from_this()), renderMod);
+    for (auto &mesh : GetComponents<Mesh>()) {
+        drew |= mesh->Draw(std::static_pointer_cast<Transform>(shared_from_this()), pass, renderMod);
     }
     if (drawChildren) {
-        for (auto child : GetChildren())
-            drew |= child->Draw(renderMod, drawChildren);
+        for (auto &child : GetChildren())
+            drew |= child->Draw(pass, renderMod, drawChildren);
     }
     return drew;
 }
@@ -61,7 +64,7 @@ bool Node::DrawDepth(RenderMod renderMod, bool drawChildren)
 
 void Node::_FixedUpdateCPU(float)
 {
-    if (GetComponent<Mesh>() != nullptr)
+    if (HasComponentOfType<Mesh>())
         GetComponent<Mesh>()->UpdateSkin(std::static_pointer_cast<Transform>(shared_from_this()));
 }
 
@@ -69,7 +72,6 @@ void Node::_FixedUpdateCPU(float)
 
 void Node::AddChild(std::shared_ptr<Node> childNode)
 {
-    std::cout << __LINE__ << " " << __FUNCTION__ << " " << Name() << " " << childNode->Name() << std::endl;
     if (childNode.get() == this)
         return;
     if (HasChild(childNode)) {

@@ -8,36 +8,9 @@
 #include "Environment.hpp"
 #include "Texture/Cubemap.hpp"
 
-std::weak_ptr<Environment> Environment::_current;
-std::vector<std::shared_ptr<Environment>> Environment::_environments;
-
 Environment::Environment(const std::string& name)
-    : Object(name)
+    : Component(name)
 {
-}
-
-std::shared_ptr<Environment> Environment::Create(const std::string& name)
-{
-    auto e = tools::make_shared<Environment>(name);
-    _environments.push_back(e);
-    return (e);
-}
-
-std::shared_ptr<Environment> Environment::Get(unsigned index)
-{
-    if (index >= _environments.size())
-        return (nullptr);
-    return (_environments.at(index));
-}
-
-std::shared_ptr<Environment> Environment::current()
-{
-    return (_current.lock());
-}
-
-void Environment::set_current(std::shared_ptr<Environment> cur)
-{
-    _current = cur;
 }
 
 std::shared_ptr<Cubemap> Environment::diffuse()

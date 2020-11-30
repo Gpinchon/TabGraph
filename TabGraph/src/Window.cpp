@@ -9,7 +9,7 @@
 #include "Config.hpp" // for Config
 #include "Debug.hpp" // for glCheckError
 #include "Engine.hpp" // for Stop
-#include "Input/Events.hpp" // for Events
+#include "Event/Events.hpp" // for Events
 #include <SDL.h> // for SDL_Init, SDL_INIT_EVERYTHING
 #include <SDL_error.h> // for SDL_GetError
 #include <SDL_gamecontroller.h> // for SDL_GameControllerEventState
@@ -108,8 +108,8 @@ void Window::init(const std::string& name, glm::ivec2 resolution)
 #ifdef DEBUG_MOD
     // During init, enable debug output
     glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(MessageCallback, 0);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, GL_DONT_CARE, nullptr, GL_FALSE);
+    glDebugMessageCallback(MessageCallback, 0);
 #endif
 }
 
