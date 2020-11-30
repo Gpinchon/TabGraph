@@ -72,7 +72,7 @@ std::shared_ptr<Texture2D> BTParse(const std::string& texture_name, const std::s
         throw std::runtime_error(std::string("[ERROR] ") + path + " : " + "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
     }
     fclose(fd);
-    return Texture2D::Create(texture_name, glm::vec2(header.columns, header.rows), GL_TEXTURE_2D, GL_RED, internalFormat, dataFormat, data);
+    return Component::Create<Texture2D>(texture_name, glm::vec2(header.columns, header.rows), GL_RED, internalFormat, dataFormat, data);
 }
 
 auto __btParser = TextureParser::Add(".bt", BTParse);

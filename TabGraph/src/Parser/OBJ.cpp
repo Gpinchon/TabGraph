@@ -23,7 +23,7 @@
 #include "Physics/BoundingAABB.hpp" // for BoundingAABB
 #include "Physics/BoundingElement.hpp" // for BoundingElement
 #include "Scene/Scene.hpp"
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 #include <algorithm> // for max, min
 //#include <bits/exception.h> // for exception
 #include <errno.h> // for errno
@@ -48,7 +48,7 @@
 auto __objParser = AssetsParser::Add(".obj", OBJ::Parse);
 
 struct ObjContainer {
-    std::shared_ptr<AssetsContainer> container;
+    std::shared_ptr<AssetsContainer> container{ Component::Create<AssetsContainer>() };
     std::shared_ptr<Geometry> currentGeometry;
     std::vector<glm::vec3> v;
     std::vector<glm::vec3> vn;
@@ -185,9 +185,9 @@ void parse_vg(ObjContainer& p, const std::string& name = "")
     childNbr++;
 
     if (name == "") {
-        p.currentGeometry = Geometry::Create(p.container->GetComponent<Mesh>()->Name() + "_Geometry_" + std::to_string(childNbr));
+        p.currentGeometry = Component::Create<Geometry>(p.container->GetComponent<Mesh>()->Name() + "_Geometry_" + std::to_string(childNbr));
     } else {
-        p.currentGeometry = Geometry::Create(name);
+        p.currentGeometry = Component::Create<Geometry>(name);
     }
     p.container->GetComponent<Mesh>()->AddGeometry(p.currentGeometry);
 }
@@ -351,7 +351,7 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
     if (fd == nullptr) {
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
-    p.container->AddComponent(Mesh::Create(path));
+    p.container->AddComponent(Component::Create<Mesh>(path));
     auto l = 1;
     while (fgets(line, 4096, fd) != nullptr) {
         try {
@@ -377,7 +377,7 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
 std::shared_ptr<AssetsContainer> OBJ::Parse(const std::filesystem::path path)
 {
     ObjContainer p;
-    std::shared_ptr<AssetsContainer> container;
+    auto container(Component::Create<AssetsContainer>());
 
     p.path = path;
     try {
@@ -386,8 +386,8 @@ std::shared_ptr<AssetsContainer> OBJ::Parse(const std::filesystem::path path)
         throw std::runtime_error(std::string("Error parsing ") + path.string() + " :\n" + e.what());
     }
     container += p.container;
-    auto scene(Scene::Create(path.string()));
-    auto node(Node::Create(path.string() + "_node"));
+    auto scene(Component::Create<Scene>(path.string()));
+    auto node(Component::Create<Node>(path.string() + "_node"));
     for (const auto& mesh : container->GetComponents<Mesh>()) {
         node->AddComponent(mesh);
     }

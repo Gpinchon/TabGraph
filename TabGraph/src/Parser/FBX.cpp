@@ -182,7 +182,7 @@ static inline auto getMappedIndices(const std::string& mappingInformationType, c
 
 std::shared_ptr<AssetsContainer> ParseGeometries(FBX::Document* document)
 {
-    std::shared_ptr<AssetsContainer> container = AssetsContainer::Create();
+    std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
     //std::map<int64_t, std::vector<std::shared_ptr<Geometry>>> groupMap;
     for (const auto& objects : document->SubNodes("Objects")) {
         for (const auto& geometryNode : objects->SubNodes("Geometry")) {
@@ -207,7 +207,7 @@ std::shared_ptr<AssetsContainer> ParseGeometries(FBX::Document* document)
             std::vector<int32_t> polygonIndex;
             std::vector<int32_t> polygonIndexNormal;
             std::shared_ptr<Geometry> geometry;
-            //auto Geometry(Geometry::Create(""));
+            //auto Geometry(Component::Create<Geometry>(""));
             //Geometry->SetId(geometryId);
             //groupMap[geometryId].push_back(Geometry);
             //auto bufferV = BufferHelper::CreateAccessor(vertices);
@@ -219,7 +219,7 @@ std::shared_ptr<AssetsContainer> ParseGeometries(FBX::Document* document)
                 if (!materialIndices.empty()) {
                     uint32_t materialIndex(materials.at(materialIndices.at(i)));
                     if (geometry == nullptr) {
-                        geometry = Geometry::Create("");
+                        geometry = Component::Create<Geometry>("");
                         geometry->SetId(geometryId);
                         geometry->SetMaterialIndex(materialIndex);
                         geometry->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor<glm::vec3>(0));
@@ -229,7 +229,7 @@ std::shared_ptr<AssetsContainer> ParseGeometries(FBX::Document* document)
                     } else if (materialIndex != geometry->MaterialIndex()) {
                         std::cout << "Material Indices : Last " << geometry->MaterialIndex() << " New " << materialIndex << std::endl;
                         std::cout << "Material index changed, create new Geometry" << std::endl;
-                        geometry = Geometry::Create("");
+                        geometry = Component::Create<Geometry>("");
                         geometry->SetId(geometryId);
                         geometry->SetMaterialIndex(materialIndex);
                         geometry->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor<glm::vec3>(0));
@@ -241,7 +241,7 @@ std::shared_ptr<AssetsContainer> ParseGeometries(FBX::Document* document)
 
                 if (index < 0) {
                     if (geometry == nullptr) {
-                        geometry = Geometry::Create("");
+                        geometry = Component::Create<Geometry>("");
                         geometry->SetId(geometryId);
                         container->AddComponent(geometry);
                     }
@@ -286,8 +286,8 @@ static inline std::shared_ptr<AssetsContainer> ParseNodes(FBX::Document* documen
     std::shared_ptr<AssetsContainer> container;
     for (const auto& objects : document->SubNodes("Objects")) {
         for (const auto& model : objects->SubNodes("Model")) {
-            auto node = Node::Create(model->Property(1));
-            auto mesh = Mesh::Create();
+            auto node = Component::Create<Node>(model->Property(1));
+            auto mesh = Component::Create<Mesh>();
             node->SetId(model->Property(0));
             node->SetComponent(mesh);
             mesh->SetId(model->Property(0));
@@ -306,7 +306,7 @@ static inline std::shared_ptr<AssetsContainer> ParseMaterials(FBX::Document* doc
         for (const auto& fbxMaterial : objects->SubNodes("Material")) {
             int64_t id(fbxMaterial->Property(0));
             std::string name(fbxMaterial->Property(1));
-            auto material(Material::Create(name));
+            auto material(Component::Create<Material>(name));
             container->AddComponent(material);
             material->SetId(id);
             auto P70(fbxMaterial->SubNode("Properties70"));
@@ -353,10 +353,10 @@ static inline std::shared_ptr<AssetsContainer> ParseMaterials(FBX::Document* doc
 
 std::shared_ptr<AssetsContainer> FBX::Parse(const std::filesystem::path path)
 {
-    std::shared_ptr<AssetsContainer> container = AssetsContainer::Create();
+    std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
     auto document(FBX::Document::Parse(path));
     document->Print();
-    auto scene(Scene::Create(path.string()));
+    auto scene(Component::Create<Scene>(path.string()));
     *container += ParseNodes(document);
     *container += ParseMaterials(document);
     *container += ParseGeometries(document);
@@ -380,54 +380,52 @@ std::shared_ptr<AssetsContainer> FBX::Parse(const std::filesystem::path path)
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << transform->Position().x << " " << transform->Position().y << " " << transform->Position().z << std::endl;
+                    std::cout << transform->GetPosition().x << " " << transform->GetPosition().y << " " << transform->GetPosition().z << std::endl;
                 } else if (propertyName == "Lcl Rotation") {
                     transform->SetRotation(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << transform->Rotation().x << " " << transform->Rotation().y << " " << transform->Rotation().z << std::endl;
+                    std::cout << transform->GetRotation().x << " " << transform->GetRotation().y << " " << transform->GetRotation().z << std::endl;
                 } else if (propertyName == "Lcl Scaling") {
                     transform->SetScale(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << transform->Scale().x << " " << transform->Scale().y << " " << transform->Scale().z << std::endl;
+                    std::cout << transform->GetScale().x << " " << transform->GetScale().y << " " << transform->GetScale().z << std::endl;
                 }
                 if (propertyName == "GeometricTranslation") {
                     if (mesh->GetComponent<Transform>() == nullptr)
-                        mesh->SetComponent(Transform::Create());
+                        mesh->SetComponent(Component::Create<Transform>());
                     mesh->GetComponent<Transform>()->SetPosition(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << mesh->GetComponent<Transform>()->Position().x << " " << mesh->GetComponent<Transform>()->Position().y << " " << mesh->GetComponent<Transform>()->Position().z << std::endl;
+                    std::cout << mesh->GetComponent<Transform>()->GetPosition().x << " " << mesh->GetComponent<Transform>()->GetPosition().y << " " << mesh->GetComponent<Transform>()->GetPosition().z << std::endl;
                 } else if (propertyName == "GeometricRotation") {
                     if (mesh->GetComponent<Transform>() == nullptr)
-                        mesh->SetComponent(Transform::Create());
+                        mesh->SetComponent(Component::Create<Transform>());
                     mesh->GetComponent<Transform>()->SetRotation(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << mesh->GetComponent<Transform>()->Rotation().x << " " << mesh->GetComponent<Transform>()->Rotation().y << " " << mesh->GetComponent<Transform>()->Rotation().z << std::endl;
+                    std::cout << mesh->GetComponent<Transform>()->GetRotation().x << " " << mesh->GetComponent<Transform>()->GetRotation().y << " " << mesh->GetComponent<Transform>()->GetRotation().z << std::endl;
                 } else if (propertyName == "GeometricScaling") {
                     if (mesh->GetComponent<Transform>() == nullptr)
-                        mesh->SetComponent(Transform::Create());
+                        mesh->SetComponent(Component::Create<Transform>());
                     mesh->GetComponent<Transform>()->SetScale(glm::vec3(
                         double(property->Property(4)),
                         double(property->Property(5)),
                         double(property->Property(6))));
-                    std::cout << mesh->GetComponent<Transform>()->Scale().x << " " << mesh->GetComponent<Transform>()->Scale().y << " " << mesh->GetComponent<Transform>()->Scale().z << std::endl;
+                    std::cout << mesh->GetComponent<Transform>()->GetScale().x << " " << mesh->GetComponent<Transform>()->GetScale().y << " " << mesh->GetComponent<Transform>()->GetScale().z << std::endl;
                 }
             }
         }
     }
     std::cout << "Parsing done, printing Container\n";
-    for (const auto& components : container->GetComponentsInChildren()) {
-        std::cout << "Type : " << components.first.name() << '\n';
-        for (const auto& component : components.second) {
-            std::cout << component->Id() << ' ' << component->Name() << '\n';
-        }
+    for (const auto& component : container->GetComponentsInChildren()) {
+        //std::cout << "Type : " << components.first.name() << '\n';
+        std::cout << component->Id() << ' ' << component->Name() << '\n';
     }
 
     std::cout << "Setting up relations" << std::endl;

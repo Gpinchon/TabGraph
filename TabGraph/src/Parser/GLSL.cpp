@@ -64,7 +64,7 @@ GLuint compile_shader(const std::string &path, GLenum type)
 std::shared_ptr<Shader> GLSL::compile(const std::string &name,
                                       const std::string &vertex_code, const std::string &fragment_code)
 {
-    auto shader = std::static_pointer_cast<GLSL>(Shader::Create(name));
+    auto shader = std::static_pointer_cast<GLSL>(Component::Create<Shader>(name));
     GLuint vertexid = 0;
     GLuint fragmentid = 0;
 
@@ -99,7 +99,7 @@ std::shared_ptr<Shader> GLSL::parse(const std::string &name,
 std::shared_ptr<Shader> GLSL::compile(const std::string &name,
                                       const std::string &vertex_code, const std::string &fragment_code, ShaderType type, const std::string &defines)
 {
-    auto shader = std::static_pointer_cast<GLSL>(Shader::Create(name));
+    auto shader = std::static_pointer_cast<GLSL>(Component::Create<Shader>(name));
     GLuint vertexid = 0;
     GLuint fragmentid = 0;
     try
@@ -147,7 +147,7 @@ std::shared_ptr<Shader> GLSL::parse(const std::string &name,
 std::shared_ptr<Shader> GLSL::compile(const std::string &name,
                                       const std::string &shader_code, ShaderType type, const std::string &defines)
 {
-    auto shader = std::static_pointer_cast<GLSL>(Shader::Create(name));
+    auto shader = std::static_pointer_cast<GLSL>(Component::Create<Shader>(name));
     static auto emptyShaderCode =
 #include "empty.glsl"
         ;

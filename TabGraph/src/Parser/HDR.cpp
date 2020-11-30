@@ -93,7 +93,8 @@ std::shared_ptr<Texture2D> HDR::parse(const std::string& texture_name, const std
 
     delete[] scanline;
     fclose(file);
-    auto t = Texture2D::Create(texture_name, size, GL_TEXTURE_2D, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data);
+    auto t = Component::Create<Texture2D>(texture_name, size, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data);
+    delete[] data;
     std::cout << " Done." << std::endl;
     return (t);
 }

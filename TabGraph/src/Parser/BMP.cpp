@@ -210,8 +210,8 @@ std::shared_ptr<Texture2D> BMP::parse(const std::string &texture_name, const std
         throw std::runtime_error(std::string("Error parsing ") + path + " : " + e.what());
     }
     get_format(parser.info.bpp, &format[0], &format[1]);
-    auto t = Texture2D::Create(texture_name, glm::ivec2(parser.info.width, parser.info.height),
-                             GL_TEXTURE_2D, format[0], format[1], GL_UNSIGNED_BYTE, parser.data);
+    auto t = Component::Create<Texture2D>(texture_name, glm::ivec2(parser.info.width, parser.info.height),
+                             format[0], format[1], GL_UNSIGNED_BYTE, parser.data);
     t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     return (t);
 }
