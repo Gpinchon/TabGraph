@@ -46,6 +46,8 @@ out VertexData {
 	vec2	TexCoord;
 } Output;
 
+out float CameraSpaceDepth;
+
 bool _WorldPositionSet = false;
 
 void SetWorldPosition(in vec3 worldPosition)
@@ -137,8 +139,12 @@ void	FillVertexData()
 		SetWorldPosition(WorldPosition());
 		SetWorldNormal(WorldNormal());
 	}
+	
 	SetTexCoord(TexCoord() * UVScale);
-	SetClipSpacePosition(ClipSpacePosition());
+	vec4 cameraSpacePosition = Camera.Matrix.View * vec4(WorldPosition(), 1);
+	CameraSpaceDepth = cameraSpacePosition.z;
+	SetClipSpacePosition(Camera.Matrix.Projection * cameraSpacePosition);
+	
 }
 
 /*void	FillOut()

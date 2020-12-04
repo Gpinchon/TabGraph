@@ -40,8 +40,6 @@ class Private : public Component {
     //class Render::Private {
 public:
     static Render::Private &Instance();
-    //static void Update(float delta);
-    //static void FixedUpdate(float delta);
     static void Scene();
     static void AddPostTreatment(std::shared_ptr<Shader>);
     static void AddPostTreatment(const std::string& name, const std::string& path);
@@ -62,8 +60,6 @@ public:
     static std::vector<std::shared_ptr<Shader>>& PostTreatments();
     static void SetInternalQuality(float);
     static float InternalQuality();
-    //static std::shared_ptr<Texture2D> BRDF();
-    //static void SetBRDF(std::shared_ptr<Texture2D>);
 
 private:
     virtual std::shared_ptr<Component> _Clone() override {
@@ -110,16 +106,6 @@ static auto emptyShaderCode =
     ;
 */
 /*
-static auto lightingFragmentCode =
-#include "lighting.frag"
-    ;
-*/
-/*
-static auto lightingEnvFragmentCode =
-#include "lighting_env.frag"
-    ;
-*/
-/*
 static auto refractionFragmentCode =
 #include "refraction.frag"
     ;
@@ -143,7 +129,7 @@ const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
     quad.at(3) = { 1.0f, 1.0f };
     auto accessor(BufferHelper::CreateAccessor(quad));
     vao = Component::Create<Geometry>("DisplayQuad");
-    vao->SetMode(GL_TRIANGLE_STRIP);
+    vao->SetDrawingMode(GL_TRIANGLE_STRIP);
     vao->SetAccessor(Geometry::AccessorKey::Position, accessor);
     return vao;
 }
@@ -467,20 +453,19 @@ std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string& name, const
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // BRDF CDiff, Transparency;
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emissive;
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // BRDF F0, BRDF Alpha;
-    //buffer->Create_attachement(GL_RED, GL_R16F); // Ior
     buffer->Create_attachement(GL_RED, GL_R8); //AO
     buffer->Create_attachement(GL_RG, GL_RG16_SNORM); // Normal;
     auto idTexture = buffer->Create_attachement(GL_RED_INTEGER, GL_R32UI);
     idTexture->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     idTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //buffer->setup_attachements();
     return (buffer);
 }
 
 std::shared_ptr<Framebuffer> CreateLightingBuffer(const std::string& name, const glm::ivec2& size)
 {
     auto buffer = Component::Create<Framebuffer>(name, size, 0, 0);
-    buffer->Create_attachement(GL_RGBA, GL_RGBA16F); // Color / SpecularIntensity;
+    buffer->Create_attachement(GL_RGBA, GL_RGBA16F); // Diffuse, Specular Luminance;
+    //buffer->Create_attachement(GL_RGB, GL_RGB16F); // Specular;
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // Reflection;
     return (buffer);
 }
@@ -495,7 +480,7 @@ auto CreateOpaqueMaterialBuffer(glm::ivec2 res) {
 auto CreateTransparentMaterialBuffer(glm::ivec2 res) {
     auto buffer = Component::Create<Framebuffer>("TransparentMaterialBuffer", res, 0, 1);
     buffer->Create_attachement(GL_RGBA, GL_RGBA16F); // Color;
-    buffer->Create_attachement(GL_RED, GL_R8); // Alpha coverage;
+    buffer->Create_attachement(GL_RED, GL_R16F); // Alpha coverage;
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F);
     return buffer;
 }
@@ -503,15 +488,15 @@ auto CreateTransparentMaterialBuffer(glm::ivec2 res) {
 std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
 {
     glm::ivec2 res = Window::size();
-    static auto geometryBuffer = CreateGeometryBuffer("GeometryBuffer", glm::vec2(1024) * Render::Private::InternalQuality());
-    static auto lightingBuffer = CreateLightingBuffer("LightingBuffer", glm::vec2(1024) * Render::Private::InternalQuality());
+    glm::vec2   geometryRes = glm::vec2(std::min(res.x, res.y)) * Render::Private::InternalQuality();
+    static auto geometryBuffer = CreateGeometryBuffer("GeometryBuffer", geometryRes);
+    static auto lightingBuffer = CreateLightingBuffer("LightingBuffer", geometryRes);
     static auto opaqueBuffer = CreateOpaqueMaterialBuffer(res);
     static auto transparentBuffer = CreateTransparentMaterialBuffer(res);
     Render::Private::SetLightBuffer(lightingBuffer);
     Render::Private::SetGeometryBuffer(geometryBuffer);
-    //static auto compositingBuffer = CreateLightingBuffer("MaterialBuffer", res);
-    geometryBuffer->Resize(glm::vec2(1024) * Render::Private::InternalQuality());
-    lightingBuffer->Resize(glm::vec2(1024) * Render::Private::InternalQuality());
+    geometryBuffer->Resize(geometryRes);
+    lightingBuffer->Resize(geometryRes);
     opaqueBuffer->Resize(res);
     transparentBuffer->Resize(res);
     transparentBuffer->SetDepthBuffer(opaqueBuffer->depth());
@@ -531,7 +516,7 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    Scene::Current()->Render(RenderPass::Geometry, RenderMod::RenderAll);
+    Scene::Current()->Render(RenderPass::Geometry, RenderMod::RenderOpaque);
     geometryBuffer->bind(false);
 
     lightingBuffer->bind();
@@ -557,14 +542,17 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     Scene::Current()->Render(RenderPass::Material, RenderMod::RenderAll);
 
     auto zero = glm::vec4(0);
+    auto zeroOne = glm::vec4(0, 0, 0, 1);
     auto one = glm::vec4(1);
     transparentBuffer->bind();
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
-    glDepthFunc(GL_LESS);
+    //glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    //glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
     glBlendFunci(0, GL_ONE, GL_ONE);
-    glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+    glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
     glBlendFunci(2, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
     glClearBufferfv(GL_COLOR, 0, &zero[0]);
     glClearBufferfv(GL_COLOR, 1, &one[0]);
@@ -579,9 +567,9 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     compositing_shader->use();
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-    //glBlendFunci(0, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-    //glBlendFunci(1, GL_ONE, GL_ONE);
+    //glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+    glBlendFunci(0, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+    glBlendFunci(1, GL_ONE, GL_ONE);
     Render::Private::DisplayQuad()->Draw();
     opaqueBuffer->bind(false);
     compositing_shader->use(false);

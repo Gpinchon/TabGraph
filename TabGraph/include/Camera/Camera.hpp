@@ -75,5 +75,5 @@ private:
     glm::vec4 _frustum { -50, 50, -50, 50 };
     float _fov { 45 };
     float _znear { 0.1 };
-    float _zfar { 1000.f };
+    float _zfar { 0 };
 };

@@ -50,7 +50,6 @@ struct t_StandardTextures {
 struct t_StandardValues {
 	vec3		Diffuse;
 	vec3		Emissive;
-	int			OpacityMode;
 	float		OpacityCutoff;
 	float		Opacity;
 	float		Parallax;

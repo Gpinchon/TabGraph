@@ -126,13 +126,7 @@ vec2 _normal = vec2(0);
 #define EncodedNormal() (_normal)
 
 #ifdef LIGHTSHADER
-	struct t_BackTextures {
-		sampler2D	Color;
-		sampler2D	Emissive;
-	};
-	
 	struct t_Textures {
-		t_BackTextures		Back;
 		t_GeometryTextures	Geometry;
 		t_Environment		Environment;
 	};
@@ -143,8 +137,8 @@ vec2 _normal = vec2(0);
 	uniform float			Time;
 	uniform uint			FrameNumber;
 	
-	layout(location = 0) out vec4	out_Color;
-	layout(location = 1) out vec4	out_Emissive;	
+	layout(location = 0) out vec4	out_0;
+	layout(location = 1) out vec4	out_1;
 
 	#define SetOpacity(opacity) (_opacity = opacity)
 
@@ -159,26 +153,10 @@ vec2 _normal = vec2(0);
 	#define SetAO(aO) (_ao = aO)
 
 	#define SetEncodedNormal(normal) (_normal = normal)
-
-	//#define WorldNormal() (decodeNormal(_normal))
-	//#define SetWorldNormal(normal) (_normal = encodeNormal(normal))
-
-	#define BackColor() (out_Color)
-	#define SetBackColor(backColor) (out_Color = backColor)
-
-	#define BackEmissive() (out_Emissive)
-	#define SetBackEmissive(backEmissive) (out_Emissive = backEmissive)
 #endif //LIGHTSHADER
 
 #ifdef POSTSHADER
-	
-	struct t_BackTextures {
-		sampler2D	Color;
-		sampler2D	Emissive;
-	};
-	
 	struct t_Textures {
-		t_BackTextures		Back;
 		t_GeometryTextures	Geometry;
 		t_Environment		Environment;
 	};
