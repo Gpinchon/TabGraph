@@ -5,8 +5,8 @@
 * @Last Modified time: 2020-05-10 19:04:43
 */
 
-#include "Input/GameController.hpp"
-#include "Input/Events.hpp" // for Events
+#include "Event/GameController.hpp"
+#include "Event/Events.hpp" // for Events
 #include <iostream> // for basic_ostream::operator<<, operator<<, endl
 #include <utility> // for pair
 

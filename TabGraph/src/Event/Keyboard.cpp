@@ -5,8 +5,8 @@
 * @Last Modified time: 2020-08-16 15:37:23
 */
 
-#include "Input/Keyboard.hpp"
-#include "Input/Events.hpp" // for Events
+#include "Event/Keyboard.hpp"
+#include "Event/Events.hpp" // for Events
 #include <SDL_keyboard.h> // for SDL_GetKeyboardState, SDL_Keysym
 #include <utility> // for pair
 

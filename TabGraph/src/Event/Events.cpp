@@ -5,8 +5,8 @@
 * @Last Modified time: 2020-05-10 19:03:44
 */
 
-#include "Input/Events.hpp"
-#include "Input/InputDevice.hpp" // for InputDevice
+#include "Event/Events.hpp"
+#include "Event/InputDevice.hpp" // for InputDevice
 #include "Callback.hpp"
 #include "Engine.hpp" // for Stop
 #include <SDL_timer.h> // for SDL_GetTicks
