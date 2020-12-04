@@ -29,11 +29,11 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Environment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Framebuffer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Input/Events.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Input/GameController.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Input/Inputdevice.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Input/Keyboard.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Input/Mouse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Events.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/GameController.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Keyboard.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Mouse.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionnalLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/PointLight.cpp
