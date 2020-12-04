@@ -8,7 +8,7 @@
 #include "Engine.hpp"
 #include "Config.hpp" // for Config
 #include "Environment.hpp" // for Environment
-#include "Input/Events.hpp" // for Events
+#include "Event/Events.hpp" // for Events
 #include "Node.hpp" // for Node
 #include "Parser/GLSL.hpp" // for GLSL, PostShader
 #include "Render.hpp" // for AddPostTreatment, RequestRedraw
