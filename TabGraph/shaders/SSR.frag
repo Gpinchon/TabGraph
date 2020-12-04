@@ -272,6 +272,6 @@ void	SSR()
 	outColor /= NumRays;
 	outColor.rgb /= 1 - Luminance(outColor.rgb);
 	outColor *= GetRoughnessFade();
-	SetBackEmissive(max(outColor, 0));
+	out_1 = max(outColor, 0);
 }
 )""
