@@ -16,40 +16,8 @@ Light::Light() : Node("Light_" + std::to_string(g_lightNbr))
     ++g_lightNbr;
 }
 
-Light::Light(const std::string& name, glm::vec3 color, glm::vec3 position, float power)
+Light::Light(const std::string& name, glm::vec3 color)
     : Light()
 {
-    SetPosition(position);
     SetColor(color);
-    SetPower(power);
-}
-
-glm::vec3 Light::Color() const
-{
-    return _color;
-}
-
-void Light::SetPower(const float& power)
-{
-    _power = power;
-}
-
-float Light::Power() const
-{
-    return _power;
-}
-
-void Light::SetCastShadow(bool castShadow)
-{
-    _cast_shadow = castShadow;
-}
-
-bool Light::CastShadow() const
-{
-    return (_cast_shadow);
-}
-
-void Light::SetColor(const glm::vec3& color)
-{
-    _color = color;
 }

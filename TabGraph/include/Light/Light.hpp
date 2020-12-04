@@ -16,21 +16,11 @@
 class Framebuffer;
 
 class Light : public Node {
+    PROPERTY(glm::vec3, Color, 1);
+    PROPERTY(bool, CastShadow, false);
 public:
-    Light(const std::string& name, glm::vec3 color, glm::vec3 position, float power);
+    Light(const std::string& name, glm::vec3 color);
     Light();
-
-    void SetColor(const glm::vec3& color);
-    glm::vec3 Color() const;
-    void SetPower(const float& color);
-    float Power() const;
-    void SetCastShadow(bool castShadow);
-    bool CastShadow() const;
     virtual void render_shadow() = 0;
     virtual void Draw() = 0;
-
-protected:
-    glm::vec3 _color { 1 };
-    float _power { 1 };
-    bool _cast_shadow { false };
 };

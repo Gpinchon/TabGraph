@@ -131,7 +131,8 @@ std::array<glm::vec3, 8> ExtractFrustum(const std::shared_ptr<Camera>& camera)
 
 void DirectionnalLight::render_shadow()
 {
-    Infinite() ? DrawShadowInfinite() : DrawShadowFinite();
+    if (GetCastShadow())
+        Infinite() ? DrawShadowInfinite() : DrawShadowFinite();
 }
 
 void NormalizePlane(glm::vec4& plane)
@@ -176,22 +177,24 @@ void DirectionnalLight::Draw()
 {
     auto shader = GetComponent<Shader>();
     auto geometryBuffer = Render::GeometryBuffer();
-    CastShadow() ? shader->SetDefine("SHADOW") : shader->RemoveDefine("SHADOW");
     glm::vec3 geometryPosition;
     if (Infinite())
         geometryPosition = Scene::Current()->CurrentCamera()->WorldPosition();
     else
         geometryPosition = Parent() ? Parent()->WorldPosition() + GetPosition() : GetPosition();
-    shader->SetUniform("Matrix.Model", glm::translate(geometryPosition) * LocalScaleMatrix());
-    shader->SetTexture("Light.Shadow", GetComponent<Framebuffer>()->depth());
+    if (GetCastShadow()) {
+        shader->SetDefine("SHADOW");
+        shader->SetTexture("Light.Shadow", GetComponent<Framebuffer>()->depth());
+    }
+    else
+        shader->RemoveDefine("SHADOW");
     shader->SetUniform("Light.Max", Max());
     shader->SetUniform("Light.Min", Min());
     shader->SetUniform("Light.Projection", Infinite() ? ShadowProjectionMatrixInfinite() : ShadowProjectionMatrixFinite());
-    shader->SetUniform("Light.Color", Color());
+    shader->SetUniform("Light.Color", GetColor());
     shader->SetUniform("Light.Direction", Direction());
     shader->SetUniform("Light.Infinite", Infinite());
-    shader->SetTexture("Texture.Geometry.CDiff", geometryBuffer->attachement(0));
-    shader->SetTexture("Texture.Geometry.Emissive", geometryBuffer->attachement(1));
+    shader->SetUniform("Matrix.Model", glm::translate(geometryPosition) * LocalScaleMatrix());
     shader->SetTexture("Texture.Geometry.F0", geometryBuffer->attachement(2));
     shader->SetTexture("Texture.Geometry.Normal", geometryBuffer->attachement(4));
     shader->SetTexture("Texture.Geometry.Depth", geometryBuffer->depth());
