@@ -513,7 +513,7 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const std::s
                     debugLog("Geometry " + geometry->Name() + " has no indices property")
                 }
                 try {
-                    geometry->SetMode(primitive["mode"].GetInt());
+                    geometry->SetDrawingMode(primitive["mode"].GetInt());
                 } catch (std::exception&) {
                     debugLog("Geometry " + geometry->Name() + " has no mode property")
                 }

@@ -69,7 +69,7 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
         auto material(GetMaterial(vg->MaterialIndex()));
         if (nullptr == material)
             continue;
-        auto isTransparent(material->OpacityMode() == Material::OpacityModeValue::Blend);
+        auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
         if (mod == RenderMod::RenderOpaque && isTransparent)
             continue;
         else if (mod == RenderMod::RenderTransparent && !isTransparent)
@@ -119,7 +119,7 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
             errorLog("Error : Invalid Material Index while rendering Mesh");
             continue;
         }
-        auto isTransparent(material->OpacityMode() == Material::OpacityModeValue::Blend);
+        auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
         if (mod == RenderMod::RenderOpaque && isTransparent)
             continue;
         else if (mod == RenderMod::RenderTransparent && !isTransparent)
@@ -138,7 +138,8 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
             shader->SetUniform("WindowSize", Window::size());
             if (pass == RenderPass::Material) {
                 shader->SetTexture("DiffuseTexture", Render::LightBuffer()->attachement(0));
-                shader->SetTexture("SpecularTexture", Render::LightBuffer()->attachement(1));
+                //shader->SetTexture("SpecularTexture", Render::LightBuffer()->attachement(1));
+                shader->SetTexture("ReflectionTexture", Render::LightBuffer()->attachement(1));
                 shader->SetTexture("AOTexture", Render::GeometryBuffer()->attachement(3));
                 shader->SetTexture("NormalTexture", Render::GeometryBuffer()->attachement(4));
                 shader->SetTexture("IDTexture", Render::GeometryBuffer()->attachement(5));
@@ -152,7 +153,7 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
             shader->SetUniform("Skinned", HasComponentOfType<MeshSkin>());
             last_shader = shader;
         }
-        if (material->DoubleSided())
+        if (material->GetDoubleSided())
             glDisable(GL_CULL_FACE);
         else
             glEnable(GL_CULL_FACE);

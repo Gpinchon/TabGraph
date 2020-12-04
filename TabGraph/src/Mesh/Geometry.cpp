@@ -109,11 +109,11 @@ bool Geometry::Draw()
         auto bufferView(Indices()->GetBufferView());
         auto byteOffset(Indices()->ByteOffset() + bufferView->ByteOffset());
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferView->GetBuffer()->Glid());
-        glDrawElements(Mode(), Indices()->Count(), Indices()->ComponentType(), BUFFER_OFFSET(byteOffset));
+        glDrawElements(GetDrawingMode(), Indices()->Count(), Indices()->ComponentType(), BUFFER_OFFSET(byteOffset));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     } else if (auto accessor(Accessor(Geometry::AccessorKey::Position)); accessor != nullptr) {
         auto byteOffset(accessor->ByteOffset() + accessor->GetBufferView()->ByteOffset());
-        glDrawArrays(Mode(), byteOffset / accessor->TotalComponentByteSize(), accessor->Count());
+        glDrawArrays(GetDrawingMode(), byteOffset / accessor->TotalComponentByteSize(), accessor->Count());
     }
     glBindVertexArray(0);
 
@@ -128,16 +128,6 @@ uint32_t Geometry::MaterialIndex()
 void Geometry::SetMaterialIndex(uint32_t index)
 {
     _materialIndex = index;
-}
-
-GLenum Geometry::Mode() const
-{
-    return _drawingMode;
-}
-
-void Geometry::SetMode(GLenum drawingMode)
-{
-    _drawingMode = drawingMode;
 }
 
 std::shared_ptr<BufferAccessor> Geometry::Accessor(const Geometry::AccessorKey key) const
@@ -168,7 +158,7 @@ std::shared_ptr<BoundingAABB> Geometry::GetBounds() const
 
 size_t Geometry::EdgeCount() const
 {
-    switch (Mode()) {
+    switch (GetDrawingMode()) {
     case GL_POINTS:
         return 0;
     case GL_LINES:
@@ -270,7 +260,7 @@ size_t Geometry::EdgeCount() const
 glm::ivec2 Geometry::GetEdge(const size_t index) const
 {
     glm::ivec2 ret { -1 };
-    switch (Mode()) {
+    switch (GetDrawingMode()) {
     case GL_POINTS:
         return glm::ivec2(index);
     case GL_LINES:

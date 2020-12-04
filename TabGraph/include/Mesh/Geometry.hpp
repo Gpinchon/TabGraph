@@ -23,19 +23,6 @@ class Material; // lines 20-20
 class BufferAccessor;
 class BoundingAABB;
 
-typedef glm::vec<4, uint8_t, glm::defaultp> CVEC4;
-/*
-static inline CVEC4 VecToCVec4(glm::vec4 v) {
-    v = ((v + 1.f) * 0.5f) * 255.f;
-    return CVEC4(v.x, v.y, v.z, v.w);
-}
-
-static inline CVEC4 VecToCVec4(glm::vec3 v) {
-    v = ((v + 1.f) * 0.5f) * 255.f;
-    return CVEC4(v.x, v.y, v.z, 255);
-}
-*/
-
 class GeometryMorthTarget {
 public:
     enum Channel {
@@ -52,6 +39,8 @@ private:
 };
 
 class Geometry : public Component {
+    /** @brief Drawing mode for this geometry, default : GL_TRIANGLES */
+    PROPERTY(GLenum, DrawingMode, GL_TRIANGLES);
 public:
     Geometry();
     Geometry(const std::string& name);
@@ -84,10 +73,6 @@ public:
     void SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<BufferAccessor>);
     std::shared_ptr<BufferAccessor> Indices() const;
     void SetIndices(std::shared_ptr<BufferAccessor>);
-    /** Drawing mode */
-    GLenum Mode() const;
-    /** Sets the Drawing mod */
-    void SetMode(GLenum drawingMode);
 
     std::shared_ptr<BoundingAABB> GetBounds() const;
 
@@ -108,7 +93,6 @@ private:
     virtual void _FixedUpdateGPU(float) {};
     glm::vec3 _centroid { 0 };
     std::shared_ptr<BoundingAABB> _bounds;
-    GLenum _drawingMode { GL_TRIANGLES };
     uint32_t _materialIndex { 0 };
     GLuint _vaoGlid { 0 };
     std::array<std::shared_ptr<BufferAccessor>, size_t(Geometry::AccessorKey::MaxAccessorKey)> _accessors;

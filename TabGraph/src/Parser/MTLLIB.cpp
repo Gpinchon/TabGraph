@@ -172,7 +172,7 @@ static inline void parse_number(std::vector<std::string> &split, std::shared_ptr
     else if (split[0] == "Tr")
     {
         mtl->SetOpacity(1 - std::stof(split[1]));
-        if (mtl->Opacity() < 1.f) {
+        if (mtl->GetOpacity() < 1.f) {
             mtl->SetOpacityMode(Material::OpacityModeValue::Blend);
         }
     }

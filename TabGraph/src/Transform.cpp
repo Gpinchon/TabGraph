@@ -8,7 +8,7 @@
 
 #define WORLDTRANSFORMMATRIX(transform) (transform ? transform->WorldTransformMatrix() : glm::mat4(1.f))
 
-glm::mat4 Transform::WorldTransformMatrix()
+glm::mat4 Transform::WorldTransformMatrix() const
 {
     return WORLDTRANSFORMMATRIX(Parent()) * LocalTransformMatrix();
 }
@@ -173,5 +173,6 @@ void Transform::SetParent(std::shared_ptr<Transform> parent)
 {
     if (parent == shared_from_this() || Parent() == parent)
         return;
+    //parent->PositionChanged.ConnectMember(std::static_pointer_cast<Transform>(shared_from_this()), )
     _parent = parent;
 }

@@ -45,6 +45,14 @@ auto DefaultBRDFLUT() {
 Material::Material(const std::string& name)
     : Component(name), _brdfLUT(AddComponent(DefaultBRDFLUT()))
 {
+    OpacityModeChanged.ConnectMember(this, &Material::_updateOpacityMode);
+    OpacityCutoffChanged.ConnectMember(this, &Material::_updateOpacityCutoff);
+    DiffuseChanged.ConnectMember(this, &Material::_updateDiffuse);
+    EmissiveChanged.ConnectMember(this, &Material::_updateEmissive);
+    UVScaleChanged.ConnectMember(this, &Material::_updateUVScale);
+    OpacityChanged.ConnectMember(this, &Material::_updateOpacity);
+    ParallaxChanged.ConnectMember(this, &Material::_updateParallax);
+    IorChanged.ConnectMember(this, &Material::_updateIor);
     static std::string forward_vert_code =
 #include "forward.vert"
         ;
@@ -71,23 +79,15 @@ Material::Material(const std::string& name)
     MaterialShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(setInstanceID, "SetInstanceID();"));
     MaterialShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetMaterialPassExtension());
 
-    GeometryShader()->SetUniform("UVScale", UVScale());
-    GeometryShader()->SetUniform("StandardValues.OpacityMode", int(OpacityMode()));
-    GeometryShader()->SetUniform("StandardValues.OpacityCutoff", OpacityCutoff());
-    GeometryShader()->SetUniform("StandardValues.Diffuse", Diffuse());
-    GeometryShader()->SetUniform("StandardValues.Emissive", Emissive());
-    GeometryShader()->SetUniform("StandardValues.Opacity", Opacity());
-    GeometryShader()->SetUniform("StandardValues.Parallax", Parallax());
-    GeometryShader()->SetUniform("StandardValues.Ior", Ior());
+    _updateOpacityMode(GetOpacityMode());
+    _updateOpacityCutoff(GetOpacityCutoff());
+    _updateDiffuse(GetDiffuse());
+    _updateEmissive(GetEmissive());
+    _updateUVScale(GetUVScale());
+    _updateOpacity(GetOpacity());
+    _updateParallax(GetParallax());
+    _updateIor(GetIor());
 
-    MaterialShader()->SetUniform("UVScale", UVScale());
-    MaterialShader()->SetUniform("StandardValues.OpacityMode", int(OpacityMode()));
-    MaterialShader()->SetUniform("StandardValues.OpacityCutoff", OpacityCutoff());
-    MaterialShader()->SetUniform("StandardValues.Diffuse", Diffuse());
-    MaterialShader()->SetUniform("StandardValues.Emissive", Emissive());
-    MaterialShader()->SetUniform("StandardValues.Opacity", Opacity());
-    MaterialShader()->SetUniform("StandardValues.Parallax", Parallax());
-    MaterialShader()->SetUniform("StandardValues.Ior", Ior());
     MaterialShader()->SetTexture("StandardTextures.BRDFLUT", BRDFLUT());
 }
 
@@ -244,110 +244,63 @@ void Material::SetTextureAO(std::shared_ptr<Texture2D> t)
     TextureHeight() ? MaterialShader()->SetDefine("TEXTURE_USE_AO") : MaterialShader()->RemoveDefine("TEXTURE_USE_AO");
 }
 
-Material::OpacityModeValue Material::OpacityMode() const
+void Material::_updateOpacityMode(OpacityModeValue mode)
 {
-    return _opacityMode;
+    switch (mode) {
+    case (OpacityModeValue::Opaque):
+        GeometryShader()->SetDefine("OPACITYMODE", "OPAQUE");
+        MaterialShader()->SetDefine("OPACITYMODE", "OPAQUE");
+        break;
+    case (OpacityModeValue::Mask):
+        GeometryShader()->SetDefine("OPACITYMODE", "MASK");
+        MaterialShader()->SetDefine("OPACITYMODE", "MASK");
+        break;
+    case (OpacityModeValue::Blend):
+        GeometryShader()->SetDefine("OPACITYMODE", "BLEND");
+        MaterialShader()->SetDefine("OPACITYMODE", "BLEND");
+        break;
+    }
 }
 
-void Material::SetOpacityMode(OpacityModeValue mod)
+void Material::_updateOpacityCutoff(float opacityCutoff)
 {
-    _opacityMode = mod;
-    GeometryShader()->SetUniform("StandardValues.OpacityMode", int(_opacityMode));
-    MaterialShader()->SetUniform("StandardValues.OpacityMode", int(_opacityMode));
+    GeometryShader()->SetUniform("StandardValues.OpacityCutoff", opacityCutoff);
+    MaterialShader()->SetUniform("StandardValues.OpacityCutoff", opacityCutoff);
 }
 
-float Material::OpacityCutoff() const
+void Material::_updateDiffuse(glm::vec3 diffuse)
 {
-	return _opacityCutoff;
+    GeometryShader()->SetUniform("StandardValues.Diffuse", diffuse);
+    MaterialShader()->SetUniform("StandardValues.Diffuse", diffuse);
 }
 
-void Material::SetOpacityCutoff(float opacityCutoff)
+void Material::_updateEmissive(glm::vec3 emissive)
 {
-    _opacityCutoff = opacityCutoff;
-    GeometryShader()->SetUniform("StandardValues.OpacityCutoff", _opacityCutoff);
-    MaterialShader()->SetUniform("StandardValues.OpacityCutoff", _opacityCutoff);
+    GeometryShader()->SetUniform("StandardValues.Emissive", emissive);
+    MaterialShader()->SetUniform("StandardValues.Emissive", emissive);
 }
 
-glm::vec3 Material::Diffuse() const
+void Material::_updateUVScale(glm::vec2 uvScale)
 {
-    return _diffuse;
+    GeometryShader()->SetUniform("UVScale", uvScale);
+    MaterialShader()->SetUniform("UVScale", uvScale);
 }
 
-void Material::SetDiffuse(glm::vec3 value)
+void Material::_updateOpacity(float opacity)
 {
-    _diffuse = value;
-    GeometryShader()->SetUniform("StandardValues.Diffuse", value);
-    MaterialShader()->SetUniform("StandardValues.Diffuse", value);
+    GeometryShader()->SetUniform("StandardValues.Opacity", opacity);
+    MaterialShader()->SetUniform("StandardValues.Opacity", opacity);
 }
 
-glm::vec3 Material::Emissive() const
+void Material::_updateParallax(float parallax)
 {
-    return _emissive;
+    GeometryShader()->SetUniform("StandardValues.Parallax", parallax);
+    MaterialShader()->SetUniform("StandardValues.Parallax", parallax);
 }
-
-void Material::SetEmissive(glm::vec3 value)
+void Material::_updateIor(float ior)
 {
-    _emissive = value;
-    GeometryShader()->SetUniform("StandardValues.Emissive", value);
-    MaterialShader()->SetUniform("StandardValues.Emissive", value);
-}
-
-glm::vec2 Material::UVScale() const
-{
-    return _uv_scale;
-}
-
-void Material::SetUVScale(glm::vec2 value)
-{
-    _uv_scale = value;
-    GeometryShader()->SetUniform("UVScale", value);
-    MaterialShader()->SetUniform("UVScale", value);
-}
-
-float Material::Opacity() const
-{
-    return _opacity;
-}
-
-void Material::SetOpacity(float value)
-{
-    _opacity = value;
-    GeometryShader()->SetUniform("StandardValues.Opacity", value);
-    MaterialShader()->SetUniform("StandardValues.Opacity", value);
-}
-
-float Material::Parallax() const
-{
-    return _parallax;
-}
-
-void Material::SetParallax(float value)
-{
-    _parallax = value;
-    GeometryShader()->SetUniform("StandardValues.Parallax", value);
-    MaterialShader()->SetUniform("StandardValues.Parallax", value);
-}
-
-float Material::Ior() const
-{
-    return _ior;
-}
-
-void Material::SetIor(float value)
-{
-    _ior = value;
-    GeometryShader()->SetUniform("StandardValues.Ior", value);
-    MaterialShader()->SetUniform("StandardValues.Ior", value);
-}
-
-bool Material::DoubleSided() const
-{
-    return _doubleSided;
-}
-
-void Material::SetDoubleSided(bool doubleSided)
-{
-    _doubleSided = doubleSided;
+    GeometryShader()->SetUniform("StandardValues.Ior", ior);
+    MaterialShader()->SetUniform("StandardValues.Ior", ior);
 }
 
 std::shared_ptr<Texture2D> Material::BRDFLUT() const
@@ -359,10 +312,4 @@ void Material::SetBRDFLUT(const std::shared_ptr<Texture2D> &t)
 {
     _brdfLUT = AddComponent(t);
     MaterialShader()->SetTexture("StandardTextures.BRDFLUT", BRDFLUT());
-}
-
-void Material::_FixedUpdateGPU(float delta)
-{
-    GeometryShader()->FixedUpdateGPU(delta);
-    MaterialShader()->FixedUpdateGPU(delta);
 }
