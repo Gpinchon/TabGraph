@@ -127,7 +127,7 @@ void ExitCallback(const SDL_KeyboardEvent&)
     Engine::Stop();
 }
 
-std::shared_ptr<Light> s_light;
+//std::shared_ptr<Light> s_light;
 std::vector<std::shared_ptr<Camera>> s_cameras;
 
 void ChangeCamera(const SDL_KeyboardEvent& event)
@@ -139,7 +139,7 @@ void ChangeCamera(const SDL_KeyboardEvent& event)
     if (s_currentCamera >= s_cameras.size())
         s_currentCamera = 0;
     Scene::Current()->SetCurrentCamera(s_cameras.at(s_currentCamera));
-    s_light->SetParent(Scene::Current()->CurrentCamera());
+    //s_light->SetParent(Scene::Current()->CurrentCamera());
 }
 
 void SetupCallbacks()
@@ -163,6 +163,7 @@ void SetupCallbacks()
 #include "Texture/Cubemap.hpp"
 #include "Environment.hpp"
 #include "Texture/TextureParser.hpp"
+#include "Light/PointLight.hpp"
 
 int main(int argc, char** argv)
 {
@@ -189,11 +190,15 @@ int main(int argc, char** argv)
                 return -43;
             }
             scene->SetCurrentCamera(fpsCamera);
-            auto dirLight =  Component::Create<DirectionnalLight>("MainLight", glm::vec3(1), glm::vec3(1, 10, 1), true);
+            auto dirLight =  Component::Create<DirectionnalLight>("MainLight", glm::vec3(0.5), glm::vec3(1, 10, 1), false);
             dirLight->SetHalfSize(glm::vec3(50));
-            s_light = dirLight;
-            s_light->SetParent(scene->CurrentCamera());
-            scene->Add(s_light);
+            auto pointLight = Component::Create<PointLight>("PointLight", glm::vec3(1, 0, 0));
+            pointLight->SetPosition(glm::vec3(0, 0.1, 0));
+            //pointLight->SetParent(fpsCamera);
+            //s_light = dirLight;
+            scene->Add(dirLight);
+            scene->Add(pointLight);
+            //pointLight->SetParent(scene->CurrentCamera());
             auto newEnv = Component::Create<Environment>("Environment");
             newEnv->set_diffuse(Component::Create<Cubemap>("EnvironmentCube", TextureParser::parse("Environment", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
             newEnv->set_irradiance(Component::Create<Cubemap>("EnvironmentDiffuse", TextureParser::parse("EnvironmentDiffuse", (Engine::ResourcePath() / "env/environment.hdr").string())));
