@@ -117,21 +117,23 @@ Cubemap::Cubemap(const std::string& name)
     set_parameterf(GL_TEXTURE_MAX_ANISOTROPY_EXT, Config::Get("Anisotropy", 16.f));
 }
 
+#include <future>
+
 Cubemap::Cubemap(const std::string& name, std::shared_ptr<Texture2D> fromTexture)
     : Cubemap(name)
 {
     std::cout << "Converting " << fromTexture->Name() << " into Cubemap";
     GLenum formats[2];
     fromTexture->format(&formats[0], &formats[1]);
-    std::vector<std::thread> threads;
+    std::vector<std::future<void>> threads;
     for (auto i = 0; i < 6; ++i) {
         auto side_res = fromTexture->Size().x / 4.f;
         auto sideTexture = Component::Create<Texture2D>(fromTexture->Name() + "_side_" + std::to_string(i), glm::vec2(side_res, side_res), formats[0], formats[1], fromTexture->data_format());
-        threads.push_back(std::thread(generate_side, fromTexture, sideTexture, i));
+        threads.push_back(std::async(generate_side, fromTexture, sideTexture, i));
         set_side(i, sideTexture);
     }
     for (auto& thread : threads)
-        thread.join();
+        thread.get();
     generate_mipmap();
     set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     std::cout << " Done." << std::endl;
