@@ -70,7 +70,7 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
         if (nullptr == material)
             continue;
         auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
-        if (mod == RenderMod::RenderOpaque && isTransparent)
+        if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
             continue;
         else if (mod == RenderMod::RenderTransparent && !isTransparent)
             continue;
@@ -120,7 +120,7 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
             continue;
         }
         auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
-        if (mod == RenderMod::RenderOpaque && isTransparent)
+        if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
             continue;
         else if (mod == RenderMod::RenderTransparent && !isTransparent)
             continue;

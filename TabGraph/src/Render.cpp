@@ -516,7 +516,7 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    Scene::Current()->Render(RenderPass::Geometry, RenderMod::RenderOpaque);
+    Scene::Current()->Render(RenderPass::Geometry, RenderMod::RenderAll);
     geometryBuffer->bind(false);
 
     lightingBuffer->bind();
@@ -539,7 +539,7 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
     glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    Scene::Current()->Render(RenderPass::Material, RenderMod::RenderAll);
+    Scene::Current()->Render(RenderPass::Material, RenderMod::RenderOpaque);
 
     auto zero = glm::vec4(0);
     auto zeroOne = glm::vec4(0, 0, 0, 1);
