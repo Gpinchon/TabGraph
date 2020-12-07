@@ -144,23 +144,9 @@ void WritePixel(vec3 color, float alpha, float wsZ) {
 
 void WritePixel(vec3 premultipliedReflect, float coverage)
 {
-	float znear = 0.1f;
-	float zfar = 1000.f;
 	float z = abs(CameraSpaceDepth);
-	//z = (z-znear)/(zfar-znear);
-	//float z = CameraSpaceDepth / gl_FragCoord.w / 10.f;
-	//float z = 1-gl_FragCoord.z;
-	//float w = pow(coverage + 0.01f, 4.0f) + max(0.01f, min(3000.0f, 0.3f / (0.00001f + pow(abs(z) / 200.0f, 4.0f))));
-	float w = clamp(pow(abs(1 / z), 4.f) * coverage * coverage, 1e-5, 1e5);
-	//float a = min(3 * pow(10, 3), 0.03 / (pow(10, -5) + pow(z / 200.f, 4.f)));
-	//float w = coverage * max(pow(10, -2), a);// * (1 - gl_FragCoord.z);
-	//float z = distance(WorldPosition(), Camera.Position);
-	//float z = (1 - gl_FragCoord.z);// * (1 + 500 * coverage);
-	//float w = clamp(pow(min(1.0, coverage * 10.0) + 0.01, 3.0) * 1e8 * pow(z, 3.0), 1e-2, 3e3);
-	/*float tmp = 1.f - gl_FragCoord.z * 0.99; tmp *= tmp * tmp * 1e4;
-    tmp = clamp(tmp, 1e-3, 1.0);
-	float w = clamp(coverage * tmp, 1e-3, 1.5e2);*/
-	//float w = coverage * max(pow(10, -2), 3 * pow(10, 3) * pow(1.f - gl_FragCoord.z, 30));
+	float w = clamp(pow(abs(1 / z), 4.f) * coverage * coverage, 6.1*1e-4, 1e5);
+
 	out_0 = vec4(premultipliedReflect, coverage) * w;
 	out_1 = vec4(coverage);
 }
@@ -207,24 +193,19 @@ void Reconstruct() {
 	#if OPACITYMODE == BLEND
 	if (RenderPass == TRANSPARENTPASS) {
 		if (Opacity() < 1) {
-			out_2 = max(thisColor - 1, 0) + vec4(Emissive(), thisColor.a);
-			thisColor.rgb += Emissive();
-			WritePixel(thisColor.rgb * thisColor.a, thisColor.a);
-			//WritePixel(thisColor.rgb, thisColor.a, gl_FragCoord.z);
+			out_2 = vec4(max(thisColor.rgb - 1, 0) + Emissive(), thisColor.a);
+			WritePixel((thisColor.rgb + Emissive()) * thisColor.a, thisColor.a);
 		}
-		//else discard;
 	}
 	else if (Opacity() == 1) {
-		out_1 = max(thisColor - 1, 0) + vec4(Emissive(), thisColor.a);
-		thisColor.rgb += Emissive();
-		out_0 = thisColor;
+		out_2 = vec4(max(thisColor.rgb - 1, 0) + Emissive(), thisColor.a);
+		out_0 = vec4(thisColor.rgb + Emissive(), thisColor.a);//thisColor + vec4(Emissive(), thisColor.a);
 	}
 	else discard;
 	#else
 	if (Opacity() == 1) {
-		out_1 = max(thisColor - 1, 0) + vec4(Emissive(), thisColor.a);
-		thisColor.rgb += Emissive();
-		out_0 = thisColor;
+		out_1 = vec4(max(thisColor.rgb - 1, 0) + Emissive(), thisColor.a);
+		out_0 = vec4(thisColor.rgb + Emissive(), thisColor.a);
 	}
 	#endif
 }

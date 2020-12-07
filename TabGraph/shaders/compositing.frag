@@ -32,7 +32,7 @@ void Composite()
     */
     vec4 accum = texelFetch(in_Buffer0, ivec2(gl_FragCoord.xy), 0);
     float r = texelFetch(in_Buffer1, ivec2(gl_FragCoord.xy), 0).r;
-    out_Buffer0 = vec4(accum.rgb / clamp(accum.a, 1e-10, 1e10), r);
+    out_Buffer0 = vec4(accum.rgb / clamp(accum.a, 6.1*1e-4, 6.55*1e5), r);
     out_Buffer1 = vec4(texelFetch(in_Buffer2, ivec2(gl_FragCoord.xy), 0).rgb, out_Buffer0.a);
 }
 )""
