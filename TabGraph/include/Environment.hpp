@@ -13,15 +13,16 @@
 #include <vector> // for vector
 
 class Cubemap;
+class Shader;
 
 class Environment : public Component {
+    PROPERTY(std::shared_ptr<Shader>, Shader, nullptr);
+    PROPERTY(std::shared_ptr<Cubemap>, Diffuse, nullptr);
+    PROPERTY(std::shared_ptr<Cubemap>, Irradiance, nullptr);
 public:
     Environment(const std::string& name);
     void unload();
-    std::shared_ptr<Cubemap> diffuse();
-    void set_diffuse(std::shared_ptr<Cubemap>);
-    std::shared_ptr<Cubemap> irradiance();
-    void set_irradiance(std::shared_ptr<Cubemap>);
+    void Draw();
 
 protected:
     virtual std::shared_ptr<Component> _Clone() override {
@@ -36,6 +37,4 @@ protected:
     virtual void _UpdateGPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
     virtual void _FixedUpdateGPU(float /*delta*/) override {};
-    std::shared_ptr<Cubemap> _diffuse;
-    std::shared_ptr<Cubemap> _irradiance;
 };

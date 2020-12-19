@@ -6,35 +6,35 @@
 */
 
 #include "Environment.hpp"
+#include "Render.hpp"
+#include "Mesh/Geometry.hpp"
 #include "Texture/Cubemap.hpp"
+#include "Shader/Shader.hpp"
 
 Environment::Environment(const std::string& name)
     : Component(name)
 {
+    SetShader(Component::Create<Shader>(name + "Shader", Shader::Type::LightingShader));
+    GetShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(
+        "void OutputEnv() { \
+        out_0 = texture(Texture.Environment.Diffuse, CubeTexCoord()); \
+        out_1 = vec4(0); \
+        }",
+        "OutputEnv();"
+        ));
 }
 
-std::shared_ptr<Cubemap> Environment::diffuse()
+void Environment::Draw()
 {
-    return (_diffuse);
-}
-
-void Environment::set_diffuse(std::shared_ptr<Cubemap> dif)
-{
-    _diffuse = dif;
-}
-
-std::shared_ptr<Cubemap> Environment::irradiance()
-{
-    return (_irradiance);
-}
-
-void Environment::set_irradiance(std::shared_ptr<Cubemap> irr)
-{
-    _irradiance = irr;
+    GetShader()->SetTexture("Texture.Environment.Diffuse", GetDiffuse());
+    GetShader()->SetTexture("Texture.Environment.Irradiance", GetIrradiance());
+    GetShader()->use();
+    Render::DisplayQuad()->Draw();
+    GetShader()->use(false);
 }
 
 void Environment::unload()
 {
-    diffuse()->unload();
-    irradiance()->unload();
+    GetDiffuse()->unload();
+    GetDiffuse()->unload();
 }
