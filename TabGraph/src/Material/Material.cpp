@@ -137,8 +137,8 @@ void Material::Bind()
 void Material::bind_textures()
 {
     if (Scene::Current()->GetEnvironment() != nullptr) {
-        MaterialShader()->SetTexture("Environment.Diffuse", Scene::Current()->GetEnvironment()->diffuse());
-        MaterialShader()->SetTexture("Environment.Irradiance", Scene::Current()->GetEnvironment()->irradiance());
+        MaterialShader()->SetTexture("Environment.Diffuse", Scene::Current()->GetEnvironment()->GetDiffuse());
+        MaterialShader()->SetTexture("Environment.Irradiance", Scene::Current()->GetEnvironment()->GetIrradiance());
     }
 }
 

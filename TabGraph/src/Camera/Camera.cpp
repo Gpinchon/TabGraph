@@ -25,15 +25,63 @@ glm::mat4 Camera::ViewMatrix()
     return glm::inverse(WorldTransformMatrix());
 }
 
+#include "Render.hpp"
+
 glm::mat4 Camera::ProjectionMatrix() const
 {
+    glm::mat4 proj;
     if (ProjectionType() == Camera::Projection::Perspective) {
         if (Zfar() > 0)
-            return glm::perspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear(), Zfar());
+            proj = glm::perspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear(), Zfar());
         else
-            return glm::infinitePerspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear());
+            proj = glm::infinitePerspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear());
     } else
-        return glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
+        proj = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
+    switch (Render::FrameNumber() % 2) {
+    case 0:
+        proj[2][0] += 0.25 / float(Window::size().x);
+        proj[2][1] += 0.25 / float(Window::size().y);
+        break;
+    case 1:
+        proj[2][0] -= 0.25 / float(Window::size().x);
+        proj[2][1] -= 0.25 / float(Window::size().y);
+        break;
+    /*
+    case 0:
+        proj[2][0] += 0.5 / float(Window::size().x);
+        proj[2][1] += 0.5 / float(Window::size().y);
+        break;
+    case 1:
+        //proj[2][0] -= 0.5 / float(Window::size().x);
+        proj[2][1] += 0.5 / float(Window::size().y);
+        break;
+    case 2:
+        proj[2][0] -= 0.5 / float(Window::size().x);
+        proj[2][1] += 0.5 / float(Window::size().y);
+    case 3:
+        proj[2][0] += 0.5 / float(Window::size().x);
+        //proj[2][1] += 0.5 / float(Window::size().y);
+        break;
+    case 4:
+        break;
+    case 5:
+        proj[2][0] -= 0.5 / float(Window::size().x);
+        //proj[2][1] += 0.5 / float(Window::size().y);
+        break;
+    case 6:
+        //proj[2][0] -= 0.5 / float(Window::size().x);
+        proj[2][1] -= 0.5 / float(Window::size().y);
+        break;
+    case 7:
+        proj[2][0] += 0.5 / float(Window::size().x);
+        proj[2][1] -= 0.5 / float(Window::size().y);
+    case 8:
+        proj[2][0] -= 0.5 / float(Window::size().x);
+        proj[2][1] -= 0.5 / float(Window::size().y);
+        break;
+    */
+    }
+    return proj;
 }
 
 glm::vec4 Camera::Frustum() const

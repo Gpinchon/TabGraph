@@ -50,6 +50,7 @@ public:
     void SetEnvironment(const std::shared_ptr<Environment>& env);
     glm::vec3 Up() const;
     void SetUp(glm::vec3);
+    Signal<std::shared_ptr<Environment>> EnvironmentChanged;
 
 private:
     virtual std::shared_ptr<Component> _Clone() override {

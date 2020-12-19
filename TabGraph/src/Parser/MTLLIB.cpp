@@ -174,6 +174,7 @@ static inline void parse_number(std::vector<std::string> &split, std::shared_ptr
         mtl->SetOpacity(1 - std::stof(split[1]));
         if (mtl->GetOpacity() < 1.f) {
             mtl->SetOpacityMode(Material::OpacityModeValue::Blend);
+            mtl->SetDoubleSided(true);
         }
     }
 }

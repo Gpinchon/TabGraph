@@ -52,6 +52,10 @@ void Mesh::_LoadGPU()
     SetLoadedGPU(true);
 }
 
+#include "Window.hpp"
+#include "Render.hpp"
+#include "Framebuffer.hpp"
+
 bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
@@ -70,7 +74,8 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
         if (nullptr == material)
             continue;
         auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
-        if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
+        //if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
+        if (mod == RenderMod::RenderOpaque && isTransparent)
             continue;
         else if (mod == RenderMod::RenderTransparent && !isTransparent)
             continue;
@@ -80,9 +85,6 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
         material->Bind();
         if (last_shader != shader) {
             shader->SetUniform("DrawID", unsigned(vg->Id()));
-            shader->SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
-            shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
-            shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             shader->SetTexture("Joints", HasComponentOfType<TextureBuffer>() ? JointMatrices() : nullptr);
@@ -96,10 +98,6 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
     return ret;
 }
 
-#include "Window.hpp"
-#include "Render.hpp"
-#include "Framebuffer.hpp"
-
 bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& pass, RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
@@ -108,6 +106,8 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
 
     bool ret = false;
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
+    static auto prevViewMatrix = Scene::Current()->CurrentCamera()->ViewMatrix();
+    static auto prevProjectionMatrix = Scene::Current()->CurrentCamera()->ViewMatrix();
 
     LoadGPU();
     std::shared_ptr<Shader> last_shader;
@@ -120,7 +120,8 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
             continue;
         }
         auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
-        if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
+        //if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
+        if (mod == RenderMod::RenderOpaque && isTransparent)
             continue;
         else if (mod == RenderMod::RenderTransparent && !isTransparent)
             continue;
@@ -144,9 +145,10 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
                 shader->SetTexture("NormalTexture", Render::GeometryBuffer()->attachement(4));
                 shader->SetTexture("IDTexture", Render::GeometryBuffer()->attachement(5));
                 shader->SetUniform("RenderPass", int(mod));
+                if (material->GetOpacityMode() == Material::OpacityModeValue::Blend)
+                    shader->SetTexture("OpaqueDepthTexture", Render::OpaqueBuffer()->depth());
             }
-            shader->SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
-            shader->SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+            shader->SetUniform("PrevMatrix.Model", _prevTransformMatrix);
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             shader->SetTexture("Joints", HasComponentOfType<TextureBuffer>() ? JointMatrices() : nullptr);
@@ -162,6 +164,9 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
         shader->use(false);
         glEnable(GL_CULL_FACE);
     }
+    prevViewMatrix = Scene::Current()->CurrentCamera()->ViewMatrix();
+    prevProjectionMatrix = Scene::Current()->CurrentCamera()->ViewMatrix();
+    _prevTransformMatrix = finalTranformMatrix;
     return ret;
 }
 
@@ -252,7 +257,7 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
         SetJointMatrices(Component::Create<TextureBuffer>("jointMatrices", GL_RGBA32F, bufferAccessor));
         debugLog(Name() + " : Create Skin");
     }
-    auto invMatrix = glm::inverse(transform->Parent()->WorldTransformMatrix());
+    auto invMatrix = glm::inverse(transform->GetParent()->WorldTransformMatrix());
     for (auto index = 0u; index < GetComponent<MeshSkin>()->Joints().size(); ++index) {
         const auto joint(GetComponent<MeshSkin>()->Joints().at(index));
         auto jointMatrix = invMatrix * joint->WorldTransformMatrix() * BufferHelper::Get<glm::mat4>(GetComponent<MeshSkin>()->InverseBindMatrices(), index);

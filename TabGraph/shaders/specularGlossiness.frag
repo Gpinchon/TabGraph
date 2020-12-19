@@ -19,6 +19,9 @@ struct t_SpecularGlossinessTextures {
 	#ifdef SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULARGLOSSINESS
 	sampler2D	SpecularGlossiness;
 	#endif
+	#ifdef SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULAR
+	sampler2D	Specular;
+	#endif
 };
 #endif
 

@@ -85,9 +85,9 @@ int main(int argc, char* argv[])
     Config::Parse(Engine::ProgramPath() + "./res/config.ini");
     Engine::Init();
     auto camera = FPSCamera::Create("main_camera", 45);
-    Scene::SetCurrent(Scene::Create("Main Scene"));
+    Scene::SetCurrent(Component::Create<Scene>("Main Scene"));
     Scene::Current()->SetCurrentCamera(camera);
-    //camera->SetTarget(Node::Create("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
+    //camera->SetTarget(Component::Create<Node>("main_camera_target", glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)));
     //camera->orbite(M_PI / 2.f, M_PI / 2.f, 5.f);
     if (argc >= 2) {
         mainMesh = MeshParser::parse("main_mesh", argv[1]);
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
         mainMesh->bounding_element->max -= mainMesh->bounding_element->center;
         mainMesh->bounding_element->center = glm::vec3(0, 0, 0);
     }*/
-    auto node(Node::Create("mainNode"));
+    auto node(Component::Create<Node>("mainNode"));
     node->SetComponent(mainMesh);
     Scene::Current()->Add(node);
     Scene::Current()->Add(camera);

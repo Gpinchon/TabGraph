@@ -52,6 +52,8 @@ public:
     static std::atomic<bool>& NeedsUpdate();
     static std::atomic<bool>& Drawing();
     static uint32_t FrameNumber(void);
+    static void SetOpaqueBuffer(const std::shared_ptr<Framebuffer>&);
+    static const std::shared_ptr<Framebuffer> OpaqueBuffer();
     static void SetLightBuffer(const std::shared_ptr<Framebuffer>&);
     static const std::shared_ptr<Framebuffer> LightBuffer();
     static void SetGeometryBuffer(const std::shared_ptr<Framebuffer>&);
@@ -75,6 +77,7 @@ private:
     virtual void _UpdateGPU(float) override;
     virtual void _FixedUpdateGPU(float) override;
     static void _thread();
+    std::shared_ptr<Framebuffer> _opaqueBuffer;
     std::shared_ptr<Framebuffer> _lightBuffer;
     std::shared_ptr<Framebuffer> _geometryBuffer;
     double _deltaTime { 0 };
@@ -202,6 +205,12 @@ void Render::Private::_thread(void)
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
     while (Instance()._loop) {
         if (Render::Private::NeedsUpdate()) {
+            Shader::SetGlobalUniform("FrameNumber", Render::Private::FrameNumber());
+            Shader::SetGlobalUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
+            Shader::SetGlobalUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+            Shader::SetGlobalUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+            Shader::SetGlobalUniform("Camera.InvMatrix.View", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
+            Shader::SetGlobalUniform("Camera.InvMatrix.Projection", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
             ticks = SDL_GetTicks() / 1000.0;
             Instance()._frame_nbr++;
             Instance()._deltaTime = ticks - lastTicks;
@@ -216,6 +225,11 @@ void Render::Private::_thread(void)
             Render::Private::Scene();
             Instance()._drawing = false;
             Instance()._needsUpdate = false;
+            Shader::SetGlobalUniform("PrevCamera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
+            Shader::SetGlobalUniform("PrevCamera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+            Shader::SetGlobalUniform("PrevCamera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+            Shader::SetGlobalUniform("PrevCamera.InvMatrix.View", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
+            Shader::SetGlobalUniform("PrevCamera.InvMatrix.Projection", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
         }
     }
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
@@ -224,6 +238,16 @@ void Render::Private::_thread(void)
 uint32_t Render::Private::FrameNumber()
 {
     return (Instance()._frame_nbr);
+}
+
+void Render::Private::SetOpaqueBuffer(const std::shared_ptr<Framebuffer>& fb)
+{
+    Instance()._opaqueBuffer = fb;
+}
+
+const std::shared_ptr<Framebuffer> Render::Private::OpaqueBuffer()
+{
+    return Instance()._opaqueBuffer;
 }
 
 void Render::Private::SetLightBuffer(const std::shared_ptr<Framebuffer>& fb)
@@ -378,7 +402,13 @@ float ComputeRoughnessMaskScale()
     return RoughnessMaskScale * (Config::Get("SSRQuality", 4) < 3 ? 2.0f : 1.0f);
 }
 
-auto SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> lastRender, std::shared_ptr<Framebuffer> lightBuffer)
+struct RenderHistory {
+    glm::mat4 viewMatrix;
+    glm::mat4 projectionMatrix;
+    std::shared_ptr<Framebuffer> framebuffer;
+};
+
+auto SSRPass(std::shared_ptr<Framebuffer> gBuffer, const RenderHistory &lastRender, std::shared_ptr<Framebuffer> lightBuffer)
 {
     static std::shared_ptr<Shader> SSRShader;
     if (SSRShader == nullptr) {
@@ -398,9 +428,7 @@ auto SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> 
     SSRShader->SetTexture("Texture.Geometry.F0", gBuffer->attachement(2));
     SSRShader->SetTexture("Texture.Geometry.Normal", gBuffer->attachement(4));
     SSRShader->SetTexture("Texture.Geometry.Depth", gBuffer->depth());
-    SSRShader->SetTexture("LastColor", lastRender->attachement(0));
-    SSRShader->SetUniform("FrameBufferResolution", gBuffer->Size());
-    SSRShader->SetUniform("FrameNumber", Render::FrameNumber());
+    SSRShader->SetTexture("LastColor", lastRender.framebuffer->attachement(0));
     lightBuffer->bind();
     SSRShader->use();
     glDisable(GL_DEPTH_TEST);
@@ -408,43 +436,14 @@ auto SSRPass(std::shared_ptr<Framebuffer> gBuffer, std::shared_ptr<Framebuffer> 
     glBlendFunc(GL_ONE, GL_ONE);
     glBlendEquation(GL_FUNC_ADD);
     Render::Private::DisplayQuad()->Draw();
-    lightBuffer->bind(false);
     SSRShader->use(false);
-
-    SSRShader->SetUniform("LastViewMatrix", Scene::Current()->CurrentCamera()->ViewMatrix());
-    SSRShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    lightBuffer->bind(false);
+    
+    
+    /*SSRMergeShader->SetUniform("LastViewMatrix", Scene::Current()->CurrentCamera()->ViewMatrix());
+    SSRMergeShader->SetUniform("LastProjectionMatrix", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    SSRResultLast = SSRResult;*/
 }
-/*
-std::shared_ptr<Framebuffer> RefractionPass(std::shared_ptr<Framebuffer> geometryBuffer, std::shared_ptr<Framebuffer> opaqueRenderBuffer)
-{
-    glm::ivec2 res = geometryBuffer->Size();
-    static auto refractionRenderBuffer(CreateLightingBuffer("refractionRenderBuffer", res));
-    static std::shared_ptr<Shader> refractionShader;
-    if (refractionShader == nullptr) {
-        refractionShader = Component::Create<Shader>("refraction", Shader::Type::LightingShader);
-        refractionShader->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(refractionFragmentCode, "Refraction();"));
-        Render::Private::Instance().AddComponent(refractionShader);
-    }
-    auto i = 0;
-    refractionShader->SetTexture("Texture.Geometry.CDiff", geometryBuffer->attachement(0));
-    refractionShader->SetTexture("Texture.Geometry.Emissive", geometryBuffer->attachement(1));
-    refractionShader->SetTexture("Texture.Geometry.F0", geometryBuffer->attachement(2));
-    refractionShader->SetTexture("Texture.Geometry.AO", geometryBuffer->attachement(3));
-    refractionShader->SetTexture("Texture.Geometry.Normal", geometryBuffer->attachement(4));
-    refractionShader->SetTexture("Texture.Geometry.Depth", geometryBuffer->depth());
-    //refractionShader->SetTexture("Texture.BRDF", Render::Private::BRDF());
-    refractionShader->SetTexture("Texture.Back.Color", opaqueRenderBuffer->attachement(0));
-    refractionShader->SetTexture("Texture.Back.Emissive", opaqueRenderBuffer->attachement(1));
-    //refractionShader->SetUniform("Texture.Back.Normal", opaqueRenderBuffer->attachement(2));
-    refractionRenderBuffer->Resize(res);
-    refractionRenderBuffer->bind();
-    refractionShader->use();
-    Render::Private::DisplayQuad()->Draw();
-    refractionShader->use(false);
-    refractionRenderBuffer->bind(false);
-    return refractionRenderBuffer;
-}
-*/
 
 std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string& name, const glm::ivec2& size)
 {
@@ -454,10 +453,11 @@ std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string& name, const
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); // Emissive;
     buffer->Create_attachement(GL_RGBA, GL_RGBA8); // BRDF F0, BRDF Alpha;
     buffer->Create_attachement(GL_RED, GL_R8); //AO
-    buffer->Create_attachement(GL_RG, GL_RG16_SNORM); // Normal;
+    buffer->Create_attachement(GL_RGB, GL_RGB8_SNORM); // Normal;
     auto idTexture = buffer->Create_attachement(GL_RED_INTEGER, GL_R32UI);
     idTexture->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     idTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    buffer->Create_attachement(GL_RED, GL_R8); //Velocity
     return (buffer);
 }
 
@@ -474,32 +474,22 @@ auto CreateOpaqueMaterialBuffer(glm::ivec2 res) {
     auto buffer = Component::Create<Framebuffer>("OpaqueMaterialBuffer", res, 0, 1);
     buffer->Create_attachement(GL_RGB, GL_RGB8); //Color
     buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); //Emissive
+    buffer->Create_attachement(GL_RED, GL_R8); //Velocity
     return buffer;
 }
 
-auto CreateTransparentMaterialBuffer(glm::ivec2 res) {
-    auto buffer = Component::Create<Framebuffer>("TransparentMaterialBuffer", res, 0, 1);
+auto CreateTransparentMaterialBuffer(const std::string &name, glm::ivec2 res) {
+    auto buffer = Component::Create<Framebuffer>(name, res, 0, 1);
     buffer->Create_attachement(GL_RGBA, GL_RGBA16F); // Color;
-    buffer->Create_attachement(GL_RED, GL_R16F); // Alpha coverage;
-    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F);
+    buffer->Create_attachement(GL_RED, GL_R8); // Alpha coverage;
+    buffer->Create_attachement(GL_RGB, GL_R11F_G11F_B10F); //Emissive
+    buffer->Create_attachement(GL_RGB, GL_RGB16F); // Distortion direction XY, roughness
+    buffer->Create_attachement(GL_RED, GL_R8); //Velocity
     return buffer;
 }
 
-std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
+auto CompositingPass(std::shared_ptr<Framebuffer> opaqueBuffer, std::shared_ptr<Framebuffer> transparentBuffer)
 {
-    glm::ivec2 res = Window::size();
-    glm::vec2   geometryRes = glm::vec2(std::min(res.x, res.y)) * Render::Private::InternalQuality();
-    static auto geometryBuffer = CreateGeometryBuffer("GeometryBuffer", geometryRes);
-    static auto lightingBuffer = CreateLightingBuffer("LightingBuffer", geometryRes);
-    static auto opaqueBuffer = CreateOpaqueMaterialBuffer(res);
-    static auto transparentBuffer = CreateTransparentMaterialBuffer(res);
-    Render::Private::SetLightBuffer(lightingBuffer);
-    Render::Private::SetGeometryBuffer(geometryBuffer);
-    geometryBuffer->Resize(geometryRes);
-    lightingBuffer->Resize(geometryRes);
-    opaqueBuffer->Resize(res);
-    transparentBuffer->Resize(res);
-    transparentBuffer->SetDepthBuffer(opaqueBuffer->depth());
     static std::shared_ptr<Shader> compositing_shader;
     if (compositing_shader == nullptr) {
         auto compositingShaderCode =
@@ -510,6 +500,46 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
         compositing_shader->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(compositingShaderCode, "Composite();")));
         Render::Private::Instance().AddComponent(compositing_shader);
     }
+
+    compositing_shader->SetTexture("in_TransparentBuffer0", transparentBuffer->attachement(0));
+    compositing_shader->SetTexture("in_TransparentBuffer1", transparentBuffer->attachement(1));
+    compositing_shader->SetTexture("in_TransparentBuffer2", transparentBuffer->attachement(2));
+    compositing_shader->SetTexture("in_TransparentBuffer3", transparentBuffer->attachement(3));
+    compositing_shader->SetTexture("in_OpaqueBuffer0", opaqueBuffer->attachement(0));
+    compositing_shader->SetTexture("in_OpaqueBuffer1", opaqueBuffer->attachement(1));
+    compositing_shader->SetTexture("in_OpaqueBufferDepth", opaqueBuffer->depth());
+
+    opaqueBuffer->bind();
+    compositing_shader->use();
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    Render::Private::DisplayQuad()->Draw();
+    opaqueBuffer->bind(false);
+    compositing_shader->use(false);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+}
+
+std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory &lastRender)
+{
+    glm::ivec2 res = Window::size();
+    glm::vec2   geometryRes = glm::vec2(std::min(res.x, res.y)) * Render::Private::InternalQuality();
+    static auto geometryBuffer = CreateGeometryBuffer("GeometryBuffer", geometryRes);
+    static auto lightingBuffer = CreateLightingBuffer("LightingBuffer", geometryRes);
+    static auto opaqueBuffer = CreateOpaqueMaterialBuffer(res);
+    static auto transparentBuffer = CreateTransparentMaterialBuffer("TransparentBuffer0", res);
+    static auto transparentBuffer1 = CreateTransparentMaterialBuffer("TransparentBuffer1", res / 2);
+    Render::Private::SetOpaqueBuffer(opaqueBuffer);
+    Render::Private::SetLightBuffer(lightingBuffer);
+    Render::Private::SetGeometryBuffer(geometryBuffer);
+    geometryBuffer->Resize(geometryRes);
+    lightingBuffer->Resize(geometryRes);
+    opaqueBuffer->Resize(res);
+    transparentBuffer->Resize(res);
+    transparentBuffer1->Resize(res / 2);
+    //transparentBuffer1->SetDepthBuffer(transparentBuffer->depth());
+    //transparentBuffer->SetDepthBuffer(opaqueBuffer->depth());
+    
 
     geometryBuffer->bind();
     glDepthMask(GL_TRUE);
@@ -534,47 +564,89 @@ std::shared_ptr<Framebuffer> OpaquePass(std::shared_ptr<Framebuffer> lastRender)
         SSAOPass(geometryBuffer);
 
     opaqueBuffer->bind();
+    glDepthMask(GL_TRUE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    if (Scene::Current()->GetEnvironment() != nullptr) {
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+        Scene::Current()->GetEnvironment()->Draw();
+    }
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     Scene::Current()->Render(RenderPass::Material, RenderMod::RenderOpaque);
 
     auto zero = glm::vec4(0);
-    auto zeroOne = glm::vec4(0, 0, 0, 1);
     auto one = glm::vec4(1);
+
     transparentBuffer->bind();
-    //glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-    //glDepthFunc(GL_LESS);
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    //glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendFunci(0, GL_ONE, GL_ONE);
-    glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendFunci(2, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+    glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(2, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(3, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glClear(GL_DEPTH_BUFFER_BIT);
     glClearBufferfv(GL_COLOR, 0, &zero[0]);
     glClearBufferfv(GL_COLOR, 1, &one[0]);
     glClearBufferfv(GL_COLOR, 2, &zero[0]);
-    Scene::Current()->Render(RenderPass::Material, RenderMod::RenderTransparent);
-    transparentBuffer->bind(false);
-
-    compositing_shader->SetTexture("in_Buffer0", transparentBuffer->attachement(0));
-    compositing_shader->SetTexture("in_Buffer1", transparentBuffer->attachement(1));
-    compositing_shader->SetTexture("in_Buffer2", transparentBuffer->attachement(2));
-    opaqueBuffer->bind();
-    compositing_shader->use();
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    //glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-    glBlendFunci(0, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
-    glBlendFunci(1, GL_ONE, GL_ONE);
-    Render::Private::DisplayQuad()->Draw();
-    opaqueBuffer->bind(false);
-    compositing_shader->use(false);
-    glEnable(GL_DEPTH_TEST);
+    glClearBufferfv(GL_COLOR, 3, &zero[0]);
     glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+    Scene::Current()->Render(RenderPass::Material, RenderMod::RenderTransparent);
+    
+    transparentBuffer1->bind();
+    glClear(GL_DEPTH_BUFFER_BIT);
+    transparentBuffer1->bind(false);
+
+    transparentBuffer->BlitTo(transparentBuffer1, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(1.0, 1.0);
+
+    transparentBuffer1->bind();
+    glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(2, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(3, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glClearBufferfv(GL_COLOR, 0, &zero[0]);
+    glClearBufferfv(GL_COLOR, 1, &one[0]);
+    glClearBufferfv(GL_COLOR, 2, &zero[0]);
+    glClearBufferfv(GL_COLOR, 3, &zero[0]);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunci(0, GL_ONE, GL_ONE);
+    glBlendFunci(1, GL_ZERO, GL_SRC_ALPHA);
+    glBlendFunci(2, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+    glBlendFunci(3, GL_ONE, GL_ONE);
+    glColorMaski(3, GL_FALSE, GL_FALSE, GL_TRUE, GL_FALSE);
+    //glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glDepthFunc(GL_GREATER);
+    glEnable(GL_BLEND);
+    Scene::Current()->Render(RenderPass::Material, RenderMod::RenderTransparent);
+    transparentBuffer1->bind(false);
+    glDisable(GL_POLYGON_OFFSET_FILL);
+
+    glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(2, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(3, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+    opaqueBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    opaqueBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+    opaqueBuffer->attachement(0)->generate_mipmap();
+    opaqueBuffer->attachement(1)->generate_mipmap();
+    opaqueBuffer->attachement(0)->set_parameteri(GL_TEXTURE_BASE_LEVEL, 1);
+    opaqueBuffer->attachement(1)->set_parameteri(GL_TEXTURE_BASE_LEVEL, 1);
+    CompositingPass(opaqueBuffer, transparentBuffer1);
+    opaqueBuffer->attachement(0)->set_parameteri(GL_TEXTURE_BASE_LEVEL, 0);
+    opaqueBuffer->attachement(1)->set_parameteri(GL_TEXTURE_BASE_LEVEL, 0);
+    opaqueBuffer->attachement(0)->generate_mipmap();
+    opaqueBuffer->attachement(1)->generate_mipmap();
+    opaqueBuffer->attachement(0)->set_parameteri(GL_TEXTURE_BASE_LEVEL, 1);
+    opaqueBuffer->attachement(1)->set_parameteri(GL_TEXTURE_BASE_LEVEL, 1);
+    CompositingPass(opaqueBuffer, transparentBuffer);
+    opaqueBuffer->attachement(0)->set_parameteri(GL_TEXTURE_BASE_LEVEL, 0);
+    opaqueBuffer->attachement(1)->set_parameteri(GL_TEXTURE_BASE_LEVEL, 0);
 
     return opaqueBuffer;
 }
@@ -589,58 +661,93 @@ void Render::Private::Scene()
     //Setup framebuffers
     //static auto finalRenderBuffer(CreateLightingBuffer("finalRenderBuffer", res));
     static auto brightnessBuffer(Component::Create<Framebuffer>("lastRender", res, 1, 0));
-    static auto lastRender(Component::Create<Framebuffer>("lastRender", res, 1, 0));
+    //static auto lastRender(CreateOpaqueMaterialBuffer(glm::ivec2(std::min(res.x, res.y) * 0.5)));
+    static std::array<RenderHistory, 8> renderHistory;
+    if (renderHistory.at(0).framebuffer == nullptr)
+        renderHistory.at(0).framebuffer = CreateOpaqueMaterialBuffer(glm::ivec2(std::min(res.x, res.y) * 0.5));
     //Setup shaders
     static std::shared_ptr<Shader> passthrough_shader;
-    static std::shared_ptr<Shader> extractBright_shader;
     if (passthrough_shader == nullptr) {
         passthrough_shader = Component::Create<Shader>("passthrough");
         passthrough_shader->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(passthrough_vertex_code, "PassThrough();")));
         passthrough_shader->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(passthrough_fragment_code, "PassThrough();")));
         Render::Private::Instance().AddComponent(passthrough_shader);
     }
-    if (extractBright_shader == nullptr) {
-        auto extractBrightnessCode =
-        #include "extractBrightness.frag"
+
+    auto renderBuffer(OpaquePass(renderHistory.at(0)));
+
+    //auto transpRenderBuffer(TranspPass(lastRender, renderBuffer));
+    //renderBuffer->attachement(1)->blur(Config::Get("BloomPass", 1), 3.5);
+
+    static std::shared_ptr<Shader> TemporalMergeShader;
+    if (TemporalMergeShader == nullptr) {
+        auto TemporalMergeShaderCode =
+#include "TemporalAccumulation.frag"
             ;
-        extractBright_shader = Component::Create<Shader>("extractBrightness");
-        extractBright_shader->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(passthrough_vertex_code, "PassThrough();")));
-        extractBright_shader->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(extractBrightnessCode, "ExtractBrightness();")));
-        Render::Private::Instance().AddComponent(extractBright_shader);
+        TemporalMergeShader = Component::Create<Shader>("TemporalAccumulation", Shader::Type::LightingShader);
+        TemporalMergeShader->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(TemporalMergeShaderCode, "TemporalAccumulation();"));
+        Render::Private::Instance().AddComponent(TemporalMergeShader);
     }
 
-    auto opaqueRenderBuffer(OpaquePass(lastRender));
-    /*opaqueRenderBuffer->attachement(0)->generate_mipmap();
-    opaqueRenderBuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    opaqueRenderBuffer->attachement(1)->generate_mipmap();
-    opaqueRenderBuffer->attachement(1)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);*/
-    /*extractBright_shader->SetTexture("in_Buffer0", opaqueRenderBuffer->attachement(0));
-    brightnessBuffer->Resize(opaqueRenderBuffer->Size());
-    brightnessBuffer->bind();
-    extractBright_shader->use();
-    Render::Private::DisplayQuad()->Draw();
-    extractBright_shader->use(false);
-    brightnessBuffer->bind(false);*/
-    opaqueRenderBuffer->attachement(1)->blur(Config::Get("BloomPass", 1), 3.5);
-
-    //auto transpRenderBuffer(TranspPass(lastRender, opaqueRenderBuffer));
-    //opaqueRenderBuffer->attachement(1)->blur(Config::Get("BloomPass", 1), 3.5);
-    lastRender->Resize(glm::vec2(512) * Render::Private::InternalQuality() / 2.f);
-    lastRender->bind();
+    renderBuffer->bind();
     glDisable(GL_DEPTH_TEST);
-    glClear(Window::clear_mask());
-    lastRender->bind();
-    passthrough_shader->SetTexture("in_Buffer0", opaqueRenderBuffer->attachement(0));
-    passthrough_shader->SetTexture("in_Buffer1", opaqueRenderBuffer->attachement(1));
-    passthrough_shader->SetTexture("in_Texture_Depth", opaqueRenderBuffer->depth());
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+    for (auto i = 0; i < renderHistory.size(); ++i)
+    {
+        if (renderHistory.at(i).framebuffer == nullptr)
+            continue;
+        TemporalMergeShader->SetTexture("in_renderHistory[" + std::to_string(i) + "].color", renderHistory.at(i).framebuffer->attachement(0));
+        TemporalMergeShader->SetTexture("in_renderHistory[" + std::to_string(i) + "].emissive", renderHistory.at(i).framebuffer->attachement(1));
+        TemporalMergeShader->SetTexture("in_renderHistory[" + std::to_string(i) + "].velocity", renderHistory.at(i).framebuffer->attachement(2));
+        //TemporalMergeShader->SetTexture("in_renderHistory[" + std::to_string(i) + "].depth", renderHistory.at(i).framebuffer->depth());
+        TemporalMergeShader->SetUniform("in_renderHistory[" + std::to_string(i) + "].viewMatrix", renderHistory.at(i).viewMatrix);
+        TemporalMergeShader->SetUniform("in_renderHistory[" + std::to_string(i) + "].projectionMatrix", renderHistory.at(i).projectionMatrix);
+    }
+    TemporalMergeShader->SetTexture("Texture.Geometry.Depth", renderBuffer->depth());
+    TemporalMergeShader->use();
+    Render::DisplayQuad()->Draw();
+    TemporalMergeShader->use(false);
+    renderBuffer->bind(false);
+    
+
+    RenderHistory temp = renderHistory.at(renderHistory.size() - 1), temp1;
+    for (int i = 0; i < renderHistory.size(); i++) {
+        temp1 = renderHistory.at(i);
+        renderHistory.at(i) = temp;
+        temp = temp1;
+    }
+    if (renderHistory.at(0).framebuffer == nullptr)
+        renderHistory.at(0).framebuffer = CreateOpaqueMaterialBuffer(renderBuffer->Size());
+
+    //lastRender->Resize(glm::ivec2(std::min(renderBuffer->Size().x, renderBuffer->Size().y) * 0.5));
+    renderHistory.at(0).framebuffer->Resize(renderBuffer->Size());
+    renderHistory.at(0).viewMatrix = Scene::Current()->CurrentCamera()->ViewMatrix();
+    renderHistory.at(0).projectionMatrix = Scene::Current()->CurrentCamera()->ProjectionMatrix();
+    //renderBuffer->BlitTo(lastRender, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    //lastRender->attachement(0)->generate_mipmap();
+    //lastRender->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_ALWAYS);
+    glEnable(GL_DEPTH_TEST);
+    renderHistory.at(0).framebuffer->bind();
+    passthrough_shader->SetTexture("in_Buffer0", renderBuffer->attachement(0));
+    passthrough_shader->SetTexture("in_Buffer1", renderBuffer->attachement(1));
+    passthrough_shader->SetTexture("in_Buffer2", renderBuffer->attachement(2));
+    passthrough_shader->SetTexture("in_Texture_Depth", renderBuffer->depth());
     passthrough_shader->use();
     Render::Private::DisplayQuad()->Draw();
     passthrough_shader->use(false);
-    lastRender->bind(false);
-    lastRender->attachement(0)->generate_mipmap();
-    lastRender->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    renderHistory.at(0).framebuffer->bind(false);
+    renderHistory.at(0).framebuffer->attachement(0)->generate_mipmap();
+    renderHistory.at(0).framebuffer->attachement(0)->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glDepthMask(GL_FALSE);
 
-    present(opaqueRenderBuffer);
+    renderBuffer->attachement(1)->blur(Config::Get("BloomPass", 1), 3.5);
+    present(renderBuffer);
 }
 
 std::vector<std::shared_ptr<Shader>>& Render::Private::PostTreatments()
@@ -732,6 +839,11 @@ std::atomic<bool>& Render::Drawing()
 const std::shared_ptr<Geometry> Render::DisplayQuad()
 {
     return Render::Private::DisplayQuad();
+}
+
+const std::shared_ptr<Framebuffer> Render::OpaqueBuffer()
+{
+    return Render::Private::OpaqueBuffer();
 }
 
 const std::shared_ptr<Framebuffer> Render::LightBuffer()

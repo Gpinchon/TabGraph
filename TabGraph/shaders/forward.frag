@@ -67,7 +67,6 @@ struct t_Frag {
 	float		Depth;
 	vec2		TexCoord;
 	vec3		WorldPosition;
-	vec3		WorldNormal;
 };
 
 struct t_CameraMatrix {
@@ -82,12 +81,14 @@ struct t_Camera {
 };
 
 uniform t_Camera			Camera;
+uniform t_Camera			PrevCamera;
 uniform t_StandardTextures	StandardTextures;
 uniform t_StandardValues	StandardValues;
 uniform t_Matrix			Matrix;
 uniform t_Environment		Environment;
 uniform vec3				Resolution;
 uniform float				Time;
+uniform uint				FrameNumber;
 
 in VertexData {
 	vec3	WorldPosition;
@@ -95,109 +96,54 @@ in VertexData {
 	vec2	TexCoord;
 } Input;
 
+in vec4 Position;
+in vec4 PreviousPosition;
+
 #ifdef GEOMETRY
-layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
-layout(location = 1) out vec3	out_Emissive;
-layout(location = 2) out vec4	out_F0; //BRDF F0, BRDF Alpha
-layout(location = 3) out float	out_AO;
-layout(location = 4) out vec2	out_Normal;
+layout(location = 0) out vec4	_CDiff; //BRDF CDiff, Transparency
+layout(location = 1) out vec3	_Emissive;
+layout(location = 2) out vec4	_F0; //BRDF F0, BRDF Alpha
+layout(location = 3) out float	_AO;
+layout(location = 4) out vec3	_Normal;
+layout(location = 5) out uint	_InstanceID;
+layout(location = 6) out float	_Velocity;
 #elif defined(MATERIAL) || defined(DEPTH)
-vec4	out_CDiff; //BRDF CDiff, Transparency
-vec3	out_Emissive;
-vec4	out_F0; //BRDF F0, BRDF Alpha
-float	out_AO;
-vec2	out_Normal;
+vec4	_CDiff; //BRDF CDiff, Transparency
+vec3	_Emissive;
+vec4	_F0; //BRDF F0, BRDF Alpha
+float	_AO;
+vec3	_Normal;
+uint	_InstanceID;
+float	_Velocity;
 #endif
 
 #define ScreenTexCoord() (gl_FragCoord.xy / Resolution.xy)
 
-#define Opacity() (out_CDiff.a)
-#define SetOpacity(opacity) (out_CDiff.a = opacity)
+#define Opacity() (_CDiff.a)
+#define SetOpacity(opacity) (_CDiff.a = opacity)
 
-#define CDiff() (out_CDiff.rgb)
-#define SetCDiff(cDiff) (out_CDiff.rgb = cDiff)
+#define CDiff() (_CDiff.rgb)
+#define SetCDiff(cDiff) (_CDiff.rgb = cDiff)
 
-#define F0() (out_F0.rgb)
-#define SetF0(f0) (out_F0.rgb = f0)
+#define F0() (_F0.rgb)
+#define SetF0(f0) (_F0.rgb = f0)
 
-#define Alpha() (out_F0.a)
-#define SetAlpha(alpha) (out_F0.a = alpha)
+#define Alpha() (_F0.a)
+#define SetAlpha(alpha) (_F0.a = alpha)
 
-#define Emissive() (out_Emissive)
-#define SetEmissive(emissive) (out_Emissive = emissive)
+#define Emissive() (_Emissive)
+#define SetEmissive(emissive) (_Emissive = emissive)
 
 #define Ior() (StandardValues.Ior)
 
-#define AO() (out_AO)
-#define SetAO(aO) (out_AO = aO)
-
-#define EncodedNormal() (out_Normal)
-#define SetEncodedNormal(normal) (out_Normal = normal)
+#define AO() (_AO)
+#define SetAO(aO) (_AO = aO)
 
 #define BRDF(NdV, Roughness) (texture(StandardTextures.BRDFLUT, vec2(NdV, Roughness)).xy)
 
 t_Frag	Frag;
 
 #define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
-
-vec2 encodeNormal(vec3 n) {
-	float p = sqrt(n.z*8+8);
-    return n.xy/p + 0.5;
-}
-
-vec3 decodeNormal(vec2 enc) {
-	vec2 fenc = enc*4-2;
-    float f = dot(fenc,fenc);
-    float g = sqrt(1-f/4);
-    vec3 n;
-    n.xy = fenc*g;
-    n.z = 1-f/2;
-    return n;
-}
-
-/*
-vec2 sign_not_zero(vec2 v) {
-    return fma(step(vec2(0.0), v), vec2(2.0), vec2(-1.0));
-}
-
-vec2 encodeNormal(vec3 v) {
-	v = map(v, vec3(-1), vec3(1), vec3(-1), vec3(0.9));
-	//v += 0.05;
-	//v = v * 0.5 + 0.5;
-	// Faster version using newer GLSL capatibilities
-	v.xy /= dot(abs(v), vec3(1));
-	// Branch-Less version
-	v.xy = mix(v.xy, (1.0 - abs(v.yx)) * sign_not_zero(v.xy), step(v.z, 0.0));
-	return v.xy;// * 0.5 + 0.5;
-}
-
-vec3 decodeNormal(vec2 packed_nrm) {
-	//packed_nrm = packed_nrm * 2 - 1;
-    // Version using newer GLSL capatibilities
-    vec3 v = vec3(packed_nrm.xy, 1.0 - abs(packed_nrm.x) - abs(packed_nrm.y));
-    #if 1
-        // Version with branches, seems to take less cycles than the
-        // branch-less version
-        if (v.z < 0)
-        	v.xy = (1.0 - abs(v.yx)) * sign_not_zero(v.xy);
-    #else
-        // Branch-Less version
-        v.xy = mix(v.xy, (1.0 - abs(v.yx)) * sign_not_zero(v.xy), step(v.z, 0));
-    #endif
-    return map(v, vec3(-1), vec3(0.9), vec3(-1), vec3(1));
-}
- */
-/*vec3 decodeNormal(in vec2 f)
-{
-	vec3 n;
-	n.xy = -enc*enc+enc;
-	n.z = -1;
-	float f = dot(n, vec3(1,1,0.25));
-	float m = sqrt(f);
-	n.xy = (enc*8-4) * m;
-	n.z = 1 - 8*f;
-	return n;
-}*/
 
 bool _WorldPositionSet = false;
 bool _WorldNormalSet = false;
@@ -219,8 +165,7 @@ vec3 WorldPosition()
 
 void SetWorldNormal(in vec3 worldNormal)
 {
-	Frag.WorldNormal = normalize(worldNormal);
-	SetEncodedNormal(encodeNormal(Frag.WorldNormal));
+	_Normal = normalize(worldNormal);
 	_WorldNormalSet = true;
 }
 
@@ -228,7 +173,7 @@ vec3 WorldNormal()
 {
 	if (!_WorldNormalSet)
 		SetWorldNormal(Input.WorldNormal);
-	return Frag.WorldNormal;
+	return _Normal;
 }
 
 void SetTexCoord(vec2 texCoord)
@@ -308,17 +253,16 @@ mat3x3	tbn_matrix()
 
 void	FillFragmentData()
 {
+	_Velocity = distance(Position.xy, PreviousPosition.xy);
 	SetF0(vec3(0.04f));
 	SetAlpha(1.f);
 	SetWorldNormal(Input.WorldNormal);
-	vec3 viewDir = normalize(Camera.Position - WorldPosition());
-	if (dot(viewDir, WorldNormal()) < 0)
-		SetWorldNormal(-WorldNormal());
 #if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_NORMAL)
 	mat3	tbn = tbn_matrix();
 #endif
 #ifdef TEXTURE_USE_HEIGHT
 	float ph = 0;
+	vec3 viewDir = normalize(Camera.Position - WorldPosition());
 	Parallax_Mapping(tbn * viewDir, ph);
 #endif
 #ifdef TEXTURE_USE_DIFFUSE

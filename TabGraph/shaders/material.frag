@@ -6,14 +6,16 @@ R""(
 layout(location = 0) out vec4	out_0;
 layout(location = 1) out vec4	out_1;
 layout(location = 2) out vec4	out_2;
+layout(location = 3) out vec4	out_3;
+layout(location = 4) out vec4	out_4;
 
 uniform int			RenderPass;
 uniform sampler2D	DiffuseTexture;
-//uniform sampler2D	SpecularTexture;
 uniform sampler2D	ReflectionTexture;
 uniform sampler2D	AOTexture;
 uniform sampler2D	NormalTexture;
 uniform usampler2D	IDTexture;
+uniform sampler2D	OpaqueDepthTexture;
 in float CameraSpaceDepth;
 
 vec4 TransparencyColor(const in vec4 Ca, const in vec4 Cb) {
@@ -42,10 +44,11 @@ ivec2[2][5] SampleOffset = ivec2[2][5](
 	)
 );
 
+#if OPACITYMODE == BLEND
 uint	OffsetIndex(ivec2 iuv) {
 	bool XEven = iuv.x % 2 == 0;
 	bool YEven = iuv.y % 2 == 0;
-	uint drawIndex = DrawID % 4;
+	uint drawIndex = (FrameNumber + DrawID) % 4;
 	if (drawIndex / 2 == 0 && drawIndex % 2 == 0) {
 		if (!XEven && !YEven)
 			return 1;
@@ -68,28 +71,55 @@ uint	OffsetIndex(ivec2 iuv) {
 	}
 	return 0;
 }
+#else
+uint	OffsetIndex(ivec2 iuv) {
+	bool XEven = iuv.x % 2 == 0;
+	bool YEven = iuv.y % 2 == 0;
+	if (XEven && YEven)
+		return 1;
+	else return 0;
+}
+#endif
 
 vec4[5] SampleTexture(sampler2D tex, vec2 uv) {
 	vec4[5] samples;
 	ivec2 iuv = ivec2(uv * textureSize(tex, 0));
+	/*
+	samples[0] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 0,  0));
+	samples[1] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 1,  1));
+	samples[2] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2(-1, -1));
+	samples[3] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 1, -1));
+	samples[4] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2(-1,  1));
+	*/
+	
 	ivec2[5] offsets = SampleOffset[OffsetIndex(iuv)];
 	samples[0] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[0]);
 	samples[1] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[1]);
 	samples[2] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[2]);
 	samples[3] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[3]);
 	samples[4] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[4]);
+	
 	return samples;
 }
 
 uint[5] SampleIDTexture(usampler2D tex, vec2 uv) {
 	uint[5] samples;
 	ivec2 iuv = ivec2(uv * textureSize(tex, 0));
+	/*
+	samples[0] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 0,  0)).r;
+	samples[1] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 1,  1)).r;
+	samples[2] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2(-1, -1)).r;
+	samples[3] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 1, -1)).r;
+	samples[4] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2(-1,  1)).r;
+	*/
+	
 	ivec2[5] offsets = SampleOffset[OffsetIndex(iuv)];
 	samples[0] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[0]).r;
 	samples[1] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[1]).r;
 	samples[2] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[2]).r;
 	samples[3] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[3]).r;
 	samples[4] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[4]).r;
+	
 	return samples;
 }
 
@@ -129,6 +159,44 @@ vec3 EnvironmentSpecular(const in vec3 fresnel, const in vec3 R, const in float 
 	return (1 - AO()) * specSample * irradianceFactor * (1 - F0());
 }
 
+#if OPACITYMODE == BLEND
+float LinearDepth(const in float z)
+{
+	float	depth = z;
+	vec2	uv = TexCoord();
+	vec4	projectedCoord = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+	projectedCoord = Camera.InvMatrix.Projection * projectedCoord;
+	//return projectedCoord.z;
+	//vec4 projectedCoord = Camera.InvMatrix.Projection * vec4(TexCoord(), z, 1);
+	float A = Camera.Matrix.Projection[2].z;
+    float B = Camera.Matrix.Projection[3].z;
+	float zNear = - B / (1.0 - A);
+    float zFar  =   B / (1.0 + A);
+	zFar = isinf(zFar) ? 1000.f : zFar;
+	return (-projectedCoord.z / projectedCoord.w + zNear) / (zFar - zNear);
+}
+
+float LinearDepth()
+{
+	float z = abs(CameraSpaceDepth);
+	float A = Camera.Matrix.Projection[2].z;
+    float B = Camera.Matrix.Projection[3].z;
+	float zNear = - B / (1.0 - A);
+    float zFar  =   B / (1.0 + A);
+	return 0.5*(-A*z + B) / z + 0.5;
+}
+
+void WritePixel(vec3 premultipliedReflect, float coverage)
+{
+	float z = LinearDepth();
+	float w = clamp(pow(z, -4), 6.1*1e-4, 1e5);
+
+	//float w = clamp(pow(abs(1 / z), 4.f) * coverage * coverage, 6.1*1e-4, 1e5);
+
+	out_0 = vec4(premultipliedReflect, coverage) * w;
+	out_1 = vec4(1 - coverage);
+}
+
 void WritePixel(vec3 color, float alpha, float wsZ) {
     float ndcZ = 2.0 * wsZ - 1.0;
     // linearize depth for proper depth weighting
@@ -141,22 +209,26 @@ void WritePixel(vec3 color, float alpha, float wsZ) {
     out_0 = vec4(color * alpha, alpha) * w;
     out_1 = vec4(alpha);
 }
-
-void WritePixel(vec3 premultipliedReflect, float coverage)
-{
-	float z = abs(CameraSpaceDepth);
-	float w = clamp(pow(abs(1 / z), 4.f) * coverage * coverage, 6.1*1e-4, 1e5);
-
-	out_0 = vec4(premultipliedReflect, coverage) * w;
-	out_1 = vec4(coverage);
-}
+#endif
 
 void Reconstruct() {
+#if OPACITYMODE == BLEND
+	float opaqueDepth = texture(OpaqueDepthTexture, ScreenTexCoord(), 0).r;
+#endif
+
 	vec4[5] diffuseSamples = SampleTexture(DiffuseTexture, ScreenTexCoord());
 	vec4[5] reflectionSamples = SampleTexture(ReflectionTexture, ScreenTexCoord());
 	vec4[5] normalSamples = SampleTexture(NormalTexture, ScreenTexCoord());
 	vec4[5] AOSamples = SampleTexture(AOTexture, ScreenTexCoord());
 	uint[5] IDSamples = SampleIDTexture(IDTexture, ScreenTexCoord());
+
+/*
+	vec4[4] diffuseSamples = GatherTexture(DiffuseTexture, ScreenTexCoord());
+	vec4[4] reflectionSamples = GatherTexture(ReflectionTexture, ScreenTexCoord());
+	vec4[4] normalSamples = GatherTexture(NormalTexture, ScreenTexCoord());
+	vec4[4] AOSamples = GatherTexture(AOTexture, ScreenTexCoord());
+	uint[4] IDSamples = GatherIDTexture(IDTexture, ScreenTexCoord());
+*/
 
 	vec3	V = normalize(Camera.Position - WorldPosition());
 	vec3	N = WorldNormal();
@@ -179,11 +251,14 @@ void Reconstruct() {
 			vec3 diffuse = thisEnvDiffuse + diffuseSamples[i].rgb * CDiff();
 			vec3 reflection = mix(envReflection, reflectionSamples[i].xyz * fresnel, reflectionSamples[i].a);
 			vec3 specular = diffuseSamples[i].rgb * diffuseSamples[i].a * fresnel;
-			float weight = max(dot(normalize(decodeNormal(normalSamples[i].xy)), WorldNormal()), 0);
+			float weight = max(dot(normalSamples[i].xyz, WorldNormal()), 0);
 			thisTotalWeight += weight;
 			thisColor += vec4(diffuse + reflection + specular, Luminance(specular + reflection)) * weight;
+			break;
 		}
 	}
+	//if (thisTotalWeight == 0)
+	//	discard;
 	thisColor /= max(1, thisTotalWeight);
 	vec4 defaultColor = vec4(envDiffuse * CDiff() * (1 - AO()) + envReflection, Opacity() + Luminance(envReflection));
 	thisColor = mix(defaultColor, thisColor, min(1, thisTotalWeight));
@@ -191,28 +266,34 @@ void Reconstruct() {
 		thisColor.a = min(Opacity() + thisColor.a, 1);
 	}
 	#if OPACITYMODE == BLEND
-	if (RenderPass == TRANSPARENTPASS) {
-		if (Opacity() < 1) {
-			out_2 = vec4(max(thisColor.rgb - 1, 0) + Emissive(), thisColor.a);
-			WritePixel((thisColor.rgb + Emissive()) * thisColor.a, thisColor.a);
-		}
-	}
-	else if (Opacity() == 1) {
-		out_2 = vec4(max(thisColor.rgb - 1, 0) + Emissive(), thisColor.a);
-		out_0 = vec4(thisColor.rgb + Emissive(), thisColor.a);//thisColor + vec4(Emissive(), thisColor.a);
-	}
-	else discard;
+	if (opaqueDepth < gl_FragCoord.z)
+		discard;
+	out_2 = vec4((max(thisColor.rgb - 1, 0) + Emissive()) * thisColor.a, thisColor.a);
+	WritePixel((thisColor.rgb + Emissive()) * thisColor.a, thisColor.a);
+	float	backDepth = LinearDepth(opaqueDepth);
+	float	thisDepth = LinearDepth(gl_FragCoord.z);
+	float	depthDiff = abs(backDepth - thisDepth);
+	vec3	normal = WorldNormal();
+	if (dot(normal, normalize(Camera.Position - WorldPosition())) < 0)
+		normal = -normal;
+	vec4	viewNormal = Camera.Matrix.View * vec4(normal, 0);
+	vec3	viewV = normalize(-vec3(0, 0, distance(WorldPosition(), Camera.Position)));
+	vec4	refractDir = vec4(refract(viewV, viewNormal.xyz, 1.f/ Ior()), 0);
+		
+	vec2	refractOffset = refractDir.xy * min(0.05, depthDiff);//min(0.025, depthDiff);
+
+	out_3 = vec4(refractOffset, Alpha() * Opacity(), 0);
+	out_4 = vec4(_Velocity);
 	#else
-	if (Opacity() == 1) {
-		out_1 = vec4(max(thisColor.rgb - 1, 0) + Emissive(), thisColor.a);
-		out_0 = vec4(thisColor.rgb + Emissive(), thisColor.a);
-	}
+	out_1 = vec4(max(thisColor.rgb - 1, 0) + Emissive(), thisColor.a);
+	out_0 = vec4(thisColor.rgb + Emissive(), thisColor.a);
+	out_2 = vec4(_Velocity);
 	#endif
 }
 
 bool	CheckOpacity()
 {
-	if (Opacity() >= 0.99f) {
+	if (Opacity() >= 0.95f) {
 		SetOpacity(1);
 		return false;
 	}

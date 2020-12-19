@@ -34,7 +34,9 @@ layout(location = 5) in vec4	in_Color_0;
 layout(location = 6) in vec4	in_Joints_0;
 layout(location = 7) in vec4	in_Weight_0;
 
+uniform t_Camera				PrevCamera;
 uniform t_Camera				Camera;
+uniform t_Matrix				PrevMatrix;
 uniform t_Matrix				Matrix;
 uniform samplerBuffer			Joints;
 uniform bool					Skinned;
@@ -45,6 +47,9 @@ out VertexData {
 	vec3	WorldNormal;
 	vec2	TexCoord;
 } Output;
+
+out vec4 Position;
+out vec4 PreviousPosition;
 
 out float CameraSpaceDepth;
 
@@ -143,8 +148,8 @@ void	FillVertexData()
 	SetTexCoord(TexCoord() * UVScale);
 	vec4 cameraSpacePosition = Camera.Matrix.View * vec4(WorldPosition(), 1);
 	CameraSpaceDepth = cameraSpacePosition.z;
-	SetClipSpacePosition(Camera.Matrix.Projection * cameraSpacePosition);
-	
+	SetClipSpacePosition(Position = (Camera.Matrix.Projection * cameraSpacePosition));
+	PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * PrevMatrix.Model * vec4(in_Position, 1.0);
 }
 
 /*void	FillOut()

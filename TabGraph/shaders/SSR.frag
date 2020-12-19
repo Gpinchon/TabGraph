@@ -1,16 +1,13 @@
 R""(
 
 uniform sampler2D	LastColor;
-uniform ivec2		FrameBufferResolution;
-uniform mat4		LastViewMatrix;
-uniform mat4		LastProjectionMatrix;
 
 #if SSR_QUALITY == 1
-#define NumSteps 4
-#define NumRays 2
-#elif SSR_QUALITY == 2
 #define NumSteps 8
-#define NumRays 2
+#define NumRays 1
+#elif SSR_QUALITY == 2
+#define NumSteps 16
+#define NumRays 1
 #elif SSR_QUALITY == 3
 #define NumSteps 8
 #define NumRays 4
@@ -18,26 +15,6 @@ uniform mat4		LastProjectionMatrix;
 #define NumSteps 8
 #define NumRays 8
 #endif
-
-float vec2cross(in vec2 a, in vec2 b)
-{
-    return a.x * b.y - b.x * a.y;
-}
-
-uint MortonCode(uint x)
-{
-	x = (x ^ (x <<  2)) & 0x33333333;
-	x = (x ^ (x <<  1)) & 0x55555555;
-	return x;
-}
-
-float PseudoRandom(vec2 xy)
-{
-	vec2 pos = fract(xy / 128.0f) * 128.0f + vec2(-64.340622f, -72.465622f);
-	
-	// found by experimentation
-	return fract(dot(pos.xyx * pos.xyy, vec3(20.390625f, 60.703125f, 2.4281209f)));
-}
 
 uint ReverseBits32(uint bits)
 {
@@ -84,21 +61,14 @@ vec2 Hammersley(uint SampleIdx, uint SampleCnt)
     return vec2(u, v);
 }
 
-uint ReverseUIntBits( uint bits )
-{
-	bits = ( (bits & 0x33333333) << 2 ) | ( (bits & 0xcccccccc) >> 2 );
-	bits = ( (bits & 0x55555555) << 1 ) | ( (bits & 0xaaaaaaaa) >> 1 );
-	return bits;
-}
-
 vec4	LastWorldToView(in vec3 position)
 {
-	return LastViewMatrix * vec4(position, 1);
+	return PrevCamera.Matrix.View * vec4(position, 1);
 }
 
 vec4	LastViewToClip(in vec4 position)
 {
-	return LastProjectionMatrix * position;
+	return PrevCamera.Matrix.Projection * position;
 }
 
 /** Returns the World position and the scene depth in world units */
@@ -236,24 +206,43 @@ vec3 rotateAround(vec3 v, vec3 k, float angle)
 	return v * cos(angle) + cross(k, v) * sin(angle) + k * dot(k, v) * (1 - cos(angle));
 }
 
+float InterleavedGradientNoise(vec2 uv, float FrameId)
+{
+	// magic values are found by experimentation
+	uv += FrameId * (vec2(47, 17) * 0.695f);
+
+    const vec3 magic = vec3( 0.06711056f, 0.00583715f, 52.9829189f );
+    return fract(magic.z * fract(dot(uv, magic.xy)));
+}
+
+uvec3 Rand3DPCG16(ivec3 p)
+{
+	uvec3 v = uvec3(p);
+	v = v * 1664525u + 1013904223u;
+	v.x += v.y*v.z;
+	v.y += v.z*v.x;
+	v.z += v.x*v.y;
+	v.x += v.y*v.z;
+	v.y += v.z*v.x;
+	v.z += v.x*v.y;
+	return v >> 16u;
+}
+
 void	SSR()
 {
 	vec3	V = normalize(WorldPosition() - Camera.Position);
-	uint	FrameRandom = FrameNumber % 8 * 1551;
 	vec4	outColor = vec4(0);
 	float	SceneDepth = WorldToClip(WorldPosition()).w;
-	uvec2	PixelPos = ivec2(FrameBufferResolution * TexCoord());
-	//Get the pixel Dithering Value and reverse Bits
-	uint	Morton = MortonCode(PixelPos.x & 3) | ( MortonCode(PixelPos.y & 3) * 2);
-	uint	PixelIndex = ReverseUIntBits(Morton);
-	uvec2	Random = uvec2(PseudoRandom(vec2(PixelPos + FrameRandom * uvec2(97, 71)))) * uvec2(0x3127352, 0x11229256);
-	float	sampleAngle = randomAngle(WorldPosition());
+	uvec2	PixelPos = ivec2(gl_FragCoord.xy);
+	uint	frameIndex = FrameNumber % 8;
+	float	Noise =	InterleavedGradientNoise(gl_FragCoord.xy, frameIndex);
+	uvec3	Random = Rand3DPCG16(ivec3(PixelPos, frameIndex));
+	float	sampleAngle = randomAngle(vec3(Random));
 	for( int i = 0; i < NumRays; i++ ) {
-		uint	Offset = (PixelIndex + ReverseUIntBits(FrameRandom + i * 117)) & 15;
-		float	StepOffset = Offset / 15.f;
+		float	StepOffset = Noise;
 		StepOffset -= 0.5;
 		//Generate random normals using Hammersley distribution
-		vec2	E = Hammersley(i, NumRays, Random);
+		vec2	E = Hammersley(i, NumRays, Random.xy);
 		//Compute Half vector using GGX Importance Sampling
 		//Project Half vector from Tangent space to World space
 		vec3	H = ImportanceSampleGGX(E, WorldNormal(), Alpha());

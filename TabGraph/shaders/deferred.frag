@@ -55,136 +55,58 @@ vec3 CubeTexCoord() {
 	return Input.CubeTexCoord;
 }
 
+struct t_Textures {
+	t_GeometryTextures	Geometry;
+	t_Environment		Environment;
+};
+
 #define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
 
-vec2 encodeNormal(vec3 n) {
-	float p = sqrt(n.z*8+8);
-    return n.xy/p + 0.5;
-}
-
-vec3 decodeNormal(vec2 enc) {
-	vec2 fenc = enc*4-2;
-    float f = dot(fenc,fenc);
-    float g = sqrt(1-f/4);
-    vec3 n;
-    n.xy = fenc*g;
-    n.z = 1-f/2;
-    return n;
-}
-
-/*
-vec2 sign_not_zero(vec2 v) {
-    return fma(step(vec2(0.0), v), vec2(2.0), vec2(-1.0));
-}
-
-vec2 encodeNormal(vec3 v) {
-	v = map(v, vec3(-1), vec3(1), vec3(-1), vec3(0.9));
-	//v += 0.05;
-	//v = v * 0.5 + 0.5;
-	// Faster version using newer GLSL capatibilities
-	v.xy /= dot(abs(v), vec3(1));
-	// Branch-Less version
-	v.xy = mix(v.xy, (1.0 - abs(v.yx)) * sign_not_zero(v.xy), step(v.z, 0.0));
-	return v.xy;// * 0.5 + 0.5;
-}
-
-vec3 decodeNormal(vec2 packed_nrm) {
-	//packed_nrm = packed_nrm * 2 - 1;
-    // Version using newer GLSL capatibilities
-    vec3 v = vec3(packed_nrm.xy, 1.0 - abs(packed_nrm.x) - abs(packed_nrm.y));
-    #if 1
-        // Version with branches, seems to take less cycles than the
-        // branch-less version
-        if (v.z < 0)
-        	v.xy = (1.0 - abs(v.yx)) * sign_not_zero(v.xy);
-    #else
-        // Branch-Less version
-        v.xy = mix(v.xy, (1.0 - abs(v.yx)) * sign_not_zero(v.xy), step(v.z, 0));
-    #endif
-    return map(v, vec3(-1), vec3(0.9), vec3(-1), vec3(1));
-}
-*/
-float _opacity = 1; 
-#define Opacity() (_opacity)
-
-vec3 _cdiff = vec3(1);
-#define CDiff() (_cdiff)
-
-vec3 _f0 = vec3(0.04);
-#define F0() (_f0)
-
-float _alpha = 1;
-#define Alpha() (_alpha)
-
-vec3 _emissive = vec3(0);
-#define Emissive() (_emissive)
-
-float _ao = 0;
-#define AO() (_ao)
-
-vec2 _normal = vec2(0);
-#define EncodedNormal() (_normal)
+uniform vec3			Resolution;
+uniform float			Time;
+uniform uint			FrameNumber;
+uniform t_Camera		PrevCamera;
+uniform t_Camera		Camera;
+uniform t_Textures		Texture;
 
 #ifdef LIGHTSHADER
-	struct t_Textures {
-		t_GeometryTextures	Geometry;
-		t_Environment		Environment;
-	};
-	
-	uniform t_Textures		Texture;
-	uniform t_Camera		Camera;
-	uniform vec3			Resolution;
-	uniform float			Time;
-	uniform uint			FrameNumber;
-	
 	layout(location = 0) out vec4	out_0;
 	layout(location = 1) out vec4	out_1;
-
-	#define SetOpacity(opacity) (_opacity = opacity)
-
-	#define SetCDiff(cDiff) (_cdiff = cDiff)
-
-	#define SetF0(f0) (_f0 = f0)
-
-	#define SetAlpha(alpha) (_alpha = alpha)
-
-	#define SetEmissive(emissive) (_emissive = emissive)
-
-	#define SetAO(aO) (_ao = aO)
-
-	#define SetEncodedNormal(normal) (_normal = normal)
+	vec4	_CDiff; //BRDF CDiff, Transparency
+	vec3	_Emissive;
+	vec4	_F0; //BRDF F0, BRDF Alpha
+	float	_AO;
+	vec3	_Normal;
 #endif //LIGHTSHADER
 
 #ifdef POSTSHADER
-	struct t_Textures {
-		t_GeometryTextures	Geometry;
-		t_Environment		Environment;
-	};
-	layout(location = 0) out vec4	out_CDiff; //BRDF CDiff, Transparency
-	layout(location = 1) out vec3	out_Emissive;
-	layout(location = 2) out vec4	out_F0; //BRDF F0, BRDF Alpha
-	layout(location = 3) out float	out_AO;
-	layout(location = 4) out vec2	out_Normal;
-	uniform t_Textures		Texture;
-	uniform t_Camera		Camera;
-	uniform vec3			Resolution;
-	uniform float			Time;
-	uniform uint			FrameNumber;
-
-	#define SetOpacity(opacity) (out_CDiff.a = opacity)
-	
-	#define SetCDiff(cDiff) (out_CDiff.rgb = cDiff)
-	
-	#define SetF0(f0) (out_F0.rgb = f0)
-	
-	#define SetAlpha(alpha) (out_F0.a = alpha)
-	
-	#define SetEmissive(emissive) (out_Emissive = emissive)
-	
-	#define SetAO(aO) (out_AO = aO)
-	
-	#define SetEncodedNormal(normal) (out_Normal = normal)
+	layout(location = 0) out vec4	_CDiff; //BRDF CDiff, Transparency
+	layout(location = 1) out vec3	_Emissive;
+	layout(location = 2) out vec4	_F0; //BRDF F0, BRDF Alpha
+	layout(location = 3) out float	_AO;
+	layout(location = 4) out vec3	_Normal;
 #endif //POSTSHADER
+
+#define Opacity() (_CDiff.a)
+#define SetOpacity(opacity) (_CDiff.a = opacity)
+
+#define CDiff() (_CDiff.rgb)
+#define SetCDiff(cDiff) (_CDiff.rgb = cDiff)
+
+#define F0() (_F0.rgb)
+#define SetF0(f0) (_F0.rgb = f0)
+
+#define Alpha() (_F0.a)
+#define SetAlpha(alpha) (_F0.a = alpha)
+
+#define Emissive() (_Emissive)
+#define SetEmissive(emissive) (_Emissive = emissive)
+	
+#define AO() (_AO)
+#define SetAO(ao) (_AO = ao)
+
+#define WorldNormal() (_Normal)
+#define SetWorldNormal(normal) (_Normal = normalize(normal))
 
 float _depth;
 float Depth() { return _depth; }
@@ -194,16 +116,6 @@ float Depth(vec2 uv) { return textureLod(Texture.Geometry.Depth, uv, 0).r; }
 #define ScreenTexCoord() (gl_FragCoord.xy / Resolution.xy)
 
 t_Frag	Frag;
-
-void SetWorldNormal(in vec3 worldNormal)
-{
-	SetEncodedNormal(encodeNormal(Frag.WorldNormal));
-}
-
-vec3 WorldNormal()
-{
-	return decodeNormal(EncodedNormal());
-}
 
 float SceneDepth(vec2 UV, float depth)
 {
@@ -375,19 +287,19 @@ void FillFragmentData(void)
 {
 	vec4	CDiff_sample = textureLod(Texture.Geometry.CDiff, ScreenTexCoord(), 0);
 	vec4	F0_sample = textureLod(Texture.Geometry.F0, ScreenTexCoord(), 0);
-	vec2	Normal_sample = textureLod(Texture.Geometry.Normal, ScreenTexCoord(), 0).xy;
+	vec3	Normal_sample = textureLod(Texture.Geometry.Normal, ScreenTexCoord(), 0).xyz;
 	float	Depth_sample = textureLod(Texture.Geometry.Depth, ScreenTexCoord(), 0).x;
 	vec3	Emissive_sample = textureLod(Texture.Geometry.Emissive, ScreenTexCoord(), 0).rgb;
 	float	AO_sample = textureLod(Texture.Geometry.AO, ScreenTexCoord(), 0).x;
-	_cdiff = CDiff_sample.rgb;
-	_f0 = F0_sample.rgb;
-	_alpha = F0_sample.a;
-	_opacity = CDiff_sample.a;
-	_normal = Normal_sample;
-	_depth = Depth_sample;
-	_emissive = Emissive_sample;
-	_ao = AO_sample;
+	SetCDiff(CDiff_sample.rgb);
+	SetOpacity(CDiff_sample.a);
+	SetF0(F0_sample.rgb);
+	SetAlpha(F0_sample.a);
+	SetWorldNormal(Normal_sample);
+	SetEmissive(Emissive_sample);
+	SetAO(AO_sample);
 	//SetWorldNormal(decodeNormal(EncodedNormal()));
+	_depth = Depth_sample;
 	SetWorldPosition(WorldPosition(ScreenTexCoord()));
 }
 )""

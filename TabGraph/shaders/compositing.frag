@@ -2,37 +2,62 @@ R""(
 layout(location = 0) out vec4	out_Buffer0;
 layout(location = 1) out vec4	out_Buffer1;
 
-uniform sampler2D	in_Buffer0;
-uniform sampler2D	in_Buffer1;
-uniform sampler2D	in_Buffer2;
+uniform sampler2D	in_TransparentBuffer0;
+uniform sampler2D	in_TransparentBuffer1;
+uniform sampler2D	in_TransparentBuffer2;
+uniform sampler2D	in_TransparentBuffer3;
+uniform sampler2D	in_OpaqueBuffer0;
+uniform sampler2D	in_OpaqueBuffer1;
+//uniform sampler2D	in_OpaqueBufferDepth;
 
-in vec2	frag_UV;
+in vec2 frag_UV;
 
 float maxComponent(const in vec4 v) {
     return max(max(v.x, v.y), max(v.z, v.w));
 }
 
+float	warpUV(float min, float max, float percent)
+{
+	if (percent < 0 || percent > 1)
+		return (smoothstep(min, max, 1 - mod(percent, 1)));
+	return (percent);
+}
+
+vec2	warpUV(vec2 min, vec2 max, vec2 percent)
+{
+	return (vec2(warpUV(min.x, max.x, percent.x), warpUV(min.y, max.y, percent.y)));
+}
+
+vec4 BlendColor(vec4 s, vec4 d) {
+	//glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+	//glBlendEquation(GL_FUNC_ADD);
+	return (s*(1-s.a)) + (d*s.a);
+}
+
+#ifndef textureQueryLevels
+float compMax(vec3 v) { return max(max(v.x, v.y), v.z); }
+float compMax(vec2 v) { return max(v.x, v.y); }
+#define textureQueryLevels(tex) int(log2(compMax(textureSize(tex, 0))))
+#endif
+
+#define sampleLod(tex, uv, lod) textureLod(tex, uv, lod * textureQueryLevels(tex))
+
 void Composite()
 {
-    /*
-    ivec2 C = ivec2(gl_FragCoord.xy);
-    float  revealage = texelFetch(in_Buffer1, C, 0).r;
-    if (revealage == 1.0) {
-        // Save the blending and color texture fetch cost
-        discard; 
-    }
-    vec4 accum     = texelFetch(in_Buffer0, C, 0);
-    // Suppress overflow
-    if (isinf(maxComponent(abs(accum)))) {
-        accum.rgb = vec3(accum.a);
-    }
-    vec3 averageColor = accum.rgb / max(accum.a, 0.00001);
-    // dst' =  (accum.rgb / accum.a) * (1 - revealage) + dst * revealage
-    out_Buffer0 = vec4(averageColor, 1.0 - revealage);
-    */
-    vec4 accum = texelFetch(in_Buffer0, ivec2(gl_FragCoord.xy), 0);
-    float r = texelFetch(in_Buffer1, ivec2(gl_FragCoord.xy), 0).r;
-    out_Buffer0 = vec4(accum.rgb / clamp(accum.a, 6.1*1e-4, 6.55*1e5), r);
-    out_Buffer1 = vec4(texelFetch(in_Buffer2, ivec2(gl_FragCoord.xy), 0).rgb, out_Buffer0.a);
+    vec4 transparentRefract =  texelFetch(in_TransparentBuffer3, ivec2(textureSize(in_TransparentBuffer3, 0) * frag_UV), 0);
+    vec2 refractUV = warpUV(vec2(0), vec2(1), frag_UV + transparentRefract.xy);
+
+	vec4 accum = texelFetch(in_TransparentBuffer0, ivec2(textureSize(in_TransparentBuffer0, 0) * frag_UV), 0);
+    float r = texelFetch(in_TransparentBuffer1, ivec2(textureSize(in_TransparentBuffer1, 0) * frag_UV), 0).r;
+    vec4 transparentColor = vec4(accum.rgb / clamp(accum.a, 6.1*1e-4, 6.55*1e5), r);
+    vec4 transparentEmissive = vec4(texelFetch(in_TransparentBuffer2, ivec2(textureSize(in_TransparentBuffer2, 0) * frag_UV), 0).rgb, transparentColor.a);
+
+	vec4 opaqueColor = sampleLod(in_OpaqueBuffer0, refractUV, transparentRefract.z);
+    vec4 opaqueEmissive = sampleLod(in_OpaqueBuffer1, refractUV, transparentRefract.z);
+
+	out_Buffer0 = BlendColor(transparentColor, opaqueColor);
+	out_Buffer1 = opaqueEmissive + transparentEmissive;
+	if (r == 1)
+		discard;
 }
 )""

@@ -146,8 +146,8 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
                 continue;
             auto name = entry.path().filename().string();
             auto newEnv = Component::Create<Environment>(name);
-            newEnv->set_diffuse(Component::Create<Cubemap>(name + "Cube", TextureParser::parse(name, (entry.path() / "environment.hdr").string())));
-            newEnv->set_irradiance(Component::Create<Cubemap>(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", (entry.path() / "diffuse.hdr").string())));
+            newEnv->SetDiffuse(Component::Create<Cubemap>(name + "Cube", TextureParser::parse(name, (entry.path() / "environment.hdr").string())));
+            newEnv->SetIrradiance(Component::Create<Cubemap>(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", (entry.path() / "diffuse.hdr").string())));
             level->AddComponent(newEnv);
         }
     }
@@ -159,14 +159,14 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             std::string name = entry.path().string();
             auto newEnv = Component::Create<Environment>(name);
             try {
-                newEnv->set_diffuse(Cubemap::parse(folder));
+                newEnv->SetDiffuse(Cubemap::parse(folder));
             }
             catch (std::exception& e) {
                 std::cout << e.what() << std::endl;
                 continue;
             }
             try {
-                newEnv->set_irradiance(Cubemap::parse(folder / "light"));
+                newEnv->SetIrradiance(Cubemap::parse(folder / "light"));
             }
             catch (std::exception& e) {
                 std::cout << e.what() << std::endl;

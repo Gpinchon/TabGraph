@@ -59,6 +59,8 @@ double FixedDeltaTime();
 
 uint32_t FrameNumber();
 
+
+const std::shared_ptr<Framebuffer> OpaqueBuffer();
 const std::shared_ptr<Framebuffer> GeometryBuffer();
 const std::shared_ptr<Framebuffer> LightBuffer();
 

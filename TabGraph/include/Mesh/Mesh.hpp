@@ -72,4 +72,5 @@ private:
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
     virtual void _FixedUpdateGPU(float /*delta*/) override;
     GLenum _cull_mod { GL_BACK };
+    glm::mat4 _prevTransformMatrix;
 };
