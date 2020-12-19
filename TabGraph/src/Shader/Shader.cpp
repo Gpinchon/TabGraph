@@ -20,6 +20,10 @@
 #include <string.h> // for memset
 #include <utility> // for pair, make_pair
 
+std::unordered_map<std::string, ShaderVariable> Shader::_globalTextures;
+std::unordered_map<std::string, ShaderVariable> Shader::_globalUniforms;
+std::unordered_map<std::string, std::string> Shader::_globalDefines;
+
 Shader::Shader(const std::string& name, const Shader::Type& type)
     : Component(name)
 {
@@ -104,6 +108,22 @@ bool Shader::in_use()
 
 #include "Framebuffer.hpp"
 
+void Shader::SetGlobalTexture(const std::string& uname, const std::shared_ptr<Texture>& value)
+{
+    _globalTextures[uname].Set(value);
+    _globalTextures[uname].name = uname;
+}
+
+void Shader::SetGlobalDefine(const std::string define, const std::string value)
+{
+    _globalDefines[define] = value;
+}
+
+void Shader::RemoveGlobalDefine(const std::string define)
+{
+    _globalDefines.erase(define);
+}
+
 void Shader::use(const bool& use_program)
 {
     if (!use_program) {
@@ -116,11 +136,11 @@ void Shader::use(const bool& use_program)
     auto res = Framebuffer::CurrentSize();
     SetUniform("Resolution", glm::vec3(res.x, res.y, res.x / res.y));
     SetUniform("Time", SDL_GetTicks() / 1000.f);
-    SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
-    SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
-    SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
-    SetUniform("Camera.InvMatrix.View", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
-    SetUniform("Camera.InvMatrix.Projection", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
+    //SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
+    //SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+    //SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    /*SetUniform("Camera.InvMatrix.View", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
+    SetUniform("Camera.InvMatrix.Projection", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));*/
     glUseProgram(_program);
     _UpdateVariables();
 }
@@ -224,6 +244,7 @@ void Shader::_UpdateVariable(const ShaderVariable& variable)
 
 void Shader::_UpdateVariables()
 {
+    uint32_t textureIndex = 0;
     for (auto extension : GetComponents<ShaderExtension>())
     {
         for (auto texture : extension->_textures) {
@@ -236,28 +257,35 @@ void Shader::_UpdateVariables()
             SetAttribute(attribute.second);
         }
     }
+    for (const auto& define : _globalDefines)
+        SetDefine(define.first, define.second);
+    for (const auto& uniform : _globalUniforms)
+        SetUniform(uniform.second);
+    for (const auto& texture : _globalTextures) {
+        auto v(texture.second);
+        auto value(std::get<std::pair<std::shared_ptr<Texture>, GLenum>>(v.data));
+        v.Set(value.first, GL_TEXTURE0 + textureIndex);
+        SetTexture(v);
+        textureIndex++;
+    }
     if (_texturesChanged) {
         for (const auto& texture : _textures) {
             auto v(texture.second);
             auto value(std::get<std::pair<std::shared_ptr<Texture>, GLenum>>(v.data));
-            auto index = std::distance(_textures.begin(), _textures.find(texture.first));
-            v.Set(value.first, GL_TEXTURE0 + index);
+            v.Set(value.first, GL_TEXTURE0 + textureIndex);
             _UpdateVariable(v);
+            textureIndex++;
         }
         _texturesChanged = false;
     }
     if (_uniformsChanged) {
-        for (const auto& uniform : _uniforms) {
-            auto v(uniform.second);
-            _UpdateVariable(v);
-        }
+        for (const auto& uniform : _uniforms)
+            _UpdateVariable(uniform.second);
         _uniformsChanged = false;
     }
     if (_attributesChanged) {
-        for (const auto& uniform : _attributes) {
-            auto v(uniform.second);
-            _UpdateVariable(v);
-        }
+        for (const auto& uniform : _attributes)
+            _UpdateVariable(uniform.second);
         _attributesChanged = false;
     }
 }

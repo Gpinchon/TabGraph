@@ -108,6 +108,13 @@ public:
     template <typename T, typename = IsNotSharedPointerOfType<Texture, T>>
     void SetUniform(const std::string& uname, const T& value, const size_t index = 0);
     void SetTexture(const std::string& uname, const std::shared_ptr<Texture>& value);
+
+    template <typename T, typename = IsNotSharedPointerOfType<Texture, T>>
+    static void SetGlobalUniform(const std::string& uname, const T& value, const size_t index = 0);
+    static void SetGlobalTexture(const std::string& uname, const std::shared_ptr<Texture>& value);
+    static void SetGlobalDefine(const std::string define, const std::string value = "");
+    static void RemoveGlobalDefine(const std::string define);
+
     void use(const bool& use_program = true);
     std::unordered_map<std::string, ShaderVariable> Textures() const;
     std::unordered_map<std::string, ShaderVariable> Uniforms() const;
@@ -156,6 +163,9 @@ private:
     std::unordered_map<std::string, ShaderVariable> _uniforms;
     std::unordered_map<std::string, ShaderVariable> _attributes;
     std::unordered_map<std::string, std::string> _defines;
+    static std::unordered_map<std::string, ShaderVariable> _globalTextures;
+    static std::unordered_map<std::string, ShaderVariable> _globalUniforms;
+    static std::unordered_map<std::string, std::string> _globalDefines;
     Shader::Type _type{ Shader::Type::Invalid };
 };
 
@@ -195,4 +205,11 @@ inline void Shader::SetUniform(const std::string& uname, const T& value, const s
     _uniforms[uname].Set(value, index);
     _uniforms[uname].name = uname;
     _uniformsChanged = true;
+}
+
+template<typename T, typename>
+inline void Shader::SetGlobalUniform(const std::string& uname, const T& value, const size_t index)
+{
+    _globalUniforms[uname].Set(value, index);
+    _globalUniforms[uname].name = uname;
 }
