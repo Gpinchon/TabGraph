@@ -28,10 +28,10 @@ public: \
     }\
     void Set##var(const type& val) \
     {\
-        bool changed = val != _##var;\
-        _##var = val; \
-        if (changed) \
+        if (val != _##var) {\
+            _##var = val; \
             var##Changed.Emit(val);\
+        } \
     }\
 private: \
     type _##var { __VA_ARGS__ }; \
