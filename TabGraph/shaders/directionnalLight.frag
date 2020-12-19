@@ -71,7 +71,12 @@ void	Lighting()
 	vec3	V = normalize(Camera.Position - WorldPosition());
 	vec3	N = WorldNormal();	
 	float	Attenuation = 1;
-	float	NdotL = max(dot(N , L), 0.0);
+	float	NdotL = dot(N , L);
+	if (Opacity() < 1 && NdotL < 0) {
+		NdotL = -NdotL;
+		N = -N;
+	}
+	NdotL = max(NdotL, 0);
 	#ifdef SHADOW
 		float	sampleAngle = randomAngle(WorldPosition());
 		float	s = sin(sampleAngle);

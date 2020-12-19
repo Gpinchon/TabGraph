@@ -181,7 +181,7 @@ void DirectionnalLight::Draw()
     if (Infinite())
         geometryPosition = Scene::Current()->CurrentCamera()->WorldPosition();
     else
-        geometryPosition = Parent() ? Parent()->WorldPosition() + GetPosition() : GetPosition();
+        geometryPosition = GetParent() ? GetParent()->WorldPosition() + GetPosition() : GetPosition();
     if (GetCastShadow()) {
         shader->SetDefine("SHADOW");
         shader->SetTexture("Light.Shadow", GetComponent<Framebuffer>()->depth());
@@ -194,7 +194,8 @@ void DirectionnalLight::Draw()
     shader->SetUniform("Light.Color", GetColor());
     shader->SetUniform("Light.Direction", Direction());
     shader->SetUniform("Light.Infinite", Infinite());
-    shader->SetUniform("Matrix.Model", glm::translate(geometryPosition) * LocalScaleMatrix());
+    shader->SetUniform("Matrix.Model", glm::translate(geometryPosition) * GetLocalScaleMatrix());
+    shader->SetTexture("Texture.Geometry.CDiff", geometryBuffer->attachement(0));
     shader->SetTexture("Texture.Geometry.F0", geometryBuffer->attachement(2));
     shader->SetTexture("Texture.Geometry.Normal", geometryBuffer->attachement(4));
     shader->SetTexture("Texture.Geometry.Depth", geometryBuffer->depth());
@@ -231,7 +232,9 @@ void DirectionnalLight::DrawShadowInfinite()
     tempCamera->SetFrustum(limits);
     tempCamera->SetPosition(camPos);
     tempCamera->LookAt(WorldPosition(), GetUp(Direction()));
-    Scene::Current()->SetCurrentCamera(tempCamera);
+    Shader::SetGlobalUniform("Camera.Position", tempCamera->WorldPosition());
+    Shader::SetGlobalUniform("Camera.Matrix.View", tempCamera->ViewMatrix());
+    Shader::SetGlobalUniform("Camera.Matrix.Projection", tempCamera->ProjectionMatrix());
     GetComponent<Framebuffer>()->bind();
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -240,6 +243,9 @@ void DirectionnalLight::DrawShadowInfinite()
     Scene::Current()->RenderDepth(RenderMod::RenderAll);
     GetComponent<Framebuffer>()->bind(false);
     Scene::Current()->SetCurrentCamera(camera);
+    Shader::SetGlobalUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
+    Shader::SetGlobalUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+    Shader::SetGlobalUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
 }
 
 void DirectionnalLight::DrawShadowFinite()
@@ -277,7 +283,9 @@ void DirectionnalLight::DrawShadowFinite()
     tempCamera->SetFrustum(limits);
     tempCamera->SetPosition(camPos);
     tempCamera->LookAt(WorldPosition(), GetUp(Direction()));
-    Scene::Current()->SetCurrentCamera(tempCamera);
+    Shader::SetGlobalUniform("Camera.Position", tempCamera->WorldPosition());
+    Shader::SetGlobalUniform("Camera.Matrix.View", tempCamera->ViewMatrix());
+    Shader::SetGlobalUniform("Camera.Matrix.Projection", tempCamera->ProjectionMatrix());
     GetComponent<Framebuffer>()->bind();
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -286,6 +294,9 @@ void DirectionnalLight::DrawShadowFinite()
     Scene::Current()->RenderDepth(RenderMod::RenderAll);
     GetComponent<Framebuffer>()->bind(false);
     Scene::Current()->SetCurrentCamera(camera);
+    Shader::SetGlobalUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
+    Shader::SetGlobalUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+    Shader::SetGlobalUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
 }
 
 #include "Camera/Camera.hpp"

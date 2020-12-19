@@ -3,7 +3,7 @@ struct t_Light {
 	vec3	Position;
 	vec3	Color;
 	float	Radius;
-	float	Cutoff;
+	float	Power;
 #ifdef SHADOW
 	mat4	Projection;
 	sampler2DShadow	Shadow;
@@ -12,12 +12,12 @@ struct t_Light {
 
 uniform t_Light			Light;
 
-float LightAttenuation(vec3 P, vec3 lightCentre, float lightRadius, float cutoff)
+float LightAttenuation()
 {
-	float r = lightRadius;
-    vec3 L = lightCentre - P;
+	float r = Light.Radius;
+    vec3 L = Light.Position - WorldPosition();
     float D = length(L);
-	return max(1 - (D / r), 0);
+	return pow(max(1 - (D / r), 0), Light.Power);
     /*float d = max(distance - r, 0);
     L /= D;
      
@@ -57,7 +57,7 @@ void	Lighting()
     float linear = 0.7;
     float quadratic = 1.8;
 	//float	Attenuation = 1 / (constant + linear * D + quadratic * pow(D, 2)); //Light.Power * (1 / pow(distance(WorldPosition(), Light.Position), 2));
-    float	Attenuation = min(1, LightAttenuation(WorldPosition(), Light.Position, Light.Radius, Light.Cutoff));
+    float	Attenuation = min(1, LightAttenuation());
 	vec3	H = normalize(V + L);
 	float	NdotL = max(dot(N , L), 0.0);
 	float	NdotH = max(dot(N , H), 0.0);

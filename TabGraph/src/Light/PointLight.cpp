@@ -52,7 +52,7 @@ void PointLight::Draw()
         / (2 * quadratic);*/
     SetScale(glm::vec3(GetRadius()));
     auto geometryBuffer = Render::GeometryBuffer();
-    PointLightShader()->SetUniform("Light.Cutoff", GetCutoff());
+    PointLightShader()->SetUniform("Light.Power", GetPower());
     PointLightShader()->SetUniform("Light.Radius", GetRadius());
     PointLightShader()->SetUniform("Light.Color", GetColor());
     PointLightShader()->SetUniform("Light.Position", GetPosition());
