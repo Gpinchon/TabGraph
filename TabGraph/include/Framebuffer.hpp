@@ -36,6 +36,14 @@ public:
     
     /** @brief Adds a new attachement to the current buffer and returns it */
     std::shared_ptr<Texture2D> Create_attachement(GLenum format, GLenum iformat);
+    void BlitTo(std::shared_ptr<Framebuffer> to,
+        glm::ivec2 src0, glm::ivec2 src1,
+        glm::ivec2 dst0, glm::ivec2 dst1,
+        GLbitfield mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
+        GLenum filter = GL_LINEAR);
+    void BlitTo(std::shared_ptr<Framebuffer> to,
+        GLbitfield mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
+        GLenum filter = GL_LINEAR);
     virtual glm::ivec2 Size() const;
     virtual void Resize(const glm::ivec2& new_size);
     /** @brief Sets the texture2D to the specified index */

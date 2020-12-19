@@ -121,6 +121,33 @@ std::shared_ptr<Texture2D> Framebuffer::Create_attachement(GLenum format, GLenum
     return (a);
 }
 
+void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::ivec2 src1, glm::ivec2 dst0, glm::ivec2 dst1, GLbitfield mask, GLenum filter)
+{
+    if (to->_glid == 0) //Framebuffer was not created on GPU
+    {
+        to->bind(); //Force allocation on GPU
+        to->bind(false);
+    }
+    glBlitNamedFramebuffer(
+        _glid,
+        to->_glid,
+        src0.x,
+        src0.y,
+        src1.x,
+        src1.y,
+        dst0.x,
+        dst0.y,
+        dst1.x,
+        dst1.y,
+        mask,
+        filter);
+}
+
+void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, GLbitfield mask, GLenum filter)
+{
+    BlitTo(to, glm::ivec2(0), Size(), glm::ivec2(0), to->Size(), mask, filter);
+}
+
 void Framebuffer::setup_attachements()
 {
     GLenum format[2];
