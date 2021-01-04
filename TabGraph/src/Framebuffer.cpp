@@ -79,26 +79,15 @@ void Framebuffer::bind(bool to_bind)
         bind_default();
         return;
     }
-    for (auto attachement : _color_attachements)
-        attachement.first->load();
-    if (_depth.first != nullptr)
-        _depth.first->load();
-    if (_glid == 0u) {
-        glGenFramebuffers(1, &_glid);
-        glBindFramebuffer(GL_FRAMEBUFFER, _glid);
-        glObjectLabel(GL_FRAMEBUFFER, _glid, Name().length(), Name().c_str());
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-    if (_attachementsChanged) {
-        setup_attachements();
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, _glid);
+    LoadGPU();
+    setup_attachements();
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glid);
     glViewport(0, 0, Size().x, Size().y);
 }
 
 void Framebuffer::bind_default()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glViewport(0, 0, Window::size().x, Window::size().y);
 }
 
@@ -123,14 +112,19 @@ std::shared_ptr<Texture2D> Framebuffer::Create_attachement(GLenum format, GLenum
 
 void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::ivec2 src1, glm::ivec2 dst0, glm::ivec2 dst1, GLbitfield mask, GLenum filter)
 {
-    if (to->_glid == 0) //Framebuffer was not created on GPU
-    {
-        to->bind(); //Force allocation on GPU
-        to->bind(false);
+    LoadGPU();
+    setup_attachements();
+    //uint32_t toGLID = 0;
+    if (to != nullptr) {
+        to->LoadGPU();
+        to->setup_attachements();
+        to->bind();
+        //toGLID = to->_glid;
     }
-    glBlitNamedFramebuffer(
-        _glid,
-        to->_glid,
+    else Framebuffer::bind_default();
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, _glid);
+    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, toGLID);
+    glBlitFramebuffer(
         src0.x,
         src0.y,
         src1.x,
@@ -145,13 +139,34 @@ void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::
 
 void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, GLbitfield mask, GLenum filter)
 {
-    BlitTo(to, glm::ivec2(0), Size(), glm::ivec2(0), to->Size(), mask, filter);
+    if (to == nullptr)
+        BlitTo(to, glm::ivec2(0), Size(), glm::ivec2(0), Window::size(), mask, filter);
+    else
+        BlitTo(to, glm::ivec2(0), Size(), glm::ivec2(0), to->Size(), mask, filter);
+}
+
+void Framebuffer::_LoadGPU()
+{
+    if (_glid != 0)
+        glDeleteFramebuffers(1, &_glid);
+    glGenFramebuffers(1, &_glid);
+    glBindFramebuffer(GL_FRAMEBUFFER, _glid);
+    glObjectLabel(GL_FRAMEBUFFER, _glid, Name().length(), Name().c_str());
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    setup_attachements();
+    SetLoadedGPU(true);
 }
 
 void Framebuffer::setup_attachements()
 {
+    //if (!_attachementsChanged)
+    //    return;
     GLenum format[2];
     std::vector<GLenum> color_attachements;
+    for (auto attachement : _color_attachements)
+        attachement.first->load();
+    if (_depth.first != nullptr)
+        _depth.first->load();
 
     glBindFramebuffer(GL_FRAMEBUFFER, _glid);
     for (auto i = 0u; i < _color_attachements.size(); ++i) {
@@ -169,37 +184,6 @@ void Framebuffer::setup_attachements()
         glDrawBuffers(color_attachements.size(), &color_attachements.at(0));
     else
         glDrawBuffers(0, nullptr);
-#ifdef DEBUG_MOD
-    auto status(glCheckFramebufferStatus(GL_FRAMEBUFFER));
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        switch (status) {
-            case (GL_FRAMEBUFFER_UNDEFINED) : 
-                debugLog(Name() + " GL_FRAMEBUFFER_UNDEFINED");
-                break;
-            case (GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) : 
-                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
-                break;
-            case (GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT ) : 
-                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT ");
-                break;
-            case (GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER ) : 
-                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER ");
-                break;
-            case (GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER ) : 
-                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER ");
-                break;
-            case (GL_FRAMEBUFFER_UNSUPPORTED ) : 
-                debugLog(Name() + " GL_FRAMEBUFFER_UNSUPPORTED ");
-                break;
-            case (GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) : 
-                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
-                break;
-            case (GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS ) : 
-                debugLog(Name() + " GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS ");
-                break;
-        }
-    }
-#endif
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     _attachementsChanged = false;
 }

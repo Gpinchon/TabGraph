@@ -52,6 +52,8 @@ struct EnginePrivate {
     double fixedDeltaTime { 0 };
     std::filesystem::path programPath;
     std::filesystem::path execPath;
+    Signal<float> onFixedUpdate;
+    Signal<float> onUpdate;
 };
 
 EnginePrivate::EnginePrivate()
@@ -96,11 +98,13 @@ void Engine::Start()
         EnginePrivate::Get().deltaTime = ticks - lastTicks;
         lastTicks = ticks;
         SDL_PumpEvents();
+        EnginePrivate::Get().onUpdate.Emit(ticks - lastTicks);
         Scene::Current()->UpdateCPU(EnginePrivate::Get().deltaTime);
         if (ticks - fixedTiming >= 0.015) {
             EnginePrivate::Get().fixedDeltaTime = ticks - fixedTiming;
             fixedTiming = ticks;
             Events::refresh();
+            EnginePrivate::Get().onFixedUpdate.Emit(ticks - fixedTiming);
             Scene::Current()->FixedUpdateCPU(EnginePrivate::Get().fixedDeltaTime);
             Render::RequestRedraw();
         }
@@ -146,4 +150,14 @@ const std::filesystem::path Engine::ExecutionPath()
 const std::filesystem::path Engine::ResourcePath()
 {
     return (Engine::ProgramPath() / "res");
+}
+
+Signal<float>& Engine::OnFixedUpdate()
+{
+    return EnginePrivate::Get().onFixedUpdate;
+}
+
+Signal<float>& Engine::OnUpdate()
+{
+    return EnginePrivate::Get().onUpdate;
 }

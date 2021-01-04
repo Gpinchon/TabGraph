@@ -6,6 +6,8 @@
 */
 #include "Buffer/Buffer.hpp"
 #include "Debug.hpp"
+#include "Render.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -19,6 +21,7 @@ Buffer::Buffer(size_t byteLength, GLenum usage)
     , _byteLength(byteLength) //_rawData(byteLength, std::byte(0))
     , _usage(usage)
 {
+    Render::OnUpdate().ConnectMember(this, &Buffer::_UpdateGPU);
     SetComponent(Component::Create <BufferData>(nullptr, byteLength));
     bufferNbr++;
 }
@@ -32,13 +35,18 @@ Buffer::~Buffer()
 
 void Buffer::_UpdateGPU(float)
 {
+    if (!GetNeedsUpdateGPU())
+        return;
+    else if (Mapped()) {
+        Unmap();
+        return;
+    }
     auto data = GetComponent<BufferData>();
     if (!data->empty())
         std::memcpy(Map(BufferAccess::Write), data->data(), ByteLength());
     Unmap();
+    SetNeedsUpdateGPU(false);
 }
-
-#include <cassert>
 
 auto GetMapFunction()
 {
@@ -211,7 +219,7 @@ auto ParseData(const std::string& uri)
 
 void Buffer::_LoadCPU()
 {
-    if (LoadedCPU())
+    if (GetLoadedCPU())
         return;
     debugLog(Name());
     auto rawData = GetComponent<BufferData>();
@@ -233,7 +241,7 @@ void Buffer::_LoadCPU()
 
 void Buffer::_LoadGPU()
 {
-    if (LoadedGPU())
+    if (GetLoadedGPU())
         return;
     debugLog(Name());
     Allocate();

@@ -190,7 +190,7 @@ void DirectionnalLight::Draw()
         shader->RemoveDefine("SHADOW");
     shader->SetUniform("Light.Max", Max());
     shader->SetUniform("Light.Min", Min());
-    shader->SetUniform("Light.Projection", Infinite() ? ShadowProjectionMatrixInfinite() : ShadowProjectionMatrixFinite());
+    shader->SetUniform("Light.Projection", (Infinite() ? ShadowProjectionMatrixInfinite() : ShadowProjectionMatrixFinite()) * ShadowViewMatrix());
     shader->SetUniform("Light.Color", GetColor());
     shader->SetUniform("Light.Direction", Direction());
     shader->SetUniform("Light.Infinite", Infinite());
@@ -209,32 +209,10 @@ void DirectionnalLight::DrawShadowInfinite()
     auto camera = Scene::Current()->CurrentCamera();
     auto radius = glm::distance(WorldPosition(), Max());
     auto camPos = WorldPosition() - Direction() * radius;
-    auto viewMatrix = glm::lookAt(camPos, WorldPosition(), GetUp(Direction()));
 
-    std::array<glm::vec3, 8> vertex = ExtractFrustum(Scene::Current()->CurrentCamera());
-    glm::vec3 maxOrtho = viewMatrix * glm::vec4(vertex.at(0), 1);
-    glm::vec3 minOrtho = viewMatrix * glm::vec4(vertex.at(0), 1);
-    for (auto& v : vertex) {
-        v = viewMatrix * glm::vec4(v, 1);
-        maxOrtho.x = std::max(maxOrtho.x, v.x);
-        maxOrtho.y = std::max(maxOrtho.y, v.y);
-        maxOrtho.z = std::max(maxOrtho.z, v.z);
-        minOrtho.x = std::min(minOrtho.x, v.x);
-        minOrtho.y = std::min(minOrtho.y, v.y);
-        minOrtho.z = std::min(minOrtho.z, v.z);
-    }
-    auto limits = glm::vec4(minOrtho.x, maxOrtho.x, minOrtho.y, maxOrtho.y);
-    auto zfar = -maxOrtho.z;
-    auto znear = -minOrtho.z;
-    static auto tempCamera = Component::Create<Camera>("light_camera", Camera::Projection::Ortho);
-    tempCamera->SetZnear(znear);
-    tempCamera->SetZfar(zfar);
-    tempCamera->SetFrustum(limits);
-    tempCamera->SetPosition(camPos);
-    tempCamera->LookAt(WorldPosition(), GetUp(Direction()));
-    Shader::SetGlobalUniform("Camera.Position", tempCamera->WorldPosition());
-    Shader::SetGlobalUniform("Camera.Matrix.View", tempCamera->ViewMatrix());
-    Shader::SetGlobalUniform("Camera.Matrix.Projection", tempCamera->ProjectionMatrix());
+    Shader::SetGlobalUniform("Camera.Position", camPos);
+    Shader::SetGlobalUniform("Camera.Matrix.View", ShadowViewMatrix());
+    Shader::SetGlobalUniform("Camera.Matrix.Projection", ShadowProjectionMatrixInfinite());
     GetComponent<Framebuffer>()->bind();
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -253,39 +231,10 @@ void DirectionnalLight::DrawShadowFinite()
     auto camera = Scene::Current()->CurrentCamera();
     auto radius = glm::distance(WorldPosition(), Max());
     auto camPos = WorldPosition() - Direction() * radius;
-    auto viewMatrix = glm::lookAt(camPos, WorldPosition(), GetUp(Direction()));
 
-    static std::array<glm::vec3, 7> vertex{};
-    vertex.at(0) = Max();
-    vertex.at(1) = glm::vec3(Min().x, Min().y, Max().z);
-    vertex.at(2) = glm::vec3(Min().x, Max().y, Max().z);
-    vertex.at(3) = glm::vec3(Min().x, Max().y, Min().z);
-    vertex.at(4) = glm::vec3(Max().x, Max().y, Min().z);
-    vertex.at(5) = glm::vec3(Max().x, Min().y, Min().z);
-    vertex.at(6) = glm::vec3(Max().x, Min().y, Max().z);
-    glm::vec3 maxOrtho = viewMatrix * glm::vec4(Min(), 1);
-    glm::vec3 minOrtho = viewMatrix * glm::vec4(Min(), 1);
-    for (auto& v : vertex) {
-        v = viewMatrix * glm::vec4(v, 1);
-        maxOrtho.x = std::max(maxOrtho.x, v.x);
-        maxOrtho.y = std::max(maxOrtho.y, v.y);
-        maxOrtho.z = std::max(maxOrtho.z, v.z);
-        minOrtho.x = std::min(minOrtho.x, v.x);
-        minOrtho.y = std::min(minOrtho.y, v.y);
-        minOrtho.z = std::min(minOrtho.z, v.z);
-    }
-    auto limits = glm::vec4(minOrtho.x, maxOrtho.x, minOrtho.y, maxOrtho.y);
-    auto zfar = -maxOrtho.z;
-    auto znear = -minOrtho.z;
-    static auto tempCamera = Component::Create<Camera>("light_camera", Camera::Projection::Ortho);
-    tempCamera->SetZnear(znear);
-    tempCamera->SetZfar(zfar);
-    tempCamera->SetFrustum(limits);
-    tempCamera->SetPosition(camPos);
-    tempCamera->LookAt(WorldPosition(), GetUp(Direction()));
-    Shader::SetGlobalUniform("Camera.Position", tempCamera->WorldPosition());
-    Shader::SetGlobalUniform("Camera.Matrix.View", tempCamera->ViewMatrix());
-    Shader::SetGlobalUniform("Camera.Matrix.Projection", tempCamera->ProjectionMatrix());
+    Shader::SetGlobalUniform("Camera.Position", camPos);
+    Shader::SetGlobalUniform("Camera.Matrix.View", ShadowViewMatrix());
+    Shader::SetGlobalUniform("Camera.Matrix.Projection", ShadowProjectionMatrixFinite());
     GetComponent<Framebuffer>()->bind();
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -303,9 +252,7 @@ void DirectionnalLight::DrawShadowFinite()
 
 glm::mat4 DirectionnalLight::ShadowProjectionMatrixInfinite() const
 {
-    auto radius = glm::distance(WorldPosition(), Max());
-    auto camPos = WorldPosition() - Direction() * radius;
-    auto viewMatrix = glm::lookAt(camPos, WorldPosition(), GetUp(Direction()));
+    auto viewMatrix = ShadowViewMatrix();
 
     std::array<glm::vec3, 8> vertex = ExtractFrustum(Scene::Current()->CurrentCamera());
     glm::vec3 maxOrtho = viewMatrix * glm::vec4(vertex.at(0), 1);
@@ -322,14 +269,12 @@ glm::mat4 DirectionnalLight::ShadowProjectionMatrixInfinite() const
     auto limits = glm::vec4(minOrtho.x, maxOrtho.x, minOrtho.y, maxOrtho.y);
     auto zfar = -maxOrtho.z;
     auto znear = -minOrtho.z;
-    return glm::ortho(limits.x, limits.y, limits.z, limits.w, znear, zfar) * viewMatrix;
+    return glm::ortho(limits.x, limits.y, limits.z, limits.w, znear, zfar);
 }
 
 glm::mat4 DirectionnalLight::ShadowProjectionMatrixFinite() const
 {
-    auto radius = glm::distance(WorldPosition(), Max());
-    auto camPos = WorldPosition() - Direction() * radius;
-    auto viewMatrix = glm::lookAt(camPos, WorldPosition(), GetUp(Direction()));
+    auto viewMatrix = ShadowViewMatrix();
 
     static std::array<glm::vec3, 7> vertex{};
     vertex.at(0) = Max();
@@ -353,7 +298,14 @@ glm::mat4 DirectionnalLight::ShadowProjectionMatrixFinite() const
     auto limits = glm::vec4(minOrtho.x, maxOrtho.x, minOrtho.y, maxOrtho.y);
     auto zfar = -maxOrtho.z;
     auto znear = -minOrtho.z;
-    return glm::ortho(limits.x, limits.y, limits.z, limits.w, znear, zfar) * viewMatrix;
+    return glm::ortho(limits.x, limits.y, limits.z, limits.w, znear, zfar);
+}
+
+glm::mat4 DirectionnalLight::ShadowViewMatrix() const
+{
+    auto radius = glm::distance(WorldPosition(), Max());
+    auto camPos = WorldPosition() - Direction() * radius;
+    return glm::lookAt(camPos, WorldPosition(), GetUp(Direction()));
 }
 
 //void DirectionnalLight::UpdateTransformMatrix()

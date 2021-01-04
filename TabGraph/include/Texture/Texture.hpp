@@ -55,9 +55,7 @@ protected:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     //Texture(const std::string &name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
     GLuint _glid { 0 };
     char _bpp { 0 };

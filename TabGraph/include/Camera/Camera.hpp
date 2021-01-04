@@ -67,9 +67,7 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float) override {};
-    virtual void _UpdateGPU(float) override {};
     virtual void _FixedUpdateCPU(float) override {};
-    virtual void _FixedUpdateGPU(float) override {};
     Camera::Projection _projection_type { Projection::Perspective };
     //glm::mat4 _projection { 0 };
     glm::vec4 _frustum { -50, 50, -50, 50 };

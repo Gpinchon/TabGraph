@@ -72,6 +72,7 @@ uniform t_Textures		Texture;
 #ifdef LIGHTSHADER
 	layout(location = 0) out vec4	out_0;
 	layout(location = 1) out vec4	out_1;
+	layout(location = 2) out vec4	out_2;
 	vec4	_CDiff; //BRDF CDiff, Transparency
 	vec3	_Emissive;
 	vec4	_F0; //BRDF F0, BRDF Alpha

@@ -13,6 +13,20 @@ template <typename... Args>
 class Signal
 {
 public:
+	using SlotID = uint32_t;
+	class Connection {
+	public:
+		Slot(const Signal<Args...>* signal, SlotID slotNbr) : _signal(signal), _slotNbr(slotNbr) {}
+		void Disconnect() {
+			if (_signal != nullptr) {
+				_signal->Disconnect(_slotNbr);
+				_signal = nullptr;
+			}
+		};
+	private:
+		const Signal<Args...>* _signal{ nullptr };
+		SlotID _slotNbr{ 0 };
+	};
 	Signal() = default;
 	~Signal() = default;
 
@@ -24,7 +38,7 @@ public:
 	*/
 	auto Connect(std::function<void(Args...)> const& slot) {
 		_slots[++_currentSlotID] = slot;
-		return _currentSlotID;
+		return Signal::Slot(this, _currentSlotID);
 	}
 
 	/**
@@ -41,7 +55,7 @@ public:
 			else
 				Disconnect(_currentSlotID);
 			});
-		return _currentSlotID;
+		return Signal::Slot(this, _currentSlotID);
 	}
 
 	/**
@@ -55,7 +69,7 @@ public:
 			else
 				this->Disconnect(_currentSlotID);
 			});
-		return _currentSlotID;
+		return Signal::Slot(this, _currentSlotID);
 	}
 
 	/**
@@ -97,6 +111,7 @@ public:
 	}
 
 private:
-	std::unordered_map<uint32_t, std::function<void(Args...)>> _slots;
-	uint32_t _currentSlotID{ 0 };
+	//std::vector<Signal<Args...>::Slot*> _slots;
+	std::unordered_map<SlotID, std::pair<std::function<void(Args...)>, Signal<Args...>::Slot>> _slots;
+	SlotID _currentSlotID{ 0 };
 };

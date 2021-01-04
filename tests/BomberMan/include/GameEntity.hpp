@@ -6,6 +6,7 @@ class RigidBody;
 
 class GameEntity : public Node {
 public:
+    GameEntity(const GameEntity& entity);
     GameEntity(const std::string& name, const std::string& entityType);
     GameEntity(const std::string& entityType);
     std::string Type() const;

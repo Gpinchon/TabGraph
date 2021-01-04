@@ -6,8 +6,8 @@ R""(
 #define	KERNEL_SIZE 8
 #define SAMPLES 4
 #elif SSAO_QUALITY == 3
-#define	KERNEL_SIZE 8
-#define SAMPLES 8
+#define	KERNEL_SIZE 4
+#define SAMPLES 4
 #else //SSAO_QUALITY == 4
 #define	KERNEL_SIZE 16
 #define SAMPLES 8
@@ -16,8 +16,18 @@ R""(
 #define STRENGTH 1.f
 #define RADIUS 0.05f
 
+float InterleavedGradientNoise(vec2 uv, float FrameId)
+{
+	// magic values are found by experimentation
+	uv += FrameId * (vec2(47, 17) * 0.695f);
+
+    const vec3 magic = vec3( 0.06711056f, 0.00583715f, 52.9829189f );
+    return fract(magic.z * fract(dot(uv, magic.xy)));
+}
+
 void	SSAO()
 {
+	//float sampleAngle = InterleavedGradientNoise(ScreenTexCoord(), FrameNumber % 8) * 6.283285;
 	float	sampleAngle = random(CubeTexCoord());
 	/*float	s = sin(sampleAngle);
 	float	c = cos(sampleAngle);

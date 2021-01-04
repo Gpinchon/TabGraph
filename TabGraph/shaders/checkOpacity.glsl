@@ -36,17 +36,27 @@ ivec4 stipple = ivec4(
 );
 
 int StipplePattern(in vec2 coord) {
-	uint offset = (FrameNumber + DrawID) % 4;
-	//float noise = InterleavedGradientNoise(coord, FrameNumber % 8);
-	//return noise > 0.5 ? 1 : 0;
-	//uint offset = (DrawID + int(noise * 117)) % 4;
+	float noise = InterleavedGradientNoise(coord, FrameNumber % 8);
+	return Opacity() > noise ? 1 : 0;
+	uint x = int(coord.x) % 4;
+	uint y = int(coord.y) % 4;
+	uint offsetX = DrawID % 4;
+	uint offsetY = uint(noise * 117) % 4;
+	return Opacity() > thresholdMatrix[(x + offsetX) % 4][(y + offsetY) % 4] ? 1 : 0;
+}
+
+/*int StipplePattern(in vec2 coord) {
+	//uint offset = (FrameNumber + DrawID) % 4;
+	float noise = InterleavedGradientNoise(coord, FrameNumber % 8);
+	return noise > 0.5 ? 1 : 0;
+	uint offset = (DrawID + int(noise * 117)) % 4;
 	uint x = int(coord.x) % 2;
 	uint y = int(coord.y) % 2;
 	uint index = x + y * 2 + offset;
 	return stipple[index % 4];
-}
+}*/
 
-float StipplePattern(float alpha, vec2 vP)
+float StipplePattern(vec2 vP, float alpha)
 {
 	const float jitterTable[4] =
 	{

@@ -49,10 +49,6 @@ Shader::Shader(const std::string& name, const Shader::Type& type)
     }
 }
 
-void Shader::_FixedUpdateGPU(float)
-{
-}
-
 /*std::shared_ptr<Shader> Shader::Get(unsigned index)
 {
     if (index >= _shaders.size())

@@ -94,13 +94,11 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float delta) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {
         auto now = std::chrono::high_resolution_clock::now();
         if (now - _lastAccessTime >= _timeBeforeCaching && !_cached)
             _cache();
     };
-    virtual void _FixedUpdateGPU(float /*delta*/) override {};
 };
 
 class FileBufferData : public BufferData {
@@ -161,9 +159,8 @@ private:
     virtual void _LoadGPU() override;
     virtual void _UnloadGPU() override;
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float delta) override;
+    virtual void _UpdateGPU(float delta);
     virtual void _FixedUpdateCPU(float delta) override {};
-    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     std::filesystem::path _uri { "" };
     //BufferData _rawData;
     GLuint _glid { 0 };
@@ -171,4 +168,5 @@ private:
     size_t _byteLength { 0 };
     bool _mapped { false };
     void* _mappingPointer { nullptr };
+    uint32_t _updateGPUSlot{ 0 };
 };

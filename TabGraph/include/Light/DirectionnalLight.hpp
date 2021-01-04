@@ -22,6 +22,7 @@ private:
     void DrawShadowFinite();
     glm::mat4 ShadowProjectionMatrixInfinite() const;
     glm::mat4 ShadowProjectionMatrixFinite() const;
+    glm::mat4 ShadowViewMatrix() const;
     glm::vec3 _direction{ 0, 1, 0 };
     bool _infinite{ true };
 };

@@ -85,9 +85,7 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float) override {};
-    virtual void _UpdateGPU(float) override {};
     virtual void _FixedUpdateCPU(float) override {};
-    virtual void _FixedUpdateGPU(float) override {};
     Transform _currentTransform;
     Transform _nextTransform;
     float _mass { 0 };

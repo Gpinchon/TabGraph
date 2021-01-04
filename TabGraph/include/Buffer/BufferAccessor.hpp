@@ -81,9 +81,7 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     size_t _byteOffset { 0 };
     GLenum _componentType { 0 };
     bool _normalized { false };

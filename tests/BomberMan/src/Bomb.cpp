@@ -27,6 +27,14 @@ Bomb::Bomb()
     _height = 0;
 }
 
+Bomb::Bomb(const Bomb& bomb) : GameEntity(bomb)
+    , _range(bomb._range)
+    , _timer(bomb._timer)
+    , _spawnTime(std::chrono::high_resolution_clock::now())
+    , _bombMaterial(GetComponentInChildrenByName<Material>("Body"))
+{
+}
+
 auto CreateBomb() {
     auto bomb = Component::Create<Bomb>();
     auto bombAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomb/bomb.gltf");

@@ -9,6 +9,7 @@ class Material;
 class Bomb : public GameEntity {
 public:
     Bomb();
+    Bomb(const Bomb&);
     static std::shared_ptr<Bomb> Create(const glm::ivec2& position);
     virtual void Die() override;
     void ResetTimer();

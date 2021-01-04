@@ -63,9 +63,7 @@ protected:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     int64_t _geometryShader;
     int64_t _materialShader;
     int64_t _texture_diffuse;

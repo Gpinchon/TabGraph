@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-27 18:48:20
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-11-30 22:39:45
+* @Last Modified time: 2020-12-23 18:47:58
 */
 #include "Transform.hpp"
 
@@ -10,17 +10,42 @@
 
 static size_t s_transformNbr = 0;
 
-Transform::Transform() : Transform("Transform_" + std::to_string(++s_transformNbr))
+Transform::Transform()
+    : Component("Transform_" + std::to_string(++s_transformNbr))
 {
+    PositionChanged.ConnectMember(this, &Transform::_OnPositionChanged);
+    RotationChanged.ConnectMember(this, &Transform::_OnRotationChanged);
+    ScaleChanged.ConnectMember(this, &Transform::_OnScaleChanged);
 }
+
+Transform::Transform(const Transform& transform)
+    : Component(transform)
+    , _Position(transform._Position)
+    , _Rotation(transform._Rotation)
+    , _Scale(transform._Scale)
+    , _positionChanged(transform._positionChanged)
+    , _rotationChanged(transform._rotationChanged)
+    , _scaleChanged(transform._scaleChanged)
+    , _localTransformMatrix(transform._localTransformMatrix)
+    , _localTranslationMatrix(transform._localTranslationMatrix)
+    , _localRotationMatrix(transform._localRotationMatrix)
+    , _localScaleMatrix(transform._localScaleMatrix)
+    , _parent(transform._parent)
+{
+    PositionChanged.ConnectMember(this, &Transform::_OnPositionChanged);
+    RotationChanged.ConnectMember(this, &Transform::_OnRotationChanged);
+    ScaleChanged.ConnectMember(this, &Transform::_OnScaleChanged);
+}
+
+Transform::Transform(const std::string& name)
+    : Transform()
+{
+    SetName(name);
+};
 
 glm::mat4 Transform::WorldTransformMatrix()
 {
-    if (_worldTransformNeedsUpdate) {
-        _SetWorldTransformMatrix(WORLDTRANSFORMMATRIX(GetParent()) * GetLocalTransformMatrix());
-        _worldTransformNeedsUpdate = false;
-    }
-    return _worldTransformMatrix;
+    return WORLDTRANSFORMMATRIX(GetParent()) * GetLocalTransformMatrix();
 }
 
 glm::mat4 Transform::WorldTranslationMatrix()
@@ -38,14 +63,16 @@ glm::mat4 Transform::WorldScaleMatrix()
     return WORLDTRANSFORMMATRIX(GetParent()) * GetLocalScaleMatrix();
 }
 
-inline glm::mat4 Transform::GetLocalTransformMatrix() {
+inline glm::mat4 Transform::GetLocalTransformMatrix()
+{
     if (_positionChanged || _rotationChanged || _scaleChanged) {
         _SetLocalTransformMatrix(GetLocalTranslationMatrix() * GetLocalRotationMatrix() * GetLocalScaleMatrix());
     }
     return _localTransformMatrix;
 }
 
-inline glm::mat4 Transform::GetLocalTranslationMatrix() {
+inline glm::mat4 Transform::GetLocalTranslationMatrix()
+{
     if (_positionChanged) {
         _SetLocalTranslationMatrix(glm::translate(GetPosition()));
         _positionChanged = false;
@@ -53,7 +80,8 @@ inline glm::mat4 Transform::GetLocalTranslationMatrix() {
     return _localTranslationMatrix;
 }
 
-inline glm::mat4 Transform::GetLocalRotationMatrix() {
+inline glm::mat4 Transform::GetLocalRotationMatrix()
+{
     if (_rotationChanged) {
         _SetLocalRotationMatrix(glm::mat4_cast(GetRotation()));
         _rotationChanged = false;
@@ -61,7 +89,8 @@ inline glm::mat4 Transform::GetLocalRotationMatrix() {
     return _localRotationMatrix;
 }
 
-inline glm::mat4 Transform::GetLocalScaleMatrix() {
+inline glm::mat4 Transform::GetLocalScaleMatrix()
+{
     if (_scaleChanged) {
         _SetLocalScaleMatrix(glm::scale(GetScale()));
         _scaleChanged = false;
@@ -153,54 +182,42 @@ std::shared_ptr<Transform> Transform::GetParent() const
 
 void Transform::SetParent(std::shared_ptr<Transform> parent)
 {
-    if (parent == shared_from_this() || GetParent() == parent)
+    if (GetParent() == parent || parent.get() == this)
         return;
     _parent = parent;
-    parent->WorldPositionChanged.ConnectMember<Transform>(std::static_pointer_cast<Transform>(shared_from_this()), &Transform::_OnParentPositionChanged);
-    parent->WorldRotationChanged.ConnectMember<Transform>(std::static_pointer_cast<Transform>(shared_from_this()), &Transform::_OnParentRotationChanged);
-    parent->WorldScaleChanged.ConnectMember<Transform>(std::static_pointer_cast<Transform>(shared_from_this()), &Transform::_OnParentScaleChanged);
-    //parent->WorldTransformMatrixChanged.ConnectMember<Transform>(std::static_pointer_cast<Transform>(shared_from_this()), &Transform::_OnTransformUpdate);
     ParentChanged.Emit(parent);
 }
 
-inline void Transform::_FixedUpdateCPU(float) {
-    /*if (_worldTransformNeedsUpdate)
-    {
-        _SetWorldTransformMatrix(GetParent() ? GetParent()->WorldTransformMatrix() : glm::mat4(1.f) * GetLocalTransformMatrix());
-        _worldTransformNeedsUpdate = false;
-    }*/
-}
-
-void Transform::_SetWorldTransformMatrix(const glm::mat4& matrix)
+inline void Transform::_FixedUpdateCPU(float)
 {
-    if (matrix != _worldTransformMatrix) {
-        _worldTransformMatrix = matrix;
-        WorldTransformMatrixChanged.Emit(matrix);
-    }
 }
 
-inline void Transform::_SetLocalTransformMatrix(const glm::mat4& matrix) {
+inline void Transform::_SetLocalTransformMatrix(const glm::mat4& matrix)
+{
     if (matrix != _localTransformMatrix) {
         _localTransformMatrix = matrix;
         LocalTransformMatrixChanged.Emit(matrix);
     }
 }
 
-inline void Transform::_SetLocalTranslationMatrix(const glm::mat4& matrix) {
+inline void Transform::_SetLocalTranslationMatrix(const glm::mat4& matrix)
+{
     if (matrix != _localTranslationMatrix) {
         _localTranslationMatrix = matrix;
         LocalTranslationMatrixChanged.Emit(matrix);
     }
 }
 
-inline void Transform::_SetLocalRotationMatrix(const glm::mat4& matrix) {
+inline void Transform::_SetLocalRotationMatrix(const glm::mat4& matrix)
+{
     if (matrix != _localRotationMatrix) {
         _localRotationMatrix = matrix;
         LocalRotationMatrixChanged.Emit(matrix);
     }
 }
 
-inline void Transform::_SetLocalScaleMatrix(const glm::mat4& matrix) {
+inline void Transform::_SetLocalScaleMatrix(const glm::mat4& matrix)
+{
     if (matrix != _localScaleMatrix) {
         _localScaleMatrix = matrix;
         LocalScaleMatrixChanged.Emit(matrix);

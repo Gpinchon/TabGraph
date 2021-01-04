@@ -6,6 +6,7 @@ uniform sampler2D	in_TransparentBuffer0;
 uniform sampler2D	in_TransparentBuffer1;
 uniform sampler2D	in_TransparentBuffer2;
 uniform sampler2D	in_TransparentBuffer3;
+uniform sampler2D	in_TransparentDepth;
 uniform sampler2D	in_OpaqueBuffer0;
 uniform sampler2D	in_OpaqueBuffer1;
 //uniform sampler2D	in_OpaqueBufferDepth;
@@ -44,13 +45,14 @@ float compMax(vec2 v) { return max(v.x, v.y); }
 
 void Composite()
 {
-    vec4 transparentRefract =  texelFetch(in_TransparentBuffer3, ivec2(textureSize(in_TransparentBuffer3, 0) * frag_UV), 0);
+	gl_FragDepth = texture(in_TransparentDepth, frag_UV).r;
+    vec4 transparentRefract =  texture(in_TransparentBuffer3, frag_UV, 0);
     vec2 refractUV = warpUV(vec2(0), vec2(1), frag_UV + transparentRefract.xy);
 
-	vec4 accum = texelFetch(in_TransparentBuffer0, ivec2(textureSize(in_TransparentBuffer0, 0) * frag_UV), 0);
-    float r = texelFetch(in_TransparentBuffer1, ivec2(textureSize(in_TransparentBuffer1, 0) * frag_UV), 0).r;
+	vec4 accum = texture(in_TransparentBuffer0, frag_UV, 0);
+    float r = texture(in_TransparentBuffer1, frag_UV, 0).r;
     vec4 transparentColor = vec4(accum.rgb / clamp(accum.a, 6.1*1e-4, 6.55*1e5), r);
-    vec4 transparentEmissive = vec4(texelFetch(in_TransparentBuffer2, ivec2(textureSize(in_TransparentBuffer2, 0) * frag_UV), 0).rgb, transparentColor.a);
+    vec4 transparentEmissive = vec4(texture(in_TransparentBuffer2, frag_UV, 0).rgb, transparentColor.a);
 
 	vec4 opaqueColor = sampleLod(in_OpaqueBuffer0, refractUV, transparentRefract.z);
     vec4 opaqueEmissive = sampleLod(in_OpaqueBuffer1, refractUV, transparentRefract.z);

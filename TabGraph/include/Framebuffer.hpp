@@ -17,7 +17,7 @@
 class Framebuffer : public Component {
 public:
     Framebuffer() = delete;
-    Framebuffer(const std::string& name, glm::ivec2 size, int color_attachements, int depth);
+    Framebuffer(const std::string& name, glm::ivec2 size, int color_attachements, int depth = 0);
     /** @return the currently bound Framebuffer resolution */
     static glm::ivec2 CurrentSize();
     /**
@@ -40,10 +40,10 @@ public:
         glm::ivec2 src0, glm::ivec2 src1,
         glm::ivec2 dst0, glm::ivec2 dst1,
         GLbitfield mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
-        GLenum filter = GL_LINEAR);
+        GLenum filter = GL_NEAREST);
     void BlitTo(std::shared_ptr<Framebuffer> to,
         GLbitfield mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
-        GLenum filter = GL_LINEAR);
+        GLenum filter = GL_NEAREST);
     virtual glm::ivec2 Size() const;
     virtual void Resize(const glm::ivec2& new_size);
     /** @brief Sets the texture2D to the specified index */
@@ -63,13 +63,10 @@ private:
     }
     virtual void _LoadCPU() override {};
     virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
+    virtual void _LoadGPU() override;
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateGPU(float /*delta*/) override {};
-    void resize_attachement(const int&, const glm::vec2&);
     void setup_attachements();
     std::vector<std::pair<std::shared_ptr<Texture2D>, unsigned>> _color_attachements;
     std::pair<std::shared_ptr<Texture2D>, unsigned> _depth;

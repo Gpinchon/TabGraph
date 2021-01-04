@@ -4,6 +4,10 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2020-08-13 23:42:47
 */
+
+#define USE_HIGH_PERFORMANCE_GPU
+#include "DLLExport.hpp"
+
 #include "Engine.hpp"
 #include "Config.hpp"
 #include "Game.hpp"

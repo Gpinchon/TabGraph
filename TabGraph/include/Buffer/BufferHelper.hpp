@@ -202,7 +202,6 @@ inline void BufferHelper::Set(std::shared_ptr<BufferAccessor> accessor, size_t i
     auto stride(bufferView->ByteStride() ? bufferView->ByteStride() : accessor->TotalComponentByteSize());
     auto bufferIndex(accessor->ByteOffset() + bufferView->ByteOffset() + index * stride);
     BufferHelper::Set(buffer, bufferIndex, value);
-    accessor->SetNeedsUpdateGPU(true);
 }
 
 template <typename T>
@@ -223,5 +222,4 @@ void BufferHelper::PushBack(std::shared_ptr<BufferAccessor> accessor, T value)
     buffer->SetByteLength(buffer->ByteLength() + sizeof(T));
     buffer->RawData().resize(buffer->ByteLength());
     BufferHelper::Set(accessor, accessor->Count() - 1, value);
-    accessor->SetNeedsUpdateGPU(true);
 }

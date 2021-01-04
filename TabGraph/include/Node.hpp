@@ -9,6 +9,8 @@
 
 #include "Common.hpp"
 #include "Transform.hpp" // for Transform
+#include "Event/Signal.hpp"
+
 #include <algorithm>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
@@ -35,6 +37,7 @@ class Mesh;
 class Node : public Transform {
 public:
     Node();
+    Node(const Node& node);
     Node(const std::string& name);
     virtual bool Draw(RenderPass pass, RenderMod = RenderMod::RenderAll, bool drawChildren = false);
     virtual bool DrawDepth(RenderMod = RenderMod::RenderAll, bool drawChildren = false);
@@ -68,8 +71,8 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override;
-    virtual void _FixedUpdateGPU(float /*delta*/) override {};
+    virtual void _FixedUpdateCPU(float /*delta*/) override {};
+    virtual void _UpdateMeshSkin(float);
+    Signal<float>::Slot _renderUpdateSlot;
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
 };

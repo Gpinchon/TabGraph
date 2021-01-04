@@ -78,7 +78,7 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
 
 void Geometry::_LoadGPU()
 {
-    if (LoadedGPU())
+    if (GetLoadedGPU())
         return;
     debugLog(Name());
     for (auto accessor : _accessors) {

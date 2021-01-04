@@ -230,14 +230,14 @@ void Texture2D::blur(const int& pass, const float& radius, std::shared_ptr<Shade
     _blur_buffer0->Resize(Size());
     _blur_buffer1->Resize(Size());
 
-    static auto blurVertexCode =
-#include "passthrough.vert"
-        ;
-    static auto blurFragmentCode =
-#include "blur.frag"
-        ;
     static std::shared_ptr<Shader> defaultBlurShader;
     if (defaultBlurShader == nullptr) {
+        auto blurVertexCode =
+#include "passthrough.vert"
+            ;
+        auto blurFragmentCode =
+#include "blur.frag"
+            ;
         defaultBlurShader = Component::Create<Shader>("blur");
         defaultBlurShader->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(blurVertexCode, "PassThrough();")));
         defaultBlurShader->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(blurFragmentCode, "Blur();")));

@@ -145,9 +145,7 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateGPU(float /*delta*/) override;
     //static std::vector<std::shared_ptr<Shader>> _shaders;
     GLuint _program { 0 };
     bool _texturesChanged{ false };

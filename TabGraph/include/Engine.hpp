@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "Event/Signal.hpp"
+
 #include <memory>
 #include <mutex> // for mutex
 #include <string> // for string
@@ -44,4 +46,6 @@ const std::filesystem::path ExecutionPath(void);
 const std::filesystem::path ProgramPath(void);
 /** @return ProgramPath + "/res/" */
 const std::filesystem::path ResourcePath(void);
+Signal<float>& OnFixedUpdate();
+Signal<float>& OnUpdate();
 };

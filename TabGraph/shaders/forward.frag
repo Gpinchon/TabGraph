@@ -253,7 +253,9 @@ mat3x3	tbn_matrix()
 
 void	FillFragmentData()
 {
-	_Velocity = distance(Position.xy, PreviousPosition.xy);
+	vec3 a = Position.xyz / Position.w * 0.5 + 0.5;
+	vec3 b = PreviousPosition.xyz / PreviousPosition.w * 0.5 + 0.5;
+	_Velocity = distance(a, b);
 	SetF0(vec3(0.04f));
 	SetAlpha(1.f);
 	SetWorldNormal(Input.WorldNormal);
@@ -292,6 +294,6 @@ void	FillFragmentData()
 #ifdef TEXTURE_USE_HEIGHT
 	SetWorldPosition(WorldPosition() - (WorldNormal() * ph));
 #endif
-
 }
+
 )""

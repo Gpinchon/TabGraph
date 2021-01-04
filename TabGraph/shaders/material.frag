@@ -7,7 +7,6 @@ layout(location = 0) out vec4	out_0;
 layout(location = 1) out vec4	out_1;
 layout(location = 2) out vec4	out_2;
 layout(location = 3) out vec4	out_3;
-layout(location = 4) out vec4	out_4;
 
 uniform int			RenderPass;
 uniform sampler2D	DiffuseTexture;
@@ -215,13 +214,13 @@ void Reconstruct() {
 #if OPACITYMODE == BLEND
 	float opaqueDepth = texture(OpaqueDepthTexture, ScreenTexCoord(), 0).r;
 #endif
-
+/*
 	vec4[5] diffuseSamples = SampleTexture(DiffuseTexture, ScreenTexCoord());
 	vec4[5] reflectionSamples = SampleTexture(ReflectionTexture, ScreenTexCoord());
 	vec4[5] normalSamples = SampleTexture(NormalTexture, ScreenTexCoord());
 	vec4[5] AOSamples = SampleTexture(AOTexture, ScreenTexCoord());
 	uint[5] IDSamples = SampleIDTexture(IDTexture, ScreenTexCoord());
-
+*/
 /*
 	vec4[4] diffuseSamples = GatherTexture(DiffuseTexture, ScreenTexCoord());
 	vec4[4] reflectionSamples = GatherTexture(ReflectionTexture, ScreenTexCoord());
@@ -229,6 +228,12 @@ void Reconstruct() {
 	vec4[4] AOSamples = GatherTexture(AOTexture, ScreenTexCoord());
 	uint[4] IDSamples = GatherIDTexture(IDTexture, ScreenTexCoord());
 */
+	vec4 diffuseSample = texture(DiffuseTexture, ScreenTexCoord());
+	vec4 reflectionSample = texture(ReflectionTexture, ScreenTexCoord());
+	vec4 normalSample = texture(NormalTexture, ScreenTexCoord());
+	vec4 AOSample = texture(AOTexture, ScreenTexCoord());
+	uint IDSample = texture(IDTexture, ScreenTexCoord()).r;
+
 
 	vec3	V = normalize(Camera.Position - WorldPosition());
 	vec3	N = WorldNormal();
@@ -243,28 +248,29 @@ void Reconstruct() {
 	
 	vec3	envDiffuse = EnvironmentDiffuse(sampleLOD);
 	vec3	envReflection = EnvironmentReflection(fresnel, R, sampleLOD);
-	vec4	thisColor = vec4(0);
-	float	thisTotalWeight = 0;
-	for (int i = 0; i < 5; ++i) {
+	vec4	thisColor = vec4(envDiffuse * CDiff() * (1 - AO()) + envReflection, Opacity() + Luminance(envReflection));
+	if (IDSample == DrawID) {
+		vec3 thisEnvDiffuse = (envDiffuse * CDiff()) * (1 - AOSample.r);
+		vec3 diffuse = thisEnvDiffuse + diffuseSample.rgb * CDiff();
+		vec3 reflection = mix(envReflection, reflectionSample.xyz * fresnel, reflectionSample.a);
+		vec3 specular = diffuseSample.rgb * diffuseSample.a * fresnel;
+		float weight = max(dot(normalSample.xyz, WorldNormal()), 0);
+		vec4 color = vec4(diffuse + reflection + specular, min(1, Opacity() + Luminance(specular + reflection)));
+		thisColor = color * weight + thisColor * (1 - weight);
+	}
+	//else
+	//	discard;
+	/*for (int i = 0; i < 1; ++i) {
 		if (IDSamples[i] == DrawID) {
 			vec3 thisEnvDiffuse = (envDiffuse * CDiff()) * (1 - AOSamples[i].r);
 			vec3 diffuse = thisEnvDiffuse + diffuseSamples[i].rgb * CDiff();
 			vec3 reflection = mix(envReflection, reflectionSamples[i].xyz * fresnel, reflectionSamples[i].a);
 			vec3 specular = diffuseSamples[i].rgb * diffuseSamples[i].a * fresnel;
 			float weight = max(dot(normalSamples[i].xyz, WorldNormal()), 0);
-			thisTotalWeight += weight;
-			thisColor += vec4(diffuse + reflection + specular, Luminance(specular + reflection)) * weight;
-			break;
+			vec4 color = vec4(diffuse + reflection + specular, min(1, Opacity() + Luminance(specular + reflection)));
+			thisColor = color * weight + thisColor * (1 - weight);
 		}
-	}
-	//if (thisTotalWeight == 0)
-	//	discard;
-	thisColor /= max(1, thisTotalWeight);
-	vec4 defaultColor = vec4(envDiffuse * CDiff() * (1 - AO()) + envReflection, Opacity() + Luminance(envReflection));
-	thisColor = mix(defaultColor, thisColor, min(1, thisTotalWeight));
-	if (thisTotalWeight > 0) {
-		thisColor.a = min(Opacity() + thisColor.a, 1);
-	}
+	}*/
 	#if OPACITYMODE == BLEND
 	if (opaqueDepth < gl_FragCoord.z)
 		discard;
@@ -283,11 +289,9 @@ void Reconstruct() {
 	vec2	refractOffset = refractDir.xy * min(0.05, depthDiff);//min(0.025, depthDiff);
 
 	out_3 = vec4(refractOffset, Alpha() * Opacity(), 0);
-	out_4 = vec4(_Velocity);
 	#else
 	out_1 = vec4(max(thisColor.rgb - 1, 0) + Emissive(), thisColor.a);
 	out_0 = vec4(thisColor.rgb + Emissive(), thisColor.a);
-	out_2 = vec4(_Velocity);
 	#endif
 }
 

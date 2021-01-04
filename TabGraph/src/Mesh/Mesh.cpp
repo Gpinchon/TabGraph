@@ -10,7 +10,6 @@
 #include "Camera/Camera.hpp" // for Camera
 #include "Debug.hpp"
 #include "Material/Material.hpp" // for Material
-
 #include "Mesh/MeshSkin.hpp"
 #include "Node.hpp" // for Node
 #include "Physics/BoundingAABB.hpp" // for BoundingAABB
@@ -20,22 +19,26 @@
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureBuffer.hpp"
 #include "Transform.hpp"
+#include "Render.hpp"
+
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/transform.hpp>
 
 size_t meshNbr(0);
 
-Mesh::Mesh()
-    : Component("Mesh_" + std::to_string(meshNbr))
-{
-    meshNbr++;
-}
-
 Mesh::Mesh(const std::string& name)
     : Component(name)
 {
+}
+
+Mesh::Mesh()
+    : Mesh("Mesh_" + std::to_string(meshNbr))
+{
+    Render::OnUpdate().ConnectMember(this, &Mesh::_UpdateGPU);
     meshNbr++;
 }
+
+
 
 void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
 {
@@ -44,7 +47,7 @@ void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
 
 void Mesh::_LoadGPU()
 {
-    if (LoadedGPU())
+    if (GetLoadedGPU())
         return;
     debugLog(Name());
     if (HasComponentOfType<TextureBuffer>())
@@ -102,12 +105,10 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
     std::shared_ptr<Transform> geometryTransform(HasComponentOfType<Transform>() ? GetComponent<Transform>() : nullptr);
-    auto finalTranformMatrix(transform->WorldTransformMatrix() * (geometryTransform ? geometryTransform->WorldTransformMatrix() : glm::mat4(1.f)));
+    _transformMatrix = (transform->WorldTransformMatrix() * (geometryTransform ? geometryTransform->WorldTransformMatrix() : glm::mat4(1.f)));
 
     bool ret = false;
-    auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
-    static auto prevViewMatrix = Scene::Current()->CurrentCamera()->ViewMatrix();
-    static auto prevProjectionMatrix = Scene::Current()->CurrentCamera()->ViewMatrix();
+    auto normal_matrix = glm::inverseTranspose(_transformMatrix);
 
     LoadGPU();
     std::shared_ptr<Shader> last_shader;
@@ -149,7 +150,7 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
                     shader->SetTexture("OpaqueDepthTexture", Render::OpaqueBuffer()->depth());
             }
             shader->SetUniform("PrevMatrix.Model", _prevTransformMatrix);
-            shader->SetUniform("Matrix.Model", finalTranformMatrix);
+            shader->SetUniform("Matrix.Model", _transformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             shader->SetTexture("Joints", HasComponentOfType<TextureBuffer>() ? JointMatrices() : nullptr);
             shader->SetUniform("Skinned", HasComponentOfType<MeshSkin>());
@@ -164,9 +165,6 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
         shader->use(false);
         glEnable(GL_CULL_FACE);
     }
-    prevViewMatrix = Scene::Current()->CurrentCamera()->ViewMatrix();
-    prevProjectionMatrix = Scene::Current()->CurrentCamera()->ViewMatrix();
-    _prevTransformMatrix = finalTranformMatrix;
     return ret;
 }
 
@@ -238,14 +236,6 @@ void Mesh::SetJointMatrices(const std::shared_ptr<TextureBuffer>& jointMatrices)
 {
     RemoveComponent(jointMatrices);
     SetComponent(jointMatrices);
-}
-
-void Mesh::_FixedUpdateGPU(float delta)
-{
-    /*if (JointMatrices() != nullptr) {
-        JointMatrices()->Accessor()->GetBufferView()->GetBuffer()->UpdateGPU(delta);
-    }
-    SetNeedsFixedUpdateGPU(false);*/
 }
 
 void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)

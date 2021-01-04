@@ -230,15 +230,17 @@ uvec3 Rand3DPCG16(ivec3 p)
 
 void	SSR()
 {
+	//if (Opacity() < 1)
+	//	return;
 	vec3	V = normalize(WorldPosition() - Camera.Position);
-	vec4	outColor = vec4(0);
 	float	SceneDepth = WorldToClip(WorldPosition()).w;
 	uvec2	PixelPos = ivec2(gl_FragCoord.xy);
 	uint	frameIndex = FrameNumber % 8;
 	float	Noise =	InterleavedGradientNoise(gl_FragCoord.xy, frameIndex);
 	uvec3	Random = Rand3DPCG16(ivec3(PixelPos, frameIndex));
-	float	sampleAngle = randomAngle(vec3(Random));
-	for( int i = 0; i < NumRays; i++ ) {
+	//float	sampleAngle = randomAngle(vec3(Random));
+	out_1 = vec4(0);
+	for(int i = 0; i < NumRays; i++ ) {
 		float	StepOffset = Noise;
 		StepOffset -= 0.5;
 		//Generate random normals using Hammersley distribution
@@ -246,7 +248,7 @@ void	SSR()
 		//Compute Half vector using GGX Importance Sampling
 		//Project Half vector from Tangent space to World space
 		vec3	H = ImportanceSampleGGX(E, WorldNormal(), Alpha());
-		H = rotateAround(H, WorldNormal(), sampleAngle);
+		//H = rotateAround(H, WorldNormal(), Noise * 6.2831853);
 		vec3	R = reflect(V, H);
 		vec4	SSRResult = castRay(R, StepOffset);
 		if (SSRResult.w < 1)
@@ -255,12 +257,10 @@ void	SSR()
 			//Attenuate reflection factor when getting closer to screen border
 			vec4 SampleColor = vec4(SampleScreenColor(SSRResult.xyz).rgb, SSRParticipation);
 			SampleColor.rgb /= 1 + Luminance(SampleColor.rgb);
-			outColor += SampleColor * SSRParticipation;
+			out_1 = SampleColor * SSRParticipation + out_1 * (1 - SSRParticipation);
 		}
 	}
-	outColor /= NumRays;
-	outColor.rgb /= 1 - Luminance(outColor.rgb);
-	outColor *= GetRoughnessFade();
-	out_1 = max(outColor, 0);
+	out_1.rgb /= 1 - Luminance(out_1.rgb);
+	out_1 *= GetRoughnessFade();
 }
 )""

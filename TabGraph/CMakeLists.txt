@@ -23,7 +23,6 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/FPSCamera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/OrbitCamera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Component.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
@@ -187,6 +186,7 @@ set(TABGRAPH_SHADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/specularGlossiness.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/ssao.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SSR.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/TemporalAccumulation.frag
 )
 
 set(PLUGINS_SOURCES

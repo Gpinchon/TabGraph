@@ -504,7 +504,7 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const std::s
                             geometry->SetAccessor(accessorKey, accessor);
                     }
                 } catch (std::exception&) {
-                    debugLog("Geometry " + geometry->Name() + " has no material")
+                    debugLog("Geometry " + geometry->Name() + " has no attributes")
                 }
                 try {
                     auto accessor(container->GetComponent<BufferAccessor>(primitive["indices"].GetInt()));

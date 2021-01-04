@@ -68,9 +68,11 @@ private:
     virtual void _LoadGPU() override;
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float /*delta*/) override {};
+    virtual void _UpdateGPU(float /*delta*/) {
+        _prevTransformMatrix = _transformMatrix;
+    };
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateGPU(float /*delta*/) override;
     GLenum _cull_mod { GL_BACK };
-    glm::mat4 _prevTransformMatrix;
+    glm::mat4 _transformMatrix{ 1 };
+    glm::mat4 _prevTransformMatrix{ 1 };
 };

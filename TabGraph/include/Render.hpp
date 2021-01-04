@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "Event/Signal.hpp"
 #include <memory> // for shared_ptr
 #include <atomic>
 
@@ -35,27 +36,6 @@ void AddPostTreatment(std::shared_ptr<Shader> shader);
 	*	@param shader The post-treatment Shader to remove
 	*/
 void RemovePostTreatment(std::shared_ptr<Shader> shader);
-/**
-	*	@brief Set the rendering scale factor
-	*	@param quality The new rendering scale factor
-	*/
-void SetInternalQuality(float quality);
-/**
-	*	@brief Returns the rendering scale factor
-	*	@return The current rendering scale factor
-	*/
-float InternalQuality();
-/**
-	*	@brief Returns the delta time between the last two frames
-	*	@return The delta time between the two ast frames
-	*/
-double DeltaTime();
-
-/**
-	*	@brief Returns the delta time between the last two fixed updates
-	*	@return The delta time between the last two fixed updates (usually 0.015)
-	*/
-double FixedDeltaTime();
 
 uint32_t FrameNumber();
 
@@ -65,4 +45,7 @@ const std::shared_ptr<Framebuffer> GeometryBuffer();
 const std::shared_ptr<Framebuffer> LightBuffer();
 
 const std::shared_ptr<Geometry> DisplayQuad();
+
+Signal<float>& OnFixedUpdate();
+Signal<float>& OnUpdate();
 };

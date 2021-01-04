@@ -11,6 +11,8 @@
 #include "Physics/BoundingAABB.hpp"
 #include "Physics/RigidBody.hpp"
 #include "Transform.hpp"
+#include "Engine.hpp"
+
 #include <glm/ext.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -20,20 +22,32 @@
 size_t nodeNbr = 0;
 
 Node::Node()
-    : Transform("Node_" + std::to_string(nodeNbr))
+    : Transform("Node_" + std::to_string(++nodeNbr)),
+    _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(1)))
 {
-    nodeNbr++;
+    _renderUpdateSlot = Engine::OnFixedUpdate().ConnectMember(this, &Node::_UpdateMeshSkin);
+}
+
+Node::Node(const Node& node) : Transform(node)
+{
 }
 
 Node::Node(const std::string& name)
-    : Transform(name)
-    , _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(1)))
+    : Node()
 {
-    nodeNbr++;
+    SetName(name);
 }
 
 Node::~Node()
 {
+    _renderUpdateSlot.Disconnect();
+    //Engine::OnFixedUpdate().Disconnect(_renderUpdateSlot);
+}
+
+void Node::_UpdateMeshSkin(float)
+{
+    for (auto& mesh : GetComponents<Mesh>())
+        mesh->UpdateSkin(std::static_pointer_cast<Transform>(shared_from_this()));
 }
 
 bool Node::Draw(RenderPass pass, RenderMod renderMod, bool drawChildren)
@@ -60,12 +74,6 @@ bool Node::DrawDepth(RenderMod renderMod, bool drawChildren)
             drew |= child->DrawDepth(renderMod, drawChildren);
     }
     return drew;
-}
-
-void Node::_FixedUpdateCPU(float)
-{
-    if (HasComponentOfType<Mesh>())
-        GetComponent<Mesh>()->UpdateSkin(std::static_pointer_cast<Transform>(shared_from_this()));
 }
 
 #include <iostream>

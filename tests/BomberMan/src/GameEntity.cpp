@@ -11,6 +11,11 @@
 #include "Animation/Animation.hpp"
 #include "Transform.hpp"
 
+GameEntity::GameEntity(const GameEntity& entity) : Node(entity),
+    _size(entity._size), _height(entity._height), _type(entity._type), _animations(entity._animations), _currentAnimation(entity._currentAnimation)
+{
+}
+
 GameEntity::GameEntity(const std::string& name, const std::string& entityType)
     : Node(name)
     , _type(entityType)

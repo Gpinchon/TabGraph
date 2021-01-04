@@ -23,6 +23,6 @@ public:
 
 private:
 	Channel _path{Channel::None};
-	std::weak_ptr<Node> _target;
+	std::shared_ptr<Node> _target;
 	size_t _samplerIndex{0};
 };

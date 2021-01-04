@@ -133,9 +133,7 @@ private:
     void _LoadGPU() override {};
     void _UnloadGPU() override {};
     void _UpdateCPU(float) override {};
-    void _UpdateGPU(float) override {};
     void _FixedUpdateCPU(float) override {};
-    void _FixedUpdateGPU(float) override {};
     BoundingElement::Type _type { BoundingElement::Type::Invalid };
     //std::array<std::shared_ptr<Callback<Intersection(const BoundingElement &)>>, MaxType> _intersectionCallback;
     BoundingElement() = delete;

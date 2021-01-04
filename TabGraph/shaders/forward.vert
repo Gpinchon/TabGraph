@@ -152,21 +152,4 @@ void	FillVertexData()
 	PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * PrevMatrix.Model * vec4(in_Position, 1.0);
 }
 
-/*void	FillOut()
-{
-	frag_WorldPosition = Output.Position;
-	frag_WorldNormal = Output.Normal;
-	frag_TexCoord = Output.UV;
-	gl_Position = Camera.Matrix.Projection * Camera.Matrix.View * vec4(Output.Position, 1);
-}*/
-
-/*void	ApplyTechnique();
-
-void main()
-{
-	FillIn();
-	ApplyTechnique();
-	FillOut();
-}*/
-
 )""

@@ -2,7 +2,7 @@
 
 std::shared_ptr<Node> AnimationChannel::Target() const
 {
-	return _target.lock();
+	return _target;
 }
 
 void AnimationChannel::SetTarget(std::shared_ptr<Node> target)

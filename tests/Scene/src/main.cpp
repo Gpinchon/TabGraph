@@ -4,8 +4,8 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2020-08-20 17:09:08
 */
-//#define USE_HIGH_PERFORMANCE_GPU
-//#include "DLLExport.hpp"
+#define USE_HIGH_PERFORMANCE_GPU
+#include "DLLExport.hpp"
 
 #include "Animation/Animation.hpp"
 #include "Assets/AssetsParser.hpp"
@@ -104,7 +104,8 @@ void CallbackQuality(const SDL_KeyboardEvent& event)
 {
     if (event.type == SDL_KEYUP || (event.repeat != 0u))
         return;
-    Render::SetInternalQuality(CYCLE(Render::InternalQuality() + 0.25, 0.5, 1.5));
+    auto quality = CYCLE(Config::Get("InternalQuality", 1.f) + 0.25f, 0.5f, 1.5f);
+    Config::Set("InternalQuality", quality);
 }
 
 void CallbackAnimation(const SDL_KeyboardEvent& event)
@@ -259,13 +260,13 @@ int main(int argc, char** argv)
             scene->SetCurrentCamera(fpsCamera);
             auto dirLight =  Component::Create<DirectionnalLight>("MainLight", glm::vec3(0.5), glm::vec3(1, 10, 1), false);
             dirLight->SetHalfSize(glm::vec3(50));
-            auto pointLight = Component::Create<PointLight>("PointLight", glm::vec3(1, 0, 0));
-            pointLight->SetPosition(glm::vec3(0, 0.1, 0));
-            pointLight->SetPower(2);
+            //auto pointLight = Component::Create<PointLight>("PointLight", glm::vec3(1, 0, 0));
+            //pointLight->SetPosition(glm::vec3(0, 0.1, 0));
+           // pointLight->SetPower(2);
             //pointLight->SetParent(fpsCamera);
             //s_light = dirLight;
             scene->Add(dirLight);
-            scene->Add(pointLight);
+            //scene->Add(pointLight);
             //pointLight->SetParent(scene->CurrentCamera());
             auto newEnv = Component::Create<Environment>("Environment");
             newEnv->SetDiffuse(Component::Create<Cubemap>("EnvironmentCube", TextureParser::parse("Environment", (Engine::ResourcePath() / "env/diffuse.hdr").string())));

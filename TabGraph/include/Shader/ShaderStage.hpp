@@ -31,9 +31,7 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float) override {};
-    virtual void _UpdateGPU(float) override {};
     virtual void _FixedUpdateCPU(float) override {};
-    virtual void _FixedUpdateGPU(float) override {};
     std::string _code{ "" };
     std::string _technique{ "" };
 };
@@ -75,9 +73,7 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateGPU(float /*delta*/) override {};
     GLuint _glid { 0 };
     GLenum _stage { 0 };
     std::string _fullCode { "" };

@@ -14,20 +14,17 @@
 Environment::Environment(const std::string& name)
     : Component(name)
 {
+    auto envShader =
+#include "environment.frag"
+        ;
     SetShader(Component::Create<Shader>(name + "Shader", Shader::Type::LightingShader));
-    GetShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(
-        "void OutputEnv() { \
-        out_0 = texture(Texture.Environment.Diffuse, CubeTexCoord()); \
-        out_1 = vec4(0); \
-        }",
-        "OutputEnv();"
-        ));
+    GetShader()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(envShader, "OutputEnv();")));
 }
 
 void Environment::Draw()
 {
-    GetShader()->SetTexture("Texture.Environment.Diffuse", GetDiffuse());
-    GetShader()->SetTexture("Texture.Environment.Irradiance", GetIrradiance());
+    GetShader()->SetTexture("Environment.Diffuse", GetDiffuse());
+    GetShader()->SetTexture("Environment.Irradiance", GetIrradiance());
     GetShader()->use();
     Render::DisplayQuad()->Draw();
     GetShader()->use(false);
