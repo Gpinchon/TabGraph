@@ -144,12 +144,11 @@ void Render::Private::_thread(void)
             Shader::SetGlobalUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
             Shader::SetGlobalUniform("Camera.InvMatrix.View", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
             Shader::SetGlobalUniform("Camera.InvMatrix.Projection", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
-            //Render::Private::Instance().UpdateGPU(Instance()._deltaTime);
-            Render::Private::Instance().OnUpdate().Emit(ticks - lastTicks);
+            Render::Private::Instance().OnUpdate()(ticks - lastTicks);
+            lastTicks = ticks;
             if (ticks - lastTicksFixed >= 0.015) {
-                Render::Private::Instance().OnFixedUpdate().Emit(ticks - lastTicksFixed);
+                Render::Private::Instance().OnFixedUpdate()(ticks - lastTicksFixed);
                 lastTicksFixed = ticks;
-                //Render::Private::Instance().FixedUpdateGPU(Instance()._fixedDeltaTime);
             }
             Instance()._drawing = true;
             Render::Private::Scene();
@@ -160,7 +159,6 @@ void Render::Private::_thread(void)
             Shader::SetGlobalUniform("PrevCamera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
             Shader::SetGlobalUniform("PrevCamera.InvMatrix.View", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
             Shader::SetGlobalUniform("PrevCamera.InvMatrix.Projection", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
-            lastTicks = ticks;
         }
     }
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
