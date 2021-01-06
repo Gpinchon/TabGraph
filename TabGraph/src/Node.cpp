@@ -25,11 +25,12 @@ Node::Node()
     : Transform("Node_" + std::to_string(++nodeNbr)),
     _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(1)))
 {
-    _renderUpdateSlot = Engine::OnFixedUpdate().ConnectMember(this, &Node::_UpdateMeshSkin);
+    Engine::OnFixedUpdate().ConnectMember(this, &Node::_UpdateMeshSkin);
 }
 
 Node::Node(const Node& node) : Transform(node)
 {
+    Engine::OnFixedUpdate().ConnectMember(this, &Node::_UpdateMeshSkin);
 }
 
 Node::Node(const std::string& name)
@@ -40,7 +41,7 @@ Node::Node(const std::string& name)
 
 Node::~Node()
 {
-    _renderUpdateSlot.Disconnect();
+    //_renderUpdateSlot.Disconnect();
     //Engine::OnFixedUpdate().Disconnect(_renderUpdateSlot);
 }
 

@@ -73,6 +73,5 @@ private:
     virtual void _UpdateCPU(float /*delta*/) override {};
     virtual void _FixedUpdateCPU(float /*delta*/) override {};
     virtual void _UpdateMeshSkin(float);
-    Signal<float>::Slot _renderUpdateSlot;
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
 };
