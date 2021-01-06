@@ -34,7 +34,7 @@ Mesh::Mesh(const std::string& name)
 Mesh::Mesh()
     : Mesh("Mesh_" + std::to_string(meshNbr))
 {
-    Render::OnUpdate().ConnectMember(this, &Mesh::_UpdateGPU);
+    Render::OnBeforeRender().ConnectMember(this, &Mesh::_UpdateGPU);
     meshNbr++;
 }
 

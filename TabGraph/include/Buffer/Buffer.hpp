@@ -52,7 +52,7 @@ public:
             if (index + size > _flushRangeLength)
                 _flushRangeLength = index + size;
             if (!_updateGPUSlot.Connected())
-                _updateGPUSlot = Render::OnUpdate().ConnectMember(this, &Buffer::_UpdateGPU);
+                _updateGPUSlot = Render::OnBeforeRender().ConnectMember(this, &Buffer::_UpdateGPU);
         }
         else
             std::memcpy(_data.data() + index, data, size);
