@@ -59,8 +59,8 @@ public:
     static const std::shared_ptr<Geometry> DisplayQuad();
     static std::vector<std::shared_ptr<Shader>>& PostTreatments();
 
-    static Signal<float>& OnFixedUpdate() { return Instance()._onFixedUpdate; };
-    static Signal<float>& OnUpdate() { return Instance()._onUpdate; };
+    static Signal<float>& OnAfterRender() { return Instance()._onAfterRender; };
+    static Signal<float>& OnBeforeRender() { return Instance()._onBeforeRender; };
 
 private:
     virtual std::shared_ptr<Component> _Clone() override {
@@ -83,8 +83,8 @@ private:
     uint32_t _frame_nbr { 0 };
     std::thread _rendering_thread;
     std::shared_ptr<Texture2D> _brdf;
-    Signal<float> _onFixedUpdate;
-    Signal<float> _onUpdate;
+    Signal<float> _onAfterRender;
+    Signal<float> _onBeforeRender;
 };
 } // namespace Render
 
@@ -128,15 +128,14 @@ void Render::Private::StopRenderingThread(void)
 
 void Render::Private::_thread(void)
 {
-    double ticks;
+    double ticks{ SDL_GetTicks() / 1000.0 };
     double lastTicks;
-    double lastTicksFixed = lastTicks = SDL_GetTicks() / 1000.0;
 
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
     while (Instance()._loop) {
         if (Render::Private::NeedsUpdate()) {
-            ticks = SDL_GetTicks() / 1000.0;
+            
             Instance()._frame_nbr++;
             Shader::SetGlobalUniform("FrameNumber", Render::Private::FrameNumber());
             Shader::SetGlobalUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
@@ -144,16 +143,16 @@ void Render::Private::_thread(void)
             Shader::SetGlobalUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
             Shader::SetGlobalUniform("Camera.InvMatrix.View", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
             Shader::SetGlobalUniform("Camera.InvMatrix.Projection", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));
-            Render::Private::Instance().OnUpdate()(ticks - lastTicks);
             lastTicks = ticks;
-            if (ticks - lastTicksFixed >= 0.015) {
-                Render::Private::Instance().OnFixedUpdate()(ticks - lastTicksFixed);
-                lastTicksFixed = ticks;
-            }
+            ticks = SDL_GetTicks() / 1000.0;
+            Render::Private::Instance().OnBeforeRender()(ticks - lastTicks);
             Instance()._drawing = true;
             Render::Private::Scene();
             Instance()._drawing = false;
             Instance()._needsUpdate = false;
+            lastTicks = ticks;
+            ticks = SDL_GetTicks() / 1000.0;
+            Render::Private::Instance().OnBeforeRender()(ticks - lastTicks);
             Shader::SetGlobalUniform("PrevCamera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
             Shader::SetGlobalUniform("PrevCamera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
             Shader::SetGlobalUniform("PrevCamera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
@@ -717,14 +716,14 @@ const std::shared_ptr<Geometry> Render::DisplayQuad()
     return Render::Private::DisplayQuad();
 }
 
-Signal<float>& Render::OnFixedUpdate()
+Signal<float>& Render::OnBeforeRender()
 {
-    return Render::Private::OnFixedUpdate();
+    return Render::Private::OnBeforeRender();
 }
 
-Signal<float>& Render::OnUpdate()
+Signal<float>& Render::OnAfterRender()
 {
-    return Render::Private::OnUpdate();
+    return Render::Private::OnAfterRender();
 }
 
 const std::shared_ptr<Framebuffer> Render::OpaqueBuffer()

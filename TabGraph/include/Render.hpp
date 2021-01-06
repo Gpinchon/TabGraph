@@ -46,6 +46,6 @@ const std::shared_ptr<Framebuffer> LightBuffer();
 
 const std::shared_ptr<Geometry> DisplayQuad();
 
-Signal<float>& OnFixedUpdate();
-Signal<float>& OnUpdate();
+Signal<float>& OnBeforeRender();
+Signal<float>& OnAfterRender();
 };
