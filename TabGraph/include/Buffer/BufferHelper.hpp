@@ -46,7 +46,8 @@ inline std::shared_ptr<Buffer> BufferHelper::CreateBuffer(std::vector<T> bufferV
 {
     auto byteLength(bufferVector.size() * sizeof(T));
     auto buffer(Component::Create<Buffer>(byteLength, usage));
-    std::memcpy(buffer->RawData().data(), bufferVector.data(), byteLength);
+    buffer->Set(bufferVector.data(), 0, bufferVector.size());
+    //std::memcpy(buffer->RawData().data(), bufferVector.data(), byteLength);
     return buffer;
 }
 
@@ -155,7 +156,8 @@ inline T &BufferHelper::Get(std::shared_ptr<Buffer> buffer, size_t index)
     assert(buffer != nullptr);
     if (index + sizeof(T) > buffer->ByteLength())
         throw std::runtime_error(std::string("Buffer index(") + std::to_string(index + sizeof(T)) + ") out of bound(" + std::to_string(buffer->ByteLength()) + ")");
-    return *reinterpret_cast<T*>(&buffer->RawData().at(index));
+    //return *reinterpret_cast<T*>(&buffer->RawData().at(index));
+    return *reinterpret_cast<T*>(buffer->Get(index));
 }
 
 template <typename T>
@@ -178,12 +180,13 @@ void BufferHelper::Set(std::shared_ptr<Buffer> buffer, size_t index, T value)
 {
     if (index + sizeof(T) > buffer->ByteLength())
         throw std::runtime_error(std::string("Buffer index(") + std::to_string(index + sizeof(T)) + ") out of bound(" + std::to_string(buffer->ByteLength()) + ")");
-    auto pointer(buffer->RawData().data() + index);
-    auto currentValue = *reinterpret_cast<T*>(pointer);
+    buffer->Set(&value, index);
+    //auto pointer(buffer->RawData().data() + index);
+    /*auto currentValue = *reinterpret_cast<T*>(buffer->Get(index));
     if (value != currentValue) {
         std::memcpy(pointer, &value, sizeof(T));
         buffer->SetNeedsUpdateGPU(true);
-    }
+    }*/
 }
 
 template <typename T>
@@ -220,6 +223,6 @@ void BufferHelper::PushBack(std::shared_ptr<BufferAccessor> accessor, T value)
     accessor->SetCount(accessor->Count() + 1);
     bufferView->SetByteLength(bufferView->ByteLength() + sizeof(T));
     buffer->SetByteLength(buffer->ByteLength() + sizeof(T));
-    buffer->RawData().resize(buffer->ByteLength());
+    //buffer->RawData().resize(buffer->ByteLength());
     BufferHelper::Set(accessor, accessor->Count() - 1, value);
 }
