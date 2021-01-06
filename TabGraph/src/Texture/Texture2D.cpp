@@ -14,8 +14,6 @@ Texture2D::Texture2D(const std::string& iname, glm::vec2 s, GLenum f,
     GLenum fi, GLenum data_format, void* data)
     : Texture(iname, GL_TEXTURE_2D)
 {
-    auto buffer = Component::Create<BufferData>();
-    SetComponent(buffer);
     _format = f;
     _internal_format = fi;
     _data_format = data_format;
@@ -31,8 +29,8 @@ Texture2D::Texture2D(const std::string& iname, glm::vec2 s, GLenum f,
 
         uint64_t dataTotalSize = _size.x * _size.y * (_bpp / 8);
         debugLog(dataTotalSize);
-        buffer->resize(dataTotalSize);
-        std::memcpy(buffer->data(), data, dataTotalSize);
+        _data.resize(dataTotalSize);
+        std::memcpy(_data.data(), data, dataTotalSize);
     }
     set_parameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -70,7 +68,7 @@ void Texture2D::load()
     if (_size.x > 0 && _size.y > 0) {
         glBindTexture(_target, _glid);
         glTexImage2D(_target, 0, _internal_format, _size.x, _size.y, 0, _format,
-            _data_format, GetComponent<BufferData>()->data());
+            _data_format, _data.data());
         glBindTexture(_target, 0);
     }
     restore_parameters();
@@ -85,7 +83,7 @@ glm::ivec2 Texture2D::Size() const
 
 std::byte* Texture2D::texelfetch(const glm::ivec2& uv)
 {
-    if (GetComponent<BufferData>()->empty()) {
+    if (_data.empty()) {
         return (nullptr);
     }
     auto nuv = glm::vec2(
@@ -99,7 +97,7 @@ std::byte* Texture2D::texelfetch(const glm::ivec2& uv)
 void Texture2D::set_pixel(const glm::vec2& uv, const glm::vec4 value)
 {
     int opp;
-    auto& data = *GetComponent<BufferData>();
+    auto& data = _data;
 
     opp = _bpp / 8;
     if (data.empty()) {
@@ -118,7 +116,7 @@ void Texture2D::set_pixel(const glm::vec2& uv, const glm::vec4 value)
 void Texture2D::set_pixel(const glm::vec2& uv, const GLubyte* value)
 {
     int opp;
-    auto& data = *GetComponent<BufferData>();
+    auto& data = _data;
 
     opp = _bpp / 8;
     if (data.empty()) {
@@ -132,14 +130,14 @@ void Texture2D::set_pixel(const glm::vec2& uv, const GLubyte* value)
 
 std::byte* Texture2D::data()
 {
-    return GetComponent<BufferData>()->data();
+    return _data.data();
 }
 
 glm::vec4 Texture2D::sample(const glm::vec2& uv)
 {
     glm::vec3 vt[4];
     glm::vec4 value { 0, 0, 0, 1 };
-    auto& data = *GetComponent<BufferData>();
+    auto& data = _data;
 
     if (data.empty()) {
         return (value);
@@ -173,7 +171,7 @@ void Texture2D::Resize(const glm::ivec2& ns)
 {
     if (Size() == ns)
         return;
-    auto& data = *GetComponent<BufferData>();
+    auto& data = _data;
     std::vector<std::byte> d;
     if (!data.empty()) {
         auto opp = _bpp / 8;
