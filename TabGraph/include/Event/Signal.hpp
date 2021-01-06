@@ -1,117 +1,189 @@
+/*
+* @Author: gpinchon
+* @Date:   2021-01-04 09:42:56
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-04 20:41:35
+*/
 #pragma once
 
-#include <unordered_map>
 #include <functional>
 #include <memory>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
 
 /**
 * Inspired by schneegans
 * See : https://schneegans.github.io/tutorials/2015/09/20/signal-slot
 */
 
-template <typename... Args>
-class Signal
-{
+class Trackable {
 public:
-	using SlotID = uint32_t;
-	class Connection {
-	public:
-		Slot(const Signal<Args...>* signal, SlotID slotNbr) : _signal(signal), _slotNbr(slotNbr) {}
-		void Disconnect() {
-			if (_signal != nullptr) {
-				_signal->Disconnect(_slotNbr);
-				_signal = nullptr;
-			}
-		};
-	private:
-		const Signal<Args...>* _signal{ nullptr };
-		SlotID _slotNbr{ 0 };
-	};
-	Signal() = default;
-	~Signal() = default;
+    class TrackablePointee {};
+    Trackable() = default;
+    Trackable(const Trackable&) : _controlBlock{ static_cast<TrackablePointee*>(0) } {};
+    auto GetWeakPtr() { return _controlBlock; }
+private:
+    std::shared_ptr<TrackablePointee> _controlBlock{ static_cast<TrackablePointee*>(0), [](TrackablePointee*) {} };
+};
 
-	Signal(const Signal &) {}
+template <typename T>
+bool is_uninitialized(std::weak_ptr<T> const& weak) {
+    using wt = std::weak_ptr<T>;
+    return !weak.owner_before(wt{}) && !wt{}.owner_before(weak);
+}
 
-	/**
+template <typename... Args>
+class Signal : public Trackable {
+public:
+    using SlotID = uint32_t;
+    struct Slot {
+        Slot() = default;
+        ~Slot() = default;
+        bool Connected() {
+            return !_signalRef.expired();
+        }
+        void Disconnect()
+        {
+            if (Connected())
+                _signal->Disconnect(this->_id);
+            Reset();
+        }
+
+    private:
+        friend Signal;
+        void Reset()
+        {
+            _signal = nullptr;
+            _func = nullptr;
+            _id = 0;
+            _signalRef.reset();
+            _trackedObjectRef.reset();
+        }
+        Slot(std::function<void(Args...)> func, SlotID id,
+            Signal* signal, Trackable *trackable = nullptr
+            )
+            : _func(func)
+            , _id(id)
+            , _signal(signal)
+            , _signalRef(signal->GetWeakPtr())
+            , _trackedObjectRef(trackable ? trackable->GetWeakPtr() : nullptr)
+        {
+        };
+        auto operator()(Args... args) {
+            return _func(args...);
+        }
+        std::function<void(Args...)> _func{};
+        SlotID _id{ 0 };
+        Signal* _signal;
+        std::weak_ptr<TrackablePointee> _signalRef;
+        std::weak_ptr<TrackablePointee> _trackedObjectRef;
+    };
+    struct ScoppedSlot : public Slot {
+        ScoppedSlot() = default;
+        ~ScoppedSlot() {
+            Disconnect();
+        }
+        ScoppedSlot(const ScoppedSlot& other)
+        {
+            *this = other;
+        }
+        ScoppedSlot(const Slot& other)
+        {
+            *this = other;
+        }
+        ScoppedSlot& operator=(const ScoppedSlot& other) {
+            Slot::operator=(other);
+            return *this;
+        }
+        ScoppedSlot& operator=(const Slot& other) {
+            Slot::operator=(other);
+            return *this;
+        }
+    };
+
+    Signal() {
+    };
+    ~Signal() {
+    };
+    Signal(const Signal&)
+        : Signal()
+    {
+    }
+
+    /**
 	* @brief Connects a row functor to the signal
 	* @return The slot ID
 	*/
-	auto Connect(std::function<void(Args...)> const& slot) {
-		_slots[++_currentSlotID] = slot;
-		return Signal::Slot(this, _currentSlotID);
-	}
+    auto Connect(std::function<void(Args...)> const& func)
+    {
+        ++_currentSlotID;
+        //if slot is not member method, tracked object is this signal -> never expires until Signal's destruction
+        auto slot = Slot(func, _currentSlotID, this, this);
+        _slots[_currentSlotID] = slot;
+        return slot;
+    }
 
-	/**
-	* @brief Connects member method using smart ptr, disconnects if inst was destroyed
-	* @argument inst : the class instance the functor will use
-	* @argument func : the functor to connect
-	* @return The slot ID
-	*/
-	template<typename T>
-	auto ConnectMember(std::weak_ptr<T> inst, void (T::* func)(Args...)) {
-		_slots[++_currentSlotID] = ([=](Args... args) {
-			if (inst.lock() != nullptr)
-				(inst.lock().get()->*func)(args...);
-			else
-				Disconnect(_currentSlotID);
-			});
-		return Signal::Slot(this, _currentSlotID);
-	}
+    /**
+    * @brief Connect member using raw ptr, less safe if object gets destroyed
+    * @argument inst : the class instance the functor will use
+    * @argument func : the functor to connect
+    * @return The slot ID
+    */
+    template <typename T>
+    auto ConnectMember(T* inst, void (T::* func)(Args...))
+    {
+        static_assert(std::is_base_of<Trackable, T>::value, "T must inherit Trackable");
+        ++_currentSlotID;
+        auto lambda = [inst, func](Args... args) {
+            (inst->*func)(args...);
+        };
+        return _slots[_currentSlotID] = Slot(lambda, _currentSlotID, this, inst);
+    }
 
-	/**
+    /**
 	* @brief const overload of ConnectMember
 	*/
-	template<typename T>
-	auto ConnectMember(std::weak_ptr<T> inst, void (T::* func)(Args...) const) {
-		_slots[++_currentSlotID] = ([slotID = _currentSlotID, this](Args... args) {
-			if (inst.lock() != nullptr)
-				(inst.lock())->*func(args...);
-			else
-				this->Disconnect(_currentSlotID);
-			});
-		return Signal::Slot(this, _currentSlotID);
-	}
+    template <typename T>
+    auto ConnectMember(T* inst, void (T::*func)(Args...) const)
+    {
+        static_assert(std::is_base_of<Trackable, T>::value, "T must inherit Trackable");
+        ++_currentSlotID;
+        auto lambda = [inst, func](Args... args) {
+            (inst->*func)(args...);
+        };
+        return _slots[_currentSlotID] = Slot(lambda, _currentSlotID, this, inst);
+    }
 
-	/**
-	* @brief Connect member using raw ptr, less safe if object gets destroyed
-	* @argument inst : the class instance the functor will use
-	* @argument func : the functor to connect
-	* @return The slot ID
-	*/
-	template<typename T>
-	auto ConnectMember(T* inst, void (T::* func)(Args...)) {
-		return Connect([=](Args... args) {
-			(inst->*func)(args...);
-		});
-	}
-
-	/**
-	* @brief const overload of ConnectMember
-	*/
-	template<typename T>
-	auto ConnectMember(T* inst, void (T::* func)(Args...) const) {
-		return Connect([=](Args... args) {
-			(inst->*func)(args...);
-			});
-	}
-
-	/**
+    /**
 	* @brief disconnects a slot from the signal
 	*/
-	auto Disconnect(uint32_t slotID) {
-		_slots.erase(slotID);
-	}
+    auto Disconnect(SlotID slot)
+    {
+        _slots.erase(slot);
+    }
 
-	/**
+    /**
 	* @brief Emits the signal and calls the functors connected to it
 	*/
-	auto Emit(Args... args) const {
-		for (const auto& slot : _slots)
-			slot.second(args...);
-	}
+    auto operator()(Args... args)
+    {
+        std::vector<SlotID> toDisconnect;
+        for (auto& slotIt : _slots) {
+            auto& slot = slotIt.second;
+            //if slot is not member method, tracked object is this signal -> never expires until Signal's destruction
+            if (slot._trackedObjectRef.expired()) {
+                toDisconnect.push_back(slot._id);
+                slot.Reset();
+                continue;
+            }
+            slot(args...);
+        }
+        for (const auto& id : toDisconnect)
+            Disconnect(id);
+    }
 
 private:
-	//std::vector<Signal<Args...>::Slot*> _slots;
-	std::unordered_map<SlotID, std::pair<std::function<void(Args...)>, Signal<Args...>::Slot>> _slots;
-	SlotID _currentSlotID{ 0 };
+    std::unordered_map<SlotID, Slot> _slots;
+    SlotID _currentSlotID { 0 };
 };
