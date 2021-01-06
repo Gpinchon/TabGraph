@@ -7,7 +7,7 @@
 
 #pragma once
 
-//#include "Tools/memory.hpp"
+#include "Event/Signal.hpp"
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -25,7 +25,42 @@
 ** ALWAYS STORE IN A SHARED_PTR !!!
 */
 
-class Object : public std::enable_shared_from_this<Object> {
+/** Use this to declare a new property */
+#define PROPERTY(type, var, ...)    \
+public:                             \
+    Signal<type> var##Changed;      \
+    type Get##var() const           \
+    {                               \
+        return _##var;              \
+    }                               \
+    void Set##var(const type& val)  \
+    {                               \
+        if (val != _##var) {        \
+            _##var = val;           \
+            var##Changed(val);      \
+        }                           \
+    }                               \
+                                    \
+private:                            \
+    type _##var { __VA_ARGS__ };
+
+#define PRIVATEPROPERTY(type, var, ...) \
+private:                                \
+    Signal<type> var##Changed;          \
+    type Get##var() const               \
+    {                                   \
+        return _##var;                  \
+    }                                   \
+    void Set##var(const type& val)      \
+    {                                   \
+        bool changed = val != _##var;   \
+        _##var = val;                   \
+        if (changed)                    \
+            var##Changed(val);          \
+    }                                   \
+    type _##var { __VA_ARGS__ };
+
+class Object : public std::enable_shared_from_this<Object>, public Trackable {
 public:
     Object();
     Object(const std::string& name);
