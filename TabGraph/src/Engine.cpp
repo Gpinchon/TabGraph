@@ -44,12 +44,8 @@
 struct EnginePrivate {
     EnginePrivate();
     static EnginePrivate& Get();
-    static void Update(void);
-    static void FixedUpdate(void);
     std::atomic<bool> loop { false };
     int8_t swapInterval { 1 };
-    double deltaTime { 0 };
-    double fixedDeltaTime { 0 };
     std::filesystem::path programPath;
     std::filesystem::path execPath;
     Signal<float> onFixedUpdate;
@@ -91,23 +87,18 @@ void Engine::Start()
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
     Render::Start();
     while (EnginePrivate::Get().loop) {
-        //std::this_thread::sleep_for(std::chrono::milliseconds(16));
         if (Render::NeedsUpdate())
             continue;
         ticks = SDL_GetTicks() / 1000.0;
-        EnginePrivate::Get().deltaTime = ticks - lastTicks;
-        lastTicks = ticks;
         SDL_PumpEvents();
-        EnginePrivate::Get().onUpdate.Emit(ticks - lastTicks);
-        Scene::Current()->UpdateCPU(EnginePrivate::Get().deltaTime);
+        EnginePrivate::Get().onUpdate(ticks - lastTicks);
         if (ticks - fixedTiming >= 0.015) {
-            EnginePrivate::Get().fixedDeltaTime = ticks - fixedTiming;
-            fixedTiming = ticks;
             Events::refresh();
-            EnginePrivate::Get().onFixedUpdate.Emit(ticks - fixedTiming);
-            Scene::Current()->FixedUpdateCPU(EnginePrivate::Get().fixedDeltaTime);
+            EnginePrivate::Get().onFixedUpdate(ticks - fixedTiming);
             Render::RequestRedraw();
+            fixedTiming = ticks;
         }
+        lastTicks = ticks;
     }
     Render::Stop();
 }
@@ -125,16 +116,6 @@ void Engine::SetSwapInterval(int8_t i)
 int8_t Engine::SwapInterval()
 {
     return (EnginePrivate::Get().swapInterval);
-}
-
-double Engine::DeltaTime()
-{
-    return (EnginePrivate::Get().deltaTime);
-}
-
-double Engine::FixedDeltaTime(void)
-{
-    return EnginePrivate::Get().fixedDeltaTime;
 }
 
 const std::filesystem::path Engine::ProgramPath()
