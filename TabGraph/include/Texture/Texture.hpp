@@ -19,7 +19,6 @@
 
 class Shader;
 class Framebuffer;
-class BufferData;
 
 class Texture : public Component {
 public:
@@ -65,7 +64,7 @@ protected:
     GLenum _format { 0 };
     GLenum _internal_format { 0 };
     //BufferData& _data;
-    //std::vector<GLubyte> _data { };
+    std::vector<std::byte> _data { };
     bool _loaded { false };
     bool _needsReload { false };
     bool _mipMapsGenerated { false };

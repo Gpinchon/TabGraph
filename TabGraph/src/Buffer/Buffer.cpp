@@ -18,11 +18,10 @@ size_t bufferNbr = 0;
 
 Buffer::Buffer(size_t byteLength, GLenum usage)
     : Component("Buffer_" + std::to_string(bufferNbr))
-    , _byteLength(byteLength) //_rawData(byteLength, std::byte(0))
     , _usage(usage)
+    , _byteLength(byteLength)
+    , _data(byteLength, std::byte(0))
 {
-    Render::OnUpdate().ConnectMember(this, &Buffer::_UpdateGPU);
-    SetComponent(Component::Create <BufferData>(nullptr, byteLength));
     bufferNbr++;
 }
 
@@ -35,17 +34,8 @@ Buffer::~Buffer()
 
 void Buffer::_UpdateGPU(float)
 {
-    if (!GetNeedsUpdateGPU())
-        return;
-    else if (Mapped()) {
-        Unmap();
-        return;
-    }
-    auto data = GetComponent<BufferData>();
-    if (!data->empty())
-        std::memcpy(Map(BufferAccess::Write), data->data(), ByteLength());
-    Unmap();
-    SetNeedsUpdateGPU(false);
+    glFlushMappedNamedBufferRange(Glid(), _flushRangeOffset, _flushRangeLength);
+    _updateGPUSlot.Disconnect();
 }
 
 auto GetMapFunction()
@@ -84,53 +74,64 @@ void Buffer::Allocate()
     if (glCreateBuffers == nullptr) //We are not using OGL 4.5
     {
         glGenBuffers(1, &_glid);
-        glNamedBufferDataEXT(
+        /*glNamedBufferDataEXT(
             Glid(),
             ByteLength(),
             nullptr,
-            Usage());
+            Usage());*/
+        glNamedBufferStorageEXT(
+            Glid(),
+            ByteLength(),
+            nullptr,
+            GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+            //Usage()
+        );
     } else {
         glCreateBuffers(1, &_glid);
-        glNamedBufferData(
+        /*glNamedBufferData(
             Glid(),
             ByteLength(),
             nullptr,
-            Usage());
+            Usage());*/
+        glNamedBufferStorage(
+            Glid(),
+            ByteLength(),
+            nullptr,
+            GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT
+            //Usage()
+        );
     }
+    MapRange(0, _data.size(), GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
 }
 
 bool Buffer::Mapped() const
 {
-    return _mapped;
+    return _mappingPointer != nullptr;
 }
 
-void* Buffer::MappingPointer() const
+std::byte* Buffer::MappingPointer()
 {
     return _mappingPointer;
 }
 
-void* Buffer::Map(GLenum access)
-{
-    if (Glid() == 0)
-        Allocate();
-    if (Mapped())
-        throw std::runtime_error("Buffer" + Name() + " : is already mapped.");
-    auto ptr(GetMapFunction()(Glid(), access));
-    _mapped = true;
-    _mappingPointer = ptr;
-    return ptr;
-}
+//void* Buffer::Map(GLenum access)
+//{
+//    if (Glid() == 0)
+//        Allocate();
+//    if (Mapped())
+//        throw std::runtime_error("Buffer" + Name() + " : is already mapped.");
+//    auto ptr(GetMapFunction()(Glid(), access));
+//    _mappingPointer = (std::byte*)ptr;
+//    return ptr;
+//}
 
-void* Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
+std::byte* Buffer::MapRange(size_t offset, size_t length, GLbitfield access)
 {
     if (Glid() == 0)
         Allocate();
     if (Mapped())
-        throw std::runtime_error("Buffer" + Name() + " : is already mapped.");
-    auto ptr(GetMapRangeFunction()(Glid(), offset, length, access));
-    _mapped = true;
-    _mappingPointer = ptr;
-    return ptr;
+        return _mappingPointer;//throw std::runtime_error("Buffer" + Name() + " : is already mapped.");    
+    return _mappingPointer = (std::byte*)GetMapRangeFunction()(Glid(), offset, length, access);
 }
 
 void Buffer::Unmap()
@@ -140,14 +141,7 @@ void Buffer::Unmap()
         return;
     }
     GetUnmapFunction()(Glid());
-    _mapped = false;
     _mappingPointer = nullptr;
-}
-
-void Buffer::Load()
-{
-    _LoadCPU();
-    _LoadGPU();
 }
 
 static inline bool is_base64(unsigned char c)
@@ -222,19 +216,18 @@ void Buffer::_LoadCPU()
     if (GetLoadedCPU())
         return;
     debugLog(Name());
-    auto rawData = GetComponent<BufferData>();
-    rawData->resize(ByteLength(), std::byte(0));
+    _data.resize(ByteLength(), std::byte(0));
     if (Uri() != "") {
         auto data(ParseData(Uri().string()));
         if (data.empty()) {
             debugLog(Uri());
             std::ifstream is(Uri(), std::ios::binary);
-            if (!is.read((char*)rawData->data(), ByteLength()))
+            if (!is.read((char*)_data.data(), ByteLength()))
                 throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
             if (is.gcount() != ByteLength())
                 throw std::runtime_error(Name() + " : Incomplete buffer read");
         } else
-            *rawData = data;
+            _data = data;
     }
     SetLoadedCPU(true);
 }
@@ -251,20 +244,29 @@ void Buffer::_LoadGPU()
             debugLog(Uri());
             debugLog(ByteLength());
             std::ifstream is(Uri(), std::ios::binary);
-            if (!is.read((char*)Map(BufferAccess::Write), ByteLength())) {
-                Unmap();
+            if (!is.read((char*)MappingPointer(), ByteLength())) {
                 throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
             }
-            Unmap();
+            /*if (!is.read((char*)Map(BufferAccess::Write), ByteLength())) {
+                Unmap();
+                throw std::runtime_error(Uri().string() + ": " + std::strerror(errno));
+            }*/
+            //Unmap();
             if (is.gcount() != ByteLength())
                 throw std::runtime_error(Name() + " : Incomplete buffer read");
         } else {
-            std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
-            Unmap();
+            std::memcpy(MappingPointer(), data.data(), ByteLength());
+            //std::memcpy(Map(BufferAccess::Write), data.data(), ByteLength());
+            //Unmap();
         }
-    } else if (!GetComponent<BufferData>()->empty()) {
-        _UpdateGPU(0.f);
+    } else if (!_data.empty()) {
+        std::memcpy(MappingPointer(), _data.data(), ByteLength());
+        //std::memcpy(Map(BufferAccess::Write), _data.data(), ByteLength());
+        //Unmap();
+        //_UpdateGPU(0.f);
     }
+    _data.clear();
+    _data.shrink_to_fit();
     SetLoadedGPU(true);
 }
 
@@ -276,23 +278,28 @@ void Buffer::_LoadGPU()
 
 void Buffer::_UnloadCPU()
 {
-    GetComponent<BufferData>()->resize(0);
+    _data.resize(0);
     SetLoadedCPU(false);
 }
 
 void Buffer::_UnloadGPU()
 {
+    if (!GetLoadedGPU())
+        return;
+    _data.resize(_byteLength);
+    for (auto i = 0u; i < _byteLength; ++i)
+        _data.at(i) = *(_mappingPointer + i);
     Unmap();
     glDeleteBuffers(1, &_glid);
     _glid = 0;
     SetLoadedGPU(false);
 }
 
-std::vector<std::byte>& Buffer::RawData()
-{
-    _LoadCPU();
-    return *GetComponent<BufferData>();
-}
+//std::vector<std::byte>& Buffer::RawData()
+//{
+//    _LoadCPU();
+//    return _data;
+//}
 
 std::filesystem::path Buffer::Uri() const
 {
@@ -307,13 +314,13 @@ void Buffer::SetUri(std::string uri)
 size_t Buffer::ByteLength() const
 {
     return _byteLength;
-    //return _rawData.size();
 }
 
 void Buffer::SetByteLength(size_t byteLength)
 {
+    _UnloadGPU();
     _byteLength = byteLength;
-    //_rawData.resize(byteLength);
+    _data.resize(byteLength);
 }
 
 GLenum Buffer::Usage() const
@@ -330,25 +337,3 @@ GLuint Buffer::Glid() const
 {
     return _glid;
 }
-
-#include <cstdio>
-#include "Engine.hpp"
-
-BufferData::BufferData() : _cachePath(tmpnam(nullptr))
-{
-}
-
-BufferData::BufferData(std::byte* data, size_t totalByteSize) : BufferData()
-{
-    _data.resize(totalByteSize);
-    if (data != nullptr) {
-        for (size_t i = 0; i < totalByteSize; ++i)
-            _data.push_back(data[i]);
-    }
-}
-
-BufferData::BufferData(std::vector<std::byte> data) : BufferData()
-{
-    _data = data;
-}
-
