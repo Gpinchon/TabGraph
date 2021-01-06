@@ -664,6 +664,7 @@ void Render::Private::Scene()
     
     finalRenderBuffer->BlitTo(nullptr, GL_COLOR_BUFFER_BIT);
     Window::swap();
+    glFinish();
 }
 
 std::vector<std::shared_ptr<Shader>>& Render::Private::PostTreatments()
