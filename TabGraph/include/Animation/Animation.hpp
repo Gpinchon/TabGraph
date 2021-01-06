@@ -9,6 +9,8 @@
 #include "Animation/AnimationInterpolator.hpp"
 #include "Animation/AnimationSampler.hpp"
 #include "Component.hpp"
+#include "Event/Signal.hpp"
+
 #include <chrono>
 
 template <typename Signature>
@@ -17,6 +19,7 @@ class Callback;
 class Animation : public Component {
 public:
     Animation();
+    Animation(const Animation &other);
     AnimationChannel GetChannel(AnimationChannel::Channel channel);
 
     std::vector<AnimationChannel> &GetChannels();
@@ -26,7 +29,7 @@ public:
     /** start playing the animation */
     void Play();
     /** advance the animation */
-    void Advance();
+    void Advance(float delta);
     /** stop the animation */
     void Stop();
     /** true if the animation is currently playing */
@@ -50,12 +53,12 @@ private:
     virtual void _LoadGPU() override {};
     virtual void _UnloadGPU() override {};
     virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override;
+    virtual void _FixedUpdateCPU(float /*delta*/) override {};
     std::vector<AnimationInterpolator> _interpolators;
     std::vector<AnimationChannel> _channels;
     std::vector<AnimationSampler> _samplers;
     bool _playing { false };
     bool _repeat { false };
     float _currentTime { 0 };
-    //std::shared_ptr<Callback<void()>> _playCallback { nullptr };
+    Signal<float>::ScoppedSlot _advanceSlot;
 };

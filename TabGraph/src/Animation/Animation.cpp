@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-19 13:07:33
+* @Last Modified time: 2021-01-06 21:48:00
 */
 #include "Animation/Animation.hpp"
 #include "Buffer/BufferAccessor.hpp"
@@ -12,6 +12,7 @@
 #include "Mesh/Mesh.hpp"
 #include "Node.hpp"
 #include "Transform.hpp"
+#include "Engine.hpp"
 
 #include <glm/common.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -21,16 +22,28 @@ size_t animationNbr = 0;
 Animation::Animation()
     : Component("Animation_" + std::to_string(animationNbr))
 {
-    //_playCallback = Callback<void()>::Create(std::bind(&Animation::Play, this));
     animationNbr++;
 }
 
-std::vector<AnimationChannel> &Animation::GetChannels()
+Animation::Animation(const Animation& other)
+{
+    _interpolators = other._interpolators;
+    _channels = other._channels;
+    _samplers = other._samplers;
+    _playing = other._playing;
+    _repeat = other._repeat;
+    _currentTime = other._currentTime;
+    _advanceSlot = other._advanceSlot;
+    if (_playing)
+        _advanceSlot = Engine::OnFixedUpdate().ConnectMember(this, &Animation::Advance);
+}
+
+std::vector<AnimationChannel>& Animation::GetChannels()
 {
     return _channels;
 }
 
-std::vector<AnimationSampler> &Animation::GetSamplers()
+std::vector<AnimationSampler>& Animation::GetSamplers()
 {
     return _samplers;
 }
@@ -56,7 +69,7 @@ void Animation::Reset()
     }
 }
 
-void Animation::_FixedUpdateCPU(float delta)
+void Animation::Advance(float delta)
 {
     if (!Playing())
         return;
@@ -136,10 +149,6 @@ void Animation::_FixedUpdateCPU(float delta)
     }
 }
 
-void Animation::Advance()
-{
-}
-
 void Animation::Play()
 {
     if (!Playing()) {
@@ -149,13 +158,15 @@ void Animation::Play()
         }
         _currentTime = 0;
         _playing = true;
-        SetNeedsFixedUpdateCPU(true);
+        _advanceSlot = Engine::OnFixedUpdate().ConnectMember(this, &Animation::Advance);
+        //SetNeedsFixedUpdateCPU(true);
     }
 }
 
 void Animation::Stop()
 {
     Reset();
+    _advanceSlot.Disconnect();
     _playing = false;
     SetNeedsFixedUpdateCPU(false);
 }

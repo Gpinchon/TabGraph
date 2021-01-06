@@ -185,7 +185,7 @@ void Transform::SetParent(std::shared_ptr<Transform> parent)
     if (GetParent() == parent || parent.get() == this)
         return;
     _parent = parent;
-    ParentChanged.Emit(parent);
+    ParentChanged(parent);
 }
 
 inline void Transform::_FixedUpdateCPU(float)
@@ -196,7 +196,7 @@ inline void Transform::_SetLocalTransformMatrix(const glm::mat4& matrix)
 {
     if (matrix != _localTransformMatrix) {
         _localTransformMatrix = matrix;
-        LocalTransformMatrixChanged.Emit(matrix);
+        LocalTransformMatrixChanged(matrix);
     }
 }
 
@@ -204,7 +204,7 @@ inline void Transform::_SetLocalTranslationMatrix(const glm::mat4& matrix)
 {
     if (matrix != _localTranslationMatrix) {
         _localTranslationMatrix = matrix;
-        LocalTranslationMatrixChanged.Emit(matrix);
+        LocalTranslationMatrixChanged(matrix);
     }
 }
 
@@ -212,7 +212,7 @@ inline void Transform::_SetLocalRotationMatrix(const glm::mat4& matrix)
 {
     if (matrix != _localRotationMatrix) {
         _localRotationMatrix = matrix;
-        LocalRotationMatrixChanged.Emit(matrix);
+        LocalRotationMatrixChanged(matrix);
     }
 }
 
@@ -220,6 +220,6 @@ inline void Transform::_SetLocalScaleMatrix(const glm::mat4& matrix)
 {
     if (matrix != _localScaleMatrix) {
         _localScaleMatrix = matrix;
-        LocalScaleMatrixChanged.Emit(matrix);
+        LocalScaleMatrixChanged(matrix);
     }
 }

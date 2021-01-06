@@ -184,7 +184,7 @@ std::shared_ptr<Environment> Scene::GetEnvironment() const
 void Scene::SetEnvironment(const std::shared_ptr<Environment>& env)
 {
     _environmentIndex = AddComponent(env);
-    EnvironmentChanged.Emit(env);
+    EnvironmentChanged(env);
 }
 
 glm::vec3 Scene::Up() const

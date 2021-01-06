@@ -8,6 +8,7 @@
 #include "Camera/OrbitCamera.hpp"
 #include "Tools/Tools.hpp"
 #include "Transform.hpp"
+#include "Engine.hpp"
 
 OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
     : Camera(iname, proj)
@@ -16,6 +17,8 @@ OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float 
     _theta = theta;
     _radius = radius;
     SetFov(ifov);
+    _UpdateCPU(0);
+    Engine::OnFixedUpdate().ConnectMember(this, &OrbitCamera::_UpdateCPU);
 }
 
 std::shared_ptr<Transform> OrbitCamera::Target() const
