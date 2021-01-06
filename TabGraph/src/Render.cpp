@@ -360,19 +360,6 @@ auto SSRPass(std::shared_ptr<Framebuffer> gBuffer, const RenderHistory &lastRend
     lightBuffer->bind(false);
     glDisable(GL_BLEND);
 
-    static std::shared_ptr<Shader> SSRBlurShader;
-    if (SSRBlurShader == nullptr) {
-        auto blurVertexCode =
-#include "passthrough.vert"
-            ;
-        auto blurFragmentCode =
-#include "SSRBlur.frag"
-            ;
-        SSRBlurShader = Component::Create<Shader>("blur");
-        SSRBlurShader->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(blurVertexCode, "PassThrough();")));
-        SSRBlurShader->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(blurFragmentCode, "Blur();")));
-    }
-    SSRBlurShader->SetTexture("in_Texture_Normal", gBuffer->attachement(4));
     //lightBuffer->attachement(1)->blur(1, 1.5);
 }
 
