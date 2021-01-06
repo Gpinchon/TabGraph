@@ -96,7 +96,6 @@ static void parse_indice(ObjContainer& p, std::vector<std::string>& split, int v
         vindex[i][2] = -1;
     }
     for (auto i = 0u; i < split.size() && i < 3; i++) {
-        //while (i < split.size() && i < 3) {
         auto fsplit = strsplit(split[i], '/');
         auto splitLen = fsplit.size();
         auto slashCount = count_char(split[i], '/');
@@ -115,7 +114,6 @@ static void parse_indice(ObjContainer& p, std::vector<std::string>& split, int v
         } else if (splitLen == 2 && slashCount == 2) {
             vindex[1][i] = get_vi(p.vn, fsplit[1]);
         }
-        //i++;
     }
 }
 
@@ -354,24 +352,10 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
     p.container->AddComponent(Component::Create<Mesh>(path));
     auto l = 1;
     while (fgets(line, 4096, fd) != nullptr) {
-        try {
-            parse_line(p, line);
-        } catch (std::exception& e) {
-            throw std::runtime_error("Error at line : " + std::to_string(l) + " " + e.what());
-        }
+        parse_line(p, line);
         l++;
     }
     fclose(fd);
-    /*
-    if (!p.currentGeometry->v.empty() != 0u)
-    {
-        parse_vg(p);
-    }
-    else
-    {
-        throw std::runtime_error(std::string("Invalid OBJ"));
-    }
-    */
 }
 
 std::shared_ptr<AssetsContainer> OBJ::Parse(const std::filesystem::path path)
@@ -380,11 +364,7 @@ std::shared_ptr<AssetsContainer> OBJ::Parse(const std::filesystem::path path)
     auto container(Component::Create<AssetsContainer>());
 
     p.path = path;
-    try {
-        start_obj_parsing(p, path.string());
-    } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Error parsing ") + path.string() + " :\n" + e.what());
-    }
+    start_obj_parsing(p, path.string());
     container += p.container;
     auto scene(Component::Create<Scene>(path.string()));
     auto node(Component::Create<Node>(path.string() + "_node"));
