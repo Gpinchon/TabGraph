@@ -8,13 +8,11 @@
 #pragma once
 
 #include "Event/InputDevice.hpp" // for InputDevice
+#include "Event/Signal.hpp"
+
 #include <SDL_events.h> // for SDL_Event, SDL_MouseButtonEvent, SDL_Mo...
 #include <SDL_stdinc.h> // for Sint32, Uint8, SDL_bool
 #include <array> // for array
-
-typedef void (*mouse_motion_callback)(SDL_MouseMotionEvent* event);
-typedef void (*mouse_button_callback)(SDL_MouseButtonEvent* event);
-typedef void (*mouse_wheel_callback)(SDL_MouseWheelEvent* event);
 
 class Mouse : InputDevice {
 public:
@@ -23,15 +21,19 @@ public:
     static void set_relative(bool relative);
     static bool button(Uint8 button);
     static void position(Sint32& x, Sint32& y);
-    static void set_move_callback(mouse_motion_callback);
-    static void set_wheel_callback(mouse_wheel_callback);
-    static void set_button_callback(mouse_button_callback, Uint8 button);
+    static Signal<const SDL_MouseMotionEvent &>& OnMove();
+    static Signal<const SDL_MouseWheelEvent&>& OnWheel();
+    static Signal<const SDL_MouseButtonEvent &>& OnButton(uint8_t button);
+    static Signal<const SDL_MouseButtonEvent&>& OnButtonDown(uint8_t button);
+    static Signal<const SDL_MouseButtonEvent&>& OnButtonUp(uint8_t button);
 
 private:
     Mouse();
     static Mouse* _get();
     static Mouse* _instance;
-    std::array<mouse_button_callback, 5> _button_callbacks { { nullptr } };
-    mouse_motion_callback _move_callback { nullptr };
-    mouse_wheel_callback _wheel_callback { nullptr };
+    Signal<const SDL_MouseMotionEvent&> _onMove { };
+    Signal<const SDL_MouseWheelEvent&> _onWheel { };
+    std::array<Signal<const SDL_MouseButtonEvent&>, 5> _onButtonDown{ { } };
+    std::array<Signal<const SDL_MouseButtonEvent&>, 5> _onButtonUp{ { } };
+    std::array<Signal<const SDL_MouseButtonEvent&>, 5> _onButton{ { } };
 };

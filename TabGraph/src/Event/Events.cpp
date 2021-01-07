@@ -7,59 +7,47 @@
 
 #include "Event/Events.hpp"
 #include "Event/InputDevice.hpp" // for InputDevice
-#include "Callback.hpp"
 #include "Engine.hpp" // for Stop
 #include <SDL_timer.h> // for SDL_GetTicks
 #include <utility> // for pair
 
-Events* Events::_instance = nullptr;
 
 Events::Events()
 {
+    Engine::OnFixedUpdate().ConnectMember(this, &Events::_Refresh);
+    SDL_SetEventFilter(_Filter, nullptr);
 }
 
-Events& Events::_get()
+Events& Events::_Get()
 {
-    if (_instance == nullptr)
-        _instance = new Events();
-    return (*_instance);
-}
-
-double Events::delta_time()
-{
-    return (_get()._delta_time);
+    static Events events;
+    return events;
 }
 
 void Events::Add(InputDevice* device, SDL_EventType event_type)
 {
-    _get()._input_devices[event_type].insert(device);
+    _Get()._input_devices[event_type].insert(device);
 }
 
-void Events::remove(InputDevice* device, SDL_EventType event_type)
+void Events::Remove(InputDevice* device, SDL_EventType event_type)
 {
-    auto inputDevices = _get()._input_devices.find(event_type);
-    if (inputDevices != _get()._input_devices.end())
+    auto inputDevices = _Get()._input_devices.find(event_type);
+    if (inputDevices != _Get()._input_devices.end())
         inputDevices->second.erase(device);
 }
 
-void Events::AddRefreshCallback(std::shared_ptr<Callback<void()>> callback)
+Signal<float>& Events::OnRefresh()
 {
-    if (callback != nullptr)
-        _get()._rcallbacks.push_back(callback);
+    return _Get()._onRefresh;
 }
 
-/*void Events::AddRefreshCallback(t_callback callback, void *argument)
-{
-    _get()._rcallbacks.push_back(std::pair(callback, argument));
-}*/
-
-int Events::filter(void* /*unused*/, SDL_Event* event)
+int Events::_Filter(void* /*unused*/, SDL_Event* event)
 {
     if (event->type == SDL_QUIT) {
         Engine::Stop();
     }
-    auto inputdevice = _get()._input_devices.find(event->type);
-    if (inputdevice != _get()._input_devices.end()) {
+    auto inputdevice = _Get()._input_devices.find(event->type);
+    if (inputdevice != _Get()._input_devices.end()) {
         for (auto device : inputdevice->second)
             device->process_event(event);
     }
@@ -68,27 +56,10 @@ int Events::filter(void* /*unused*/, SDL_Event* event)
 
 #include "Debug.hpp"
 
-int Events::refresh()
+void Events::_Refresh(float delta)
 {
-    double ticks;
-    static double last_ticks;
-
-    ticks = SDL_GetTicks() / 1000.f;
-    _get()._delta_time = ticks - last_ticks;
-    last_ticks = ticks;
-    for (const auto &callback : _get()._rcallbacks) {
-        if (callback != nullptr)
-            (*callback)();
-    }
+    _onRefresh(delta);
     SDL_Event event;
     event.type = EVENT_REFRESH;
-    filter(nullptr, &event);
-    return (0);
-}
-
-void Events::RemoveRefreshCallback(std::shared_ptr<Callback<void()>> callback)
-{
-    _get()._rcallbacks.erase(std::remove(_get()._rcallbacks.begin(), _get()._rcallbacks.end(), callback), _get()._rcallbacks.end());
-    //TODO : Enable this when C++20 is out
-    //std::erase_if(_get()._rcallbacks, [callback](auto it) { return it->second == reinterpret_cast<size_t>(&callback); });
+    _Filter(nullptr, &event);
 }

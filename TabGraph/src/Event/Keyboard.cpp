@@ -28,26 +28,33 @@ bool Keyboard::key(SDL_Scancode key)
     return (SDL_GetKeyboardState(nullptr)[key]);
 }
 
-/*void Keyboard::set_callback(SDL_Scancode key, keyboard_callback callback)
+Signal<const SDL_KeyboardEvent&>& Keyboard::OnKey(SDL_Scancode key)
 {
-    _get()._callbacks[key] = callback;
-}*/
-
-void Keyboard::AddKeyCallback(SDL_Scancode key, std::shared_ptr<Callback<void(const SDL_KeyboardEvent&)>> callback)
-{
-    _get()._callbacks[key].push_back(callback);
+    return _get()._onKey.at(key);
 }
 
-void Keyboard::RemoveKeyCallback(SDL_Scancode key, std::shared_ptr<Callback<void(const SDL_KeyboardEvent&)>> callback)
+Signal<const SDL_KeyboardEvent&>& Keyboard::OnKeyUp(SDL_Scancode key)
 {
-    _get()._callbacks[key].erase(std::remove(_get()._callbacks[key].begin(), _get()._callbacks[key].end(), callback), _get()._callbacks[key].end());
+    return _get()._onKeyUp.at(key);
+}
+
+Signal<const SDL_KeyboardEvent&>& Keyboard::OnKeyDown(SDL_Scancode key)
+{
+    return _get()._onKeyDown.at(key);
 }
 
 void Keyboard::process_event(SDL_Event* event)
 {
-    auto callback = _get()._callbacks[event->key.keysym.scancode];
-    for (const auto& callback : callback)
-        callback->Call(event->key);
-    /*if (callback != _get()._callbacks.end())
-        callback->second(&event->key);*/
+    switch (event->type) {
+    case SDL_KEYDOWN: {
+        _get()._onKey.at(event->key.keysym.scancode)(event->key);
+        _get()._onKeyDown.at(event->key.keysym.scancode)(event->key);
+        break;
+    }
+    case SDL_KEYUP: {
+        _get()._onKey.at(event->key.keysym.scancode)(event->key);
+        _get()._onKeyUp.at(event->key.keysym.scancode)(event->key);
+        break;
+    }
+    }
 }

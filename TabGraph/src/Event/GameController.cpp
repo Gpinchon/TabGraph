@@ -37,7 +37,7 @@ void Controller::open(SDL_JoystickID device)
     }
     _gamepad = SDL_GameControllerOpen(device);
     auto j = SDL_GameControllerGetJoystick(_gamepad);
-    _instance_id = SDL_JoystickInstanceID(j);
+    _instanceId = SDL_JoystickInstanceID(j);
     _is_connected = true;
     if (SDL_JoystickIsHaptic(j)) {
         _haptic = SDL_HapticOpenFromJoystick(j);
@@ -45,7 +45,7 @@ void Controller::open(SDL_JoystickID device)
             SDL_HapticRumbleInit(_haptic);
         }
     }
-    std::cout << "Joystick Instance " << _instance_id << std::endl;
+    std::cout << "Joystick ID " << _instanceId << std::endl;
 }
 
 void Controller::close()
@@ -58,7 +58,7 @@ void Controller::close()
     }
     SDL_GameControllerClose(_gamepad);
     _gamepad = nullptr;
-    _instance_id = -1;
+    _instanceId = -1;
     _is_connected = false;
 }
 
@@ -67,57 +67,66 @@ void Controller::process_event(SDL_Event* event)
     switch (event->type) {
     case SDL_CONTROLLERAXISMOTION:
     case SDL_JOYAXISMOTION: {
-        auto callback = _axis_callbacks.find(event->caxis.axis);
-        if (callback != _axis_callbacks.end())
-            callback->second(&event->caxis);
+        _onAxis.at(event->caxis.axis)(event->caxis);
         break;
     }
     case SDL_CONTROLLERBUTTONDOWN:
+    case SDL_JOYBUTTONDOWN: {
+        _onButton.at(event->cbutton.button)(event->cbutton);
+        _onButtonDown.at(event->cbutton.button)(event->cbutton);
+        break;
+    }
     case SDL_CONTROLLERBUTTONUP:
-    case SDL_JOYBUTTONDOWN:
     case SDL_JOYBUTTONUP: {
-        auto callback = _button_callbacks.find(event->cbutton.button);
-        if (callback != _button_callbacks.end())
-            callback->second(&event->cbutton);
+        _onButton.at(event->cbutton.button)(event->cbutton);
+        _onButtonUp.at(event->cbutton.button)(event->cbutton);
         break;
     }
     case SDL_CONTROLLERDEVICEADDED:
     case SDL_JOYDEVICEADDED: {
         std::cout << "Joystick Added " << event->cdevice.which << std::endl;
         open(event->cdevice.which);
-        if (_connection_callback != nullptr)
-            _connection_callback(&event->cdevice);
+        _onConnection(event->cdevice);
         break;
     }
     case SDL_CONTROLLERDEVICEREMOVED:
     case SDL_JOYDEVICEREMOVED: {
         std::cout << "Joystick Removed " << event->cdevice.which << std::endl;
         close();
-        if (_disconnect_callback != nullptr)
-            _disconnect_callback(&event->cdevice);
+        _onDisconnection(event->cdevice);
         break;
     }
     }
 }
 
-void Controller::set_axis_callback(Uint8 type, controller_axis_callback callback)
+Signal<const SDL_ControllerAxisEvent&>& Controller::OnAxis(const SDL_GameControllerAxis& axis)
 {
-    _axis_callbacks[type] = callback;
+    return _onAxis.at(axis);
 }
 
-void Controller::set_button_callback(Uint8 type, controller_button_callback callback)
+Signal<const SDL_ControllerButtonEvent&>& Controller::OnButton(const SDL_GameControllerButton& button)
 {
-    _button_callbacks[type] = callback;
+    return _onButton.at(button);
 }
 
-void Controller::set_connection_callback(controller_callback callback)
+Signal<const SDL_ControllerButtonEvent&>& Controller::OnButtonUp(const SDL_GameControllerButton& button)
 {
-    _connection_callback = callback;
+    return _onButtonUp.at(button);
 }
 
-void Controller::set_disconnect_callback(controller_callback callback)
+Signal<const SDL_ControllerButtonEvent&>& Controller::OnButtonDown(const SDL_GameControllerButton& button)
 {
-    _disconnect_callback = callback;
+    return _onButtonDown.at(button);
+}
+
+Signal<const SDL_ControllerDeviceEvent&>& Controller::OnConnection()
+{
+    return _onConnection;
+}
+
+Signal<const SDL_ControllerDeviceEvent&>& Controller::OnDisconnection()
+{
+    return _onDisconnection;
 }
 
 void Controller::rumble(float strength, int duration)
@@ -143,13 +152,14 @@ Uint8 Controller::button(SDL_GameControllerButton button)
 
 SDL_JoystickID Controller::id()
 {
-    return (_instance_id);
+    return (_instanceId);
 }
-
-GameController* GameController::_instance = nullptr;
 
 GameController::GameController()
 {
+    SDL_JoystickEventState(SDL_ENABLE);
+    SDL_GameControllerEventState(SDL_ENABLE);
+    SDL_InitSubSystem(SDL_INIT_JOYSTICK);
     Events::Add(this, SDL_CONTROLLERAXISMOTION);
     Events::Add(this, SDL_JOYAXISMOTION);
     Events::Add(this, SDL_CONTROLLERBUTTONDOWN);
@@ -162,11 +172,26 @@ GameController::GameController()
     Events::Add(this, SDL_JOYDEVICEREMOVED);
 }
 
-GameController* GameController::_get()
+GameController& GameController::_get()
 {
-    if (_instance == nullptr)
-        _instance = new GameController();
-    return (_instance);
+    static GameController controller;
+    return controller;
+}
+
+Controller* GameController::Get(SDL_JoystickID device)
+{
+    auto controller = _get()._controllers.find(device);
+    if (controller == _get()._controllers.end()) {
+        auto newcontroller = new Controller(device);
+        _get()._controllers[device] = newcontroller;
+        return newcontroller;
+    }
+    return controller->second;
+}
+
+void GameController::remove(SDL_JoystickID i)
+{
+    _get()._controllers.erase(i);
 }
 
 void GameController::process_event(SDL_Event* event)
@@ -174,32 +199,17 @@ void GameController::process_event(SDL_Event* event)
     auto controllerIndex = -1;
     if (event->type == SDL_CONTROLLERDEVICEADDED || event->type == SDL_JOYDEVICEADDED) {
         controllerIndex = event->cdevice.which;
-    } else {
+    }
+    else {
         controllerIndex = get_controller_index(event->cdevice.which);
     }
     if (controllerIndex != -1)
         Get(controllerIndex)->process_event(event);
 }
 
-Controller* GameController::Get(SDL_JoystickID device)
-{
-    auto controller = _get()->_controllers.find(device);
-    if (controller == _get()->_controllers.end()) {
-        auto newcontroller = new Controller(device);
-        _get()->_controllers[device] = newcontroller;
-        return (newcontroller);
-    }
-    return (controller->second);
-}
-
-void GameController::remove(SDL_JoystickID i)
-{
-    _get()->_controllers.erase(i);
-}
-
 int GameController::get_controller_index(SDL_JoystickID device)
 {
-    for (auto controller : _get()->_controllers) {
+    for (auto controller : _get()._controllers) {
         if (controller.second->is(device))
             return (controller.first);
     }
