@@ -9,7 +9,6 @@
 
 #include "Animation/Animation.hpp"
 #include "Assets/AssetsParser.hpp"
-#include "Callback.hpp"
 #include "Camera/FPSCamera.hpp"
 #include "Config.hpp"
 #include "Engine.hpp"
@@ -48,7 +47,7 @@ void CallbackSpeed(const SDL_KeyboardEvent& event) {
     speed = std::max(1.f, speed);
 }
 
-void CameraCallback()
+void CameraCallback(float delta)
 {
     auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
@@ -63,31 +62,32 @@ void CameraCallback()
     raxis.y = Keyboard::key(ZOOMK) - Keyboard::key(UNZOOMK);
     taxis += Keyboard::key(SDL_SCANCODE_PAGEUP);
     taxis -= Keyboard::key(SDL_SCANCODE_PAGEDOWN);
-    camera->SetPosition(camera->GetPosition() - float(Events::delta_time() * laxis.x * speed) * camera->Right());
-    camera->SetPosition(camera->GetPosition() - float(Events::delta_time() * laxis.y * speed) * camera->Forward());
-    camera->SetPosition(camera->GetPosition() + float(Events::delta_time() * taxis * speed) * Common::Up());
+    camera->SetPosition(camera->GetPosition() - float(delta * laxis.x * speed) * camera->Right());
+    camera->SetPosition(camera->GetPosition() - float(delta * laxis.y * speed) * camera->Forward());
+    camera->SetPosition(camera->GetPosition() + float(delta * taxis * speed) * Common::Up());
 }
 
-void MouseMoveCallback(SDL_MouseMotionEvent* event)
+void MouseMoveCallback(const SDL_MouseMotionEvent& event)
 {
+    double tick{ SDL_GetTicks() / 1000.f };
     auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
         return;
     static glm::vec3 cameraRotation;
     if (Mouse::button(1)) {
-        cameraRotation.x -= event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
-        cameraRotation.y -= event->yrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
+        cameraRotation.x -= event.xrel * 0.05 * Config::Get("MouseSensitivity", 2.f);
+        cameraRotation.y -= event.yrel * 0.05 * Config::Get("MouseSensitivity", 2.f);
     }
     if (Mouse::button(3))
-        cameraRotation.z += event->xrel * Events::delta_time() * Config::Get("MouseSensitivity", 2.f);
+        cameraRotation.z += event.xrel * 0.05 * Config::Get("MouseSensitivity", 2.f);
     camera->SetYaw(cameraRotation.x);
     camera->SetPitch(cameraRotation.y);
     camera->SetRoll(cameraRotation.z);
 }
 
-void MouseWheelCallback(SDL_MouseWheelEvent* event)
+void MouseWheelCallback(const SDL_MouseWheelEvent& event)
 {
-    Scene::Current()->CurrentCamera()->SetFov(Scene::Current()->CurrentCamera()->Fov() - event->y);
+    Scene::Current()->CurrentCamera()->SetFov(Scene::Current()->CurrentCamera()->Fov() - event.y);
     Scene::Current()->CurrentCamera()->SetFov(glm::clamp(Scene::Current()->CurrentCamera()->Fov(), 1.0f, 70.f));
 }
 
@@ -143,19 +143,27 @@ void ChangeCamera(const SDL_KeyboardEvent& event)
     //s_light->SetParent(Scene::Current()->CurrentCamera());
 }
 
+void ControllerButton(const SDL_ControllerButtonEvent& event) {
+    std::cout << (event.type == SDL_CONTROLLERBUTTONDOWN ? "Button pressed " : "Button released ") << event.button << " on Controller " << event.which << std::endl;
+}
+
+#include "Event/GameController.hpp"
+
 void SetupCallbacks()
 {
-    Keyboard::AddKeyCallback(SDL_SCANCODE_KP_PLUS, Callback<void(const SDL_KeyboardEvent&)>::Create(CallbackSpeed, std::placeholders::_1));
-    Keyboard::AddKeyCallback(SDL_SCANCODE_KP_MINUS, Callback<void(const SDL_KeyboardEvent&)>::Create(CallbackSpeed, std::placeholders::_1));
-    Keyboard::AddKeyCallback(SDL_SCANCODE_ESCAPE, Callback<void(const SDL_KeyboardEvent&)>::Create(ExitCallback, std::placeholders::_1));
-    Keyboard::AddKeyCallback(SDL_SCANCODE_RETURN, Callback<void(const SDL_KeyboardEvent&)>::Create(FullscreenCallback, std::placeholders::_1));
-    Keyboard::AddKeyCallback(SDL_SCANCODE_Q, Callback<void(const SDL_KeyboardEvent&)>::Create(CallbackQuality, std::placeholders::_1));
-    Keyboard::AddKeyCallback(SDL_SCANCODE_A, Callback<void(const SDL_KeyboardEvent&)>::Create(CallbackAnimation, std::placeholders::_1));
-    Keyboard::AddKeyCallback(SDL_SCANCODE_C, Callback<void(const SDL_KeyboardEvent&)>::Create(ChangeCamera, std::placeholders::_1));
+    GameController::Get(0)->OnButton(SDL_CONTROLLER_BUTTON_A).Connect(&ControllerButton);
+    Keyboard::OnKey(SDL_SCANCODE_KP_PLUS).Connect(CallbackSpeed);
+    Keyboard::OnKey(SDL_SCANCODE_KP_MINUS).Connect(CallbackSpeed);
+    Keyboard::OnKey(SDL_SCANCODE_ESCAPE).Connect(ExitCallback);
+    Keyboard::OnKey(SDL_SCANCODE_RETURN).Connect(FullscreenCallback);
+    Keyboard::OnKey(SDL_SCANCODE_Q).Connect(CallbackQuality);
+    Keyboard::OnKey(SDL_SCANCODE_A).Connect(CallbackAnimation);
+    Keyboard::OnKey(SDL_SCANCODE_C).Connect(ChangeCamera);
     //Mouse::set_relative(SDL_TRUE);
-    Mouse::set_move_callback(MouseMoveCallback);
-    Mouse::set_wheel_callback(MouseWheelCallback);
-    Events::AddRefreshCallback(Callback<void()>::Create(CameraCallback));
+    Mouse::OnMove().Connect(&MouseMoveCallback);
+    Mouse::OnWheel().Connect(&MouseWheelCallback);
+    Events::OnRefresh().Connect(CameraCallback);
+    //Events::AddRefreshCallback(Callback<void()>::Create(CameraCallback));
 }
 
 #include "StackTracer.hpp"

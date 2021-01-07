@@ -33,6 +33,7 @@ Bomb::Bomb(const Bomb& bomb) : GameEntity(bomb)
     , _spawnTime(std::chrono::high_resolution_clock::now())
     , _bombMaterial(GetComponentInChildrenByName<Material>("Body"))
 {
+    Engine::OnFixedUpdate().ConnectMember(this, &Bomb::_FixedUpdateCPU);
 }
 
 auto CreateBomb() {
@@ -46,7 +47,6 @@ auto CreateBomb() {
     bomb->AddChild(bombNode);
     for (auto &animation : bombAsset->GetComponents<Animation>())
         bomb->AddAnimation(animation);
-    bomb->PlayAnimation("idle", true);
     return bomb;
 }
 
@@ -54,6 +54,7 @@ std::shared_ptr<Bomb> Bomb::Create(const glm::ivec2& position)
 {
     static auto bomb = CreateBomb();
     auto bombClone = std::static_pointer_cast<Bomb>(bomb->Clone());
+    bombClone->PlayAnimation("idle", true);
     bombClone->_bombMaterial = bombClone->GetComponentInChildrenByName<Material>("Body");
     bombClone->_spawnTime = std::chrono::high_resolution_clock::now();
     Game::CurrentLevel()->SetGameEntityPosition(position, bombClone);
@@ -94,11 +95,11 @@ void Bomb::Die()
 {
     auto position = glm::ivec2(Position());
 
-    Flame::Create(position);
     SpawnFlames(position, glm::ivec2(1, 0), Range());
     SpawnFlames(position, glm::ivec2(-1, 0), Range());
     SpawnFlames(position, glm::ivec2(0, 1), Range());
     SpawnFlames(position, glm::ivec2(0, -1), Range());
+    Flame::Create(position);
 }
 
 void Bomb::_FixedUpdateCPU(float delta)

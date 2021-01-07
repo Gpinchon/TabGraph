@@ -29,9 +29,7 @@ public:
 
 private:
     virtual void _UpdateCPU(float delta) override;
-    virtual void _UpdateGPU(float delta) override;
     virtual void _FixedUpdateCPU(float delta) override;
-    virtual void _FixedUpdateGPU(float delta) override;
     const glm::ivec2 _size;
     glm::ivec2 _spawnPoint;
     std::vector<std::shared_ptr<GameEntity>> _entities;

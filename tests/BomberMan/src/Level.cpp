@@ -14,6 +14,7 @@
 #include "Environment.hpp"
 #include "Texture/Cubemap.hpp"
 #include "Texture/TextureParser.hpp"
+#include "Engine.hpp"
 
 #include "CrispyWall.hpp"
 #include "Game.hpp"
@@ -40,6 +41,8 @@ Level::Level(const std::string& name, const glm::ivec2& size)
         }
     }*/
     //Add(cameraNode);
+    //Engine::OnFixedUpdate().ConnectMember(this, &Level::_FixedUpdateCPU);
+    //Engine::OnUpdate().ConnectMember(this, &Level::_UpdateCPU);
 }
 
 #include "Texture/Texture2D.hpp"
@@ -223,17 +226,6 @@ void Level::_UpdateCPU(float delta)
     }
 }
 
-void Level::_UpdateGPU(float delta)
-{
-    for (const auto& entity : _entities) {
-        if (entity != nullptr)
-            entity->UpdateGPU(delta);
-    }
-    for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-        Game::GetPlayer(index)->UpdateGPU(delta);
-    }
-}
-
 void Level::_FixedUpdateCPU(float delta)
 {
     //Scene::FixedUpdateCPU(delta);
@@ -243,18 +235,6 @@ void Level::_FixedUpdateCPU(float delta)
     }
     for (auto index = 0; index < Game::PlayerNumber(); ++index) {
         Game::GetPlayer(index)->FixedUpdateCPU(delta);
-    }
-}
-
-void Level::_FixedUpdateGPU(float delta)
-{
-    //Scene::FixedUpdateCPU(delta);
-    for (const auto& entity : _entities) {
-        if (entity != nullptr)
-            entity->FixedUpdateGPU(delta);
-    }
-    for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-        Game::GetPlayer(index)->FixedUpdateGPU(delta);
     }
 }
 

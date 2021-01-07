@@ -23,6 +23,7 @@ Flame::Flame()
     , _spawnTime(std::chrono::high_resolution_clock::now())
 {
     _size = glm::vec2(0.7);
+    Engine::OnFixedUpdate().ConnectMember(this, &Flame::_FixedUpdateCPU);
 }
 
 auto CreateFlame() {
@@ -64,5 +65,4 @@ void Flame::_FixedUpdateCPU(float delta)
     auto now = std::chrono::high_resolution_clock::now();
     if (now - SpawnTime() > Timer())
         Game::CurrentLevel()->SetGameEntity(Position(), nullptr);
-    //Explode();
 }

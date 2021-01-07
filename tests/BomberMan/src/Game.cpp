@@ -1,4 +1,3 @@
-#include "Callback.hpp"
 #include "Camera/Camera.hpp"
 #include "Event/Events.hpp"
 #include "Transform.hpp"
@@ -9,21 +8,21 @@
 
 #include <array>
 
-void GameRefresh();
+void GameRefresh(float);
 
 struct GameManager {
     GameManager()
     {
-        Events::AddRefreshCallback(Callback<void()>::Create(GameRefresh));
+        Events::OnRefresh().Connect(&GameRefresh);
     }
     std::shared_ptr<Level> currentLevel;
     std::array<std::shared_ptr<Player>, 4> players;
     int playerNumber { 0 };
 };
 
-void GameRefresh()
+void GameRefresh(float delta)
 {
-    Game::Update(Events::delta_time());
+    Game::Update(delta);
 }
 
 GameManager& getGameManager()

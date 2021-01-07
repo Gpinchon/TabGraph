@@ -32,6 +32,8 @@ Player::Player(const std::string& name, const glm::vec3& color)
     : GameEntity(name, "Player")
 {
     _height = 0;
+    Engine::OnFixedUpdate().ConnectMember(this, &Player::_FixedUpdateCPU);
+    Keyboard::OnKeyDown(SDL_SCANCODE_SPACE).ConnectMember(this, &Player::DropBomb);
 }
 
 auto PlayerAsset()
@@ -54,7 +56,6 @@ std::shared_ptr<Player> Player::Create(const glm::vec3& color)
     //playerNode->SetParent(player);
     for (auto &animation : playerAsset->GetComponents<Animation>())
         player->AddAnimation(animation);
-    Keyboard::AddKeyCallback(SDL_SCANCODE_SPACE, Callback<void(const SDL_KeyboardEvent&)>::Create(&Player::DropBomb, player, std::placeholders::_1));
     return player;
 }
 
