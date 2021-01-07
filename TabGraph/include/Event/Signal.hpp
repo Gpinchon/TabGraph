@@ -8,9 +8,8 @@
 
 #include <functional>
 #include <memory>
-#include <set>
 #include <unordered_map>
-#include <unordered_set>
+#include <atomic>
 
 /**
 * Inspired by schneegans
@@ -46,7 +45,7 @@ public:
         void Disconnect()
         {
             if (Connected())
-                _signal->Disconnect(this->_id);
+                _signal->_Disconnect(this->_id);
             Reset();
         }
 
@@ -119,9 +118,10 @@ public:
     {
         ++_currentSlotID;
         //if slot is not member method, tracked object is this signal -> never expires until Signal's destruction
-        auto slot = Slot(func, _currentSlotID, this, this);
-        _slots[_currentSlotID] = slot;
-        return slot;
+        return _Connect(Slot(func, _currentSlotID, this, this));
+        //auto slot = Slot(func, _currentSlotID, this, this);
+        //_slots[_currentSlotID] = slot;
+        //return slot;
     }
 
     /**
@@ -138,7 +138,8 @@ public:
         auto lambda = [inst, func](Args... args) {
             (inst->*func)(args...);
         };
-        return _slots[_currentSlotID] = Slot(lambda, _currentSlotID, this, inst);
+        return _Connect(Slot(lambda, _currentSlotID, this, inst));
+        //return _slots[_currentSlotID] = Slot(lambda, _currentSlotID, this, inst);
     }
 
     /**
@@ -152,15 +153,8 @@ public:
         auto lambda = [inst, func](Args... args) {
             (inst->*func)(args...);
         };
-        return _slots[_currentSlotID] = Slot(lambda, _currentSlotID, this, inst);
-    }
-
-    /**
-	* @brief disconnects a slot from the signal
-	*/
-    auto Disconnect(SlotID slot)
-    {
-        _slots.erase(slot);
+        return _Connect(Slot(lambda, _currentSlotID, this, inst));
+        //return _slots[_currentSlotID] = Slot(lambda, _currentSlotID, this, inst);
     }
 
     /**
@@ -168,22 +162,48 @@ public:
 	*/
     auto operator()(Args... args)
     {
-        std::vector<SlotID> toDisconnect;
-        for (auto& slotIt : _slots) {
-            auto& slot = slotIt.second;
+        _inUse = true;
+        for (auto &slotIt : _slots) {
+            auto& slot{ slotIt.second };
             //if slot is not member method, tracked object is this signal -> never expires until Signal's destruction
             if (slot._trackedObjectRef.expired()) {
-                toDisconnect.push_back(slot._id);
-                slot.Reset();
+                slot.Disconnect();
                 continue;
             }
             slot(args...);
         }
-        for (const auto& id : toDisconnect)
-            Disconnect(id);
+        for (const auto& id : _toDisconnect)
+            _slots.erase(id);
+        _toDisconnect.clear();
+        for (const auto &slot : _toConnect)
+            _slots[slot._id] = slot;
+        _toConnect.clear();
+        _inUse = false;
     }
 
 private:
+    friend Slot;
+    /**
+    * @brief disconnects a slot from the signal
+    */
+    inline auto _Disconnect(SlotID slot)
+    {
+        if (_inUse)
+            _toDisconnect.push_back(slot);
+        else
+            _slots.erase(slot);
+    }
+
+    inline auto _Connect(const Slot &slot) {
+        if (_inUse)
+            _toConnect.push_back(slot);
+        else
+            _slots[slot._id] = slot;
+        return slot;
+    }
     std::unordered_map<SlotID, Slot> _slots;
+    std::vector<SlotID> _toDisconnect;
+    std::vector<Slot> _toConnect;
+    std::atomic<bool> _inUse{ false };
     SlotID _currentSlotID { 0 };
 };
