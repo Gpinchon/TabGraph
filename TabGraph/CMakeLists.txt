@@ -18,7 +18,6 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferAccessor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/Buffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferView.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Callback.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/Camera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/FPSCamera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/OrbitCamera.cpp
@@ -92,7 +91,6 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferHelper.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/Buffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferView.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Callback.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/Camera.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/FPSCamera.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/OrbitCamera.hpp
