@@ -1,5 +1,4 @@
 #include "Physics/BoundingSphere.hpp"
-#include "Callback.hpp"
 #include "Physics/IntersectFunctions.hpp"
 #include "Physics/Ray.hpp"
 

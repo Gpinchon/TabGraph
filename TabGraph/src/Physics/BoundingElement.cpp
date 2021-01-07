@@ -5,7 +5,6 @@
 #include "Physics/BoundingMesh.hpp"
 #include "Physics/BoundingBox.hpp"
 #include "Debug.hpp"
-#include "Callback.hpp"
 #include <functional>
 
 BoundingElement::BoundingElement(BoundingElement::Type type) : _type(type)

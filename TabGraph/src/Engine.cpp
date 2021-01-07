@@ -72,10 +72,10 @@ void Engine::Init()
     Engine::SetSwapInterval(Config::Get("SwapInterval", -1));
 }
 
-int event_filter(void* arg, SDL_Event* event)
+/*int event_filter(void* arg, SDL_Event* event)
 {
     return (Events::filter(arg, event));
-}
+}*/
 
 void Engine::Start()
 {
@@ -83,7 +83,6 @@ void Engine::Start()
     double lastTicks;
     double fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
 
-    SDL_SetEventFilter(event_filter, nullptr);
     SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
     Render::Start();
     while (EnginePrivate::Get().loop) {
@@ -93,7 +92,6 @@ void Engine::Start()
         SDL_PumpEvents();
         EnginePrivate::Get().onUpdate(ticks - lastTicks);
         if (ticks - fixedTiming >= 0.015) {
-            Events::refresh();
             EnginePrivate::Get().onFixedUpdate(ticks - fixedTiming);
             Render::RequestRedraw();
             fixedTiming = ticks;
