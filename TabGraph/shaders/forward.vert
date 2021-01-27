@@ -139,17 +139,18 @@ void	FillVertexData()
         mat4 NewModelMatrix = Matrix.Model * SkinMatrix;
 		SetWorldPosition(vec3(NewModelMatrix * vec4(in_Position, 1.0)));
 		SetWorldNormal(mat3(inverse(transpose(NewModelMatrix))) * in_Normal);
+		PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * NewModelMatrix * vec4(in_Position, 1.0);
 	}
 	else {
 		SetWorldPosition(WorldPosition());
 		SetWorldNormal(WorldNormal());
+		PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * PrevMatrix.Model * vec4(in_Position, 1.0);
 	}
 	
 	SetTexCoord(TexCoord() * UVScale);
 	vec4 cameraSpacePosition = Camera.Matrix.View * vec4(WorldPosition(), 1);
 	CameraSpaceDepth = cameraSpacePosition.z;
 	SetClipSpacePosition(Position = (Camera.Matrix.Projection * cameraSpacePosition));
-	PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * PrevMatrix.Model * vec4(in_Position, 1.0);
 }
 
 )""

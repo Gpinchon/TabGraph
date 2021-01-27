@@ -106,7 +106,7 @@ layout(location = 2) out vec4	_F0; //BRDF F0, BRDF Alpha
 layout(location = 3) out float	_AO;
 layout(location = 4) out vec3	_Normal;
 layout(location = 5) out uint	_InstanceID;
-layout(location = 6) out float	_Velocity;
+layout(location = 6) out vec2	_Velocity;
 #elif defined(MATERIAL) || defined(DEPTH)
 vec4	_CDiff; //BRDF CDiff, Transparency
 vec3	_Emissive;
@@ -114,7 +114,7 @@ vec4	_F0; //BRDF F0, BRDF Alpha
 float	_AO;
 vec3	_Normal;
 uint	_InstanceID;
-float	_Velocity;
+vec2	_Velocity;
 #endif
 
 #define ScreenTexCoord() (gl_FragCoord.xy / Resolution.xy)
@@ -255,7 +255,7 @@ void	FillFragmentData()
 {
 	vec3 a = Position.xyz / Position.w * 0.5 + 0.5;
 	vec3 b = PreviousPosition.xyz / PreviousPosition.w * 0.5 + 0.5;
-	_Velocity = distance(a, b);
+	_Velocity = b.xy - a.xy;
 	SetF0(vec3(0.04f));
 	SetAlpha(1.f);
 	SetWorldNormal(Input.WorldNormal);
