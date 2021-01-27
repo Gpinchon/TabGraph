@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
-* @Date:   2019-02-22 16:13:28
+* @Author: gpinchon
+* @Date:   2021-01-08 17:02:47
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 20:16:52
+* @Last Modified time: 2021-01-11 08:41:34
 */
 
 #include "Framebuffer.hpp"
@@ -10,40 +10,6 @@
 #include "Window.hpp" // for Window
 
 #include <stdexcept> // for runtime_error
-
-GLenum get_data_format(GLenum internal_format)
-{
-    switch (internal_format) {
-    case GL_R8_SNORM:
-    case GL_RG8_SNORM:
-    case GL_RGB8_SNORM:
-    case GL_RGBA8_SNORM:
-    case GL_SRGB8:
-        return (GL_BYTE);
-    case GL_R16F:
-    case GL_RG16F:
-    case GL_RGB16F:
-    case GL_RGBA16F:
-        return (GL_HALF_FLOAT);
-    case GL_R32F:
-    case GL_RG32F:
-    case GL_RGB32F:
-    case GL_RGBA32F:
-        return (GL_FLOAT);
-    case GL_R11F_G11F_B10F:
-        return (GL_UNSIGNED_INT_10F_11F_11F_REV);
-    case GL_R16:
-    case GL_RG16:
-    case GL_RGB16:
-        return (GL_UNSIGNED_SHORT);
-    case GL_R16_SNORM:
-    case GL_RG16_SNORM:
-    case GL_RGB16_SNORM:
-        return (GL_SHORT);
-    default:
-        return (GL_UNSIGNED_BYTE);
-    }
-}
 
 Framebuffer::Framebuffer(const std::string& name, glm::ivec2 size, int color_attachements, int depth)
     : Component(name)
@@ -53,11 +19,11 @@ Framebuffer::Framebuffer(const std::string& name, glm::ivec2 size, int color_att
     _size = size;
     i = 0;
     while (i < color_attachements) {
-        Create_attachement(GL_RGBA, GL_RGBA);
+        Create_attachement(Pixel::SizedFormat::Uint8_NormalizedRGBA);
         i++;
     }
     if (depth != 0) {
-        Create_attachement(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+        Create_attachement(Pixel::SizedFormat::Depth24);
     }
 }
 
@@ -65,12 +31,13 @@ glm::ivec2 Framebuffer::CurrentSize()
 {
     glm::ivec4 resolution;
     glGetIntegerv(GL_VIEWPORT, &resolution[0]);
-	return glm::ivec2(resolution.z, resolution.w);
+    return glm::ivec2(resolution.z, resolution.w);
 }
 
 Framebuffer::~Framebuffer()
 {
-    glDeleteFramebuffers(1, &_glid);
+    auto glid{ GetHandle() };
+    glDeleteFramebuffers(1, &glid);
 }
 
 void Framebuffer::bind(bool to_bind)
@@ -79,9 +46,9 @@ void Framebuffer::bind(bool to_bind)
         bind_default();
         return;
     }
-    LoadGPU();
+    Load();
     setup_attachements();
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _glid);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GetHandle());
     glViewport(0, 0, Size().x, Size().y);
 }
 
@@ -91,17 +58,23 @@ void Framebuffer::bind_default()
     glViewport(0, 0, Window::size().x, Window::size().y);
 }
 
-std::shared_ptr<Texture2D> Framebuffer::Create_attachement(GLenum format, GLenum iformat)
+std::shared_ptr<Texture2D> Framebuffer::Create_attachement(Pixel::SizedFormat format)
 {
+    bool isDepth{
+        format == Pixel::SizedFormat::Depth16 ||
+        format == Pixel::SizedFormat::Depth24 ||
+        format == Pixel::SizedFormat::Depth32
+    };
     std::string tname;
-    if (format == GL_DEPTH_COMPONENT)
-        tname = (Name() + "_depth");
+    if (isDepth)
+        tname = (GetName() + "_depth");
     else
-        tname = (Name() + "_attachement_" + std::to_string(_color_attachements.size()));
-    auto a = Component::Create<Texture2D>(tname, Size(), format, iformat);
-    a->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    a->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    if (format == GL_DEPTH_COMPONENT) {
+        tname = (GetName() + "_attachement_" + std::to_string(_color_attachements.size()));
+    auto a = Component::Create<Texture2D>(Size(), format);
+    a->SetName(tname);
+    a->SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    a->SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (isDepth) {
         _depth = std::pair(a, 0);
     } else {
         _color_attachements.push_back(std::pair(a, 0));
@@ -112,17 +85,17 @@ std::shared_ptr<Texture2D> Framebuffer::Create_attachement(GLenum format, GLenum
 
 void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::ivec2 src1, glm::ivec2 dst0, glm::ivec2 dst1, GLbitfield mask, GLenum filter)
 {
-    LoadGPU();
+    Load();
     setup_attachements();
     //uint32_t toGLID = 0;
     if (to != nullptr) {
-        to->LoadGPU();
+        to->Load();
         to->setup_attachements();
         to->bind();
         //toGLID = to->_glid;
-    }
-    else Framebuffer::bind_default();
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, _glid);
+    } else
+        Framebuffer::bind_default();
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, GetHandle());
     //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, toGLID);
     glBlitFramebuffer(
         src0.x,
@@ -145,40 +118,43 @@ void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, GLbitfield mask, GLenu
         BlitTo(to, glm::ivec2(0), Size(), glm::ivec2(0), to->Size(), mask, filter);
 }
 
-void Framebuffer::_LoadGPU()
+void Framebuffer::Load()
 {
-    if (_glid != 0)
-        glDeleteFramebuffers(1, &_glid);
-    glGenFramebuffers(1, &_glid);
-    glBindFramebuffer(GL_FRAMEBUFFER, _glid);
-    glObjectLabel(GL_FRAMEBUFFER, _glid, Name().length(), Name().c_str());
+    if (GetLoaded())
+        return;
+    auto glid{ GetHandle() };
+    if (GetHandle() != 0)
+        glDeleteFramebuffers(1, &glid);
+    glGenFramebuffers(1, &glid);
+    SetHandle(glid);
+    glBindFramebuffer(GL_FRAMEBUFFER, glid);
+    glObjectLabel(GL_FRAMEBUFFER, glid, GetName().length(), GetName().c_str());
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     setup_attachements();
-    SetLoadedGPU(true);
+    SetLoaded(true);
 }
 
 void Framebuffer::setup_attachements()
 {
-    //if (!_attachementsChanged)
-    //    return;
+    if (!_attachementsChanged)
+        return;
     GLenum format[2];
     std::vector<GLenum> color_attachements;
     for (auto attachement : _color_attachements)
-        attachement.first->load();
+        attachement.first->Load();
     if (_depth.first != nullptr)
-        _depth.first->load();
+        _depth.first->Load();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, _glid);
+    glBindFramebuffer(GL_FRAMEBUFFER, GetHandle());
     for (auto i = 0u; i < _color_attachements.size(); ++i) {
         auto attachement(_color_attachements.at(i));
-        attachement.first->format(&format[0], &format[1]);
-        if (format[0] != GL_DEPTH_COMPONENT) {
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attachement.first->glid(), attachement.second);
+        if (attachement.first->GetPixelDescription().GetUnsizedFormat() != Pixel::UnsizedFormat::Depth) {
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attachement.first->GetHandle(), attachement.second);
             color_attachements.push_back(GL_COLOR_ATTACHMENT0 + i);
         }
     }
     if (_depth.first != nullptr) {
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth.first->glid(), _depth.second);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth.first->GetHandle(), _depth.second);
     }
     if (!color_attachements.empty())
         glDrawBuffers(color_attachements.size(), &color_attachements.at(0));
@@ -224,9 +200,9 @@ void Framebuffer::Resize(const glm::ivec2& new_size)
     }
     _size = new_size;
     for (auto attachement : _color_attachements)
-        attachement.first->Resize(new_size);
+        attachement.first->SetSize(new_size);
     if (_depth.first != nullptr)
-        _depth.first->Resize(new_size);
+        _depth.first->SetSize(new_size);
     _attachementsChanged = true;
 }
 
@@ -242,8 +218,9 @@ void Framebuffer::set_attachement(unsigned color_attachement, std::shared_ptr<Te
     try {
         _color_attachements.at(color_attachement).first = texture2D;
         _color_attachements.at(color_attachement).second = mipLevel;
+    } catch (std::runtime_error& e) {
+        throw std::runtime_error(GetName() + " : " + e.what());
     }
-    catch (std::runtime_error &e) {throw std::runtime_error(Name() + " : " + e.what()); }
     _attachementsChanged = true;
     /*bind();
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture2D ? texture2D->glid() : 0, mipLevel);
