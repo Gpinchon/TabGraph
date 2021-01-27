@@ -1,25 +1,29 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 15:48:40
+* @Last Modified time: 2021-01-11 08:46:22
 */
 
 #include "Material/Material.hpp"
-#include "Material/MaterialExtension.hpp"
-#include "Scene/Scene.hpp" // for Environment
 #include "Environment.hpp" // for Environment
+#include "Material/MaterialExtension.hpp"
 #include "Parser/GLSL.hpp" // for GLSL, ForwardShader
+#include "Scene/Scene.hpp" // for Environment
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Cubemap.hpp"
+#include "Texture/Texture2D.hpp"
+#include "Texture/Image.hpp"
 #include "brdfLUT.hpp"
-#include "GL/glew.h" //for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
+
+#include <GL/glew.h> //for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
 
 /*static std::string depth_vert_code =
 #include "depth.vert"
     ;*/
 
-auto GetCheckOpacityExtension() {
+auto GetCheckOpacityExtension()
+{
     static auto checkOpacity =
 #include "checkOpacity.glsl"
         ;
@@ -27,7 +31,8 @@ auto GetCheckOpacityExtension() {
     return shaderCode;
 }
 
-auto GetMaterialPassExtension() {
+auto GetMaterialPassExtension()
+{
     static auto materialPass =
 #include "material.frag"
         ;
@@ -35,15 +40,20 @@ auto GetMaterialPassExtension() {
     return shaderCode;
 }
 
-auto DefaultBRDFLUT() {
-    auto static brdf = Component::Create<Texture2D>("brdf", glm::vec2(256, 256), GL_RG, GL_RG8, GL_UNSIGNED_BYTE, brdfLUT);
-    brdf->set_parameteri(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    brdf->set_parameteri(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+auto DefaultBRDFLUT()
+{
+    auto brdfImage{ Component::Create<Image>(glm::vec2(256, 256), Pixel::SizedFormat::Uint8_NormalizedRG, brdfLUT) };
+    auto static brdf = Component::Create<Texture2D>(brdfImage);
+    brdf->SetName("BrdfLUT");
+    brdf->SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    brdf->SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    brdfImage->SetLoaded(true);
     return brdf;
 }
 
 Material::Material(const std::string& name)
-    : Component(name), _brdfLUT(AddComponent(DefaultBRDFLUT()))
+    : Component(name)
+    , _brdfLUT(AddComponent(DefaultBRDFLUT()))
 {
     OpacityModeChanged.ConnectMember(this, &Material::_updateOpacityMode);
     OpacityCutoffChanged.ConnectMember(this, &Material::_updateOpacityCutoff);
@@ -63,16 +73,16 @@ Material::Material(const std::string& name)
 #include "material.frag"
         ;
 
-    static auto setInstanceID = 
+    static auto setInstanceID =
 #include "setInstanceID.glsl"
         ;
-    _geometryShader = AddComponent(Component::Create<Shader>(Name() + "_geometryShader"));
+    _geometryShader = AddComponent(Component::Create<Shader>(GetName() + "_geometryShader"));
     GeometryShader()->SetDefine("GEOMETRY");
     GeometryShader()->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(forward_vert_code, "FillVertexData();")));
     GeometryShader()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(forward_frag_code, "FillFragmentData();")));
     GeometryShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(setInstanceID, "SetInstanceID();"));
     GeometryShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetCheckOpacityExtension());
-    _materialShader = AddComponent(Component::Create<Shader>(Name() + "_materialShader"));
+    _materialShader = AddComponent(Component::Create<Shader>(GetName() + "_materialShader"));
     MaterialShader()->SetDefine("MATERIAL");
     MaterialShader()->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(forward_vert_code, "FillVertexData();")));
     MaterialShader()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(forward_frag_code, "FillFragmentData();")));
@@ -149,15 +159,15 @@ void Material::bind_values()
             GeometryShader()->SetUniform(uniform.second);
             MaterialShader()->SetUniform(uniform.second);
         }
-        for (const auto &texture : extension->GetShaderExtension()->Textures()) {
+        for (const auto& texture : extension->GetShaderExtension()->Textures()) {
             GeometryShader()->SetTexture(texture.second);
             MaterialShader()->SetTexture(texture.second);
         }
-        for (const auto &attribute : extension->GetShaderExtension()->Attributes()) {
+        for (const auto& attribute : extension->GetShaderExtension()->Attributes()) {
             GeometryShader()->SetAttribute(attribute.second);
             MaterialShader()->SetAttribute(attribute.second);
         }
-        for (const auto &define : extension->GetShaderExtension()->Defines()) {
+        for (const auto& define : extension->GetShaderExtension()->Defines()) {
             GeometryShader()->SetDefine(define.first, define.second);
             MaterialShader()->SetDefine(define.first, define.second);
         }
@@ -308,7 +318,7 @@ std::shared_ptr<Texture2D> Material::BRDFLUT() const
     return GetComponent<Texture2D>(_brdfLUT);
 }
 
-void Material::SetBRDFLUT(const std::shared_ptr<Texture2D> &t)
+void Material::SetBRDFLUT(const std::shared_ptr<Texture2D>& t)
 {
     _brdfLUT = AddComponent(t);
     MaterialShader()->SetTexture("StandardTextures.BRDFLUT", BRDFLUT());
