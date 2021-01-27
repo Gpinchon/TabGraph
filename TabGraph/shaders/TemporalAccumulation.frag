@@ -60,15 +60,14 @@ void TemporalAccumulation()
     vec4 minColor = vec4(1);
     vec4 maxColor = vec4(0);
 	for (int i = 0; i < 13; ++i) {
-		vec2 uv = ScreenTexCoord() + vec2(minMaxOffset[i]) / textureSize(in_CurrentColor, 0);
-        vec4 color = textureLod(in_CurrentColor, uv, 0);
+        ivec2 uv = ivec2(ScreenTexCoord() * textureSize(in_CurrentColor, 0)) + minMaxOffset[i];
+        vec4 color = texelFetch(in_CurrentColor, uv, 0);
         minColor = min(color, minColor);
         maxColor = max(color, maxColor);
 	}
     for (int i = 0; i < GAUSSIANKERNALSIZE; ++i) {
         vec2 historyUV = ScreenTexCoord() + vec2(gaussianOffset[i] * in_Stepwidth) / textureSize(in_renderHistory.color, 0);
         vec4 historyColor = textureLod(in_renderHistory.color, historyUV + velocity, 0);
-        
 		float colorWeight = clamp(dot(historyColor, out_0), 0, 1);
         float totalWeight = gaussianKernel[i] * colorWeight;
         colorSamples += historyColor * totalWeight;
