@@ -7,6 +7,8 @@
 #pragma once
 
 #include "Component.hpp"
+#include "Buffer/BufferView.hpp"
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <memory>
@@ -21,44 +23,65 @@ class BufferView;
 */
 class BufferAccessor : public Component {
 public:
-    enum class Type {
-        Invalid = -1,
-        Scalar,
-        Vec2,
-        Vec3,
-        Vec4,
-        Mat2,
-        Mat3,
-        Mat4,
-        MaxType
+    enum class Type : uint8_t {
+        Unknown = 0,
+        Scalar = 1,
+        Vec2 = 2,
+        Vec3 = 3,
+        Vec4 = 4,
+        Mat2 = 4,
+        Mat3 = 9,
+        Mat4 = 16,
     };
+    enum class ComponentType : GLenum {
+        Unknown = -1,
+        Int8 = GL_BYTE,
+        Uint8 = GL_UNSIGNED_BYTE,
+        Int16 = GL_SHORT,
+        Uint16 = GL_UNSIGNED_SHORT,
+        Uint32 = GL_UNSIGNED_INT,
+        Float32 = GL_FLOAT
+    };
+    /**
+     * @brief Is the data to be normalized by OpenGL ?
+    */
+    PROPERTY(bool, Normalized, false);
+    /**
+     * @brief Byte offset inside the BufferView
+    */
+    PROPERTY(size_t, ByteOffset, 0);
+    /**
+     * @brief Number of data chunks
+    */
+    PROPERTY(size_t, Count, 0);
+    /**
+     * @brief The data type a data chunk
+     * (Scalar, Vec2, Vec3...)
+    */
+    PROPERTY(Type, Type, Type::Unknown);
+    /**
+     * @brief Total size of a data chunk in octet
+     * (Vec3 of Float32 == 3 * 4)
+    */
+    READONLYPROPERTY(uint8_t, TypeOctetsSize, 0);
+    /**
+     * @brief The component type of a chunk
+     * (Int8, Uint8, Float32...)
+    */
+    PROPERTY(ComponentType, ComponentType, ComponentType::Unknown);
+    /**
+     * @brief The size of the component type in octets
+     * (Int8 == 1, Float32 == 4)
+    */
+    READONLYPROPERTY(uint8_t, ComponentOctetsSize, 0);
+public:
+    
     BufferAccessor() = delete;
-    BufferAccessor(GLenum componentType, size_t count, const BufferAccessor::Type type);
+    BufferAccessor(const ComponentType componentType, const Type type, const size_t count);
+    BufferAccessor(const ComponentType componentType, const Type type, std::shared_ptr<BufferView> bufferView);
     /** The BufferView. */
     std::shared_ptr<BufferView> GetBufferView() const;
     void SetBufferView(std::shared_ptr<BufferView>);
-    /** The offset relative to the start of the bufferView in bytes. */
-    size_t ByteOffset() const;
-    void SetByteOffset(size_t);
-    /** @return : ComponentByteSize * ComponentSize */
-    size_t TotalComponentByteSize() const;
-    /** @return : The byte size of the components. */
-    size_t ComponentByteSize() const;
-    /** @return : Specifies the number of components per generic vertex attribute. */
-    size_t ComponentSize() const;
-    /** The datatype of components in the attribute. */
-    GLenum ComponentType() const;
-    void SetComponentType(GLenum);
-    /** Specifies whether integer data values should be normalized. */
-    bool Normalized() const;
-    void SetNormalized(bool);
-    /** The number of attributes referenced by this accessor. */
-    size_t Count() const;
-    void SetCount(size_t);
-    /** @return : the Accessor's type (see : BufferAccessor::Type) */
-    BufferAccessor::Type GetType() const;
-    /** @return : the Accessor's type corresponding to the string */
-    static BufferAccessor::Type GetType(const std::string& type);
     /** @return : the maximum value for this Accessor */
     template <typename T>
     T Max() const;
@@ -72,21 +95,16 @@ public:
     template <typename T>
     void SetMin(const T min);
 
+    template <typename T>
+    void Set(const T val, size_t index);
+
+    template <typename T>
+    T Get(size_t index);
+
 private:
     virtual std::shared_ptr<Component> _Clone() override {
         return Component::Create<BufferAccessor>(*this);
     }
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    size_t _byteOffset { 0 };
-    GLenum _componentType { 0 };
-    bool _normalized { false };
-    size_t _count { 0 };
-    const BufferAccessor::Type _type { Type::Invalid };
     typedef std::variant<unsigned, int, double, glm::vec2, glm::vec3, glm::vec4, glm::mat2, glm::mat3, glm::mat4> boundsVar;
     boundsVar _max {};
     boundsVar _min {};
@@ -114,4 +132,22 @@ template <typename T>
 inline void BufferAccessor::SetMin(const T min)
 {
     _min = min;
+}
+
+template<typename T>
+inline void BufferAccessor::Set(const T val, size_t index)
+{
+    assert(sizeof(T) == GetTypeOctetsSize());
+    auto bufferView{ GetComponent<BufferView>() };
+    auto byteStride{ bufferView->GetByteStride() ? bufferView->GetByteStride() : GetTypeOctetsSize() };
+    bufferView->Set((std::byte*)&val, GetByteOffset() + (index * byteStride), sizeof(T));
+}
+
+template<typename T>
+inline T BufferAccessor::Get(size_t index)
+{
+    assert(sizeof(T) == GetTypeOctetsSize());
+    auto bufferView{ GetComponent<BufferView>() };
+    auto byteStride{ bufferView->GetByteStride() ? bufferView->GetByteStride() : GetTypeOctetsSize() };
+    return *reinterpret_cast<T*>(bufferView->Get(GetByteOffset() + (index * byteStride), sizeof(T)));
 }

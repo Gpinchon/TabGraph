@@ -18,76 +18,48 @@
 /** A buffer points to binary geometry, animation, or skins. */
 class Buffer : public Component {
 public:
+    PROPERTY(bool, Loaded, false);
+    PROPERTY(std::filesystem::path, Uri, "");
+public:
     Buffer() = delete;
-    Buffer(size_t byteLength, GLenum usage = GL_STATIC_DRAW);
+    Buffer(size_t byteLength);
     ~Buffer();
-    enum BufferAccess : GLenum {
-        Read = GL_READ_ONLY,
-        Write = GL_WRITE_ONLY,
-        ReadWrite = GL_READ_WRITE
-    };
     /** The total byte length of the buffer. */
-    size_t ByteLength() const;
+    size_t GetByteLength() const;
     /** Sets the buffer's byte length and RESIZE RAW DATA !!! */
     void SetByteLength(size_t);
-    /** The uri of the buffer. */
-    std::filesystem::path Uri() const;
-    /** Sets the URI */
-    void SetUri(std::string);
-    GLuint Glid() const;
-    GLenum Usage() const;
-    void SetUsage(GLenum);
-    bool Mapped() const;
-    std::byte* MappingPointer();
-    //void* Map(GLenum access);
-    std::byte* MapRange(size_t offset, size_t length, GLbitfield access);
-    void Unmap();
-    void Allocate();
+
     template<typename T>
-    void Set(T* data, size_t index, size_t size = sizeof(T)) {
-        if (_mappingPointer != nullptr) {
-            std::memcpy(_mappingPointer + index, data, size);
-            if (index < _flushRangeOffset)
-                _flushRangeOffset = index;
-            if (index + size > _flushRangeLength)
-                _flushRangeLength = index + size;
-            if (!_updateGPUSlot.Connected())
-                _updateGPUSlot = Render::OnBeforeRender().ConnectMember(this, &Buffer::_UpdateGPU);
-        }
-        else
-            std::memcpy(_data.data() + index, data, size);
+    void PushBack(const T &data) {
+        SetByteLength(GetByteLength() + sizeof(T));
+        Set(reinterpret_cast<const std::byte*>(&data), GetByteLength() - sizeof(T), sizeof(T));
+    }
+    /**
+     * @brief returns a reference to the byte casted as T at index * sizeof(T)
+     * @tparam T 
+     * @param index the index to fetch, will be multiplied by sizeof T
+     * @return 
+    */
+    template<typename T>
+    T& At(size_t index) {
+        return *Get(index * sizeof(T));
+    }
+
+    void Set(const std::byte* data, size_t index, size_t size) {
+        assert(index + size <= _data.size());
+        std::memcpy(Get(index), data, size);
     }
     std::byte* Get(size_t index) {
-        if (_mappingPointer != nullptr)
-            return _mappingPointer + index;
-        else
-            return _data.data() + index;
+        assert(index < _data.size());
+        return _data.data() + index;
     }
+    virtual void Load();
+    virtual void Unload();
 
 private:
     virtual std::shared_ptr<Component> _Clone() override {
         return std::static_pointer_cast<Buffer>(shared_from_this());
-        //auto buffer = Component::Create<Buffer>(*this);
-        /*buffer->_mapped = false;
-        buffer->_mappingPointer = nullptr;
-        buffer->_glid = 0;
-        buffer->SetLoadedGPU(false);*/
-        //return buffer;
     }
-    virtual void _LoadCPU() override;
-    virtual void _UnloadCPU() override;
-    virtual void _LoadGPU() override;
-    virtual void _UnloadGPU() override;
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float delta);
-    virtual void _FixedUpdateCPU(float delta) override {};
-    std::filesystem::path _uri { "" };
-    GLuint _glid { 0 };
-    GLenum _usage { GL_STATIC_DRAW };
-    std::byte* _mappingPointer { nullptr };
-    Signal<float>::ScoppedSlot _updateGPUSlot { };
-    size_t _byteLength;
-    std::vector<std::byte> _data;
-    size_t _flushRangeOffset{ 0 };
-    size_t _flushRangeLength{ 0 };
+    std::vector<std::byte> _data { 0 };
+    size_t _byteLength{ 0 };
 };

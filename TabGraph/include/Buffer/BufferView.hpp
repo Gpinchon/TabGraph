@@ -15,42 +15,82 @@ class Buffer;
 /** A view into a buffer generally representing a subset of the buffer. */
 class BufferView : public Component {
 public:
+    using Handle = GLuint;
+    enum class Type {
+        Unknown = -1,
+        /**
+         * @brief CPU only buffer, won't be loaded to GPU
+        */
+        CPU = 0,
+        /**
+         * @brief for geometry Vertex buffer
+        */
+        Array = GL_ARRAY_BUFFER,
+        /**
+         * @brief for geometry Index buffer
+        */
+        ElementArray = GL_ELEMENT_ARRAY_BUFFER,
+        /**
+         * @brief used to write results of glReadPixels
+        */
+        PixelPack = GL_PIXEL_PACK_BUFFER,
+        /**
+         * @brief used to store texture raw buffer
+        */
+        PixelUnpack = GL_PIXEL_UNPACK_BUFFER
+    };
+    enum class Mode {
+        Default = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT,
+        Dynamic = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT | GL_CLIENT_STORAGE_BIT,
+        Persistent = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT,
+        Immutable = 0
+    };
+    enum class MappingMode {
+        None = -1,
+        ReadOnly = GL_MAP_READ_BIT,
+        WriteOnly = GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT,
+        ReadWrite = GL_MAP_WRITE_BIT | GL_MAP_READ_BIT |  GL_MAP_FLUSH_EXPLICIT_BIT
+    };
+    PROPERTY(size_t, ByteLength, 0);
+    PROPERTY(size_t, ByteStride, 0);
+    PROPERTY(size_t, ByteOffset, 0);
+    PROPERTY(Handle, Handle, 0);
+    PROPERTY(Type, Type, Type::Unknown);
+    PROPERTY(Mode, Mode, Mode::Default);
+    PROPERTY(bool, Loaded, false);
+    PROPERTY(MappingMode, PersistentMappingMode, MappingMode::None);
+    READONLYPROPERTY(MappingMode, MappingMode, MappingMode::None);
+    READONLYPROPERTY(size_t, MappingStart, 0);
+    READONLYPROPERTY(size_t, MappingEnd, 0);
+
+public:
     BufferView() = delete;
-    BufferView(size_t byteLength, std::shared_ptr<Buffer> buffer);
-    /** The buffer. */
-    std::shared_ptr<Buffer> GetBuffer();
-    void SetBuffer(std::shared_ptr<Buffer>);
-    /** The offset into the buffer in bytes. */
-    size_t ByteOffset() const;
-    void SetByteOffset(size_t);
-    /** The length of the bufferView in bytes. */
-    size_t ByteLength() const;
-    void SetByteLength(size_t);
-    /** The stride, in bytes. */
-    size_t ByteStride() const;
-    void SetByteStride(size_t);
-    /** The target that the GPU buffer should be bound to. */
-    GLenum Target() const;
-    void SetTarget(GLenum);
-    /** The buffer's Opengl ID */
-    //GLuint Glid() const;
-    GLenum Usage() const;
-    void SetUsage(GLenum);
-    
+    /**
+     * @brief creates a BufferView that will use buffer when loaded
+     * when loading is done, buffer will be released with RemoveComponent
+     * @param buffer the buffer to be used when loading, released on loaging
+    */
+    BufferView(std::shared_ptr<Buffer> buffer, Mode = Mode::Default);
+    BufferView(size_t byteLength, std::shared_ptr<Buffer> buffer, Mode = Mode::Default);
+    BufferView(size_t byteLength, Mode = Mode::Default);
+    std::byte* Get(size_t index, size_t size);
+    void Set(std::byte* data, size_t index, size_t size);
+    std::byte* MapRange(MappingMode mappingMode, size_t start, size_t end);
+    void Unmap();
+    void FlushRange(size_t start, size_t end);
+    void Bind();
+    static void BindDefault(Type bufferType);
+    virtual void Load();
+    virtual void Unload();
+
 private:
     virtual std::shared_ptr<Component> _Clone() override {
-        return Component::Create<BufferView>(*this);
+        return std::static_pointer_cast<Component>(Component::Create<BufferView>(*this));
     }
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    size_t _byteOffset { 0 };
-    size_t _byteLength { 0 };
-    size_t _byteStride { 0 };
-    GLenum _target { 0 };
-    //GLuint _glid { 0 };
-    GLenum _usage { GL_STATIC_DRAW };
+    void _onBeforeRender(float);
+    std::byte* _mappingPointer{ nullptr };
+    Signal<float>::ScoppedSlot _beforeRenderSlot;
+    size_t _flushStart{ 0 };
+    size_t _flushEnd{ 0 };
+    std::vector<std::byte> _rawData{};
 };
