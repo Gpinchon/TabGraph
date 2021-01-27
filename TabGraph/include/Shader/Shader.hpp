@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-21 21:49:39
+* @Last Modified time: 2021-01-11 08:45:06
 */
 
 #pragma once
@@ -10,14 +10,15 @@
 #include "Component.hpp" // for Component
 #include "Shader/ShaderStage.hpp"
 #include "Tools/Tools.hpp"
+
 #include <GL/glew.h> // for GLuint, GLenum, GLint
 #include <cstdlib>
 #include <functional>
 #include <glm/glm.hpp> // for glm::mat4, glm::vec2, glm::vec3
+#include <map> // for unordered_map
 #include <memory> // for shared_ptr
 #include <stddef.h> // for size_t
 #include <string> // for string
-#include <map> // for unordered_map
 #include <variant>
 #include <vector> // for vector
 
@@ -28,7 +29,7 @@ struct ShaderVariable {
     size_t size { 0 };
     GLenum type { 0 };
     GLint loc { -1 };
-    std::string typeName{};
+    std::string typeName {};
     size_t byteSize { 0 };
     std::function<void(const ShaderVariable&)> updateFunction {};
     template <typename T, typename = IsNotSharedPointerOfType<Texture, T>>
@@ -137,18 +138,12 @@ public:
     void Link();
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<Shader>(*this);
     }
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    //static std::vector<std::shared_ptr<Shader>> _shaders;
     GLuint _program { 0 };
-    bool _texturesChanged{ false };
+    bool _texturesChanged { false };
     bool _uniformsChanged { false };
     bool _attributesChanged { false };
     bool _compiled { false };
@@ -164,7 +159,7 @@ private:
     static std::unordered_map<std::string, ShaderVariable> _globalTextures;
     static std::unordered_map<std::string, ShaderVariable> _globalUniforms;
     static std::unordered_map<std::string, std::string> _globalDefines;
-    Shader::Type _type{ Shader::Type::Invalid };
+    Shader::Type _type { Shader::Type::Invalid };
 };
 
 #include "Debug.hpp"
@@ -198,14 +193,14 @@ template <typename T, typename>
 inline void Shader::SetUniform(const std::string& uname, const T& value, const size_t index)
 {
     if (in_use()) {
-        debugLog(" Warning setting uniform " + uname + " Shader " + Name() + " in use");
+        debugLog(" Warning setting uniform " + uname + " Shader " + GetName() + " in use");
     }
     _uniforms[uname].Set(value, index);
     _uniforms[uname].name = uname;
     _uniformsChanged = true;
 }
 
-template<typename T, typename>
+template <typename T, typename>
 inline void Shader::SetGlobalUniform(const std::string& uname, const T& value, const size_t index)
 {
     _globalUniforms[uname].Set(value, index);

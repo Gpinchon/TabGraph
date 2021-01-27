@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-12 11:43:11
+* @Last Modified time: 2021-01-11 08:48:16
 */
 
 #pragma once
@@ -40,12 +40,4 @@ protected:
     std::weak_ptr<Shader> _shader;
     GLbitfield _memory_barrier { GL_ALL_BARRIER_BITS };
     glm::ivec3 _num_groups { 0, 0, 0 };
-
-private:
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float) override {};
-    virtual void _FixedUpdateCPU(float) override {};
 };

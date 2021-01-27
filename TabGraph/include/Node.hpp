@@ -1,15 +1,15 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-20 14:49:45
+* @Last Modified time: 2021-01-11 08:45:42
 */
 
 #pragma once
 
 #include "Common.hpp"
-#include "Transform.hpp" // for Transform
 #include "Event/Signal.hpp"
+#include "Transform.hpp" // for Transform
 
 #include <algorithm>
 #include <glm/ext.hpp>
@@ -63,15 +63,10 @@ public:
     virtual ~Node() /*= default*/;
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<Node>(*this);
     }
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override {};
     virtual void _UpdateMeshSkin(float);
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
 };

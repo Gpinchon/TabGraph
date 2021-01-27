@@ -45,12 +45,8 @@ private:
     virtual std::shared_ptr<Component> _Clone() override {
         return Component::Create<PhysicsEngine>(*this);
     }
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override;
+    //TODO Fixe PhysicsEngine
+    virtual void _FixedUpdateCPU(float /*delta*/);
     std::vector<Collision::CollideesPair> _collideesPairs;
     std::vector<std::shared_ptr<RigidBody>> _rigidBodies;
 };
