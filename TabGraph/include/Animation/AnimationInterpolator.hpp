@@ -36,16 +36,16 @@ inline T AnimationInterpolator::Interpolate(const AnimationSampler &sampler, flo
 {
 	if (sampler.Interpolation() == AnimationSampler::AnimationInterpolation::CubicSpline)
 	{
-		T prev				(BufferHelper::Get<T>(sampler.KeyFrames(), PrevKey() * 3 + 1));
-		T prevOutputTangent	(BufferHelper::Get<T>(sampler.KeyFrames(), PrevKey() * 3 + 2));
-		T nextInputTangent	(BufferHelper::Get<T>(sampler.KeyFrames(), NextKey() * 3 + 0));
-		T next				(BufferHelper::Get<T>(sampler.KeyFrames(), NextKey() * 3 + 1));
+		T prev(sampler.KeyFrames()->Get<T>(PrevKey() * 3 + 1));// BufferHelper::Get<T>(sampler.KeyFrames(), PrevKey() * 3 + 1));
+		T prevOutputTangent(sampler.KeyFrames()->Get<T>(PrevKey() * 3 + 2));//BufferHelper::Get<T>(sampler.KeyFrames(), PrevKey() * 3 + 2));
+		T nextInputTangent(sampler.KeyFrames()->Get<T>(NextKey() * 3 + 0));//BufferHelper::Get<T>(sampler.KeyFrames(), NextKey() * 3 + 0));
+		T next(sampler.KeyFrames()->Get<T>(NextKey() * 3 + 0));//BufferHelper::Get<T>(sampler.KeyFrames(), NextKey() * 3 + 1));
 		T prevTangent = delta * prevOutputTangent;
     	T nextTangent = delta * nextInputTangent;
 		return cubicSpline(prev, prevTangent, next, nextTangent, interpolationValue);
 	}
-	T prev(BufferHelper::Get<T>(sampler.KeyFrames(), PrevKey()));
-	T next(BufferHelper::Get<T>(sampler.KeyFrames(), NextKey()));
+	T prev(sampler.KeyFrames()->Get<T>(PrevKey()));// BufferHelper::Get<T>(sampler.KeyFrames(), PrevKey()));
+	T next(sampler.KeyFrames()->Get<T>(NextKey()));//BufferHelper::Get<T>(sampler.KeyFrames(), NextKey()));
 	switch (sampler.Interpolation())
 	{
 		case AnimationSampler::AnimationInterpolation::Linear: {

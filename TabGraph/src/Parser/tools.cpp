@@ -1,14 +1,14 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-25 15:43:20
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:46:12
 */
 
-#include <sstream>
 #include <algorithm> // for max, count, replace
 #include <errno.h> // for ENOENT, EACCES, ELOOP, ENAMETOOLONG
 #include <fstream> // for ifstream
+#include <sstream>
 
 #include <iostream> // for basic_ostream::operator<<, char_traits
 #include <iterator> // for istreambuf_iterator, operator!=
@@ -21,9 +21,9 @@
 
 #ifdef WIN32
 #include <io.h> // for access
- #ifndef R_OK
-  #define R_OK 4
- #endif
+#ifndef R_OK
+#define R_OK 4
+#endif
 #else
 #include <unistd.h> // for access
 #endif
@@ -135,10 +135,11 @@ std::vector<std::string> strsplit(const std::string& s, char c)
     return (ret);
 }
 
-std::vector<std::string> strsplitwspace(std::string const &input) { 
+std::vector<std::string> strsplitwspace(std::string const& input)
+{
     std::istringstream buffer(input);
-    std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)), 
-                                 std::istream_iterator<std::string>());
+    std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)),
+        std::istream_iterator<std::string>());
     return ret;
 }
 

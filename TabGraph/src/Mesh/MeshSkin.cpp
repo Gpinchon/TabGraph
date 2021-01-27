@@ -34,7 +34,7 @@ std::shared_ptr<BufferAccessor> MeshSkin::InverseBindMatrices() const
     return GetComponent<BufferAccessor>();
 }
 
-void MeshSkin::SetInverseBinMatrices(std::shared_ptr<BufferAccessor> inverseBindMatrices)
+void MeshSkin::SetInverseBindMatrices(std::shared_ptr<BufferAccessor> inverseBindMatrices)
 {
     SetComponent<BufferAccessor>(inverseBindMatrices);
 }

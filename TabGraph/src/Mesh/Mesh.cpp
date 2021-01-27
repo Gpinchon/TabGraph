@@ -1,12 +1,12 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
-* @Last Modified by:   Gpinchon
-* @Last Modified time: 2020-08-27 17:19:14
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:46:20
 */
 
 #include "Mesh/Mesh.hpp"
-#include "Buffer/BufferHelper.hpp"
+#include "Buffer/BufferAccessor.hpp"
 #include "Camera/Camera.hpp" // for Camera
 #include "Debug.hpp"
 #include "Material/Material.hpp" // for Material
@@ -14,12 +14,12 @@
 #include "Node.hpp" // for Node
 #include "Physics/BoundingAABB.hpp" // for BoundingAABB
 #include "Physics/BoundingElement.hpp" // for BoundingElement
+#include "Render.hpp"
 #include "Scene/Scene.hpp"
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureBuffer.hpp"
 #include "Transform.hpp"
-#include "Render.hpp"
 
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/transform.hpp>
@@ -38,26 +38,14 @@ Mesh::Mesh()
     meshNbr++;
 }
 
-
-
 void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
 {
     AddComponent(group);
 }
 
-void Mesh::_LoadGPU()
-{
-    if (GetLoadedGPU())
-        return;
-    debugLog(Name());
-    if (HasComponentOfType<TextureBuffer>())
-        JointMatrices()->load();
-    SetLoadedGPU(true);
-}
-
-#include "Window.hpp"
-#include "Render.hpp"
 #include "Framebuffer.hpp"
+#include "Render.hpp"
+#include "Window.hpp"
 
 bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
 {
@@ -68,7 +56,7 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
     bool ret = false;
     auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
 
-    LoadGPU();
+    Load();
     std::shared_ptr<Shader> last_shader;
     for (auto vg : Geometrys()) {
         if (nullptr == vg)
@@ -87,7 +75,7 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
             continue;
         material->Bind();
         if (last_shader != shader) {
-            shader->SetUniform("DrawID", unsigned(vg->Id()));
+            shader->SetUniform("DrawID", unsigned(vg->GetId()));
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             shader->SetTexture("Joints", HasComponentOfType<TextureBuffer>() ? JointMatrices() : nullptr);
@@ -110,7 +98,7 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
     bool ret = false;
     auto normal_matrix = glm::inverseTranspose(_transformMatrix);
 
-    LoadGPU();
+    Load();
     std::shared_ptr<Shader> last_shader;
     for (auto vg : Geometrys()) {
         if (nullptr == vg)
@@ -135,7 +123,7 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
             continue;
         material->Bind();
         //std::cout << unsigned(vg->Id()) << std::endl;
-        shader->SetUniform("DrawID", unsigned(vg->Id()));
+        shader->SetUniform("DrawID", unsigned(vg->GetId()));
         if (last_shader != shader) {
             shader->SetUniform("WindowSize", Window::size());
             if (pass == RenderPass::Material) {
@@ -238,20 +226,37 @@ void Mesh::SetJointMatrices(const std::shared_ptr<TextureBuffer>& jointMatrices)
     SetComponent(jointMatrices);
 }
 
+void Mesh::Load()
+{
+    if (GetLoaded())
+        return;
+    debugLog(GetName());
+    if (HasComponentOfType<MeshSkin>() && !HasComponentOfType<TextureBuffer>()) {
+        auto bufferAccessor = Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Mat4, GetComponent<MeshSkin>()->Joints().size()); //BufferHelper::CreateAccessor<glm::mat4>(GetComponent<MeshSkin>()->Joints().size(), GL_TEXTURE_BUFFER, false, GL_DYNAMIC_DRAW);
+        bufferAccessor->GetBufferView()->SetType(BufferView::Type::PixelUnpack);
+        bufferAccessor->GetBufferView()->SetMode(BufferView::Mode::Persistent);
+        bufferAccessor->GetBufferView()->SetPersistentMappingMode(BufferView::MappingMode::WriteOnly);
+        //SetJointMatrices(Component::Create<TextureBuffer>("jointMatrices", GL_RGBA32F, bufferAccessor));
+        SetJointMatrices(Component::Create<TextureBuffer>(Pixel::SizedFormat::Float32_RGBA, bufferAccessor));
+        debugLog(GetName() + " : Create Skin");
+    }
+    if (HasComponentOfType<TextureBuffer>())
+        JointMatrices()->Load();
+    _SetLoaded(true);
+}
+
 void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
 {
     if (!HasComponentOfType<MeshSkin>())
         return;
-    if (!HasComponentOfType<TextureBuffer>()) {
-        auto bufferAccessor = BufferHelper::CreateAccessor<glm::mat4>(GetComponent<MeshSkin>()->Joints().size(), GL_TEXTURE_BUFFER, false, GL_DYNAMIC_DRAW);
-        SetJointMatrices(Component::Create<TextureBuffer>("jointMatrices", GL_RGBA32F, bufferAccessor));
-        debugLog(Name() + " : Create Skin");
-    }
+    Load();
+    auto meshSkin{ GetComponent<MeshSkin>() };
     auto invMatrix = glm::inverse(transform->GetParent()->WorldTransformMatrix());
-    for (auto index = 0u; index < GetComponent<MeshSkin>()->Joints().size(); ++index) {
-        const auto joint(GetComponent<MeshSkin>()->Joints().at(index));
-        auto jointMatrix = invMatrix * joint->WorldTransformMatrix() * BufferHelper::Get<glm::mat4>(GetComponent<MeshSkin>()->InverseBindMatrices(), index);
-        BufferHelper::Set(JointMatrices()->Accessor(), index, jointMatrix);
+    for (auto index = 0u; index < meshSkin->Joints().size(); ++index) {
+        const auto joint(meshSkin->Joints().at(index));
+        auto jointMatrix = invMatrix * joint->WorldTransformMatrix() * meshSkin->InverseBindMatrices()->Get<glm::mat4>(index);//BufferHelper::Get<glm::mat4>(GetComponent<MeshSkin>()->InverseBindMatrices(), index);
+        JointMatrices()->Accessor()->Set<glm::mat4>(jointMatrix, index);
+        //BufferHelper::Set(JointMatrices()->Accessor(), index, jointMatrix);
     }
 }
 

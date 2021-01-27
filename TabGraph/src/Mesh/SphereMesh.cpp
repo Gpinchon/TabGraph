@@ -6,6 +6,8 @@
 */
 
 #include "Mesh/SphereMesh.hpp"
+#include "Buffer/Buffer.hpp"
+#include "Buffer/BufferAccessor.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/Geometry.hpp"
 #include "Mesh/Mesh.hpp"
@@ -158,11 +160,32 @@ std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, fl
         sphereIndices.push_back(tri[1]);
         sphereIndices.push_back(tri[2]);
     }
+    /*auto verticesBuffer{
+        Component::Create<Buffer>(
+        sphereVertices.size() * sizeof(glm::vec3) +
+        sphereNormals.size() * sizeof(glm::vec3) +
+        sphereTexCoords.size() * sizeof(glm::vec2)
+        )
+    };*/
+    
+    /*verticesBuffer->Set(
+        (std::byte*)sphereVertices.data(),
+        0,
+        sphereVertices.size() * sizeof(glm::vec3));
+    verticesBuffer->Set(
+        (std::byte*)sphereNormals.data(),
+        sphereVertices.size() * sizeof(glm::vec3),
+        sphereNormals.size() * sizeof(glm::vec3));
+    verticesBuffer->Set((std::byte*)sphereTexCoords.data(),
+        sphereVertices.size() * sizeof(glm::vec3) + sphereNormals.size() * sizeof(glm::vec3),
+        sphereTexCoords.size() * sizeof(glm::vec2));
+
     auto vg = Component::Create<Geometry>(name);
     vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(sphereVertices, GL_ARRAY_BUFFER));
     vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(sphereNormals, GL_ARRAY_BUFFER, true));
     vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(sphereTexCoords, GL_ARRAY_BUFFER));
-    vg->SetIndices(BufferHelper::CreateAccessor(sphereIndices, GL_ELEMENT_ARRAY_BUFFER));
+    vg->SetIndices(BufferHelper::CreateAccessor(sphereIndices, GL_ELEMENT_ARRAY_BUFFER));*/
+    auto vg = Component::Create<Geometry>(sphereVertices, sphereNormals, sphereTexCoords, sphereIndices);
     return vg;
 }
 

@@ -25,7 +25,6 @@ std::vector<glm::vec3> getUnitCircleVertices(int sectorCount)
 
 std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, float height, float radius, int sectorCount, int stackCount)
 {
-    auto vg = Component::Create<Geometry>(name);
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec2> texCoords;
@@ -72,11 +71,12 @@ std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, f
             }
         }
     }
-
+    auto vg{ Component::Create<Geometry>(vertices, normals, texCoords, indices) };
+    /*auto vg = Component::Create<Geometry>(name);
     vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(vertices, GL_ARRAY_BUFFER));
     vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(normals, GL_ARRAY_BUFFER, true));
     vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(texCoords, GL_ARRAY_BUFFER));
-    vg->SetIndices(BufferHelper::CreateAccessor(indices, GL_ELEMENT_ARRAY_BUFFER));
+    vg->SetIndices(BufferHelper::CreateAccessor(indices, GL_ELEMENT_ARRAY_BUFFER));*/
     return vg;
 }
 

@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-09 22:42:22
+* @Last Modified time: 2021-01-11 08:46:21
 */
 
 #include "Mesh/CubeMesh.hpp"
@@ -110,15 +110,17 @@ std::shared_ptr<Geometry> CubeMesh::CreateGeometry(const std::string& name, glm:
         16, 17, 18, 16, 18, 19, // top
         20, 22, 21, 20, 23, 22 // bottom
     };
-    auto vg = Component::Create<Geometry>(name);
+    
     auto thisCubeVertices = cubeVertices;
     for (auto& v : thisCubeVertices) {
         v *= size;
     }
+    auto vg{ Component::Create<Geometry>(thisCubeVertices, cubeNormals, cubeTexCoords, cubeIndices) };
+    /*auto vg = Component::Create<Geometry>(name);
     vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(thisCubeVertices, GL_ARRAY_BUFFER));
     vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(cubeNormals, GL_ARRAY_BUFFER, true));
     vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(cubeTexCoords, GL_ARRAY_BUFFER));
-    vg->SetIndices(BufferHelper::CreateAccessor(cubeIndices, GL_ELEMENT_ARRAY_BUFFER));
+    vg->SetIndices(BufferHelper::CreateAccessor(cubeIndices, GL_ELEMENT_ARRAY_BUFFER));*/
     return vg;
 }
 

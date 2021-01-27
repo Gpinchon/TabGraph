@@ -48,12 +48,6 @@ private:
                 channel.SetTarget(std::static_pointer_cast<Node>(newComponent));
         }
     };
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override {};
     std::vector<AnimationInterpolator> _interpolators;
     std::vector<AnimationChannel> _channels;
     std::vector<AnimationSampler> _samplers;

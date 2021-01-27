@@ -79,21 +79,21 @@ void Animation::Advance(float delta)
         auto interpolator(_interpolators.at(index));
         auto sampler(_samplers.at(channel.SamplerIndex()));
         auto t = _currentTime;
-        auto maxT = BufferHelper::Get<float>(sampler.Timings(), sampler.Timings()->Count() - 1);
-        auto minT = BufferHelper::Get<float>(sampler.Timings(), 0);
+        auto maxT = sampler.Timings()->Get<float>(sampler.Timings()->GetCount() - 1);//BufferHelper::Get<float>(sampler.Timings(), sampler.Timings()->Count() - 1);
+        auto minT = sampler.Timings()->Get<float>(0);//BufferHelper::Get<float>(sampler.Timings(), 0);
         t = std::clamp(t, minT, maxT);
         interpolator.SetPrevTime(t);
         interpolator.SetNextKey(0u);
-        for (auto i = interpolator.PrevKey(); i < sampler.Timings()->Count(); ++i) {
-            float timing(BufferHelper::Get<float>(sampler.Timings(), i));
+        for (auto i = interpolator.PrevKey(); i < sampler.Timings()->GetCount(); ++i) {
+            float timing(sampler.Timings()->Get<float>(i));//BufferHelper::Get<float>(sampler.Timings(), i));
             if (timing > t) {
-                interpolator.SetNextKey(std::clamp(size_t(i), size_t(0), sampler.Timings()->Count() - 1));
+                interpolator.SetNextKey(std::clamp(size_t(i), size_t(0), sampler.Timings()->GetCount() - 1));
                 break;
             }
         }
         interpolator.SetPrevKey(std::clamp(size_t(interpolator.NextKey() - 1), size_t(0), size_t(interpolator.NextKey())));
-        auto prevTime(BufferHelper::Get<float>(sampler.Timings(), interpolator.PrevKey()));
-        auto nextTime(BufferHelper::Get<float>(sampler.Timings(), interpolator.NextKey()));
+        auto prevTime(sampler.Timings()->Get<float>(interpolator.PrevKey()));//BufferHelper::Get<float>(sampler.Timings(), interpolator.PrevKey()));
+        auto nextTime(sampler.Timings()->Get<float>(interpolator.NextKey()));//BufferHelper::Get<float>(sampler.Timings(), interpolator.NextKey()));
         auto keyDelta(nextTime - prevTime);
         auto interpolationValue(0.f);
         if (keyDelta != 0)
@@ -151,10 +151,10 @@ void Animation::Advance(float delta)
 void Animation::Play()
 {
     if (!Playing()) {
-        for (auto sampler : _samplers) {
-            sampler.Timings()->GetBufferView()->GetBuffer()->LoadCPU();
-            sampler.KeyFrames()->GetBufferView()->GetBuffer()->LoadCPU();
-        }
+        /*for (auto sampler : _samplers) {
+            sampler.Timings()->GetBufferView()->GetBuffer()->Load();
+            sampler.KeyFrames()->GetBufferView()->GetBuffer()->Load();
+        }*/
         _currentTime = 0;
         _playing = true;
         _advanceSlot = Engine::OnFixedUpdate().ConnectMember(this, &Animation::Advance);
@@ -167,7 +167,6 @@ void Animation::Stop()
     Reset();
     _advanceSlot.Disconnect();
     _playing = false;
-    SetNeedsFixedUpdateCPU(false);
 }
 
 bool Animation::Playing() const

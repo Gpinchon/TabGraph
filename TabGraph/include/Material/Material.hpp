@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 15:45:42
+* @Last Modified time: 2021-01-11 08:45:26
 */
 
 #pragma once
@@ -46,7 +46,8 @@ public:
     void SetBRDFLUT(const std::shared_ptr<Texture2D>&);
 
 protected:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         auto clone = Component::Create<Material>(*this);
         clone->OpacityModeChanged.ConnectMember(clone.get(), &Material::_updateOpacityMode);
         clone->OpacityCutoffChanged.ConnectMember(clone.get(), &Material::_updateOpacityCutoff);
@@ -58,12 +59,6 @@ protected:
         clone->IorChanged.ConnectMember(clone.get(), &Material::_updateIor);
         return clone;
     }
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override {};
     int64_t _geometryShader;
     int64_t _materialShader;
     int64_t _texture_diffuse;

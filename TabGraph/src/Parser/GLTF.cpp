@@ -22,7 +22,8 @@
 #include "Parser/InternalTools.hpp"
 #include "Scene/Scene.hpp"
 #include "Texture/Texture2D.hpp"
-#include "Texture/TextureParser.hpp"
+#include "Texture/Image.hpp"
+#include "Texture/ImageParser.hpp"
 #include "Transform.hpp"
 
 #include <fstream>
@@ -99,7 +100,7 @@ static inline auto ParseTextureSamplers(const rapidjson::Document& document)
     return samplerVector;
 }
 
-static inline auto ParseTextures(const std::filesystem::path path, const rapidjson::Document& document)
+static inline auto ParseTextures(const rapidjson::Document& document, std::shared_ptr<AssetsContainer> container)
 {
     debugLog("Start parsing textures");
     std::vector<std::shared_ptr<Texture2D>> textureVector;
@@ -107,34 +108,26 @@ static inline auto ParseTextures(const std::filesystem::path path, const rapidjs
     try {
         auto textureIndex(0);
         for (const auto& textureValue : document["textures"].GetArray()) {
-            std::string uri;
-            try {
-                auto source(textureValue["source"].GetInt());
-                auto& image(document["images"].GetArray()[source]);
-                uri = image["uri"].GetString();
-                std::string header("data:application/octet-stream;base64,");
-                if (uri.find(header) != 0) {
-                    auto texturePath = std::filesystem::path(uri);
-                    if (!texturePath.is_absolute())
-                        texturePath = path.parent_path() / texturePath;
-                    uri = texturePath.string();
-                }
-            } catch (std::exception&) {
-                debugLog("Texture " + std::to_string(textureIndex) + " has no Uri")
-            }
             std::shared_ptr<Texture2D> texture = nullptr;
             try {
-                texture = TextureParser::parse("Texture " + std::to_string(textureIndex), uri);
+                auto source(textureValue["source"].GetInt());
+                auto image{container->GetComponent<Image>(source)};
+                texture = Component::Create<Texture2D>(image);
+            } catch (std::exception&) {
+                debugLog("Texture " + std::to_string(textureIndex) + " has no source");
+                texture = Component::Create<Texture2D>(glm::ivec2(1), Pixel::SizedFormat::Uint8_NormalizedR);
+            }
+            try {
                 try {
                     auto sampler(samplers.at(textureValue["sampler"].GetInt()));
                     if (sampler.settings["magFilter"] != 0)
-                        texture->set_parameteri(GL_TEXTURE_MAG_FILTER, sampler.settings["magFilter"]);
+                        texture->SetParameter(GL_TEXTURE_MAG_FILTER, sampler.settings["magFilter"]);
                     if (sampler.settings["minFilter"] != 0)
-                        texture->set_parameteri(GL_TEXTURE_MIN_FILTER, sampler.settings["minFilter"]);
+                        texture->SetParameter(GL_TEXTURE_MIN_FILTER, sampler.settings["minFilter"]);
                     if (sampler.settings["wrapS"] != 0)
-                        texture->set_parameteri(GL_TEXTURE_WRAP_S, sampler.settings["wrapS"]);
+                        texture->SetParameter(GL_TEXTURE_WRAP_S, sampler.settings["wrapS"]);
                     if (sampler.settings["wrapT"] != 0)
-                        texture->set_parameteri(GL_TEXTURE_WRAP_T, sampler.settings["wrapT"]);
+                        texture->SetParameter(GL_TEXTURE_WRAP_T, sampler.settings["wrapT"]);
                 }
                 catch (std::exception&) {
                     debugLog("Texture " + std::to_string(textureIndex) + " has no sampler")
@@ -176,7 +169,7 @@ static inline auto ParseMaterialExtensions(const std::shared_ptr<AssetsContainer
                     ));
                 }
                 catch (const std::exception&) {
-                    debugLog("No diffuseFactor found for " + material->Name());
+                    debugLog("No diffuseFactor found for " + material->GetName());
                 }
                 try {
                     auto diffuseFactor(pbrSpecularGlossiness["specularFactor"].GetArray());
@@ -187,28 +180,28 @@ static inline auto ParseMaterialExtensions(const std::shared_ptr<AssetsContainer
                         ));
                 }
                 catch (const std::exception&) {
-                    debugLog("No specularFactor found for " + material->Name());
+                    debugLog("No specularFactor found for " + material->GetName());
                 }
                 try {
                     auto glossinessFactor(pbrSpecularGlossiness["glossinessFactor"].GetFloat());
                     materialExtension->SetGlossiness(glossinessFactor);
                 }
                 catch (const std::exception&) {
-                    debugLog("No glossinessFactor found for " + material->Name());
+                    debugLog("No glossinessFactor found for " + material->GetName());
                 }
                 try {
                     auto textureObject(pbrSpecularGlossiness["diffuseTexture"].GetObject());
                     materialExtension->SetTextureDiffuse(container->GetComponent<Texture2D>(textureObject["index"].GetInt()));
                 }
                 catch (std::exception&) {
-                    debugLog("No diffuseTexture found for " + material->Name());
+                    debugLog("No diffuseTexture found for " + material->GetName());
                 }
                 try {
                     auto textureObject(pbrSpecularGlossiness["specularGlossinessTexture"].GetObject());
                     materialExtension->SetTextureSpecularGlossiness(container->GetComponent<Texture2D>(textureObject["index"].GetInt()));
                 }
                 catch (std::exception&) {
-                    debugLog("No specularGlossinessTexture found for " + material->Name());
+                    debugLog("No specularGlossinessTexture found for " + material->GetName());
                 }
             }
         }
@@ -232,13 +225,13 @@ static inline auto ParseMaterials(const rapidjson::Document& document, const std
                 material->SetName(materialValue["name"].GetString());
             }
             catch (std::exception&) {
-                debugLog("Material " + material->Name() + " has no name property")
+                debugLog("Material " + material->GetName() + " has no name property")
             }
             try {
                 material->SetOpacityCutoff(materialValue["alphaCutoff"].GetFloat());
             }
             catch (std::exception&) {
-                debugLog("Material " + material->Name() + " has no alphaCutoff property")
+                debugLog("Material " + material->GetName() + " has no alphaCutoff property")
             }
             try {
                 std::string alphaMode = materialValue["alphaMode"].GetString();
@@ -250,13 +243,13 @@ static inline auto ParseMaterials(const rapidjson::Document& document, const std
                     material->SetOpacityMode(Material::OpacityModeValue::Blend);
             }
             catch (std::exception&) {
-                debugLog("Material " + material->Name() + " has no alphaCutoff property")
+                debugLog("Material " + material->GetName() + " has no alphaCutoff property")
             }
             
             try {
                 material->SetDoubleSided(materialValue["doubleSided"].GetBool());
             } catch (std::exception&) {
-                debugLog("Material " + material->Name() + " has no doubleSided property")
+                debugLog("Material " + material->GetName() + " has no doubleSided property")
             }
             try {
                 auto emissiveFactor(materialValue["emissiveFactor"].GetArray());
@@ -359,12 +352,12 @@ static inline auto ParseBuffers(const std::filesystem::path path, const rapidjso
                     bufferPath = path.parent_path() / bufferPath;
                 buffer->SetUri(bufferPath.string());
             } catch (std::exception&) {
-                debugLog("Buffer " + buffer->Name() + " has no uri property")
+                debugLog("Buffer " + buffer->GetName() + " has no uri property")
             }
             try {
                 buffer->SetName(bufferValue["name"].GetString());
             } catch (std::exception&) {
-                debugLog("Buffer " + buffer->Name() + " has no name property")
+                debugLog("Buffer " + buffer->GetName() + " has no name property")
             }
             bufferVector.push_back(buffer);
         }
@@ -373,6 +366,18 @@ static inline auto ParseBuffers(const std::filesystem::path path, const rapidjso
     }
     debugLog("Done parsing buffers");
     return bufferVector;
+}
+
+static inline BufferView::Type GetBufferViewType(GLenum type) {
+    switch (type)
+    {
+    case GL_ARRAY_BUFFER:
+        return BufferView::Type::Array;
+    case GL_ELEMENT_ARRAY_BUFFER:
+        return BufferView::Type::ElementArray;
+    default:
+        return BufferView::Type::Unknown;
+    }
 }
 
 static inline auto ParseBufferViews(const std::filesystem::path path, const rapidjson::Document& document)
@@ -388,22 +393,22 @@ static inline auto ParseBufferViews(const std::filesystem::path path, const rapi
             try {
                 bufferView->SetByteOffset(bufferViewValue["byteOffset"].GetInt());
             } catch (std::exception&) {
-                debugLog("BufferView " + bufferView->Name() + " has no byteOffset property")
+                debugLog("BufferView " + bufferView->GetName() + " has no byteOffset property")
             }
             try {
                 bufferView->SetByteStride(bufferViewValue["byteStride"].GetInt());
             } catch (std::exception&) {
-                debugLog("BufferView " + bufferView->Name() + " has no byteStride property")
+                debugLog("BufferView " + bufferView->GetName() + " has no byteStride property")
             }
             try {
-                bufferView->SetTarget(bufferViewValue["target"].GetInt());
+                bufferView->SetType(GetBufferViewType(bufferViewValue["target"].GetInt()));
             } catch (std::exception&) {
-                debugLog("BufferView " + bufferView->Name() + " has no target property")
+                debugLog("BufferView " + bufferView->GetName() + " has no target property")
             }
             try {
                 bufferView->SetName(bufferViewValue["name"].GetString());
             } catch (std::exception&) {
-                debugLog("BufferView " + bufferView->Name() + " has no name property")
+                debugLog("BufferView " + bufferView->GetName() + " has no name property")
             }
             bufferViewVector.push_back(bufferView);
         }
@@ -414,6 +419,45 @@ static inline auto ParseBufferViews(const std::filesystem::path path, const rapi
     return bufferViewVector;
 }
 
+static inline BufferAccessor::ComponentType GetBufferAccessorComponentType(GLenum type) {
+    switch (type)
+    {
+    case 5120://GL_BYTE:
+        return BufferAccessor::ComponentType::Int8;
+    case 5121://GL_UNSIGNED_BYTE:
+        return BufferAccessor::ComponentType::Uint8;
+    case 5122://GL_SHORT:
+        return BufferAccessor::ComponentType::Int16;
+    case 5123://GL_UNSIGNED_SHORT:
+        return BufferAccessor::ComponentType::Uint16;
+    case 5125://GL_UNSIGNED_INT:
+        return BufferAccessor::ComponentType::Uint32;
+    case 5126://GL_FLOAT:
+        return BufferAccessor::ComponentType::Float32;
+    default:
+        return BufferAccessor::ComponentType::Unknown;
+    }
+}
+
+static inline BufferAccessor::Type GetBufferAccessorType(const std::string &type) {
+    if (type == "SCALAR")
+        return BufferAccessor::Type::Scalar;
+    else if (type == "VEC2")
+        return BufferAccessor::Type::Vec2;
+    else if (type == "VEC3")
+        return BufferAccessor::Type::Vec3;
+    else if (type == "VEC4")
+        return BufferAccessor::Type::Vec4;
+    else if (type == "MAT2")
+        return BufferAccessor::Type::Mat2;
+    else if (type == "MAT3")
+        return BufferAccessor::Type::Mat3;
+    else if (type == "MAT4")
+        return BufferAccessor::Type::Mat4;
+    return BufferAccessor::Type::Unknown;
+}
+
+
 static inline auto ParseBufferAccessors(const std::filesystem::path path, const rapidjson::Document& document)
 {
     debugLog("Start parsing bufferAccessors");
@@ -423,34 +467,34 @@ static inline auto ParseBufferAccessors(const std::filesystem::path path, const 
         auto bufferAccessorIndex(0);
         for (const auto& bufferAccessorValue : document["accessors"].GetArray()) {
             auto bufferAccessor(Component::Create<BufferAccessor>(
-                bufferAccessorValue["componentType"].GetInt(),
-                bufferAccessorValue["count"].GetInt(),
-                BufferAccessor::GetType(bufferAccessorValue["type"].GetString())));
+                GetBufferAccessorComponentType(bufferAccessorValue["componentType"].GetInt()),
+                GetBufferAccessorType(bufferAccessorValue["type"].GetString()),
+                bufferAccessorValue["count"].GetInt()));
             bufferAccessor->SetName("BufferAccessor " + std::to_string(bufferAccessorIndex));
             try {
                 bufferAccessor->SetBufferView(bufferViews.at(bufferAccessorValue["bufferView"].GetInt()));
             } catch (std::exception&) {
-                debugLog("Accessor " + bufferAccessor->Name() + " has no bufferView property")
+                debugLog("Accessor " + bufferAccessor->GetName() + " has no bufferView property")
             }
             try {
                 bufferAccessor->SetByteOffset(bufferAccessorValue["byteOffset"].GetInt());
             } catch (std::exception&) {
-                debugLog("Accessor " + bufferAccessor->Name() + " has no byteOffset property")
+                debugLog("Accessor " + bufferAccessor->GetName() + " has no byteOffset property")
             }
             try {
                 bufferAccessor->SetNormalized(bufferAccessorValue["normalized"].GetBool());
             } catch (std::exception&) {
-                debugLog("Accessor " + bufferAccessor->Name() + " has no normalized property")
+                debugLog("Accessor " + bufferAccessor->GetName() + " has no normalized property")
             }
-            try {
+            /*try {
                 bufferAccessor->SetCount(bufferAccessorValue["count"].GetInt());
             } catch (std::exception&) {
-                debugLog("Accessor " + bufferAccessor->Name() + " has no count property")
-            }
+                debugLog("Accessor " + bufferAccessor->GetName() + " has no count property")
+            }*/
             try {
                 bufferAccessor->SetName(bufferAccessorValue["name"].GetString());
             } catch (std::exception&) {
-                debugLog("Accessor " + bufferAccessor->Name() + " has no name property")
+                debugLog("Accessor " + bufferAccessor->GetName() + " has no name property")
             }
             bufferAccessorVector.push_back(bufferAccessor);
             bufferAccessorIndex++;
@@ -460,6 +504,28 @@ static inline auto ParseBufferAccessors(const std::filesystem::path path, const 
     }
     debugLog("Done parsing bufferAccessors");
     return bufferAccessorVector;
+}
+
+static inline Geometry::DrawingMode GetGeometryDrawingMode(GLenum mode) {
+    switch (mode)
+    {
+    case 0://GL_POINTS:
+        return Geometry::DrawingMode::Points;
+    case 1://GL_LINES:
+        return Geometry::DrawingMode::Lines;
+    case 2://GL_LINE_LOOP:
+        return Geometry::DrawingMode::LineLoop;
+    case 3://GL_LINE_STRIP:
+        return Geometry::DrawingMode::LineStrip;
+    case 4://GL_TRIANGLES:
+        return Geometry::DrawingMode::Triangles;
+    case 5://GL_TRIANGLE_STRIP:
+        return Geometry::DrawingMode::TriangleStrip;
+    case 6://GL_TRIANGLE_FAN:
+        return Geometry::DrawingMode::TriangleFan;
+    default:
+        return Geometry::DrawingMode::Unknown;
+    }
 }
 
 static inline auto ParseMeshes(const rapidjson::Document& document, const std::shared_ptr<AssetsContainer>& container)
@@ -478,7 +544,7 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const std::s
         try {
             currentMesh->SetName(mesh["name"].GetString());
         } catch (std::exception&) {
-            debugLog("Mesh " + currentMesh->Name() + " has no name")
+            debugLog("Mesh " + currentMesh->GetName() + " has no name")
         }
         try {
             for (const auto& primitive : mesh["primitives"].GetArray()) {
@@ -491,7 +557,7 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const std::s
                     currentMesh->AddMaterial(container->GetComponent<Material>(material.GetInt()));
                     geometry->SetMaterialIndex(currentMesh->GetMaterialIndex(container->GetComponent<Material>(material.GetInt())));
                 } catch (std::exception&) {
-                    debugLog("Geometry " + geometry->Name() + " has no material")
+                    debugLog("Geometry " + geometry->GetName() + " has no material")
                 }
                 try {
                     for (const auto& attribute : primitive["attributes"].GetObject()) {
@@ -500,27 +566,31 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const std::s
                         auto accessorKey(Geometry::GetAccessorKey(attributeName));
                         if (accessorKey == Geometry::AccessorKey::Invalid) {
                             debugLog("Invalid Accessor Key : " + attributeName);
-                        } else
+                        }
+                        else {
                             geometry->SetAccessor(accessorKey, accessor);
+                            accessor->GetBufferView()->SetType(BufferView::Type::Array);
+                        }
                     }
                 } catch (std::exception&) {
-                    debugLog("Geometry " + geometry->Name() + " has no attributes")
+                    debugLog("Geometry " + geometry->GetName() + " has no attributes")
                 }
                 try {
                     auto accessor(container->GetComponent<BufferAccessor>(primitive["indices"].GetInt()));
                     geometry->SetIndices(accessor);
+                    accessor->GetBufferView()->SetType(BufferView::Type::ElementArray);
                 } catch (std::exception&) {
-                    debugLog("Geometry " + geometry->Name() + " has no indices property")
+                    debugLog("Geometry " + geometry->GetName() + " has no indices property")
                 }
                 try {
-                    geometry->SetDrawingMode(primitive["mode"].GetInt());
+                    geometry->SetDrawingMode(GetGeometryDrawingMode(primitive["mode"].GetInt()));
                 } catch (std::exception&) {
-                    debugLog("Geometry " + geometry->Name() + " has no mode property")
+                    debugLog("Geometry " + geometry->GetName() + " has no mode property")
                 }
                 currentMesh->AddGeometry(geometry);
             }
         } catch (std::exception&) {
-            debugLog("Mesh " + currentMesh->Name() + " has no primitives");
+            debugLog("Mesh " + currentMesh->GetName() + " has no primitives");
         }
         if (currentMesh->GetMaterial(0) == nullptr)
             currentMesh->AddMaterial(defaultMaterial);
@@ -546,7 +616,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
         try {
             newNode->SetName(node["name"].GetString());
         } catch (std::exception&) {
-            debugLog("Node " + newNode->Name() + " has no name property");
+            debugLog("Node " + newNode->GetName() + " has no name property");
         }
         try {
             glm::mat4 matrix;
@@ -562,7 +632,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
             transform->SetRotation(rotation);
             transform->SetScale(scale);
         } catch (std::exception&) {
-            debugLog("Node " + newNode->Name() + " has no matrix property");
+            debugLog("Node " + newNode->GetName() + " has no matrix property");
         }
         try {
             const auto& position(node["translation"].GetArray());
@@ -572,7 +642,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
             positionVec3[2] = position[2].GetFloat();
             transform->SetPosition(positionVec3);
         } catch (std::exception&) {
-            debugLog("Node " + newNode->Name() + " has no translation property");
+            debugLog("Node " + newNode->GetName() + " has no translation property");
         }
         try {
             const auto& rotation(node["rotation"].GetArray());
@@ -583,7 +653,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
             rotationQuat[3] = rotation[3].GetFloat();
             transform->SetRotation(glm::normalize(rotationQuat));
         } catch (std::exception&) {
-            debugLog("Node " + newNode->Name() + " has no rotation property");
+            debugLog("Node " + newNode->GetName() + " has no rotation property");
         }
         try {
             const auto& scale(node["scale"].GetArray());
@@ -593,7 +663,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
             scaleVec3[2] = scale[2].GetFloat();
             transform->SetScale(scaleVec3);
         } catch (std::exception&) {
-            debugLog("Node " + newNode->Name() + " has no scale property");
+            debugLog("Node " + newNode->GetName() + " has no scale property");
         }
         nodeVector.push_back(newNode);
         nodeIndex++;
@@ -615,6 +685,8 @@ static inline auto ParseAnimations(const rapidjson::Document& document, const st
             for (const auto& sampler : animation["samplers"].GetArray()) {
                 auto samplerInput(container->GetComponent<BufferAccessor>(sampler["input"].GetInt()));
                 auto samplerOutput(container->GetComponent<BufferAccessor>(sampler["output"].GetInt()));
+                samplerInput->GetBufferView()->SetType(BufferView::Type::CPU); 
+                samplerOutput->GetBufferView()->SetType(BufferView::Type::CPU);
                 auto newSampler(AnimationSampler(samplerInput, samplerOutput));
                 try {
                     std::string interpolation(sampler["interpolation"].GetString());
@@ -667,23 +739,25 @@ static inline auto ParseSkins(const rapidjson::Document& document, const std::sh
             try {
                 newSkin->SetName(skin["name"].GetString());
             } catch (std::exception&) {
-                debugLog("Skin " + newSkin->Name() + " has no name");
+                debugLog("Skin " + newSkin->GetName() + " has no name");
             }
             try {
-                newSkin->SetInverseBinMatrices(container->GetComponent<BufferAccessor>(skin["inverseBindMatrices"].GetInt()));
+                auto accessor{ container->GetComponent<BufferAccessor>(skin["inverseBindMatrices"].GetInt()) };
+                accessor->GetBufferView()->SetType(BufferView::Type::CPU);
+                newSkin->SetInverseBindMatrices(accessor);
             } catch (std::exception&) {
-                debugLog("Skin " + newSkin->Name() + " has no inverseBindMatrices");
+                debugLog("Skin " + newSkin->GetName() + " has no inverseBindMatrices");
             }
             /*try {
                 newSkin->SetSkeleton(container->GetComponents<Node>().at(skin["skeleton"].GetInt()));
             } catch (std::exception&) {
-                debugLog("Skin " + newSkin->Name() + " has no skeleton");
+                debugLog("Skin " + newSkin->GetName() + " has no skeleton");
             }*/
             try {
                 for (const auto& joint : skin["joints"].GetArray())
                     newSkin->AddJoint(container->GetComponent<Node>(joint.GetInt()));
             } catch (std::exception&) {
-                debugLog("Skin " + newSkin->Name() + " has no joints");
+                debugLog("Skin " + newSkin->GetName() + " has no joints");
             }
             skins.push_back(newSkin);
         }
@@ -709,10 +783,10 @@ static inline auto SetParenting(const rapidjson::Document& document, const std::
             try {
                 mesh->SetComponent(container->GetComponent<MeshSkin>(gltfNode["skin"].GetInt()));
             } catch (std::exception&) {
-                debugLog("Mesh " + mesh->Name() + " has no skin");
+                debugLog("Mesh " + mesh->GetName() + " has no skin");
             }
         } catch (std::exception&) {
-            debugLog("Node " + node->Name() + " has no mesh");
+            debugLog("Node " + node->GetName() + " has no mesh");
         }
         try {
             auto camera = container->GetComponent<Camera>(gltfNode["camera"].GetInt());
@@ -720,7 +794,7 @@ static inline auto SetParenting(const rapidjson::Document& document, const std::
             node->AddChild(camera);
             //container->GetComponents<Camera>().at(gltfNode["camera"].GetInt())->SetParent(node);
         } catch (std::exception&) {
-            debugLog("Node " + node->Name() + " has no camera");
+            debugLog("Node " + node->GetName() + " has no camera");
         }
         try {
             for (const auto& child : gltfNode["children"].GetArray()) {
@@ -728,10 +802,10 @@ static inline auto SetParenting(const rapidjson::Document& document, const std::
                 //childNode->SetParent(node);
                 node->AddChild(container->GetComponent<Node>(child.GetInt()));
                 //container->GetComponents<Node>().at(child.GetInt())->SetParent(node);
-                std::cout << "Node parenting " << node->Name() << " -> " << container->GetComponent<Node>(child.GetInt())->Name() << std::endl;
+                std::cout << "Node parenting " << node->GetName() << " -> " << container->GetComponent<Node>(child.GetInt())->GetName() << std::endl;
             }
         } catch (std::exception&) {
-            debugLog("Node " + node->Name() + " has no skeleton");
+            debugLog("Node " + node->GetName() + " has no skeleton");
         }
         nodeIndex++;
     }
@@ -747,11 +821,11 @@ static inline auto ParseScenes(const rapidjson::Document& document, const std::s
         auto newScene(Component::Create<Scene>(std::to_string(sceneIndex)));
         for (const auto& node : scene["nodes"].GetArray()) {
             newScene->AddRootNode(container->GetComponent<Node>(node.GetInt()));
-            std::cout << container->GetComponent<Node>(node.GetInt())->Name() << std::endl;
+            std::cout << container->GetComponent<Node>(node.GetInt())->GetName() << std::endl;
         }
         for (const auto& animation : container->GetComponents<Animation>()) {
             newScene->Add(animation);
-            std::cout << (animation ? animation->Name() : "nullptr") << std::endl;
+            std::cout << (animation ? animation->GetName() : "nullptr") << std::endl;
             /*for (const auto channel : animation->GetChannels()) {
                 if (newScene->GetNode(channel.Target())) {
                     std::cout << "Found Node" << std::endl;
@@ -795,6 +869,26 @@ static inline auto ParseLights(const rapidjson::Document& document) {
     return lightsVector;
 }
 
+static inline auto ParseImages(const std::filesystem::path path, const rapidjson::Document& document) {
+    std::vector<std::shared_ptr<Image>> imagesVector;
+    auto imagesItr(document.FindMember("images"));
+    if (imagesItr == document.MemberEnd())
+        return imagesVector;
+    for (const auto& gltfImagee : imagesItr->value.GetArray()) {
+        auto imageUriItr(gltfImagee.FindMember("uri"));
+        if (imageUriItr == gltfImagee.MemberEnd()) {
+            //TODO : learn how to use bufferView and mimeType
+            imagesVector.push_back(Component::Create<Image>(glm::ivec2(1), Pixel::SizedFormat::Uint8_NormalizedRGB));
+            continue;
+        }
+        auto imagePath{ std::filesystem::path(imageUriItr->value.GetString()) };
+        if (!imagePath.is_absolute())
+            imagePath = path.parent_path() / imagePath;
+        imagesVector.push_back(Component::Create<Image>(imagePath));
+    }
+    return imagesVector;
+}
+
 std::shared_ptr<AssetsContainer> GLTF::Parse(const std::filesystem::path path)
 {
     std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
@@ -807,6 +901,7 @@ std::shared_ptr<AssetsContainer> GLTF::Parse(const std::filesystem::path path)
         debugLog("Invalid file !");
         return container;
     }
+    
     for (auto& node : ParseNodes(document)) {
         container->AddComponent(node);
     }
@@ -816,7 +911,10 @@ std::shared_ptr<AssetsContainer> GLTF::Parse(const std::filesystem::path path)
     for (auto& accessor : ParseBufferAccessors(path, document)) {
         container->AddComponent(accessor);
     }
-    for (auto& texture : ParseTextures(path, document)) {
+    for (auto& image : ParseImages(path, document)) {
+        container->AddComponent(image);
+    }
+    for (auto& texture : ParseTextures(document, container)) {
         container->AddComponent(texture);
     }
     for (auto& material : ParseMaterials(document, container)) {

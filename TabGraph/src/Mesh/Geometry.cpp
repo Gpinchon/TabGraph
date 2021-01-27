@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 21:53:25
+* @Last Modified time: 2021-01-11 08:46:21
 */
 
 #include "Mesh/Geometry.hpp"
@@ -31,6 +31,68 @@ Geometry::Geometry(const std::string& name)
     , _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(0)))
 {
     geometryNbr++;
+}
+
+Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t> indices, BufferView::Mode mode)
+{
+    assert(vertices.size() == normals.size());
+    assert(normals.size() == texCoords.size());
+    auto vertexBuffer{
+        Component::Create<Buffer>(
+        vertices.size() * sizeof(glm::vec3) +
+        normals.size() * sizeof(glm::vec3) +
+        texCoords.size() * sizeof(glm::vec2) +
+        indices.size() * sizeof(uint32_t)
+        )
+    };
+    auto verticeByteSize{ vertices.size() * sizeof(glm::vec3) };
+    auto normalsByteSize{ normals.size() * sizeof(glm::vec3) };
+    auto texcoordByteSize{ texCoords.size() * sizeof(glm::vec2) };
+    auto indiceByteSize{ indices.size() * sizeof(uint32_t) };
+    vertexBuffer->Set(
+        (std::byte*)vertices.data(),
+        0,
+        verticeByteSize);
+    vertexBuffer->Set(
+        (std::byte*)normals.data(),
+        verticeByteSize,
+        normalsByteSize);
+    vertexBuffer->Set(
+        (std::byte*)texCoords.data(),
+        verticeByteSize + normalsByteSize,
+        texcoordByteSize);
+    vertexBuffer->Set(
+        (std::byte*)indices.data(),
+        verticeByteSize + normalsByteSize + texcoordByteSize,
+        indiceByteSize);
+    vertexBuffer->SetLoaded(true);
+    auto vertexBufferView{ Component::Create<BufferView>(vertexBuffer, mode) };
+    vertexBufferView->SetType(BufferView::Type::Array);
+    vertexBufferView->SetByteLength(verticeByteSize + normalsByteSize + texcoordByteSize);
+    
+    auto vertexAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32 , BufferAccessor::Type::Vec3, vertexBufferView) };
+    auto normalAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32 , BufferAccessor::Type::Vec3, vertexBufferView) };
+    auto texcoordAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32 , BufferAccessor::Type::Vec2, vertexBufferView) };
+    
+    vertexAccessor->SetByteOffset(0);
+    vertexAccessor->SetCount(vertices.size());
+    normalAccessor->SetByteOffset(verticeByteSize);
+    normalAccessor->SetCount(normals.size());
+    texcoordAccessor->SetByteOffset(verticeByteSize + normalsByteSize);
+    texcoordAccessor->SetCount(texCoords.size());
+    normalAccessor->SetNormalized(true);
+    SetAccessor(Geometry::AccessorKey::Position, vertexAccessor);
+    SetAccessor(Geometry::AccessorKey::Normal, normalAccessor);
+    SetAccessor(Geometry::AccessorKey::TexCoord_0, texcoordAccessor);
+
+    if (indices.empty())
+        return;
+    auto indiceBufferView{ Component::Create<BufferView>(vertexBuffer, mode) };
+    indiceBufferView->SetType(BufferView::Type::ElementArray);
+    indiceBufferView->SetByteLength(indiceByteSize);
+    indiceBufferView->SetByteOffset(verticeByteSize + normalsByteSize + texcoordByteSize);
+    auto indiceAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Uint32 , BufferAccessor::Type::Scalar, indiceBufferView) };
+    SetIndices(indiceAccessor);
 }
 
 Geometry::AccessorKey Geometry::GetAccessorKey(const std::string& key)
@@ -63,30 +125,45 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
     if (accessor == nullptr)
         return;
     auto bufferView(accessor->GetBufferView());
-    auto buffer(bufferView->GetBuffer());
-    auto byteOffset(accessor->ByteOffset() + bufferView->ByteOffset());
-    glBindBuffer(GL_ARRAY_BUFFER, buffer->Glid());
+    //auto buffer(bufferView->GetBuffer());
+    auto byteOffset(accessor->GetByteOffset());
+    bufferView->Load();
+    //GL_MAX_VERTEX_ATTRIB_RELATIVE_OFFSET == 33497;
+    //glBindBuffer((GLenum)bufferView->GetType(), bufferView->GetHandle());
     glEnableVertexAttribArray(index);
-    glVertexAttribPointer(
+    glVertexAttribFormat(
         index,
-        accessor->ComponentSize(),
-        accessor->ComponentType(),
-        accessor->Normalized(),
-        bufferView->ByteStride(),
-        BUFFER_OFFSET(byteOffset));
+        (uint8_t)accessor->GetType(),
+        (GLenum)accessor->GetComponentType(),
+        accessor->GetNormalized(),
+        0//accessor->GetByteOffset()
+    );
+    glBindVertexBuffer(
+        index,
+        bufferView->GetHandle(),
+        accessor->GetByteOffset(),//0,
+        bufferView->GetByteStride() ? bufferView->GetByteStride() : accessor->GetTypeOctetsSize()
+    );
+    /*glVertexAttribPointer(
+        index,
+        (uint8_t)accessor->GetType(),
+        (GLenum)accessor->GetComponentType(),
+        accessor->GetNormalized(),
+        bufferView->GetByteStride(),
+        BUFFER_OFFSET(byteOffset));*/
 }
 
-void Geometry::_LoadGPU()
+void Geometry::Load()
 {
-    if (GetLoadedGPU())
+    if (GetLoaded())
         return;
-    debugLog(Name());
-    for (auto accessor : _accessors) {
+    debugLog(GetName());
+    /*for (auto accessor : _accessors) {
         if (accessor != nullptr)
-            accessor->GetBufferView()->GetBuffer()->LoadGPU();
-    }
+            accessor->GetBufferView()->Load();
+    }*/
     if (Indices() != nullptr)
-        Indices()->GetBufferView()->GetBuffer()->LoadGPU();
+        Indices()->GetBufferView()->Load();
     glGenVertexArrays(1, &_vaoGlid);
     glBindVertexArray(_vaoGlid);
     BindAccessor(Accessor(Geometry::AccessorKey::Position), 0);
@@ -98,22 +175,23 @@ void Geometry::_LoadGPU()
     BindAccessor(Accessor(Geometry::AccessorKey::Joints_0), 6);
     BindAccessor(Accessor(Geometry::AccessorKey::Weights_0), 7);
     glBindVertexArray(0);
-    SetLoadedGPU(true);
+    SetLoaded(true);
 }
 
 bool Geometry::Draw()
 {
-    LoadGPU();
+    Load();
     glBindVertexArray(_vaoGlid);
     if (Indices() != nullptr) {
         auto bufferView(Indices()->GetBufferView());
-        auto byteOffset(Indices()->ByteOffset() + bufferView->ByteOffset());
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferView->GetBuffer()->Glid());
-        glDrawElements(GetDrawingMode(), Indices()->Count(), Indices()->ComponentType(), BUFFER_OFFSET(byteOffset));
+        auto byteOffset(Indices()->GetByteOffset() );
+        glBindBuffer((GLenum)bufferView->GetType(), bufferView->GetHandle());
+        glDrawElements((GLenum)GetDrawingMode(), Indices()->GetCount(), (GLenum)Indices()->GetComponentType(), BUFFER_OFFSET(byteOffset));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     } else if (auto accessor(Accessor(Geometry::AccessorKey::Position)); accessor != nullptr) {
-        auto byteOffset(accessor->ByteOffset() + accessor->GetBufferView()->ByteOffset());
-        glDrawArrays(GetDrawingMode(), byteOffset / accessor->TotalComponentByteSize(), accessor->Count());
+        glDrawArrays((GLenum)GetDrawingMode(), 0, accessor->GetCount());
+        //auto byteOffset(accessor->GetByteOffset());
+        //glDrawArrays((GLenum)GetDrawingMode(), byteOffset / accessor->GetTypeOctetsSize(), accessor->GetCount());
     }
     glBindVertexArray(0);
 
@@ -159,23 +237,23 @@ std::shared_ptr<BoundingAABB> Geometry::GetBounds() const
 size_t Geometry::EdgeCount() const
 {
     switch (GetDrawingMode()) {
-    case GL_POINTS:
+    case DrawingMode::Points:
         return 0;
-    case GL_LINES:
+    case DrawingMode::Lines:
         return VertexCount() / 2;
-    case GL_LINE_STRIP:
+    case DrawingMode::LineStrip:
         return VertexCount() - 1;
-    case GL_LINE_LOOP:
-    case GL_POLYGON:
+    case DrawingMode::LineLoop:
+    case DrawingMode::Polygon:
         return VertexCount();
-    case GL_TRIANGLES:
+    case DrawingMode::Triangles:
         return VertexCount() / 3;
-    case GL_TRIANGLE_STRIP:
-    case GL_TRIANGLE_FAN:
+    case DrawingMode::TriangleStrip:
+    case DrawingMode::TriangleFan:
         return VertexCount() - (VertexCount() / 3) + 1;
-    case GL_QUADS:
+    case DrawingMode::Quads:
         return VertexCount() / 4;
-    case GL_QUAD_STRIP:
+    case DrawingMode::QuadStrip:
         return VertexCount() - (VertexCount() / 4) + 1;
     }
     return 0;
@@ -261,26 +339,26 @@ glm::ivec2 Geometry::GetEdge(const size_t index) const
 {
     glm::ivec2 ret { -1 };
     switch (GetDrawingMode()) {
-    case GL_POINTS:
+    case DrawingMode::Points:
         return glm::ivec2(index);
-    case GL_LINES:
+    case DrawingMode::Lines:
         return glm::ivec2(
             index * 2 + 0,
             index * 2 + 1);
-    case GL_LINE_STRIP:
+    case DrawingMode::LineStrip:
         return glm::ivec2(
             index + 0,
             index + 1);
-    case GL_LINE_LOOP:
-    case GL_POLYGON:
+    case DrawingMode::LineLoop:
+    case DrawingMode::Polygon:
         return glm::ivec2(
             index,
             (index + 1) % VertexCount());
-    case GL_TRIANGLES:
+    case DrawingMode::Triangles:
         return glm::ivec2(
             index,
             index / 3 * 3 + (index + 1) % 3);
-    case GL_TRIANGLE_STRIP: {
+    case DrawingMode::TriangleStrip: {
         auto face = (index - 1) / 2;
         auto zeroIndex = index == 0;
         auto oddIndex = index % 2;
@@ -291,7 +369,7 @@ glm::ivec2 Geometry::GetEdge(const size_t index) const
         B += zeroIndex;
         return glm::ivec2(A, B);
     }
-    case GL_TRIANGLE_FAN: {
+    case DrawingMode::TriangleFan: {
         auto face = (index - 1) / 2;
         auto zeroIndex = index == 0;
         auto oddIndex = (index % 2);
@@ -301,11 +379,11 @@ glm::ivec2 Geometry::GetEdge(const size_t index) const
         B += zeroIndex;
         return glm::ivec2(A, B);
     }
-    case GL_QUADS:
+    case DrawingMode::Quads:
         return glm::ivec2(
             index,
             index / 4 * 4 + (index + 1) % 4);
-    case GL_QUAD_STRIP: {
+    case DrawingMode::QuadStrip: {
         int iMod3 = index % 3;
         int iIs3 = iMod3 == 0;
         int face = (index - 1) / 3;
@@ -322,7 +400,7 @@ glm::ivec2 Geometry::GetEdge(const size_t index) const
 
 size_t Geometry::VertexCount() const
 {
-    return Indices() ? Indices()->Count() : Accessor(AccessorKey::Position)->Count();
+    return Indices() ? Indices()->GetCount() : Accessor(AccessorKey::Position)->GetCount();
 }
 
 /*void Geometry::center(glm::vec3 &center)
