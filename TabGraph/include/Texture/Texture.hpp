@@ -1,73 +1,150 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-09 13:01:16
+* @Last Modified time: 2021-01-11 08:45:02
 */
 
 #pragma once
 
 #include "Component.hpp" // for Component
-#include <GL/glew.h> // for GLenum, GLubyte, GL_UNSIGNED_BYTE, GLuint
-#include <glm/glm.hpp> // for s_vec2, glm::vec2, glm::vec2, CLAMP, glm::vec4, s_vec4
-#include <math.h> // for round
-#include <memory> // for shared_ptr
-#include <stddef.h> // for size_t
-#include <string> // for string
-#include <unordered_map> // for unordered_map
-#include <vector> // for vector
+#include "Texture/PixelUtils.hpp"
 
-class Shader;
-class Framebuffer;
+#include <GL/glew.h>
+#include <map>
+
+
 
 class Texture : public Component {
 public:
-    Texture(const std::string& name, GLenum target);
-    static size_t get_data_size(GLenum data_type);
-    static size_t get_bpp(GLenum texture_format, GLenum data_type);
-    virtual bool is_loaded();
-    virtual void set_parameteri(GLenum p, int v);
-    virtual void set_parameterf(GLenum p, float v);
-    virtual void restore_parameters();
-    virtual void load();
-    virtual void unload();
-    virtual void generate_mipmap();
-    virtual void SetTarget(GLenum target);
-    virtual GLenum target() const;
-    virtual void format(GLenum* format, GLenum* internal_format);
-    virtual GLenum format();
-    virtual void SetInternalFormat(GLenum internalFormat);
-    virtual GLenum InternalFormat();
-    virtual GLenum data_format();
-    virtual size_t data_size();
-    virtual GLuint glid() const;
-    //auto data() const { return _data.data(); };
-    virtual GLubyte bpp() const;
-    virtual size_t values_per_pixel();
+    using Handle = GLuint;
+    enum class Type : GLenum {
+        Unknown = -1,
+        Texture1D = GL_TEXTURE_1D,
+        Texture2D = GL_TEXTURE_2D,
+        Texture3D = GL_TEXTURE_3D,
+        TextureBuffer = GL_TEXTURE_BUFFER,
+        TextureCubemap = GL_TEXTURE_CUBE_MAP
+    };
+    READONLYPROPERTY(Pixel::Description, PixelDescription, );
+    READONLYPROPERTY(Texture::Type, Type, Texture::Type::Unknown);
+    READONLYPROPERTY(Texture::Handle, Handle, 0);
+    READONLYPROPERTY(bool, Loaded, false);
 
-protected:
-    virtual std::shared_ptr<Component> _Clone() override {
-        return Component::Create<Texture>(*this);
-    }
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _FixedUpdateCPU(float /*delta*/) override {};
-    //Texture(const std::string &name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void *data = nullptr);
-    GLuint _glid { 0 };
-    char _bpp { 0 };
-    size_t _data_size { 0 };
-    GLenum _data_format { 0 };
-    GLenum _target { 0 };
-    GLenum _format { 0 };
-    GLenum _internal_format { 0 };
-    //BufferData& _data;
-    std::vector<std::byte> _data { };
-    bool _loaded { false };
-    bool _needsReload { false };
-    bool _mipMapsGenerated { false };
-    std::unordered_map<GLenum, int> _parametersi;
-    std::unordered_map<GLenum, float> _parametersf;
+public:
+    Texture(Texture::Type target, Pixel::Description pixelDescription);
+    Texture(Texture::Type target);
+    ~Texture();
+    template <typename T>
+    void SetParameter(GLenum p, T v);
+    void RestoreParameters();
+    virtual void Load() = 0;
+    virtual void Unload();
+    virtual void GenerateMipmap();
+
+    void SetPixelDescription(Pixel::Description pixelDescription);
+
+    static Handle Create(Texture::Type);
+
+private:
+    std::map<GLenum, float> _parametersf;
+    std::map<GLenum, int32_t> _parametersi;
+    std::map<GLenum, float*> _parametersfv;
+    std::map<GLenum, int32_t*> _parametersiv;
+    std::map<GLenum, uint32_t*> _parametersuiv;
 };
+
+template <>
+inline void Texture::SetParameter(GLenum p, int32_t v)
+{
+    if (GetLoaded()) {
+        if (glTextureParameteri == nullptr) {
+            glBindTexture((GLenum)GetType(), GetHandle());
+            glTexParameteri((GLenum)GetType(), p, v);
+            glBindTexture((GLenum)GetType(), 0);
+        }
+        else {
+            glTextureParameteri(GetHandle(), p, v);
+        }
+    }
+    _parametersi[p] = v;
+}
+
+template <>
+inline void Texture::SetParameter(GLenum p, uint32_t v)
+{
+    SetParameter(p, int32_t(v));
+}
+
+
+template <>
+inline void Texture::SetParameter(GLenum p, float v)
+{
+    if (GetLoaded()) {
+        if (glTextureParameterf == nullptr) {
+            glBindTexture((GLenum)GetType(), GetHandle());
+            glTexParameterf((GLenum)GetType(), p, v);
+            glBindTexture((GLenum)GetType(), 0);
+        }
+        else {
+            glTextureParameterf(GetHandle(), p, v);
+        }
+    }
+    _parametersf[p] = v;
+}
+
+template <>
+inline void Texture::SetParameter(GLenum p, float* v)
+{
+    if (GetLoaded()) {
+        if (glTextureParameterfv == nullptr) {
+            glBindTexture((GLenum)GetType(), GetHandle());
+            glTexParameterfv((GLenum)GetType(), p, v);
+            glBindTexture((GLenum)GetType(), 0);
+        }
+        else {
+            glTextureParameterfv(GetHandle(), p, v);
+        }
+    }
+    _parametersfv[p] = v;
+}
+
+template <>
+inline void Texture::SetParameter(GLenum p, int* v)
+{
+    if (GetLoaded()) {
+        if (glTextureParameteriv == nullptr) {
+            glBindTexture((GLenum)GetType(), GetHandle());
+            glTexParameteriv((GLenum)GetType(), p, v);
+            glBindTexture((GLenum)GetType(), 0);
+        }
+        else {
+            glTextureParameteriv(GetHandle(), p, v);
+        }
+    }
+    _parametersiv[p] = v;
+}
+
+template <>
+inline void Texture::SetParameter(GLenum p, uint32_t* v)
+{
+    if (GetLoaded()) {
+        if (glTextureParameterIuiv == nullptr) {
+            glBindTexture((GLenum)GetType(), GetHandle());
+            glTexParameterIuiv((GLenum)GetType(), p, v);
+            glBindTexture((GLenum)GetType(), 0);
+        }
+        else {
+            glTextureParameterIuiv(GetHandle(), p, v);
+        }
+    }
+    _parametersuiv[p] = v;
+}
+
+#include <exception>
+
+template<typename T>
+inline void Texture::SetParameter(GLenum p, T v)
+{
+    throw std::runtime_error("Unknown parameter type");
+}

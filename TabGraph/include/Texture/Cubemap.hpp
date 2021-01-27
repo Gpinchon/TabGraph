@@ -1,34 +1,48 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:15:11
+* @Last Modified time: 2021-01-11 08:45:03
 */
 
 #pragma once
 
 #include "Texture2D.hpp" // for Texture2D
+
 #include <array> // for array
+#include <filesystem>
 #include <memory> // for shared_ptr, shared_ptr
 #include <string> // for string
 #include <vector> // for vector
-#include <filesystem>
 
-class Cubemap : public Texture {
+class Cubemap : public Texture2D {
 public:
-    Cubemap(const std::string&);
-    Cubemap(const std::string&, std::shared_ptr<Texture2D> fromTexture);
+    enum class Side {
+        PositiveX,
+        NegativeX,
+        PositiveY,
+        NegativeY,
+        PositiveZ,
+        NegativeZ
+    };
+    Cubemap() = delete;
+    Cubemap(glm::ivec2 size, Pixel::SizedFormat format);
+    Cubemap(std::shared_ptr<Image> fromImage);
     ~Cubemap();
-    static std::shared_ptr<Cubemap> parse(const std::filesystem::path);
-    virtual void load() override;
-    virtual void unload() override;
-    std::shared_ptr<Texture2D> side(unsigned index);
-    void set_side(unsigned index, std::shared_ptr<Texture2D>);
+    //static std::shared_ptr<Cubemap> parse(const std::filesystem::path);
+    virtual void Load() override;
+    /**
+     * @brief extracts Cubemap's side from equirectangular image
+     * @param fromImage the equirectangular image to be used
+     * @param toImage the face to extract
+     *
+     */
+    static void ExtractSide(std::shared_ptr<Image> fromImage, std::shared_ptr<Image> toImage, Side side);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual void _Allocate();
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<Cubemap>(*this);
     }
-    std::array<std::shared_ptr<Texture2D>, 6> _sides;
-    
 };
