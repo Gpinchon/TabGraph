@@ -1,18 +1,18 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-03-26 12:03:23
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 19:58:15
+* @Last Modified time: 2021-01-11 08:43:17
 */
 
 #include "Terrain/Terrain.hpp"
 #include "Material.hpp" // for Material
-#include "Mesh/Mesh.hpp" // for Mesh
 #include "Mesh/Geometry.hpp" // for CVEC4, Geometry
+#include "Mesh/Mesh.hpp" // for Mesh
 #include "Node.hpp" // for Node
+#include "Parser/InternalTools.hpp" // for BTHeader, fileFormat, openFile
 #include "Texture/Texture2D.hpp" // for Texture2D
 #include "Texture/TextureParser.hpp" // for TextureParser
-#include "Parser/InternalTools.hpp" // for BTHeader, fileFormat, openFile
 #include <iostream> // for operator<<, basic_ostream, basic...
 #include <limits> // for numeric_limits
 #include <stdexcept> // for runtime_error
@@ -20,7 +20,7 @@
 #include <stdio.h> // for fclose, fread, size_t
 #include <vector> // for vector
 
-Terrain::Terrain(const std::string &name)
+Terrain::Terrain(const std::string& name)
     : Mesh(name)
 {
 }
@@ -29,7 +29,7 @@ Terrain::Terrain(const std::string &name)
 
 #include <limits>
 
-std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 /*resolution*/, glm::vec3 /*scale*/, std::shared_ptr<Texture2D> /*texture*/)
+std::shared_ptr<Terrain> Terrain::Create(const std::string& name, glm::ivec2 /*resolution*/, glm::vec3 /*scale*/, std::shared_ptr<Texture2D> /*texture*/)
 {
     auto terrain = Component::Create<Terrain>(name);
     /*
@@ -151,7 +151,7 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 /*r
     return terrain;
 }
 
-void printBTHeader(BTHeader &header)
+void printBTHeader(BTHeader& header)
 {
     std::cout << "BTHeader :\n"
               << " Marker :        " << header.marker << "\n"
@@ -172,16 +172,14 @@ void printBTHeader(BTHeader &header)
               << std::endl;
 }
 
-std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 resolution, const std::string &path)
+std::shared_ptr<Terrain> Terrain::Create(const std::string& name, glm::ivec2 resolution, const std::string& path)
 {
     auto terrainScale = glm::vec3(1, 0.00001, 1);
-    if (fileFormat(path) == "bt" || fileFormat(path) == "BT")
-    {
+    if (fileFormat(path) == "bt" || fileFormat(path) == "BT") {
         BTHeader header;
         auto fd = openFile(path);
         auto readSize = fread(&header, 1, sizeof(BTHeader), fd);
-        if (readSize != sizeof(BTHeader))
-        {
+        if (readSize != sizeof(BTHeader)) {
             fclose(fd);
             throw std::runtime_error(std::string("[ERROR] ") + path + " : " + "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));
         }
@@ -191,14 +189,11 @@ std::shared_ptr<Terrain> Terrain::Create(const std::string &name, glm::ivec2 res
         terrainScale.x = header.topExtent - header.bottomExtent;
         terrainScale.y = header.verticalScale == 0 ? 1.0 : header.verticalScale;
         terrainScale.z = header.rightExtent - header.leftExtent;
-        if (header.hUnits == 2)
-        {
+        if (header.hUnits == 2) {
             terrainScale.x *= 0.3048;
             terrainScale.y *= 0.3048;
             terrainScale.z *= 0.3048;
-        }
-        else if (header.hUnits == 3)
-        {
+        } else if (header.hUnits == 3) {
             terrainScale.x *= 1200.0 / 3937.0;
             terrainScale.y *= 1200.0 / 3937.0;
             terrainScale.z *= 1200.0 / 3937.0;

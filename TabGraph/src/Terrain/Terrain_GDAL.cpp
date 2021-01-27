@@ -1,30 +1,30 @@
 /*
- * @Author: gpi
- * @Date:   2019-03-26 12:03:23
- * @Last Modified by:   gpinchon
- * @Last Modified time: 2019-08-18 18:31:38
- */
+* @Author: gpinchon
+* @Date:   2020-08-27 18:48:20
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:43:12
+*/
 
 #ifdef USE_GDAL
 
 #include "Terrain/Terrain_GDAL.hpp" // for Terrain
-#include "Node.hpp" // for Node
-#include "Quadtree.hpp" // for Quadtree
 #include "Debug.hpp" // for debugLog
 #include "Material.hpp" // for Material
 #include "Mesh/Geometry.hpp"
 #include "Mesh/Mesh.hpp" // for Mesh
+#include "Node.hpp" // for Node
+#include "Quadtree.hpp" // for Quadtree
 #include "Texture/Texture.hpp" // for Texture
 #include "Texture/TextureParser.hpp" // for TextureParser
 
 #include "cpl_conv.h" // for CPLMalloc, CPLFree
 #include "cpl_error.h" // for CE_None
 #include "gdal.h" // for GDALAllRegister, GDALClose, GDALOpen
-#include <glm/glm.hpp> // for s_vec3, glm::vec2, s_vec2, glm::vec3, glm::vec3
 #include <GL/glew.h> // for GL_COMPRESSED_RED, GL_FLOAT, GL_RED
 #include <array> // for array
 #include <ext/alloc_traits.h> // for __alloc_traits<>::value_type
 #include <gdal_priv.h> // for GDALRasterBand, GDALDataset
+#include <glm/glm.hpp> // for s_vec3, glm::vec2, s_vec2, glm::vec3, glm::vec3
 #include <iostream> // for operator<<, basic_ostream<>::__ostream...
 #include <limits> // for numeric_limits
 #include <math.h> // for abs
