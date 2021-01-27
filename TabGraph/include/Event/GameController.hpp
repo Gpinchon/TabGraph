@@ -1,14 +1,14 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:55:15
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:45:30
 */
 
 #pragma once
 
-#include "InputDevice.hpp" // for InputDevice
 #include "Event/Signal.hpp"
+#include "InputDevice.hpp" // for InputDevice
 
 #include <SDL_events.h> // for SDL_Event, SDL_ControllerAxisEvent
 #include <SDL_gamecontroller.h> // for SDL_GameController, SDL_GameCon...

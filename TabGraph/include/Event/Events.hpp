@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:07:19
+* @Last Modified time: 2021-01-11 08:45:31
 */
 
 #pragma once
@@ -12,9 +12,9 @@
 #include <SDL_events.h> // for SDL_Event, SDL_EventType
 #include <SDL_stdinc.h> // for Uint32
 #include <map> // for map
+#include <memory>
 #include <set>
 #include <vector>
-#include <memory>
 
 #define EVENT_REFRESH 0
 
@@ -28,7 +28,7 @@ class Events : public Trackable {
 public:
     static void Add(InputDevice* device, SDL_EventType event_type);
     static void Remove(InputDevice* device, SDL_EventType event_type);
-    static Signal<float> &OnRefresh();
+    static Signal<float>& OnRefresh();
 
 private:
     static int _Filter(void* e, SDL_Event* event);

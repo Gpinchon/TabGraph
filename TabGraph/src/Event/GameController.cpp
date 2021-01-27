@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 19:04:43
+* @Last Modified time: 2021-01-11 08:46:28
 */
 
 #include "Event/GameController.hpp"
@@ -199,8 +199,7 @@ void GameController::process_event(SDL_Event* event)
     auto controllerIndex = -1;
     if (event->type == SDL_CONTROLLERDEVICEADDED || event->type == SDL_JOYDEVICEADDED) {
         controllerIndex = event->cdevice.which;
-    }
-    else {
+    } else {
         controllerIndex = get_controller_index(event->cdevice.which);
     }
     if (controllerIndex != -1)

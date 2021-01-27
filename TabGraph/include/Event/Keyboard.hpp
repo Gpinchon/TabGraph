@@ -1,19 +1,18 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 17:56:51
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:45:28
 */
 
 #pragma once
 
-#include "Signal.hpp"
 #include "InputDevice.hpp" // for InputDevice
+#include "Signal.hpp"
 
 #include <SDL_events.h> // for SDL_Event, SDL_KeyboardEvent
 #include <SDL_scancode.h> // for SDL_Scancode
 #include <array> // for map
-
 
 class Keyboard : InputDevice {
 public:

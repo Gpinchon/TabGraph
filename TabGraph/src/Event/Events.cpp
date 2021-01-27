@@ -1,16 +1,15 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 19:03:44
+* @Last Modified time: 2021-01-11 08:46:29
 */
 
 #include "Event/Events.hpp"
-#include "Event/InputDevice.hpp" // for InputDevice
 #include "Engine.hpp" // for Stop
+#include "Event/InputDevice.hpp" // for InputDevice
 #include <SDL_timer.h> // for SDL_GetTicks
 #include <utility> // for pair
-
 
 Events::Events()
 {
