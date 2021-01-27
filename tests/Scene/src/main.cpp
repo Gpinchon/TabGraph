@@ -171,7 +171,7 @@ void SetupCallbacks()
 #include <filesystem>
 #include "Texture/Cubemap.hpp"
 #include "Environment.hpp"
-#include "Texture/TextureParser.hpp"
+#include "Texture/Image.hpp"
 #include "Light/PointLight.hpp"
 
 auto Factorial(int n)
@@ -245,7 +245,7 @@ int main(int argc, char** argv)
     if (argc <= 1)
         return -42;
     {
-        std::set_terminate([]() { std::cout << "Unhandled exception\n"; int* p = nullptr; p[0] = 1; });
+        //std::set_terminate([]() { std::cout << "Unhandled exception\n"; int* p = nullptr; p[0] = 1; });
         StackTracer::set_signal_handler(SIGABRT);
         Config::Parse(Engine::ResourcePath() / "config.ini");
         Engine::Init();
@@ -253,7 +253,7 @@ int main(int argc, char** argv)
         if (!filePath.is_absolute()) {
             filePath = Engine::ExecutionPath() / filePath;
         }
-        //{
+        {
             std::cout << filePath << std::endl;
             auto fpsCamera = Component::Create<FPSCamera>("main_camera", 45);
             //fpsCamera->SetZfar(1000);
@@ -277,11 +277,11 @@ int main(int argc, char** argv)
             //scene->Add(pointLight);
             //pointLight->SetParent(scene->CurrentCamera());
             auto newEnv = Component::Create<Environment>("Environment");
-            newEnv->SetDiffuse(Component::Create<Cubemap>("EnvironmentCube", TextureParser::parse("Environment", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
-            newEnv->SetIrradiance(Component::Create<Cubemap>("EnvironmentDiffuse", TextureParser::parse("EnvironmentDiffuse", (Engine::ResourcePath() / "env/environment.hdr").string())));
+            newEnv->SetDiffuse(Component::Create<Cubemap>(Component::Create<Image>((Engine::ResourcePath() / "env/diffuse.hdr"))));//"EnvironmentCube", TextureParser::parse("Environment", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
+            newEnv->SetIrradiance(Component::Create<Cubemap>(Component::Create<Image>((Engine::ResourcePath() / "env/environment.hdr"))));//"EnvironmentDiffuse", TextureParser::parse("EnvironmentDiffuse", (Engine::ResourcePath() / "env/environment.hdr").string())));
             scene->SetEnvironment(newEnv);
             Scene::SetCurrent(scene);
-        //}
+        }
         SetupCallbacks();
         Engine::Start();
     }
