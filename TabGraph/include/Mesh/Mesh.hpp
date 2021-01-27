@@ -1,16 +1,16 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 21:51:55
+* @Last Modified time: 2021-01-11 08:45:23
 */
 
 #pragma once
 
 #include "Component.hpp"
+#include "Mesh/Geometry.hpp" // for Geometry
 #include "Node.hpp"
 #include "Texture/TextureBuffer.hpp"
-#include "Mesh/Geometry.hpp" // for Geometry
 
 #include <GL/glew.h> // for GLenum, GL_BACK
 #include <glm/gtc/quaternion.hpp>
@@ -25,10 +25,11 @@ class Material;
 class BufferAccessor;
 
 class Mesh : public Component {
+    READONLYPROPERTY(bool, Loaded, false);
 public:
     Mesh();
     Mesh(const std::string& name);
-    bool Draw(const std::shared_ptr<Transform>& transform, const RenderPass &pass, RenderMod mod = RenderMod::RenderAll);
+    bool Draw(const std::shared_ptr<Transform>& transform, const RenderPass& pass, RenderMod mod = RenderMod::RenderAll);
     bool DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod = RenderMod::RenderAll);
     bool Drawable() const;
     void center();
@@ -51,28 +52,27 @@ public:
     std::shared_ptr<BufferAccessor> Weights() const;
     void SetWeights(std::shared_ptr<BufferAccessor> weights);
 
-    const auto Geometrys() const {
+    const auto Geometrys() const
+    {
         return GetComponents<Geometry>();
     }
+
+    virtual void Load();
 
     virtual void UpdateSkin(const std::shared_ptr<Transform>& transform);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         //return std::static_pointer_cast<Mesh>(shared_from_this());
         auto mesh(Component::Create<Mesh>(*this));
         return mesh;
     }
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override;
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float /*delta*/) override {};
-    virtual void _UpdateGPU(float /*delta*/) {
+    virtual void _UpdateGPU(float /*delta*/)
+    {
         _prevTransformMatrix = _transformMatrix;
     };
-    virtual void _FixedUpdateCPU(float /*delta*/) override {};
     GLenum _cull_mod { GL_BACK };
-    glm::mat4 _transformMatrix{ 1 };
-    glm::mat4 _prevTransformMatrix{ 1 };
+    glm::mat4 _transformMatrix { 1 };
+    glm::mat4 _prevTransformMatrix { 1 };
 };

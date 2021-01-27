@@ -1,23 +1,24 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 21:50:39
+* @Last Modified time: 2021-01-11 08:45:24
 */
 
 #pragma once
 
-#include "Buffer/BufferHelper.hpp"
+#include "Buffer/BufferAccessor.hpp"
+#include "Buffer/BufferView.hpp"
 #include "Node.hpp" // for RenderAll, RenderMod, Renderable
 #include "Object.hpp"
 
 #include <GL/glew.h> // for GLubyte
+#include <array>
 #include <glm/glm.hpp> // for glm::vec2, s_vec2, s_vec3, glm::vec3
 #include <map>
 #include <memory> // for shared_ptr, weak_ptr
 #include <string> // for string
 #include <vector> // for vector
-#include <array>
 
 class Material; // lines 20-20
 class BufferAccessor;
@@ -39,11 +40,31 @@ private:
 };
 
 class Geometry : public Component {
+public:
+    enum class DrawingMode : GLenum {
+        Unknown = -1,
+        Points = GL_POINTS,
+        Lines = GL_LINES,
+        LineStrip = GL_LINE_STRIP,
+        LineLoop = GL_LINE_LOOP,
+        Polygon = GL_POLYGON,
+        Triangles = GL_TRIANGLES,
+        TriangleStrip = GL_TRIANGLE_STRIP,
+        TriangleFan = GL_TRIANGLE_FAN,
+        Quads = GL_QUADS,
+        QuadStrip = GL_QUAD_STRIP
+    };
     /** @brief Drawing mode for this geometry, default : GL_TRIANGLES */
-    PROPERTY(GLenum, DrawingMode, GL_TRIANGLES);
+    PROPERTY(DrawingMode, DrawingMode, DrawingMode::Triangles);
+    PROPERTY(bool, Loaded, false);
+
 public:
     Geometry();
     Geometry(const std::string& name);
+    Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t> indices, BufferView::Mode = BufferView::Mode::Immutable);
+    Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, BufferView::Mode = BufferView::Mode::Immutable);
+    //Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, BufferView::Mode = BufferView::Mode::Immutable);
+    //Geometry(const std::vector<glm::vec3>& vertices, BufferView::Mode = BufferView::Mode::Immutable);
     enum class AccessorKey {
         Invalid = -1,
         Position,
@@ -79,18 +100,13 @@ public:
     GeometryMorthTarget& GetMorphTarget(size_t index);
     void SetMorphTarget(const GeometryMorthTarget& morphTarget);
 
+    virtual void Load();
+
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<Geometry>(*this);
     }
-    virtual void _LoadCPU() {};
-    virtual void _UnloadCPU() {};
-    virtual void _LoadGPU();
-    virtual void _UnloadGPU() {};
-    virtual void _UpdateCPU(float) {};
-    virtual void _UpdateGPU(float) {};
-    virtual void _FixedUpdateCPU(float) {};
-    virtual void _FixedUpdateGPU(float) {};
     glm::vec3 _centroid { 0 };
     std::shared_ptr<BoundingAABB> _bounds;
     uint32_t _materialIndex { 0 };
@@ -105,8 +121,8 @@ inline T Geometry::GetVertex(const Geometry::AccessorKey key, const size_t index
 {
     assert(index < VertexCount());
     if (Indices() != nullptr) {
-        auto indice(BufferHelper::Get<unsigned>(Indices(), index));
-        return BufferHelper::Get<T>(Accessor(key), indice);
+        auto indice(Indices()->Get<unsigned>(index));
+        return Accessor(key)->Get<T>(indice);
     } else
-        return BufferHelper::Get<T>(Accessor(key), index);
+        return Accessor(key)->Get<T>(index);
 }
