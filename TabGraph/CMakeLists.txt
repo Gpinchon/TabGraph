@@ -69,12 +69,14 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/ShaderExtension.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/ShaderStage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/StackTracer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Image.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/ImageParser.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/PixelUtils.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Cubemap.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture2D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureArray.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureBuffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureParser.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Transform.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Window.cpp
@@ -152,13 +154,15 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/StateMachine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain_GDAL.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Image.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/ImageParser.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/PixelUtils.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Cubemap.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture1D.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture2D.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureArray.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureBuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureParser.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/Tools.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Transform.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Window.hpp
