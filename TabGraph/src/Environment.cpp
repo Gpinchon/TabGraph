@@ -1,15 +1,15 @@
 /*
-* @Author: gpi
-* @Date:   2019-02-22 16:13:28
+* @Author: gpinchon
+* @Date:   2021-01-04 09:42:57
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 20:17:28
+* @Last Modified time: 2021-01-11 08:41:39
 */
 
 #include "Environment.hpp"
-#include "Render.hpp"
 #include "Mesh/Geometry.hpp"
-#include "Texture/Cubemap.hpp"
+#include "Render.hpp"
 #include "Shader/Shader.hpp"
+#include "Texture/Cubemap.hpp"
 
 Environment::Environment(const std::string& name)
     : Component(name)
@@ -32,6 +32,6 @@ void Environment::Draw()
 
 void Environment::unload()
 {
-    GetDiffuse()->unload();
-    GetDiffuse()->unload();
+    GetDiffuse()->Unload();
+    GetDiffuse()->Unload();
 }

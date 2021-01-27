@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-05-15 13:55:26
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:45:09
 */
 
 #pragma once
@@ -29,7 +29,8 @@ public:
     void SetMax(glm::vec3 max);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<BoundingAABB>(*this);
     }
     glm::vec3 _min { 0 };

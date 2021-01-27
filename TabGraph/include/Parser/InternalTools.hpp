@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:36:55
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:45:18
 */
 
 #pragma once
@@ -11,10 +11,10 @@
 //#include "Mesh/Mesh.hpp"
 //#include "Texture/Texture.hpp"
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
 #include <errno.h>
 #include <fcntl.h>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 #include <string>
 #include <vector>
 

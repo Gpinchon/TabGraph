@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-06-28 13:27:57
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:59:06
+* @Last Modified time: 2021-01-11 08:44:56
 */
 
 #pragma once
@@ -29,7 +29,7 @@ void PrintEventName(SDL_Event*);
 ** @arg U : the type to test
 ** @arg V : return type
 */
-template<typename T, typename U, typename V = void>
+template <typename T, typename U, typename V = void>
 using IsSharedPointerOfType = std::enable_if_t<std::is_constructible_v<std::shared_ptr<T>, std::shared_ptr<U>>, V>;
 
 /*
@@ -38,7 +38,7 @@ using IsSharedPointerOfType = std::enable_if_t<std::is_constructible_v<std::shar
 ** @arg U : the type to test
 ** @arg V : return type
 */
-template<typename T, typename U, typename V = void>
+template <typename T, typename U, typename V = void>
 using IsBaseOf = std::enable_if_t<std::is_base_of_v<T, U>, V>;
 
 /*
@@ -47,5 +47,5 @@ using IsBaseOf = std::enable_if_t<std::is_base_of_v<T, U>, V>;
 ** @arg U : the type to test
 ** @arg V : return type
 */
-template<typename T, typename U, typename V = void>
+template <typename T, typename U, typename V = void>
 using IsNotSharedPointerOfType = std::enable_if_t<!std::is_constructible_v<std::shared_ptr<T>, U>, V>;

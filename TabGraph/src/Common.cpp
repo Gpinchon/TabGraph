@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
-* @Date:   2019-07-15 09:09:13
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-07-15 09:12:43
+* @Author: gpinchon
+* @Date:   2020-08-27 18:48:19
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:42:39
 */
 
 #include "Common.hpp"
@@ -13,42 +13,42 @@ static glm::vec3 s_forward(0, 0, -1);
 static glm::vec3 s_right(1, 0, 0);
 static glm::vec3 s_gravity(0, -9.81, 0);
 
-glm::vec3	Common::Up()
+glm::vec3 Common::Up()
 {
-	return s_up;
+    return s_up;
 }
 
-void	Common::SetUp(glm::vec3 up)
+void Common::SetUp(glm::vec3 up)
 {
-	s_up = up;
+    s_up = up;
 }
 
-glm::vec3	Common::Forward()
+glm::vec3 Common::Forward()
 {
-	return s_forward;
+    return s_forward;
 }
 
-void	Common::SetForward(glm::vec3 up)
+void Common::SetForward(glm::vec3 up)
 {
-	s_forward = up;
+    s_forward = up;
 }
 
-glm::vec3	Common::Right()
+glm::vec3 Common::Right()
 {
-	return s_right;
+    return s_right;
 }
 
-void	Common::SetRight(glm::vec3 up)
+void Common::SetRight(glm::vec3 up)
 {
-	s_right = up;
+    s_right = up;
 }
 
 glm::vec3 Common::Gravity()
 {
-	return s_gravity;
+    return s_gravity;
 }
 
 void Common::SetGravity(glm::vec3 gravity)
 {
-	s_gravity = gravity;
+    s_gravity = gravity;
 }

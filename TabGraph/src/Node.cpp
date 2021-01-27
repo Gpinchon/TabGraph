@@ -1,17 +1,17 @@
 /*
-* @Author: gpi
-* @Date:   2019-02-22 16:13:28
+* @Author: gpinchon
+* @Date:   2021-01-04 09:42:57
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-20 17:03:04
+* @Last Modified time: 2021-01-11 08:41:28
 */
 
 #include "Node.hpp"
 #include "Debug.hpp"
+#include "Engine.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Physics/BoundingAABB.hpp"
 #include "Physics/RigidBody.hpp"
 #include "Transform.hpp"
-#include "Engine.hpp"
 
 #include <glm/ext.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -22,13 +22,14 @@
 size_t nodeNbr = 0;
 
 Node::Node()
-    : Transform("Node_" + std::to_string(++nodeNbr)),
-    _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(1)))
+    : Transform("Node_" + std::to_string(++nodeNbr))
+    , _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(1)))
 {
     Engine::OnFixedUpdate().ConnectMember(this, &Node::_UpdateMeshSkin);
 }
 
-Node::Node(const Node& node) : Transform(node)
+Node::Node(const Node& node)
+    : Transform(node)
 {
     Engine::OnFixedUpdate().ConnectMember(this, &Node::_UpdateMeshSkin);
 }
@@ -54,11 +55,11 @@ void Node::_UpdateMeshSkin(float)
 bool Node::Draw(RenderPass pass, RenderMod renderMod, bool drawChildren)
 {
     bool drew = false;
-    for (auto &mesh : GetComponents<Mesh>()) {
+    for (auto& mesh : GetComponents<Mesh>()) {
         drew |= mesh->Draw(std::static_pointer_cast<Transform>(shared_from_this()), pass, renderMod);
     }
     if (drawChildren) {
-        for (auto &child : GetChildren())
+        for (auto& child : GetChildren())
             drew |= child->Draw(pass, renderMod, drawChildren);
     }
     return drew;
@@ -84,7 +85,7 @@ void Node::AddChild(std::shared_ptr<Node> childNode)
     if (childNode.get() == this)
         return;
     if (HasChild(childNode)) {
-        debugLog(childNode->Name() + " is already a child of " + Name());
+        debugLog(childNode->GetName() + " is already a child of " + GetName());
         return;
     }
     AddComponent(childNode);
