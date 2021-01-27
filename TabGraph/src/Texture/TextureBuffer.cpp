@@ -5,34 +5,34 @@
 * @Last Modified time: 2020-08-18 15:58:00
 */
 #include "Texture/TextureBuffer.hpp"
-#include "Buffer/BufferHelper.hpp"
+#include "Buffer/BufferAccessor.hpp"
 #include "Debug.hpp"
 
-TextureBuffer::TextureBuffer(const std::string& name, GLenum internalFormat, const std::shared_ptr<BufferAccessor> bufferAccessor)
-    : Texture(name, GL_TEXTURE_BUFFER)
+TextureBuffer::TextureBuffer(Pixel::SizedFormat internalFormat, const std::shared_ptr<BufferAccessor> bufferAccessor)
+    : Texture(Texture::Type::TextureBuffer, internalFormat)
 {
     SetAccessor(bufferAccessor);
-    SetInternalFormat(internalFormat);
 }
 
-void TextureBuffer::generate_mipmap()
+void TextureBuffer::Load()
 {
-}
-
-void TextureBuffer::load()
-{
-    if (is_loaded())
+    if (GetLoaded())
         return;
-
-    Accessor()->GetBufferView()->GetBuffer()->LoadGPU();
-    glBindBuffer(GL_TEXTURE_BUFFER, Accessor()->GetBufferView()->GetBuffer()->Glid());
+    //Accessor()->GetBufferView()->GetBuffer()->Load();
+    Accessor()->GetBufferView()->Load();
+    _SetHandle(Texture::Create(GetType()));
+    glBindBuffer(GL_TEXTURE_BUFFER, Accessor()->GetBufferView()->GetHandle());
+    glTextureBuffer(
+        GetHandle(),
+        (GLenum)GetPixelDescription().GetSizedFormat(),
+        Accessor()->GetBufferView()->GetHandle());
+    _SetLoaded(true);
     //Texture::load();
-    glGenTextures(1, &_glid);
-    glBindTexture(GL_TEXTURE_BUFFER, glid());
-    glTexBuffer(GL_TEXTURE_BUFFER, InternalFormat(), Accessor()->GetBufferView()->GetBuffer()->Glid());
-    glBindTexture(GL_TEXTURE_BUFFER, 0);
-    glBindBuffer(GL_TEXTURE_BUFFER, 0);
-    _loaded = true;
+    //glBindTexture(GL_TEXTURE_BUFFER, GetGlid());
+    //glTexBuffer(GL_TEXTURE_BUFFER, (GLenum)GetPixelDescription(), Accessor()->GetBufferView()->GetBuffer()->GetGlid());
+    //glBindTexture(GL_TEXTURE_BUFFER, 0);
+    //glBindBuffer(GL_TEXTURE_BUFFER, 0);
+    
     //glBindTexture(target(), glid());
     //glCreateTextures(GL_TEXTURE_BUFFER, 1, &_glid);
     //if (glCheckError(Name()) throw std::runtime_error("");
@@ -42,11 +42,6 @@ void TextureBuffer::load()
     //	Accessor()->GetBufferView()->GetBuffer()->Glid()
     //);
     //if (glCheckError(Name()) throw std::runtime_error("");
-}
-
-void TextureBuffer::unload()
-{
-    Texture::unload();
 }
 
 std::shared_ptr<BufferAccessor> TextureBuffer::Accessor() const
