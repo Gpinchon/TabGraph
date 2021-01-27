@@ -1,15 +1,15 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-24 16:56:25
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:45:36
 */
 
 #pragma once
 
 #include "Event/Signal.hpp"
-#include <memory> // for shared_ptr
 #include <atomic>
+#include <memory> // for shared_ptr
 
 class Shader; // lines 13-13
 class Geometry; // lines 12-12
@@ -17,10 +17,6 @@ class Framebuffer;
 
 /** @brief Render manages the graphical rendering and frame pacing */
 namespace Render {
-/** @brief Initiates rendering loop */
-void Start();
-/** @brief Stops rendering loop */
-void Stop();
 /** @brief Asks for a redraw on next loop */
 void RequestRedraw();
 std::atomic<bool>& NeedsUpdate();
@@ -39,7 +35,6 @@ void RemovePostTreatment(std::shared_ptr<Shader> shader);
 
 uint32_t FrameNumber();
 
-
 const std::shared_ptr<Framebuffer> OpaqueBuffer();
 const std::shared_ptr<Framebuffer> GeometryBuffer();
 const std::shared_ptr<Framebuffer> LightBuffer();
@@ -48,4 +43,6 @@ const std::shared_ptr<Geometry> DisplayQuad();
 
 Signal<float>& OnBeforeRender();
 Signal<float>& OnAfterRender();
+
+void Scene();
 };

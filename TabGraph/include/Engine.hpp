@@ -1,19 +1,19 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:14:37
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:45:45
 */
 
 #pragma once
 
 #include "Event/Signal.hpp"
 
+#include <filesystem>
 #include <memory>
 #include <mutex> // for mutex
 #include <string> // for string
 #include <sys/types.h> // for int8_t
-#include <filesystem>
 
 #ifndef UP
 //#define UP glm::vec3(0, 1, 0);

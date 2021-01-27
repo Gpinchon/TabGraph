@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
-* @Date:   2019-02-22 16:13:28
+* @Author: gpinchon
+* @Date:   2021-01-08 17:02:47
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-19 13:18:12
+* @Last Modified time: 2021-01-11 08:41:46
 */
 
 #include "Engine.hpp"
@@ -13,26 +13,23 @@
 #include "Parser/GLSL.hpp" // for GLSL, PostShader
 #include "Render.hpp" // for AddPostTreatment, RequestRedraw
 #include "Scene/Scene.hpp"
-#include "Texture/Cubemap.hpp" // for Cubemap
-#include "Texture/TextureParser.hpp" // for TextureParser
 #include "Window.hpp" // for Window
 
 #include <SDL_events.h> // for SDL_PumpEvents, SDL_SetEventFilter
 #include <SDL_filesystem.h> // for SDL_GetBasePath
 #include <SDL_timer.h> // for SDL_GetTicks
 #include <SDL_video.h> // for SDL_GL_MakeCurrent
-#include <filesystem>
 #include <atomic> // for atomic
 #include <chrono> // for milliseconds
+#include <filesystem>
 #include <iostream> // for operator<<, endl, basic_ostream
 #include <memory> // for shared_ptr, __shared_ptr_access
 #include <mutex> // for mutex
 #include <thread> // for sleep_for
-#include <filesystem>
 
 #ifdef _WIN32
-#include <io.h> // for getcwd
 #include <direct.h>
+#include <io.h> // for getcwd
 #else
 #include <sys/io.h> // for getcwd
 #endif
@@ -72,10 +69,9 @@ void Engine::Init()
     Engine::SetSwapInterval(Config::Get("SwapInterval", -1));
 }
 
-/*int event_filter(void* arg, SDL_Event* event)
-{
-    return (Events::filter(arg, event));
-}*/
+#include "Camera/Camera.hpp"
+#include "Scene/Scene.hpp"
+#include "Shader/Shader.hpp"
 
 void Engine::Start()
 {
@@ -83,22 +79,21 @@ void Engine::Start()
     double lastTicks;
     double fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
 
-    SDL_GL_MakeCurrent(Window::sdl_window(), nullptr);
-    Render::Start();
+    SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
+    SDL_GL_SetSwapInterval(Engine::SwapInterval());
     while (EnginePrivate::Get().loop) {
-        if (Render::NeedsUpdate())
-            continue;
+        //if (Render::NeedsUpdate())
+        //    continue;
         ticks = SDL_GetTicks() / 1000.0;
         SDL_PumpEvents();
         EnginePrivate::Get().onUpdate(ticks - lastTicks);
         if (ticks - fixedTiming >= 0.015) {
             EnginePrivate::Get().onFixedUpdate(ticks - fixedTiming);
-            Render::RequestRedraw();
+            Render::Scene();
             fixedTiming = ticks;
         }
         lastTicks = ticks;
     }
-    Render::Stop();
 }
 
 void Engine::Stop(void)
