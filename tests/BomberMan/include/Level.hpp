@@ -28,8 +28,8 @@ public:
     virtual void RenderDepth(const RenderMod&) override;
 
 private:
-    virtual void _UpdateCPU(float delta) override;
-    virtual void _FixedUpdateCPU(float delta) override;
+    virtual void _UpdateCPU(float delta);
+    virtual void _FixedUpdateCPU(float delta);
     const glm::ivec2 _size;
     glm::ivec2 _spawnPoint;
     std::vector<std::shared_ptr<GameEntity>> _entities;

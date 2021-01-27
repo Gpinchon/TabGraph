@@ -24,7 +24,7 @@ private:
     virtual std::shared_ptr<Component> _Clone() override {
         return Component::Create<Bomb>(*this);
     }
-    virtual void _FixedUpdateCPU(float delta) override;
+    virtual void _FixedUpdateCPU(float delta);
     int _range { 5 };
     std::chrono::duration<double> _timer { 3 };
     std::chrono::time_point<std::chrono::high_resolution_clock> _spawnTime;

@@ -16,7 +16,7 @@ private:
     virtual std::shared_ptr<Component> _Clone() override {
         return Component::Create<Flame>(*this);
     }
-    virtual void _FixedUpdateCPU(float delta) override;
+    virtual void _FixedUpdateCPU(float delta);
     std::chrono::duration<double> _timer { 0.5 }; //defaults to seconds
     const std::chrono::time_point<std::chrono::high_resolution_clock> _spawnTime;
 };
