@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-07-15 10:36:36
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-08 14:08:13
+* @Last Modified time: 2021-01-11 08:46:31
 */
 
 #include "Camera/FPSCamera.hpp"

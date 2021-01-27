@@ -1,14 +1,15 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-07-16 08:55:52
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-12 15:49:14
+* @Last Modified time: 2021-01-11 08:46:30
 */
 
 #include "Camera/OrbitCamera.hpp"
+#include "Engine.hpp"
 #include "Tools/Tools.hpp"
 #include "Transform.hpp"
-#include "Engine.hpp"
+#include "Render.hpp"
 
 OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
     : Camera(iname, proj)
@@ -17,8 +18,7 @@ OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float 
     _theta = theta;
     _radius = radius;
     SetFov(ifov);
-    _UpdateCPU(0);
-    Engine::OnFixedUpdate().ConnectMember(this, &OrbitCamera::_UpdateCPU);
+    _Update(0);
 }
 
 std::shared_ptr<Transform> OrbitCamera::Target() const
@@ -26,13 +26,14 @@ std::shared_ptr<Transform> OrbitCamera::Target() const
     return _target.lock();
 }
 
-void OrbitCamera::_UpdateCPU(float)
+void OrbitCamera::_Update(float)
 {
     glm::vec3 targetPosition(0);
     if (Target() != nullptr)
         targetPosition = Target()->WorldPosition();
     SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
     LookAt(targetPosition);
+    _updateSlot.Disconnect();
 }
 
 float OrbitCamera::Phi() const
@@ -43,7 +44,8 @@ float OrbitCamera::Phi() const
 void OrbitCamera::SetPhi(float phi)
 {
     _phi = phi;
-    SetNeedsUpdateCPU(true);
+    if (_updateSlot.Connected())
+        _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
 }
 
 float OrbitCamera::Theta() const
@@ -54,7 +56,8 @@ float OrbitCamera::Theta() const
 void OrbitCamera::SetTheta(float theta)
 {
     _theta = theta;
-    SetNeedsUpdateCPU(true);
+    if (_updateSlot.Connected())
+        _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
 }
 
 float OrbitCamera::Radius() const
@@ -65,11 +68,13 @@ float OrbitCamera::Radius() const
 void OrbitCamera::SetRadius(float radius)
 {
     _radius = radius;
-    SetNeedsUpdateCPU(true);
+    if (_updateSlot.Connected())
+        _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
 }
 
 void OrbitCamera::SetTarget(const std::shared_ptr<Transform>& target)
 {
     _target = target;
-    SetNeedsUpdateCPU(true);
+    if (_updateSlot.Connected())
+        _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
 }

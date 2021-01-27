@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-08 14:05:26
+* @Last Modified time: 2021-01-11 08:46:31
 */
 
 #include "Camera/Camera.hpp"
@@ -37,16 +37,16 @@ glm::mat4 Camera::ProjectionMatrix() const
             proj = glm::infinitePerspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear());
     } else
         proj = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
-    switch (Render::FrameNumber() % 2) {
+    switch (Render::FrameNumber() % 4) {
     case 0:
         proj[2][0] += 0.25 / float(Window::size().x);
         proj[2][1] += 0.25 / float(Window::size().y);
         break;
-    case 1:
+    case 2:
         proj[2][0] -= 0.25 / float(Window::size().x);
         proj[2][1] -= 0.25 / float(Window::size().y);
         break;
-    /*
+        /*
     case 0:
         proj[2][0] += 0.5 / float(Window::size().x);
         proj[2][1] += 0.5 / float(Window::size().y);

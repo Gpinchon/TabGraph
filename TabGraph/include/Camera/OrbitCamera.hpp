@@ -1,13 +1,14 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-07-16 08:53:02
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:09
+* @Last Modified time: 2021-01-11 08:45:31
 */
 
 #pragma once
 
 #include "Camera/Camera.hpp"
+#include "Event/Signal.hpp"
 
 class OrbitCamera : public Camera {
 public:
@@ -22,14 +23,17 @@ public:
     void SetRadius(float);
 
 private:
-    virtual void _Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent) override {
+    virtual void _Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent) override
+    {
         if (oldComponent == Target())
             SetTarget(std::static_pointer_cast<Node>(newComponent));
     }
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<OrbitCamera>(*this);
     }
-    virtual void _UpdateCPU(float delta) override;
+    virtual void _Update(float delta);
+    Signal<float>::ScoppedSlot _updateSlot;
     float _phi { 0 };
     float _theta { 0 };
     float _radius { 0 };

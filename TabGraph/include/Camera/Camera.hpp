@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-12 11:35:51
+* @Last Modified time: 2021-01-11 08:45:34
 */
 
 #pragma once
@@ -59,15 +59,10 @@ public:
     virtual ~Camera() = default;
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<Camera>(*this);
     }
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float) override {};
-    virtual void _FixedUpdateCPU(float) override {};
     Camera::Projection _projection_type { Projection::Perspective };
     //glm::mat4 _projection { 0 };
     glm::vec4 _frustum { -50, 50, -50, 50 };

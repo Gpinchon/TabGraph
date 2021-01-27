@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-07-15 10:36:53
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:08
+* @Last Modified time: 2021-01-11 08:45:32
 */
 
 #pragma once
@@ -25,8 +25,10 @@ protected:
     float _yaw { 0 };
     float _pitch { 0 };
     float _roll { 0 };
+
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<FPSCamera>(*this);
     }
 };
