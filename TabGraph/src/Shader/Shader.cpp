@@ -1,20 +1,20 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-27 15:26:17
+* @Last Modified time: 2021-01-11 08:46:09
 */
 
 #include "Shader/Shader.hpp"
-#include "Shader/ShaderExtension.hpp"
-#include "Scene/Scene.hpp"
 #include "Camera/Camera.hpp"
-#include "Window.hpp"
-#include "Render.hpp"
-#include "Transform.hpp"
 #include "Debug.hpp" // for glCheckError, debugLog
+#include "Render.hpp"
+#include "Scene/Scene.hpp"
 #include "Shader/GLUniformHelper.hpp"
+#include "Shader/ShaderExtension.hpp"
 #include "Texture/Texture.hpp" // for Texture
+#include "Transform.hpp"
+#include "Window.hpp"
 //#include <bits/exception.h> // for exception
 #include <stdexcept> // for runtime_error
 #include <string.h> // for memset
@@ -38,13 +38,11 @@ Shader::Shader(const std::string& name, const Shader::Type& type)
         SetDefine("LIGHTSHADER");
         SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(deferred_vert_code, "FillVertexData();")));
         SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(deferred_frag_code, "FillFragmentData();")));
-    }
-    else if (Shader::Type::PostShader == type) {
+    } else if (Shader::Type::PostShader == type) {
         SetDefine("POSTSHADER");
         SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(deferred_vert_code, "FillVertexData();")));
         SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(deferred_frag_code, "FillFragmentData();")));
-    }
-    else if (Shader::Type::ComputeShader == type) {
+    } else if (Shader::Type::ComputeShader == type) {
         SetDefine("COMPUTESHADER");
     }
 }
@@ -71,7 +69,7 @@ void Shader::AddExtension(const std::shared_ptr<ShaderExtension>& extension)
     for (auto stage : extension->Stages()) {
         for (auto stageExtension : stage.second->Extensions())
             Stage(stage.first)->AddExtension(stageExtension);
-            //stage.second->AddExtension(extension->Stage(stage.first));
+        //stage.second->AddExtension(extension->Stage(stage.first));
     }
 }
 
@@ -148,7 +146,7 @@ std::unordered_map<std::string, ShaderVariable> Shader::Textures() const
 
 std::unordered_map<std::string, ShaderVariable> Shader::Uniforms() const
 {
-	return _uniforms;
+    return _uniforms;
 }
 
 std::unordered_map<std::string, ShaderVariable> Shader::Attributes() const
@@ -204,7 +202,7 @@ void Shader::SetTexture(const std::string& uname, const std::shared_ptr<Texture>
     auto index = std::distance(_textures.begin(), textureIterator);
     textureIterator->second.Set(value, GL_TEXTURE0 + index);
     textureIterator->second.name = uname;
-    _texturesChanged = true;//|= value.data != _textures[value.name].data;
+    _texturesChanged = true; //|= value.data != _textures[value.name].data;
 }
 
 void Shader::bind_image(const std::string& name,
@@ -217,12 +215,12 @@ void Shader::bind_image(const std::string& name,
     if (texture == nullptr) {
         unbind_texture(texture_unit);
     } else {
-        texture->load();
+        texture->Load();
         //glActiveTexture(texture_unit);
-        glBindTexture(texture->target(), texture->glid());
+        glBindTexture((GLenum)texture->GetType(), texture->GetHandle());
         glBindImageTexture(texture_unit - GL_TEXTURE0,
-            texture->glid(), level, layered,
-            layer, access, texture->InternalFormat());
+            texture->GetHandle(), level, layered,
+            layer, access, (GLenum)texture->GetPixelDescription().GetSizedFormat());
         //glBindTexture(texture->target(), texture->glid());
     }
     SetUniform(name, int(texture_unit - GL_TEXTURE0));
@@ -241,8 +239,7 @@ void Shader::_UpdateVariable(const ShaderVariable& variable)
 void Shader::_UpdateVariables()
 {
     uint32_t textureIndex = 0;
-    for (auto extension : GetComponents<ShaderExtension>())
-    {
+    for (auto extension : GetComponents<ShaderExtension>()) {
         for (auto texture : extension->_textures) {
             SetTexture(texture.second);
         }
@@ -260,7 +257,7 @@ void Shader::_UpdateVariables()
     for (const auto& texture : _globalTextures) {
         auto v(texture.second);
         auto value(std::get<std::pair<std::shared_ptr<Texture>, GLenum>>(v.data));
-        v.Set(value.first, GL_TEXTURE0 + textureIndex);
+        v.Set(value.first, GL_TEXTURE0 + static_cast<size_t>(textureIndex));
         SetTexture(v);
         textureIndex++;
     }
@@ -268,7 +265,7 @@ void Shader::_UpdateVariables()
         for (const auto& texture : _textures) {
             auto v(texture.second);
             auto value(std::get<std::pair<std::shared_ptr<Texture>, GLenum>>(v.data));
-            v.Set(value.first, GL_TEXTURE0 + textureIndex);
+            v.Set(value.first, GL_TEXTURE0 + static_cast<size_t>(textureIndex));
             _UpdateVariable(v);
             textureIndex++;
         }
@@ -289,11 +286,11 @@ void Shader::_UpdateVariables()
 void Shader::Link()
 {
     glLinkProgram(_program);
-    glObjectLabel(GL_PROGRAM, _program, Name().length(), Name().c_str());
+    glObjectLabel(GL_PROGRAM, _program, GetName().length(), GetName().c_str());
     try {
         check_program(_program);
     } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Linking Error " + Name() + " :\n") + e.what());
+        throw std::runtime_error(std::string("Linking Error " + GetName() + " :\n") + e.what());
     }
     _get_variables(GL_ACTIVE_UNIFORMS);
     _get_variables(GL_ACTIVE_ATTRIBUTES);
@@ -498,7 +495,7 @@ void Shader::_get_variables(GLenum variableType)
     GLsizei length;
 
     glGetProgramiv(_program, variableType, &ivcount);
-    debugLog(this->Name());
+    debugLog(this->GetName());
     debugLog(ivcount);
     debugLog((variableType == GL_ACTIVE_UNIFORMS ? "GL_ACTIVE_UNIFORMS" : "GL_ACTIVE_ATTRIBUTES"));
     while (--ivcount >= 0) {
@@ -554,7 +551,7 @@ void Shader::Compile()
         try {
             stage->Compile();
         } catch (std::exception& e) {
-            throw std::runtime_error(std::string("Error compiling ") + Name() + "\n" + e.what() + "\nShader Code :\n" + stage->FullCode());
+            throw std::runtime_error(std::string("Error compiling ") + GetName() + "\n" + e.what() + "\nShader Code :\n" + stage->FullCode());
         }
         glAttachShader(_program, stage->Glid());
     }

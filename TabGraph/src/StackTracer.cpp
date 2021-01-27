@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
-* @Date:   2019-06-04 18:11:41
+* @Author: gpinchon
+* @Date:   2020-08-27 18:48:20
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-09 11:55:43
+* @Last Modified time: 2021-01-11 08:41:17
 */
 
 #include <StackTracer.hpp>
@@ -60,14 +60,15 @@ void StackTracer::set_handler_fd(int fd)
 #ifdef _WIN32
 
 #include <windows.h>
-#include <cstring>
 #include <dbghelp.h>
+#include <tlhelp32.h>
+#include <cstring>
 #include <io.h>
 #include <iostream>
 #include <process.h>
-#include <stdio.h>
-#include <tlhelp32.h>
 #include <signal.h>
+#include <stdio.h>
+
 
 int& _get_handler_fd()
 {

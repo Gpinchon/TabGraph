@@ -1,3 +1,10 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-10-01 15:30:48
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:43:25
+*/
+
 #include "Shader/ShaderStage.hpp"
 #include "Debug.hpp"
 #include "Shader/Shader.hpp"
@@ -22,8 +29,10 @@ void ShaderStage::Delete()
 
 void ShaderStage::Compile()
 {
-    if (Compiled())
+    if (Compiled()) {
         Recompile();
+        return;
+    }
     try {
         static auto glslVersionString = std::string((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
         static auto glslVersionNbr = int(std::stof(glslVersionString) * 100);

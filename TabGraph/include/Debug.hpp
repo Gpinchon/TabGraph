@@ -72,6 +72,7 @@ inline void GLAPIENTRY MessageCallback(GLenum source,
 #ifdef _WIN32
 
 #include <windows.h>
+
 #include <DbgHelp.h>
 #include <tlhelp32.h>
 
