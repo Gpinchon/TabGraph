@@ -23,9 +23,9 @@ float InterleavedGradientNoise(vec2 uv, float FrameId)
 #define GAUSSIANKERNALSIZE 9
 
 const float gaussianKernel[9] = float[9](
-	0.039436,	0.119713,	0.039436,
-	0.119713,	0.363404,	0.119713,
-	0.039436,	0.119713,	0.039436
+    0.039436,	0.119713,	0.039436,
+    0.119713,	0.363404,	0.119713,
+    0.039436,	0.119713,	0.039436
 );
 
 const ivec2 gaussianOffset[9] = ivec2[9](
