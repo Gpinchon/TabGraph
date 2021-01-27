@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
-* @Date:   2019-06-07 13:59:05
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-07 14:05:44
+* @Author: gpinchon
+* @Date:   2020-08-27 18:48:20
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:40:56
 */
 
 #include <Quadtree.hpp>

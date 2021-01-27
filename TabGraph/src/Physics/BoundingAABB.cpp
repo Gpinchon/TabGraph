@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-05-15 13:53:32
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-03 19:10:40
+* @Last Modified time: 2021-01-11 08:46:11
 */
 
 #include "Physics/BoundingAABB.hpp"

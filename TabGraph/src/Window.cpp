@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-21 16:20:31
+* @Last Modified time: 2021-01-11 08:42:21
 */
 
 #include "Window.hpp"
