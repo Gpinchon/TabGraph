@@ -265,8 +265,8 @@ void SetUniformSampler(const ShaderVariable &variable)
         return;
     glActiveTexture(value->second);
     if (value->first != nullptr) {
-        value->first->load();
-        glBindTexture(value->first->target(), value->first->glid());
+        value->first->Load();
+        glBindTexture((GLenum)value->first->GetType(), value->first->GetHandle());
     }
     else
         glBindTexture(GL_TEXTURE_2D, 0);
