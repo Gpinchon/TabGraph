@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-06-12 12:05:01
+* @Last Modified time: 2021-01-11 08:45:26
 */
 
 #pragma once
@@ -18,6 +18,7 @@ class Framebuffer;
 class Light : public Node {
     PROPERTY(glm::vec3, Color, 1);
     PROPERTY(bool, CastShadow, false);
+
 public:
     Light(const std::string& name, glm::vec3 color);
     Light();
