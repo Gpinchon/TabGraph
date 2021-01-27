@@ -63,11 +63,6 @@ void Scene::Add(std::shared_ptr<Animation> animation)
     AddComponent(animation);
 }
 
-void Scene::_FixedUpdateCPU(float /*delta*/)
-{
-    Common::SetUp(Up());
-}
-
 void Scene::Render(const RenderPass&pass, const RenderMod& mode)
 {
     for (auto node : Scene::Current()->GetComponents<Node>())

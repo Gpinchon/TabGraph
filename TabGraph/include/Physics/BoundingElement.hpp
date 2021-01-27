@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
-* @Last Modified by:   gpi
-* @Last Modified time: 2019-06-27 17:16:56
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-01-11 08:45:08
 */
 
 #pragma once
@@ -128,12 +128,6 @@ private:
     /*virtual std::shared_ptr<Component> _Clone() override {
         return Component::Create<BoundingElement>(*this);
     }*/
-    void _LoadCPU() override {};
-    void _UnloadCPU() override {};
-    void _LoadGPU() override {};
-    void _UnloadGPU() override {};
-    void _UpdateCPU(float) override {};
-    void _FixedUpdateCPU(float) override {};
     BoundingElement::Type _type { BoundingElement::Type::Invalid };
     //std::array<std::shared_ptr<Callback<Intersection(const BoundingElement &)>>, MaxType> _intersectionCallback;
     BoundingElement() = delete;
