@@ -25,7 +25,7 @@ void BoundingMesh::SetMesh(const std::shared_ptr<Mesh>& geometry)
     SetComponent(geometry);
 }
 
-#include "Buffer/BufferHelper.hpp"
+#include "Buffer/BufferAccessor.hpp"
 
 std::set<glm::vec3, compareVec> BoundingMesh::GetSATAxis(const glm::mat4& transform) const
 {
@@ -36,8 +36,8 @@ std::set<glm::vec3, compareVec> BoundingMesh::GetSATAxis(const glm::mat4& transf
         auto indices(geometry->Indices());
         if (indices != nullptr) {
             //GOOD NEWS EVERYONE ! We've got indices !
-            for (auto i = 0u; i < indices->Count(); ++i) {
-                auto index(BufferHelper::Get<unsigned>(indices, i));
+            for (auto i = 0u; i < indices->GetCount(); ++i) {
+                auto index(indices->Get<unsigned>(i));//BufferHelper::Get<unsigned>(indices, i));
                 auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Normal, index));
                 glm::vec3 transformedNormal(normalMatrix * glm::vec4(v, 1.f));
                 axis.insert(transformedNormal);
@@ -176,9 +176,9 @@ std::vector<glm::vec3> BoundingMesh::Clip(glm::vec3 axis, const glm::mat4& trans
     for (const auto& geometry : mesh->Geometrys()) {
         auto indices(geometry->Indices());
         if (indices != nullptr) {
-            auto startingPoint(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, indices->Count() - 1));
-            for (auto i = 0u; i < indices->Count(); ++i) {
-                auto index(BufferHelper::Get<unsigned>(indices, i));
+            auto startingPoint(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, indices->GetCount() - 1));
+            for (auto i = 0u; i < indices->GetCount(); ++i) {
+                auto index(indices->Get<unsigned>(i));//BufferHelper::Get<unsigned>(indices, i));
                 auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, index));
                 glm::vec3 endPoint(transform * glm::vec4(v, 1.f));
                 if (IsInFront(axis, endPoint)) {
