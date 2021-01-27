@@ -26,122 +26,6 @@ vec4 TransparencyColor(const in vec4 Ca, const in vec4 Cb) {
 	return vec4(0);
 }
 
-ivec2[2][5] SampleOffset = ivec2[2][5](
-	ivec2[5](
-		ivec2( 0,  0),
-		ivec2(-1,  0),
-		ivec2( 1,  0),
-		ivec2( 0, -1),
-		ivec2( 0,  1)
-	),
-	ivec2[5](
-		ivec2( 0,  0),
-		ivec2(-1, -1),
-		ivec2( 1,  1),
-		ivec2( 1, -1),
-		ivec2(-1,  1)
-	)
-);
-
-#if OPACITYMODE == BLEND
-uint	OffsetIndex(ivec2 iuv) {
-	bool XEven = iuv.x % 2 == 0;
-	bool YEven = iuv.y % 2 == 0;
-	uint drawIndex = (FrameNumber + DrawID) % 4;
-	if (drawIndex / 2 == 0 && drawIndex % 2 == 0) {
-		if (!XEven && !YEven)
-			return 1;
-		else return 0;
-	}
-	else if (drawIndex / 2 == 0 && drawIndex % 2 == 1) {
-		if (XEven && YEven)
-			return 1;
-		else return 0;
-	}
-	else if (drawIndex / 2 == 1 && drawIndex % 2 == 0) {
-		if (!XEven && YEven)
-			return 1;
-		else return 0;
-	}
-	else if (drawIndex / 2 == 1 && drawIndex % 2 == 1) {
-		if (XEven && !YEven)
-			return 1;
-		else return 0;
-	}
-	return 0;
-}
-#else
-uint	OffsetIndex(ivec2 iuv) {
-	bool XEven = iuv.x % 2 == 0;
-	bool YEven = iuv.y % 2 == 0;
-	if (XEven && YEven)
-		return 1;
-	else return 0;
-}
-#endif
-
-vec4[5] SampleTexture(sampler2D tex, vec2 uv) {
-	vec4[5] samples;
-	ivec2 iuv = ivec2(uv * textureSize(tex, 0));
-	/*
-	samples[0] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 0,  0));
-	samples[1] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 1,  1));
-	samples[2] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2(-1, -1));
-	samples[3] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 1, -1));
-	samples[4] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2(-1,  1));
-	*/
-	
-	ivec2[5] offsets = SampleOffset[OffsetIndex(iuv)];
-	samples[0] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[0]);
-	samples[1] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[1]);
-	samples[2] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[2]);
-	samples[3] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[3]);
-	samples[4] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[4]);
-	
-	return samples;
-}
-
-uint[5] SampleIDTexture(usampler2D tex, vec2 uv) {
-	uint[5] samples;
-	ivec2 iuv = ivec2(uv * textureSize(tex, 0));
-	/*
-	samples[0] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 0,  0)).r;
-	samples[1] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 1,  1)).r;
-	samples[2] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2(-1, -1)).r;
-	samples[3] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2( 1, -1)).r;
-	samples[4] = texelFetchOffset(tex, ivec2(iuv), 0, ivec2(-1,  1)).r;
-	*/
-	
-	ivec2[5] offsets = SampleOffset[OffsetIndex(iuv)];
-	samples[0] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[0]).r;
-	samples[1] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[1]).r;
-	samples[2] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[2]).r;
-	samples[3] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[3]).r;
-	samples[4] = texelFetchOffset(tex, ivec2(iuv), 0, offsets[4]).r;
-	
-	return samples;
-}
-
-vec4[4] GatherTexture(sampler2D tex, vec2 uv) {
-	vec4 x = textureGather(tex, uv, 0);
-	vec4 y = textureGather(tex, uv, 1);
-	vec4 z = textureGather(tex, uv, 2);
-	vec4 w = textureGather(tex, uv, 3);
- 	return vec4[4](
-		vec4(x[0], y[0], z[0], w[0]),
-		vec4(x[1], y[1], z[1], w[1]),
-		vec4(x[2], y[2], z[2], w[2]),
-		vec4(x[3], y[3], z[3], w[3])
-	);
-}
-
-uint[4] GatherIDTexture(usampler2D tex, vec2 uv) {
-	uvec4 i = textureGather(tex, uv, 0);
- 	return uint[4](
-		i[0], i[1], i[2], i[3]
-	);
-}
-
 #define Fresnel(factor, f0, alpha) (f0 + (max(f0, 1 - alpha) - f0) * pow(1 - max(factor, 0), 5))
 
 vec3 EnvironmentReflection(const in vec3 fresnel, const in vec3 R, const in float alphaSqrt) {
@@ -165,8 +49,6 @@ float LinearDepth(const in float z)
 	vec2	uv = TexCoord();
 	vec4	projectedCoord = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
 	projectedCoord = Camera.InvMatrix.Projection * projectedCoord;
-	//return projectedCoord.z;
-	//vec4 projectedCoord = Camera.InvMatrix.Projection * vec4(TexCoord(), z, 1);
 	float A = Camera.Matrix.Projection[2].z;
     float B = Camera.Matrix.Projection[3].z;
 	float zNear = - B / (1.0 - A);
@@ -210,24 +92,18 @@ void WritePixel(vec3 color, float alpha, float wsZ) {
 }
 #endif
 
+ivec2 offset[13] = ivec2[13](
+                                    ivec2(0, -2),
+                    ivec2(-1, -1),	ivec2(0, -1),	ivec2(1, -1),
+    ivec2(-2,  0),	ivec2(-1,  0),	ivec2(0,  0),	ivec2(1,  0),	ivec2(2,  0),
+                    ivec2(-1,  1),	ivec2(0,  1),	ivec2(1,  1),
+                                    ivec2(0,  2)
+);
+
 void Reconstruct() {
 #if OPACITYMODE == BLEND
 	float opaqueDepth = texture(OpaqueDepthTexture, ScreenTexCoord(), 0).r;
 #endif
-/*
-	vec4[5] diffuseSamples = SampleTexture(DiffuseTexture, ScreenTexCoord());
-	vec4[5] reflectionSamples = SampleTexture(ReflectionTexture, ScreenTexCoord());
-	vec4[5] normalSamples = SampleTexture(NormalTexture, ScreenTexCoord());
-	vec4[5] AOSamples = SampleTexture(AOTexture, ScreenTexCoord());
-	uint[5] IDSamples = SampleIDTexture(IDTexture, ScreenTexCoord());
-*/
-/*
-	vec4[4] diffuseSamples = GatherTexture(DiffuseTexture, ScreenTexCoord());
-	vec4[4] reflectionSamples = GatherTexture(ReflectionTexture, ScreenTexCoord());
-	vec4[4] normalSamples = GatherTexture(NormalTexture, ScreenTexCoord());
-	vec4[4] AOSamples = GatherTexture(AOTexture, ScreenTexCoord());
-	uint[4] IDSamples = GatherIDTexture(IDTexture, ScreenTexCoord());
-*/
 	vec4 diffuseSample = texture(DiffuseTexture, ScreenTexCoord());
 	vec4 reflectionSample = texture(ReflectionTexture, ScreenTexCoord());
 	vec4 normalSample = texture(NormalTexture, ScreenTexCoord());
@@ -258,19 +134,7 @@ void Reconstruct() {
 		vec4 color = vec4(diffuse + reflection + specular, min(1, Opacity() + Luminance(specular + reflection)));
 		thisColor = color * weight + thisColor * (1 - weight);
 	}
-	//else
-	//	discard;
-	/*for (int i = 0; i < 1; ++i) {
-		if (IDSamples[i] == DrawID) {
-			vec3 thisEnvDiffuse = (envDiffuse * CDiff()) * (1 - AOSamples[i].r);
-			vec3 diffuse = thisEnvDiffuse + diffuseSamples[i].rgb * CDiff();
-			vec3 reflection = mix(envReflection, reflectionSamples[i].xyz * fresnel, reflectionSamples[i].a);
-			vec3 specular = diffuseSamples[i].rgb * diffuseSamples[i].a * fresnel;
-			float weight = max(dot(normalSamples[i].xyz, WorldNormal()), 0);
-			vec4 color = vec4(diffuse + reflection + specular, min(1, Opacity() + Luminance(specular + reflection)));
-			thisColor = color * weight + thisColor * (1 - weight);
-		}
-	}*/
+
 	#if OPACITYMODE == BLEND
 	if (opaqueDepth < gl_FragCoord.z)
 		discard;
