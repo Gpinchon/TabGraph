@@ -1,45 +1,42 @@
 #pragma once
 
 #include "Texture/Texture.hpp"
+//#include "Render.hpp"
+
+//#include <filesystem>
+#include <glm/vec2.hpp>
+
+#define MIPMAPNBR(size) int(log2(std::max(size.x, size.y)))
+class Image;
 
 class Texture2D : public Texture {
+    READONLYPROPERTY(glm::ivec2, Size, 0);
+    PROPERTY(bool, AutoMipMap, true);
+    PROPERTY(int, MipMapNbr, MIPMAPNBR(GetSize()));
+
 public:
-    Texture2D(const std::string& name, glm::vec2 s, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
-    //Texture2D(const std::string& name, glm::vec2 s, GLenum target, GLenum f, GLenum fi, GLenum data_format = GL_UNSIGNED_BYTE, void* data = nullptr);
-    /**@brief Fetches a texel with pixel coordinate and returns it as raw bytes*/
-    virtual std::byte* texelfetch(const glm::ivec2& uv);
-    virtual std::byte *data();
-    virtual glm::vec4 sample(const glm::vec2& uv);
-    virtual glm::ivec2 Size() const;
-    virtual void Resize(const glm::ivec2& ns);
-    virtual void set_pixel(const glm::vec2& uv, const glm::vec4 value);
-    virtual void set_pixel(const glm::vec2& uv, const GLubyte* value);
-    virtual void blur(const int& pass, const float& radius, std::shared_ptr<Shader> = nullptr);
-    virtual void load() override;
-    virtual void unload() override;
-    template <typename T>
-    T* at(float u, float v);
+    /**
+     * @param size : the resolutionin pixels
+     * @param internalFormat : the sized format that will be used to store the texture on the GPU
+    */
+    Texture2D(glm::ivec2 size, Pixel::SizedFormat internalFormat);
+    /**
+     * @brief Creates a Texture2D with an image to load from
+     * the image is released when loading is done with RemoveComponent
+     * @param image the image to use for loading, released when loading is done
+    */
+    Texture2D(std::shared_ptr<Image> image);
+    virtual void Load() override;
+    void SetSize(glm::ivec2 size);
 
-protected:
-    virtual std::shared_ptr<Component> _Clone() override {
-        return Component::Create<Texture2D>(*this);
+private:
+    std::shared_ptr<Component> _Clone() override {
+        return std::static_pointer_cast<Component>(Component::Create<Texture2D>(*this));
     }
-    /*virtual void _LoadCPU() override;
-    virtual void _UnloadCPU() override;
-    virtual void _LoadGPU() override;
-    virtual void _UnloadGPU() override;*/
-    glm::ivec2 _size { 0, 0 };
-    std::shared_ptr<Framebuffer> _blur_buffer0;
-    std::shared_ptr<Framebuffer> _blur_buffer1;
-    std::shared_ptr<Framebuffer> _generate_blur_buffer(const std::string&);
+    void _AllocateStorage();
+    Signal<bool>::ScoppedSlot _onImageLoadedSlot;
+    Signal<float>::ScoppedSlot _onBeforeRenderSlot;
+    void _OnImageLoaded(bool loaded);
+    void _OnBeforeRender(float);
+    void _UploadImage(std::shared_ptr<Image> image);
 };
-
-template <typename T>
-T* Texture2D::at(float u, float v)
-{
-    auto nuv = glm::vec2(
-        glm::clamp(round(_size.x * u), 0.f, float(_size.x - 1)),
-        glm::clamp(round(_size.y * v), 0.f, float(_size.y - 1)));
-    auto opp = _bpp / 8;
-    return (&_data[static_cast<int>(nuv.y * _size.x + nuv.x) * opp * sizeof(T)]);
-}

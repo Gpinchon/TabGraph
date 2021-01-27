@@ -1,13 +1,13 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 19:37:50
+* @Last Modified time: 2021-01-11 08:46:15
 */
 
 #include "Parser/HDR.hpp"
-#include "Texture/Texture2D.hpp" // for Texture2D
-#include "Texture/TextureParser.hpp" // for TextureParser
+#include "Texture/Image.hpp" // for Image
+#include "Texture/ImageParser.hpp" // for TextureParser
 #include <GL/glew.h> // for GLubyte, GL_FLOAT, GL_R11F_G11F_B10F
 #include <glm/glm.hpp> // for s_vec2, glm::vec2
 #include <iostream> // for operator<<, flush, basic_ostream, cout
@@ -29,18 +29,19 @@ static void workOnRGBE(RGBE* scan, int len, float* cols);
 static bool decrunch(RGBE* scanline, int len, FILE* file);
 static bool oldDecrunch(RGBE* scanline, int len, FILE* file);
 
-//Add this parser to TextureParser !
-auto __hdrParser = TextureParser::Add(".hdr", HDR::parse);
+//Add this parser to ImageParser !
+auto __hdrParser = ImageParser::Add(".hdr", HDR::Parse);
+auto __HDRParser = ImageParser::Add(".HDR", HDR::Parse);
 
-std::shared_ptr<Texture2D> HDR::parse(const std::string& texture_name, const std::string& path)
+void HDR::Parse(const std::shared_ptr<Image>& image)
 {
-    std::cout << "Parsing " << texture_name;
+    std::cout << "Parsing " << image->GetPath();
     int i;
     char str[200];
     FILE* file;
     glm::ivec2 size;
 
-    file = fopen(path.c_str(), "rb");
+    file = fopen(image->GetPath().string().c_str(), "rb");
     if (!file)
         throw std::runtime_error("Invalid File");
     fread(str, 10, 1, file);
@@ -74,8 +75,10 @@ std::shared_ptr<Texture2D> HDR::parse(const std::string& texture_name, const std
     }
     size.x = w;
     size.y = h;
-    auto cols = new float[w * h * 3];
-    void* data = static_cast<void*>(cols);
+    //auto cols = new float[w * h * 3];
+    //void* data = static_cast<void*>(cols);
+    std::vector<std::byte> data{ w * h * 3 * sizeof(float) };
+    auto cols = reinterpret_cast<float*>(data.data());
     RGBE* scanline = new RGBE[w];
     if (!scanline) {
         fclose(file);
@@ -93,10 +96,11 @@ std::shared_ptr<Texture2D> HDR::parse(const std::string& texture_name, const std
 
     delete[] scanline;
     fclose(file);
-    auto t = Component::Create<Texture2D>(texture_name, size, GL_RGB, GL_R11F_G11F_B10F, GL_FLOAT, data);
-    delete[] data;
+    image->SetPixelDescription(Pixel::SizedFormat::Float32_RGB);
+    image->SetSize(size);
+    image->SetData(data);
     std::cout << " Done." << std::endl;
-    return (t);
+    image->SetLoaded(true);
 }
 
 float convertComponent(int expo, int val)
@@ -144,8 +148,7 @@ bool decrunch(RGBE* scanline, int len, FILE* file)
                 GLubyte val = getc(file);
                 while (code--)
                     scanline[j++][i] = val;
-            }
-            else {
+            } else {
                 std::vector<GLubyte> vals(code);
                 fread(vals.data(), sizeof(GLubyte), code, file);
                 auto k = 0;

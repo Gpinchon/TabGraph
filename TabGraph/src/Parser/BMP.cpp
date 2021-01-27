@@ -1,16 +1,16 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-05-10 19:23:08
+* @Last Modified time: 2021-01-11 08:46:17
 */
 
-#include "Parser/InternalTools.hpp" // for t_bmp_parser, t_bmp_info, t_bmp_...
 #include "Parser/BMP.hpp"
-#include "Texture/Texture2D.hpp" // for Texture2D
+#include "Parser/InternalTools.hpp" // for t_bmp_parser, t_bmp_info, t_bmp_...
+#include "Texture/Image.hpp" // for Texture2D
+
 #include <GL/glew.h> // for GLubyte, GLenum, GL_BGR, GL_BGRA
 #include <glm/glm.hpp> // for s_vec2, glm::vec2
-//#include <bits/exception.h> // for exception
 #include <errno.h> // for errno
 #include <fcntl.h> // for O_BINARY, O_CREAT, O_RDWR
 #include <stdexcept> // for runtime_error
@@ -32,26 +32,26 @@
 #endif
 
 #pragma pack(1)
-struct t_bmp_header {
-    short type;
-    unsigned size;
-    short reserved1;
-    short reserved2;
-    unsigned data_offset;
+struct t_bmp_info {
+    uint32_t    header_size{ sizeof(t_bmp_info) };
+    int32_t     width;
+    int32_t     height;
+    uint16_t    color_planes;
+    uint16_t    bpp;
+    uint32_t    compression_method;
+    uint32_t    size;
+    int32_t     horizontal_resolution;
+    int32_t     vertical_resolution;
+    uint32_t    totalColors{ 0 };
+    uint32_t    important_colors{ 0 };
 };
 
-struct t_bmp_info {
-    unsigned header_size;
-    int width;
-    int height;
-    short color_planes;
-    short bpp;
-    unsigned compression_method;
-    unsigned size;
-    int horizontal_resolution;
-    int vertical_resolution;
-    int colors;
-    int important_colors;
+struct t_bmp_header {
+    std::byte    type[2];
+    uint32_t     size;
+    std::byte    reserved1[2]{ std::byte(0), std::byte(0) };
+    std::byte    reserved2[2]{ std::byte(0), std::byte(0) };
+    uint32_t     data_offset{ sizeof(t_bmp_header) + sizeof(t_bmp_info) };
 };
 #pragma pack()
 
@@ -59,35 +59,32 @@ struct t_bmp_parser {
     FILE* fd;
     t_bmp_info info;
     t_bmp_header header;
-    GLubyte* data{ nullptr };
+    std::vector<std::byte> data { };
     unsigned size_read;
 };
 
-static void prepare_header(t_bmp_header *header, t_bmp_info *info, std::shared_ptr<Texture2D> t)
+static void prepare_header(t_bmp_header* header, t_bmp_info* info, std::shared_ptr<Image> t)
 {
-    memset(header, 0, sizeof(t_bmp_header));
-    memset(info, 0, sizeof(t_bmp_info));
-    header->type = 0x4D42;
-    header->data_offset = sizeof(t_bmp_header) + sizeof(t_bmp_info);
-    header->size = header->data_offset + (t->Size().x * t->Size().y * 4);
-    info->header_size = sizeof(t_bmp_info);
-    info->width = t->Size().x;
-    info->height = t->Size().y;
+    header->type[0] = std::byte(0x42);
+    header->type[1] = std::byte(0x4D);
+    header->size = header->data_offset + (t->GetSize().x * t->GetSize().y * 4);
+    info->width = t->GetSize().x;
+    info->height = t->GetSize().y;
     info->color_planes = 1;
-    info->bpp = t->bpp();
-    info->size = t->Size().x * t->Size().y * 4;
+    info->bpp = 32;//t->GetPixelDescription().GetSize(); //t->bpp();
+    info->size = t->GetSize().x * t->GetSize().y * 4;
     info->horizontal_resolution = 0x0ec4;
     info->vertical_resolution = 0x0ec4;
 }
 
-void BMP::save(std::shared_ptr<Texture2D> t, const std::string &imagepath)
+void BMP::save(std::shared_ptr<Image> image, const std::string& imagepath)
 {
     t_bmp_header header;
     t_bmp_info info;
-    GLubyte *padding;
+    GLubyte* padding;
     int fd;
 
-    prepare_header(&header, &info, t);
+    prepare_header(&header, &info, image);
 #ifdef _WIN32
     fd = open(imagepath.c_str(), O_RDWR | O_CREAT | O_BINARY);
 #else
@@ -96,28 +93,31 @@ void BMP::save(std::shared_ptr<Texture2D> t, const std::string &imagepath)
 #endif
     write(fd, &header, sizeof(t_bmp_header));
     write(fd, &info, sizeof(t_bmp_info));
-    write(fd, t->data(), (t->Size().x * t->Size().y * t->bpp() / 8));
-    padding = new GLubyte[int(info.size - int64_t(t->Size().x * t->Size().y * t->bpp() / 8))]();
-    write(fd, padding, info.size - (t->Size().x * t->Size().y * t->bpp() / 8));
-    delete[] padding;
+    for (auto y = 0u; y < image->GetSize().y; ++y) {
+        for (auto x = 0u; x < image->GetSize().x; ++x) {
+            auto floatColor{ image->GetColor(glm::ivec2(x, y)) };
+            glm::vec<4, uint8_t> byteColor{ glm::clamp(floatColor, 0.f, 1.f) };
+            write(fd, &byteColor[0], 4);
+        }
+    }
+    //We should not need padding
+    /*padding = new GLubyte[int(info.size - int64_t(t->Size().x * t->Size().y * t->bpp() / 8))]();
+    write(fd, padding, info.size - (t->GetSize().x * t->GetSize().y * t->bpp() / 8));
+    delete[] padding;*/
     close(fd);
 }
 
-static void convert_bmp(t_bmp_parser *parser)
+static void convert_bmp(t_bmp_parser* parser)
 {
-    GLubyte *pixel_temp;
-    GLubyte rgba[4];
+    std::vector<std::byte> pixel_temp{ parser->data.size() };
+    std::byte rgba[4];
     int i[3];
 
-    auto dataSize = parser->info.bpp / 8 * parser->info.width * parser->info.height;
-    pixel_temp = new GLubyte[dataSize];
     i[0] = 0;
     i[1] = -1;
-    while (++i[1] < parser->info.width)
-    {
+    while (++i[1] < parser->info.width) {
         i[2] = -1;
-        while (++i[2] < parser->info.height)
-        {
+        while (++i[2] < parser->info.height) {
             rgba[0] = parser->data[i[0] + 1];
             rgba[1] = parser->data[i[0] + 2];
             rgba[2] = parser->data[i[0] + 3];
@@ -129,31 +129,26 @@ static void convert_bmp(t_bmp_parser *parser)
             i[0] += (parser->info.bpp / 8);
         }
     }
-    delete[] parser->data;
     parser->data = pixel_temp;
 }
 
-static int read_data(t_bmp_parser *p, const std::string &path)
+static int read_data(t_bmp_parser* p, const std::filesystem::path& path)
 {
     unsigned data_size;
 
-    if (access(path.c_str(), R_OK) != 0)
-    {
+    if (access(path.string().c_str(), R_OK) != 0) {
         throw std::runtime_error(strerror(errno));
     }
-    if ((p->fd = fopen(path.c_str(), "rb")) == nullptr)
-    {
+    if ((p->fd = fopen(path.string().c_str(), "rb")) == nullptr) {
         throw std::runtime_error(strerror(errno));
     }
     auto readReturn = fread(&p->header, 1, sizeof(p->header), p->fd);
-    if (readReturn != sizeof(p->header) || p->header.type != 0x4D42)
-    {
+    if (readReturn != sizeof(p->header) || p->header.type[0] != std::byte(0x42) || p->header.type[1] != std::byte(0x4D)) {
         fclose(p->fd);
         throw std::runtime_error("Wrong Header");
     }
     readReturn = fread(&p->info, 1, sizeof(p->info), p->fd);
-    if (readReturn != sizeof(p->info))
-    {
+    if (readReturn != sizeof(p->info)) {
         fclose(p->fd);
         throw std::runtime_error("Wrong Info");
     }
@@ -162,56 +157,41 @@ static int read_data(t_bmp_parser *p, const std::string &path)
     else
         data_size = p->info.bpp / 8 * p->info.width * p->info.height;
     fseek(p->fd, p->header.data_offset, SEEK_SET);
-    p->data = new GLubyte[data_size];
-    p->size_read = fread(p->data, sizeof(unsigned char), data_size, p->fd);
+    p->data.resize(data_size);
+    p->size_read = fread(p->data.data(), sizeof(std::byte), data_size, p->fd);
     fclose(p->fd);
-    if (p->info.bpp == 32)
-    {
+    if (p->info.bpp == 32) {
         convert_bmp(p);
     }
     return (0);
 }
 
-static void get_format(GLubyte bpp, GLenum *format, GLenum *internal_format)
-{
-    if (bpp == 8)
+Pixel::SizedFormat GetBMPPixelFormat(GLubyte bpp) {
+    switch (bpp)
     {
-        *format = GL_RED;
-        *internal_format = GL_COMPRESSED_RED;
-    }
-    else if (bpp == 24)
-    {
-        *format = GL_BGR;
-        *internal_format = GL_COMPRESSED_RGB;
-    }
-    else if (bpp == 32)
-    {
-        *format = GL_BGRA;
-        *internal_format = GL_COMPRESSED_RGBA;
-    }
-    else
-    {
-        *format = 0;
-        *internal_format = 0;
+    case 8:
+        return Pixel::SizedFormat::Uint8_NormalizedR;
+    case 24:
+        return Pixel::SizedFormat::Uint8_NormalizedRGB;
+    case 32:
+        return Pixel::SizedFormat::Uint8_NormalizedRGBA;
+    default:
+        return Pixel::SizedFormat::Unknown;
     }
 }
 
-std::shared_ptr<Texture2D> BMP::parse(const std::string &texture_name, const std::string &path)
+void BMP::parse(std::shared_ptr<Image> image)
 {
     t_bmp_parser parser;
     GLenum format[2];
 
-    try
-    {
-        read_data(&parser, path);
+    try {
+        read_data(&parser, image->GetPath());
+    } catch (std::exception& e) {
+        throw std::runtime_error(std::string("Error parsing ") + image->GetPath().string() + " : " + e.what());
     }
-    catch (std::exception &e)
-    {
-        throw std::runtime_error(std::string("Error parsing ") + path + " : " + e.what());
-    }
-    get_format(parser.info.bpp, &format[0], &format[1]);
-    auto t = Component::Create<Texture2D>(texture_name, glm::ivec2(parser.info.width, parser.info.height),
-                             format[0], format[1], GL_UNSIGNED_BYTE, parser.data);
-    t->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    return (t);
+    image->SetSize(glm::ivec2(parser.info.width, parser.info.height));
+    image->SetPixelDescription(GetBMPPixelFormat(parser.info.bpp));
+    image->SetData(parser.data);
+    image->SetLoaded(true);
 }

@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:18:02
+* @Last Modified time: 2021-01-11 08:44:59
 */
 
 #pragma once
@@ -22,7 +22,8 @@ public:
     virtual void load() override;
 
 protected:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<TextureArray>(*this);
     }
     unsigned _capacity { 0 };

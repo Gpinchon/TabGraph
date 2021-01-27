@@ -1,8 +1,8 @@
 /*
-* @Author: gpi
+* @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2019-08-11 12:49:48
+* @Last Modified time: 2021-01-11 08:46:08
 */
 /*
 #include "TextureArray.hpp"

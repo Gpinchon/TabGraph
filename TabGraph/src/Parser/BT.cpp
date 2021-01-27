@@ -6,7 +6,8 @@
 */
 
 #include "Texture/Texture2D.hpp" // for Texture2D
-#include "Texture/TextureParser.hpp" // for TextureParser
+#include "Texture/Image.hpp"
+#include "Texture/ImageParser.hpp" // for TextureParser
 #include "Parser/InternalTools.hpp" // for BTHeader, openFile
 #include <GL/glew.h> // for GLenum, GL_FLOAT, GL_HALF_FLOAT
 #include <glm/glm.hpp> // for glm::vec2
@@ -42,38 +43,35 @@ struct BTHeader {
 };
 #pragma pack()
 
-std::shared_ptr<Texture2D> BTParse(const std::string& texture_name, const std::string& path)
+void BTParse(const std::shared_ptr<Image> &image)
 {
     BTHeader header;
-    void* data;
-    GLenum dataFormat;
-    GLenum internalFormat;
+    Pixel::Type dataFormat;
     size_t readSize;
 
-    auto fd = openFile(path);
+    auto fd = openFile(image->GetPath().string());
     if ((readSize = fread(&header, 1, sizeof(BTHeader), fd) != sizeof(BTHeader))) {
         fclose(fd);
-        throw std::runtime_error(std::string("[ERROR] ") + path + " : " + "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));
+        throw std::runtime_error(std::string("[ERROR] ") + image->GetPath().string() + " : " + "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));
     }
     if (header.dataSize == 2) {
-        dataFormat = header.fPoint ? GL_HALF_FLOAT : GL_SHORT;
-        internalFormat = header.fPoint ? GL_R16F : GL_R16I;
+        dataFormat = header.fPoint ? Pixel::Type::Float16 : Pixel::Type::Int16;
     } else if (header.dataSize == 4) {
-        dataFormat = header.fPoint ? GL_FLOAT : GL_INT;
-        internalFormat = header.fPoint ? GL_R32F : GL_R32I;
+        dataFormat = header.fPoint ? Pixel::Type::Float32 : Pixel::Type::Int32;
     } else {
         fclose(fd);
-        throw std::runtime_error(std::string("[ERROR] ") + path + " : " + "Invalid data size " + std::to_string(header.dataSize));
+        throw std::runtime_error(std::string("[ERROR] ") + image->GetPath().string() + " : " + "Invalid data size " + std::to_string(header.dataSize));
     }
     size_t totalSize = header.dataSize * header.rows * header.columns;
-    data = new unsigned char[totalSize];
-    if ((readSize = fread(data, 1, totalSize, fd) != totalSize)) {
+    auto data = std::vector<std::byte>(totalSize);
+    if ((readSize = fread(data.data(), 1, totalSize, fd) != totalSize)) {
         fclose(fd);
-        throw std::runtime_error(std::string("[ERROR] ") + path + " : " + "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
+        throw std::runtime_error(std::string("[ERROR] ") + image->GetPath().string() + " : " + "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
     }
     fclose(fd);
-    return Component::Create<Texture2D>(texture_name, glm::vec2(header.columns, header.rows), GL_RED, internalFormat, dataFormat, data);
+    image->SetData(data);
+    image->SetLoaded(true);
 }
 
-auto __btParser = TextureParser::Add(".bt", BTParse);
-auto __BTParser = TextureParser::Add(".BT", BTParse);
+auto __btParser = ImageParser::Add(".bt", BTParse);
+auto __BTParser = ImageParser::Add(".BT", BTParse);
