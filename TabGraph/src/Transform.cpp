@@ -1,9 +1,10 @@
 /*
 * @Author: gpinchon
-* @Date:   2020-08-27 18:48:20
+* @Date:   2021-01-08 17:02:47
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-12-23 18:47:58
+* @Last Modified time: 2021-01-11 08:42:26
 */
+
 #include "Transform.hpp"
 
 #define WORLDTRANSFORMMATRIX(transform) (transform ? transform->WorldTransformMatrix() : glm::mat4(1.f))
@@ -186,10 +187,6 @@ void Transform::SetParent(std::shared_ptr<Transform> parent)
         return;
     _parent = parent;
     ParentChanged(parent);
-}
-
-inline void Transform::_FixedUpdateCPU(float)
-{
 }
 
 inline void Transform::_SetLocalTransformMatrix(const glm::mat4& matrix)

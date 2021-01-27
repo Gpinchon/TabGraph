@@ -77,12 +77,6 @@ private:
         if (GetParent() == oldComponent)
             SetParent(std::static_pointer_cast<Transform>(newComponent));
     };
-    virtual void _LoadCPU() override {};
-    virtual void _UnloadCPU() override {};
-    virtual void _LoadGPU() override {};
-    virtual void _UnloadGPU() override {};
-    virtual void _UpdateCPU(float) override {};
-    virtual void _FixedUpdateCPU(float) override;;
     void _SetLocalTransformMatrix(const glm::mat4& matrix);
     void _SetLocalTranslationMatrix(const glm::mat4& matrix);
     void _SetLocalRotationMatrix(const glm::mat4& matrix);
