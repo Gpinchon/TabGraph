@@ -79,7 +79,7 @@ void TemporalAccumulation()
     vec4 historyColor = colorSamples / samplesWeight;
     if (any(lessThan(historyColor, minColor)) || any(greaterThan(historyColor, maxColor)))
 			return;
-	float alpha = clamp(samplesWeight, 0.f, 0.9f);
+	float alpha = clamp(samplesWeight, 0.f, 0.95f);
 	out_0 = historyColor * alpha + (1 - alpha) * out_0;
 }
 
