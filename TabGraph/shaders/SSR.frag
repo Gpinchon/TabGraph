@@ -239,7 +239,6 @@ void	SSR()
 	float	Noise =	InterleavedGradientNoise(gl_FragCoord.xy, frameIndex);
 	uvec3	Random = Rand3DPCG16(ivec3(PixelPos, frameIndex));
 	//float	sampleAngle = randomAngle(vec3(Random));
-	float samplesWeight = 0;
 	out_1 = vec4(0);
 	for(int i = 0; i < NumRays; i++ ) {
 		float	StepOffset = Noise;
@@ -258,13 +257,10 @@ void	SSR()
 			//Attenuate reflection factor when getting closer to screen border
 			vec4 SampleColor = vec4(SampleScreenColor(SSRResult.xyz).rgb, SSRParticipation);
 			SampleColor.rgb /= 1 + Luminance(SampleColor.rgb);
-			samplesWeight += SSRParticipation;
 			out_1 += SampleColor * SSRParticipation;
 		}
 	}
-	if (samplesWeight == 0)
-		return;
-	out_1 /= samplesWeight;
+	out_1 /= NumRays;
 	out_1.rgb /= 1 - Luminance(out_1.rgb);
 	out_1 *= GetRoughnessFade();
 }
