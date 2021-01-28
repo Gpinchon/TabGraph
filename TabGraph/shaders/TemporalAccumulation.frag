@@ -46,25 +46,24 @@ uniform int in_Stepwidth = 1;
 
 void TemporalAccumulation()
 {
-    vec2 velocity = texelFetch(in_CurrentVelocity, ivec2(ScreenTexCoord() * textureSize(in_CurrentVelocity, 0)), 0).xy;
-    const float depth = texelFetch(Texture.Geometry.Depth, ivec2(ScreenTexCoord() * textureSize(Texture.Geometry.Depth, 0)), 0).r;
     out_0 = texelFetch(in_CurrentColor, ivec2(ScreenTexCoord() * textureSize(in_CurrentColor, 0)), 0);
-    if (depth == 1)
+    if (texelFetch(Texture.Geometry.Depth, ivec2(ScreenTexCoord() * textureSize(Texture.Geometry.Depth, 0)), 0).r == 1)
         return;
+    vec2 velocity = texelFetch(in_CurrentVelocity, ivec2(ScreenTexCoord() * textureSize(in_CurrentVelocity, 0)), 0).xy;
     velocity = vec2(
         abs(velocity.x) > 0.00025 ? velocity.x : 0,
         abs(velocity.y) > 0.00025 ? velocity.y : 0
     );
-    float samplesWeight = 0;
-    vec4 colorSamples = vec4(0);
-    vec4 minColor = vec4(1);
-    vec4 maxColor = vec4(0);
+    float minLum = 1;
+    float maxLum = 0;
 	for (int i = 0; i < 13; ++i) {
         ivec2 uv = ivec2(ScreenTexCoord() * textureSize(in_CurrentColor, 0)) + minMaxOffset[i];
-        vec4 color = texelFetch(in_CurrentColor, uv, 0);
-        minColor = min(color, minColor);
-        maxColor = max(color, maxColor);
+        float lum = Luminance(texelFetch(in_CurrentColor, uv, 0).rgb);
+        minLum = min(lum, minLum);
+        maxLum = max(lum, maxLum);
 	}
+    float samplesWeight = 0;
+    vec4 colorSamples = vec4(0);
     for (int i = 0; i < GAUSSIANKERNALSIZE; ++i) {
         vec2 historyUV = ScreenTexCoord() + vec2(gaussianOffset[i] * in_Stepwidth) / textureSize(in_renderHistory.color, 0);
         vec4 historyColor = textureLod(in_renderHistory.color, historyUV + velocity, 0);
@@ -76,9 +75,10 @@ void TemporalAccumulation()
     if (samplesWeight == 0)
         return;
     vec4 historyColor = colorSamples / samplesWeight;
-    if (any(lessThan(historyColor, minColor)) || any(greaterThan(historyColor, maxColor)))
+    float lum = Luminance(historyColor.rgb);
+    if (lum > maxLum || lum < minLum)
 			return;
-	float alpha = clamp(samplesWeight, 0.f, 0.95f);
+	float alpha = clamp(samplesWeight, 0.f, 0.9f);
 	out_0 = historyColor * alpha + (1 - alpha) * out_0;
 }
 
