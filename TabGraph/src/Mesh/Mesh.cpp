@@ -54,7 +54,7 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
     auto finalTranformMatrix(transform->WorldTransformMatrix() * (geometryTransform ? geometryTransform->WorldTransformMatrix() : glm::mat4(1.f)));
 
     bool ret = false;
-    auto normal_matrix = glm::inverseTranspose(finalTranformMatrix);
+    auto normal_matrix = glm::inverseTranspose(glm::mat3(finalTranformMatrix));
 
     Load();
     std::shared_ptr<Shader> last_shader;
@@ -96,7 +96,7 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
     _transformMatrix = (transform->WorldTransformMatrix() * (geometryTransform ? geometryTransform->WorldTransformMatrix() : glm::mat4(1.f)));
 
     bool ret = false;
-    auto normal_matrix = glm::inverseTranspose(_transformMatrix);
+    auto normal_matrix = glm::inverseTranspose(glm::mat3(_transformMatrix));
 
     Load();
     std::shared_ptr<Shader> last_shader;
@@ -140,7 +140,7 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
             shader->SetUniform("PrevMatrix.Model", _prevTransformMatrix);
             shader->SetUniform("Matrix.Model", _transformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
-            shader->SetTexture("Joints", HasComponentOfType<TextureBuffer>() ? JointMatrices() : nullptr);
+            shader->SetTexture("Joints", JointMatrices());
             shader->SetUniform("Skinned", HasComponentOfType<MeshSkin>());
             last_shader = shader;
         }

@@ -16,7 +16,7 @@ float compMax(vec2 v) { return max(v.x, v.y); }
 
 struct t_Matrix {
 	mat4	Model;
-	mat4	Normal;
+	mat3	Normal;
 };
 
 struct t_Environment {

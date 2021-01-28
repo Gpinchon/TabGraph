@@ -1,7 +1,7 @@
 R""(
 struct t_Matrix {
 	mat4	Model;
-	mat4	Normal;
+	mat3	Normal;
 };
 
 struct t_Joint {
