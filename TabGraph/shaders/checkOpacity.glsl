@@ -89,7 +89,7 @@ void	CheckOpacity()
 		}
 		discard;
 	#endif
-	if (Opacity() < 0.003 || (Opacity() < 1 && !StipplePattern(ivec2(gl_FragCoord.xy))))
+	if (Opacity() < 0.003 || (Opacity() < 0.95f && !StipplePattern(ivec2(gl_FragCoord.xy))))
 		discard;
 }
 )""
