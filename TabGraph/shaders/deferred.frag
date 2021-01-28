@@ -118,13 +118,6 @@ float Depth(vec2 uv) { return textureLod(Texture.Geometry.Depth, uv, 0).r; }
 
 t_Frag	Frag;
 
-float SceneDepth(vec2 UV, float depth)
-{
-	vec4	projectedCoord = vec4(UV * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
-	return projectedCoord.w;
-}
-
 mat3x3	tbn_matrix()
 {
 	vec3 Q1 = dFdx(gl_FragCoord.xyz);
@@ -193,61 +186,34 @@ vec3 WorldPosition()
 	return ScreenToWorld(ScreenTexCoord(), Depth());
 }
 
-//Generate Pseudo random numbers using TEA (Tiny Encription Algorithm)
-uvec2 ScrambleTEA(uvec2 v, uint IterationCount)
+/**
+ * @brief Model -> World -> View -> Clip -> Screen
+ * This does Clip <- Screen
+ */
+vec3 ClipPosition(const in vec2 uv)
 {
-	// Start with some random data (numbers can be arbitrary but those have been used by others and seem to work well)
-	uint k[4] ={ 0xA341316Cu , 0xC8013EA4u , 0xAD90777Du , 0x7E95761Eu };
-	
-	uint y = v[0];
-	uint z = v[1];
-	uint sum = 0;
-	
-	for(uint i = 0; i < IterationCount; ++i)
-	{
-		sum += 0x9e3779b9;
-		y += (z << 4u) + k[0] ^ z + sum ^ (z >> 5u) + k[1];
-		z += (y << 4u) + k[2] ^ y + sum ^ (y >> 5u) + k[3];
-	}
-
-	return uvec2(y, z);
+	return vec3(uv, Depth(uv)) * 2.0 - 1.0;
 }
 
-uvec2 ScrambleTEA(uvec2 v)
+vec3 ClipPosition()
 {
-	return ScrambleTEA(v, 3);
+	return ClipPosition(ScreenTexCoord());
 }
 
-float	random(in vec2 seed, in float freq)
+/**
+ * @brief Model -> World -> View -> Clip -> Screen
+ * This does View <- Clip <- Screen
+ */
+vec3 ViewPosition(const in vec2 uv)
 {
-	float dt = dot(floor(seed * freq), vec2(53.1215, 21.1352));
-	return fract(sin(dt) * 2105.2354);
+	vec4 clipPos = vec4(ClipPosition(uv), 1.0);
+	vec4 viewPos = Camera.InvMatrix.Projection * clipPos;
+	return (viewPos.xyz / viewPos.w);
 }
 
-float	random(in vec3 seed, in float freq)
+vec3 ViewPosition()
 {
-	float dt = dot(floor(seed * freq), vec3(53.1215, 21.1352, 9.1322));
-	return fract(sin(dt) * 2105.2354);
-}
-
-float	random(in vec2 seed)
-{
-	return random(seed, 4096);
-}
-
-float	random(in vec3 seed)
-{
-	return random(seed, 4096);
-}
-
-float	randomAngle(in vec2 seed)
-{
-	return random(seed) * 6.283285;
-}
-
-float	randomAngle(in vec3 seed)
-{
-	return random(seed) * 6.283285;
+	return ViewPosition(ScreenTexCoord());
 }
 
 #ifndef textureQueryLevels
