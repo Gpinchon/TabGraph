@@ -16,16 +16,6 @@ uniform sampler2D	LastColor;
 #define NumRays 8
 #endif
 
-uint ReverseBits32(uint bits)
-{
-	bits = ( bits << 16) | ( bits >> 16);
-	bits = ( (bits & 0x00ff00ff) << 8 ) | ( (bits & 0xff00ff00) >> 8 );
-	bits = ( (bits & 0x0f0f0f0f) << 4 ) | ( (bits & 0xf0f0f0f0) >> 4 );
-	bits = ( (bits & 0x33333333) << 2 ) | ( (bits & 0xcccccccc) >> 2 );
-	bits = ( (bits & 0x55555555) << 1 ) | ( (bits & 0xaaaaaaaa) >> 1 );
-	return bits;
-}
-
 vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float alpha)
 {	
     float phi = 2.0 * PI * Xi.x;
@@ -50,14 +40,14 @@ vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float alpha)
 vec2 Hammersley(uint Index, uint NumSamples, uvec2 Random)
 {
 	float E1 = fract( Index / float(NumSamples) + float( Random.x & 0xffff ) / (1<<16) );
-	float E2 = float( ReverseBits32(Index) ^ Random.y ) * 2.3283064365386963e-10;
+	float E2 = float( bitfieldReverse(Index) ^ Random.y ) * 2.3283064365386963e-10;
 	return vec2( E1, E2 );
 }
 
 vec2 Hammersley(uint SampleIdx, uint SampleCnt)
 {
     float u = float(SampleIdx) / float(SampleCnt);
-    float v = float(ReverseBits32(SampleIdx)) * 2.3283064365386963e-10;
+    float v = float(bitfieldReverse(SampleIdx)) * 2.3283064365386963e-10;
     return vec2(u, v);
 }
 
