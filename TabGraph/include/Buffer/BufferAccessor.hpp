@@ -108,6 +108,7 @@ private:
     typedef std::variant<unsigned, int, double, glm::vec2, glm::vec3, glm::vec4, glm::mat2, glm::mat3, glm::mat4> boundsVar;
     boundsVar _max {};
     boundsVar _min {};
+    std::shared_ptr<BufferView> _bufferView;
 };
 
 template <typename T>
@@ -138,7 +139,7 @@ template<typename T>
 inline void BufferAccessor::Set(const T val, size_t index)
 {
     assert(sizeof(T) == GetTypeOctetsSize());
-    auto bufferView{ GetComponent<BufferView>() };
+    auto bufferView{ GetBufferView() };
     auto byteStride{ bufferView->GetByteStride() ? bufferView->GetByteStride() : GetTypeOctetsSize() };
     bufferView->Set((std::byte*)&val, GetByteOffset() + (index * byteStride), sizeof(T));
 }
@@ -147,7 +148,7 @@ template<typename T>
 inline T BufferAccessor::Get(size_t index)
 {
     assert(sizeof(T) == GetTypeOctetsSize());
-    auto bufferView{ GetComponent<BufferView>() };
+    auto bufferView{ GetBufferView() };
     auto byteStride{ bufferView->GetByteStride() ? bufferView->GetByteStride() : GetTypeOctetsSize() };
     return *reinterpret_cast<T*>(bufferView->Get(GetByteOffset() + (index * byteStride), sizeof(T)));
 }

@@ -58,10 +58,12 @@ BufferAccessor::BufferAccessor(const ComponentType componentType, const Type typ
 
 std::shared_ptr<BufferView> BufferAccessor::GetBufferView() const
 {
-    return GetComponent<BufferView>();
+    return _bufferView;
+    //return GetComponent<BufferView>();
 }
 
 void BufferAccessor::SetBufferView(std::shared_ptr<BufferView> bufferView)
 {
-    SetComponent(bufferView);
+    _bufferView = bufferView;
+    //SetComponent(bufferView);
 }
