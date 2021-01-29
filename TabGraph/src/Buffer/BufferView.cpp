@@ -54,7 +54,7 @@ void BufferView::Set(std::byte* data, size_t index, size_t size)
             index,
             index + size);
     std::memcpy(_mappingPointer + (index - GetMappingStart()), data, size);
-    if (GetType() == Type::CPU)
+    if (GetType() == Type::CPU || GetMode() != Mode::Persistent)
         return;
     _flushStart = std::min(_flushStart, index);
     _flushEnd = std::max(_flushEnd, index + size);
@@ -62,7 +62,7 @@ void BufferView::Set(std::byte* data, size_t index, size_t size)
         _beforeRenderSlot = Render::OnBeforeRender().ConnectMember(this, &BufferView::_onBeforeRender);
 }
 
-std::byte* BufferView::MapRange(MappingMode mappingMode, size_t start, size_t end)
+std::byte* BufferView::MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate)
 {
     assert(mappingMode != MappingMode::None);
     if (mappingMode == GetMappingMode() &&
@@ -80,7 +80,10 @@ std::byte* BufferView::MapRange(MappingMode mappingMode, size_t start, size_t en
     }
     else {
         Bind();
-        _mappingPointer = (std::byte*)glMapBufferRange((GLenum)GetType(), start, end, (GLbitfield)mappingMode);
+        if (invalidate)
+            _mappingPointer = (std::byte*)glMapBufferRange((GLenum)GetType(), start, end, (GLbitfield)mappingMode | GL_MAP_INVALIDATE_RANGE_BIT);
+        else
+            _mappingPointer = (std::byte*)glMapBufferRange((GLenum)GetType(), start, end, (GLbitfield)mappingMode);
         BindDefault(GetType());
     }
     _SetMappingMode(mappingMode);

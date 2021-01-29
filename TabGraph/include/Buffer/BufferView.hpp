@@ -35,9 +35,13 @@ public:
         */
         PixelPack = GL_PIXEL_PACK_BUFFER,
         /**
-         * @brief used to store texture raw buffer
+         * @brief used to store texture raw data
         */
-        PixelUnpack = GL_PIXEL_UNPACK_BUFFER
+        PixelUnpack = GL_PIXEL_UNPACK_BUFFER,
+        /**
+         * @brief used to store texture buffer data
+        */
+        TextureBuffer = GL_TEXTURE_BUFFER
     };
     enum class Mode {
         Default = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT,
@@ -75,7 +79,7 @@ public:
     BufferView(size_t byteLength, Mode = Mode::Default);
     std::byte* Get(size_t index, size_t size);
     void Set(std::byte* data, size_t index, size_t size);
-    std::byte* MapRange(MappingMode mappingMode, size_t start, size_t end);
+    std::byte* MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate = false);
     void Unmap();
     void FlushRange(size_t start, size_t end);
     void Bind();
