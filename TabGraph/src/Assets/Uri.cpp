@@ -5,6 +5,8 @@
 * @Last Modified time: 2021-02-01 18:20:08
 */
 #include "Assets\Uri.hpp"
+#include <regex>
+#include <sstream>
 #include <locale>
 #include <codecvt>
 
