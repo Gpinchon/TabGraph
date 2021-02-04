@@ -25,4 +25,5 @@ private:
     }
     //std::weak_ptr<Node> _skeleton;
     std::vector<std::shared_ptr<Node>> _joints;
+    std::shared_ptr<BufferAccessor> _inverseBindMatrices;
 };

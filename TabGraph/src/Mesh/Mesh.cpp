@@ -1,4 +1,4 @@
-/*
+﻿/*
 * @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
@@ -29,13 +29,18 @@ size_t meshNbr(0);
 Mesh::Mesh(const std::string& name)
     : Component(name)
 {
+    Render::OnBeforeRender().ConnectMember(this, &Mesh::_UpdateGPU);
+    meshNbr++;
+}
+
+Mesh::Mesh(const Mesh& other) : Component(other)
+{
+    Render::OnBeforeRender().ConnectMember(this, &Mesh::_UpdateGPU);
 }
 
 Mesh::Mesh()
     : Mesh("Mesh_" + std::to_string(meshNbr))
 {
-    Render::OnBeforeRender().ConnectMember(this, &Mesh::_UpdateGPU);
-    meshNbr++;
 }
 
 void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
@@ -56,7 +61,7 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
     bool ret = false;
     auto normal_matrix = glm::inverseTranspose(glm::mat3(finalTranformMatrix));
 
-    Load();
+    /*Load();
     std::shared_ptr<Shader> last_shader;
     for (auto vg : Geometrys()) {
         if (nullptr == vg)
@@ -78,14 +83,14 @@ bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
             shader->SetUniform("DrawID", unsigned(vg->GetId()));
             shader->SetUniform("Matrix.Model", finalTranformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
-            shader->SetTexture("Joints", HasComponentOfType<TextureBuffer>() ? JointMatrices() : nullptr);
-            shader->SetUniform("Skinned", HasComponentOfType<MeshSkin>());
+            shader->SetTexture("Joints", JointMatrices());
+            shader->SetUniform("Skinned", JointMatrices() != nullptr);
             last_shader = shader;
         }
         shader->use();
         ret |= vg->Draw();
         shader->use(false);
-    }
+    }*/
     return ret;
 }
 
@@ -100,6 +105,9 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
 
     Load();
     std::shared_ptr<Shader> last_shader;
+    auto skinned{ HasComponentOfType<MeshSkin>() };
+    auto jointsIndex = _jointMatricesIndex;
+    auto prevJointsIndex = (_jointMatricesIndex - 1) % _jointMatrices.size();
     for (auto vg : Geometrys()) {
         if (nullptr == vg)
             continue;
@@ -140,8 +148,9 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
             shader->SetUniform("PrevMatrix.Model", _prevTransformMatrix);
             shader->SetUniform("Matrix.Model", _transformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
-            shader->SetTexture("Joints", JointMatrices());
-            shader->SetUniform("Skinned", HasComponentOfType<MeshSkin>());
+            shader->SetTexture("Joints", skinned ? _jointMatrices.at(jointsIndex) : nullptr);
+            shader->SetTexture("PrevJoints", skinned ? _jointMatrices.at(prevJointsIndex) : nullptr);
+            shader->SetUniform("Skinned", skinned);
             last_shader = shader;
         }
         if (material->GetDoubleSided())
@@ -152,6 +161,12 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
         ret |= vg->Draw();
         shader->use(false);
         glEnable(GL_CULL_FACE);
+    }
+    if (skinned) {
+        glDeleteSync(_drawSync[prevJointsIndex]);
+        _drawSync[prevJointsIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        glDeleteSync(_drawSync[jointsIndex]);
+        _drawSync[jointsIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
     return ret;
 }
@@ -215,33 +230,24 @@ int64_t Mesh::GetMaterialIndex(const std::string& name)
     return GetMaterialIndex(material);
 }
 
-std::shared_ptr<TextureBuffer> Mesh::JointMatrices() const
-{
-    return GetComponent<TextureBuffer>();
-}
-
-void Mesh::SetJointMatrices(const std::shared_ptr<TextureBuffer>& jointMatrices)
-{
-    RemoveComponent(jointMatrices);
-    SetComponent(jointMatrices);
-}
-
 void Mesh::Load()
 {
     if (GetLoaded())
         return;
     debugLog(GetName());
-    if (HasComponentOfType<MeshSkin>() && !HasComponentOfType<TextureBuffer>()) {
-        auto bufferAccessor = Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Mat4, GetComponent<MeshSkin>()->Joints().size()); //BufferHelper::CreateAccessor<glm::mat4>(GetComponent<MeshSkin>()->Joints().size(), GL_TEXTURE_BUFFER, false, GL_DYNAMIC_DRAW);
-        bufferAccessor->GetBufferView()->SetType(BufferView::Type::PixelUnpack);
-        bufferAccessor->GetBufferView()->SetMode(BufferView::Mode::Persistent);
-        bufferAccessor->GetBufferView()->SetPersistentMappingMode(BufferView::MappingMode::WriteOnly);
-        //SetJointMatrices(Component::Create<TextureBuffer>("jointMatrices", GL_RGBA32F, bufferAccessor));
-        SetJointMatrices(Component::Create<TextureBuffer>(Pixel::SizedFormat::Float32_RGBA, bufferAccessor));
+    if (HasComponentOfType<MeshSkin>()) {
+        for (auto i = 0; i < _jointMatrices.size(); ++i) {
+            if (_jointMatrices.at(i) != nullptr)
+                continue;
+            auto bufferAccessor = Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Mat4, GetComponent<MeshSkin>()->Joints().size());
+            bufferAccessor->GetBufferView()->SetType(BufferView::Type::TextureBuffer);
+            bufferAccessor->GetBufferView()->SetMode(BufferView::Mode::Persistent);
+            bufferAccessor->GetBufferView()->SetPersistentMappingMode(BufferView::MappingMode::WriteOnly);
+            _jointMatrices.at(i) = Component::Create<TextureBuffer>(Pixel::SizedFormat::Float32_RGBA, bufferAccessor);
+            _jointMatrices.at(i)->Load();
+        }
         debugLog(GetName() + " : Create Skin");
     }
-    if (HasComponentOfType<TextureBuffer>())
-        JointMatrices()->Load();
     _SetLoaded(true);
 }
 
@@ -250,14 +256,29 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
     if (!HasComponentOfType<MeshSkin>())
         return;
     Load();
+    _jointMatricesIndex = (_jointMatricesIndex + 1) % _jointMatrices.size();
     auto meshSkin{ GetComponent<MeshSkin>() };
     auto invMatrix = glm::inverse(transform->GetParent()->WorldTransformMatrix());
-    for (auto index = 0u; index < meshSkin->Joints().size(); ++index) {
-        const auto joint(meshSkin->Joints().at(index));
-        auto jointMatrix = invMatrix * joint->WorldTransformMatrix() * meshSkin->InverseBindMatrices()->Get<glm::mat4>(index);//BufferHelper::Get<glm::mat4>(GetComponent<MeshSkin>()->InverseBindMatrices(), index);
-        JointMatrices()->Accessor()->Set<glm::mat4>(jointMatrix, index);
-        //BufferHelper::Set(JointMatrices()->Accessor(), index, jointMatrix);
+    if (glIsSync(_drawSync.at(_jointMatricesIndex))) {
+        while (glClientWaitSync(_drawSync.at(_jointMatricesIndex), 0, 1) == GL_TIMEOUT_EXPIRED) {}
+        glDeleteSync(_drawSync.at(_jointMatricesIndex));
+        _drawSync.at(_jointMatricesIndex) = nullptr;
     }
+    const auto joints = meshSkin->Joints();
+    auto jointMatricesAccessor{ _jointMatrices.at(_jointMatricesIndex)->Accessor() };
+    auto inverseBindMatrices{ meshSkin->InverseBindMatrices() };
+    /*jointMatricesAccessor->GetBufferView()->MapRange(
+        BufferView::MappingMode::WriteOnly,
+        jointMatricesAccessor->GetByteOffset(),
+        jointMatricesAccessor->GetCount() * jointMatricesAccessor->GetTypeOctetsSize()
+    );*/
+    for (auto index = 0u; index < joints.size(); ++index) {
+        const auto jointMatrixIndex{ index };
+        const auto &joint(joints.at(index));
+        auto jointMatrix = invMatrix * joint->WorldTransformMatrix() * inverseBindMatrices->Get<glm::mat4>(index);
+        jointMatricesAccessor->Set(jointMatrix, jointMatrixIndex);
+    }
+    //jointMatricesAccessor->GetBufferView()->Unmap();
 }
 
 std::shared_ptr<BufferAccessor> Mesh::Weights() const

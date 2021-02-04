@@ -29,6 +29,7 @@ class Mesh : public Component {
 public:
     Mesh();
     Mesh(const std::string& name);
+    Mesh(const Mesh& other);
     bool Draw(const std::shared_ptr<Transform>& transform, const RenderPass& pass, RenderMod mod = RenderMod::RenderAll);
     bool DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod = RenderMod::RenderAll);
     bool Drawable() const;
@@ -46,8 +47,6 @@ public:
     int64_t GetMaterialIndex(std::shared_ptr<Material>);
     /** @return the material index in this mesh material table using its name, -1 if not found */
     int64_t GetMaterialIndex(const std::string&);
-    std::shared_ptr<TextureBuffer> JointMatrices() const;
-    void SetJointMatrices(const std::shared_ptr<TextureBuffer>&);
 
     std::shared_ptr<BufferAccessor> Weights() const;
     void SetWeights(std::shared_ptr<BufferAccessor> weights);
@@ -75,4 +74,7 @@ private:
     GLenum _cull_mod { GL_BACK };
     glm::mat4 _transformMatrix { 1 };
     glm::mat4 _prevTransformMatrix { 1 };
+    std::array<GLsync, 2> _drawSync{ nullptr };
+    std::array<std::shared_ptr<TextureBuffer>, 2> _jointMatrices{ nullptr };
+    int _jointMatricesIndex{ 0 };
 };
