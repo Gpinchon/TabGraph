@@ -10,12 +10,12 @@
 #include <GL/glew.h>
 #include <memory>
 
-class Buffer;
+class Asset;
 
 /** A view into a buffer generally representing a subset of the buffer. */
 class BufferView : public Component {
 public:
-    using Handle = GLuint;
+    using Handle = uint32_t;
     enum class Type {
         Unknown = -1,
         /**
@@ -68,14 +68,14 @@ public:
     READONLYPROPERTY(size_t, MappingEnd, 0);
 
 public:
-    BufferView() = delete;
+    BufferView();
     /**
      * @brief creates a BufferView that will use buffer when loaded
      * when loading is done, buffer will be released with RemoveComponent
      * @param buffer the buffer to be used when loading, released on loaging
     */
-    BufferView(std::shared_ptr<Buffer> buffer, Mode = Mode::Default);
-    BufferView(size_t byteLength, std::shared_ptr<Buffer> buffer, Mode = Mode::Default);
+    BufferView(std::shared_ptr<Asset> buffer, Mode = Mode::Default);
+    BufferView(size_t byteLength, std::shared_ptr<Asset> buffer, Mode = Mode::Default);
     BufferView(size_t byteLength, Mode = Mode::Default);
     std::byte* Get(size_t index, size_t size);
     void Set(std::byte* data, size_t index, size_t size);

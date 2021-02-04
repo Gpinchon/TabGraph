@@ -6,7 +6,6 @@
 */
 
 #include "Render.hpp"
-#include "Buffer/BufferHelper.hpp"
 #include "Camera/Camera.hpp" // for Camera
 #include "Config.hpp" // for Config
 #include "Engine.hpp" // for UpdateMutex, SwapInterval
@@ -14,7 +13,6 @@
 #include "Framebuffer.hpp" // for Framebuffer
 #include "Light/Light.hpp" // for Light, Directionnal, Point
 #include "Mesh/Geometry.hpp" // for Geometry
-#include "Parser/GLSL.hpp" // for GLSL, LightingShader, PostShader
 #include "Scene/Scene.hpp"
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Cubemap.hpp"
@@ -466,7 +464,7 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     transparentBuffer1->bind(false);
 
     transparentBuffer->BlitTo(transparentBuffer1, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    glEnable(GL_POLYGON_OFFSET_FILL);
+    //glEnable(GL_POLYGON_OFFSET_FILL);
     //glPolygonOffset(2.0, 2.0);
 
     transparentBuffer1->bind();
@@ -592,7 +590,6 @@ void Render::Private::Scene()
 
     finalRenderBuffer->BlitTo(nullptr, GL_COLOR_BUFFER_BIT);
     Window::swap();
-    //glFinish();
 }
 
 std::vector<std::shared_ptr<Shader>>& Render::Private::PostTreatments()

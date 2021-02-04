@@ -15,6 +15,8 @@
 #include <string> // for string
 #include <vector> // for vector
 
+class Image;
+
 class Cubemap : public Texture2D {
 public:
     enum class Side {
@@ -27,9 +29,8 @@ public:
     };
     Cubemap() = delete;
     Cubemap(glm::ivec2 size, Pixel::SizedFormat format);
-    Cubemap(std::shared_ptr<Image> fromImage);
+    Cubemap(std::shared_ptr<Asset> fromImage);
     ~Cubemap();
-    //static std::shared_ptr<Cubemap> parse(const std::filesystem::path);
     virtual void Load() override;
     /**
      * @brief extracts Cubemap's side from equirectangular image
@@ -37,7 +38,7 @@ public:
      * @param toImage the face to extract
      *
      */
-    static void ExtractSide(std::shared_ptr<Image> fromImage, std::shared_ptr<Image> toImage, Side side);
+    static void ExtractSide(std::shared_ptr<Image> fromImage, std::shared_ptr<Image> toImage, Cubemap::Side side);
 
 private:
     virtual void _Allocate();

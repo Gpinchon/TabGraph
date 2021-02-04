@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <glm/glm.hpp> // for glm::vec3
 #include <memory> // for shared_ptr
-#include <string> // for string
+#include <glm/ext/vector_float2.hpp>  // for vec2
+#include <string>                    // for string
 
 class Mesh;
 

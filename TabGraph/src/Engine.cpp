@@ -10,7 +10,6 @@
 #include "Environment.hpp" // for Environment
 #include "Event/Events.hpp" // for Events
 #include "Node.hpp" // for Node
-#include "Parser/GLSL.hpp" // for GLSL, PostShader
 #include "Render.hpp" // for AddPostTreatment, RequestRedraw
 #include "Scene/Scene.hpp"
 #include "Window.hpp" // for Window
@@ -66,7 +65,7 @@ EnginePrivate& EnginePrivate::Get()
 void Engine::Init()
 {
     Window::init(Config::Get("WindowName", std::string("")), Config::Get("WindowSize", glm::vec2(1280, 720)));
-    Engine::SetSwapInterval(Config::Get("SwapInterval", -1));
+    Engine::SetSwapInterval(Config::Get("SwapInterval", 0));
 }
 
 #include "Camera/Camera.hpp"
@@ -82,16 +81,14 @@ void Engine::Start()
     SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
     while (EnginePrivate::Get().loop) {
-        //if (Render::NeedsUpdate())
-        //    continue;
         ticks = SDL_GetTicks() / 1000.0;
         SDL_PumpEvents();
         EnginePrivate::Get().onUpdate(ticks - lastTicks);
         if (ticks - fixedTiming >= 0.015) {
             EnginePrivate::Get().onFixedUpdate(ticks - fixedTiming);
-            Render::Scene();
             fixedTiming = ticks;
         }
+        Render::Scene();
         lastTicks = ticks;
     }
 }

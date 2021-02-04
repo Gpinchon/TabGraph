@@ -5,22 +5,30 @@
 * @Last Modified time: 2020-08-18 17:47:00
 */
 #include "Buffer/BufferView.hpp"
-#include "Buffer/Buffer.hpp"
+#include "Assets/Asset.hpp"
+#include "Assets/BinaryData.hpp"
+#include "Render.hpp"
 
 size_t s_bufferViewNbr = 0;
 
-BufferView::BufferView(size_t byteLength, std::shared_ptr<Buffer> buffer, Mode mode)
+BufferView::BufferView(size_t byteLength, std::shared_ptr<Asset> buffer, Mode mode)
     : BufferView(byteLength, mode)
 {
     SetComponent(buffer);
 }
 
-BufferView::BufferView(std::shared_ptr<Buffer> buffer, Mode mode)
-    : BufferView(buffer->GetByteLength(), buffer, mode)
+BufferView::BufferView() : Component("BufferView_" + std::to_string(++s_bufferViewNbr))
 {
 }
 
-BufferView::BufferView(size_t byteLength, Mode mode) : Component("BufferView_" + std::to_string(++s_bufferViewNbr))
+BufferView::BufferView(std::shared_ptr<Asset> buffer, Mode mode)
+    : BufferView()
+{
+    SetComponent(buffer);
+    SetMode(mode);
+}
+
+BufferView::BufferView(size_t byteLength, Mode mode) : BufferView()
 {
     SetByteLength(byteLength);
     SetMode(mode);
@@ -134,10 +142,15 @@ void BufferView::Load()
     if (GetLoaded())
         return;
     std::byte* bufferData{ nullptr };
-    auto buffer{ GetComponent<Buffer>() };
-    if (buffer != nullptr) {
-        buffer->Load();
-        bufferData = buffer->Get(GetByteOffset());
+    auto bufferAsset{ GetComponent<Asset>() };
+    if (bufferAsset != nullptr) {
+        bufferAsset->Load();
+        auto bufferAssetData = bufferAsset->GetComponent<BinaryData>();
+        assert(bufferAssetData != nullptr);
+        if (GetByteLength() == 0) //We do not know this BufferView's length yet
+            SetByteLength(bufferAssetData->GetByteLength());
+        bufferData = bufferAssetData->Get(GetByteOffset());
+        RemoveComponent<Asset>(bufferAsset);
     }
     if (GetType() == Type::CPU) {
         _rawData = std::vector<std::byte>(bufferData, bufferData + GetByteLength());
@@ -150,7 +163,6 @@ void BufferView::Load()
         glBindBuffer((GLenum)GetType(), 0);
         SetHandle(id);
     }
-    RemoveComponent<Buffer>(buffer);
         //_mappingPointer = (std::byte*)glMapBufferRange((GLenum)GetType(), 0, GetByteLength(), (GLbitfield)GetMode());
     SetLoaded(true);
     if (GetMode() == Mode::Persistent)
