@@ -44,7 +44,7 @@ float OrbitCamera::Phi() const
 void OrbitCamera::SetPhi(float phi)
 {
     _phi = phi;
-    if (_updateSlot.Connected())
+    if (!_updateSlot.Connected())
         _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
 }
 
@@ -56,7 +56,7 @@ float OrbitCamera::Theta() const
 void OrbitCamera::SetTheta(float theta)
 {
     _theta = theta;
-    if (_updateSlot.Connected())
+    if (!_updateSlot.Connected())
         _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
 }
 
@@ -68,13 +68,13 @@ float OrbitCamera::Radius() const
 void OrbitCamera::SetRadius(float radius)
 {
     _radius = radius;
-    if (_updateSlot.Connected())
+    if (!_updateSlot.Connected())
         _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
 }
 
 void OrbitCamera::SetTarget(const std::shared_ptr<Transform>& target)
 {
     _target = target;
-    if (_updateSlot.Connected())
+    if (!_updateSlot.Connected())
         _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
 }
