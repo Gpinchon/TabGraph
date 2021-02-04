@@ -202,7 +202,6 @@ set(PLUGINS_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/FBX/FBXObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/FBX/FBXProperty.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/FBX.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/GLSL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/GLTF.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/HDR.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/MTLLIB.cpp
@@ -211,18 +210,11 @@ set(PLUGINS_SOURCES
 )
 
 set(PLUGINS_HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/BMP.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/FBX/FBXDocument.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/FBX/FBXNode.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/FBX/FBXObject.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/FBX/FBXProperty.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/FBX.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/GLSL.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/GLTF.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/MTLLIB.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/OBJ.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/InternalTools.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/TABSCENE.hpp
 )
 
 add_library(TabGraph STATIC ${TABGRAPH_SOURCE_FILES} ${TABGRAPH_HEADER_FILES} ${TABGRAPH_SHADER_FILES})
