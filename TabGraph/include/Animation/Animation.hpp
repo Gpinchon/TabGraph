@@ -48,11 +48,13 @@ private:
                 channel.SetTarget(std::static_pointer_cast<Node>(newComponent));
         }
     };
+    void _OnFixedUpdate(float delta);
     std::vector<AnimationInterpolator> _interpolators;
     std::vector<AnimationChannel> _channels;
     std::vector<AnimationSampler> _samplers;
     bool _playing { false };
     bool _repeat { false };
     float _currentTime { 0 };
+    float _animationDelta{ 0 };
     Signal<float>::ScoppedSlot _advanceSlot;
 };

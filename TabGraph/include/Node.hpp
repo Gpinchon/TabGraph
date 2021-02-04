@@ -69,4 +69,5 @@ private:
     }
     virtual void _UpdateMeshSkin(float);
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
+    float _meshSkinUpdateDelta{ 0 };
 };

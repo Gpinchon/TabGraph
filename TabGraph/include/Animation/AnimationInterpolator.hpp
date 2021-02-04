@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Animation/AnimationSampler.hpp"
-#include <Buffer/BufferHelper.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 

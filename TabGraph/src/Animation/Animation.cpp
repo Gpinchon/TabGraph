@@ -6,7 +6,6 @@
 */
 #include "Animation/Animation.hpp"
 #include "Buffer/BufferAccessor.hpp"
-#include "Buffer/BufferHelper.hpp"
 #include "Debug.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Node.hpp"
@@ -65,6 +64,15 @@ void Animation::Reset()
         interpolator.SetPrevTime(0);
         interpolator.SetNextKey(0);
         interpolator.SetPrevKey(0);
+    }
+}
+
+void Animation::_OnFixedUpdate(float delta)
+{
+    _animationDelta += delta;
+    if (_animationDelta > 0.02) {
+        Advance(_animationDelta);
+        _animationDelta = 0;
     }
 }
 
@@ -156,8 +164,9 @@ void Animation::Play()
             sampler.KeyFrames()->GetBufferView()->GetBuffer()->Load();
         }*/
         _currentTime = 0;
+        _animationDelta = 0;
         _playing = true;
-        _advanceSlot = Engine::OnFixedUpdate().ConnectMember(this, &Animation::Advance);
+        _advanceSlot = Engine::OnFixedUpdate().ConnectMember(this, &Animation::_OnFixedUpdate);
         //SetNeedsFixedUpdateCPU(true);
     }
 }

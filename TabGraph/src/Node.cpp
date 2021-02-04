@@ -46,8 +46,12 @@ Node::~Node()
     //Engine::OnFixedUpdate().Disconnect(_renderUpdateSlot);
 }
 
-void Node::_UpdateMeshSkin(float)
+void Node::_UpdateMeshSkin(float delta)
 {
+    _meshSkinUpdateDelta += delta;
+    if (_meshSkinUpdateDelta < 0.015)
+        return;
+    _meshSkinUpdateDelta = 0;
     for (auto& mesh : GetComponents<Mesh>())
         mesh->UpdateSkin(std::static_pointer_cast<Transform>(shared_from_this()));
 }
