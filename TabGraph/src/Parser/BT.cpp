@@ -6,8 +6,9 @@
 */
 
 #include "Texture/Texture2D.hpp" // for Texture2D
-#include "Texture/Image.hpp"
-#include "Texture/ImageParser.hpp" // for TextureParser
+#include "Assets/Asset.hpp"
+#include "Assets/Image.hpp"
+#include "Assets/AssetsParser.hpp" // for TextureParser
 #include "Parser/InternalTools.hpp" // for BTHeader, openFile
 #include <GL/glew.h> // for GLenum, GL_FLOAT, GL_HALF_FLOAT
 #include <glm/glm.hpp> // for glm::vec2
@@ -15,6 +16,16 @@
 #include <stdexcept> // for runtime_error
 #include <stdio.h> // for fclose, fread, size_t
 #include <string> // for operator+, char_traits, to_string
+
+void BTParse(const std::shared_ptr<Asset>& imageAsset);
+
+auto BTMimeExtension {
+    AssetsParser::AddMimeExtension("image/binary-terrain", ".bt")
+};
+
+auto BTMimesParsers {
+    AssetsParser::Add("image/binary-terrain", BTParse)
+};
 
 #pragma pack(1)
 struct BTHeader {
@@ -43,35 +54,34 @@ struct BTHeader {
 };
 #pragma pack()
 
-void BTParse(const std::shared_ptr<Image> &image)
+void BTParse(const std::shared_ptr<Asset> &asset)
 {
     BTHeader header;
-    Pixel::Type dataFormat;
+    Pixel::SizedFormat dataFormat;
     size_t readSize;
-
-    auto fd = openFile(image->GetPath().string());
+    auto uri{ asset->GetUri() };
+    auto fd = openFile(uri.GetPath().string());
     if ((readSize = fread(&header, 1, sizeof(BTHeader), fd) != sizeof(BTHeader))) {
         fclose(fd);
-        throw std::runtime_error(std::string("[ERROR] ") + image->GetPath().string() + " : " + "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));
+        throw std::runtime_error(std::string("[ERROR] ") + uri.GetPath().string() + " : " + "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));
     }
     if (header.dataSize == 2) {
-        dataFormat = header.fPoint ? Pixel::Type::Float16 : Pixel::Type::Int16;
+        dataFormat = header.fPoint ? Pixel::SizedFormat::Float16_R : Pixel::SizedFormat::Int16_R;
     } else if (header.dataSize == 4) {
-        dataFormat = header.fPoint ? Pixel::Type::Float32 : Pixel::Type::Int32;
+        dataFormat = header.fPoint ? Pixel::SizedFormat::Float32_R : Pixel::SizedFormat::Int32_R;
     } else {
         fclose(fd);
-        throw std::runtime_error(std::string("[ERROR] ") + image->GetPath().string() + " : " + "Invalid data size " + std::to_string(header.dataSize));
+        throw std::runtime_error(std::string("[ERROR] ") + uri.GetPath().string() + " : " + "Invalid data size " + std::to_string(header.dataSize));
     }
     size_t totalSize = header.dataSize * header.rows * header.columns;
     auto data = std::vector<std::byte>(totalSize);
     if ((readSize = fread(data.data(), 1, totalSize, fd) != totalSize)) {
         fclose(fd);
-        throw std::runtime_error(std::string("[ERROR] ") + image->GetPath().string() + " : " + "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
+        throw std::runtime_error(std::string("[ERROR] ") + uri.GetPath().string() + " : " + "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
     }
     fclose(fd);
-    image->SetData(data);
-    image->SetLoaded(true);
+    glm::ivec2 size(header.rows, header.columns);
+    asset->SetAssetType(Image::AssetType);
+    asset->SetComponent(Component::Create<Image>(size, dataFormat, data));
+    asset->SetLoaded(true);
 }
-
-auto __btParser = ImageParser::Add(".bt", BTParse);
-auto __BTParser = ImageParser::Add(".BT", BTParse);

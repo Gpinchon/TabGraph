@@ -5,16 +5,14 @@
 * @Last Modified time: 2021-01-11 08:46:15
 */
 
-#include "Parser/MTLLIB.hpp"
+#include "Assets/Asset.hpp"
 #include "Assets/AssetsParser.hpp"
+#include "Assets/Image.hpp" // for ImageParser
 #include "Debug.hpp"
 #include "Material/Material.hpp" // for Material
 #include "Material/MetallicRoughness.hpp"
 #include "Material/SpecularGlossiness.hpp"
 #include "Parser/InternalTools.hpp" // for parse_vec3, t_obj_parser, strspl...
-#include "Texture/ImageParser.hpp" // for ImageParser
-#include "Texture/Image.hpp" // for ImageParser
-
 #include <filesystem>
 #include <glm/glm.hpp> // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
 #include <memory> // for shared_ptr, allocator, __shared_...
@@ -23,6 +21,16 @@
 #include <stdlib.h> // for errno
 #include <string.h> // for strerror
 #include <vector> // for vector
+
+void ParseMTLLIB(const std::shared_ptr<Asset> asset);
+
+auto MTLLIBMimeExtension{
+    AssetsParser::AddMimeExtension("model/mtllib", ".mtl") //not standard but screw it.
+};
+
+auto MTLLIBMimesParsers{
+    AssetsParser::Add("model/mtllib", ParseMTLLIB)
+};
 
 #ifdef _WIN32
 #include <io.h>
@@ -78,7 +86,7 @@ auto GetOrCreateImage(std::filesystem::path path)
     auto absolutePath = std::filesystem::absolute(path).string();
     if (textureDatabase[absolutePath] != nullptr)
         return textureDatabase[absolutePath];
-    return textureDatabase[absolutePath] = Component::Create<Texture2D>(Component::Create<Image>(absolutePath));//TextureParser::parse(path.string(), path.string()));
+    return textureDatabase[absolutePath] = Component::Create<Texture2D>(Component::Create<Asset>(absolutePath));//TextureParser::parse(path.string(), path.string()));
 }
 
 static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string& textureType, std::filesystem::path path)
@@ -148,12 +156,10 @@ static inline void parse_number(std::vector<std::string>& split, std::shared_ptr
     }
 }
 
-static inline std::shared_ptr<AssetsContainer> parse_mtl(FILE* fd, std::string& name, const std::filesystem::path& basePath)
+static inline std::shared_ptr<Material> parse_mtl(FILE* fd, std::string& name, const std::filesystem::path& basePath)
 {
     char line[4096];
-    auto container(Component::Create<AssetsContainer>());
     auto mtl = Component::Create<Material>(name);
-    container->AddComponent(mtl);
     fpos_t pos = 0;
     fgetpos(fd, &pos);
     while (fgets(line, 4096, fd) != nullptr) {
@@ -168,9 +174,7 @@ static inline std::shared_ptr<AssetsContainer> parse_mtl(FILE* fd, std::string& 
                     parse_texture(mtl, msplit.at(0), basePath / msplit.at(1));
                 } else if (msplit[0] == "newmtl") {
                     fsetpos(fd, &pos);
-                    //fseek(fd, lastPos, SEEK_SET);
                     break;
-                    //container += parse_mtl(fd, msplit[1], basePath);
                 }
                 fgetpos(fd, &pos);
             }
@@ -178,39 +182,37 @@ static inline std::shared_ptr<AssetsContainer> parse_mtl(FILE* fd, std::string& 
             throw std::runtime_error("Error while parsing " + name + " at line \"" + line + "\" : " + e.what());
         }
     }
-    return container;
+    return mtl;
 }
 
-std::shared_ptr<AssetsContainer> MTLLIB::Parse(const std::filesystem::path path)
+void ParseMTLLIB(std::shared_ptr<Asset> asset)
 {
     char line[4096];
-    std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
+    auto uri{ asset->GetUri() };
+    //std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
 
-    if (access(path.string().c_str(), R_OK) != 0) {
-        throw std::runtime_error(std::string("Can't access ") + path.string() + " : " + strerror(errno));
+    if (access(uri.GetPath().string().c_str(), R_OK) != 0) {
+        throw std::runtime_error(std::string("Can't access ") + uri.GetPath().string() + " : " + strerror(errno));
     }
     FILE* fd = nullptr;
-    if ((fd = fopen(path.string().c_str(), "rb")) == nullptr) {
-        throw std::runtime_error(std::string("Can't open ") + path.string() + " : " + strerror(errno));
+    if ((fd = fopen(uri.GetPath().string().c_str(), "rb")) == nullptr) {
+        throw std::runtime_error(std::string("Can't open ") + uri.GetPath().string() + " : " + strerror(errno));
     }
-    auto basePath = std::filesystem::absolute(path).parent_path();
+    auto basePath = std::filesystem::absolute(uri.GetPath()).parent_path();
     auto l = 1;
     while (fgets(line, 4096, fd) != nullptr) {
         try {
             auto split = strsplitwspace(line);
             if (split.size() > 1 && split[0][0] != '#') {
                 if (split[0] == "newmtl") {
-                    container += parse_mtl(fd, split[1], basePath);
+                    asset->AddComponent(parse_mtl(fd, split[1], basePath));
                 }
             }
         } catch (std::exception& e) {
-            throw std::runtime_error("Error while parsing " + path.string() + " at line " + std::to_string(l) + " : " + e.what());
+            throw std::runtime_error("Error while parsing " + uri.GetPath().string() + " at line " + std::to_string(l) + " : " + e.what());
         }
         l++;
     }
     fclose(fd);
     textureDatabase.clear();
-    return container;
 }
-
-auto __btParser = AssetsParser::Add(".mtl", MTLLIB::Parse);

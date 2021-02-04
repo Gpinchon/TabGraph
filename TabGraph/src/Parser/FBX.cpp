@@ -5,7 +5,6 @@
 * @Last Modified time: 2020-08-20 16:52:34
 */
 
-#include "Parser/FBX.hpp"
 #include "Assets/AssetsParser.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/Geometry.hpp"

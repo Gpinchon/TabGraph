@@ -11,17 +11,16 @@
 * @Last Modified time: 2020-06-09 17:11:29
 */
 
-#include "Parser/OBJ.hpp"
+#include "Assets/Asset.hpp"
 #include "Assets/AssetsParser.hpp"
-#include "Buffer/Buffer.hpp"
-#include "Buffer/BufferView.hpp"
+#include "Assets/BinaryData.hpp"
 #include "Buffer/BufferAccessor.hpp"
+#include "Buffer/BufferView.hpp"
 #include "Engine.hpp" // for M_PI
 #include "Material/Material.hpp" // for Material
 #include "Mesh/Geometry.hpp" // for Geometry, CVEC4
 #include "Mesh/Mesh.hpp" // for Mesh
 #include "Parser/InternalTools.hpp" // for count_char, split_...
-#include "Parser/MTLLIB.hpp" // for parse
 #include "Physics/BoundingAABB.hpp" // for BoundingAABB
 #include "Physics/BoundingElement.hpp" // for BoundingElement
 #include "Scene/Scene.hpp"
@@ -48,13 +47,21 @@
 #include <sys/io.h>
 #endif // for access, R_OK
 
-auto __objParser = AssetsParser::Add(".obj", OBJ::Parse);
+void ParseOBJ(std::shared_ptr<Asset> asset);
 
+auto OBJMimeExtension{
+    AssetsParser::AddMimeExtension("model/obj", ".obj") //not standard but screw it.
+};
+
+auto OBJMimesParsers{
+    AssetsParser::Add("model/obj", ParseOBJ)
+};
 struct ObjContainer {
-    std::shared_ptr<AssetsContainer> container { Component::Create<AssetsContainer>() };
+    std::shared_ptr<Asset> container { Component::Create<Asset>() };
     std::shared_ptr<Geometry> currentGeometry{ nullptr };
     std::shared_ptr<BufferView> currentBufferView{ nullptr };
-    std::shared_ptr<Buffer> currentBuffer{ nullptr };
+    std::shared_ptr<Asset> currentBuffer{ nullptr };
+    std::shared_ptr<BinaryData> binaryData{ nullptr };
     std::vector<glm::vec3> v;
     std::vector<glm::vec3> vn;
     std::vector<glm::vec2> vt;
@@ -141,8 +148,12 @@ static void parse_vn(ObjContainer& p, int vindex[3][3], glm::vec3 v[3], glm::vec
 
 static void push_values(ObjContainer& p, glm::vec3* v, glm::vec3* vn, glm::vec2* vt)
 {
-    if (p.currentBuffer == nullptr)
-        p.currentBuffer = Component::Create<Buffer>(0);
+    if (p.currentBuffer == nullptr) {
+        p.binaryData = Component::Create<BinaryData>(0);
+        p.currentBuffer = Component::Create<Asset>();
+        p.currentBuffer->SetComponent(p.binaryData);
+        p.currentBuffer->SetLoaded(true);
+    }
     if (p.currentBufferView == nullptr) {
         p.currentBufferView = Component::Create<BufferView>(p.currentBuffer, BufferView::Mode::Immutable);
         p.currentBufferView->SetType(BufferView::Type::Array);
@@ -168,11 +179,11 @@ static void push_values(ObjContainer& p, glm::vec3* v, glm::vec3* vn, glm::vec2*
         p.currentGeometry->SetAccessor(Geometry::AccessorKey::TexCoord_0, texcoordAccessor);
     }
     for (auto index(0u); index < 3; ++index) {
-        p.currentBuffer->PushBack(v[index]);
-        p.currentBuffer->PushBack(vn[index]);
-        p.currentBuffer->PushBack(vt[index]);
+        p.binaryData->PushBack(v[index]);
+        p.binaryData->PushBack(vn[index]);
+        p.binaryData->PushBack(vt[index]);
     }
-    p.currentBufferView->SetByteLength(p.currentBuffer->GetByteLength());
+    p.currentBufferView->SetByteLength(p.binaryData->GetByteLength());
     auto vertexCount{ p.currentGeometry->Accessor(Geometry::AccessorKey::Position)->GetCount() + 3 };
     p.currentGeometry->Accessor(Geometry::AccessorKey::Position)->SetCount(vertexCount);
     p.currentGeometry->Accessor(Geometry::AccessorKey::Normal)->SetCount(vertexCount);
@@ -366,7 +377,9 @@ static void parse_line(ObjContainer& p, const char* line)
         }
         p.currentGeometry->SetMaterialIndex(mtlIndex);
     } else if (split[0] == "mtllib") {
-        p.container += AssetsParser::Parse((p.path.parent_path() / split[1]).string());
+        auto mtllibAsset{ Component::Create<Asset>((p.path.parent_path() / split[1]).string()) };
+        AssetsParser::Parse(mtllibAsset);
+        p.container += mtllibAsset;
     }
 }
 
@@ -390,20 +403,19 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
     fclose(fd);
 }
 
-std::shared_ptr<AssetsContainer> OBJ::Parse(const std::filesystem::path path)
+void ParseOBJ(std::shared_ptr<Asset> asset)
 {
     ObjContainer p;
-    auto container(Component::Create<AssetsContainer>());
 
-    p.path = path;
-    start_obj_parsing(p, path.string());
-    container += p.container;
-    auto scene(Component::Create<Scene>(path.string()));
-    auto node(Component::Create<Node>(path.string() + "_node"));
-    for (const auto& mesh : container->GetComponents<Mesh>()) {
+    p.path = asset->GetUri().GetPath();
+    start_obj_parsing(p, p.path.string());
+    asset += p.container;
+    auto scene(Component::Create<Scene>(p.path.string()));
+    auto node(Component::Create<Node>(p.path.string() + "_node"));
+    for (const auto& mesh : asset->GetComponents<Mesh>()) {
         node->AddComponent(mesh);
     }
     scene->AddRootNode(node);
-    container->AddComponent(scene);
-    return (container);
+    asset->AddComponent(scene);
+    asset->SetLoaded(true);
 }

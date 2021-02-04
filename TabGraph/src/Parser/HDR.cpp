@@ -5,16 +5,28 @@
 * @Last Modified time: 2021-01-11 08:46:15
 */
 
-#include "Parser/HDR.hpp"
-#include "Texture/Image.hpp" // for Image
-#include "Texture/ImageParser.hpp" // for TextureParser
-#include <GL/glew.h> // for GLubyte, GL_FLOAT, GL_R11F_G11F_B10F
+//#include "Parser/HDR.hpp"
+#include "Assets/Image.hpp" // for Image
+#include "Assets/Asset.hpp" // for Asset
+#include "Assets/AssetsParser.hpp" // for TextureParser
+
 #include <glm/glm.hpp> // for s_vec2, glm::vec2
 #include <iostream> // for operator<<, flush, basic_ostream, cout
 #include <math.h> // for pow
 #include <stdexcept> // for runtime_error
 #include <stdio.h> // for getc, fclose, fread, feof, fseek, FILE
 #include <string.h> // for memcmp, memcpy
+
+void ParseHDR(const std::shared_ptr<Asset>& asset);
+
+//Add this parser to AssetsParser !
+auto HDRMimeExtension{
+    AssetsParser::AddMimeExtension("image/vnd.radiance", ".hdr")
+};
+
+auto HDRMimesParsers{
+    AssetsParser::Add("image/vnd.radiance", ParseHDR)
+};
 
 typedef unsigned char RGBE[4];
 #define R 0
@@ -29,19 +41,16 @@ static void workOnRGBE(RGBE* scan, int len, float* cols);
 static bool decrunch(RGBE* scanline, int len, FILE* file);
 static bool oldDecrunch(RGBE* scanline, int len, FILE* file);
 
-//Add this parser to ImageParser !
-auto __hdrParser = ImageParser::Add(".hdr", HDR::Parse);
-auto __HDRParser = ImageParser::Add(".HDR", HDR::Parse);
-
-void HDR::Parse(const std::shared_ptr<Image>& image)
+void ParseHDR(const std::shared_ptr<Asset>& asset)
 {
-    std::cout << "Parsing " << image->GetPath();
+    auto uri{ asset->GetUri() };
+    std::cout << "Parsing " << asset->GetUri();
     int i;
     char str[200];
     FILE* file;
     glm::ivec2 size;
 
-    file = fopen(image->GetPath().string().c_str(), "rb");
+    file = fopen(uri.GetPath().string().c_str(), "rb");
     if (!file)
         throw std::runtime_error("Invalid File");
     fread(str, 10, 1, file);
@@ -96,11 +105,10 @@ void HDR::Parse(const std::shared_ptr<Image>& image)
 
     delete[] scanline;
     fclose(file);
-    image->SetPixelDescription(Pixel::SizedFormat::Float32_RGB);
-    image->SetSize(size);
-    image->SetData(data);
+    auto image{ Component::Create<Image>(size, Pixel::SizedFormat::Float32_RGB, data) };
+    asset->SetComponent(image);
     std::cout << " Done." << std::endl;
-    image->SetLoaded(true);
+    asset->SetLoaded(true);
 }
 
 float convertComponent(int expo, int val)

@@ -5,11 +5,9 @@
 * @Last Modified time: 2021-01-11 08:46:17
 */
 
-#include "Parser/BMP.hpp"
-#include "Parser/InternalTools.hpp" // for t_bmp_parser, t_bmp_info, t_bmp_...
-#include "Texture/Image.hpp" // for Texture2D
+#include "Assets/Asset.hpp"
+#include "Assets/Image.hpp" // for Texture2D
 
-#include <GL/glew.h> // for GLubyte, GLenum, GL_BGR, GL_BGRA
 #include <glm/glm.hpp> // for s_vec2, glm::vec2
 #include <errno.h> // for errno
 #include <fcntl.h> // for O_BINARY, O_CREAT, O_RDWR
@@ -77,7 +75,7 @@ static void prepare_header(t_bmp_header* header, t_bmp_info* info, std::shared_p
     info->vertical_resolution = 0x0ec4;
 }
 
-void BMP::save(std::shared_ptr<Image> image, const std::string& imagepath)
+void SaveBMP(std::shared_ptr<Image> image, const std::string& imagepath)
 {
     t_bmp_header header;
     t_bmp_info info;
@@ -166,7 +164,7 @@ static int read_data(t_bmp_parser* p, const std::filesystem::path& path)
     return (0);
 }
 
-Pixel::SizedFormat GetBMPPixelFormat(GLubyte bpp) {
+Pixel::SizedFormat GetBMPPixelFormat(uint16_t bpp) {
     switch (bpp)
     {
     case 8:
@@ -180,18 +178,18 @@ Pixel::SizedFormat GetBMPPixelFormat(GLubyte bpp) {
     }
 }
 
-void BMP::parse(std::shared_ptr<Image> image)
+void ParseBMP(std::shared_ptr<Asset> asset)
 {
     t_bmp_parser parser;
-    GLenum format[2];
 
     try {
-        read_data(&parser, image->GetPath());
+        read_data(&parser, asset->GetUri().GetPath());
     } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Error parsing ") + image->GetPath().string() + " : " + e.what());
+        throw std::runtime_error(std::string("Error parsing ") + asset->GetUri().GetPath().string() + " : " + e.what());
     }
-    image->SetSize(glm::ivec2(parser.info.width, parser.info.height));
-    image->SetPixelDescription(GetBMPPixelFormat(parser.info.bpp));
-    image->SetData(parser.data);
-    image->SetLoaded(true);
+    auto size{ glm::ivec2(parser.info.width, parser.info.height) };
+    auto format{ GetBMPPixelFormat(parser.info.bpp) };
+    auto image{ Component::Create<Image>(size, format, parser.data) };
+    asset->SetComponent(image);
+    asset->SetLoaded(true);
 }

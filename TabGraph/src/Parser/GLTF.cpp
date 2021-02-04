@@ -5,12 +5,13 @@
 * @Last Modified time: 2020-08-19 17:15:22
 */
 
-#include "Parser/GLTF.hpp"
 #include "Animation/Animation.hpp"
 #include "Animation/AnimationSampler.hpp"
-#include "Assets/Assetscontainer.hpp"
+#include "Assets/Asset.hpp"
+#include "Assets/Asset.hpp"
 #include "Assets/AssetsParser.hpp"
-#include "Buffer/Buffer.hpp"
+#include "Assets/BinaryData.hpp"
+#include "Assets/Image.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Buffer/BufferView.hpp"
 #include "Camera/Camera.hpp"
@@ -22,8 +23,6 @@
 #include "Parser/InternalTools.hpp"
 #include "Scene/Scene.hpp"
 #include "Texture/Texture2D.hpp"
-#include "Texture/Image.hpp"
-#include "Texture/ImageParser.hpp"
 #include "Transform.hpp"
 
 #include <fstream>
@@ -31,6 +30,16 @@
 #include <glm/ext.hpp>
 #include <iostream>
 #include <memory>
+
+void ParseGLTF(std::shared_ptr<Asset>);
+
+auto GLTFMimeExtension{
+    AssetsParser::AddMimeExtension("model/gltf+json", ".gltf") //not standard but screw it.
+};
+
+auto GLTFMimesParsers{
+    AssetsParser::Add("model/gltf+json", ParseGLTF)
+};
 
 #define RAPIDJSON_NOEXCEPT_ASSERT(x)
 #define RAPIDJSON_ASSERT(x)                                                                                         \
@@ -40,10 +49,20 @@
         else                                                                                                        \
             throw std::runtime_error("JSON error in " + std::string(__FILE__) + " at " + std::to_string(__LINE__)); \
     };
+
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 
-auto __gltfParser = AssetsParser::Add(".gltf", GLTF::Parse);
+Uri CreateUri(const std::filesystem::path &parentPath, const std::string& dataPath) {
+    auto bufferPath{ std::filesystem::path(dataPath) };
+    if (bufferPath.root_name() == "data:")
+        return Uri(bufferPath.string());
+    else {
+        if (!bufferPath.is_absolute())
+            bufferPath = parentPath / bufferPath;
+        return Uri(bufferPath);
+    }
+}
 
 struct TextureSampler {
     std::map<std::string, GLenum> settings;
@@ -100,7 +119,7 @@ static inline auto ParseTextureSamplers(const rapidjson::Document& document)
     return samplerVector;
 }
 
-static inline auto ParseTextures(const rapidjson::Document& document, std::shared_ptr<AssetsContainer> container)
+static inline auto ParseTextures(const rapidjson::Document& document, std::shared_ptr<Asset> container)
 {
     debugLog("Start parsing textures");
     std::vector<std::shared_ptr<Texture2D>> textureVector;
@@ -111,7 +130,7 @@ static inline auto ParseTextures(const rapidjson::Document& document, std::share
             std::shared_ptr<Texture2D> texture = nullptr;
             try {
                 auto source(textureValue["source"].GetInt());
-                auto image{container->GetComponent<Image>(source)};
+                auto image{container->GetComponent<Asset>(source)};
                 texture = Component::Create<Texture2D>(image);
             } catch (std::exception&) {
                 debugLog("Texture " + std::to_string(textureIndex) + " has no source");
@@ -149,7 +168,7 @@ static inline auto ParseTextures(const rapidjson::Document& document, std::share
 #include "Material/MetallicRoughness.hpp"
 #include "Material/SpecularGlossiness.hpp"
 
-static inline auto ParseMaterialExtensions(const std::shared_ptr<AssetsContainer>& container, const rapidjson::Value& materialValue, std::shared_ptr<Material> material)
+static inline auto ParseMaterialExtensions(const std::shared_ptr<Asset>& container, const rapidjson::Value& materialValue, std::shared_ptr<Material> material)
 {
     try {
         for (const auto& extension : materialValue["extensions"].GetObject())
@@ -211,7 +230,7 @@ static inline auto ParseMaterialExtensions(const std::shared_ptr<AssetsContainer
     }
 }
 
-static inline auto ParseMaterials(const rapidjson::Document& document, const std::shared_ptr<AssetsContainer>& container)
+static inline auto ParseMaterials(const rapidjson::Document& document, const std::shared_ptr<Asset>& container)
 {
     debugLog("Start parsing materials");
     //auto textureVector = ParseTextures(path, document);
@@ -332,34 +351,31 @@ static inline auto ParseMaterials(const rapidjson::Document& document, const std
 static inline auto ParseBuffers(const std::filesystem::path path, const rapidjson::Document& document)
 {
     debugLog("Start parsing buffers");
-    std::vector<std::shared_ptr<Buffer>> bufferVector;
+    std::vector<std::shared_ptr<Asset>> bufferVector;
     try {
         for (const auto& bufferValue : document["buffers"].GetArray()) {
-            auto buffer(Component::Create<Buffer>(bufferValue["byteLength"].GetFloat()));
-            /*try {
-				std::string uri = bufferValue["uri"].GetString();
-				std::string header("data:application/octet-stream;base64,");
-				if (uri.find(header) == std::string::npos) {
-					auto texturePath = std::filesystem::path(uri);
-					if (!texturePath.is_absolute())
-						texturePath = std::filesystem::path(path).parent_path()/texturePath;
-					uri = texturePath.string();
-				}
-			}*/
+            //auto buffer(Component::Create<BinaryData>(bufferValue["byteLength"].GetFloat()));
+            auto asset{ Component::Create<Asset>() };
             try {
-                auto bufferPath(std::filesystem::path(bufferValue["uri"].GetString()));
-                if (!bufferPath.is_absolute())
-                    bufferPath = path.parent_path() / bufferPath;
-                buffer->SetUri(bufferPath.string());
+                auto uri = CreateUri(path.parent_path(), bufferValue["uri"].GetString());
+                asset->SetUri(uri);
+                /*auto bufferPath(std::filesystem::path(bufferValue["uri"].GetString()));
+                if (bufferPath.root_name() == "data")
+                    asset->SetUri(bufferPath.string());
+                else {
+                    if (!bufferPath.is_absolute())
+                        bufferPath = path.parent_path() / bufferPath;
+                    asset->SetUri(bufferPath);
+                }*/
             } catch (std::exception&) {
-                debugLog("Buffer " + buffer->GetName() + " has no uri property")
+                debugLog("BinaryData " + asset->GetName() + " has no uri property")
             }
             try {
-                buffer->SetName(bufferValue["name"].GetString());
+                asset->SetName(bufferValue["name"].GetString());
             } catch (std::exception&) {
-                debugLog("Buffer " + buffer->GetName() + " has no name property")
+                debugLog("BinaryData " + asset->GetName() + " has no name property")
             }
-            bufferVector.push_back(buffer);
+            bufferVector.push_back(asset);
         }
     } catch (std::exception&) {
         debugLog("No buffers found")
@@ -528,7 +544,7 @@ static inline Geometry::DrawingMode GetGeometryDrawingMode(GLenum mode) {
     }
 }
 
-static inline auto ParseMeshes(const rapidjson::Document& document, const std::shared_ptr<AssetsContainer>& container)
+static inline auto ParseMeshes(const rapidjson::Document& document, const std::shared_ptr<Asset>& container)
 {
     debugLog("Start parsing meshes");
     std::vector<std::shared_ptr<Mesh>> meshVector;
@@ -671,7 +687,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
     return nodeVector;
 }
 
-static inline auto ParseAnimations(const rapidjson::Document& document, const std::shared_ptr<AssetsContainer>& container)
+static inline auto ParseAnimations(const rapidjson::Document& document, const std::shared_ptr<Asset>& container)
 {
     std::vector<std::shared_ptr<Animation>> animations;
     try {
@@ -729,7 +745,7 @@ static inline auto ParseAnimations(const rapidjson::Document& document, const st
     return animations;
 }
 
-static inline auto ParseSkins(const rapidjson::Document& document, const std::shared_ptr<AssetsContainer>& container)
+static inline auto ParseSkins(const rapidjson::Document& document, const std::shared_ptr<Asset>& container)
 {
     debugLog("Start parsing Skins");
     std::vector<std::shared_ptr<MeshSkin>> skins;
@@ -768,7 +784,7 @@ static inline auto ParseSkins(const rapidjson::Document& document, const std::sh
     return skins;
 }
 
-static inline auto SetParenting(const rapidjson::Document& document, const std::shared_ptr<AssetsContainer>& container)
+static inline auto SetParenting(const rapidjson::Document& document, const std::shared_ptr<Asset>& container)
 {
     auto nodeItr(document.FindMember("nodes"));
     if (nodeItr == document.MemberEnd())
@@ -811,7 +827,7 @@ static inline auto SetParenting(const rapidjson::Document& document, const std::
     }
 }
 
-static inline auto ParseScenes(const rapidjson::Document& document, const std::shared_ptr<AssetsContainer>& container)
+static inline auto ParseScenes(const rapidjson::Document& document, const std::shared_ptr<Asset>& container)
 {
     std::vector<std::shared_ptr<Scene>> sceneVector;
     auto scenes(document["scenes"].GetArray());
@@ -870,28 +886,31 @@ static inline auto ParseLights(const rapidjson::Document& document) {
 }
 
 static inline auto ParseImages(const std::filesystem::path path, const rapidjson::Document& document) {
-    std::vector<std::shared_ptr<Image>> imagesVector;
+    std::vector<std::shared_ptr<Asset>> imagesVector;
     auto imagesItr(document.FindMember("images"));
     if (imagesItr == document.MemberEnd())
         return imagesVector;
     for (const auto& gltfImagee : imagesItr->value.GetArray()) {
+        auto imageAsset{ Component::Create<Asset>() };
         auto imageUriItr(gltfImagee.FindMember("uri"));
         if (imageUriItr == gltfImagee.MemberEnd()) {
             //TODO : learn how to use bufferView and mimeType
-            imagesVector.push_back(Component::Create<Image>(glm::ivec2(1), Pixel::SizedFormat::Uint8_NormalizedRGB));
+            imageAsset->SetComponent(Component::Create<Image>(glm::ivec2(1), Pixel::SizedFormat::Uint8_NormalizedRGB));
+            imageAsset->SetLoaded(true);
             continue;
         }
-        auto imagePath{ std::filesystem::path(imageUriItr->value.GetString()) };
+        auto uri = CreateUri(path.parent_path(), imageUriItr->value.GetString());
+        /*auto imagePath{ std::filesystem::path(imageUriItr->value.GetString()) };
         if (!imagePath.is_absolute())
-            imagePath = path.parent_path() / imagePath;
-        imagesVector.push_back(Component::Create<Image>(imagePath));
+            imagePath = path.parent_path() / imagePath;*/
+        imagesVector.push_back(Component::Create<Asset>(uri));
     }
     return imagesVector;
 }
 
-std::shared_ptr<AssetsContainer> GLTF::Parse(const std::filesystem::path path)
+void ParseGLTF(std::shared_ptr<Asset> container)
 {
-    std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
+    auto path = container->GetUri().GetPath();
     std::cout << path << std::endl;
     std::ifstream file(path);
     rapidjson::IStreamWrapper streamWrapper(file);
@@ -899,9 +918,9 @@ std::shared_ptr<AssetsContainer> GLTF::Parse(const std::filesystem::path path)
     rapidjson::ParseResult parseResult(document.ParseStream(streamWrapper));
     if (!parseResult) {
         debugLog("Invalid file !");
-        return container;
+        return;
+        //return container;
     }
-    
     for (auto& node : ParseNodes(document)) {
         container->AddComponent(node);
     }
@@ -933,5 +952,4 @@ std::shared_ptr<AssetsContainer> GLTF::Parse(const std::filesystem::path path)
     for (auto& scene : ParseScenes(document, container)) {
         container->AddComponent(scene);
     }
-    return container;
 }
