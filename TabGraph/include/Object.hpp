@@ -33,7 +33,7 @@ public:                            \
     {                              \
         return _##var;             \
     }                              \
-    void Set##var(const type& val) \
+    void Set##var(type val)        \
     {                              \
         if (val != _##var) {       \
             _##var = val;          \
