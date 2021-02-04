@@ -512,7 +512,7 @@ template <typename T>
 inline std::shared_ptr<T> Component::GetComponentInChildrenByName(const std::string& name) const noexcept
 {
     for (const auto& component : GetComponentsInChildren<T>()) {
-        if (component->Name() == name)
+        if (component->GetName() == name)
             return std::static_pointer_cast<T>(component);
     }
     return nullptr;
