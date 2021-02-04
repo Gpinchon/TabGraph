@@ -5,19 +5,19 @@
 * @Last Modified time: 2021-01-11 17:25:19
 */
 
-#include "Texture/Image.hpp"
-#include "Texture/ImageParser.hpp"
+#include "Assets/Image.hpp"
 
 #include <glm/glm.hpp>
 #include <thread>
 #include <unordered_map>
 
-Image::Image(const std::filesystem::path& filePath)
-{
-    _SetPath(filePath);
-}
+//Image::Image(const std::filesystem::path& filePath) : Asset(filePath)
+//{
+//}
+//const std::string Image::AssetType = "Image";
+static size_t s_imageNbr = 0;
 
-Image::Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::vector<std::byte> rawData) : _data(rawData)
+Image::Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::vector<std::byte> rawData) : Component("Image_" + std::to_string(s_imageNbr)), _data(rawData)// : Asset("data:image_" + std::to_string(s_imageNbr))
 {
     SetPixelDescription(pixelDescription);
     SetSize(size);
@@ -27,15 +27,12 @@ Image::Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::ve
     _data.resize(rawDataSize);
 }
 
-Image::Image(const Image& other)
-{
-    _Loaded = other._Loaded;
-    _PixelDescription = other._PixelDescription;
-    _Size = other._Size;
-    _Path = other._Path;
-    _data = other._data;
-
-}
+//Image::Image(const Image& other) : AssetData(other)
+//{
+//    _PixelDescription = other._PixelDescription;
+//    _Size = other._Size;
+//    _data = other._data;
+//}
 
 Image::~Image()
 {
@@ -53,39 +50,39 @@ std::vector<std::byte>& Image::GetData()
     return _data;
 }
 
-void Image::Load()
-{
-    bool isLoading{ true };
-    GetLoading().compare_exchange_weak(isLoading, true);
-    if (isLoading) //We are loading from another thread
-        _parsingThread.join();
-    if (GetLoaded()) //Image already loaded
-        return;
-    _DoLoad();
-}
+//void Image::Load()
+//{
+//    bool isLoading{ true };
+//    GetLoading().compare_exchange_weak(isLoading, true);
+//    if (isLoading) //We are loading from another thread
+//        _parsingThread.join();
+//    if (GetLoaded()) //Image already loaded
+//        return;
+//    _DoLoad();
+//}
 
-void Image::LoadAsync()
-{
-    bool isLoading{ true };
-    GetLoading().compare_exchange_weak(isLoading, true);
-    if (isLoading) //We are loading from another thread
-        return;
-        //_parsingThread.join();
-    if (GetLoaded()) //Image already loaded
-        return;
-    if (!GetLoaded())
-        _parsingThread = std::thread(&Image::_DoLoad, this);
-}
+//void Image::LoadAsync()
+//{
+//    bool isLoading{ true };
+//    GetLoading().compare_exchange_weak(isLoading, true);
+//    if (isLoading) //We are loading from another thread
+//        return;
+//        //_parsingThread.join();
+//    if (GetLoaded()) //Image already loaded
+//        return;
+//    if (!GetLoaded())
+//        _parsingThread = std::thread(&Image::_DoLoad, this);
+//}
 
-void Image::Free()
-{
-    //We're loading this image from an other thread or it's not been loaded yet, don't free it.
-    if (!GetLoaded() || GetLoading()) 
-        return;
-    GetData().clear();
-    GetData().shrink_to_fit();
-    SetLoaded(false);
-}
+//void Image::Free()
+//{
+//    //We're loading this image from an other thread or it's not been loaded yet, don't free it.
+//    if (!GetLoaded() || GetLoading()) 
+//        return;
+//    GetData().clear();
+//    GetData().shrink_to_fit();
+//    SetLoaded(false);
+//}
 
 glm::vec4 Image::GetColor(glm::ivec2 texCoord)
 {
@@ -99,30 +96,24 @@ void Image::SetColor(glm::ivec2 texCoord, glm::vec4 color)
     GetPixelDescription().SetColorToBytes(_GetPointer(texCoord), color);
 }
 
-void Image::SetPath(std::filesystem::path path)
-{
-    _SetPath(path);
-    SetLoaded(false);
-}
-
 void Image::SetPixelDescription(Pixel::Description pixelFormat)
 {
     _SetPixelDescription(pixelFormat);
-    SetLoaded(false);
+    //SetLoaded(false);
 }
 
 void Image::SetSize(glm::ivec2 size)
 {
     _SetSize(size);
-    SetLoaded(false);
+    //SetLoaded(false);
 }
 
-void Image::_DoLoad()
-{
-    _loading = true;
-    ImageParser::Parse(std::static_pointer_cast<Image>(shared_from_this()));
-    _loading = false;
-}
+//void Image::_DoLoad()
+//{
+//    _loading = true;
+//    ImageParser::Parse(std::static_pointer_cast<Image>(shared_from_this()));
+//    _loading = false;
+//}
 
 std::byte* Image::_GetPointer(glm::ivec2 texCoord)
 {
@@ -140,3 +131,9 @@ std::atomic<bool>& Image::GetLoading()
 {
     return _loading;
 }
+
+std::shared_ptr<Component> Image::_Clone() {
+    return std::static_pointer_cast<Component>(shared_from_this());
+}
+
+

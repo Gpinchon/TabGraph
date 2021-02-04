@@ -7,23 +7,21 @@
 #pragma once
 
 #include "Component.hpp"
-#include <GL/glew.h>
+
 #include <filesystem>
 #include <memory>
 #include <vector>
 #include <iterator>
 
-#include "Render.hpp"
-
 /** A buffer points to binary geometry, animation, or skins. */
-class Buffer : public Component {
+class BinaryData : public Component {
 public:
-    PROPERTY(bool, Loaded, false);
-    PROPERTY(std::filesystem::path, Uri, "");
-public:
-    Buffer() = delete;
-    Buffer(size_t byteLength);
-    ~Buffer();
+    static constexpr auto AssetType = "BinaryData";
+    BinaryData() = delete;
+    //BinaryData(const std::filesystem::path& uri);
+    BinaryData(size_t byteLength);
+    BinaryData(const std::vector<std::byte>&);
+    ~BinaryData();
     /** The total byte length of the buffer. */
     size_t GetByteLength() const;
     /** Sets the buffer's byte length and RESIZE RAW DATA !!! */
@@ -53,13 +51,13 @@ public:
         assert(index < _data.size());
         return _data.data() + index;
     }
-    virtual void Load();
-    virtual void Unload();
+    //virtual void Load() override;
+    //virtual void Unload() override;
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
-        return std::static_pointer_cast<Buffer>(shared_from_this());
-    }
     std::vector<std::byte> _data { 0 };
     size_t _byteLength{ 0 };
+
+    // Hérité via Component
+    virtual std::shared_ptr<Component> _Clone() override;
 };

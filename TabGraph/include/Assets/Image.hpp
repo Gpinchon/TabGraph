@@ -14,29 +14,26 @@
 #include <glm/glm.hpp>
 #include <thread>
 #include <vector>
-
-//uint8_t GetFormatOctetsPerPixel(PixelFormat);
-//PixelDescription GetPixelFormatDescription(PixelFormat);
+constexpr auto constString = "constString";
 
 /**
  * @brief Describes an image file located at the path used in the constructor
 */
 class Image : public Component {
 public:
-    PROPERTY(bool, Loaded, false);
-    //READONLYPROPERTY(PixelFormat, PixelFormat, PixelFormat::Unknown);
     READONLYPROPERTY(Pixel::Description, PixelDescription);
     READONLYPROPERTY(glm::ivec2, Size, glm::ivec2(0, 0));
-    READONLYPROPERTY(std::filesystem::path, Path, "");
 
 public:
+    static constexpr auto AssetType = "Image";
     /**
      * @brief Constructs a new Image instance
-     * @param path the path to the corresponding file
+     * @param size The resolution in pixels
+     * @param pixelDescription See PixelUtils, can be created using SizedFormat
+     * @param rawData The pixel data to be used for the image
     */
-    Image(const std::filesystem::path& path);
     Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::vector<std::byte> rawData = {});
-    Image(const Image& other);
+    //Image(const Image& other);
     ~Image();
     /**
      * @brief 
@@ -49,12 +46,12 @@ public:
     */
     std::vector<std::byte>& GetData();
     /** @brief Loads the Image synchronously, must emit LoadedChanged(true) if loading was successful */
-    void Load();
+    //virtual void Load() override;
     /**
      * @brief Loads the Image asynchronously -> returns immediatly.
      * Emits LoadedChanged(true) if loading was successful.
     */
-    void LoadAsync();
+    //virtual void LoadAsync() override;
     /**
      * @brief Loads the Image synchrounsly.
      * Emits LoadedChanged(true) if loading was successful.
@@ -77,24 +74,18 @@ public:
     void SetPixelDescription(Pixel::Description pixelDescription);
     void SetSize(glm::ivec2 size);
     /**
-     * @brief sets Loaded to false
-     * @param path the path of an image file
-    */
-    void SetPath(std::filesystem::path path);
-    /**
      * @brief
      * @return true if the image is currently loading in an other thread
     */
     std::atomic<bool>& GetLoading();
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override
-    {
-        return Component::Create<Image>(*this);
-    }
     void _DoLoad();
     std::byte* _GetPointer(glm::ivec2 texCoord);
     std::atomic<bool> _loading { false };
     std::vector<std::byte> _data;
     std::thread _parsingThread;
+
+    // Hérité via AssetData
+    virtual std::shared_ptr<Component> _Clone() override;
 };

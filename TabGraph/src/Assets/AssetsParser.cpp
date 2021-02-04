@@ -5,50 +5,77 @@
 * @Last Modified time: 2020-08-19 21:13:58
 */
 
-#include "Assets/AssetsParser.hpp" // for AssetsParser, AssetsParsingFunction
+#include "Assets/AssetsParser.hpp" // for AssetsParser, AssetParsingFunction
+#include "Assets/Asset.hpp"
 #include "Debug.hpp" // for debugLog
-
 #include <filesystem>
 #include <map> // for map
 #include <memory> // for shared_ptr
 #include <string> // for string
 
-std::map<std::string, AssetsParser*>* AssetsParser::_parsers = nullptr; //std::map<std::string, AssetsParser *>();
+std::map<AssetsParser::MimeType, AssetsParser*>* AssetsParser::_parsers = nullptr;
+std::map<AssetsParser::FileExtension, AssetsParser::MimeType>* AssetsParser::_mimesExtensions = nullptr;
 
-AssetsParser::AssetsParser(const std::string& format, AssetsParsingFunction parsingFunction)
-    : _format(format)
+AssetsParser::AssetsParser(const MimeType& mimeType, ParsingFunction parsingFunction)
+    : _mimeType(mimeType)
     , _parsingFunction(parsingFunction)
 {
-    debugLog(format);
+    //debugLog(mimeType);
 }
 
-AssetsParser* AssetsParser::Add(const std::string& format, AssetsParsingFunction parsingFunction)
+AssetsParser::MimeType AssetsParser::GetMimeFromExtension(const FileExtension& extension)
 {
-    debugLog("Add Parser " + format);
-    auto parser = new AssetsParser(format, parsingFunction);
-    _getParsers()[format] = parser;
+    return _getMimesExtensions()[extension];
+}
+
+AssetsParser* AssetsParser::Add(const MimeType& mimeType, ParsingFunction parsingFunction)
+{
+    //debugLog("Add Parser " + mimeType);
+    auto parser = new AssetsParser(mimeType, parsingFunction);
+    _getParsers()[mimeType] = parser;
+    
     return parser;
 }
 
-std::map<std::string, AssetsParser*>& AssetsParser::_getParsers()
+AssetsParser::MimeExtensionPair AssetsParser::AddMimeExtension(const MimeType& mime, const FileExtension& extension)
+{
+    _getMimesExtensions()[extension] = mime;
+    return MimeExtensionPair(mime, extension);
+}
+
+std::map<AssetsParser::MimeType, AssetsParser*>& AssetsParser::_getParsers()
 {
     if (_parsers == nullptr)
-        _parsers = new std::map<std::string, AssetsParser*>;
+        _parsers = new std::map<MimeType, AssetsParser*>;
     return *_parsers;
 }
 
-std::shared_ptr<AssetsContainer> AssetsParser::Parse(const std::filesystem::path path)
+#include <assert.h>
+
+std::map<AssetsParser::FileExtension, AssetsParser::MimeType>& AssetsParser::_getMimesExtensions()
 {
-    auto format = std::filesystem::path(path).extension();
-    debugLog(path);
-    debugLog(format);
-    auto parser = _get(format.string());
-    debugLog(parser);
-    return parser ? parser(path) : nullptr;
+    if (_mimesExtensions == nullptr)
+        _mimesExtensions = new std::map<FileExtension, MimeType>;
+    return *_mimesExtensions;
 }
 
-AssetsParsingFunction AssetsParser::_get(const std::string& format)
+void AssetsParser::Parse(std::shared_ptr<Asset> asset)
 {
-    auto parser = _getParsers()[format];
+    assert(asset != nullptr);
+    auto uriScheme = asset->GetUri().GetScheme();
+    MimeType mime;
+    if (uriScheme == "data")
+        mime = DataUri(asset->GetUri()).GetMime();
+    else
+        mime = GetMimeFromExtension(AssetsParser::FileExtension(asset->GetUri().GetPath()).extension());
+    //debugLog(mime);
+    auto parser = _get(mime);
+    if (parser != nullptr)
+        parser(asset);
+}
+
+AssetsParser::ParsingFunction AssetsParser::_get(const MimeType& mime)
+{
+    auto parser = _getParsers()[mime];
     return parser ? parser->_parsingFunction : nullptr;
 }

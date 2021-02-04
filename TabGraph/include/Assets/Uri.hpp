@@ -5,8 +5,10 @@
 * @Last Modified time: 2021-02-01 18:26:33
 */
 #pragma once
+#include <string>  // for string, basic_string, string
 #include <array>
 #include <map>
+#include <filesystem>
 
 /**
  * @brief Parses Uri to make it more understandable to humans
@@ -16,24 +18,35 @@
 class Uri {
 public:
     /**
-     * @brief Parses uri wstring into Uri
+     * @brief Parses uri string into Uri
      * @param uri a uri containing no space
     */
-    Uri(const std::wstring& uri);
-    void SetScheme(const std::wstring& str);
-    std::wstring GetScheme() const;
-    void SetAuthority(const std::wstring& str);
-    std::wstring GetAuthority() const;
-    void SetPath(const std::wstring& str);
-    std::wstring GetPath() const;
-    void SetQuery(const std::wstring& str);
-    std::wstring GetQuery() const;
-    void SetFragment(const std::wstring& str);
-    std::wstring GetFragment() const;
-    operator std::wstring();
+    Uri(const std::string& uri);
+    /**
+     * @brief Creates a URI from a file path
+    */
+    Uri(const std::filesystem::path& filePath);
+    Uri() = default;
+    void SetScheme(const std::string& str);
+    std::string GetScheme() const;
+    void SetAuthority(const std::string& str);
+    std::string GetAuthority() const;
+    void SetPath(const std::filesystem::path& str);
+    std::filesystem::path GetPath() const;
+    void SetQuery(const std::string& str);
+    std::string GetQuery() const;
+    void SetFragment(const std::string& str);
+    std::string GetFragment() const;
+    operator std::string() const;
+    friend std::ostream& operator<<(std::ostream& os, const Uri& uri);
 
 private:
-    std::array<std::wstring, 5> _uriParts { { L"" } };
+    std::string _scheme{ "" };
+    std::string _authority{ "" };
+    std::filesystem::path _path{ "" };
+    std::string _query{ "" };
+    std::string _fragment{ "" };
+    //std::array<std::string, 5> _uriParts { { "" } };
 };
 
 /**
@@ -46,16 +59,16 @@ public:
      * @param uri a data Uri
     */
     DataUri(const Uri& uri);
-    void SetMime(const std::wstring& mime);
-    std::wstring GetMime() const;
-    void SetParameter(const std::wstring& attribute, const std::wstring& value);
-    std::wstring GetParameter(const std::wstring& attribute) const;
-    std::map<std::wstring, std::wstring> GetParameters() const;
+    void SetMime(const std::string& mime);
+    std::string GetMime() const;
+    void SetParameter(const std::string& attribute, const std::string& value);
+    std::string GetParameter(const std::string& attribute) const;
+    std::map<std::string, std::string> GetParameters() const;
     void SetBase64(bool base64);
     bool GetBase64() const;
-    void SetData(const std::wstring& mime);
-    std::wstring GetData() const;
-    operator std::wstring();
+    void SetData(const std::string& mime);
+    std::string GetData() const;
+    operator std::string();
     /**
      * @brief Converts data into raw binary string
      * @return the converted data
@@ -64,7 +77,7 @@ public:
 
 private:
     bool _base64 { false };
-    std::wstring _mime {};
-    std::map<std::wstring, std::wstring> _parameters {};
-    std::wstring _data {};
+    std::string _mime {};
+    std::map<std::string, std::string> _parameters {};
+    std::string _data {};
 };

@@ -2,15 +2,18 @@
 * @Author: gpinchon
 * @Date:   2021-02-01 13:53:07
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-02-01 18:20:08
+* @Last Modified time: 2021-02-01 20:47:00
 */
 #include "Assets\Uri.hpp"
-#include <regex>
-#include <sstream>
-#include <locale>
+#include <array> // for array
 #include <codecvt>
+#include <ctype.h> // for isalnum
+#include <map> // for map, map<>::mapped_type
+#include <regex>
+#include <sstream> // for basic_istream
+#include <string> // for getline
 
-Uri::Uri(const std::wstring& uri)
+Uri::Uri(const std::string& uri)
 {
     if (uri.length() == 0)
         return;
@@ -30,80 +33,86 @@ Uri::Uri(const std::wstring& uri)
      *          (\S*)               <---- 9 "Clean" fragment (everything except white spaces)
      *      )?
     */
-    std::wregex uriRegex { LR"(^\s*(([^:/?#]+):)?(\/\/([^/?#\s]*))?([^?#\s]*)(\?([^#\s]*))?(#(\S*))?)", std::regex::ECMAScript };
-    auto searchResult = std::wsregex_iterator(uri.begin(), uri.end(), uriRegex);
-    auto searchEnd = std::wsregex_iterator();
+    std::regex uriRegex { R"(^\s*(([^:/?#]+):)?(\/\/([^/?#\s]*))?([^?#\s]*)(\?([^#\s]*))?(#(\S*))?)", std::regex::ECMAScript };
+    auto searchResult = std::sregex_iterator(uri.begin(), uri.end(), uriRegex);
+    auto searchEnd = std::sregex_iterator();
     if (searchResult != searchEnd) {
         SetScheme((*searchResult)[2]);
         SetAuthority((*searchResult)[4]);
-        SetPath((*searchResult)[5]);
+        SetPath(std::string((*searchResult)[5]));
         SetQuery((*searchResult)[7]);
         SetFragment((*searchResult)[9]);
     }
 }
 
-void Uri::SetScheme(const std::wstring& str)
+Uri::Uri(const std::filesystem::path& filePath)
 {
-    _uriParts.at(0) = str;
+    SetScheme("file");
+    SetPath(filePath);
 }
 
-std::wstring Uri::GetScheme() const
+void Uri::SetScheme(const std::string& str)
 {
-    return _uriParts.at(0);
+    _scheme = str;
 }
 
-void Uri::SetAuthority(const std::wstring& str)
+std::string Uri::GetScheme() const
 {
-    _uriParts.at(1) = str;
+    return _scheme;
 }
 
-std::wstring Uri::GetAuthority() const
+void Uri::SetAuthority(const std::string& str)
 {
-    return _uriParts.at(1);
+    _authority = str;
 }
 
-void Uri::SetPath(const std::wstring& str)
+std::string Uri::GetAuthority() const
 {
-    _uriParts.at(2) = str;
+    return _authority;
 }
 
-std::wstring Uri::GetPath() const
+void Uri::SetPath(const std::filesystem::path& str)
 {
-    return _uriParts.at(2);
+    _path = str;
 }
 
-void Uri::SetQuery(const std::wstring& str)
+std::filesystem::path Uri::GetPath() const
 {
-    _uriParts.at(3) = str;
+    return _path;
 }
 
-std::wstring Uri::GetQuery() const
+void Uri::SetQuery(const std::string& str)
 {
-    return _uriParts.at(3);
+    _query = str;
 }
 
-void Uri::SetFragment(const std::wstring& str)
+std::string Uri::GetQuery() const
 {
-    _uriParts.at(4) = str;
+    return _query;
 }
 
-std::wstring Uri::GetFragment() const
+void Uri::SetFragment(const std::string& str)
 {
-    return _uriParts.at(4);
+    _fragment = str;
 }
 
-Uri::operator std::wstring()
+std::string Uri::GetFragment() const
 {
-    std::wstring fullUri;
+    return _fragment;
+}
+
+Uri::operator std::string() const
+{
+    std::string fullUri;
     if (!GetScheme().empty())
-        fullUri += GetScheme() + L":";
+        fullUri += GetScheme() + ":";
     if (!GetAuthority().empty())
-        fullUri += L"//" + GetAuthority();
-    fullUri += GetPath();
+        fullUri += "//" + GetAuthority();
+    fullUri += GetPath().string();
     if (!GetQuery().empty())
-        fullUri += L"?" + GetQuery();
+        fullUri += "?" + GetQuery();
     if (!GetFragment().empty())
-        fullUri += L"#" + GetFragment();
+        fullUri += "#" + GetFragment();
     return fullUri;
 }
 
@@ -119,16 +128,16 @@ DataUri::DataUri(const Uri& uri)
      *  ,(.*)                   <---- 4 The data, we can just take everything there, should be clean
      * $
     */
-    std::wregex dataRegex { LR"(^([-\w]+/[-+\w.]+)?((?:;?[\w]+=[-\w]+)*)(;base64)?,(.*)$)", std::regex::ECMAScript };
-    auto data { uri.GetPath() };
-    auto searchResult = std::wsregex_iterator(data.begin(), data.end(), dataRegex);
-    auto searchEnd = std::wsregex_iterator();
+    std::regex dataRegex { R"(^([-\w]+/[-+\w.]+)?((?:;?[\w]+=[-\w]+)*)(;base64)?,(.*)$)", std::regex::ECMAScript };
+    auto data { uri.GetPath().string() };
+    auto searchResult = std::sregex_iterator(data.begin(), data.end(), dataRegex);
+    auto searchEnd = std::sregex_iterator();
     if (searchResult != searchEnd) {
         SetMime((*searchResult)[1]);
         {
-            std::wstringstream parameters { (*searchResult)[2] };
-            std::wstring parameter;
-            while (std::getline(parameters, parameter, L';')) {
+            std::stringstream parameters { (*searchResult)[2] };
+            std::string parameter;
+            while (std::getline(parameters, parameter, ';')) {
                 if (parameter.empty())
                     continue;
                 auto separator { parameter.find(L'=') };
@@ -137,35 +146,35 @@ DataUri::DataUri(const Uri& uri)
                 SetParameter(attribute, value);
             }
         }
-        SetBase64((*searchResult)[3] == L";base64");
+        SetBase64((*searchResult)[3] == ";base64");
         SetData((*searchResult)[4]);
     }
 }
 
-void DataUri::SetMime(const std::wstring& mime)
+void DataUri::SetMime(const std::string& mime)
 {
     _mime = mime;
 }
 
-std::wstring DataUri::GetMime() const
+std::string DataUri::GetMime() const
 {
     return _mime;
 }
 
-void DataUri::SetParameter(const std::wstring& attribute, const std::wstring& value)
+void DataUri::SetParameter(const std::string& attribute, const std::string& value)
 {
     _parameters[attribute] = value;
 }
 
-std::wstring DataUri::GetParameter(const std::wstring& attribute) const
+std::string DataUri::GetParameter(const std::string& attribute) const
 {
     auto parameter = _parameters.find(attribute);
     if (parameter != _parameters.end())
         return parameter->second;
-    return L"";
+    return "";
 }
 
-std::map<std::wstring, std::wstring> DataUri::GetParameters() const
+std::map<std::string, std::string> DataUri::GetParameters() const
 {
     return _parameters;
 }
@@ -180,27 +189,27 @@ bool DataUri::GetBase64() const
     return _base64;
 }
 
-void DataUri::SetData(const std::wstring& mime)
+void DataUri::SetData(const std::string& mime)
 {
     _data = mime;
 }
 
-std::wstring DataUri::GetData() const
+std::string DataUri::GetData() const
 {
     return _data;
 }
 
-DataUri::operator std::wstring()
+DataUri::operator std::string()
 {
-    std::wstring fullUri = L"data:";
+    std::string fullUri = "data:";
     if (!GetMime().empty())
         fullUri += GetMime();
     if (!GetParameters().empty())
         for (const auto& parameter : GetParameters())
-            fullUri += L';' + parameter.first + L'=' + parameter.second;
+            fullUri += ';' + parameter.first + '=' + parameter.second;
     if (GetBase64())
-        fullUri += L";base64";
-    fullUri += L',' + GetData();
+        fullUri += ";base64";
+    fullUri += ',' + GetData();
     return fullUri;
 }
 
@@ -219,8 +228,8 @@ static inline std::string base64_decode(std::string const& encoded_string)
     std::string ret;
 
     const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz"
-        "0123456789+/";
+                                     "abcdefghijklmnopqrstuvwxyz"
+                                     "0123456789+/";
 
     while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
         char_array_4[i++] = encoded_string[in_];
@@ -258,10 +267,13 @@ static inline std::string base64_decode(std::string const& encoded_string)
 
 std::string DataUri::Decode() const
 {
-    using convert_type = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_type, wchar_t> converter;
-    auto convertedData{ converter.to_bytes(GetData()) };
     if (GetBase64())
-        return base64_decode(convertedData);
-    return convertedData;
+        return base64_decode(GetData());
+    return GetData();
+}
+
+std::ostream& operator<<(std::ostream& os, const Uri& uri)
+{
+    os << std::string(uri);
+    return os;
 }

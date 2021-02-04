@@ -14,9 +14,12 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/Animation.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationInterpolator.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationSampler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Asset.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/AssetsParser.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/BinaryData.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Image.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Uri.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferAccessor.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/Buffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferView.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/Camera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/FPSCamera.cpp
@@ -69,8 +72,6 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/ShaderExtension.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/ShaderStage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/StackTracer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Image.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/ImageParser.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/PixelUtils.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Cubemap.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture2D.cpp
@@ -88,10 +89,12 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationInterpolator.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationSampler.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/AssetsParser.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Asset.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/BinaryData.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Image.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Uri.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/brdfLUT.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferAccessor.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferHelper.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/Buffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferView.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/Camera.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/FPSCamera.hpp
@@ -154,8 +157,6 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/StateMachine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain_GDAL.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Image.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/ImageParser.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/PixelUtils.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Cubemap.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture1D.hpp
@@ -192,6 +193,8 @@ set(TABGRAPH_SHADER_FILES
 )
 
 set(PLUGINS_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/BinaryData.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/SDL2Image.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/BMP.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/BT.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Parser/FBX/FBXDocument.cpp
@@ -216,7 +219,6 @@ set(PLUGINS_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/FBX.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/GLSL.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/GLTF.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/HDR.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/MTLLIB.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/OBJ.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Parser/InternalTools.hpp
