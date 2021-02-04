@@ -8,6 +8,7 @@
 #include "DLLExport.hpp"
 
 #include "Animation/Animation.hpp"
+#include "Assets/Asset.hpp"
 #include "Assets/AssetsParser.hpp"
 #include "Camera/FPSCamera.hpp"
 #include "Config.hpp"
@@ -19,7 +20,6 @@
 #include "Material/Material.hpp"
 #include "Mesh/CubeMesh.hpp"
 #include "Mesh/Mesh.hpp"
-#include "Parser/GLTF.hpp"
 #include "Render.hpp"
 #include "Scene/Scene.hpp"
 #include "Tools/Tools.hpp"
@@ -171,7 +171,7 @@ void SetupCallbacks()
 #include <filesystem>
 #include "Texture/Cubemap.hpp"
 #include "Environment.hpp"
-#include "Texture/Image.hpp"
+#include "Assets/Image.hpp"
 #include "Light/PointLight.hpp"
 
 auto Factorial(int n)
@@ -257,11 +257,12 @@ int main(int argc, char** argv)
             std::cout << filePath << std::endl;
             auto fpsCamera = Component::Create<FPSCamera>("main_camera", 45);
             //fpsCamera->SetZfar(1000);
-            auto assets(AssetsParser::Parse(filePath.string()));
-            auto assetCameras = assets->GetComponents<Camera>();
+            auto asset{ Component::Create<Asset>("file:" + filePath.string()) };
+            AssetsParser::Parse(asset);
+            auto assetCameras = asset->GetComponents<Camera>();
             s_cameras.push_back(fpsCamera);
             s_cameras.insert(s_cameras.end(), assetCameras.begin(), assetCameras.end());
-            auto scene = std::static_pointer_cast<Scene>(assets->GetComponent<Scene>());
+            auto scene = std::static_pointer_cast<Scene>(asset->GetComponent<Scene>());
             if (scene == nullptr) {
                 return -43;
             }
@@ -277,8 +278,8 @@ int main(int argc, char** argv)
             //scene->Add(pointLight);
             //pointLight->SetParent(scene->CurrentCamera());
             auto newEnv = Component::Create<Environment>("Environment");
-            newEnv->SetDiffuse(Component::Create<Cubemap>(Component::Create<Image>((Engine::ResourcePath() / "env/diffuse.hdr"))));//"EnvironmentCube", TextureParser::parse("Environment", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
-            newEnv->SetIrradiance(Component::Create<Cubemap>(Component::Create<Image>((Engine::ResourcePath() / "env/environment.hdr"))));//"EnvironmentDiffuse", TextureParser::parse("EnvironmentDiffuse", (Engine::ResourcePath() / "env/environment.hdr").string())));
+            newEnv->SetDiffuse(Component::Create<Cubemap>(Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/diffuse.hdr").string())));//"EnvironmentCube", TextureParser::parse("Environment", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
+            newEnv->SetIrradiance(Component::Create<Cubemap>(Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/environment.hdr").string())));//"EnvironmentDiffuse", TextureParser::parse("EnvironmentDiffuse", (Engine::ResourcePath() / "env/environment.hdr").string())));
             scene->SetEnvironment(newEnv);
             Scene::SetCurrent(scene);
         }
