@@ -6,8 +6,6 @@
 */
 
 #include "Mesh/PlaneMesh.hpp"
-#include "Buffer/BufferAccessor.hpp"
-#include "Buffer/Buffer.hpp"
 #include "Material/Material.hpp" // for Material
 #include "Mesh/Geometry.hpp" // for CVEC4, Geometry
 #include "Mesh/Mesh.hpp" // for Mesh

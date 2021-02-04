@@ -8,12 +8,12 @@
 #include "Material/Material.hpp"
 #include "Environment.hpp" // for Environment
 #include "Material/MaterialExtension.hpp"
-#include "Parser/GLSL.hpp" // for GLSL, ForwardShader
 #include "Scene/Scene.hpp" // for Environment
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Cubemap.hpp"
 #include "Texture/Texture2D.hpp"
-#include "Texture/Image.hpp"
+#include "Assets/Asset.hpp"
+#include "Assets/Image.hpp"
 #include "brdfLUT.hpp"
 
 #include <GL/glew.h> //for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
@@ -42,12 +42,17 @@ auto GetMaterialPassExtension()
 
 auto DefaultBRDFLUT()
 {
-    auto brdfImage{ Component::Create<Image>(glm::vec2(256, 256), Pixel::SizedFormat::Uint8_NormalizedRG, brdfLUT) };
-    auto static brdf = Component::Create<Texture2D>(brdfImage);
-    brdf->SetName("BrdfLUT");
-    brdf->SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    brdf->SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    brdfImage->SetLoaded(true);
+    static std::shared_ptr<Texture2D> brdf;
+    if (brdf == nullptr) {
+        auto brdfImageAsset(Component::Create<Asset>());
+        brdf = Component::Create<Texture2D>(brdfImageAsset);
+        auto brdfImage{ Component::Create<Image>(glm::vec2(256, 256), Pixel::SizedFormat::Uint8_NormalizedRG, brdfLUT) };
+        brdfImageAsset->SetComponent(brdfImage);
+        brdfImageAsset->SetLoaded(true);
+        brdf->SetName("BrdfLUT");
+        brdf->SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        brdf->SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }    
     return brdf;
 }
 

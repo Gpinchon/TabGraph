@@ -6,8 +6,8 @@
 */
 
 #include "Texture/Cubemap.hpp"
-#include "Texture/Image.hpp"
-
+#include "Assets/Asset.hpp"
+#include "Assets/Image.hpp"
 #include "Config.hpp"
 #include "Debug.hpp"
 #include "Engine.hpp"
@@ -15,7 +15,6 @@
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-//#include <bits/exception.h>
 #include <iostream>
 #include <math.h>
 #include <stdexcept>
@@ -29,7 +28,7 @@ Cubemap::Cubemap(glm::ivec2 size, Pixel::SizedFormat format)
     SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
-Cubemap::Cubemap(std::shared_ptr<Image> fromImage)
+Cubemap::Cubemap(std::shared_ptr<Asset> fromImage)
     : Texture2D(fromImage)
 {
     _SetType(Texture::Type::TextureCubemap);
@@ -46,11 +45,12 @@ void Cubemap::Load()
 {
     if (GetLoaded())
         return;
-    auto image{ GetComponent<Image>() };
-    if (image != nullptr)
+    auto imageAsset{ GetComponent<Asset>() };
+    if (imageAsset != nullptr)
     {
-        if (!image->GetLoaded())
-            image->Load();
+        imageAsset->Load();
+        auto image{ imageAsset->GetComponent<Image>() };
+        assert(image != nullptr);
         SetSize(glm::ivec2(std::min(image->GetSize().x, image->GetSize().y)));
         SetPixelDescription(image->GetPixelDescription());
         if (GetAutoMipMap())
@@ -73,7 +73,7 @@ void Cubemap::Load()
                 side->GetData().data()
             );
         }
-        RemoveComponent<Image>(image);
+        RemoveComponent(imageAsset);
         if (GetAutoMipMap())
             GenerateMipmap();
     }
@@ -186,7 +186,6 @@ void Cubemap::ExtractSide(std::shared_ptr<Image> fromImage, std::shared_ptr<Imag
         }
     }
     std::cout << "." << std::flush;
-    toImage->SetLoaded(true);;
 }
 
 //Cubemap::Cubemap(const std::string& name)

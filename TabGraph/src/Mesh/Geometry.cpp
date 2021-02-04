@@ -6,7 +6,8 @@
 */
 
 #include "Mesh/Geometry.hpp"
-#include "Buffer/Buffer.hpp"
+#include "Assets/Asset.hpp"
+#include "Assets/BinaryData.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Buffer/BufferView.hpp"
 #include "Camera/Camera.hpp" // for Camera
@@ -38,7 +39,7 @@ Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm
     assert(vertices.size() == normals.size());
     assert(normals.size() == texCoords.size());
     auto vertexBuffer{
-        Component::Create<Buffer>(
+        Component::Create<BinaryData>(
         vertices.size() * sizeof(glm::vec3) +
         normals.size() * sizeof(glm::vec3) +
         texCoords.size() * sizeof(glm::vec2) +
@@ -65,8 +66,10 @@ Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm
         (std::byte*)indices.data(),
         verticeByteSize + normalsByteSize + texcoordByteSize,
         indiceByteSize);
-    vertexBuffer->SetLoaded(true);
-    auto vertexBufferView{ Component::Create<BufferView>(vertexBuffer, mode) };
+    auto vertexBufferAsset{ Component::Create<Asset>() };
+    vertexBufferAsset->SetComponent(vertexBuffer);
+    vertexBufferAsset->SetLoaded(true);
+    auto vertexBufferView{ Component::Create<BufferView>(vertexBufferAsset, mode) };
     vertexBufferView->SetType(BufferView::Type::Array);
     vertexBufferView->SetByteLength(verticeByteSize + normalsByteSize + texcoordByteSize);
     
@@ -87,7 +90,7 @@ Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm
 
     if (indices.empty())
         return;
-    auto indiceBufferView{ Component::Create<BufferView>(vertexBuffer, mode) };
+    auto indiceBufferView{ Component::Create<BufferView>(vertexBufferAsset, mode) };
     indiceBufferView->SetType(BufferView::Type::ElementArray);
     indiceBufferView->SetByteLength(indiceByteSize);
     indiceBufferView->SetByteOffset(verticeByteSize + normalsByteSize + texcoordByteSize);

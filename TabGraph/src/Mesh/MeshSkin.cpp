@@ -15,26 +15,25 @@ MeshSkin::MeshSkin()
 const std::vector<std::shared_ptr<Node>> MeshSkin::Joints() const
 {
     return _joints;
-    //return GetComponents<Node>();
 }
 
 void MeshSkin::AddJoint(std::shared_ptr<Node> joint)
 {
     _joints.push_back(joint);
-    //AddComponent(joint);
 }
 
 void MeshSkin::RemoveJoint(std::shared_ptr<Node> joint)
 {
+    //TODO re-enable this
     //RemoveComponent(joint);
 }
 
 std::shared_ptr<BufferAccessor> MeshSkin::InverseBindMatrices() const
 {
-    return GetComponent<BufferAccessor>();
+    return _inverseBindMatrices;
 }
 
 void MeshSkin::SetInverseBindMatrices(std::shared_ptr<BufferAccessor> inverseBindMatrices)
 {
-    SetComponent<BufferAccessor>(inverseBindMatrices);
+    _inverseBindMatrices = inverseBindMatrices;
 }

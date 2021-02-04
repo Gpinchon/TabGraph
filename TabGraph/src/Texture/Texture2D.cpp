@@ -1,5 +1,6 @@
 #include "Texture/Texture2D.hpp"
-#include "Texture/Image.hpp"
+#include "Assets/Asset.hpp"
+#include "Assets/Image.hpp"
 #include "Texture/PixelUtils.hpp"
 #include "Config.hpp"
 #include "Debug.hpp" // for glCheckError, debugLog
@@ -17,8 +18,8 @@ Texture2D::Texture2D(glm::ivec2 size, Pixel::SizedFormat internalFormat) : Textu
     SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
-Texture2D::Texture2D(std::shared_ptr<Image> image) : Texture(Texture::Type::Texture2D) {
-    SetComponent<Image>(image);
+Texture2D::Texture2D(std::shared_ptr<Asset> image) : Texture(Texture::Type::Texture2D) {
+    SetComponent(image);
     SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
@@ -26,25 +27,29 @@ Texture2D::Texture2D(std::shared_ptr<Image> image) : Texture(Texture::Type::Text
 void Texture2D::Load() {
     if (GetLoaded())
         return;
-    if (GetComponent<Image>() == nullptr) {
+    if (GetComponent<Asset>() == nullptr) {
         //We don't have an image to load from, just allocate on GPU
         _AllocateStorage();
         _SetLoaded(true);
         RestoreParameters();
     }
-    else if (!_onBeforeRenderSlot.Connected() && !_onImageLoadedSlot.Connected()) //We're already loading
+    else if (!_onBeforeRenderSlot.Connected() && !_onImageLoadedSlot.Connected()) //We're already loading/We'll upload texture on next render, calm down...
     {
         //GetComponent<Image>()->Load();
         //_UploadImage(GetComponent<Image>());
-        if (GetComponent<Image>()->GetLoaded())
+        auto imageAsset{ GetComponent<Asset>() };
+        _onImageLoadedSlot = imageAsset->OnLoaded().ConnectMember(this, &Texture2D::_OnImageLoaded);
+        imageAsset->LoadAsync();
+        /*imageAsset->LoadAsync();
+        if (imageAsset->GetLoaded())
         {
-            _UploadImage(GetComponent<Image>());
+            _UploadImage(GetComponent<Asset>());
         }
         else
         {
-            _onImageLoadedSlot = GetComponent<Image>()->LoadedChanged.ConnectMember(this, &Texture2D::_OnImageLoaded);
+            
             GetComponent<Image>()->LoadAsync();
-        }
+        }*/
     }
 }
 
@@ -75,19 +80,21 @@ void Texture2D::_AllocateStorage() {
     glBindTexture((GLenum)GetType(), 0);
 }
 
-inline void Texture2D::_OnImageLoaded(bool loaded) {
-    assert(loaded);
+inline void Texture2D::_OnImageLoaded(std::shared_ptr<Asset> imageAsset) {
+    assert(imageAsset->GetLoaded());
     if (!_onBeforeRenderSlot.Connected())
         _onBeforeRenderSlot = Render::OnBeforeRender().ConnectMember(this, &Texture2D::_OnBeforeRender);
     _onImageLoadedSlot.Disconnect();
 }
 
 inline void Texture2D::_OnBeforeRender(float) {
-    _UploadImage(GetComponent<Image>());
+    _UploadImage(GetComponent<Asset>());
     _onBeforeRenderSlot.Disconnect();
 }
 
-inline void Texture2D::_UploadImage(std::shared_ptr<Image> image) {
+inline void Texture2D::_UploadImage(std::shared_ptr<Asset> imageAsset) {
+    auto image{ imageAsset->GetComponent<Image>() };
+    assert(image != nullptr);
     SetPixelDescription(image->GetPixelDescription());
     SetSize(image->GetSize());
     if (GetAutoMipMap())
@@ -117,7 +124,7 @@ inline void Texture2D::_UploadImage(std::shared_ptr<Image> image) {
     glBindTexture((GLenum)GetType(), 0);*/
     if (GetAutoMipMap())
         GenerateMipmap();
-    RemoveComponent<Image>(image);
+    RemoveComponent(imageAsset);
     _SetLoaded(true);
     RestoreParameters();
 }
