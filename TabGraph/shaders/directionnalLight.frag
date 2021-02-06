@@ -78,7 +78,8 @@ void	Lighting()
 	}
 	NdotL = max(NdotL, 0);
 	#ifdef SHADOW
-		float	sampleAngle = randomAngle(WorldPosition());
+		//TODO fix shadow
+		float	sampleAngle = 0;//randomAngle(WorldPosition());
 		float	s = sin(sampleAngle);
 		float	c = cos(sampleAngle);
 		float bias = 0.01 * tan(acos(NdotL));
