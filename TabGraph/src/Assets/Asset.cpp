@@ -43,7 +43,7 @@ Signal<std::shared_ptr<Asset>>& Asset::OnLoaded()
 
 void Asset::Load()
 {
-	if (_loadingThread.joinable()) // We're already loading
+	if (GetLoading()) // We're already loading
 	{
 		_loadingThread.join();
 		assert(GetLoaded()); //there was an issue loading this asset...
@@ -54,8 +54,8 @@ void Asset::Load()
 
 void Asset::LoadAsync()
 {
-	if (_loadingThread.joinable())
-		_loadingThread.join();
+	if (GetLoading())
+		return;
 	_loadingThread = std::thread(&Asset::_DoLoad, this);
 }
 
