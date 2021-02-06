@@ -1,5 +1,5 @@
 R""(
-#define STRENGTH 1.5f
+#define STRENGTH 1.f
 #define RADIUS 0.05f
 
 #if SSAO_QUALITY == 1
