@@ -41,40 +41,10 @@ float InterleavedGradientNoise(vec2 uv, float FrameId)
 //			stipple[X][Y] <= Max;
 //}
 
-//ivec4 stipple = ivec4(
-//	1, 0,
-//	0, 0
-//);
-//
-//bool StipplePattern(in vec2 coord) {
-//	int X = int(coord.x) % 2;
-//	int Y = int(coord.y) % 2;
-//	uint index = ((X + X * Y) + (DrawID + FrameNumber) % 4) % 4;
-//	return stipple[index] == 1;
-//}
-
 bool StipplePattern(in vec2 coord) {
 	float noise = InterleavedGradientNoise(coord, FrameNumber % 8);
 	return Opacity() > noise;
 }
-
-/*
-mat4 thresholdMatrix = mat4(
-1.0 / 17.0,  9.0 / 17.0,  3.0 / 17.0, 11.0 / 17.0,
-13.0 / 17.0,  5.0 / 17.0, 15.0 / 17.0,  7.0 / 17.0,
-4.0 / 17.0, 12.0 / 17.0,  2.0 / 17.0, 10.0 / 17.0,
-16.0 / 17.0,  8.0 / 17.0, 14.0 / 17.0,  6.0 / 17.0
-);
-
-bool StipplePattern(in vec2 coord) {
-	float noise = InterleavedGradientNoise(coord, FrameNumber % 8);
-	uint x = int(coord.x) % 4;
-	uint y = int(coord.y) % 4;
-	uint offsetX = DrawID % 4;
-	uint offsetY = uint(noise * 117) % 4;
-	return Opacity() > thresholdMatrix[(x + offsetX) % 4][(y + offsetY) % 4];
-}
-*/
 
 void	CheckOpacity()
 {
