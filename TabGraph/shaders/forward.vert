@@ -39,8 +39,9 @@ uniform t_Camera				Camera;
 uniform t_Matrix				PrevMatrix;
 uniform t_Matrix				Matrix;
 uniform samplerBuffer			Joints;
-uniform bool					Skinned;
-uniform vec2					UVScale;
+uniform samplerBuffer			PrevJoints;
+uniform bool					Skinned = false;
+uniform vec2					UVScale = vec2(1);
 
 out VertexData {
 	vec3	WorldPosition;
@@ -113,13 +114,23 @@ vec4 ClipSpacePosition()
 	return gl_Position;
 }
 
-mat4	GetJointMatrix(int index)
+mat4	GetJointMatrix(const in int index)
 {
 	return mat4(
 		texelFetch(Joints, index * 4 + 0),
 		texelFetch(Joints, index * 4 + 1),
 		texelFetch(Joints, index * 4 + 2),
 		texelFetch(Joints, index * 4 + 3)
+	);
+}
+
+mat4	GetPrevJointMatrix(const in int index)
+{
+	return mat4(
+		texelFetch(PrevJoints, index * 4 + 0),
+		texelFetch(PrevJoints, index * 4 + 1),
+		texelFetch(PrevJoints, index * 4 + 2),
+		texelFetch(PrevJoints, index * 4 + 3)
 	);
 }
 
@@ -130,16 +141,27 @@ void	FillVertexData()
 	Joint[1] = GetJointMatrix(int(in_Joints_0.y));
 	Joint[2] = GetJointMatrix(int(in_Joints_0.z));
 	Joint[3] = GetJointMatrix(int(in_Joints_0.w));
+	mat4 PrevJoint[4];
+	PrevJoint[0] = GetPrevJointMatrix(int(in_Joints_0.x));
+	PrevJoint[1] = GetPrevJointMatrix(int(in_Joints_0.y));
+	PrevJoint[2] = GetPrevJointMatrix(int(in_Joints_0.z));
+	PrevJoint[3] = GetPrevJointMatrix(int(in_Joints_0.w));
 	if (Skinned) {
 		mat4 SkinMatrix =
         in_Weight_0.x * Joint[0] +
         in_Weight_0.y * Joint[1] +
         in_Weight_0.z * Joint[2] +
         in_Weight_0.w * Joint[3];
-        mat4 NewModelMatrix = Matrix.Model * SkinMatrix;
-		SetWorldPosition(vec3(NewModelMatrix * vec4(in_Position, 1.0)));
-		SetWorldNormal(mat3(inverse(transpose(NewModelMatrix))) * in_Normal);
-		PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * NewModelMatrix * vec4(in_Position, 1.0);
+		mat4 PrevSkinMatrix =
+        in_Weight_0.x * PrevJoint[0] +
+        in_Weight_0.y * PrevJoint[1] +
+        in_Weight_0.z * PrevJoint[2] +
+        in_Weight_0.w * PrevJoint[3];
+        mat4 ModelMatrix = Matrix.Model * SkinMatrix;
+		SetWorldPosition(vec3(ModelMatrix * vec4(in_Position, 1.0)));
+		SetWorldNormal(mat3(inverse(transpose(ModelMatrix))) * in_Normal);
+		mat4 PrevModelMatrix = PrevMatrix.Model * PrevSkinMatrix;
+		PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * PrevModelMatrix * vec4(in_Position, 1.0);
 	}
 	else {
 		SetWorldPosition(WorldPosition());
