@@ -176,6 +176,7 @@ set(TABGRAPH_SHADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/deferred.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/deferred.vert
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/directionnalLight.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/environment.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.vert
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/hzb.frag
