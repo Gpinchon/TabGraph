@@ -18,7 +18,18 @@ Texture2D::Texture2D(glm::ivec2 size, Pixel::SizedFormat internalFormat) : Textu
     SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
+Texture2D::Texture2D(glm::ivec2 size, Pixel::SizedFormat internalFormat, uint8_t multiSample) : Texture(Texture::Type::Texture2DMultisample, internalFormat), _Size(size)
+{
+    SetMultisample(multiSample);
+}
+
 Texture2D::Texture2D(std::shared_ptr<Asset> image) : Texture(Texture::Type::Texture2D) {
+    SetComponent(image);
+    SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+}
+
+Texture2D::Texture2D(std::shared_ptr<Asset> image, uint8_t multiSample) : Texture(Texture::Type::Texture2DMultisample) {
     SetComponent(image);
     SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -70,13 +81,22 @@ void Texture2D::_AllocateStorage() {
         GetSize().x,
         GetSize().y);*/
     glBindTexture((GLenum)GetType(), GetHandle());
-    glTexStorage2D(
-        (GLenum)GetType(),
-        GetMipMapNbr(),
-        (GLenum)GetPixelDescription().GetSizedFormat(),
-        GetSize().x,
-        GetSize().y
-    );
+    if (GetType() == Texture::Type::Texture2DMultisample)
+        glTexStorage2DMultisample(
+            (GLenum)GetType(),
+            GetMultisample(),
+            (GLenum)GetPixelDescription().GetSizedFormat(),
+            GetSize().x,
+            GetSize().y,
+            true);
+    else
+        glTexStorage2D(
+            (GLenum)GetType(),
+            GetMipMapNbr(),
+            (GLenum)GetPixelDescription().GetSizedFormat(),
+            GetSize().x,
+            GetSize().y
+        );
     glBindTexture((GLenum)GetType(), 0);
 }
 

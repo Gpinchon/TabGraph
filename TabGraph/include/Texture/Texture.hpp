@@ -22,7 +22,9 @@ public:
         Unknown = -1,
         Texture1D = GL_TEXTURE_1D,
         Texture2D = GL_TEXTURE_2D,
-        Texture3D = GL_TEXTURE_3D,
+        Texture2DMultisample = GL_TEXTURE_2D_MULTISAMPLE,
+        Texture3D = GL_TEXTURE_2D_ARRAY,
+        Texture3DMultisample = GL_TEXTURE_2D_MULTISAMPLE_ARRAY,
         TextureBuffer = GL_TEXTURE_BUFFER,
         TextureCubemap = GL_TEXTURE_CUBE_MAP
     };
@@ -30,6 +32,7 @@ public:
     READONLYPROPERTY(Texture::Type, Type, Texture::Type::Unknown);
     READONLYPROPERTY(Texture::Handle, Handle, 0);
     READONLYPROPERTY(bool, Loaded, false);
+    PROPERTY(uint8_t, Multisample, 0);
 
 public:
     Texture(Texture::Type target, Pixel::Description pixelDescription);
