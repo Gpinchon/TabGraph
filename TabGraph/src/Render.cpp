@@ -375,9 +375,9 @@ auto CompositingPass(std::shared_ptr<Framebuffer> opaqueBuffer, std::shared_ptr<
 
     opaqueBuffer->bind();
     compositing_shader->use();
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
+    glDisable(GL_DEPTH_TEST);
+    //glDepthMask(GL_TRUE);
+    //glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
     Render::Private::DisplayQuad()->Draw();
     opaqueBuffer->bind(false);
@@ -407,8 +407,6 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     geometryBuffer->bind();
     glDepthMask(GL_TRUE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    //glm::vec4 minusOne{ -1 };
-    //glClearBufferfv(GL_COLOR, 6, &minusOne[0]);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     Scene::Current()->Render(RenderPass::Geometry, RenderMod::RenderAll);
@@ -445,28 +443,30 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     auto zero = glm::vec4(0);
     auto one = glm::vec4(1);
 
-    transparentBuffer->bind();
-    glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glColorMaski(2, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glColorMaski(3, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glClearBufferfv(GL_COLOR, 0, &zero[0]);
-    glClearBufferfv(GL_COLOR, 1, &one[0]);
-    glClearBufferfv(GL_COLOR, 2, &zero[0]);
-    glClearBufferfv(GL_COLOR, 3, &zero[0]);
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
-    Scene::Current()->Render(RenderPass::Material, RenderMod::RenderTransparent);
-
     transparentBuffer1->bind();
     glClear(GL_DEPTH_BUFFER_BIT);
     transparentBuffer1->bind(false);
 
-    transparentBuffer->BlitTo(transparentBuffer1, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    //glEnable(GL_POLYGON_OFFSET_FILL);
-    //glPolygonOffset(2.0, 2.0);
+    auto fastTransparency{ Config::Get("FastTransparency", 1) };
 
+    if (!fastTransparency) {
+        transparentBuffer->bind();
+        glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glColorMaski(2, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glColorMaski(3, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glClearBufferfv(GL_COLOR, 0, &zero[0]);
+        glClearBufferfv(GL_COLOR, 1, &one[0]);
+        glClearBufferfv(GL_COLOR, 2, &zero[0]);
+        glClearBufferfv(GL_COLOR, 3, &zero[0]);
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+        Scene::Current()->Render(RenderPass::Material, RenderMod::RenderTransparent);
+        transparentBuffer->BlitTo(transparentBuffer1, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    }
+    else
+        opaqueBuffer->BlitTo(transparentBuffer1, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     transparentBuffer1->bind();
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -484,8 +484,16 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     glColorMaski(3, GL_FALSE, GL_FALSE, GL_TRUE, GL_FALSE);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
-    glDepthFunc(GL_GREATER);
     glEnable(GL_BLEND);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(-2.0, -2.0);
+    if (!fastTransparency) {
+        glDepthFunc(GL_GREATER);
+        
+    }
+    else {
+        glDepthFunc(GL_LESS);
+    }
     Scene::Current()->Render(RenderPass::Material, RenderMod::RenderTransparent);
     transparentBuffer1->bind(false);
     glDisable(GL_POLYGON_OFFSET_FILL);
@@ -504,13 +512,16 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     CompositingPass(opaqueBuffer, transparentBuffer1);
     opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
     opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
-    opaqueBuffer->attachement(0)->GenerateMipmap();
-    opaqueBuffer->attachement(1)->GenerateMipmap();
-    opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_BASE_LEVEL, 1);
-    opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_BASE_LEVEL, 1);
-    CompositingPass(opaqueBuffer, transparentBuffer);
-    opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
-    opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
+    if (!fastTransparency) {
+        opaqueBuffer->attachement(0)->GenerateMipmap();
+        opaqueBuffer->attachement(1)->GenerateMipmap();
+        opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_BASE_LEVEL, 1);
+        opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_BASE_LEVEL, 1);
+        CompositingPass(opaqueBuffer, transparentBuffer);
+        opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
+        opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
+    }
+    
 
     return opaqueBuffer;
 }

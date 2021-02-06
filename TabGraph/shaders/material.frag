@@ -92,25 +92,17 @@ void WritePixel(vec3 color, float alpha, float wsZ) {
 }
 #endif
 
-ivec2 offset[13] = ivec2[13](
-                                    ivec2(0, -2),
-                    ivec2(-1, -1),	ivec2(0, -1),	ivec2(1, -1),
-    ivec2(-2,  0),	ivec2(-1,  0),	ivec2(0,  0),	ivec2(1,  0),	ivec2(2,  0),
-                    ivec2(-1,  1),	ivec2(0,  1),	ivec2(1,  1),
-                                    ivec2(0,  2)
-);
-
 void Reconstruct() {
-#if OPACITYMODE == BLEND
-	float opaqueDepth = texture(OpaqueDepthTexture, ScreenTexCoord(), 0).r;
-#endif
 	vec4 diffuseSample = texture(DiffuseTexture, ScreenTexCoord());
 	vec4 reflectionSample = texture(ReflectionTexture, ScreenTexCoord());
 	vec4 normalSample = texture(NormalTexture, ScreenTexCoord());
 	vec4 AOSample = texture(AOTexture, ScreenTexCoord());
 	uint IDSample = texture(IDTexture, ScreenTexCoord()).r;
-
-
+#if OPACITYMODE == BLEND
+	float opaqueDepth = texture(OpaqueDepthTexture, ScreenTexCoord(), 0).r;
+	if (opaqueDepth < gl_FragCoord.z)
+		discard;
+#endif
 	vec3	V = normalize(Camera.Position - WorldPosition());
 	vec3	N = WorldNormal();
 	float	NdV = max(dot(N, V), 0);
@@ -120,8 +112,7 @@ void Reconstruct() {
 	vec2	brdf = BRDF(NdV, alphaSqrt);
 	vec3	fresnel = min(F0() * brdf.x + brdf.y, 1);
 	float	SpecularPower = exp2(10 * (1 - alphaSqrt) + 1);
-	
-	
+
 	vec3	envDiffuse = EnvironmentDiffuse(sampleLOD);
 	vec3	envReflection = EnvironmentReflection(fresnel, R, sampleLOD);
 	vec4	thisColor = vec4(envDiffuse * CDiff() * (1 - AO()) + envReflection, Opacity() + Luminance(envReflection));
@@ -130,14 +121,12 @@ void Reconstruct() {
 		vec3 diffuse = thisEnvDiffuse + diffuseSample.rgb * CDiff();
 		vec3 reflection = mix(envReflection, reflectionSample.xyz * fresnel, reflectionSample.a);
 		vec3 specular = diffuseSample.rgb * diffuseSample.a * fresnel;
-		float weight = max(dot(normalSample.xyz, WorldNormal()), 0);
+		float weight = clamp(dot(normalSample.xyz, WorldNormal()), 0, 1);
 		vec4 color = vec4(diffuse + reflection + specular, min(1, Opacity() + Luminance(specular + reflection)));
 		thisColor = color * weight + thisColor * (1 - weight);
 	}
 
 	#if OPACITYMODE == BLEND
-	if (opaqueDepth < gl_FragCoord.z)
-		discard;
 	out_2 = vec4((max(thisColor.rgb - 1, 0) + Emissive()) * thisColor.a, thisColor.a);
 	WritePixel((thisColor.rgb + Emissive()) * thisColor.a, thisColor.a);
 	float	backDepth = LinearDepth(opaqueDepth);
