@@ -259,6 +259,7 @@ void	FillFragmentData()
 	SetF0(vec3(0.04f));
 	SetAlpha(1.f);
 	SetWorldNormal(Input.WorldNormal);
+	SetDepth(gl_FragCoord.z);
 #if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_NORMAL)
 	mat3	tbn = tbn_matrix();
 #endif
