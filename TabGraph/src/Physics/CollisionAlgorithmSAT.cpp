@@ -12,10 +12,10 @@
 bool CheckAxis(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, const glm::vec3 axis, Collision& out)
 {
     auto collidees = Collision::CollideesPair(a, b);
-    auto& transformA = a->NextTransform();
-    auto& transformB = b->NextTransform();
-    auto projectA = a->GetCollider()->Project(axis, transformA.WorldTransformMatrix());
-    auto projectB = b->GetCollider()->Project(axis, transformB.WorldTransformMatrix());
+    auto& transformA = a->GetNextTransform();
+    auto& transformB = b->GetNextTransform();
+    auto projectA = a->GetCollider()->Project(axis, transformA);
+    auto projectB = b->GetCollider()->Project(axis, transformB);
     auto A = projectA.MinDot();
     auto B = projectA.MaxDot();
     auto C = projectB.MinDot();
@@ -44,12 +44,10 @@ bool CollisionAlgorithmSAT::Collides(const std::shared_ptr<RigidBody>& a, const 
     auto boundingElementB(b->GetComponent<BoundingElement>());
     if (boundingElementA == nullptr || boundingElementB == nullptr)
         return false;
-    auto& transformA = a->NextTransform();
-    auto& transformB = b->NextTransform();
-    auto matrixA(transformA.WorldTransformMatrix());
-    auto matrixB(transformB.WorldTransformMatrix());
-    auto axisA(boundingElementA->GetSATAxis(matrixA));
-    auto axisB(boundingElementB->GetSATAxis(matrixB));
+    auto& transformA = a->GetNextTransform();
+    auto& transformB = b->GetNextTransform();
+    auto axisA(boundingElementA->GetSATAxis(transformA));
+    auto axisB(boundingElementB->GetSATAxis(transformB));
 
     std::set<glm::vec3, compareVec> possibleAxis;
 

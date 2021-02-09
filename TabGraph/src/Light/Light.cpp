@@ -7,7 +7,6 @@
 
 #include "Light/Light.hpp"
 #include "Texture/Texture.hpp" // for Texture
-#include "Transform.hpp"
 
 auto g_lightNbr = 0u;
 

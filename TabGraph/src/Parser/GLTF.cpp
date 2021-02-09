@@ -23,7 +23,6 @@
 #include "Parser/InternalTools.hpp"
 #include "Scene/Scene.hpp"
 #include "Texture/Texture2D.hpp"
-#include "Transform.hpp"
 
 #include <fstream>
 #include <filesystem>

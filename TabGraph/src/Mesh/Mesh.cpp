@@ -19,7 +19,6 @@
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureBuffer.hpp"
-#include "Transform.hpp"
 
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/transform.hpp>
@@ -52,56 +51,16 @@ void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
 #include "Render.hpp"
 #include "Window.hpp"
 
-bool Mesh::DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod)
+#include "Config.hpp"
+
+bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTransform, const RenderPass& pass, RenderMod mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    std::shared_ptr<Transform> geometryTransform(HasComponentOfType<Transform>() ? GetComponent<Transform>() : nullptr);
-    auto finalTranformMatrix(transform->WorldTransformMatrix() * (geometryTransform ? geometryTransform->WorldTransformMatrix() : glm::mat4(1.f)));
+    auto transformMatrix = parentTransform * GetGeometryTransform();
+    auto prevTransform = parentPrevTransform * _prevTransformMatrix;
 
     bool ret = false;
-    auto normal_matrix = glm::inverseTranspose(glm::mat3(finalTranformMatrix));
-
-    /*Load();
-    std::shared_ptr<Shader> last_shader;
-    for (auto vg : Geometrys()) {
-        if (nullptr == vg)
-            continue;
-        auto material(GetMaterial(vg->MaterialIndex()));
-        if (nullptr == material)
-            continue;
-        auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
-        //if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
-        if (mod == RenderMod::RenderOpaque && isTransparent)
-            continue;
-        else if (mod == RenderMod::RenderTransparent && !isTransparent)
-            continue;
-        auto shader(material->GeometryShader());
-        if (nullptr == shader)
-            continue;
-        material->Bind();
-        if (last_shader != shader) {
-            shader->SetUniform("DrawID", unsigned(vg->GetId()));
-            shader->SetUniform("Matrix.Model", finalTranformMatrix);
-            shader->SetUniform("Matrix.Normal", normal_matrix);
-            shader->SetTexture("Joints", JointMatrices());
-            shader->SetUniform("Skinned", JointMatrices() != nullptr);
-            last_shader = shader;
-        }
-        shader->use();
-        ret |= vg->Draw();
-        shader->use(false);
-    }*/
-    return ret;
-}
-
-bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& pass, RenderMod mod)
-{
-    auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
-    std::shared_ptr<Transform> geometryTransform(HasComponentOfType<Transform>() ? GetComponent<Transform>() : nullptr);
-    _transformMatrix = (transform->WorldTransformMatrix() * (geometryTransform ? geometryTransform->WorldTransformMatrix() : glm::mat4(1.f)));
-
-    bool ret = false;
-    auto normal_matrix = glm::inverseTranspose(glm::mat3(_transformMatrix));
+    auto normal_matrix = glm::inverseTranspose(glm::mat3(transformMatrix));
 
     Load();
     std::shared_ptr<Shader> last_shader;
@@ -133,6 +92,8 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
         //std::cout << unsigned(vg->Id()) << std::endl;
         shader->SetUniform("DrawID", unsigned(vg->GetId()));
         if (last_shader != shader) {
+            if (isTransparent && Config::Get("FastTransparency", 1))
+                shader->SetDefine("FASTTRANSPARENCY");
             shader->SetUniform("WindowSize", Window::size());
             if (pass == RenderPass::Material) {
                 shader->SetTexture("DiffuseTexture", Render::LightBuffer()->attachement(0));
@@ -145,8 +106,8 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
                 if (material->GetOpacityMode() == Material::OpacityModeValue::Blend)
                     shader->SetTexture("OpaqueDepthTexture", Render::OpaqueBuffer()->depth());
             }
-            shader->SetUniform("PrevMatrix.Model", _prevTransformMatrix);
-            shader->SetUniform("Matrix.Model", _transformMatrix);
+            shader->SetUniform("PrevMatrix.Model", prevTransform);
+            shader->SetUniform("Matrix.Model", transformMatrix);
             shader->SetUniform("Matrix.Normal", normal_matrix);
             shader->SetTexture("Joints", skinned ? _jointMatrices.at(jointsIndex) : nullptr);
             shader->SetTexture("PrevJoints", skinned ? _jointMatrices.at(prevJointsIndex) : nullptr);
@@ -169,6 +130,11 @@ bool Mesh::Draw(const std::shared_ptr<Transform>& transform, const RenderPass& p
         _drawSync[jointsIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
     return ret;
+}
+
+bool Mesh::DrawDepth(const glm::mat4& parentTransform, const glm::mat4& parentLastTransform, RenderMod mod)
+{
+    return Draw(parentTransform, parentLastTransform, RenderPass::Geometry, mod);
 }
 
 bool Mesh::Drawable() const
@@ -251,14 +217,14 @@ void Mesh::Load()
     _SetLoaded(true);
 }
 
-void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
+void Mesh::UpdateSkin(const glm::mat4& parentTransform)
 {
     if (!HasComponentOfType<MeshSkin>())
         return;
     Load();
     _jointMatricesIndex = (_jointMatricesIndex + 1) % _jointMatrices.size();
     auto meshSkin{ GetComponent<MeshSkin>() };
-    auto invMatrix = glm::inverse(transform->GetParent()->WorldTransformMatrix());
+    auto invMatrix = glm::inverse(parentTransform);
     if (glIsSync(_drawSync.at(_jointMatricesIndex))) {
         while (glClientWaitSync(_drawSync.at(_jointMatricesIndex), 0, 1) == GL_TIMEOUT_EXPIRED) {}
         glDeleteSync(_drawSync.at(_jointMatricesIndex));
@@ -267,11 +233,11 @@ void Mesh::UpdateSkin(const std::shared_ptr<Transform>& transform)
     const auto joints = meshSkin->Joints();
     auto jointMatricesAccessor{ _jointMatrices.at(_jointMatricesIndex)->Accessor() };
     auto inverseBindMatrices{ meshSkin->InverseBindMatrices() };
-    /*jointMatricesAccessor->GetBufferView()->MapRange(
-        BufferView::MappingMode::WriteOnly,
-        jointMatricesAccessor->GetByteOffset(),
-        jointMatricesAccessor->GetCount() * jointMatricesAccessor->GetTypeOctetsSize()
-    );*/
+    //jointMatricesAccessor->GetBufferView()->MapRange(
+    //    BufferView::MappingMode::WriteOnly,
+    //    jointMatricesAccessor->GetByteOffset(),
+    //    jointMatricesAccessor->GetCount() * jointMatricesAccessor->GetTypeOctetsSize()
+    //);
     for (auto index = 0u; index < joints.size(); ++index) {
         const auto jointMatrixIndex{ index };
         const auto &joint(joints.at(index));

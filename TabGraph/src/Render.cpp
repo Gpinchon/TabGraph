@@ -17,7 +17,6 @@
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Cubemap.hpp"
 #include "Texture/Texture2D.hpp" // for Texture2D
-#include "Transform.hpp"
 #include "Window.hpp" // for Window
 //#include "brdfLUT.hpp" // for brdfLUT
 #include <GL/glew.h> // for GL_TEXTURE0, glDepthFunc, glClear, glDis...

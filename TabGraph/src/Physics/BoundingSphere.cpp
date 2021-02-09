@@ -2,7 +2,8 @@
 #include "Physics/IntersectFunctions.hpp"
 #include "Physics/Ray.hpp"
 
-#include <iostream>
+#include <glm/gtx/matrix_decompose.hpp>
+
 BoundingSphere::BoundingSphere(const glm::vec3& center, float radius)
     : BoundingElement(Sphere)
     , _center(center)

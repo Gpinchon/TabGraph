@@ -13,8 +13,8 @@
 class OrbitCamera : public Camera {
 public:
     OrbitCamera(const std::string&, float fov, float phi, float theta, float radius, Camera::Projection proj = Projection::Perspective);
-    std::shared_ptr<Transform> Target() const;
-    void SetTarget(const std::shared_ptr<Transform>& target);
+    std::shared_ptr<Node> Target() const;
+    void SetTarget(const std::shared_ptr<Node>& target);
     float Phi() const;
     void SetPhi(float);
     float Theta() const;
@@ -37,5 +37,5 @@ private:
     float _phi { 0 };
     float _theta { 0 };
     float _radius { 0 };
-    std::weak_ptr<Transform> _target;
+    std::weak_ptr<Node> _target;
 };

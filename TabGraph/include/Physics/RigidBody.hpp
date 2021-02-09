@@ -5,7 +5,7 @@
 #include "Common.hpp"
 #include "Component.hpp"
 #include "Tools/Tools.hpp"
-#include "Transform.hpp"
+#include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
 class Node;
@@ -15,6 +15,29 @@ class Node;
 ** The Transform Component is the transform that's to be applied after physics calculations 
 */
 class RigidBody : public Component {
+    PROPERTY(bool, Static, false);
+    PROPERTY(bool, ApplyGravity, true);
+    PROPERTY(float, Restitution, 1);
+    PROPERTY(glm::vec3, TotalTorque, 0);
+    PROPERTY(glm::vec3, TotalForce, 0);
+    PROPERTY(glm::vec3, GravityForce, Common::Gravity());
+    PROPERTY(glm::vec3, AngularFactor, 1);
+    READONLYPROPERTY(glm::vec3, AngularVelocity, 0);
+    PROPERTY(glm::vec3, LinearFactor, 1);
+    READONLYPROPERTY(glm::vec3, LinearVelocity, 0);
+    
+    READONLYPROPERTY(glm::vec3, InertiaLocal, 1);
+    READONLYPROPERTY(glm::vec3, InvInertiaLocal, 1)
+    READONLYPROPERTY(float, Mass, 1);
+    READONLYPROPERTY(float, InvMass, 1);
+
+    PROPERTY(glm::vec3, CurrentPosition, 0);
+    PROPERTY(glm::vec3, CurrentScale, 1);
+    PROPERTY(glm::quat, CurrentRotation, glm::vec3(1));
+
+    PROPERTY(glm::vec3, NextPosition, 0);
+    PROPERTY(glm::vec3, NextScale, 1);
+    PROPERTY(glm::quat, NextRotation, glm::vec3(1));
 public:
     RigidBody(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider);
     template <typename T, typename U,
@@ -22,43 +45,26 @@ public:
         typename = IsSharedPointerOfType<RigidBody, U>>
     static bool Collides(const T& a, const U& b);
 
+    glm::mat4 GetCurrentTransform() const;
+    glm::mat4 GetNextTransform() const;
+
     /** @arg impulse : the impulse in world space */
     void ApplyAngularImpulse(const glm::vec3& impulse);
     /** @arg impulse : the impulse in world space */
     void ApplyLinearImpulse(const glm::vec3& impulse);
 
-    float Restitution() const;
-    void SetRestitution(float restitution);
-    bool Static() const;
-    void SetStatic(bool isStatic);
     std::shared_ptr<Node> GetNode() const;
     void SetNode(std::shared_ptr<Node> node);
-    float Mass() const;
-    float InvMass() const;
+
     void SetMass(const float mass);
-    glm::vec3 LinearAcceleration() const;
+
+    void RigidBody::SetLinearVelocity(const glm::vec3 velocity);
+    void RigidBody::SetAngularVelocity(const glm::vec3 velocity);
+
     glm::quat AngularSpin() const;
-    glm::vec3 AngularFactor() const;
-    void SetAngularFactor(glm::vec3 angularFactor);
-    glm::vec3 LinearFactor() const;
-    void SetLinearFactor(glm::vec3 angularFactor);
     glm::mat3 InertiaTensor() const;
     glm::mat3 InvInertiaTensor() const;
-    glm::vec3 InvInertiaLocal() const;
-    glm::vec3 InertiaLocal() const;
     void SetInertiaLocal(glm::vec3 inertia);
-    glm::vec3 LinearVelocity() const;
-    void SetLinearVelocity(const glm::vec3 linearVelocity);
-    glm::vec3 AngularVelocity() const;
-    void SetAngularVelocity(const glm::vec3 angularVelocity);
-    glm::vec3 GravityForce() const;
-    void SetGravityForce(const glm::vec3 gravity);
-    glm::vec3 TotalForce() const;
-    void SetTotalForce(glm::vec3 totalForce);
-    glm::vec3 TotalTorque() const;
-    void SetTotalTorque(glm::vec3 totalTorque);
-    bool ApplyGravity() const;
-    void SetApplyGravity(const bool applyGravity);
     void ApplyTorque(glm::vec3 torque);
     /** Apply a force on the Node at a certain location, can generate torque */
     void ApplyLocalForce(glm::vec3 force, glm::vec3 forceLocation);
@@ -69,10 +75,7 @@ public:
     void ApplyWorldPush(glm::vec3 pushDirection, glm::vec3 pushLocation, glm::vec3 originalPosition);
     void IntegrateVelocities(float step);
     void SetCollider(const std::shared_ptr<BoundingElement>& collider);
-    auto& CurrentTransform() { return _currentTransform; };
-    auto& CurrentTransform() const { return _currentTransform; };
-    auto& NextTransform() { return _nextTransform; }
-    auto& NextTransform() const { return _nextTransform; }
+
     std::shared_ptr<BoundingElement> GetCollider() const;
     Intersection Collides(const std::shared_ptr<RigidBody>& objectB);
 
@@ -80,22 +83,10 @@ private:
     virtual std::shared_ptr<Component> _Clone() override {
         return Component::Create<RigidBody>(*this);
     }
-    Transform _currentTransform;
-    Transform _nextTransform;
-    float _mass { 0 };
-    float _invMass { 0 };
-    float _restitution { 1 };
-    glm::vec3 _linearVelocity { 0 };
-    glm::vec3 _angularVelocity { 0 };
-    glm::vec3 _gravity { Common::Gravity() };
     glm::vec3 _totalForce { 0 };
     glm::vec3 _totalTorque { 0 };
-    glm::vec3 _angularFactor { 1 };
+
     glm::vec3 _linearFactor { 1 };
-    glm::vec3 _inertiaLocal { 1 };
-    glm::vec3 _invInertiaLocal { 1 };
-    bool _applyGravity { false };
-    bool _static { false };
 };
 
 /*

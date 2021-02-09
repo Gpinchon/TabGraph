@@ -14,7 +14,6 @@
 #include "Parser/FBX/FBXObject.hpp"
 #include "Parser/FBX/FBXProperty.hpp"
 #include "Scene/Scene.hpp"
-#include "Transform.hpp"
 #include <glm/glm.hpp>
 #include <iostream>
 #include <memory>

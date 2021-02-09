@@ -14,7 +14,6 @@
 #include "Node.hpp"
 #include "Physics/PhysicsEngine.hpp"
 #include "Physics/RigidBody.hpp"
-#include "Transform.hpp"
 #include "Environment.hpp"
 
 #include <algorithm>
@@ -66,13 +65,13 @@ void Scene::Add(std::shared_ptr<Animation> animation)
 void Scene::Render(const RenderPass&pass, const RenderMod& mode)
 {
     for (auto node : Scene::Current()->GetComponents<Node>())
-        node->Draw(pass, mode, true);
+        node->Draw(std::static_pointer_cast<Scene>(shared_from_this()), pass, mode, true);
 }
 
 void Scene::RenderDepth(const RenderMod& mode)
 {
     for (auto node : Scene::Current()->GetComponents<Node>())
-        node->DrawDepth(mode, true);
+        node->DrawDepth(std::static_pointer_cast<Scene>(shared_from_this()), mode, true);
 }
 
 std::shared_ptr<Scene>& CurrentScene()

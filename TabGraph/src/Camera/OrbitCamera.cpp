@@ -8,7 +8,7 @@
 #include "Camera/OrbitCamera.hpp"
 #include "Engine.hpp"
 #include "Tools/Tools.hpp"
-#include "Transform.hpp"
+#include "Node.hpp"
 #include "Render.hpp"
 
 OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
@@ -21,7 +21,7 @@ OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float 
     _Update(0);
 }
 
-std::shared_ptr<Transform> OrbitCamera::Target() const
+std::shared_ptr<Node> OrbitCamera::Target() const
 {
     return _target.lock();
 }
@@ -72,7 +72,7 @@ void OrbitCamera::SetRadius(float radius)
         _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
 }
 
-void OrbitCamera::SetTarget(const std::shared_ptr<Transform>& target)
+void OrbitCamera::SetTarget(const std::shared_ptr<Node>& target)
 {
     _target = target;
     if (!_updateSlot.Connected())

@@ -115,7 +115,6 @@ inline Intersection IntersectFunction(const BoundingMesh &a, const BoundingMesh 
 */
 
 #include "Physics/RigidBody.hpp"
-#include "Transform.hpp"
 
 /*auto Projection(const std::shared_ptr<Geometry> &geometry, const glm::mat4 &transform, glm::vec3 normal)
 {

@@ -26,12 +26,14 @@ class BufferAccessor;
 
 class Mesh : public Component {
     READONLYPROPERTY(bool, Loaded, false);
+    PROPERTY(glm::mat4, GeometryTransform, 1);
 public:
     Mesh();
     Mesh(const std::string& name);
     Mesh(const Mesh& other);
-    bool Draw(const std::shared_ptr<Transform>& transform, const RenderPass& pass, RenderMod mod = RenderMod::RenderAll);
-    bool DrawDepth(const std::shared_ptr<Transform>& transform, RenderMod mod = RenderMod::RenderAll);
+    bool Draw(const glm::mat4& parentTransform, const glm::mat4& parentLastTransform, const RenderPass& pass, RenderMod mod = RenderMod::RenderAll);
+    //bool Draw(const std::shared_ptr<Node>& transform, const RenderPass& pass, RenderMod mod = RenderMod::RenderAll);
+    bool DrawDepth(const glm::mat4& parentTransform, const glm::mat4& parentLastTransform, RenderMod mod = RenderMod::RenderAll);
     bool Drawable() const;
     void center();
     void set_cull_mod(GLenum);
@@ -58,7 +60,7 @@ public:
 
     virtual void Load();
 
-    virtual void UpdateSkin(const std::shared_ptr<Transform>& transform);
+    virtual void UpdateSkin(const glm::mat4& parentTransform);
 
 private:
     virtual std::shared_ptr<Component> _Clone() override
@@ -69,10 +71,10 @@ private:
     }
     virtual void _UpdateGPU(float /*delta*/)
     {
-        _prevTransformMatrix = _transformMatrix;
+        _prevTransformMatrix = GetGeometryTransform();
     };
     GLenum _cull_mod { GL_BACK };
-    glm::mat4 _transformMatrix { 1 };
+    //glm::mat4 _transformMatrix { 1 };
     glm::mat4 _prevTransformMatrix { 1 };
     std::array<GLsync, 2> _drawSync{ nullptr };
     std::array<std::shared_ptr<TextureBuffer>, 2> _jointMatrices{ nullptr };

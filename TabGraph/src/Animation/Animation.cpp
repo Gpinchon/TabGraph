@@ -9,7 +9,6 @@
 #include "Debug.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Node.hpp"
-#include "Transform.hpp"
 #include "Engine.hpp"
 
 #include <glm/common.hpp>
@@ -23,7 +22,7 @@ Animation::Animation()
     animationNbr++;
 }
 
-Animation::Animation(const Animation& other)
+Animation::Animation(const Animation& other) : Component(other)
 {
     _interpolators = other._interpolators;
     _channels = other._channels;
@@ -31,7 +30,6 @@ Animation::Animation(const Animation& other)
     _playing = other._playing;
     _repeat = other._repeat;
     _currentTime = other._currentTime;
-    _advanceSlot = other._advanceSlot;
     if (_playing)
         _advanceSlot = Engine::OnFixedUpdate().ConnectMember(this, &Animation::Advance);
 }
@@ -78,8 +76,10 @@ void Animation::_OnFixedUpdate(float delta)
 
 void Animation::Advance(float delta)
 {
-    if (!Playing())
+    if (!Playing()) {
+        throw std::runtime_error("How did we get here ?!");
         return;
+    }
     _currentTime += delta;
     bool animationPlayed(false);
     for (auto index = 0u; index < _channels.size(); ++index) {
@@ -159,15 +159,10 @@ void Animation::Advance(float delta)
 void Animation::Play()
 {
     if (!Playing()) {
-        /*for (auto sampler : _samplers) {
-            sampler.Timings()->GetBufferView()->GetBuffer()->Load();
-            sampler.KeyFrames()->GetBufferView()->GetBuffer()->Load();
-        }*/
         _currentTime = 0;
         _animationDelta = 0;
         _playing = true;
         _advanceSlot = Engine::OnFixedUpdate().ConnectMember(this, &Animation::_OnFixedUpdate);
-        //SetNeedsFixedUpdateCPU(true);
     }
 }
 

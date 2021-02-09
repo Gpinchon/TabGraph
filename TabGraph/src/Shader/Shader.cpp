@@ -13,7 +13,6 @@
 #include "Shader/GLUniformHelper.hpp"
 #include "Shader/ShaderExtension.hpp"
 #include "Texture/Texture.hpp" // for Texture
-#include "Transform.hpp"
 #include "Window.hpp"
 //#include <bits/exception.h> // for exception
 #include <stdexcept> // for runtime_error

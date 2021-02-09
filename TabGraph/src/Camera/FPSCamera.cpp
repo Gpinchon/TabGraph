@@ -6,7 +6,6 @@
 */
 
 #include "Camera/FPSCamera.hpp"
-#include "Transform.hpp"
 #include <memory>
 
 FPSCamera::FPSCamera(const std::string& name, float fov, Camera::Projection proj)

@@ -4,40 +4,48 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2020-08-06 19:57:04
 */
+
 #define SIMD_EPSILON 0.0001
 
 #include "Physics/CollisionAlgorithmGJKRaycast.hpp"
 #include "Physics/Collision.hpp"
 #include "Physics/RigidBody.hpp"
 #include "Physics/SimplexSolver.hpp"
+
+#include <glm/gtx/transform.hpp>
 #include <glm/gtx/norm.hpp>
+
+glm::mat4 CreateTransformMatrix(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
+{
+    return glm::translate(position) * glm::mat4(rotation) * glm::scale(scale);
+}
 
 bool CollisionAlgorithmGJKRaycast::Collides(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, Collision& out)
 {
     auto colliderA(a->GetCollider());
     auto colliderB(b->GetCollider());
-    auto fromA = a->CurrentTransform();
-    auto toA = a->NextTransform();
-    auto fromB = b->CurrentTransform();
-    auto toB = b->NextTransform();
 
     SimplexSolver simplex;
 
     glm::vec3 linVelA, linVelB;
-    linVelA = toA.WorldPosition() - fromA.WorldPosition();
-    linVelB = toB.WorldPosition() - fromB.WorldPosition();
+    linVelA = a->GetNextPosition() - a->GetCurrentPosition();
+    linVelB = b->GetNextPosition() - b->GetCurrentPosition();
 
     float lambda = float(0.);
 
-    Transform interpolatedTransA = fromA;
-    Transform interpolatedTransB = fromB;
+    auto interpolatedPositionA{ a->GetCurrentPosition() };
+    auto interpolatedRotationA{ a->GetCurrentRotation() };
+    auto interpolatedScaleA{ a->GetCurrentScale() };
+    auto interpolatedPositionB{ b->GetCurrentPosition() };
+    auto interpolatedRotationB{ b->GetCurrentRotation() };
+    auto interpolatedScaleB{ b->GetCurrentScale() };
 
     ///take relative motion
     glm::vec3 r = linVelA - linVelB;
     glm::vec3 v;
 
-    glm::vec3 supVertexA = colliderA->Project(-r, fromA.WorldTransformMatrix()).Max();
-    glm::vec3 supVertexB = colliderB->Project(r, fromB.WorldTransformMatrix()).Max();
+    glm::vec3 supVertexA = colliderA->Project(-r, a->GetCurrentTransform()).Max();
+    glm::vec3 supVertexB = colliderB->Project(r, b->GetCurrentTransform()).Max();
     v = supVertexA - supVertexB;
     int maxIter = 32;
 
@@ -53,8 +61,8 @@ bool CollisionAlgorithmGJKRaycast::Collides(const std::shared_ptr<RigidBody>& a,
     float VdotR;
 
     while ((dist2 > epsilon) && maxIter--) {
-        supVertexA = colliderA->Project(-v, interpolatedTransA.WorldTransformMatrix()).Max();
-        supVertexB = colliderB->Project(v, interpolatedTransB.WorldTransformMatrix()).Max();
+        supVertexA = colliderA->Project(-v, CreateTransformMatrix(interpolatedPositionA, interpolatedRotationA, interpolatedScaleA)).Max();
+        supVertexB = colliderB->Project(v, CreateTransformMatrix(interpolatedPositionB, interpolatedRotationB, interpolatedScaleB)).Max();
         w = supVertexA - supVertexB;
 
         float VdotW = dot(v, w);
@@ -73,10 +81,12 @@ bool CollisionAlgorithmGJKRaycast::Collides(const std::shared_ptr<RigidBody>& a,
                 //interpolate to next lambda
                 //  x = s + lambda * r;
 
-                interpolatedTransA.SetPosition(glm::mix(fromA.WorldPosition(), toA.WorldPosition(), lambda));
-                interpolatedTransB.SetPosition(glm::mix(fromB.WorldPosition(), toB.WorldPosition(), lambda));
-                interpolatedTransA.SetRotation(glm::mix(fromA.WorldRotation(), toA.WorldRotation(), lambda));
-                interpolatedTransB.SetRotation(glm::mix(fromB.WorldRotation(), toB.WorldRotation(), lambda));
+                interpolatedPositionA = glm::mix(a->GetCurrentPosition(), a->GetNextPosition(), lambda);
+                interpolatedRotationA = glm::mix(a->GetCurrentRotation(), a->GetNextRotation(), lambda);
+                interpolatedScaleA = glm::mix(a->GetCurrentScale(), a->GetNextScale(), lambda);
+                interpolatedPositionB = glm::mix(b->GetCurrentPosition(), b->GetNextPosition(), lambda);
+                interpolatedRotationB = glm::mix(b->GetCurrentRotation(), b->GetNextRotation(), lambda);
+                interpolatedScaleB = glm::mix(b->GetCurrentScale(), b->GetNextScale(), lambda);
                 //simplex.reset();
                 //check next line
                 w = supVertexA - supVertexB;

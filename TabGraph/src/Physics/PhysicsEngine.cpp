@@ -32,15 +32,15 @@ float lastStep = 0.f;
 void SimulateBody(std::shared_ptr<RigidBody> rigidBody, float step)
 {
     rigidBody->IntegrateVelocities(step);
-    auto& currTransform(rigidBody->CurrentTransform());
-    auto& nextTransform(rigidBody->NextTransform());
+    auto& currTransform(rigidBody->GetCurrentTransform());
+    auto& nextTransform(rigidBody->GetNextTransform());
     auto node(rigidBody->GetNode());
     if (node != nullptr) {
-        currTransform.SetPosition(node->WorldPosition());
-        currTransform.SetRotation(node->WorldRotation());
+        rigidBody->SetCurrentPosition(node->WorldPosition());
+        rigidBody->SetCurrentRotation(node->WorldRotation());
     }
-    nextTransform.SetPosition(currTransform.GetPosition() + rigidBody->LinearVelocity() * step);
-    nextTransform.SetRotation(normalize(currTransform.GetRotation() + step * 0.5f * rigidBody->AngularSpin() * currTransform.GetRotation()));
+    rigidBody->SetNextPosition(rigidBody->GetCurrentPosition() + rigidBody->GetLinearVelocity() * step);
+    rigidBody->SetNextRotation(normalize(rigidBody->GetCurrentRotation() + step * 0.5f * rigidBody->AngularSpin() * rigidBody->GetCurrentRotation()));
 }
 
 void PhysicsEngine::Simulate(float step)
@@ -66,8 +66,8 @@ void SignalCollision(const Collision& collision)
 
 auto PointVelocity(std::shared_ptr<RigidBody> a, const glm::vec3& p)
 {
-    auto r = p - a->NextTransform().WorldPosition();
-    return a->LinearVelocity() + cross(a->AngularVelocity(), r);
+    auto r = p - a->GetNextPosition();
+    return a->GetLinearVelocity() + cross(a->GetAngularVelocity(), r);
 }
 
 enum CollisionType {
@@ -102,11 +102,11 @@ auto colliding(const Collision& c)
 
 auto computeImpulseDenominator(std::shared_ptr<RigidBody> rigidBody, const glm::vec3& pos, const glm::vec3& normal)
 {
-    auto r0 = pos - rigidBody->NextTransform().WorldPosition();
+    auto r0 = pos - rigidBody->GetNextPosition();
     auto c0 = cross(r0, normal);
     auto vec = cross(c0 * rigidBody->InvInertiaTensor(), r0);
 
-    return rigidBody->InvMass() + dot(normal, vec);
+    return rigidBody->GetInvMass() + dot(normal, vec);
 }
 
 std::map<std::shared_ptr<RigidBody>, std::pair<glm::vec3, glm::vec3>> totalImpulses;
@@ -122,27 +122,27 @@ void HandleCollision(Collision collision)
     ////std::cout << a->Name() << ' ' << b->Name() << '\n';
     ////std::cout << "n : " << collision.Normal().x << ' ' << collision.Normal().y << ' ' << collision.Normal().z << '\n';
     ////std::cout << "p : " << collision.Position().x << ' ' << collision.Position().y << ' ' << collision.Position().z << '\n';
-    auto& transformA = a->NextTransform();
-    auto& transformB = b->NextTransform();
+    auto& transformA = a->GetNextTransform();
+    auto& transformB = b->GetNextTransform();
 
     auto n = collision.Normal();
-    auto e = std::min(a->Restitution(), b->Restitution());
+    auto e = std::min(a->GetRestitution(), b->GetRestitution());
 
     auto I1 = a->InvInertiaTensor();
     auto I2 = b->InvInertiaTensor();
-    auto w1 = a->AngularVelocity();
-    auto w2 = b->AngularVelocity();
-    auto v1 = a->LinearVelocity();
-    auto v2 = b->LinearVelocity();
-    auto r1 = collision.Position() - transformA.WorldPosition();
-    auto r2 = collision.Position() - transformB.WorldPosition();
+    auto w1 = a->GetAngularVelocity();
+    auto w2 = b->GetAngularVelocity();
+    auto v1 = a->GetLinearVelocity();
+    auto v2 = b->GetLinearVelocity();
+    auto r1 = collision.Position() - a->GetNextPosition();
+    auto r2 = collision.Position() - b->GetNextPosition();
     auto vp1 = v1 + cross(w1, r1);
     auto vp2 = v2 + cross(w2, r2);
     auto vr = vp2 - vp1;
     auto ri1 = cross(I1 * cross(r1, n), r1);
     auto ri2 = cross(I2 * cross(r2, n), r2);
-    auto im1 = a->InvMass();
-    auto im2 = b->InvMass();
+    auto im1 = a->GetInvMass();
+    auto im2 = b->GetInvMass();
     auto ja = -(1.f + e) * dot(vr, n);
     auto jb = im1 + im2 + dot(ri1 + ri2, n);
     auto j = ja / jb;
@@ -170,7 +170,7 @@ void HandleCollision(Collision collision)
 
     //auto jr = j * n;
 
-    if (!a->Static()) {
+    if (!a->GetStatic()) {
         //a->ApplyLocalPush(jr, r1);
         auto v = v1 - j * im1 * n;
         auto w = w1 - j * I1 * cross(r1, n);
@@ -180,7 +180,7 @@ void HandleCollision(Collision collision)
         //totalImpulses[a].second += -j * I1 * cross(r1, n);
     }
 
-    if (!b->Static()) {
+    if (!b->GetStatic()) {
         //b->ApplyLocalPush(-jr, r2);
         auto v = v2 + j * im2 * n;
         auto w = w2 + j * I2 * cross(r2, n);
@@ -308,8 +308,8 @@ void HandleCollisions()
         }
         for (auto impulse : totalImpulses) {
             auto a = impulse.first;
-            a->SetLinearVelocity(a->LinearVelocity() + impulse.second.first);
-            a->SetAngularVelocity(a->AngularFactor() + impulse.second.second);
+            a->SetLinearVelocity(a->GetLinearVelocity() + impulse.second.first);
+            a->SetAngularVelocity(a->GetAngularFactor() + impulse.second.second);
             //a->NextTransform().SetPosition(a->NextTransform().Position() + a->LinearVelocity() * lastStep);
             //a->NextTransform().SetRotation(normalize(a->NextTransform().Rotation() + lastStep * 0.5f * a->AngularSpin() * a->NextTransform().Rotation()));
             //a->IntegrateVelocities(lastStep);
@@ -355,23 +355,23 @@ void PhysicsEngine::CheckCollision()
                 _collideesPairs.push_back(pair);
                 //SignalCollision(out);
                 auto finalFraction = collisionAlgorithm.GetFraction() - 0.1f;
-                if (!a->Static()) {
+                if (!a->GetStatic()) {
                     /*auto pos = mix(a->CurrentTransform().WorldPosition(), a->NextTransform().WorldPosition(), collisionAlgorithm.GetFraction());
                     auto dist = distance(pos, a->NextTransform().WorldPosition());
                     a->NextTransform().SetPosition(pos + out.Normal() * dist);*/
                     //auto dir = a->NextTransform().WorldPosition() - a->CurrentTransform().WorldPosition();
                     //a->NextTransform().SetPosition(a->CurrentTransform().WorldPosition() + dir * finalFraction);
-                    a->NextTransform().SetPosition(mix(a->CurrentTransform().WorldPosition(), a->NextTransform().WorldPosition(), finalFraction));
-                    a->NextTransform().SetRotation(mix(a->CurrentTransform().WorldRotation(), a->NextTransform().WorldRotation(), finalFraction));
+                    a->SetNextPosition(mix(a->GetCurrentPosition(), a->GetNextPosition(), finalFraction));
+                    a->SetNextRotation(mix(a->GetCurrentRotation(), a->GetNextRotation(), finalFraction));
                 }
-                if (!b->Static()) {
+                if (!b->GetStatic()) {
                     /*auto pos = mix(b->CurrentTransform().WorldPosition(), b->NextTransform().WorldPosition(), collisionAlgorithm.GetFraction());
                     auto dist = distance(pos, b->NextTransform().WorldPosition());
                     b->NextTransform().SetPosition(pos - out.Normal() * dist);*/
                     //auto dir = b->NextTransform().WorldPosition() - b->CurrentTransform().WorldPosition();
                     //b->NextTransform().SetPosition(b->CurrentTransform().WorldPosition() + dir * finalFraction);
-                    b->NextTransform().SetPosition(mix(b->CurrentTransform().WorldPosition(), b->NextTransform().WorldPosition(), finalFraction));
-                    b->NextTransform().SetRotation(mix(b->CurrentTransform().WorldRotation(), b->NextTransform().WorldRotation(), finalFraction));
+                    b->SetNextPosition(mix(b->GetCurrentPosition(), b->GetNextPosition(), finalFraction));
+                    b->SetNextRotation(mix(b->GetCurrentRotation(), b->GetNextRotation(), finalFraction));
                 }
                 HandleCollision(out);
                 CheckCollision();
@@ -405,8 +405,8 @@ void PhysicsEngine::CheckCollision()
     //HandleCollisions();
     //Simulate(lastStep);
     for (auto& rigidBody : _rigidBodies) {
-        rigidBody->GetComponent<Node>()->SetPosition(rigidBody->NextTransform().WorldPosition());
-        rigidBody->GetComponent<Node>()->SetRotation(normalize(rigidBody->NextTransform().WorldRotation()));
+        rigidBody->GetComponent<Node>()->SetPosition(rigidBody->GetNextPosition());
+        rigidBody->GetComponent<Node>()->SetRotation(normalize(rigidBody->GetNextRotation()));
     }
     _collideesPairs.clear();
 }
