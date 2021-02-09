@@ -8,9 +8,8 @@
 #include "Mesh/Mesh.hpp"
 #include "Mesh/SphereMesh.hpp"
 #include "Material/Material.hpp"
-#include "Assets/AssetsParser.hpp"
+#include "Assets/Asset.hpp"
 #include "Engine.hpp"
-#include "Transform.hpp"
 #include "Animation/Animation.hpp"
 
 #include "CrispyWall.hpp"
@@ -23,13 +22,20 @@ CrispyWall::CrispyWall()
     _height = 0;
 }
 
-std::shared_ptr<CrispyWall> CrispyWall::Create()
-{
+auto CreateCrispyWallAsset() {
     auto wall = Component::Create<CrispyWall>();
-    static auto crispyWallMeshes = AssetsParser::Parse(Engine::ResourcePath() / "models/crispyWall/crispyWall.gltf")->GetComponentsInChildren<Mesh>();
+    auto bombAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/crispyWall/crispyWall.gltf") };
+    bombAsset->Load();
+    auto crispyWallMeshes = bombAsset->GetComponentsInChildren<Mesh>();
     for (const auto& mesh : crispyWallMeshes)
         wall->AddComponent(mesh);
-    //wall->AddChild(std::static_pointer_cast<Node>(crispyWallMesh->Clone()));
+    return wall;
+}
+
+std::shared_ptr<CrispyWall> CrispyWall::Create()
+{
+    static auto crispyWallAsset{ CreateCrispyWallAsset() };
+    auto wall{ std::static_pointer_cast<CrispyWall>(crispyWallAsset->Clone()) };
     wall->SetScale(glm::vec3(0.01));
     return wall;
 }

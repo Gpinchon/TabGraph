@@ -7,13 +7,12 @@
 
 #include "Engine.hpp"
 #include "Animation/Animation.hpp"
-#include "Assets/AssetsParser.hpp"
+#include "Assets/Asset.hpp"
 #include "Camera/Camera.hpp"
 #include "Event/Keyboard.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/CapsuleMesh.hpp"
 #include "Mesh/Mesh.hpp"
-#include "Transform.hpp"
 #include "Scene/Scene.hpp"
 
 #include "Bomb.hpp"
@@ -36,26 +35,25 @@ Player::Player(const std::string& name, const glm::vec3& color)
     Keyboard::OnKeyDown(SDL_SCANCODE_SPACE).ConnectMember(this, &Player::DropBomb);
 }
 
-auto PlayerAsset()
+auto CreatePlayerAsset()
 {
-    static auto playerAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomberman/bomberman.gltf");
-    return playerAsset->Clone();
+    auto playerAsset = Component::Create<Asset>(Engine::ResourcePath() / "models/bomberman/bomberman.gltf");
+    playerAsset->Load();
+    playerAsset->GetComponent<Scene>()->GetComponent<Node>()->SetScale(glm::vec3(0.01f));
+    return playerAsset;
 }
 
 std::shared_ptr<Player> Player::Create(const glm::vec3& color)
 {
-    auto player = Component::Create<Player>("Player1", color);
-    auto playerAsset = PlayerAsset();
-    auto playerNode = playerAsset->GetComponent<Scene>()->GetComponent<Node>();
-    //for (auto &node : playerAsset->GetComponents<Node>())
-    //    player->AddComponent(node);
-    playerNode->SetScale(glm::vec3(0.01f));
-    playerAsset->GetComponentInChildrenByName<Material>("White")->SetDiffuse(color);
+    auto player = Component::Create<Player>("Player1", glm::vec3(1));
+    static auto playerAsset = CreatePlayerAsset();
+    auto playerAssetClone = playerAsset->GetComponent<Scene>()->Clone();
+    auto playerNode = playerAssetClone->GetComponent<Node>();
     player->AddChild(playerNode);
-    //player->AddComponent(playerNode);
-    //playerNode->SetParent(player);
-    for (auto &animation : playerAsset->GetComponents<Animation>())
+    for (auto& animation : playerAssetClone->GetComponents<Animation>())
         player->AddAnimation(animation);
+    player->PlayAnimation("idle", true);
+    player->GetComponentInChildrenByName<Material>("White")->SetDiffuse(color);
     return player;
 }
 
@@ -135,14 +133,20 @@ void Player::Move(const glm::vec2& direction, float delta)
     //Game::CurrentLevel()->SetGameEntity(Position(), nullptr);
     LookAt(Position() - direction);
     SetPosition(newPlayerPosition);
-    PlayAnimation("Armature|run", true);
+    PlayAnimation("run", true);
     //Game::CurrentLevel()->SetGameEntity(newPlayerPosition, std::static_pointer_cast<Player>(shared_from_this()));
 }
 
+#include "Render.hpp"
+
 void Player::Die()
 {
-    PlayAnimation("Armature|death", true);
-    std::cout << "DED" << std::endl;
+    if (GetComponentByName<Animation>("death")->Playing()) {
+        std::cout << "Already DED" << std::endl;
+    }
+    PlayAnimation("death", true);
+
+    std::cout << "DED on Frame "<< Render::FrameNumber() << std::endl;
 }
 
 void Player::_FixedUpdateCPU(float delta)
@@ -164,7 +168,7 @@ void Player::_FixedUpdateCPU(float delta)
         Move(input * (forward + right), delta);
     }
     else
-        PlayAnimation("Armature|idle", true);
+        PlayAnimation("idle", true);
     bool collides;
     do {
         collides = false;
@@ -185,7 +189,7 @@ void Player::_FixedUpdateCPU(float delta)
                 if (intersects) {
                     if (entity->Type() == "Flame") {
                         Die();
-                        continue;
+                        return;
                     }
                     SetPosition(Position() - contact.normal * std::max(contact.penetration, 0.001f));
                     collides = true;

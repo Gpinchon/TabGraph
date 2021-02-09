@@ -9,7 +9,6 @@
 
 //#include "Physics/RigidBody.hpp"
 #include "Animation/Animation.hpp"
-#include "Transform.hpp"
 
 GameEntity::GameEntity(const GameEntity& entity) : Node(entity),
     _size(entity._size), _height(entity._height), _type(entity._type), _animations(entity._animations), _currentAnimation(entity._currentAnimation)
@@ -46,7 +45,7 @@ float GameEntity::Height() const
 void GameEntity::SetPosition(const glm::vec2& position)
 {
     auto pos3D = glm::vec3(position.x, Height() / 2.f, position.y);
-    Transform::SetPosition(pos3D);
+    Node::SetPosition(pos3D);
     //GetComponent<RigidBody>()->CurrentTransform().SetPosition(pos3D);
     //GetComponent<RigidBody>()->NextTransform().SetPosition(pos3D);
 }
@@ -54,7 +53,7 @@ void GameEntity::SetPosition(const glm::vec2& position)
 void GameEntity::LookAt(const glm::vec2& position)
 {
     auto pos3D = glm::vec3(position.x, Height() / 2.f, position.y);
-    Transform::LookAt(pos3D);
+    Node::LookAt(pos3D);
 }
 
 glm::vec2 GameEntity::Position() const
@@ -70,7 +69,7 @@ void GameEntity::Die()
 void GameEntity::AddAnimation(const std::shared_ptr<Animation> &animation)
 {
     AddComponent(animation);
-    _animations[animation->Name()] = animation;
+    _animations[animation->GetName()] = animation;
 }
 
 void GameEntity::PlayAnimation(const std::string& name, bool repeat)
@@ -81,7 +80,6 @@ void GameEntity::PlayAnimation(const std::string& name, bool repeat)
         animation->Play();
         auto currentAnimation = _currentAnimation.lock();
         if (currentAnimation != nullptr) {
-            currentAnimation->Reset();
             currentAnimation->Stop();
         }
         _currentAnimation = animation;

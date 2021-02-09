@@ -1851,7 +1851,7 @@
                     }
                 }
             ],
-            "name" : "Armature|dance",
+            "name" : "dance",
             "samplers" : [
                 {
                     "input" : 79,
@@ -2974,7 +2974,7 @@
                     }
                 }
             ],
-            "name" : "Armature|death",
+            "name" : "death",
             "samplers" : [
                 {
                     "input" : 173,
@@ -4097,7 +4097,7 @@
                     }
                 }
             ],
-            "name" : "Armature|drop",
+            "name" : "drop",
             "samplers" : [
                 {
                     "input" : 267,
@@ -5220,7 +5220,7 @@
                     }
                 }
             ],
-            "name" : "Armature|floating",
+            "name" : "floating",
             "samplers" : [
                 {
                     "input" : 361,
@@ -6343,7 +6343,7 @@
                     }
                 }
             ],
-            "name" : "Armature|idle",
+            "name" : "idle",
             "samplers" : [
                 {
                     "input" : 455,
@@ -7466,7 +7466,7 @@
                     }
                 }
             ],
-            "name" : "Armature|loose",
+            "name" : "loose",
             "samplers" : [
                 {
                     "input" : 549,
@@ -8589,7 +8589,7 @@
                     }
                 }
             ],
-            "name" : "Armature|run",
+            "name" : "run",
             "samplers" : [
                 {
                     "input" : 643,

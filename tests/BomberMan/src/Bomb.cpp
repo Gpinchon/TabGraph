@@ -8,9 +8,8 @@
 #include "Mesh/Mesh.hpp"
 #include "Mesh/SphereMesh.hpp"
 #include "Material/Material.hpp"
-#include "Assets/AssetsParser.hpp"
+#include "Assets/Asset.hpp"
 #include "Engine.hpp"
-#include "Transform.hpp"
 #include "Animation/Animation.hpp"
 
 #include <chrono>
@@ -25,6 +24,7 @@ Bomb::Bomb()
     , _spawnTime(std::chrono::high_resolution_clock::now())
 {
     _height = 0;
+    Engine::OnFixedUpdate().ConnectMember(this, &Bomb::_FixedUpdateCPU);
 }
 
 Bomb::Bomb(const Bomb& bomb) : GameEntity(bomb)
@@ -36,29 +36,27 @@ Bomb::Bomb(const Bomb& bomb) : GameEntity(bomb)
     Engine::OnFixedUpdate().ConnectMember(this, &Bomb::_FixedUpdateCPU);
 }
 
-auto CreateBomb() {
-    auto bomb = Component::Create<Bomb>();
-    auto bombAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/bomb/bomb.gltf");
-    auto bombNode = bombAsset->GetComponentByName<Node>("Bomb");
-    //for (auto& node : bombAsset->GetComponents<Node>())
-    //    bomb->AddComponent(node);
-    //bombNode->SetParent(bomb);
-    //bombNode->SetScale(glm::vec3(0.4f));
-    bomb->AddChild(bombNode);
-    for (auto &animation : bombAsset->GetComponents<Animation>())
-        bomb->AddAnimation(animation);
-    return bomb;
+auto CreateBombAsset() {
+    
+    auto bombAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/bomb/bomb.gltf") };
+    bombAsset->Load();
+    return bombAsset;
 }
 
 std::shared_ptr<Bomb> Bomb::Create(const glm::ivec2& position)
 {
-    static auto bomb = CreateBomb();
-    auto bombClone = std::static_pointer_cast<Bomb>(bomb->Clone());
-    bombClone->PlayAnimation("idle", true);
-    bombClone->_bombMaterial = bombClone->GetComponentInChildrenByName<Material>("Body");
-    bombClone->_spawnTime = std::chrono::high_resolution_clock::now();
-    Game::CurrentLevel()->SetGameEntityPosition(position, bombClone);
-    return bombClone;
+    static auto bombAsset = CreateBombAsset();
+    auto bombAssetClone{ bombAsset->GetComponent<Scene>()->Clone() };
+    auto bomb = Component::Create<Bomb>();
+    auto bombNode = bombAssetClone->GetComponentByName<Node>("Bomb");
+    bomb->AddChild(bombNode);
+    for (auto& animation : bombAssetClone->GetComponents<Animation>())
+        bomb->AddAnimation(animation);
+    bomb->PlayAnimation("idle", true);
+    bomb->_bombMaterial = bomb->GetComponentInChildrenByName<Material>("Body");
+    bomb->_spawnTime = std::chrono::high_resolution_clock::now();
+    Game::CurrentLevel()->SetGameEntityPosition(position, bomb);
+    return bomb;
 }
 
 void SpawnFlames(const glm::ivec2& position, const glm::ivec2& direction, int range)

@@ -8,9 +8,8 @@
 #include "Mesh/Mesh.hpp"
 #include "Mesh/SphereMesh.hpp"
 #include "Material/Material.hpp"
-#include "Assets/AssetsParser.hpp"
+#include "Assets/Asset.hpp"
 #include "Engine.hpp"
-#include "Transform.hpp"
 #include "Animation/Animation.hpp"
 
 #include "Flame.hpp"
@@ -26,22 +25,21 @@ Flame::Flame()
     Engine::OnFixedUpdate().ConnectMember(this, &Flame::_FixedUpdateCPU);
 }
 
-auto CreateFlame() {
-    auto flame = Component::Create<Flame>();
-    static auto flameAsset = AssetsParser::Parse(Engine::ResourcePath() / "models/fire/fire.gltf");
-    static auto flameMeshes = flameAsset->GetComponentsInChildren<Mesh>();
-    for (const auto& mesh : flameMeshes)
-        flame->AddComponent(mesh);
-    return flame;
+auto CreateFlameAsset()
+{
+    auto flameAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/fire/fire.gltf") };
+    flameAsset->Load();
+    return flameAsset->GetComponentsInChildren<Mesh>();
 }
 
 std::shared_ptr<Flame> Flame::Create(const glm::ivec2& position)
 {
-    auto flame = CreateFlame();
+    auto flame = Component::Create<Flame>();
+    static auto flameAsset = CreateFlameAsset();
+    for (const auto& mesh : flameAsset)
+        flame->AddComponent(std::static_pointer_cast<Mesh>(mesh->Clone()));
     flame->SetScale(glm::vec3(0.5));
-    //auto flameClone = std::static_pointer_cast<Flame>(flame->Clone());
     Game::CurrentLevel()->SetGameEntityPosition(position, flame);
-    //return flameClone;
     return flame;
 }
 

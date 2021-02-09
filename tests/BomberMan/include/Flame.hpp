@@ -7,6 +7,7 @@
 class Flame : public GameEntity {
 public:
     Flame();
+    ~Flame() {};
     static std::shared_ptr<Flame> Create(const glm::ivec2& position);
     std::chrono::time_point<std::chrono::high_resolution_clock> SpawnTime() const;
     std::chrono::duration<double> Timer() const;

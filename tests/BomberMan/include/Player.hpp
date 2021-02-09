@@ -15,6 +15,9 @@ public:
     virtual void Die() override;
 
 private:
-    virtual void _FixedUpdateCPU(float delta) override;
+    virtual std::shared_ptr<Component> _Clone() override {
+        return std::shared_ptr<Player>(new Player(*this));
+    }
+    virtual void _FixedUpdateCPU(float delta);
     float _speed { 4.f };
 };

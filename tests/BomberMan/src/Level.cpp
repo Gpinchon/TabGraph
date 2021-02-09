@@ -5,16 +5,17 @@
 * @Last Modified time: 2020-08-18 22:10:31
 */
 
+#include "Assets/Asset.hpp"
+#include "Assets/Image.hpp"
 #include "Camera/OrbitCamera.hpp"
+#include "Engine.hpp"
+#include "Environment.hpp"
 #include "Light/DirectionnalLight.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Mesh/PlaneMesh.hpp"
-#include "Transform.hpp"
-#include "Environment.hpp"
 #include "Texture/Cubemap.hpp"
-#include "Texture/TextureParser.hpp"
-#include "Engine.hpp"
+#include "Texture/Texture2D.hpp"
 
 #include "CrispyWall.hpp"
 #include "Game.hpp"
@@ -104,13 +105,15 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
     }
     auto size = glm::ivec2(map.size(), maxLine);
     auto level = Create(path.string(), size);
-    auto textureData = std::vector<glm::u8vec4>(size_t(size.x) * size.y);
+    //auto textureData = std::vector<glm::u8vec4>(size_t(size.x) * size.y);
+    auto floorImage = Component::Create<Image>(size, Pixel::SizedFormat::Uint8_NormalizedRGBA);
     for (auto y = 0; y < size.y; ++y) {
         for (auto x = 0; x < size.x; ++x) {
             auto index = x + y * size.x;
-            auto color1 = glm::u8vec4(34, 69, 0, 255);
-            auto color0 = glm::u8vec4(49, 99, 0, 255);
-            textureData.at(index) = index % 2 ? color1 : color0;
+            auto color1 = glm::vec4(0.133333, 0.270588, 0.000000, 1);
+            auto color0 = glm::vec4(0.192156, 0.388235, 0.000000, 1);
+            auto color{ index % 2 ? color1 : color0 };
+            floorImage->SetColor(glm::ivec2(x, y), color);
         }
     }
     for (auto x = 0u; x < map.size(); ++x) {
@@ -120,7 +123,8 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             case 1: {
                 auto wall = Wall::Create();
                 level->SetGameEntityPosition(glm::ivec2(x, y), wall);
-                textureData.at(index) = glm::u8vec4(70, 13, 13, 255);
+                auto color{ glm::vec4(0.274509, 0.050980, 0.050980, 1) };
+                floorImage->SetColor(glm::ivec2(x, y), color);
                 break;
             }
             case 2: {
@@ -134,7 +138,10 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             }
         }
     }
-    auto floorTexture = Component::Create<Texture2D>("floorTexture", size, GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE, textureData.data());
+    auto floorImageAsset{ Component::Create<Asset>() };
+    floorImageAsset->AddComponent(floorImage);
+    floorImageAsset->SetLoaded(true);
+    auto floorTexture = Component::Create<Texture2D>(floorImageAsset);
     floorTexture->SetParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     floorTexture->SetParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     level->GetComponentInChildrenByName<Mesh>("FloorMesh")->GetMaterial(0)->SetTextureDiffuse(floorTexture);
@@ -143,40 +150,10 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
 
     folder = path.parent_path() / "env/hdr/";
     std::cout << folder << std::endl;
-    if (std::filesystem::exists(folder)) {
-        for (const auto& entry : std::filesystem::directory_iterator(folder)) {
-            if (entry.path().string()[0] == '.')
-                continue;
-            auto name = entry.path().filename().string();
-            auto newEnv = Component::Create<Environment>(name);
-            newEnv->SetDiffuse(Component::Create<Cubemap>(name + "Cube", TextureParser::parse(name, (entry.path() / "environment.hdr").string())));
-            newEnv->SetIrradiance(Component::Create<Cubemap>(name + "CubeDiffuse", TextureParser::parse(name + "Diffuse", (entry.path() / "diffuse.hdr").string())));
-            level->AddComponent(newEnv);
-        }
-    }
-    folder = path.parent_path() / "env/skybox/";
-    if (std::filesystem::exists(folder)) {
-        for (const auto& entry : std::filesystem::directory_iterator(folder)) {
-            if (entry.path().string()[0] == '.')
-                continue;
-            std::string name = entry.path().string();
-            auto newEnv = Component::Create<Environment>(name);
-            try {
-                newEnv->SetDiffuse(Cubemap::parse(folder));
-            }
-            catch (std::exception& e) {
-                std::cout << e.what() << std::endl;
-                continue;
-            }
-            try {
-                newEnv->SetIrradiance(Cubemap::parse(folder / "light"));
-            }
-            catch (std::exception& e) {
-                std::cout << e.what() << std::endl;
-            }
-            level->AddComponent(newEnv);
-        }
-    }
+    auto newEnv = Component::Create<Environment>("Environment");
+    newEnv->SetDiffuse(Component::Create<Cubemap>(Component::Create<Asset>(folder / "esplanade/diffuse.hdr")));
+    newEnv->SetIrradiance(Component::Create<Cubemap>(Component::Create<Asset>(folder / "esplanade/environment.hdr")));
+    level->SetEnvironment(newEnv);
     
     level->SetEnvironment(level->GetComponent<Environment>(0));
     std::cout << level->GetEnvironment() << std::endl;
@@ -217,25 +194,25 @@ std::shared_ptr<GameEntity> Level::GetGameEntity(glm::ivec2 position) const
 
 void Level::_UpdateCPU(float delta)
 {
-    for (const auto& entity : _entities) {
-        if (entity != nullptr)
-            entity->UpdateCPU(delta);
-    }
-    for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-        Game::GetPlayer(index)->UpdateCPU(delta);
-    }
+    //for (const auto& entity : _entities) {
+    //    if (entity != nullptr)
+    //        entity->UpdateCPU(delta);
+    //}
+    //for (auto index = 0; index < Game::PlayerNumber(); ++index) {
+    //    Game::GetPlayer(index)->UpdateCPU(delta);
+    //}
 }
 
 void Level::_FixedUpdateCPU(float delta)
 {
     //Scene::FixedUpdateCPU(delta);
-    for (const auto& entity : _entities) {
-        if (entity != nullptr)
-            entity->FixedUpdateCPU(delta);
-    }
-    for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-        Game::GetPlayer(index)->FixedUpdateCPU(delta);
-    }
+    //for (const auto& entity : _entities) {
+    //    if (entity != nullptr)
+    //        entity->FixedUpdateCPU(delta);
+    //}
+    //for (auto index = 0; index < Game::PlayerNumber(); ++index) {
+    //    Game::GetPlayer(index)->FixedUpdateCPU(delta);
+    //}
 }
 
 void Level::Render(const RenderPass& pass, const RenderMod& mod)
@@ -243,11 +220,11 @@ void Level::Render(const RenderPass& pass, const RenderMod& mod)
     Scene::Render(pass, mod);
     for (const auto& entity : _entities) {
         if (entity != nullptr)
-            entity->Draw(pass, mod, true);
+            entity->Draw(std::static_pointer_cast<Scene>(shared_from_this()), pass, mod, true);
     }
     for (auto index = 0; index < Game::PlayerNumber(); ++index) {
         auto player(Game::GetPlayer(index));
-        player->Draw(pass, mod, true);
+        player->Draw(std::static_pointer_cast<Scene>(shared_from_this()), pass, mod, true);
     }
 }
 
@@ -256,9 +233,9 @@ void Level::RenderDepth(const RenderMod& mod)
     Scene::RenderDepth(mod);
     for (const auto& entity : _entities) {
         if (entity != nullptr)
-            entity->DrawDepth(mod, true);
+            entity->DrawDepth(std::static_pointer_cast<Scene>(shared_from_this()), mod, true);
     }
     for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-        Game::GetPlayer(index)->DrawDepth(mod, true);
+        Game::GetPlayer(index)->DrawDepth(std::static_pointer_cast<Scene>(shared_from_this()), mod, true);
     }
 }
