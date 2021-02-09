@@ -394,6 +394,7 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     static auto opaqueBuffer = CreateOpaqueMaterialBuffer(res);
     static auto transparentBuffer = CreateTransparentMaterialBuffer("TransparentBuffer0", res);
     static auto transparentBuffer1 = CreateTransparentMaterialBuffer("TransparentBuffer1", res / 2);
+    auto fastTransparency{ Config::Get("FastTransparency", 1) };
     Render::Private::SetOpaqueBuffer(opaqueBuffer);
     Render::Private::SetLightBuffer(lightingBuffer);
     Render::Private::SetGeometryBuffer(geometryBuffer);
@@ -401,7 +402,10 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     lightingBuffer->Resize(geometryRes);
     opaqueBuffer->Resize(res);
     transparentBuffer->Resize(res);
-    transparentBuffer1->Resize(res / 2);
+    if (fastTransparency)
+        transparentBuffer1->Resize(res);
+    else
+        transparentBuffer1->Resize(res / 2);
 
     geometryBuffer->bind();
     glDepthMask(GL_TRUE);
@@ -445,8 +449,6 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     transparentBuffer1->bind();
     glClear(GL_DEPTH_BUFFER_BIT);
     transparentBuffer1->bind(false);
-
-    auto fastTransparency{ Config::Get("FastTransparency", 1) };
 
     if (!fastTransparency) {
         transparentBuffer->bind();
