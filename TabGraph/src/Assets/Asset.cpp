@@ -66,8 +66,3 @@ void Asset::_DoLoad()
 	if (GetLoaded())
 		_onloaded(std::static_pointer_cast<Asset>(shared_from_this()));
 }
-
-std::shared_ptr<Component> Asset::_Clone()
-{
-	return std::static_pointer_cast<Component>(shared_from_this());
-}

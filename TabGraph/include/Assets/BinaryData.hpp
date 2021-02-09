@@ -59,5 +59,8 @@ private:
     size_t _byteLength{ 0 };
 
     // Hérité via Component
-    virtual std::shared_ptr<Component> _Clone() override;
+    virtual std::shared_ptr<Component> _Clone() override
+    {
+        return std::static_pointer_cast<Component>(shared_from_this());
+    }
 };

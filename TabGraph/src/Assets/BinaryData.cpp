@@ -44,8 +44,3 @@ void BinaryData::SetByteLength(size_t byteLength)
     _data.resize(byteLength);
     _byteLength = byteLength;
 }
-
-std::shared_ptr<Component> BinaryData::_Clone()
-{
-    return std::static_pointer_cast<Component>(shared_from_this());
-}

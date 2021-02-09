@@ -87,5 +87,7 @@ private:
     std::thread _parsingThread;
 
     // Hérité via AssetData
-    virtual std::shared_ptr<Component> _Clone() override;
+    virtual std::shared_ptr<Component> _Clone() override {
+        return std::static_pointer_cast<Component>(shared_from_this());
+    }
 };

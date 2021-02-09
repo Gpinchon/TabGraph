@@ -27,5 +27,9 @@ private:
 	void _DoLoad();
 
 	// Hérité via Component
-	virtual std::shared_ptr<Component> _Clone() override;
+	virtual std::shared_ptr<Component> _Clone() override
+	{
+		//throw std::runtime_error("You cannot not clone an asset");
+		return std::static_pointer_cast<Component>(shared_from_this());
+	}
 };

@@ -131,9 +131,3 @@ std::atomic<bool>& Image::GetLoading()
 {
     return _loading;
 }
-
-std::shared_ptr<Component> Image::_Clone() {
-    return std::static_pointer_cast<Component>(shared_from_this());
-}
-
-
