@@ -48,6 +48,9 @@ public:
                 _signal->_Disconnect(this->_id);
             Reset();
         }
+        SlotID Id() {
+            return _id;
+        }
 
     private:
         friend Signal;
@@ -74,7 +77,7 @@ public:
         }
         std::function<void(Args...)> _func{};
         SlotID _id{ 0 };
-        Signal* _signal;
+        Signal* _signal{ nullptr };
         std::weak_ptr<TrackablePointee> _signalRef;
         std::weak_ptr<TrackablePointee> _trackedObjectRef;
     };
@@ -92,10 +95,12 @@ public:
             *this = other;
         }
         ScoppedSlot& operator=(const ScoppedSlot& other) {
+            Disconnect();
             Slot::operator=(other);
             return *this;
         }
         ScoppedSlot& operator=(const Slot& other) {
+            Disconnect();
             Slot::operator=(other);
             return *this;
         }
@@ -119,9 +124,6 @@ public:
         ++_currentSlotID;
         //if slot is not member method, tracked object is this signal -> never expires until Signal's destruction
         return _Connect(Slot(func, _currentSlotID, this, this));
-        //auto slot = Slot(func, _currentSlotID, this, this);
-        //_slots[_currentSlotID] = slot;
-        //return slot;
     }
 
     /**
@@ -162,6 +164,7 @@ public:
 	*/
     auto operator()(Args... args)
     {
+        while (_inUse) {}
         _inUse = true;
         for (auto &slotIt : _slots) {
             auto& slot{ slotIt.second };
@@ -170,14 +173,16 @@ public:
                 slot.Disconnect();
                 continue;
             }
-            slot(args...);
+            if (std::find(_toDisconnect.begin(), _toDisconnect.end(), slot._id) == _toDisconnect.end())
+                slot(args...);
         }
-        for (const auto& id : _toDisconnect)
-            _slots.erase(id);
-        _toDisconnect.clear();
         for (const auto &slot : _toConnect)
             _slots[slot._id] = slot;
         _toConnect.clear();
+        //IMPORTANT : If we have disconnected a signal after connecting it while emitting this signal, it should be disconnected at the end
+        for (const auto& id : _toDisconnect)
+            _slots.erase(id);
+        _toDisconnect.clear();
         _inUse = false;
     }
 
