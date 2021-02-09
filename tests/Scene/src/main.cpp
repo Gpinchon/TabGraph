@@ -114,11 +114,11 @@ void CallbackAnimation(const SDL_KeyboardEvent& event)
         return;
     static auto animations = Scene::Current()->GetComponents<Animation>();
     static auto currentAnimation(animations.begin());
+
     (*currentAnimation)->Stop();
     currentAnimation++;
     if (currentAnimation == animations.end())
         currentAnimation = animations.begin();
-    //currentAnimation %= Scene::Current()->Animations().size();
     (*currentAnimation)->SetRepeat(true);
     (*currentAnimation)->Play();
 }
@@ -174,74 +174,8 @@ void SetupCallbacks()
 #include "Assets/Image.hpp"
 #include "Light/PointLight.hpp"
 
-auto Factorial(int n)
-{
-    if (n == 0)
-        return 1;
-    return n * Factorial(n - 1);
-}
-
-template <typename T>
-T BinomialCoefficient(T n, T k) {
-    if (k > n)
-        return T(0);
-    if (k == 0 || k == n)
-        return T(1);
-    return BinomialCoefficient(n - 1, k - 1) + BinomialCoefficient(n - 1, k);
-    //return n / k * BinomialCoefficient(n - 1, k - 1);
-    //return Factorial(n) / (Factorial(k) * Factorial(n - k));
-}
-
-int RodriguesDegree(int n)
-{
-    return n > 2 ? n : 2;
-}
-
-template <typename T>
-T Derivate(T x, T n) {
-    if (n == 0)
-        return T(1);
-    return n * Derivate(x, n - 1);
-}
-
-float LegendrePolynomial(int n, float x)
-{
-    if (n == 0)
-        return 1;
-    else if (n == 1)
-        return x;
-    float d = RodriguesDegree(n);
-    float a = 1 / (pow(2, n) * Factorial(n));
-    float b = pow(d, n) / (d * pow(x, n));
-    float c = pow(x, 2) - 1;
-    return a * b * c;
-}
-
-auto LegendreIntegralFactor(int m, int l, float x, int k) {
-    if (k > l)
-        return 0.0;
-    auto a = Factorial(k) / Factorial(k - m);
-    auto b = pow(x, k - m);
-    auto lk = (l + k) / 2;
-    auto c = BinomialCoefficient(l, k) * BinomialCoefficient(lk, l);
-    return a * b * c + LegendreIntegralFactor(m, l, x, k + 1);
-}
-
-auto LegendrePolynomial(int m, int l, float x)
-{
-    auto a = pow(-1, m) * pow(2, l) * pow(1 - x * x, m / 2.f);
-    auto b = LegendreIntegralFactor(m, l, x, m);
-    return a * b;
-}
-
 int main(int argc, char** argv)
 {
-    float x = 2;
-    for (auto m= 0u; m < 2; ++m) {
-        for (auto l = 0u; l < 2; ++l) {
-            std::cout << "m : " << m << " l : " << l << ' ' << LegendrePolynomial(m, l, x) << std::endl;
-        }
-    }
     if (argc <= 1)
         return -42;
     {
