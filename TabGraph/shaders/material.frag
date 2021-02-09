@@ -100,8 +100,10 @@ void Reconstruct() {
 	uint IDSample = texture(IDTexture, ScreenTexCoord()).r;
 #if OPACITYMODE == BLEND
 	float opaqueDepth = texture(OpaqueDepthTexture, ScreenTexCoord(), 0).r;
+#ifndef FASTTRANSPARENCY
 	if (opaqueDepth < gl_FragCoord.z)
 		discard;
+#endif
 #endif
 	vec3	V = normalize(Camera.Position - WorldPosition());
 	vec3	N = WorldNormal();
