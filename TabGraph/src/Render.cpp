@@ -18,7 +18,6 @@
 #include "Texture/Cubemap.hpp"
 #include "Texture/Texture2D.hpp" // for Texture2D
 #include "Window.hpp" // for Window
-//#include "brdfLUT.hpp" // for brdfLUT
 #include <GL/glew.h> // for GL_TEXTURE0, glDepthFunc, glClear, glDis...
 #include <SDL_timer.h> // for SDL_GetTicks
 #include <SDL_video.h> // for SDL_GL_MakeCurrent, SDL_GL_SetSwapInterval
@@ -486,11 +485,10 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(-2.0, -2.0);
     if (!fastTransparency) {
         glDepthFunc(GL_GREATER);
-        
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(-2.0, -2.0);
     }
     else {
         glDepthFunc(GL_LESS);
