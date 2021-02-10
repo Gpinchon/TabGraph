@@ -33,15 +33,35 @@ Uri::Uri(const std::string& uri)
      *          (\S*)               <---- 9 "Clean" fragment (everything except white spaces)
      *      )?
     */
-    std::regex uriRegex { R"(^\s*(([^:/?#]+):)?(\/\/([^/?#\s]*))?([^?#\s]*)(\?([^#\s]*))?(#(\S*))?)", std::regex::ECMAScript };
-    auto searchResult = std::sregex_iterator(uri.begin(), uri.end(), uriRegex);
-    auto searchEnd = std::sregex_iterator();
-    if (searchResult != searchEnd) {
-        SetScheme((*searchResult)[2]);
-        SetAuthority((*searchResult)[4]);
-        SetPath(std::string((*searchResult)[5]));
-        SetQuery((*searchResult)[7]);
-        SetFragment((*searchResult)[9]);
+    //std::regex uriRegex { R"(^\s*(([^:/?#]+):)?(\/\/([^/?#\s]*))?([^?#\s]*)(\?([^#\s]*))?(#(\S*))?)", std::regex::ECMAScript };
+    std::regex schemeRegex{ R"(^\s*(([^:/?#]+):)?(.*)?)", std::regex::ECMAScript };
+    auto schemeResult = std::sregex_iterator(uri.begin(), uri.end(), schemeRegex);
+    const auto searchEnd = std::sregex_iterator();
+    if (schemeResult != searchEnd) {
+        SetScheme((*schemeResult)[2]);
+        std::regex authorityRegex{ R"((\/\/([^\/?#\s]*))?(.*)?)", std::regex::ECMAScript };
+        std::string submatch{ (*schemeResult)[3] };
+        auto authorityResult = std::sregex_iterator(submatch.begin(), submatch.end(), authorityRegex);
+        if (authorityResult != searchEnd) {
+            SetAuthority((*authorityResult)[2]);
+            submatch = (*authorityResult)[3];
+            auto pathEnd{ submatch.find_first_of("?# \t\n") };
+            SetPath(submatch.substr(0, pathEnd));
+            if (pathEnd == std::string::npos) //We're donezo
+                return;
+            submatch = submatch.substr(pathEnd);
+            std::regex queryRegex{ R"((\?([^#\s]*))?(.*)?)", std::regex::ECMAScript };
+            auto queryResult = std::sregex_iterator(submatch.begin(), submatch.end(), queryRegex);
+            if (queryResult != searchEnd) {
+                SetQuery((*queryResult)[2]);
+                submatch = (*queryResult)[3];
+                std::regex fragmentRegex{ R"((#(\S*)))", std::regex::ECMAScript };
+                auto fragmentResult = std::sregex_iterator(submatch.begin(), submatch.end(), fragmentRegex);
+                if (fragmentResult != searchEnd) {
+                    SetFragment((*fragmentResult)[2]);
+                }
+            }
+        }
     }
 }
 
