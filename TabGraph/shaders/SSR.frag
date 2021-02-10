@@ -220,15 +220,13 @@ uvec3 Rand3DPCG16(ivec3 p)
 
 void	SSR()
 {
-	//if (Opacity() < 1)
-	//	return;
+	if (Depth() == 1)
+		discard;
 	vec3	V = normalize(WorldPosition() - Camera.Position);
-	float	SceneDepth = WorldToClip(WorldPosition()).w;
 	uvec2	PixelPos = ivec2(gl_FragCoord.xy);
 	uint	frameIndex = FrameNumber % 8;
 	float	Noise =	InterleavedGradientNoise(gl_FragCoord.xy, frameIndex);
 	uvec3	Random = Rand3DPCG16(ivec3(PixelPos, frameIndex));
-	//float	sampleAngle = randomAngle(vec3(Random));
 	out_1 = vec4(0);
 	for(int i = 0; i < NumRays; i++ ) {
 		float	StepOffset = Noise;
