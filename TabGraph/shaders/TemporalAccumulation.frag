@@ -13,7 +13,7 @@ uniform sampler2D           in_CurrentVelocity;
 
 #define SAMPLEKERNELSIZE 9
 
-const ivec2 samplesOffset[SAMPLEKERNELSIZE] = ivec2[SAMPLEKERNELSIZE](
+const ivec2 samplesOffset[9] = ivec2[9](
     ivec2(-1, -1),	ivec2(0, -1),	ivec2(1, -1),
     ivec2(-1,  0),	ivec2(0,  0),	ivec2(1,  0),
     ivec2(-1,  1),	ivec2(0,  1),	ivec2(1,  1)
@@ -50,11 +50,9 @@ void TemporalAccumulation()
     vec3 realMinColor = vec3(1);
     vec3 realMaxColor = vec3(0);
 	for (int i = 0; i < SAMPLEKERNELSIZE; ++i) {
-        ivec2 uv = ivec2(ScreenTexCoord() * textureSize(in_CurrentColor, 0)) + samplesOffset[i];
+        ivec2 uv = ivec2(ScreenTexCoord() * textureSize(in_CurrentColor, 0) + samplesOffset[i]);
         vec4 color = texelFetch(in_CurrentColor, uv, 0);
-        //vec2 uv = ScreenTexCoord() + vec2(minMaxOffset[i] / textureSize(in_CurrentColor, 0));
-        //vec4 color = textureLod(in_CurrentColor, uv, 0);
-        if (i == 4)
+        if (i == SAMPLEKERNELSIZE / 2)
             out_0 = color;
         m1 += color.rgb;
         m2 += color.rgb * color.rgb;
@@ -69,7 +67,6 @@ void TemporalAccumulation()
     maxColor = clamp(maxColor, realMinColor, realMaxColor);
     vec2 uv = ScreenTexCoord() + velocity;
 	vec4 historyColor = textureLod(in_renderHistory.color, uv, 0);
-    //historyColor.rgb = clamp(historyColor.rgb, minColor, maxColor);
     historyColor.rgb = clip_aabb(minColor, maxColor, out_0.rgb, historyColor.rgb);
     float alpha = 0.9;
     //Use rolling average over time
