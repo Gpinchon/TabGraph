@@ -25,6 +25,7 @@ void ParseBinaryData(const std::shared_ptr<Asset>& asset)
         std::vector<std::byte> data;
         if (uri.GetScheme() == "data") {
             auto uriData = DataUri(uri).Decode();
+            data.resize(uriData.size());
             std::transform(uriData.begin(), uriData.end(), data.begin(),
                 [](char c) { return std::byte(c); });
         } else {
