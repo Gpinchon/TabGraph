@@ -8,18 +8,18 @@
 #include "Assets/Image.hpp" // for Image
 #include "Assets/Asset.hpp"
 #include "Assets/AssetsParser.hpp"
+#include "Buffer/BufferView.hpp"
 #include "Texture/PixelUtils.hpp"  // for SizedFormat, SizedFormat::Uint8_NormalizedRGB, SizedFormat::Uint8_NormalizedRGBA
 #include "Debug.hpp" // for debugLog
 
+#include <memory> // for allocator, shared_ptr
 #include <SDL_image.h> // for IMG_Load
 #include <SDL_pixels.h> // for SDL_PixelFormat, SDL_PIXELFORMAT...
-#include <SDL_surface.h> // for SDL_Surface, SDL_UnlockSurface
-#include <memory> // for allocator, shared_ptr
-#include <stdlib.h> // for free, malloc, NULL
 #include <SDL_rwops.h>             // for SDL_RWops
-#include <string>                 // for string
-#include <iostream>
+#include <SDL_surface.h> // for SDL_Surface, SDL_UnlockSurface
 #include <sstream>
+#include <stdlib.h> // for free, malloc, NULL
+#include <string>                 // for string
 
 void SDL2ImageParser(const std::shared_ptr<Asset>& asset);
 
@@ -116,10 +116,19 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
 {
     auto uri{ asset->GetUri() };
     SDL_RWops* rwOps{ nullptr };
-    std::string data;
+    std::vector<uint8_t> data;
     if (uri.GetScheme() == "data") {
         data = DataUri(uri).Decode();
-        rwOps = SDL_RWFromMem(data.data(), data.length());
+        if (data.empty()) {
+            auto& bufferView{ asset->GetComponent<BufferView>() };
+            if (bufferView != nullptr) { //We're loading raw bytes from a BufferView
+                auto dataPtr{ (uint8_t*)bufferView->Get(0, bufferView->GetByteLength()) };
+                data = std::vector<uint8_t>(
+                    dataPtr, dataPtr + bufferView->GetByteLength()
+                    );
+            }
+        }
+        rwOps = SDL_RWFromMem(data.data(), data.size());
     }
     else {
         rwOps = SDL_RWFromFile(uri.GetPath().u8string().c_str(), "rb");
