@@ -56,9 +56,15 @@ void Cubemap::Load()
         if (GetAutoMipMap())
             SetMipMapNbr(MIPMAPNBR(image->GetSize()));
          _Allocate();
+         std::array<std::shared_ptr<Image>, 6> sides;
+         std::array<std::thread, 6> loadingThreads;
         for (auto sideIndex = 0; sideIndex < 6; ++sideIndex) {
-            auto side = Component::Create<Image>(GetSize(), GetPixelDescription());
-            ExtractSide(image, side, (Cubemap::Side)sideIndex);
+            sides.at(sideIndex) = Component::Create<Image>(GetSize(), GetPixelDescription());
+            loadingThreads.at(sideIndex) = std::thread(ExtractSide, image, sides.at(sideIndex), (Cubemap::Side)sideIndex);
+        }
+        for (auto sideIndex = 0; sideIndex < 6; ++sideIndex) {
+            loadingThreads.at(sideIndex).join();
+            auto side{ sides.at(sideIndex) };
             glTextureSubImage3D(
                 GetHandle(),
                 0,
