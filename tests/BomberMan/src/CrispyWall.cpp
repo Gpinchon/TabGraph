@@ -23,20 +23,21 @@ CrispyWall::CrispyWall()
 }
 
 auto CreateCrispyWallAsset() {
-    auto wall = Component::Create<CrispyWall>();
-    auto bombAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/crispyWall/crispyWall.gltf") };
-    bombAsset->Load();
-    auto crispyWallMeshes = bombAsset->GetComponentsInChildren<Mesh>();
+    
+    auto crispyWallAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/crispyWall.gltf") };
+    crispyWallAsset->Load();
+    auto crispyWallMeshes{ crispyWallAsset->GetComponentsInChildren<Mesh>() };
     for (const auto& mesh : crispyWallMeshes)
-        wall->AddComponent(mesh);
-    return wall;
+        mesh->Load();
+    return crispyWallMeshes;
 }
 
 std::shared_ptr<CrispyWall> CrispyWall::Create()
 {
+    auto wall = Component::Create<CrispyWall>();
     static auto crispyWallAsset{ CreateCrispyWallAsset() };
-    auto wall{ std::static_pointer_cast<CrispyWall>(crispyWallAsset->Clone()) };
-    wall->SetScale(glm::vec3(0.01));
+    for (auto mesh : crispyWallAsset)
+        wall->AddComponent(mesh);
     return wall;
 }
 

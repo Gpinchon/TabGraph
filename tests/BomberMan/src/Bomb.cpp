@@ -38,7 +38,7 @@ Bomb::Bomb(const Bomb& bomb) : GameEntity(bomb)
 
 auto CreateBombAsset() {
     
-    auto bombAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/bomb/bomb.gltf") };
+    auto bombAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/bomb.gltf") };
     bombAsset->Load();
     return bombAsset;
 }

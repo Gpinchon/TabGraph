@@ -151,8 +151,8 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
     folder = path.parent_path() / "env/hdr/";
     std::cout << folder << std::endl;
     auto newEnv = Component::Create<Environment>("Environment");
-    newEnv->SetDiffuse(Component::Create<Cubemap>(Component::Create<Asset>(folder / "esplanade/diffuse.hdr")));
-    newEnv->SetIrradiance(Component::Create<Cubemap>(Component::Create<Asset>(folder / "esplanade/environment.hdr")));
+    newEnv->SetDiffuse(Component::Create<Cubemap>(Component::Create<Asset>(folder / "diffuse.hdr")));
+    newEnv->SetIrradiance(Component::Create<Cubemap>(Component::Create<Asset>(folder / "environment.hdr")));
     level->SetEnvironment(newEnv);
     
     level->SetEnvironment(level->GetComponent<Environment>(0));

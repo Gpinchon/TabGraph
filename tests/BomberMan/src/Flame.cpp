@@ -27,9 +27,12 @@ Flame::Flame()
 
 auto CreateFlameAsset()
 {
-    auto flameAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/fire/fire.gltf") };
+    auto flameAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/fire.gltf") };
     flameAsset->Load();
-    return flameAsset->GetComponentsInChildren<Mesh>();
+    auto meshes{ flameAsset->GetComponentsInChildren<Mesh>() };
+    for (auto& mesh : meshes)
+        mesh->Load();
+    return meshes;
 }
 
 std::shared_ptr<Flame> Flame::Create(const glm::ivec2& position)
@@ -37,7 +40,7 @@ std::shared_ptr<Flame> Flame::Create(const glm::ivec2& position)
     auto flame = Component::Create<Flame>();
     static auto flameAsset = CreateFlameAsset();
     for (const auto& mesh : flameAsset)
-        flame->AddComponent(std::static_pointer_cast<Mesh>(mesh->Clone()));
+        flame->AddComponent(mesh);
     flame->SetScale(glm::vec3(0.5));
     Game::CurrentLevel()->SetGameEntityPosition(position, flame);
     return flame;

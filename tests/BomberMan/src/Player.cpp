@@ -37,7 +37,7 @@ Player::Player(const std::string& name, const glm::vec3& color)
 
 auto CreatePlayerAsset()
 {
-    auto playerAsset = Component::Create<Asset>(Engine::ResourcePath() / "models/bomberman/bomberman.gltf");
+    auto playerAsset = Component::Create<Asset>(Engine::ResourcePath() / "models/bomberman.gltf");
     playerAsset->Load();
     playerAsset->GetComponent<Scene>()->GetComponent<Node>()->SetScale(glm::vec3(0.01f));
     return playerAsset;

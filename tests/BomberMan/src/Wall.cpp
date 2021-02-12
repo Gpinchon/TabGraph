@@ -21,7 +21,7 @@ Wall::Wall()
 
 auto CreateWallAsset() {
     auto wall(Component::Create<Wall>());
-    auto wallAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/wall/wall.gltf") };
+    auto wallAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/wall.gltf") };
     wallAsset->Load();
     auto wallMeshes = wallAsset->GetComponentsInChildren<Mesh>();
     for (const auto& mesh : wallMeshes)
