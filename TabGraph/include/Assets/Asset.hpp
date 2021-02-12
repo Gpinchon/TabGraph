@@ -12,7 +12,7 @@ public :
 	~Asset();
 	void SetUri(const Uri& uri);
 	Uri GetUri() const;
-	bool GetLoading();
+	std::atomic<bool>& GetLoading();
 	std::atomic<bool>& GetLoaded();
 	void SetLoaded(bool);
 	Signal<std::shared_ptr<Asset>> &OnLoaded();
@@ -21,6 +21,7 @@ public :
 
 private:
 	Uri _uri{};
+	std::atomic<bool> _loading{ false };
 	std::atomic<bool> _loaded{ false };
 	Signal<std::shared_ptr<Asset>> _onloaded{};
 	std::thread _loadingThread{};

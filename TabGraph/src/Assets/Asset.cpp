@@ -21,9 +21,9 @@ Uri Asset::GetUri() const
 	return _uri;
 }
 
-bool Asset::GetLoading()
+std::atomic<bool>& Asset::GetLoading()
 {
-	return _loadingThread.joinable();
+	return _loading;
 }
 
 std::atomic<bool>& Asset::GetLoaded()
@@ -43,26 +43,34 @@ Signal<std::shared_ptr<Asset>>& Asset::OnLoaded()
 
 void Asset::Load()
 {
-	if (GetLoading()) // We're already loading
-	{
-		_loadingThread.join();
-		assert(GetLoaded()); //there was an issue loading this asset...
+	bool shouldBeLoaded = false;
+	while (GetLoading()) { //we're already loading from an other thread, wait
+		shouldBeLoaded = true;
 	}
-	_loadingThread = std::thread(&Asset::_DoLoad, this);
-	_loadingThread.join();
+	if (shouldBeLoaded)
+		assert(GetLoaded()); //there was an issue loading this asset
+	if (GetLoaded())
+		return;
+	_DoLoad();
 }
 
 void Asset::LoadAsync()
 {
 	if (GetLoading())
 		return;
+	if (GetLoaded()) {
+		_onloaded(std::static_pointer_cast<Asset>(shared_from_this()));
+		return;
+	}
 	_loadingThread = std::thread(&Asset::_DoLoad, this);
 }
 
 void Asset::_DoLoad()
 {
+	_loading = true;
 	if (!GetLoaded())
 		AssetsParser::Parse(std::static_pointer_cast<Asset>(shared_from_this()));
+	_loading = false;
 	if (GetLoaded())
 		_onloaded(std::static_pointer_cast<Asset>(shared_from_this()));
 }
