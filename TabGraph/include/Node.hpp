@@ -152,5 +152,6 @@ private:
     glm::mat4 _localTranslationMatrix{ glm::translate(glm::vec3(0)) };
     glm::mat4 _localRotationMatrix{ glm::rotate(0.f, glm::vec3(0)) };
     glm::mat4 _localScaleMatrix{ glm::scale(glm::vec3(1)) };
+    glm::mat4 _prevTransformMatrix{ glm::mat4(1) };
     std::weak_ptr<Node> _parent;
 };
