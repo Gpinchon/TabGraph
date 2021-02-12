@@ -9,7 +9,6 @@
 
 #include "Component.hpp"
 #include "Mesh/Geometry.hpp" // for Geometry
-#include "Node.hpp"
 #include "Texture/TextureBuffer.hpp"
 
 #include <GL/glew.h> // for GLenum, GL_BACK
@@ -32,8 +31,7 @@ public:
     Mesh(const std::string& name);
     Mesh(const Mesh& other);
     bool Draw(const glm::mat4& parentTransform, const glm::mat4& parentLastTransform, const RenderPass& pass, RenderMod mod = RenderMod::RenderAll);
-    //bool Draw(const std::shared_ptr<Node>& transform, const RenderPass& pass, RenderMod mod = RenderMod::RenderAll);
-    bool DrawDepth(const glm::mat4& parentTransform, const glm::mat4& parentLastTransform, RenderMod mod = RenderMod::RenderAll);
+    bool DrawDepth(const glm::mat4& parentTransform, RenderMod mod = RenderMod::RenderAll);
     bool Drawable() const;
     void center();
     void set_cull_mod(GLenum);
@@ -69,10 +67,6 @@ private:
         auto mesh(Component::Create<Mesh>(*this));
         return mesh;
     }
-    virtual void _UpdateGPU(float /*delta*/)
-    {
-        _prevTransformMatrix = GetGeometryTransform();
-    };
     GLenum _cull_mod { GL_BACK };
     //glm::mat4 _transformMatrix { 1 };
     glm::mat4 _prevTransformMatrix { 1 };

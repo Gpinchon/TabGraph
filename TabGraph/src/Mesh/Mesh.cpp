@@ -11,7 +11,6 @@
 #include "Debug.hpp"
 #include "Material/Material.hpp" // for Material
 #include "Mesh/MeshSkin.hpp"
-#include "Node.hpp" // for Node
 #include "Physics/BoundingAABB.hpp" // for BoundingAABB
 #include "Physics/BoundingElement.hpp" // for BoundingElement
 #include "Render.hpp"
@@ -28,18 +27,18 @@ size_t meshNbr(0);
 Mesh::Mesh(const std::string& name)
     : Component(name)
 {
-    Render::OnBeforeRender().ConnectMember(this, &Mesh::_UpdateGPU);
     meshNbr++;
 }
 
 Mesh::Mesh(const Mesh& other) : Component(other)
 {
-    Render::OnBeforeRender().ConnectMember(this, &Mesh::_UpdateGPU);
+    meshNbr++;
 }
 
 Mesh::Mesh()
     : Mesh("Mesh_" + std::to_string(meshNbr))
 {
+    meshNbr++;
 }
 
 void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
@@ -67,6 +66,7 @@ bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTra
     auto skinned{ HasComponentOfType<MeshSkin>() };
     auto jointsIndex = _jointMatricesIndex;
     auto prevJointsIndex = (_jointMatricesIndex - 1) % _jointMatrices.size();
+    auto fastTransparency{ Config::Get("FastTransparency", 1) };
     for (auto vg : Geometrys()) {
         if (nullptr == vg)
             continue;
@@ -92,10 +92,10 @@ bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTra
         //std::cout << unsigned(vg->Id()) << std::endl;
         shader->SetUniform("DrawID", unsigned(vg->GetId()));
         if (last_shader != shader) {
-            if (isTransparent && Config::Get("FastTransparency", 1))
-                shader->SetDefine("FASTTRANSPARENCY");
-            shader->SetUniform("WindowSize", Window::size());
+            //last_shader->use(false);
             if (pass == RenderPass::Material) {
+                if (isTransparent&& fastTransparency)
+                    shader->SetDefine("FASTTRANSPARENCY");
                 shader->SetTexture("DiffuseTexture", Render::LightBuffer()->attachement(0));
                 //shader->SetTexture("SpecularTexture", Render::LightBuffer()->attachement(1));
                 shader->SetTexture("ReflectionTexture", Render::LightBuffer()->attachement(1));
@@ -120,21 +120,68 @@ bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTra
             glEnable(GL_CULL_FACE);
         shader->use();
         ret |= vg->Draw();
-        shader->use(false);
-        glEnable(GL_CULL_FACE);
+        if (material->GetDoubleSided())
+            glEnable(GL_CULL_FACE);
     }
-    if (skinned) {
-        glDeleteSync(_drawSync[prevJointsIndex]);
-        _drawSync[prevJointsIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        glDeleteSync(_drawSync[jointsIndex]);
-        _drawSync[jointsIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    last_shader->use(false);
+    if (pass == RenderPass::Geometry) {
+        _prevTransformMatrix = GetGeometryTransform();
+        if (skinned) {
+            glDeleteSync(_drawSync[prevJointsIndex]);
+            _drawSync[prevJointsIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+            glDeleteSync(_drawSync[jointsIndex]);
+            _drawSync[jointsIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        }
     }
     return ret;
 }
 
-bool Mesh::DrawDepth(const glm::mat4& parentTransform, const glm::mat4& parentLastTransform, RenderMod mod)
+bool Mesh::DrawDepth(const glm::mat4& parentTransform, RenderMod mod)
 {
-    return Draw(parentTransform, parentLastTransform, RenderPass::Geometry, mod);
+    auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
+    auto transformMatrix = parentTransform * GetGeometryTransform();
+
+    bool ret = false;
+    auto normal_matrix = glm::inverseTranspose(glm::mat3(transformMatrix));
+
+    Load();
+    std::shared_ptr<Shader> last_shader;
+    auto skinned{ HasComponentOfType<MeshSkin>() };
+    auto jointsIndex = _jointMatricesIndex;
+    for (auto vg : Geometrys()) {
+        if (nullptr == vg)
+            continue;
+        auto material(GetMaterial(vg->MaterialIndex()));
+        if (nullptr == material) {
+            errorLog("Error : Invalid Material Index while rendering Mesh");
+            continue;
+        }
+        auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
+        //if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
+        if (mod == RenderMod::RenderOpaque && isTransparent)
+            continue;
+        else if (mod == RenderMod::RenderTransparent && !isTransparent)
+            continue;
+        auto shader{ material->GeometryShader() };
+        material->Bind();
+        shader->SetUniform("DrawID", unsigned(vg->GetId()));
+        if (last_shader != shader) {
+            shader->SetUniform("Matrix.Model", transformMatrix);
+            shader->SetUniform("Matrix.Normal", normal_matrix);
+            shader->SetTexture("Joints", skinned ? _jointMatrices.at(jointsIndex) : nullptr);
+            shader->SetUniform("Skinned", skinned);
+            last_shader = shader;
+        }
+        if (material->GetDoubleSided())
+            glDisable(GL_CULL_FACE);
+        else
+            glEnable(GL_CULL_FACE);
+        shader->use();
+        ret |= vg->Draw();
+        shader->use(false);
+        glEnable(GL_CULL_FACE);
+    }
+    return ret;
 }
 
 bool Mesh::Drawable() const

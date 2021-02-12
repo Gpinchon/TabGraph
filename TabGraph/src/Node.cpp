@@ -77,13 +77,14 @@ bool Node::Draw(std::shared_ptr<Scene> scene, RenderPass pass, RenderMod renderM
 {
     bool drew = false;
     for (auto& mesh : GetComponents<Mesh>()) {
-        //TODO send real last world matrix
-        drew |= mesh->Draw(WorldTransformMatrix(), WorldTransformMatrix(), pass, renderMod);
+        drew |= mesh->Draw(WorldTransformMatrix(), _prevTransformMatrix, pass, renderMod);
     }
     if (drawChildren) {
         for (auto& child : GetChildren())
             drew |= child->Draw(scene, pass, renderMod, drawChildren);
     }
+    if (pass == RenderPass::Geometry)
+        _prevTransformMatrix = WorldTransformMatrix();
     return drew;
 }
 
@@ -91,8 +92,7 @@ bool Node::DrawDepth(std::shared_ptr<Scene> scene, RenderMod renderMod, bool dra
 {
     bool drew = false;
     for (auto mesh : GetComponents<Mesh>()) {
-        //TODO send real last world matrix
-        drew |= mesh->DrawDepth(WorldTransformMatrix(), WorldTransformMatrix(), renderMod);
+        drew |= mesh->DrawDepth(WorldTransformMatrix(), renderMod);
     }
     if (drawChildren) {
         for (auto child : GetChildren())
