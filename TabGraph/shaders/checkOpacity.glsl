@@ -1,18 +1,4 @@
 R""(
-
-uvec3 Rand3DPCG16(ivec3 p)
-{
-	uvec3 v = uvec3(p);
-	v = v * 1664525u + 1013904223u;
-	v.x += v.y*v.z;
-	v.y += v.z*v.x;
-	v.z += v.x*v.y;
-	v.x += v.y*v.z;
-	v.y += v.z*v.x;
-	v.z += v.x*v.y;
-	return v >> 16u;
-}
-
 float InterleavedGradientNoise(vec2 uv, float FrameId)
 {
 	// magic values are found by experimentation

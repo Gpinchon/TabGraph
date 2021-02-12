@@ -127,7 +127,6 @@ void Reconstruct() {
 		vec4 color = vec4(diffuse + reflection + specular, min(1, Opacity() + Luminance(specular + reflection)));
 		thisColor = color * weight + thisColor * (1 - weight);
 	}
-
 	#if OPACITYMODE == BLEND
 	out_2 = vec4((max(thisColor.rgb - 1, 0) + Emissive()) * thisColor.a, thisColor.a);
 	WritePixel((thisColor.rgb + Emissive()) * thisColor.a, thisColor.a);
