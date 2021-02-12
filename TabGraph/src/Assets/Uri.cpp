@@ -20,7 +20,7 @@ Uri::Uri(const std::string& uri)
     /**
      * ^\s*                         <---- 0 Start by trimming leading white spaces
      *      (                       <---- 1 Optional scheme
-     *          ([^:/?#]+):         <---- 2 "Clean" scheme (everything until we reach a :, a #, a ?)
+     *          ([^:/?#]+):         <---- 2 "Clean" scheme (everything until we reach a #, a ?) followed by a :
      *      )?
      *      (\/\/                   <---- 3 Optional authority
      *          ([^/?#\s]*)         <---- 4 "Clean" authority (everything until we reach a #, a ? or a whitespace)
@@ -34,33 +34,46 @@ Uri::Uri(const std::string& uri)
      *      )?
     */
     //std::regex uriRegex { R"(^\s*(([^:/?#]+):)?(\/\/([^/?#\s]*))?([^?#\s]*)(\?([^#\s]*))?(#(\S*))?)", std::regex::ECMAScript };
-    std::regex schemeRegex{ R"(^\s*(([^:/?#]+):)?(.*)?)", std::regex::ECMAScript };
-    auto schemeResult = std::sregex_iterator(uri.begin(), uri.end(), schemeRegex);
     const auto searchEnd = std::sregex_iterator();
-    if (schemeResult != searchEnd) {
-        SetScheme((*schemeResult)[2]);
-        std::regex authorityRegex{ R"((\/\/([^\/?#\s]*))?(.*)?)", std::regex::ECMAScript };
-        std::string submatch{ (*schemeResult)[3] };
-        auto authorityResult = std::sregex_iterator(submatch.begin(), submatch.end(), authorityRegex);
+    auto offset = 0u;
+    {
+        std::regex schemeRegex{ R"(^\s*(?:([^:/?#]+):))", std::regex::ECMAScript };
+        auto schemeResult = std::sregex_iterator(uri.begin(), uri.end(), schemeRegex);
+        if (schemeResult != searchEnd) {
+            SetScheme((*schemeResult)[1]);
+            offset += (*schemeResult)[0].length();
+        }
+    }
+    {
+        std::regex authorityRegex{ R"(^(?:\/\/([^/?#\s]*)))", std::regex::ECMAScript };
+        auto authorityResult = std::sregex_iterator(uri.begin() + offset, uri.end(), authorityRegex);
         if (authorityResult != searchEnd) {
-            SetAuthority((*authorityResult)[2]);
-            submatch = (*authorityResult)[3];
-            auto pathEnd{ submatch.find_first_of("?# \t\n") };
-            SetPath(submatch.substr(0, pathEnd));
-            if (pathEnd == std::string::npos) //We're donezo
-                return;
-            submatch = submatch.substr(pathEnd);
-            std::regex queryRegex{ R"((\?([^#\s]*))?(.*)?)", std::regex::ECMAScript };
-            auto queryResult = std::sregex_iterator(submatch.begin(), submatch.end(), queryRegex);
-            if (queryResult != searchEnd) {
-                SetQuery((*queryResult)[2]);
-                submatch = (*queryResult)[3];
-                std::regex fragmentRegex{ R"((#(\S*)))", std::regex::ECMAScript };
-                auto fragmentResult = std::sregex_iterator(submatch.begin(), submatch.end(), fragmentRegex);
-                if (fragmentResult != searchEnd) {
-                    SetFragment((*fragmentResult)[2]);
-                }
-            }
+            SetAuthority((*authorityResult)[1]);
+            offset += (*authorityResult)[0].length();
+        }
+    }
+    {
+        //this is too complex for poor lil' std regex :(
+        auto pathEnd{ uri.find_first_of("?# \t\n", offset) };
+        SetPath(uri.substr(offset, pathEnd));
+        if (pathEnd == std::string::npos)
+            return;
+        offset += pathEnd - offset;
+    }
+    {
+        std::regex queryRegex{ R"(^(?:\?([^#\s]*)))", std::regex::ECMAScript };
+        auto queryResult{ std::sregex_iterator(uri.begin() + offset, uri.end(), queryRegex) };
+        if (queryResult != searchEnd) {
+            SetPath(std::string((*queryResult)[1]));
+            offset += (*queryResult)[0].length();
+        }
+    }
+    {
+        std::regex fragmentRegex{ R"(^(?:\#([^#\s]*)))", std::regex::ECMAScript };
+        auto fragmentResult{ std::sregex_iterator(uri.begin() + offset, uri.end(), fragmentRegex) };
+        if (fragmentResult != searchEnd) {
+            SetPath(std::string((*fragmentResult)[1]));
+            offset += (*fragmentResult)[0].length();
         }
     }
 }
@@ -148,26 +161,49 @@ DataUri::DataUri(const Uri& uri)
      *  ,(.*)                   <---- 4 The data, we can just take everything there, should be clean
      * $
     */
-    std::regex dataRegex { R"(^([-\w]+/[-+\w.]+)?((?:;?[\w]+=[-\w]+)*)(;base64)?,(.*)$)", std::regex::ECMAScript };
-    auto data { uri.GetPath().string() };
-    auto searchResult = std::sregex_iterator(data.begin(), data.end(), dataRegex);
-    auto searchEnd = std::sregex_iterator();
-    if (searchResult != searchEnd) {
-        SetMime((*searchResult)[1]);
-        {
-            std::stringstream parameters { (*searchResult)[2] };
+    //std::regex dataRegex { R"(^([-+\w]+/[-+\w.]+)??((?:;?[\w]+=[-\w]+)*)(;base64)??,(.*)$)", std::regex::ECMAScript };
+    const auto searchEnd = std::sregex_iterator();
+    const auto &data{ uri.GetPath().string() };
+    auto offset = 0u;
+    {
+        std::regex mimeRegex{ R"(^([-+\w]+/[-+\w.]+))", std::regex::ECMAScript };
+        
+        auto mimeResult = std::sregex_iterator(data.begin(), data.end(), mimeRegex);
+        if (mimeResult != searchEnd) {
+            SetMime((*mimeResult)[1]);
+            offset += (*mimeResult)[0].length();
+        }
+    }
+    {
+        std::regex parametersRegex{ R"(^((?:;?[\w]+=[-\w]+)*))", std::regex::ECMAScript };
+        auto parametersResult = std::sregex_iterator(data.begin() + offset, data.end(), parametersRegex);
+        if (parametersResult != searchEnd) {
+            std::stringstream parameters{ (*parametersResult)[1] };
             std::string parameter;
             while (std::getline(parameters, parameter, ';')) {
                 if (parameter.empty())
                     continue;
-                auto separator { parameter.find(L'=') };
-                auto attribute { parameter.substr(0, separator) };
-                auto value { parameter.substr(separator + 1u) };
+                auto separator{ parameter.find(L'=') };
+                auto attribute{ parameter.substr(0, separator) };
+                auto value{ parameter.substr(separator + 1u) };
                 SetParameter(attribute, value);
             }
+            offset += (*parametersResult)[0].length();
         }
-        SetBase64((*searchResult)[3] == ";base64");
-        SetData((*searchResult)[4]);
+    }
+    {
+        std::regex base64Regex{ R"(^(;base64))", std::regex::ECMAScript };
+        auto base64Result = std::sregex_iterator(data.begin() + offset, data.end(), base64Regex);
+        if (base64Result != searchEnd) {
+            SetBase64((*base64Result)[1] == ";base64");
+            offset += (*base64Result)[0].length();
+        }
+    }
+    {
+        //again, too complex for whiny std regex
+        if ((data.begin() + offset) != data.end() && (data.begin() + offset)[0] == ',') {
+            SetData(std::string(data.begin() + offset + 1, data.end())); //+1 to skip the comma
+        }
     }
 }
 
@@ -214,7 +250,7 @@ void DataUri::SetData(const std::string& mime)
     _data = mime;
 }
 
-std::string DataUri::GetData() const
+const std::string &DataUri::GetData() const
 {
     return _data;
 }
@@ -231,65 +267,6 @@ DataUri::operator std::string()
         fullUri += ";base64";
     fullUri += ',' + GetData();
     return fullUri;
-}
-
-static inline bool is_base64(unsigned char c)
-{
-    return (isalnum(c) || (c == '+') || (c == '/'));
-}
-
-static inline std::string base64_decode(std::string const& encoded_string)
-{
-    int in_len = static_cast<int>(encoded_string.size());
-    int i = 0;
-    int j = 0;
-    int in_ = 0;
-    unsigned char char_array_4[4], char_array_3[3];
-    std::string ret;
-
-    const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                     "abcdefghijklmnopqrstuvwxyz"
-                                     "0123456789+/";
-
-    while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
-        char_array_4[i++] = encoded_string[in_];
-        in_++;
-        if (i == 4) {
-            for (i = 0; i < 4; i++)
-                char_array_4[i] = static_cast<unsigned char>(base64_chars.find(char_array_4[i]));
-
-            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-            for (i = 0; (i < 3); i++)
-                ret += char_array_3[i];
-            i = 0;
-        }
-    }
-
-    if (i) {
-        for (j = i; j < 4; j++)
-            char_array_4[j] = 0;
-
-        for (j = 0; j < 4; j++)
-            char_array_4[j] = static_cast<unsigned char>(base64_chars.find(char_array_4[j]));
-
-        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-        for (j = 0; (j < i - 1); j++)
-            ret += char_array_3[j];
-    }
-    return ret;
-}
-
-std::string DataUri::Decode() const
-{
-    if (GetBase64())
-        return base64_decode(GetData());
-    return GetData();
 }
 
 std::ostream& operator<<(std::ostream& os, const Uri& uri)
