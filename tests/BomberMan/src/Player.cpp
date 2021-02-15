@@ -141,17 +141,19 @@ void Player::Move(const glm::vec2& direction, float delta)
 
 void Player::Die()
 {
+    _lives--;
     if (GetComponentByName<Animation>("death")->Playing()) {
         std::cout << "Already DED" << std::endl;
     }
-    PlayAnimation("death", true);
+    PlayAnimation("death", false);
 
     std::cout << "DED on Frame "<< Render::FrameNumber() << std::endl;
 }
 
 void Player::_FixedUpdateCPU(float delta)
 {
-    if (Game::CurrentLevel() == nullptr)
+    if (Game::CurrentLevel() == nullptr ||
+        GetComponentByName<Animation>("death")->Playing())
         return;
     glm::vec2 input;
     input.x = Keyboard::key(UPK) - Keyboard::key(DOWNK);
