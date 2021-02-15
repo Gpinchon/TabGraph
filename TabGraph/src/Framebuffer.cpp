@@ -55,7 +55,7 @@ void Framebuffer::bind(bool to_bind)
 void Framebuffer::bind_default()
 {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glViewport(0, 0, Window::size().x, Window::size().y);
+    glViewport(0, 0, Window::GetSize().x, Window::GetSize().y);
 }
 
 std::shared_ptr<Texture2D> Framebuffer::Create_attachement(Pixel::SizedFormat format)
@@ -113,7 +113,7 @@ void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::
 void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, GLbitfield mask, GLenum filter)
 {
     if (to == nullptr)
-        BlitTo(to, glm::ivec2(0), Size(), glm::ivec2(0), Window::size(), mask, filter);
+        BlitTo(to, glm::ivec2(0), Size(), glm::ivec2(0), Window::GetSize(), mask, filter);
     else
         BlitTo(to, glm::ivec2(0), Size(), glm::ivec2(0), to->Size(), mask, filter);
 }
