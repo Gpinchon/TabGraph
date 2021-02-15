@@ -14,8 +14,8 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 Texture2D::Texture2D(glm::ivec2 size, Pixel::SizedFormat internalFormat) : Texture(Texture::Type::Texture2D, internalFormat), _Size(size) {
-    SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    SetParameter<Texture::Parameter::MagFilter>(Texture::Filter::Linear);
+    SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::Linear);
 }
 
 Texture2D::Texture2D(glm::ivec2 size, Pixel::SizedFormat internalFormat, uint8_t multiSample) : Texture(Texture::Type::Texture2DMultisample, internalFormat), _Size(size)
@@ -25,14 +25,14 @@ Texture2D::Texture2D(glm::ivec2 size, Pixel::SizedFormat internalFormat, uint8_t
 
 Texture2D::Texture2D(std::shared_ptr<Asset> image) : Texture(Texture::Type::Texture2D) {
     SetComponent(image);
-    SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    SetParameter<Texture::Parameter::MagFilter>(Texture::Filter::Linear);
+    SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::Linear);
 }
 
 Texture2D::Texture2D(std::shared_ptr<Asset> image, uint8_t multiSample) : Texture(Texture::Type::Texture2DMultisample) {
     SetComponent(image);
-    SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    SetParameter<Texture::Parameter::MagFilter>(Texture::Filter::Linear);
+    SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::Linear);
 }
 
 void Texture2D::Load() {
@@ -46,21 +46,9 @@ void Texture2D::Load() {
     }
     else if (!_onBeforeRenderSlot.Connected() && !_onImageLoadedSlot.Connected()) //We're already loading/We'll upload texture on next render, calm down...
     {
-        //GetComponent<Image>()->Load();
-        //_UploadImage(GetComponent<Image>());
         auto imageAsset{ GetComponent<Asset>() };
         _onImageLoadedSlot = imageAsset->OnLoaded().ConnectMember(this, &Texture2D::_OnImageLoaded);
         imageAsset->LoadAsync();
-        /*imageAsset->LoadAsync();
-        if (imageAsset->GetLoaded())
-        {
-            _UploadImage(GetComponent<Asset>());
-        }
-        else
-        {
-            
-            GetComponent<Image>()->LoadAsync();
-        }*/
     }
 }
 
@@ -74,12 +62,6 @@ void Texture2D::SetSize(glm::ivec2 size)
 
 void Texture2D::_AllocateStorage() {
     _SetHandle(Texture::Create(GetType()));
-    /*glTextureStorage2D(
-        (GLenum)GetHandle(),
-        GetMipMapNbr(),
-        (GLenum)GetPixelDescription().GetSizedFormat(),
-        GetSize().x,
-        GetSize().y);*/
     glBindTexture((GLenum)GetType(), GetHandle());
     if (GetType() == Texture::Type::Texture2DMultisample)
         glTexStorage2DMultisample(

@@ -24,16 +24,16 @@ Cubemap::Cubemap(glm::ivec2 size, Pixel::SizedFormat format)
     : Texture2D(size, format)
 {
     _SetType(Texture::Type::TextureCubemap);
-    SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    SetParameter<Texture::Parameter::MagFilter>(Texture::Filter::Linear);
+    SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::Linear);
 }
 
 Cubemap::Cubemap(std::shared_ptr<Asset> fromImage)
     : Texture2D(fromImage)
 {
     _SetType(Texture::Type::TextureCubemap);
-    SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    SetParameter<Texture::Parameter::MagFilter>(Texture::Filter::Linear);
+    SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::Linear);
 }
 
 Cubemap::~Cubemap()

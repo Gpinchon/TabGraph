@@ -50,8 +50,8 @@ auto DefaultBRDFLUT()
         brdfImageAsset->SetComponent(brdfImage);
         brdfImageAsset->SetLoaded(true);
         brdf->SetName("BrdfLUT");
-        brdf->SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        brdf->SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        brdf->SetParameter<Texture::Parameter::WrapS>(Texture::Wrap::ClampToEdge);
+        brdf->SetParameter<Texture::Parameter::WrapT>(Texture::Wrap::ClampToEdge);
     }    
     return brdf;
 }

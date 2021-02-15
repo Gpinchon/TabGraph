@@ -139,13 +139,13 @@ static inline auto ParseTextures(const rapidjson::Document& document, std::vecto
                 try {
                     auto sampler(samplers.at(textureValue["sampler"].GetInt()));
                     if (sampler.settings["magFilter"] != 0)
-                        texture->SetParameter(GL_TEXTURE_MAG_FILTER, sampler.settings["magFilter"]);
+                        texture->SetParameter<Texture::Parameter::MagFilter>((Texture::Filter)sampler.settings["magFilter"]);
                     if (sampler.settings["minFilter"] != 0)
-                        texture->SetParameter(GL_TEXTURE_MIN_FILTER, sampler.settings["minFilter"]);
+                        texture->SetParameter<Texture::Parameter::MinFilter>((Texture::Filter)sampler.settings["magFilter"]);
                     if (sampler.settings["wrapS"] != 0)
-                        texture->SetParameter(GL_TEXTURE_WRAP_S, sampler.settings["wrapS"]);
+                        texture->SetParameter<Texture::Parameter::WrapS>((Texture::Wrap)sampler.settings["wrapS"]);
                     if (sampler.settings["wrapT"] != 0)
-                        texture->SetParameter(GL_TEXTURE_WRAP_T, sampler.settings["wrapT"]);
+                        texture->SetParameter<Texture::Parameter::WrapT>((Texture::Wrap)sampler.settings["wrapT"]);
                 } catch (std::exception&) {
                     debugLog("Texture " + std::to_string(textureIndex) + " has no sampler")
                 }

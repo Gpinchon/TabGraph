@@ -142,8 +142,8 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
     floorImageAsset->AddComponent(floorImage);
     floorImageAsset->SetLoaded(true);
     auto floorTexture = Component::Create<Texture2D>(floorImageAsset);
-    floorTexture->SetParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    floorTexture->SetParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    floorTexture->SetParameter<Texture::Parameter::MagFilter>(Texture::Filter::Nearest);
+    floorTexture->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::Nearest);
     level->GetComponentInChildrenByName<Mesh>("FloorMesh")->GetMaterial(0)->SetTextureDiffuse(floorTexture);
     struct dirent* e;
     std::filesystem::path folder;

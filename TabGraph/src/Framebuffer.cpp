@@ -72,8 +72,8 @@ std::shared_ptr<Texture2D> Framebuffer::Create_attachement(Pixel::SizedFormat fo
         tname = (GetName() + "_attachement_" + std::to_string(_color_attachements.size()));
     auto a = Component::Create<Texture2D>(Size(), format);
     a->SetName(tname);
-    a->SetParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    a->SetParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    a->SetParameter<Texture::Parameter::WrapS>(Texture::Wrap::ClampToEdge);
+    a->SetParameter<Texture::Parameter::WrapT>(Texture::Wrap::ClampToEdge);
     if (isDepth) {
         _depth = std::pair(a, 0);
     } else {

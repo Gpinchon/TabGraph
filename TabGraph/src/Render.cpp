@@ -142,12 +142,12 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
     }
     static auto framebuffer = Component::Create<Framebuffer>("HZB", depthTexture->GetSize(), 0, 0);
     depthTexture->GenerateMipmap();
-    depthTexture->SetParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+    depthTexture->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::LinearMipmapLinear);
     auto numLevels = MIPMAPNBR(depthTexture->GetSize()); //1 + unsigned(floorf(log2f(fmaxf(depthTexture->GetSize().x, depthTexture->GetSize().y))));
     auto currentSize = depthTexture->GetSize();
-    for (auto i = 1u; i < numLevels; i++) {
-        depthTexture->SetParameter(GL_TEXTURE_BASE_LEVEL, i - 1);
-        depthTexture->SetParameter(GL_TEXTURE_MAX_LEVEL, i - 1);
+    for (auto i = 1; i < numLevels; i++) {
+        depthTexture->SetParameter<Texture::Parameter::BaseLevel>(i - 1);
+        depthTexture->SetParameter<Texture::Parameter::MaxLevel>(i - 1);
         currentSize /= 2;
         currentSize = glm::max(currentSize, glm::ivec2(1));
         framebuffer->Resize(currentSize);
@@ -161,9 +161,9 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
         framebuffer->SetDepthBuffer(nullptr);
         //framebuffer->set_attachement(0, nullptr);
     }
-    depthTexture->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
-    depthTexture->SetParameter(GL_TEXTURE_MAX_LEVEL, numLevels - 1);
-    depthTexture->SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    depthTexture->SetParameter<Texture::Parameter::BaseLevel>(0);
+    depthTexture->SetParameter<Texture::Parameter::MaxLevel>(numLevels - 1);
+    depthTexture->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::LinearMipmapLinear);
     framebuffer->bind(false);
 }
 
@@ -256,8 +256,8 @@ std::shared_ptr<Framebuffer> CreateGeometryBuffer(const std::string& name, const
     buffer->Create_attachement(Pixel::SizedFormat::Uint8_NormalizedR); //AO
     buffer->Create_attachement(Pixel::SizedFormat::Int8_NormalizedRGB); // Normal;
     auto idTexture = buffer->Create_attachement(Pixel::SizedFormat::Uint32_R);
-    idTexture->SetParameter(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    idTexture->SetParameter(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    idTexture->SetParameter<Texture::Parameter::MagFilter>(Texture::Filter::Nearest);
+    idTexture->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::Nearest);
     buffer->Create_attachement(Pixel::SizedFormat::Float16_RG); //Velocity
     return (buffer);
 }
@@ -454,23 +454,21 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     glColorMaski(2, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glColorMaski(3, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-    opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     opaqueBuffer->attachement(0)->GenerateMipmap();
     opaqueBuffer->attachement(1)->GenerateMipmap();
-    opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_BASE_LEVEL, 1);
-    opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_BASE_LEVEL, 1);
+    opaqueBuffer->attachement(0)->SetParameter<Texture::Parameter::BaseLevel>(1);
+    opaqueBuffer->attachement(1)->SetParameter<Texture::Parameter::BaseLevel>(1);
     CompositingPass(opaqueBuffer, transparentBuffer1);
-    opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
-    opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
+    opaqueBuffer->attachement(0)->SetParameter<Texture::Parameter::BaseLevel>(0);
+    opaqueBuffer->attachement(1)->SetParameter<Texture::Parameter::BaseLevel>(0);
     if (!fastTransparency) {
         opaqueBuffer->attachement(0)->GenerateMipmap();
         opaqueBuffer->attachement(1)->GenerateMipmap();
-        opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_BASE_LEVEL, 1);
-        opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_BASE_LEVEL, 1);
+        opaqueBuffer->attachement(0)->SetParameter<Texture::Parameter::BaseLevel>(1);
+        opaqueBuffer->attachement(1)->SetParameter<Texture::Parameter::BaseLevel>(1);
         CompositingPass(opaqueBuffer, transparentBuffer);
-        opaqueBuffer->attachement(0)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
-        opaqueBuffer->attachement(1)->SetParameter(GL_TEXTURE_BASE_LEVEL, 0);
+        opaqueBuffer->attachement(0)->SetParameter<Texture::Parameter::BaseLevel>(0);
+        opaqueBuffer->attachement(1)->SetParameter<Texture::Parameter::BaseLevel>(0);
     }
     
 

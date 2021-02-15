@@ -60,8 +60,8 @@ DirectionnalLight::DirectionnalLight(const std::string& name, glm::vec3 color, g
     if (cast_shadow) {
         SetComponent(Component::Create<Framebuffer>(GetName() + "_shadowMap", glm::vec2(Config::Global().Get("ShadowRes", 1024)), 0, 0));
         GetComponent<Framebuffer>()->Create_attachement(Pixel::SizedFormat::Depth24);
-        GetComponent<Framebuffer>()->depth()->SetParameter(GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-        GetComponent<Framebuffer>()->depth()->SetParameter(GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+        GetComponent<Framebuffer>()->depth()->SetParameter<Texture::Parameter::CompareMode>(Texture::CompareMode::CompareRefToTexture);
+        GetComponent<Framebuffer>()->depth()->SetParameter<Texture::Parameter::CompareFunc>(Texture::CompareFunc::LessEqual);
     }
 }
 
