@@ -9,32 +9,17 @@
 #include "DLLExport.hpp"
 
 #include "Engine.hpp"
+
 #include "Config.hpp"
 #include "Game.hpp"
 #include "Level.hpp"
+
 #include <iostream>
-
-Signal<> DummySignal;
-
-struct DummyObject : public Trackable {
-    DummyObject() {
-        DummySignal.ConnectMember(this, &DummyObject::Test);
-    }
-    void Test(void) {
-        std::cout << "This is a test" << std::endl;
-    };
-};
 
 int main(int /*argc*/, char const** /*argv*/)
 {
-    
-    {
-        DummyObject dummy;
-        DummySignal();
-    }
-    DummySignal();
     std::set_terminate([]() { std::cout << "Unhandled exception\n"; int* p = nullptr; p[0] = 1; });
-    Config::Parse(Engine::ResourcePath() / "config.ini");
+    Config::Global().Parse(Engine::ResourcePath() / "config.ini");
     Engine::Init();
     auto level = Level::Parse(Engine::ResourcePath() / "maps/test.map");
     Game::AddPlayer();

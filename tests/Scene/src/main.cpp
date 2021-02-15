@@ -20,7 +20,6 @@
 #include "Material/Material.hpp"
 #include "Mesh/CubeMesh.hpp"
 #include "Mesh/Mesh.hpp"
-#include "Render.hpp"
 #include "Scene/Scene.hpp"
 #include "Tools/Tools.hpp"
 #include "Window.hpp"
@@ -68,17 +67,16 @@ void CameraCallback(float delta)
 
 void MouseMoveCallback(const SDL_MouseMotionEvent& event)
 {
-    double tick{ SDL_GetTicks() / 1000.f };
     auto camera = std::dynamic_pointer_cast<FPSCamera>(Scene::Current()->CurrentCamera());
     if (camera == nullptr)
         return;
     static glm::vec3 cameraRotation;
     if (Mouse::button(1)) {
-        cameraRotation.x -= event.xrel * 0.05 * Config::Get("MouseSensitivity", 2.f);
-        cameraRotation.y -= event.yrel * 0.05 * Config::Get("MouseSensitivity", 2.f);
+        cameraRotation.x -= event.xrel * 0.05 * Config::Global().Get("MouseSensitivity", 2.f);
+        cameraRotation.y -= event.yrel * 0.05 * Config::Global().Get("MouseSensitivity", 2.f);
     }
     if (Mouse::button(3))
-        cameraRotation.z += event.xrel * 0.05 * Config::Get("MouseSensitivity", 2.f);
+        cameraRotation.z += event.xrel * 0.05 * Config::Global().Get("MouseSensitivity", 2.f);
     camera->SetYaw(cameraRotation.x);
     camera->SetPitch(cameraRotation.y);
     camera->SetRoll(cameraRotation.z);
@@ -95,7 +93,7 @@ void FullscreenCallback(const SDL_KeyboardEvent&)
     if ((Keyboard::key(SDL_SCANCODE_RETURN) != 0u) && (Keyboard::key(SDL_SCANCODE_LALT) != 0u)) {
         static bool fullscreen = false;
         fullscreen = !fullscreen;
-        Window::fullscreen(fullscreen);
+        Window::SetFullscreen(fullscreen);
     }
 }
 
@@ -103,8 +101,8 @@ void CallbackQuality(const SDL_KeyboardEvent& event)
 {
     if (event.type == SDL_KEYUP || (event.repeat != 0u))
         return;
-    auto quality = CYCLE(Config::Get("InternalQuality", 1.f) + 0.25f, 0.5f, 1.5f);
-    Config::Set("InternalQuality", quality);
+    auto quality = CYCLE(Config::Global().Get("InternalQuality", 1.f) + 0.25f, 0.5f, 1.5f);
+    Config::Global().Set("InternalQuality", quality);
 }
 
 void CallbackAnimation(const SDL_KeyboardEvent& event)
@@ -180,7 +178,7 @@ int main(int argc, char** argv)
     {
         //std::set_terminate([]() { std::cout << "Unhandled exception\n"; int* p = nullptr; p[0] = 1; });
         StackTracer::set_signal_handler(SIGABRT);
-        Config::Parse(Engine::ResourcePath() / "config.ini");
+        Config::Global().Parse(Engine::ResourcePath() / "config.ini");
         Engine::Init();
         std::filesystem::path filePath = (std::string(argv[1]));
         if (!filePath.is_absolute()) {
