@@ -17,32 +17,35 @@ class Framebuffer;
 
 /** @brief Render manages the graphical rendering and frame pacing */
 namespace Render {
-/** @brief Asks for a redraw on next loop */
-void RequestRedraw();
-std::atomic<bool>& NeedsUpdate();
-/** @brief Indicates if the rendering still needs update */
-std::atomic<bool>& Drawing();
-/**
-	*	@brief Adds a post-treatment Shader to be applied after rasterization path
-	*	@param shader The post-treatment Shader to add
-	*/
-void AddPostTreatment(std::shared_ptr<Shader> shader);
-/**
-	*	@brief Removes a post-treatment Shader from the list
-	*	@param shader The post-treatment Shader to remove
-	*/
-void RemovePostTreatment(std::shared_ptr<Shader> shader);
+	void Init();
+	typedef void* Context;
+	Context GetContext();
+	/** @brief Asks for a redraw on next loop */
+	void RequestRedraw();
+	std::atomic<bool>& NeedsUpdate();
+	/** @brief Indicates if the rendering still needs update */
+	std::atomic<bool>& Drawing();
+	/**
+		*	@brief Adds a post-treatment Shader to be applied after rasterization path
+		*	@param shader The post-treatment Shader to add
+		*/
+	void AddPostTreatment(std::shared_ptr<Shader> shader);
+	/**
+		*	@brief Removes a post-treatment Shader from the list
+		*	@param shader The post-treatment Shader to remove
+		*/
+	void RemovePostTreatment(std::shared_ptr<Shader> shader);
 
-uint32_t FrameNumber();
+	uint32_t FrameNumber();
 
-const std::shared_ptr<Framebuffer> OpaqueBuffer();
-const std::shared_ptr<Framebuffer> GeometryBuffer();
-const std::shared_ptr<Framebuffer> LightBuffer();
+	const std::shared_ptr<Framebuffer> OpaqueBuffer();
+	const std::shared_ptr<Framebuffer> GeometryBuffer();
+	const std::shared_ptr<Framebuffer> LightBuffer();
 
-const std::shared_ptr<Geometry> DisplayQuad();
+	const std::shared_ptr<Geometry> DisplayQuad();
 
-Signal<float>& OnBeforeRender();
-Signal<float>& OnAfterRender();
+	Signal<float>& OnBeforeRender();
+	Signal<float>& OnAfterRender();
 
-void Scene();
+	void Scene();
 };

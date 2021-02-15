@@ -64,8 +64,9 @@ EnginePrivate& EnginePrivate::Get()
 
 void Engine::Init()
 {
-    Window::init(Config::Get("WindowName", std::string("")), Config::Get("WindowSize", glm::vec2(1280, 720)));
-    Engine::SetSwapInterval(Config::Get("SwapInterval", 0));
+    Window::Init(Config::Global().Get("WindowName", std::string("")), Config::Global().Get("WindowSize", glm::vec2(1280, 720)));
+    Render::Init();
+    Engine::SetSwapInterval(Config::Global().Get("SwapInterval", 0));
 }
 
 #include "Camera/Camera.hpp"
@@ -78,7 +79,7 @@ void Engine::Start()
     double lastTicks;
     double fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
 
-    SDL_GL_MakeCurrent(Window::sdl_window(), Window::context());
+    SDL_GL_MakeCurrent((SDL_Window*)Window::GetHandle(), Render::GetContext());
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
     while (EnginePrivate::Get().loop) {
         ticks = SDL_GetTicks() / 1000.0;
