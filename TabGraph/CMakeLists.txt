@@ -154,8 +154,6 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/ShaderExtension.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/ShaderStage.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/StackTracer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/State.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/StateMachine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain_GDAL.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/PixelUtils.hpp
