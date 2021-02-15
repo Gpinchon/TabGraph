@@ -32,9 +32,9 @@ add_definitions(-DNOMINMAX)
 #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DDEBUG_MOD")
 set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_MOD")
-set(CMAKE_CXX_FLAGS_RELEASE "-Ox")
+set (CMAKE_CXX_FLAGS_RELEASE "-Ox")
 
-include(FetchDependencies.cmake)
+include(cmake/FetchDependencies.cmake)
 
 add_subdirectory(TabGraph)
 add_library(TabGraph::TabGraph ALIAS TabGraph)
@@ -43,5 +43,19 @@ add_library(TabGraph::Plugins ALIAS TabGraphPlugins)
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(tests)
 endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-#add_dependencies(Scene TabGraph)
-#target_link_libraries(Scene Tabgraph)
+
+find_package(Doxygen)
+
+if (DOXYGEN_FOUND)
+	set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
+	set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.out)
+	configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+	message("Doxygen build started")
+	add_custom_target(Documentation
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM )
+else (DOXYGEN_FOUND)
+	message("Doxygen not found")
+endif (DOXYGEN_FOUND)
