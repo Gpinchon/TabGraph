@@ -11,7 +11,7 @@
 #include "Shader/ShaderStage.hpp"
 #include "Tools/Tools.hpp"
 
-#include <GL/glew.h> // for GLuint, GLenum, GLint
+#include <GL/glew.h> // for GLenum
 #include <cstdlib>
 #include <functional>
 #include <glm/glm.hpp> // for glm::mat4, glm::vec2, glm::vec3
@@ -28,7 +28,7 @@ struct ShaderVariable {
     std::string name { "" };
     size_t size { 0 };
     GLenum type { 0 };
-    GLint loc { -1 };
+    int32_t loc { -1 };
     std::string typeName {};
     size_t byteSize { 0 };
     std::function<void(const ShaderVariable&)> updateFunction {};
@@ -94,14 +94,20 @@ public:
         PostShader,
         ComputeShader
     };
+    typedef int32_t Handle;
+    READONLYPROPERTY(Shader::Type, Type, Shader::Type::Invalid);
+    READONLYPROPERTY(Shader::Handle, Handle, 0);
+    READONLYPROPERTY(bool, Compiled, false);
+public:
+    
     Shader(const std::string& name, const Shader::Type& type = Shader::Type::Other);
     //static std::shared_ptr<Shader> Get(unsigned index);
     //static std::shared_ptr<Shader> GetByName(const std::string&);
     void AddExtension(const std::shared_ptr<ShaderExtension>& extension);
     void RemoveExtension(const std::shared_ptr<ShaderExtension>& extension);
-    static bool check_shader(const GLuint id);
-    static bool check_program(const GLuint id);
-    void bind_image(const std::string& uname, std::shared_ptr<Texture> texture, const GLint level, const bool layered, const GLint layer, const GLenum access, const GLenum texture_unit);
+    static bool check_shader(const uint32_t id);
+    static bool check_program(const uint32_t id);
+    void bind_image(const std::string& uname, std::shared_ptr<Texture> texture, const int32_t level, const bool layered, const int32_t layer, const GLenum access, const GLenum texture_unit);
     void unbind_texture(GLenum texture_unit);
     void SetAttribute(const ShaderVariable& attribute);
     void SetUniform(const ShaderVariable& uniform);
@@ -123,7 +129,6 @@ public:
     ShaderVariable& get_uniform(const std::string& name);
     ShaderVariable& get_attribute(const std::string& name);
     bool in_use();
-    bool Compiled() const;
     bool NeedsRecompile() const;
     void Recompile();
     std::unordered_map<std::string, std::string> Defines() const;
@@ -133,7 +138,6 @@ public:
     std::shared_ptr<ShaderStage> Stage(GLenum stage) const;
     void SetStage(const std::shared_ptr<ShaderStage>& stage);
     void RemoveStage(GLenum stage);
-    Shader::Type GetType();
     void Compile();
     void Link();
 
@@ -142,11 +146,9 @@ private:
     {
         return Component::Create<Shader>(*this);
     }
-    GLuint _program { 0 };
     bool _texturesChanged { false };
     bool _uniformsChanged { false };
     bool _attributesChanged { false };
-    bool _compiled { false };
     bool _needsRecompile { false };
     void _UpdateVariables();
     void _UpdateVariable(const ShaderVariable& variable);
@@ -159,7 +161,6 @@ private:
     static std::unordered_map<std::string, ShaderVariable> _globalTextures;
     static std::unordered_map<std::string, ShaderVariable> _globalUniforms;
     static std::unordered_map<std::string, std::string> _globalDefines;
-    Shader::Type _type { Shader::Type::Invalid };
 };
 
 #include "Debug.hpp"

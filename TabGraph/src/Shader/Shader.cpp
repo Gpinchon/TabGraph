@@ -33,7 +33,7 @@ Shader::Shader(const std::string& name, const Shader::Type& type)
     static std::string deferred_frag_code =
 #include "deferred.frag"
         ;
-    _type = type;
+    _SetType(type);
     if (Shader::Type::LightingShader == type) {
         SetDefine("LIGHTSHADER");
         SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(deferred_vert_code, "FillVertexData();")));
@@ -46,22 +46,6 @@ Shader::Shader(const std::string& name, const Shader::Type& type)
         SetDefine("COMPUTESHADER");
     }
 }
-
-/*std::shared_ptr<Shader> Shader::Get(unsigned index)
-{
-    if (index >= _shaders.size())
-        return (nullptr);
-    return (_shaders.at(index));
-}
-
-std::shared_ptr<Shader> Shader::GetByName(const std::string& name)
-{
-    for (auto s : _shaders) {
-        if (name == s->Name())
-            return (s);
-    }
-    return (nullptr);
-}*/
 
 void Shader::AddExtension(const std::shared_ptr<ShaderExtension>& extension)
 {
@@ -97,7 +81,7 @@ bool Shader::in_use()
 {
     GLint program;
     glGetIntegerv(GL_CURRENT_PROGRAM, &program);
-    return (_program != 0 && GLuint(program) == _program);
+    return (GetHandle() != 0 && GLuint(program) == GetHandle());
 }
 
 #include "Framebuffer.hpp"
@@ -135,7 +119,7 @@ void Shader::use(const bool& use_program)
     //SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
     /*SetUniform("Camera.InvMatrix.View", glm::inverse(Scene::Current()->CurrentCamera()->ViewMatrix()));
     SetUniform("Camera.InvMatrix.Projection", glm::inverse(Scene::Current()->CurrentCamera()->ProjectionMatrix()));*/
-    glUseProgram(_program);
+    glUseProgram(GetHandle());
     _UpdateVariables();
 }
 
@@ -285,10 +269,10 @@ void Shader::_UpdateVariables()
 
 void Shader::Link()
 {
-    glLinkProgram(_program);
-    glObjectLabel(GL_PROGRAM, _program, GetName().length(), GetName().c_str());
+    glLinkProgram(GetHandle());
+    glObjectLabel(GL_PROGRAM, GetHandle(), GetName().length(), GetName().c_str());
     try {
-        check_program(_program);
+        check_program(GetHandle());
     } catch (std::exception& e) {
         throw std::runtime_error(std::string("Linking Error " + GetName() + " :\n") + e.what());
     }
@@ -486,15 +470,13 @@ static inline size_t VariableSize(GLenum type)
     return (0);
 }
 
-//#define VARIABLEMAP ()
-
 void Shader::_get_variables(GLenum variableType)
 {
     char name[4096];
     GLint ivcount;
     GLsizei length;
 
-    glGetProgramiv(_program, variableType, &ivcount);
+    glGetProgramiv(GetHandle(), variableType, &ivcount);
     debugLog(this->GetName());
     debugLog(ivcount);
     debugLog((variableType == GL_ACTIVE_UNIFORMS ? "GL_ACTIVE_UNIFORMS" : "GL_ACTIVE_ATTRIBUTES"));
@@ -502,46 +484,25 @@ void Shader::_get_variables(GLenum variableType)
         memset(name, 0, sizeof(name));
         GLint size;
         GLenum type;
-        glGetActiveUniform(_program, static_cast<GLuint>(ivcount), 4096, &length, &size, &type, name);
+        glGetActiveUniform(GetHandle(), static_cast<GLuint>(ivcount), 4096, &length, &size, &type, name);
         auto updateFunction = GetSetUniformCallback(type);
         auto& variableMap = variableType == GL_ACTIVE_UNIFORMS ? (updateFunction == SetUniformSampler ? _textures : _uniforms) : _attributes;
         auto& v = variableMap[name];
-        //ShaderVariable v;
-
-        /*if (variableType == GL_ACTIVE_UNIFORMS) {
-            if (updateFunction == SetUniformSampler)
-                v = _textures[name];
-            else
-                v = _uniforms[name];
-        }
-        else if (variableType == GL_ACTIVE_ATTRIBUTES)
-            v = _attributes[name];*/
-        //auto& v(variableType == GL_ACTIVE_UNIFORMS ? _uniforms[name] : _attributes[name]);
         v.name = name;
         v.size = size;
         v.type = type;
-        v.loc = glGetUniformLocation(_program, name);
+        v.loc = glGetUniformLocation(GetHandle(), name);
         v.byteSize = VariableSize(v.type);
-        //v.data = (void*)nullptr;
-        //auto updateFunction = GetSetUniformCallback(v.type);
         v.updateFunction = updateFunction;
-        /*if (variableType == GL_ACTIVE_UNIFORMS) {
-            if (updateFunction == SetUniformSampler)
-                _textures[name] = v;
-            else
-                _uniforms[name] = v;
-        }
-        else if (variableType == GL_ACTIVE_ATTRIBUTES)
-            _attributes[name] = v;*/
         debugLog(v.name + " " + std::to_string(v.size) + " " + std::to_string(v.type) + " " + std::to_string(v.loc));
     }
 }
 
 void Shader::Compile()
 {
-    if (Compiled())
+    if (GetCompiled())
         return;
-    _program = glCreateProgram();
+    _SetHandle(glCreateProgram());
     for (auto& stagePair : _shaderStages) {
         auto stage(stagePair.second);
         for (auto define : _defines) {
@@ -553,22 +514,22 @@ void Shader::Compile()
         } catch (std::exception& e) {
             throw std::runtime_error(std::string("Error compiling ") + GetName() + "\n" + e.what() + "\nShader Code :\n" + stage->FullCode());
         }
-        glAttachShader(_program, stage->Glid());
+        glAttachShader(GetHandle(), stage->Glid());
     }
     Link();
-    _compiled = true;
+    _SetCompiled(true);
     for (auto& stagePair : _shaderStages) {
         auto stage(stagePair.second);
-        glDetachShader(_program, stage->Glid());
+        glDetachShader(GetHandle(), stage->Glid());
         stage->Delete();
     }
 }
 
 void Shader::Recompile()
 {
-    glDeleteProgram(_program);
-    _program = 0;
-    _compiled = false;
+    glDeleteProgram(GetHandle());
+    _SetHandle(0);
+    _SetCompiled(false);
     for (auto& stagePair : _shaderStages)
         stagePair.second->Delete();
     Compile();
@@ -622,14 +583,4 @@ void Shader::SetStage(const std::shared_ptr<ShaderStage>& stage)
 void Shader::RemoveStage(GLenum stage)
 {
     _shaderStages.erase(stage);
-}
-
-Shader::Type Shader::GetType()
-{
-    return _type;
-}
-
-bool Shader::Compiled() const
-{
-    return _compiled;
 }
