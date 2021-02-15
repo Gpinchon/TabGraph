@@ -7,6 +7,8 @@
 
 #include "Event/GameController.hpp"
 #include "Event/Events.hpp" // for Events
+#include "SDL.h"
+
 #include <iostream> // for basic_ostream::operator<<, operator<<, endl
 #include <utility> // for pair
 
