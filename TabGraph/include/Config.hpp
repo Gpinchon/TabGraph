@@ -15,95 +15,80 @@
 #include <variant>
 
 /**
-* @brief Loader for config files
-* @summary The Config file might contains values formated as such :
-* WindowSize = 1024 768
-* WindowName = "Window Name"
+* @brief Config namespace, this regroups Config files and global Config getters/setters
 */
-class ConfigFile {
-public:
+namespace Config {
     /**
-    * Loads the Config from the specified file
-    * Invalid values will be ignored (set to default value) but setting keys will still be registered
+    * @brief Loader for config files
+    * @summary The Config file might contains values formated as such :
+    * WindowSize = 1024 768
+    * WindowName = "Window Name"
     */
-    void Parse(const std::filesystem::path path);
-    /** Saves the Config to the specified file */
-    void Save(const std::filesystem::path path);
-    /** Tries to get the specified setting, set it to the default value if not found */
-    template <typename T>
-    T Get(const std::string& name, const T defaultValue);
-    /** Sets the specified setting to the specified value */
-    template <typename T>
-    T Set(const std::string& name, const T value);
-
-private:
-    std::map<std::string, std::variant<float, glm::vec2, glm::vec3, std::string>> _configMap;
-};
-
-/**
-* @brief Loads/Saves a config file
-* The Config is shared accross the whole program
-* @summary The Config file might contains values formated as such :
-* WindowSize = 1024 768
-* WindowName = "Window Name"
-*/
-class Config final {
-public:
-    /**
-        * Loads the Config from the specified file
-        * Invalid values will be ignored (set to default value) but setting keys will still be registered
+    class File {
+    public:
+        /**
+         * @brief Loads the Config from the specified file, invalid values will be ignored (set to default value) but setting keys will still be registered
+         * @param path the absolute path to the config file
         */
-    static void Parse(const std::filesystem::path path);
-    /** Saves the Config to the specified file */
-    static void Save(const std::filesystem::path path);
-    /** Tries to get the specified setting, set it to the default value if not found */
-    template <typename T>
-    static T Get(const std::string& name, const T defaultValue);
-    /** Sets the specified setting to the specified value */
-    template <typename T>
-    static T Set(const std::string& name, const T value);
+        void Parse(const std::filesystem::path path);
+        /**
+         * @brief Saves this Config to the specified file
+         * @param path the absolute path to the file this Config is to be saved to
+        */
+        void Save(const std::filesystem::path path);
+        /**
+         * @brief Tries to get the specified setting, set it to the default value if not found
+         * @tparam T the type that we expect
+         * @param name the name of the setting
+         * @param defaultValue the default value the setting is to be set to if it is non-existent
+         * @return the value of the setting specified by name
+        */
+        template <typename T>
+        T Get(const std::string& name, const T defaultValue);
+        /**
+         * @brief Sets the specified setting to the specified value
+         * @tparam T the type of this setting
+         * @param name the name of the setting to set
+         * @param value the value the setting is to be set to
+         * @return the new value of the setting specified by name
+        */
+        template <typename T>
+        T Set(const std::string& name, const T value);
 
-private:
-    static ConfigFile& _instance();
-    //std::map<std::string, std::variant<float, glm::vec2, glm::vec3, std::string>> _configMap;
+    private:
+        std::map<std::string, std::variant<float, glm::vec2, glm::vec3, std::string>> _configMap;
+    };
+    /**
+     * @brief The global configuration, shared accross the whole application
+     * @return a reference to the global configuration "File"
+    */
+    Config::File& Global();
 };
 
 template <>
-inline int ConfigFile::Get<int>(const std::string& name, const int defaultValue)
+inline int Config::File::Get<int>(const std::string& name, const int defaultValue)
 {
     return Get<float>(name, defaultValue);
 }
 
 template <>
-inline unsigned ConfigFile::Get<unsigned>(const std::string& name, const unsigned defaultValue)
+inline unsigned Config::File::Get<unsigned>(const std::string& name, const unsigned defaultValue)
 {
     return Get<float>(name, defaultValue);
 }
 
 template <typename T>
-inline T ConfigFile::Get(const std::string& name, const T defaultValue)
+inline T Config::File::Get(const std::string& name, const T defaultValue)
 {
     auto it = _configMap.find(name);
     if (it != _configMap.end())
         return std::get<T>((*it).second);
     else
-        return ConfigFile::Set(name, defaultValue);
+        return Config::File::Set(name, defaultValue);
 }
 
 template <typename T>
-inline T ConfigFile::Set(const std::string& name, const T value)
+inline T Config::File::Set(const std::string& name, const T value)
 {
     return std::get<T>(_configMap[name] = value);
-}
-
-template <typename T>
-inline T Config::Get(const std::string& name, const T defaultValue)
-{
-    return _instance().Get<T>(name, defaultValue);
-}
-
-template <typename T>
-inline T Config::Set(const std::string& name, const T value)
-{
-    return _instance().Set(name, value);
 }

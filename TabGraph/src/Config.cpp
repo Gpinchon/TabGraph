@@ -15,7 +15,7 @@
 #include <stdio.h> // for sscanf, fgets, fopen
 #include <vector>
 
-void ConfigFile::Parse(const std::filesystem::path path)
+void Config::File::Parse(const std::filesystem::path path)
 {
     std::ifstream configFile(path);
     for (std::string line; std::getline(configFile, line);) {
@@ -43,7 +43,7 @@ void ConfigFile::Parse(const std::filesystem::path path)
     }
 }
 
-void ConfigFile::Save(const std::filesystem::path path)
+void Config::File::Save(const std::filesystem::path path)
 {
     std::ofstream configFile;
     configFile.open(path);
@@ -67,20 +67,8 @@ void ConfigFile::Save(const std::filesystem::path path)
     }
 }
 
-ConfigFile& Config::_instance()
+Config::File& Config::Global()
 {
-    static ConfigFile* instance = nullptr;
-    if (instance == nullptr)
-        instance = new ConfigFile;
-    return *instance;
-}
-
-void Config::Parse(const std::filesystem::path path)
-{
-    _instance().Parse(path);
-}
-
-void Config::Save(const std::filesystem::path path)
-{
-    _instance().Save(path);
+    static Config::File instance;
+    return instance;
 }
