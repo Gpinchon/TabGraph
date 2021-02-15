@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <SDL.h>
+union SDL_Event;
 
 class InputDevice {
 public:
