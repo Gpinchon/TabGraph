@@ -18,6 +18,7 @@
 #include <stdexcept> // for runtime_error
 #include <string.h> // for memset
 #include <utility> // for pair, make_pair
+#include <SDL_timer.h>
 
 std::unordered_map<std::string, ShaderVariable> Shader::_globalTextures;
 std::unordered_map<std::string, ShaderVariable> Shader::_globalUniforms;
