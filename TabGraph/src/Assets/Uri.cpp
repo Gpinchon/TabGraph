@@ -167,7 +167,6 @@ DataUri::DataUri(const Uri& uri)
     auto offset = 0u;
     {
         std::regex mimeRegex{ R"(^([-+\w]+/[-+\w.]+))", std::regex::ECMAScript };
-        
         auto mimeResult = std::sregex_iterator(data.begin(), data.end(), mimeRegex);
         if (mimeResult != searchEnd) {
             SetMime((*mimeResult)[1]);
