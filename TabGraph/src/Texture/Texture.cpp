@@ -34,9 +34,13 @@ Texture::~Texture()
 void Texture::RestoreParameters()
 {
     for (const auto parameterf : _parametersf)
-        SetParameter(parameterf.first, parameterf.second);
+        _SetParameterf(parameterf.first, parameterf.second);
     for (const auto parameteri : _parametersi)
-        SetParameter(parameteri.first, parameteri.second);
+        _SetParameteri(parameteri.first, parameteri.second);
+    for (const auto parameterfv : _parametersfv)
+        _SetParameterfv(parameterfv.first, parameterfv.second.data());
+    for (const auto parameteriv : _parametersiv)
+        _SetParameteriv(parameteriv.first, parameteriv.second.data());
 }
 
 void Texture::Unload()
@@ -50,8 +54,7 @@ void Texture::Unload()
 void Texture::GenerateMipmap()
 {
     glGenerateTextureMipmap(GetHandle());
-    //SetParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    SetParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::LinearMipmapLinear);
 }
 
 void Texture::SetPixelDescription(Pixel::Description pixelDesc)
@@ -65,4 +68,60 @@ Texture::Handle Texture::Create(Texture::Type type)
     GLuint glid;
     glCreateTextures((GLenum)type, 1, &glid);
     return glid;
+}
+
+void Texture::_SetParameterf(Texture::Parameter p, const float v)
+{
+    if (GetLoaded()) {
+        if (glTextureParameterf == nullptr) {
+            glBindTexture((GLenum)GetType(), GetHandle());
+            glTexParameterf((GLenum)GetType(), (GLenum)p, v);
+            glBindTexture((GLenum)GetType(), 0);
+        }
+        else {
+            glTextureParameterf(GetHandle(), (GLenum)p, v);
+        }
+    }
+}
+
+void Texture::_SetParameteri(Texture::Parameter p, const int32_t v)
+{
+    if (GetLoaded()) {
+        if (glTextureParameteri == nullptr) {
+            glBindTexture((GLenum)GetType(), GetHandle());
+            glTexParameteri((GLenum)GetType(), (GLenum)p, v);
+            glBindTexture((GLenum)GetType(), 0);
+        }
+        else {
+            glTextureParameteri(GetHandle(), (GLenum)p, v);
+        }
+    }
+}
+
+void Texture::_SetParameterfv(Texture::Parameter p, const float* v)
+{
+    if (GetLoaded()) {
+        if (glTextureParameterfv == nullptr) {
+            glBindTexture((GLenum)GetType(), GetHandle());
+            glTexParameterfv((GLenum)GetType(), (GLenum)p, v);
+            glBindTexture((GLenum)GetType(), 0);
+        }
+        else {
+            glTextureParameterfv(GetHandle(), (GLenum)p, v);
+        }
+    }
+}
+
+void Texture::_SetParameteriv(Texture::Parameter p, const int32_t* v)
+{
+    if (GetLoaded()) {
+        if (glTextureParameteriv == nullptr) {
+            glBindTexture((GLenum)GetType(), GetHandle());
+            glTexParameteriv((GLenum)GetType(), (GLenum)p, v);
+            glBindTexture((GLenum)GetType(), 0);
+        }
+        else {
+            glTextureParameteriv(GetHandle(), (GLenum)p, v);
+        }
+    }
 }
