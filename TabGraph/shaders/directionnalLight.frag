@@ -45,18 +45,11 @@ uvec3 Rand3DPCG16(ivec3 p)
 	return v >> 16u;
 }
 
-float	SampleShadowMap()
-{
-	vec4	shadowPos = Light.Projection * vec4(WorldPosition(), 1.0);
-	vec3	projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
-	return (texture(Light.Shadow, vec3(projCoord.xy, projCoord.z - 0.001)));
-}
-
 float	SampleShadowMap(float bias)
 {
 	vec4	shadowPos = Light.Projection * vec4(WorldPosition(), 1.0);
 	vec3	projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
-	vec2	sampleOffset = 5.f / textureSize(Light.Shadow, 0);
+	float	sampleOffset = 5.f / 256.f;
 	float	shadow = 0;
 	uvec2	Random = Rand3DPCG16(ivec3(gl_FragCoord.xy, FrameNumber % 8)).xy;
 	for (int i = 0; i < SHADOW_SAMPLES; i++)
