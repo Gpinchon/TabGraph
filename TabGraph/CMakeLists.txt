@@ -79,6 +79,7 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureBuffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/UI/UIManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Window.cpp
 )
 
@@ -144,6 +145,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/Ray.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/RigidBody.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/SimplexSolver.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Property.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Quadtree.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Render.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Scene/Scene.hpp
@@ -164,6 +166,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureBuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/Tools.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/UI/UIManager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Window.hpp
 )
 
@@ -238,12 +241,40 @@ target_link_libraries(TabGraphPlugins PRIVATE TabGraph)
 #    message("${_variableName}=${${_variableName}}")
 #endforeach()
 
+FetchContent_Declare(
+	IMGUI
+	GIT_REPOSITORY	https://github.com/ocornut/imgui.git
+	GIT_TAG			v1.81
+)
+
+FetchContent_GetProperties(IMGUI)
+if(NOT IMGUI_POPULATED)
+	FetchContent_Populate(IMGUI)
+	message(STATUS "Fetched IMGUI to ${imgui_SOURCE_DIR}")
+	set(IMGUI_INCLUDE_DIR ${imgui_SOURCE_DIR})
+	set(IMGUI_SOURCE_FILES
+		${IMGUI_INCLUDE_DIR}/imgui.cpp
+		${IMGUI_INCLUDE_DIR}/imgui_draw.cpp
+		${IMGUI_INCLUDE_DIR}/imgui_tables.cpp
+		${IMGUI_INCLUDE_DIR}/imgui_widgets.cpp
+		${IMGUI_INCLUDE_DIR}/backends/imgui_impl_sdl.cpp
+		${IMGUI_INCLUDE_DIR}/backends/imgui_impl_opengl3.cpp
+	)
+	add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
+	target_sources(TabGraph PRIVATE ${IMGUI_SOURCE_FILES})
+	target_include_directories(TabGraph PRIVATE
+		${IMGUI_INCLUDE_DIR}
+		${IMGUI_INCLUDE_DIR}/backends
+	)
+endif()
+
 target_link_libraries(TabGraph PUBLIC GLEW::GLEW)
 target_link_libraries(TabGraph PUBLIC imagehlp)
 target_link_libraries(TabGraph PUBLIC glm::glm)
 target_link_libraries(TabGraph PUBLIC zlibstatic)
 target_link_libraries(TabGraph PUBLIC SDL2::Core)
 target_link_libraries(TabGraph PUBLIC SDL2::Image)
+#target_link_libraries(Tabgraph PUBLIC ImGui)
 
 export(TARGETS TabGraph
        NAMESPACE "${CMAKE_PROJECT_NAME}-"
