@@ -29,21 +29,22 @@ glm::mat4 Camera::ViewMatrix()
 glm::mat4 Camera::ProjectionMatrix() const
 {
     glm::mat4 proj;
+    const auto windowSize{ Window::GetSize() };
     if (ProjectionType() == Camera::Projection::Perspective) {
         if (Zfar() > 0)
-            proj = glm::perspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear(), Zfar());
+            proj = glm::perspective(glm::radians(Fov()), float(windowSize.x) / float(windowSize.y), Znear(), Zfar());
         else
-            proj = glm::infinitePerspective(glm::radians(Fov()), float(Window::size().x) / float(Window::size().y), Znear());
+            proj = glm::infinitePerspective(glm::radians(Fov()), float(windowSize.x) / float(windowSize.y), Znear());
     } else
         proj = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
     switch (Render::FrameNumber() % 4) {
     case 0:
-        proj[2][0] += 0.25 / float(Window::size().x);
-        proj[2][1] += 0.25 / float(Window::size().y);
+        proj[2][0] += 0.25 / float(windowSize.x);
+        proj[2][1] += 0.25 / float(windowSize.y);
         break;
     case 2:
-        proj[2][0] -= 0.25 / float(Window::size().x);
-        proj[2][1] -= 0.25 / float(Window::size().y);
+        proj[2][0] -= 0.25 / float(windowSize.x);
+        proj[2][1] -= 0.25 / float(windowSize.y);
         break;
         /*
     case 0:
