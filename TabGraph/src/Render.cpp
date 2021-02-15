@@ -32,54 +32,36 @@
 #include <vector> // for vector<>::iterator, vector
 
 namespace Render {
-class Private : public Component {
-    //class Render::Private {
-public:
+struct Private : public Component {
     static Render::Private& Instance();
     static void Scene();
     static void AddPostTreatment(std::shared_ptr<Shader>);
     static void AddPostTreatment(const std::string& name, const std::string& path);
     static void RemovePostTreatment(std::shared_ptr<Shader>);
-    static void RequestRedraw();
-    static std::atomic<bool>& NeedsUpdate();
-    static std::atomic<bool>& Drawing();
-    static void SetOpaqueBuffer(const std::shared_ptr<Framebuffer>&);
-    static const std::shared_ptr<Framebuffer> OpaqueBuffer();
-    static void SetLightBuffer(const std::shared_ptr<Framebuffer>&);
-    static const std::shared_ptr<Framebuffer> LightBuffer();
-    static void SetGeometryBuffer(const std::shared_ptr<Framebuffer>&);
-    static const std::shared_ptr<Framebuffer> GeometryBuffer();
-    static const std::shared_ptr<Geometry> DisplayQuad();
     static std::vector<std::shared_ptr<Shader>>& PostTreatments();
-
-    static Signal<float>& OnAfterRender() { return Instance()._onAfterRender; };
-    static Signal<float>& OnBeforeRender() { return Instance()._onBeforeRender; };
-
-    uint32_t _frameNbr{ 0 };
-
-private:
     virtual std::shared_ptr<Component> _Clone() override
     {
         return nullptr;
         //return Component::Create<Private>(*this);
     }
-    static void _thread();
+
     std::shared_ptr<Framebuffer> _opaqueBuffer;
     std::shared_ptr<Framebuffer> _lightBuffer;
     std::shared_ptr<Framebuffer> _geometryBuffer;
+    uint32_t _frameNbr{ 0 };
     bool _loop { true };
     std::atomic<bool> _needsUpdate { true };
     std::atomic<bool> _drawing { false };
-    
     std::thread _rendering_thread;
     std::shared_ptr<Texture2D> _brdf;
     Signal<float> _onAfterRender;
     Signal<float> _onBeforeRender;
+    Render::Context _context{ nullptr };
 };
 } // namespace Render
 
 // quad is a singleton
-const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
+const std::shared_ptr<Geometry> Render::DisplayQuad()
 {
     static std::shared_ptr<Geometry> vao;
     if (vao != nullptr) {
@@ -92,49 +74,29 @@ const std::shared_ptr<Geometry> Render::Private::DisplayQuad()
     return vao;
 }
 
-void Render::Private::RequestRedraw(void)
-{
-    Instance()._needsUpdate = true;
-}
-
 void Render::Private::RemovePostTreatment(std::shared_ptr<Shader>)
 {
     //TODO : re-implement this
 }
 
-void Render::Private::SetOpaqueBuffer(const std::shared_ptr<Framebuffer>& fb)
-{
-    Instance()._opaqueBuffer = fb;
-}
 
-const std::shared_ptr<Framebuffer> Render::Private::OpaqueBuffer()
+void PrintExtensions()
 {
-    return Instance()._opaqueBuffer;
-}
-
-void Render::Private::SetLightBuffer(const std::shared_ptr<Framebuffer>& fb)
-{
-    Instance()._lightBuffer = fb;
-}
-
-const std::shared_ptr<Framebuffer> Render::Private::LightBuffer()
-{
-    return Instance()._lightBuffer;
-}
-
-void Render::Private::SetGeometryBuffer(const std::shared_ptr<Framebuffer>& fb)
-{
-    Instance()._geometryBuffer = fb;
-}
-
-const std::shared_ptr<Framebuffer> Render::Private::GeometryBuffer()
-{
-    return Instance()._geometryBuffer;
+    debugLog("GL Extensions :");
+    GLint n;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+    for (auto i = 0; i < n; ++i) {
+        debugLog(glGetStringi(GL_EXTENSIONS, i));
+    }
 }
 
 Render::Private& Render::Private::Instance()
 {
-    static auto instance = Component::Create<Render::Private>();
+    static std::shared_ptr<Render::Private> instance;
+    if (instance == nullptr)
+    {
+        instance = Component::Create<Render::Private>();
+    }
     return *instance;
 }
 
@@ -152,16 +114,6 @@ void light_pass(std::shared_ptr<Framebuffer>& lightingBuffer)
     }
     lightingBuffer->bind(false);
     glCullFace(GL_BACK);
-}
-
-std::atomic<bool>& Render::Private::NeedsUpdate()
-{
-    return Instance()._needsUpdate;
-}
-
-std::atomic<bool>& Render::Private::Drawing()
-{
-    return (Instance()._drawing);
 }
 
 #include <Debug.hpp>
@@ -204,7 +156,7 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
         framebuffer->bind();
         HZBShader->SetTexture("in_Texture_Color", depthTexture);
         HZBShader->use();
-        Render::Private::DisplayQuad()->Draw();
+        Render::DisplayQuad()->Draw();
         HZBShader->use(false);
         framebuffer->SetDepthBuffer(nullptr);
         //framebuffer->set_attachement(0, nullptr);
@@ -217,7 +169,7 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
 
 void SSAOPass(std::shared_ptr<Framebuffer> gBuffer)
 {
-    glm::ivec2 res = gBuffer->Size(); // glm::vec2(1024) * Render::Private::InternalQuality();// *Config::Get("SSAOResolutionFactor", 0.5f);
+    glm::ivec2 res = gBuffer->Size(); // glm::vec2(1024) * Render::Private::InternalQuality();// *Config::Global().Get("SSAOResolutionFactor", 0.5f);
     glDepthMask(false);
     //static auto SSAOResult(Component::Create<Framebuffer>("SSAOBuffer", res, 1, 0));
     static std::shared_ptr<Shader> SSAOShader;
@@ -229,7 +181,7 @@ void SSAOPass(std::shared_ptr<Framebuffer> gBuffer)
         SSAOShader->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(SSAOFragmentCode, "SSAO();"));
         Render::Private::Instance().AddComponent(SSAOShader);
     }
-    SSAOShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSAO_QUALITY", std::to_string(Config::Get("SSAOQuality", 4)));
+    SSAOShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSAO_QUALITY", std::to_string(Config::Global().Get("SSAOQuality", 4)));
     //SSAOShader->SetTexture("Texture.Geometry.CDiff", gBuffer->attachement(0));
     SSAOShader->SetTexture("Texture.Geometry.Normal", gBuffer->attachement(4));
     SSAOShader->SetTexture("Texture.Geometry.Depth", gBuffer->depth());
@@ -246,10 +198,10 @@ void SSAOPass(std::shared_ptr<Framebuffer> gBuffer)
 
 float ComputeRoughnessMaskScale()
 {
-    float MaxRoughness = std::clamp(Config::Get("SSRMaxRoughness", 0.8f), 0.01f, 1.0f);
+    float MaxRoughness = std::clamp(Config::Global().Get("SSRMaxRoughness", 0.8f), 0.01f, 1.0f);
 
     float RoughnessMaskScale = -2.0f / MaxRoughness;
-    return RoughnessMaskScale * (Config::Get("SSRQuality", 4) < 3 ? 2.0f : 1.0f);
+    return RoughnessMaskScale * (Config::Global().Get("SSRQuality", 4) < 3 ? 2.0f : 1.0f);
 }
 
 struct RenderHistory {
@@ -271,8 +223,8 @@ auto SSRPass(std::shared_ptr<Framebuffer> gBuffer, const RenderHistory& lastRend
         SSRShader->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(SSRFragmentCode, "SSR();"));
         Render::Private::Instance().AddComponent(SSRShader);
     }
-    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSR_QUALITY", std::to_string(Config::Get("SSRQuality", 4)));
-    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Get("SSRBorderFactor", 10)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SSR_QUALITY", std::to_string(Config::Global().Get("SSRQuality", 4)));
+    SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Global().Get("SSRBorderFactor", 10)));
     SSRShader->Stage(GL_FRAGMENT_SHADER)->SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
 
     HZBPass(gBuffer->depth());
@@ -286,7 +238,7 @@ auto SSRPass(std::shared_ptr<Framebuffer> gBuffer, const RenderHistory& lastRend
     SSRShader->SetTexture("LastColor", lastRender.framebuffer->attachement(0));
     lightBuffer->bind();
     SSRShader->use();
-    Render::Private::DisplayQuad()->Draw();
+    Render::DisplayQuad()->Draw();
     SSRShader->use(false);
     lightBuffer->bind(false);
     glDisable(GL_BLEND);
@@ -377,7 +329,7 @@ auto CompositingPass(std::shared_ptr<Framebuffer> opaqueBuffer, std::shared_ptr<
     //glDepthMask(GL_TRUE);
     //glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
-    Render::Private::DisplayQuad()->Draw();
+    Render::DisplayQuad()->Draw();
     opaqueBuffer->bind(false);
     compositing_shader->use(false);
     glEnable(GL_DEPTH_TEST);
@@ -386,17 +338,17 @@ auto CompositingPass(std::shared_ptr<Framebuffer> opaqueBuffer, std::shared_ptr<
 
 std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
 {
-    glm::ivec2 res = glm::vec2(Window::size()) * Config::Get("InternalQuality", 1.f);
+    glm::ivec2 res = glm::vec2(Window::GetSize()) * Config::Global().Get("InternalQuality", 1.f);
     glm::vec2 geometryRes = glm::vec2(std::min(res.x, res.y));
     static auto geometryBuffer = CreateGeometryBuffer("GeometryBuffer", geometryRes);
     static auto lightingBuffer = CreateLightingBuffer("LightingBuffer", geometryRes);
     static auto opaqueBuffer = CreateOpaqueMaterialBuffer(res);
     static auto transparentBuffer = CreateTransparentMaterialBuffer("TransparentBuffer0", res);
     static auto transparentBuffer1 = CreateTransparentMaterialBuffer("TransparentBuffer1", res / 2);
-    auto fastTransparency{ Config::Get("FastTransparency", 1) };
-    Render::Private::SetOpaqueBuffer(opaqueBuffer);
-    Render::Private::SetLightBuffer(lightingBuffer);
-    Render::Private::SetGeometryBuffer(geometryBuffer);
+    auto fastTransparency{ Config::Global().Get("FastTransparency", 1) };
+    Render::Private::Instance()._opaqueBuffer = opaqueBuffer;
+    Render::Private::Instance()._lightBuffer = lightingBuffer;
+    Render::Private::Instance()._geometryBuffer = geometryBuffer;
     geometryBuffer->Resize(geometryRes);
     lightingBuffer->Resize(geometryRes);
     opaqueBuffer->Resize(res);
@@ -423,9 +375,9 @@ std::shared_ptr<Framebuffer> OpaquePass(const RenderHistory& lastRender)
     light_pass(lightingBuffer);
     lightingBuffer->bind(false);
 
-    if (Config::Get("SSRQuality", 4) > 0 && lastRender.framebuffer != nullptr)
+    if (Config::Global().Get("SSRQuality", 4) > 0 && lastRender.framebuffer != nullptr)
         SSRPass(geometryBuffer, lastRender, lightingBuffer);
-    if (Config::Get("SSAOQuality", 4) > 0)
+    if (Config::Global().Get("SSAOQuality", 4) > 0)
         SSAOPass(geometryBuffer);
 
     opaqueBuffer->bind();
@@ -531,12 +483,12 @@ void Render::Private::Scene()
         //present(final_back_buffer);
         return;
     }
-    glm::ivec2 res = glm::vec2(Window::size()) * Config::Get("InternalQuality ", 1.f);
+    glm::ivec2 res = glm::vec2(Window::GetSize()) * Config::Global().Get("InternalQuality ", 1.f);
     static RenderHistory renderHistory;
     auto renderBuffer(OpaquePass(renderHistory));
     if (renderHistory.framebuffer == nullptr)
         renderHistory.framebuffer = CreateHistoryBuffer(renderBuffer->Size());
-    //renderBuffer->attachement(1)->blur(Config::Get("BloomPass", 1), 5);
+    //renderBuffer->attachement(1)->blur(Config::Global().Get("BloomPass", 1), 5);
 
     static std::shared_ptr<Shader> passthroughShader;
     if (passthroughShader == nullptr) {
@@ -558,7 +510,7 @@ void Render::Private::Scene()
     glDisable(GL_CULL_FACE);
     renderBuffer->bind();
     passthroughShader->use();
-    Render::Private::DisplayQuad()->Draw();
+    Render::DisplayQuad()->Draw();
     renderBuffer->bind(false);
     passthroughShader->use(false);
 
@@ -573,7 +525,7 @@ void Render::Private::Scene()
     }
 
     static auto finalRenderBuffer(Component::Create<Framebuffer>("finalRenderBuffer", renderBuffer->Size(), 1, 0));
-    finalRenderBuffer->Resize(Window::size());
+    finalRenderBuffer->Resize(Window::GetSize());
     glDisable(GL_BLEND);
 
     TemporalAccumulationShader->SetTexture("in_renderHistory.color", renderHistory.framebuffer->attachement(0));
@@ -599,7 +551,7 @@ void Render::Private::Scene()
     glDepthMask(GL_FALSE);
 
     finalRenderBuffer->BlitTo(nullptr, GL_COLOR_BUFFER_BIT);
-    Window::swap();
+    Window::Swap();
 }
 
 std::vector<std::shared_ptr<Shader>>& Render::Private::PostTreatments()
@@ -614,9 +566,47 @@ void Render::Private::AddPostTreatment(std::shared_ptr<Shader> shader)
         PostTreatments().push_back(shader);
 }
 
+void Render::Init()
+{
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    Private::Instance()._context = SDL_GL_CreateContext((SDL_Window*)Window::GetHandle());
+    if (Private::Instance()._context == nullptr) {
+        throw std::runtime_error(SDL_GetError());
+    }
+    glewExperimental = GL_TRUE;
+    auto error = glewInit();
+    if (error != GLEW_OK) {
+        throw std::runtime_error(reinterpret_cast<const char*>(glewGetErrorString(error)));
+    }
+    debugLog(std::string("GL vendor    : ") + reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+    debugLog(std::string("GL renderer  : ") + reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    debugLog(std::string("GL version   : ") + reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    debugLog(std::string("GLSL version : ") + reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+#ifdef DEBUG_MOD
+    PrintExtensions();
+    // During init, enable debug output
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, GL_DONT_CARE, nullptr, GL_FALSE);
+    glDebugMessageCallback(MessageCallback, 0);
+#endif
+}
+
+Render::Context Render::GetContext()
+{
+    return Private::Instance()._context;
+}
+
 void Render::RequestRedraw()
 {
-    Render::Private::RequestRedraw();
+    Render::Private::Instance()._needsUpdate = true;;
 }
 
 void Render::AddPostTreatment(std::shared_ptr<Shader> shader)
@@ -631,27 +621,22 @@ void Render::RemovePostTreatment(std::shared_ptr<Shader> shader)
 
 std::atomic<bool>& Render::NeedsUpdate()
 {
-    return Render::Private::NeedsUpdate();
+    return Render::Private::Instance()._needsUpdate;
 }
 
 std::atomic<bool>& Render::Drawing()
 {
-    return Render::Private::Drawing();
-}
-
-const std::shared_ptr<Geometry> Render::DisplayQuad()
-{
-    return Render::Private::DisplayQuad();
+    return Render::Private::Instance()._drawing;
 }
 
 Signal<float>& Render::OnBeforeRender()
 {
-    return Render::Private::OnBeforeRender();
+    return Render::Private::Instance()._onBeforeRender;
 }
 
 Signal<float>& Render::OnAfterRender()
 {
-    return Render::Private::OnAfterRender();
+    return Render::Private::Instance()._onAfterRender;
 }
 
 void Render::Scene()
@@ -682,17 +667,17 @@ void Render::Scene()
 
 const std::shared_ptr<Framebuffer> Render::OpaqueBuffer()
 {
-    return Render::Private::OpaqueBuffer();
+    return Render::Private::Instance()._opaqueBuffer;
 }
 
 const std::shared_ptr<Framebuffer> Render::LightBuffer()
 {
-    return Render::Private::LightBuffer();
+    return Render::Private::Instance()._lightBuffer;
 }
 
 const std::shared_ptr<Framebuffer> Render::GeometryBuffer()
 {
-    return Render::Private::GeometryBuffer();
+    return Render::Private::Instance()._geometryBuffer;
 }
 
 uint32_t Render::FrameNumber()
