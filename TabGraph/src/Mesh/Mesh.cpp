@@ -66,7 +66,7 @@ bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTra
     auto skinned{ HasComponentOfType<MeshSkin>() };
     auto jointsIndex = _jointMatricesIndex;
     auto prevJointsIndex = (_jointMatricesIndex - 1) % _jointMatrices.size();
-    auto fastTransparency{ Config::Get("FastTransparency", 1) };
+    auto fastTransparency{ Config::Global().Get("FastTransparency", 1) };
     for (auto vg : Geometrys()) {
         if (nullptr == vg)
             continue;
