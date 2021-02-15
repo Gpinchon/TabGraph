@@ -14,7 +14,7 @@
  - GPU Rigging
  - Animations
 
-#Screenshots
+# Screenshots
 ![Bomberman](/screenshots/Capture0.PNG "Bomberman")
 ![Buster Drone](/screenshots/Capture1.PNG "Buster Drone")
 ![Empire of Future](/screenshots/Capture2.PNG "Empire of Future")
