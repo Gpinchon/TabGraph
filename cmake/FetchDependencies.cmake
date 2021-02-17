@@ -37,7 +37,7 @@ FetchContent_Declare(
 FetchContent_Declare(
 	SDL2
 	HG_REPOSITORY	https://hg.libsdl.org/SDL
-	HG_TAG			release-2.0.12
+	HG_TAG			release-2.0.14
 )
 
 FetchContent_Declare(
