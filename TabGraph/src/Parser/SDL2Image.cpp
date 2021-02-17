@@ -116,14 +116,14 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
 {
     auto uri{ asset->GetUri() };
     SDL_RWops* rwOps{ nullptr };
-    std::vector<uint8_t> data;
+    std::vector<std::byte> data;
     if (uri.GetScheme() == "data") {
         data = DataUri(uri).Decode();
         if (data.empty()) {
             auto& bufferView{ asset->GetComponent<BufferView>() };
             if (bufferView != nullptr) { //We're loading raw bytes from a BufferView
-                auto dataPtr{ (uint8_t*)bufferView->Get(0, bufferView->GetByteLength()) };
-                data = std::vector<uint8_t>(
+                auto dataPtr{ bufferView->Get(0, bufferView->GetByteLength()) };
+                data = std::vector<std::byte>(
                     dataPtr, dataPtr + bufferView->GetByteLength()
                     );
             }
