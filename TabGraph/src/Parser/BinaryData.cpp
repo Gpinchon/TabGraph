@@ -24,7 +24,7 @@ void ParseBinaryData(const std::shared_ptr<Asset>& asset)
         auto uri { asset->GetUri() };
         std::vector<std::byte> data;
         if (uri.GetScheme() == "data") {
-            data = DataUri(uri).Decode<std::byte>();
+            data = DataUri(uri).Decode();
         } else {
             data.resize(std::filesystem::file_size(uri.GetPath()));
             std::ifstream file(uri.GetPath(), std::ios::binary);
