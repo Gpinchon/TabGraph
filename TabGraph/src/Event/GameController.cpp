@@ -159,9 +159,11 @@ SDL_JoystickID Controller::id()
 
 GameController::GameController()
 {
-    SDL_JoystickEventState(SDL_ENABLE);
-    SDL_GameControllerEventState(SDL_ENABLE);
-    SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+    if (!SDL_WasInit(SDL_INIT_JOYSTICK)) {
+        SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+        SDL_JoystickEventState(SDL_ENABLE);
+        SDL_GameControllerEventState(SDL_ENABLE);
+    }
     Events::Add(this, SDL_CONTROLLERAXISMOTION);
     Events::Add(this, SDL_JOYAXISMOTION);
     Events::Add(this, SDL_CONTROLLERBUTTONDOWN);
