@@ -189,7 +189,7 @@ int main(int argc, char** argv)
             auto fpsCamera = Component::Create<FPSCamera>("main_camera", 45);
             //fpsCamera->SetZfar(1000);
             auto asset{ Component::Create<Asset>("file:" + filePath.string()) };
-            AssetsParser::Parse(asset);
+            asset->Load();
             auto assetCameras = asset->GetComponents<Camera>();
             s_cameras.push_back(fpsCamera);
             s_cameras.insert(s_cameras.end(), assetCameras.begin(), assetCameras.end());
