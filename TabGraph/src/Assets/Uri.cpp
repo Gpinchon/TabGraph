@@ -4,7 +4,8 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2021-02-01 20:47:00
 */
-#include "Assets\Uri.hpp"
+#include "Assets/Uri.hpp"
+#include "Tools/Base.hpp"
 #include <array> // for array
 #include <codecvt>
 #include <ctype.h> // for isalnum
@@ -17,7 +18,7 @@ Uri::Uri(const std::string& uri)
 {
     if (uri.length() == 0)
         return;
-    /**
+    /*
      * ^\s*                         <---- 0 Start by trimming leading white spaces
      *      (                       <---- 1 Optional scheme
      *          ([^:/?#]+):         <---- 2 "Clean" scheme (everything until we reach a #, a ?) followed by a :
@@ -32,7 +33,7 @@ Uri::Uri(const std::string& uri)
      *      (#                      <---- 8 Optional fragment
      *          (\S*)               <---- 9 "Clean" fragment (everything except white spaces)
      *      )?
-    */
+     */
     //std::regex uriRegex { R"(^\s*(([^:/?#]+):)?(\/\/([^/?#\s]*))?([^?#\s]*)(\?([^#\s]*))?(#(\S*))?)", std::regex::ECMAScript };
     const auto searchEnd = std::sregex_iterator();
     auto offset = 0u;
@@ -151,7 +152,7 @@ Uri::operator std::string() const
 
 DataUri::DataUri(const Uri& uri)
 {
-    /**
+    /*
      * ^                        <---- 0 No need to trim, Uri already did it
      *  ([-\w]+/[-+\w.]+)?      <---- 1 Mime type
      *  (
@@ -160,7 +161,7 @@ DataUri::DataUri(const Uri& uri)
      *  (;base64)?              <---- 3 Optional base64 value
      *  ,(.*)                   <---- 4 The data, we can just take everything there, should be clean
      * $
-    */
+     */
     //std::regex dataRegex { R"(^([-+\w]+/[-+\w.]+)??((?:;?[\w]+=[-\w]+)*)(;base64)??,(.*)$)", std::regex::ECMAScript };
     const auto searchEnd = std::sregex_iterator();
     const auto &data{ uri.GetPath().string() };
@@ -266,6 +267,14 @@ DataUri::operator std::string()
         fullUri += ";base64";
     fullUri += ',' + GetData();
     return fullUri;
+}
+
+std::vector<std::byte> DataUri::Decode() const
+{
+    if (GetBase64())
+        return Base64::Decode(GetData());
+    else
+        return Base32::Decode(GetData());
 }
 
 std::ostream& operator<<(std::ostream& os, const Uri& uri)

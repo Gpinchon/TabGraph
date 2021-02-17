@@ -78,7 +78,8 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureArray.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureBuffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools/Base.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools/Tools.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/UI/UIManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Window.cpp
 )
@@ -163,6 +164,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureArray.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureBuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/Base.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/Tools.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/UI/UIManager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Window.hpp
