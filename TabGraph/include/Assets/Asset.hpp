@@ -2,7 +2,7 @@
 #include "Component.hpp"
 #include "Event/Signal.hpp"
 #include "Assets/Uri.hpp"
-#include <thread>
+#include <future>
 
 class Asset : public Component {
 	PROPERTY(std::string, AssetType, "");
@@ -12,7 +12,7 @@ public :
 	~Asset();
 	void SetUri(const Uri& uri);
 	Uri GetUri() const;
-	std::atomic<bool>& GetLoading();
+	bool GetLoading();
 	std::atomic<bool>& GetLoaded();
 	void SetLoaded(bool);
 	Signal<std::shared_ptr<Asset>> &OnLoaded();
@@ -21,10 +21,10 @@ public :
 
 private:
 	Uri _uri{};
-	std::atomic<bool> _loading{ false };
 	std::atomic<bool> _loaded{ false };
 	Signal<std::shared_ptr<Asset>> _onloaded{};
-	std::thread _loadingThread{};
+	//std::thread _loadingThread{};
+	std::future<void> _loadingFuture{};
 	void _DoLoad();
 
 	// Hérité via Component
