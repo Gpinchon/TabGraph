@@ -66,7 +66,9 @@ void Texture::SetPixelDescription(Pixel::Description pixelDesc)
 Texture::Handle Texture::Create(Texture::Type type)
 {
     GLuint glid;
-    glCreateTextures((GLenum)type, 1, &glid);
+    glGenTextures(1, &glid);
+    glBindTexture((GLenum)type, glid);
+    glBindTexture((GLenum)type, 0);
     return glid;
 }
 
