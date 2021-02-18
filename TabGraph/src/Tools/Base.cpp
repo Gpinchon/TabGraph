@@ -82,7 +82,7 @@ std::vector<std::byte> Base64::Decode(const std::string& data)
  * bytesLength / 5.f because we want to know how many chunks of 5 bytes we have, and ceil because 0.1 chunk is still 1 chunk
  * ceil(bytesLength / 5.f) * 8 because a chunk is made of 8 characters.
  * For the input data 'a' the encoded result will be ME====== because we have 1 chunk of 8 characters : two 5bits encoded characters(ME) 6 padding characters(======)
- * @ref https ://tools.ietf.org/html/rfc4648#section-9
+ * @ref https://tools.ietf.org/html/rfc4648#section-9
  */
 std::string Base32::Encode(const std::vector<std::byte>& data)
 {
@@ -192,6 +192,6 @@ std::vector<std::byte> Base32::Decode(const std::string& data)
         *pos++ = std::byte(((val6 & 0x07) << 5) | ((val7 & 0x1f)));
         in += 8;
     }
-    assert(data.end() - in); //we've got trailing bytes
+    assert(data.end() - in == 0); //we've got trailing bytes
     return ret;
 }
