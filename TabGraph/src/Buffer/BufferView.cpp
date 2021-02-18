@@ -150,10 +150,12 @@ void BufferView::Load()
         if (GetByteLength() == 0) //We do not know this BufferView's length yet
             SetByteLength(bufferAssetData->GetByteLength());
         bufferData = bufferAssetData->Get(GetByteOffset());
-        RemoveComponent<Asset>(bufferAsset);
     }
     if (GetType() == Type::CPU) {
-        _rawData = std::vector<std::byte>(bufferData, bufferData + GetByteLength());
+        if (bufferData != nullptr)
+            _rawData = std::vector<std::byte>(bufferData, bufferData + GetByteLength());
+        else
+            _rawData = std::vector<std::byte>(GetByteLength());
     }
     else {
         GLuint id;
@@ -163,6 +165,8 @@ void BufferView::Load()
         glBindBuffer((GLenum)GetType(), 0);
         SetHandle(id);
     }
+    if (bufferAsset != nullptr)
+        RemoveComponent<Asset>(bufferAsset);
         //_mappingPointer = (std::byte*)glMapBufferRange((GLenum)GetType(), 0, GetByteLength(), (GLbitfield)GetMode());
     SetLoaded(true);
     if (GetMode() == Mode::Persistent)
