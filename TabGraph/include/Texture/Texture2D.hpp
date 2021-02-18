@@ -33,7 +33,10 @@ public:
 
 private:
     std::shared_ptr<Component> _Clone() override {
-        return std::static_pointer_cast<Component>(Component::Create<Texture2D>(*this));
+        auto clone{ Component::Create<Texture2D>(*this) };
+        clone->_SetHandle(0);
+        clone->_SetLoaded(false);
+        return std::static_pointer_cast<Component>(clone);
     }
     void _AllocateStorage();
     Signal<std::shared_ptr<Asset>>::ScoppedSlot _onImageLoadedSlot;
