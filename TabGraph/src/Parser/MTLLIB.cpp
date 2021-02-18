@@ -110,12 +110,12 @@ static inline void parse_texture(std::shared_ptr<Material> mtl, const std::strin
         } else if (textureType == "map_Nr") {
             auto extension = GetOrCreateMetallicRoughnessExtention(mtl);
             extension->SetTextureRoughness(GetOrCreateImage(path));
-            if (extension->Roughness() == 0.f)
+            if (extension->GetRoughness() == 0.f)
                 extension->SetRoughness(1);
         } else if (textureType == "map_Nm") {
             auto extension = GetOrCreateMetallicRoughnessExtention(mtl);
             extension->SetTextureMetallic(GetOrCreateImage(path));
-            if (extension->Metallic() == 0.f)
+            if (extension->GetMetallic() == 0.f)
                 extension->SetMetallic(1);
         } else if (textureType == "map_bump" || textureType == "map_Bump") {
             mtl->SetTextureNormal(GetOrCreateImage(path));

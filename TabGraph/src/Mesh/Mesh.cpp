@@ -83,9 +83,9 @@ bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTra
             continue;
         std::shared_ptr<Shader> shader;
         if (pass == RenderPass::Geometry)
-            shader = material->GeometryShader();
+            shader = material->GetGeometryShader();
         else if (pass == RenderPass::Material)
-            shader = material->MaterialShader();
+            shader = material->GetMaterialShader();
         if (nullptr == shader)
             continue;
         material->Bind();
@@ -162,7 +162,7 @@ bool Mesh::DrawDepth(const glm::mat4& parentTransform, RenderMod mod)
             continue;
         else if (mod == RenderMod::RenderTransparent && !isTransparent)
             continue;
-        auto shader{ material->GeometryShader() };
+        auto shader{ material->GetGeometryShader() };
         material->Bind();
         shader->SetUniform("DrawID", unsigned(vg->GetId()));
         if (last_shader != shader) {
