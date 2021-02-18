@@ -1,37 +1,36 @@
+/*
+* @Author: gpinchon
+* @Date:   2020-10-01 15:30:47
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-02-18 22:49:43
+*/
 #pragma once
 #include "MaterialExtension.hpp"
 
 #include <glm/vec4.hpp>
 
-class MetallicRoughness : public MaterialExtension
-{
+class MetallicRoughness : public MaterialExtension {
+    READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureBaseColor, nullptr);
+    READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureMetallicRoughness, nullptr);
+    READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureRoughness, nullptr);
+    READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureMetallic, nullptr);
+    READONLYPROPERTY(float, Roughness, 1);
+    READONLYPROPERTY(float, Metallic, 1);
+    READONLYPROPERTY(glm::vec4, BaseColor, 1);
+
 public:
-	MetallicRoughness();
-	std::shared_ptr<Texture2D> TextureBaseColor() const;
-	std::shared_ptr<Texture2D> TextureMetallicRoughness() const;
-	std::shared_ptr<Texture2D> TextureRoughness() const;
-	std::shared_ptr<Texture2D> TextureMetallic() const;
-	void SetTextureBaseColor(std::shared_ptr<Texture2D>);
-	void SetTextureMetallicRoughness(std::shared_ptr<Texture2D>);
-	void SetTextureRoughness(std::shared_ptr<Texture2D>);
-	void SetTextureMetallic(std::shared_ptr<Texture2D>);
-	float Roughness() const;
-	float Metallic() const;
-	glm::vec4 BaseColor() const;
-	void SetRoughness(float);
-	void SetMetallic(float);
-	void SetBaseColor(glm::vec4);;
+    MetallicRoughness();
+    void SetTextureBaseColor(std::shared_ptr<Texture2D>);
+    void SetTextureMetallicRoughness(std::shared_ptr<Texture2D>);
+    void SetTextureRoughness(std::shared_ptr<Texture2D>);
+    void SetTextureMetallic(std::shared_ptr<Texture2D>);
+    void SetRoughness(float);
+    void SetMetallic(float);
+    void SetBaseColor(glm::vec4);
 
 private:
-	virtual std::shared_ptr<Component> _Clone() override {
-		return Component::Create<MetallicRoughness>(*this);
-	}
-	int64_t _texture_baseColor{ -1 };
-	int64_t _texture_metallicRoughness{ -1 };
-	int64_t _texture_roughness{ -1 };
-	int64_t _texture_metallic{ -1 };
-	float _roughness{ 1 };
-	float _metallic{ 1 };
-	glm::vec4 _baseColor{ 1, 1, 1, 1 };
-	
+    virtual std::shared_ptr<Component> _Clone() override
+    {
+        return Component::Create<MetallicRoughness>(*this);
+    }
 };

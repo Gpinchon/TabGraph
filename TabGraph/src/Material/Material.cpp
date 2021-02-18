@@ -2,18 +2,18 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-11 08:46:22
+* @Last Modified time: 2021-02-18 22:47:48
 */
 
 #include "Material/Material.hpp"
+#include "Assets/Asset.hpp"
+#include "Assets/Image.hpp"
 #include "Environment.hpp" // for Environment
 #include "Material/MaterialExtension.hpp"
 #include "Scene/Scene.hpp" // for Environment
 #include "Shader/Shader.hpp" // for Shader
 #include "Texture/Cubemap.hpp"
 #include "Texture/Texture2D.hpp"
-#include "Assets/Asset.hpp"
-#include "Assets/Image.hpp"
 #include "brdfLUT.hpp"
 
 #include <GL/glew.h> //for GL_TEXTURE1, GL_TEXTURE10, GL_TEXTURE2
@@ -46,28 +46,19 @@ auto DefaultBRDFLUT()
     if (brdf == nullptr) {
         auto brdfImageAsset(Component::Create<Asset>());
         brdf = Component::Create<Texture2D>(brdfImageAsset);
-        auto brdfImage{ Component::Create<Image>(glm::vec2(256, 256), Pixel::SizedFormat::Uint8_NormalizedRG, brdfLUT) };
+        auto brdfImage { Component::Create<Image>(glm::vec2(256, 256), Pixel::SizedFormat::Uint8_NormalizedRG, brdfLUT) };
         brdfImageAsset->SetComponent(brdfImage);
         brdfImageAsset->SetLoaded(true);
         brdf->SetName("BrdfLUT");
         brdf->SetParameter<Texture::Parameter::WrapS>(Texture::Wrap::ClampToEdge);
         brdf->SetParameter<Texture::Parameter::WrapT>(Texture::Wrap::ClampToEdge);
-    }    
+    }
     return brdf;
 }
 
 Material::Material(const std::string& name)
     : Component(name)
-    , _brdfLUT(AddComponent(DefaultBRDFLUT()))
 {
-    OpacityModeChanged.ConnectMember(this, &Material::_updateOpacityMode);
-    OpacityCutoffChanged.ConnectMember(this, &Material::_updateOpacityCutoff);
-    DiffuseChanged.ConnectMember(this, &Material::_updateDiffuse);
-    EmissiveChanged.ConnectMember(this, &Material::_updateEmissive);
-    UVScaleChanged.ConnectMember(this, &Material::_updateUVScale);
-    OpacityChanged.ConnectMember(this, &Material::_updateOpacity);
-    ParallaxChanged.ConnectMember(this, &Material::_updateParallax);
-    IorChanged.ConnectMember(this, &Material::_updateIor);
     static std::string forward_vert_code =
 #include "forward.vert"
         ;
@@ -81,46 +72,45 @@ Material::Material(const std::string& name)
     static auto setInstanceID =
 #include "setInstanceID.glsl"
         ;
-    _geometryShader = AddComponent(Component::Create<Shader>(GetName() + "_geometryShader"));
-    GeometryShader()->SetDefine("GEOMETRY");
-    GeometryShader()->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(forward_vert_code, "FillVertexData();")));
-    GeometryShader()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(forward_frag_code, "FillFragmentData();")));
-    GeometryShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(setInstanceID, "SetInstanceID();"));
-    GeometryShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetCheckOpacityExtension());
-    _materialShader = AddComponent(Component::Create<Shader>(GetName() + "_materialShader"));
-    MaterialShader()->SetDefine("MATERIAL");
-    MaterialShader()->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(forward_vert_code, "FillVertexData();")));
-    MaterialShader()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(forward_frag_code, "FillFragmentData();")));
-    MaterialShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(setInstanceID, "SetInstanceID();"));
-    MaterialShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetMaterialPassExtension());
+    SetGeometryShader(Component::Create<Shader>(GetName() + "_geometryShader"));
+    GetGeometryShader()->SetDefine("GEOMETRY");
+    GetGeometryShader()->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(forward_vert_code, "FillVertexData();")));
+    GetGeometryShader()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(forward_frag_code, "FillFragmentData();")));
+    GetGeometryShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(setInstanceID, "SetInstanceID();"));
+    GetGeometryShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetCheckOpacityExtension());
+    SetMaterialShader(Component::Create<Shader>(GetName() + "_materialShader"));
+    GetMaterialShader()->SetDefine("MATERIAL");
+    GetMaterialShader()->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(forward_vert_code, "FillVertexData();")));
+    GetMaterialShader()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(forward_frag_code, "FillFragmentData();")));
+    GetMaterialShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(setInstanceID, "SetInstanceID();"));
+    GetMaterialShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetMaterialPassExtension());
 
-    _updateOpacityMode(GetOpacityMode());
-    _updateOpacityCutoff(GetOpacityCutoff());
-    _updateDiffuse(GetDiffuse());
-    _updateEmissive(GetEmissive());
-    _updateUVScale(GetUVScale());
-    _updateOpacity(GetOpacity());
-    _updateParallax(GetParallax());
-    _updateIor(GetIor());
-
-    MaterialShader()->SetTexture("StandardTextures.BRDFLUT", BRDFLUT());
+    SetOpacityMode(GetOpacityMode());
+    SetOpacityCutoff(GetOpacityCutoff());
+    SetDiffuse(GetDiffuse());
+    SetEmissive(GetEmissive());
+    SetUVScale(GetUVScale());
+    SetOpacity(GetOpacity());
+    SetParallax(GetParallax());
+    SetIor(GetIor());
+    SetTextureBRDFLUT(DefaultBRDFLUT());
 }
 
 void Material::AddExtension(std::shared_ptr<MaterialExtension> extension)
 {
     AddComponent(extension);
-    GeometryShader()->Stage(GL_FRAGMENT_SHADER)->RemoveExtension(GetCheckOpacityExtension());
-    MaterialShader()->Stage(GL_FRAGMENT_SHADER)->RemoveExtension(GetMaterialPassExtension());
-    GeometryShader()->AddExtension(extension->GetShaderExtension());
-    MaterialShader()->AddExtension(extension->GetShaderExtension());
-    GeometryShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetCheckOpacityExtension());
-    MaterialShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetMaterialPassExtension());
+    GetGeometryShader()->Stage(GL_FRAGMENT_SHADER)->RemoveExtension(GetCheckOpacityExtension());
+    GetMaterialShader()->Stage(GL_FRAGMENT_SHADER)->RemoveExtension(GetMaterialPassExtension());
+    GetGeometryShader()->AddExtension(extension->GetShaderExtension());
+    GetMaterialShader()->AddExtension(extension->GetShaderExtension());
+    GetGeometryShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetCheckOpacityExtension());
+    GetMaterialShader()->Stage(GL_FRAGMENT_SHADER)->AddExtension(GetMaterialPassExtension());
 }
 
 void Material::RemoveExtension(std::shared_ptr<MaterialExtension> extension)
 {
-    GeometryShader()->RemoveExtension(extension->GetShaderExtension());
-    MaterialShader()->RemoveExtension(extension->GetShaderExtension());
+    GetGeometryShader()->RemoveExtension(extension->GetShaderExtension());
+    GetMaterialShader()->RemoveExtension(extension->GetShaderExtension());
     RemoveComponent(extension);
 }
 
@@ -134,13 +124,13 @@ void Material::Bind()
     /*if (nullptr == shader())
         return;*/
     /*if (TextureMetallicRoughness() != nullptr) {
-        MaterialShader()->SetDefine("TEXTURE_USE_METALLICROUGHNESS");
-        MaterialShader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
-        MaterialShader()->RemoveDefine("TEXTURE_USE_METALLIC");
+        GetMaterialShader()->SetDefine("TEXTURE_USE_METALLICROUGHNESS");
+        GetMaterialShader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
+        GetMaterialShader()->RemoveDefine("TEXTURE_USE_METALLIC");
     } else {
-        MaterialShader()->RemoveDefine("TEXTURE_USE_METALLICROUGHNESS");
-        TextureRoughness() ? MaterialShader()->SetDefine("TEXTURE_USE_ROUGHNESS") : MaterialShader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
-        TextureMetallic() ? MaterialShader()->SetDefine("TEXTURE_USE_METALLIC") : MaterialShader()->RemoveDefine("TEXTURE_USE_METALLIC");
+        GetMaterialShader()->RemoveDefine("TEXTURE_USE_METALLICROUGHNESS");
+        TextureRoughness() ? GetMaterialShader()->SetDefine("TEXTURE_USE_ROUGHNESS") : GetMaterialShader()->RemoveDefine("TEXTURE_USE_ROUGHNESS");
+        TextureMetallic() ? GetMaterialShader()->SetDefine("TEXTURE_USE_METALLIC") : GetMaterialShader()->RemoveDefine("TEXTURE_USE_METALLIC");
     }*/
 
     //shader()->use();
@@ -149,11 +139,21 @@ void Material::Bind()
     //shader()->use(false);
 }
 
+void Material::SetGeometryShader(std::shared_ptr<Shader> shader)
+{
+    _SetGeometryShader(shader);
+}
+
+void Material::SetMaterialShader(std::shared_ptr<Shader> shader)
+{
+    _SetMaterialShader(shader);
+}
+
 void Material::bind_textures()
 {
     if (Scene::Current()->GetEnvironment() != nullptr) {
-        MaterialShader()->SetTexture("Environment.Diffuse", Scene::Current()->GetEnvironment()->GetDiffuse());
-        MaterialShader()->SetTexture("Environment.Irradiance", Scene::Current()->GetEnvironment()->GetIrradiance());
+        GetMaterialShader()->SetTexture("Environment.Diffuse", Scene::Current()->GetEnvironment()->GetDiffuse());
+        GetMaterialShader()->SetTexture("Environment.Irradiance", Scene::Current()->GetEnvironment()->GetIrradiance());
     }
 }
 
@@ -161,170 +161,138 @@ void Material::bind_values()
 {
     for (const auto extension : GetComponents<MaterialExtension>()) {
         for (const auto& uniform : extension->GetShaderExtension()->Uniforms()) {
-            GeometryShader()->SetUniform(uniform.second);
-            MaterialShader()->SetUniform(uniform.second);
+            GetGeometryShader()->SetUniform(uniform.second);
+            GetMaterialShader()->SetUniform(uniform.second);
         }
         for (const auto& texture : extension->GetShaderExtension()->Textures()) {
-            GeometryShader()->SetTexture(texture.second);
-            MaterialShader()->SetTexture(texture.second);
+            GetGeometryShader()->SetTexture(texture.second);
+            GetMaterialShader()->SetTexture(texture.second);
         }
         for (const auto& attribute : extension->GetShaderExtension()->Attributes()) {
-            GeometryShader()->SetAttribute(attribute.second);
-            MaterialShader()->SetAttribute(attribute.second);
+            GetGeometryShader()->SetAttribute(attribute.second);
+            GetMaterialShader()->SetAttribute(attribute.second);
         }
         for (const auto& define : extension->GetShaderExtension()->Defines()) {
-            GeometryShader()->SetDefine(define.first, define.second);
-            MaterialShader()->SetDefine(define.first, define.second);
+            GetGeometryShader()->SetDefine(define.first, define.second);
+            GetMaterialShader()->SetDefine(define.first, define.second);
         }
     }
-}
-
-std::shared_ptr<Shader> Material::GeometryShader()
-{
-    return GetComponent<Shader>(_geometryShader);
-}
-
-std::shared_ptr<Shader> Material::MaterialShader()
-{
-    return GetComponent<Shader>(_materialShader);
-}
-
-std::shared_ptr<Texture2D> Material::TextureDiffuse() const
-{
-    return GetComponent<Texture2D>(_texture_diffuse);
-}
-
-std::shared_ptr<Texture2D> Material::TextureEmissive() const
-{
-    return GetComponent<Texture2D>(_texture_emissive);
-}
-
-std::shared_ptr<Texture2D> Material::TextureNormal() const
-{
-    return GetComponent<Texture2D>(_texture_normal);
-}
-
-std::shared_ptr<Texture2D> Material::TextureHeight() const
-{
-    return GetComponent<Texture2D>(_texture_height);
-}
-
-std::shared_ptr<Texture2D> Material::TextureAO() const
-{
-    return GetComponent<Texture2D>(_texture_ao);
 }
 
 void Material::SetTextureDiffuse(std::shared_ptr<Texture2D> t)
 {
-    _texture_diffuse = AddComponent(t);
-    GeometryShader()->SetTexture("StandardTextures.Diffuse", TextureDiffuse());
-    MaterialShader()->SetTexture("StandardTextures.Diffuse", TextureDiffuse());
-    TextureDiffuse() ? GeometryShader()->SetDefine("TEXTURE_USE_DIFFUSE") : GeometryShader()->RemoveDefine("TEXTURE_USE_DIFFUSE");
-    TextureDiffuse() ? MaterialShader()->SetDefine("TEXTURE_USE_DIFFUSE") : MaterialShader()->RemoveDefine("TEXTURE_USE_DIFFUSE");
+    GetGeometryShader()->SetTexture("StandardTextures.Diffuse", t);
+    GetMaterialShader()->SetTexture("StandardTextures.Diffuse", t);
+    t ? GetGeometryShader()->SetDefine("TEXTURE_USE_DIFFUSE") : GetGeometryShader()->RemoveDefine("TEXTURE_USE_DIFFUSE");
+    t ? GetMaterialShader()->SetDefine("TEXTURE_USE_DIFFUSE") : GetMaterialShader()->RemoveDefine("TEXTURE_USE_DIFFUSE");
+    _SetTextureDiffuse(t);
 }
 
 void Material::SetTextureEmissive(std::shared_ptr<Texture2D> t)
 {
-    _texture_emissive = AddComponent(t);
-    GeometryShader()->SetTexture("StandardTextures.Emissive", TextureEmissive());
-    MaterialShader()->SetTexture("StandardTextures.Emissive", TextureEmissive());
-    TextureEmissive() ? GeometryShader()->SetDefine("TEXTURE_USE_EMISSIVE") : GeometryShader()->RemoveDefine("TEXTURE_USE_EMISSIVE");
-    TextureEmissive() ? MaterialShader()->SetDefine("TEXTURE_USE_EMISSIVE") : MaterialShader()->RemoveDefine("TEXTURE_USE_EMISSIVE");
+    GetGeometryShader()->SetTexture("StandardTextures.Emissive", t);
+    GetMaterialShader()->SetTexture("StandardTextures.Emissive", t);
+    t ? GetGeometryShader()->SetDefine("TEXTURE_USE_EMISSIVE") : GetGeometryShader()->RemoveDefine("TEXTURE_USE_EMISSIVE");
+    t ? GetMaterialShader()->SetDefine("TEXTURE_USE_EMISSIVE") : GetMaterialShader()->RemoveDefine("TEXTURE_USE_EMISSIVE");
+    _SetTextureEmissive(t);
 }
 
 void Material::SetTextureNormal(std::shared_ptr<Texture2D> t)
 {
-    _texture_normal = AddComponent(t);
-    GeometryShader()->SetTexture("StandardTextures.Normal", TextureNormal());
-    MaterialShader()->SetTexture("StandardTextures.Normal", TextureNormal());
-    TextureNormal() ? GeometryShader()->SetDefine("TEXTURE_USE_NORMAL") : GeometryShader()->RemoveDefine("TEXTURE_USE_NORMAL");
-    TextureNormal() ? MaterialShader()->SetDefine("TEXTURE_USE_NORMAL") : MaterialShader()->RemoveDefine("TEXTURE_USE_NORMAL");
+    GetGeometryShader()->SetTexture("StandardTextures.Normal", t);
+    GetMaterialShader()->SetTexture("StandardTextures.Normal", t);
+    t ? GetGeometryShader()->SetDefine("TEXTURE_USE_NORMAL") : GetGeometryShader()->RemoveDefine("TEXTURE_USE_NORMAL");
+    t ? GetMaterialShader()->SetDefine("TEXTURE_USE_NORMAL") : GetMaterialShader()->RemoveDefine("TEXTURE_USE_NORMAL");
+    _SetTextureNormal(t);
 }
 
 void Material::SetTextureHeight(std::shared_ptr<Texture2D> t)
 {
-    _texture_height = AddComponent(t);
-    GeometryShader()->SetTexture("StandardTextures.Height", TextureHeight());
-    MaterialShader()->SetTexture("StandardTextures.Height", TextureHeight());
-    TextureHeight() ? GeometryShader()->SetDefine("TEXTURE_USE_HEIGHT") : GeometryShader()->RemoveDefine("TEXTURE_USE_HEIGHT");
-    TextureHeight() ? MaterialShader()->SetDefine("TEXTURE_USE_HEIGHT") : MaterialShader()->RemoveDefine("TEXTURE_USE_HEIGHT");
+    GetGeometryShader()->SetTexture("StandardTextures.Height", t);
+    GetMaterialShader()->SetTexture("StandardTextures.Height", t);
+    t ? GetGeometryShader()->SetDefine("TEXTURE_USE_HEIGHT") : GetGeometryShader()->RemoveDefine("TEXTURE_USE_HEIGHT");
+    t ? GetMaterialShader()->SetDefine("TEXTURE_USE_HEIGHT") : GetMaterialShader()->RemoveDefine("TEXTURE_USE_HEIGHT");
+    _SetTextureHeight(t);
 }
 
 void Material::SetTextureAO(std::shared_ptr<Texture2D> t)
 {
-    _texture_ao = AddComponent(t);
-    GeometryShader()->SetTexture("StandardTextures.AO", TextureAO());
-    MaterialShader()->SetTexture("StandardTextures.AO", TextureAO());
-    TextureHeight() ? GeometryShader()->SetDefine("TEXTURE_USE_AO") : GeometryShader()->RemoveDefine("TEXTURE_USE_AO");
-    TextureHeight() ? MaterialShader()->SetDefine("TEXTURE_USE_AO") : MaterialShader()->RemoveDefine("TEXTURE_USE_AO");
+    GetGeometryShader()->SetTexture("StandardTextures.AO", t);
+    GetMaterialShader()->SetTexture("StandardTextures.AO", t);
+    t ? GetGeometryShader()->SetDefine("TEXTURE_USE_AO") : GetGeometryShader()->RemoveDefine("TEXTURE_USE_AO");
+    t ? GetMaterialShader()->SetDefine("TEXTURE_USE_AO") : GetMaterialShader()->RemoveDefine("TEXTURE_USE_AO");
+    _SetTextureAO(t);
 }
 
-void Material::_updateOpacityMode(OpacityModeValue mode)
+void Material::SetOpacityMode(OpacityModeValue mode)
 {
     switch (mode) {
     case (OpacityModeValue::Opaque):
-        GeometryShader()->SetDefine("OPACITYMODE", "OPAQUE");
-        MaterialShader()->SetDefine("OPACITYMODE", "OPAQUE");
+        GetGeometryShader()->SetDefine("OPACITYMODE", "OPAQUE");
+        GetMaterialShader()->SetDefine("OPACITYMODE", "OPAQUE");
         break;
     case (OpacityModeValue::Mask):
-        GeometryShader()->SetDefine("OPACITYMODE", "MASK");
-        MaterialShader()->SetDefine("OPACITYMODE", "MASK");
+        GetGeometryShader()->SetDefine("OPACITYMODE", "MASK");
+        GetMaterialShader()->SetDefine("OPACITYMODE", "MASK");
         break;
     case (OpacityModeValue::Blend):
-        GeometryShader()->SetDefine("OPACITYMODE", "BLEND");
-        MaterialShader()->SetDefine("OPACITYMODE", "BLEND");
+        GetGeometryShader()->SetDefine("OPACITYMODE", "BLEND");
+        GetMaterialShader()->SetDefine("OPACITYMODE", "BLEND");
         break;
     }
+    _SetOpacityMode(mode);
 }
 
-void Material::_updateOpacityCutoff(float opacityCutoff)
+void Material::SetOpacityCutoff(float opacityCutoff)
 {
-    GeometryShader()->SetUniform("StandardValues.OpacityCutoff", opacityCutoff);
-    MaterialShader()->SetUniform("StandardValues.OpacityCutoff", opacityCutoff);
+    GetGeometryShader()->SetUniform("StandardValues.OpacityCutoff", opacityCutoff);
+    GetMaterialShader()->SetUniform("StandardValues.OpacityCutoff", opacityCutoff);
+    _SetOpacityCutoff(opacityCutoff);
 }
 
-void Material::_updateDiffuse(glm::vec3 diffuse)
+void Material::SetDiffuse(glm::vec3 diffuse)
 {
-    GeometryShader()->SetUniform("StandardValues.Diffuse", diffuse);
-    MaterialShader()->SetUniform("StandardValues.Diffuse", diffuse);
+    GetGeometryShader()->SetUniform("StandardValues.Diffuse", diffuse);
+    GetMaterialShader()->SetUniform("StandardValues.Diffuse", diffuse);
+    _SetDiffuse(diffuse);
 }
 
-void Material::_updateEmissive(glm::vec3 emissive)
+void Material::SetEmissive(glm::vec3 emissive)
 {
-    GeometryShader()->SetUniform("StandardValues.Emissive", emissive);
-    MaterialShader()->SetUniform("StandardValues.Emissive", emissive);
+    GetGeometryShader()->SetUniform("StandardValues.Emissive", emissive);
+    GetMaterialShader()->SetUniform("StandardValues.Emissive", emissive);
+    _SetEmissive(emissive);
 }
 
-void Material::_updateUVScale(glm::vec2 uvScale)
+void Material::SetUVScale(glm::vec2 uvScale)
 {
-    GeometryShader()->SetUniform("UVScale", uvScale);
-    MaterialShader()->SetUniform("UVScale", uvScale);
+    GetGeometryShader()->SetUniform("UVScale", uvScale);
+    GetMaterialShader()->SetUniform("UVScale", uvScale);
+    _SetUVScale(uvScale);
 }
 
-void Material::_updateOpacity(float opacity)
+void Material::SetOpacity(float opacity)
 {
-    GeometryShader()->SetUniform("StandardValues.Opacity", opacity);
-    MaterialShader()->SetUniform("StandardValues.Opacity", opacity);
+    GetGeometryShader()->SetUniform("StandardValues.Opacity", opacity);
+    GetMaterialShader()->SetUniform("StandardValues.Opacity", opacity);
+    _SetOpacity(opacity);
 }
 
-void Material::_updateParallax(float parallax)
+void Material::SetParallax(float parallax)
 {
-    GeometryShader()->SetUniform("StandardValues.Parallax", parallax);
-    MaterialShader()->SetUniform("StandardValues.Parallax", parallax);
+    GetGeometryShader()->SetUniform("StandardValues.Parallax", parallax);
+    GetMaterialShader()->SetUniform("StandardValues.Parallax", parallax);
+    _SetParallax(parallax);
 }
-void Material::_updateIor(float ior)
+void Material::SetIor(float ior)
 {
-    GeometryShader()->SetUniform("StandardValues.Ior", ior);
-    MaterialShader()->SetUniform("StandardValues.Ior", ior);
-}
-
-std::shared_ptr<Texture2D> Material::BRDFLUT() const
-{
-    return GetComponent<Texture2D>(_brdfLUT);
+    GetGeometryShader()->SetUniform("StandardValues.Ior", ior);
+    GetMaterialShader()->SetUniform("StandardValues.Ior", ior);
+    _SetIor(ior);
 }
 
-void Material::SetBRDFLUT(const std::shared_ptr<Texture2D>& t)
+void Material::SetTextureBRDFLUT(const std::shared_ptr<Texture2D>& t)
 {
-    _brdfLUT = AddComponent(t);
-    MaterialShader()->SetTexture("StandardTextures.BRDFLUT", BRDFLUT());
+    GetMaterialShader()->SetTexture("StandardTextures.BRDFLUT", t);
+    _SetTextureBRDFLUT(t);
 }
