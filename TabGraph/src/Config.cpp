@@ -27,7 +27,8 @@ void Config::File::Parse(const std::filesystem::path path)
             switch (words.size() - 2) {
             case 1:
                 try {
-                    _configMap[words.at(0)] = std::stof(words.at(2));
+                    auto value{ std::stof(words.at(2)) };
+                    _configMap[words.at(0)] = value;
                 } catch (std::exception&) {
                     _configMap[words.at(0)] = words.at(2);
                 }
