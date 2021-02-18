@@ -2,10 +2,6 @@ R""(
 #define M_PI 3.1415926535897932384626433832795
 #define Luminance(linearColor) dot(linearColor, vec3(0.299, 0.587, 0.114))
 
-/*#if defined(TEXTURE_USE_HEIGHT) || defined(TEXTURE_USE_DIFFUSE) || defined(TEXTURE_USE_EMISSIVE) || defined(TEXTURE_USE_NORMAL) || defined(TEXTURE_USE_AO)
-#define USE_TEXTURES
-#endif*/
-
 #ifndef textureQueryLevels
 float compMax(vec3 v) { return max(max(v.x, v.y), v.z); }
 float compMax(vec2 v) { return max(v.x, v.y); }

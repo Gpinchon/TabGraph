@@ -44,7 +44,7 @@ void ShaderStage::Compile()
         for (const auto& extension : extensions) {
             _fullCode += extension->Code() + '\n';
         }
-        _fullCode += "void main() {\n";
+        _fullCode += "void main(void) {\n";
         for (const auto& extension : extensions) {
             if (!extension->Technique().empty())
                 _fullCode += extension->Technique() + '\n';

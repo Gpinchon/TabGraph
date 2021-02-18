@@ -308,12 +308,16 @@ bool Shader::check_program(const GLuint id)
 
     result = GL_FALSE;
     glGetProgramiv(id, GL_LINK_STATUS, &result);
-    glGetProgramiv(id, GL_INFO_LOG_LENGTH, &loglength);
-    if (loglength > 1) {
-        std::vector<char> log(loglength, 0);
-        glGetProgramInfoLog(id, loglength, nullptr, log.data());
-        std::string logString(log.begin(), log.end());
-        throw std::runtime_error(logString);
+    if (result != GL_TRUE) {
+        glGetProgramiv(id, GL_INFO_LOG_LENGTH, &loglength);
+        if (loglength > 1) {
+            std::vector<char> log(loglength, 0);
+            glGetProgramInfoLog(id, loglength, nullptr, log.data());
+            std::string logString(log.begin(), log.end());
+            throw std::runtime_error(logString);
+        } else {
+            throw std::runtime_error("Unknown Error");
+        }
     }
     return (false);
 }
