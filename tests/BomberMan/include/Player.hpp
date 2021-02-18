@@ -20,4 +20,5 @@ private:
     }
     virtual void _FixedUpdateCPU(float delta);
     float _speed { 4.f };
+    uint8_t _lives{ 3 };
 };
