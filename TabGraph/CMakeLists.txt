@@ -27,6 +27,7 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Environment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Framebuffer.cpp
@@ -67,10 +68,9 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Quadtree.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Render.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/Scene.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/GLUniformHelper.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Shader.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/ShaderExtension.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/ShaderStage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Global.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Program.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Stage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/StackTracer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/PixelUtils.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Cubemap.cpp
@@ -106,6 +106,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Config.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Environment.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Framebuffer.hpp
@@ -150,10 +151,9 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Quadtree.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Render.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Scene/Scene.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/GLUniformHelper.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Shader.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/ShaderExtension.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/ShaderStage.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Global.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Program.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Stage.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/StackTracer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain_GDAL.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain.hpp
