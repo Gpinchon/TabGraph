@@ -79,7 +79,14 @@ struct t_Camera {
 uniform t_Camera			Camera;
 uniform t_Camera			PrevCamera;
 uniform t_StandardTextures	StandardTextures;
-uniform t_StandardValues	StandardValues;
+uniform vec3				StandardDiffuse = vec3(1);
+uniform vec3				StandardEmissive = vec3(0);
+uniform float				StandardOpacityCutoff = float(0.5);
+uniform float				StandardOpacity = float(1);
+uniform float				StandardParallax = float(0.05);
+uniform float				StandardIor = float(1);
+uniform float				StandardAO = float(0);
+//uniform t_StandardValues	StandardValues;
 uniform t_Matrix			Matrix;
 uniform t_Environment		Environment;
 uniform vec3				Resolution;
@@ -115,6 +122,8 @@ vec2	_Velocity;
 
 #define ScreenTexCoord() (gl_FragCoord.xy / Resolution.xy)
 
+#define OpacityCutoff() (StandardOpacityCutoff)
+
 #define Opacity() (_CDiff.a)
 #define SetOpacity(opacity) (_CDiff.a = opacity)
 
@@ -130,7 +139,7 @@ vec2	_Velocity;
 #define Emissive() (_Emissive)
 #define SetEmissive(emissive) (_Emissive = emissive)
 
-#define Ior() (StandardValues.Ior)
+#define Ior() (StandardIor)
 
 #define AO() (_AO)
 #define SetAO(aO) (_AO = aO)
@@ -201,7 +210,7 @@ float Depth()
 	return Frag.Depth;
 }
 
-#define Parallax() (StandardValues.Parallax)
+#define Parallax() (StandardParallax)
 
 #ifdef TEXTURE_USE_HEIGHT
 void	Parallax_Mapping(in vec3 tbnV, out float parallaxHeight)
@@ -266,22 +275,22 @@ void	FillFragmentData()
 #endif
 #ifdef TEXTURE_USE_DIFFUSE
 	vec4	albedo_sample = texture(StandardTextures.Diffuse, TexCoord());
-	SetCDiff(StandardValues.Diffuse * albedo_sample.rgb);
-	SetOpacity(StandardValues.Opacity * albedo_sample.a);
+	SetCDiff(StandardDiffuse * albedo_sample.rgb);
+	SetOpacity(StandardOpacity * albedo_sample.a);
 #else
-	SetCDiff(StandardValues.Diffuse);
-	SetOpacity(StandardValues.Opacity);
+	SetCDiff(StandardDiffuse);
+	SetOpacity(StandardOpacity);
 #endif
 #ifdef TEXTURE_USE_EMISSIVE
 	vec3 emissive = texture(StandardTextures.Emissive, TexCoord()).rgb;
-	SetEmissive(StandardValues.Emissive * emissive);
+	SetEmissive(StandardEmissive * emissive);
 #else
-	SetEmissive(StandardValues.Emissive);
+	SetEmissive(StandardEmissive);
 #endif
 #ifdef TEXTURE_USE_AO
-	SetAO(StandardValues.AO + max(1 - texture(StandardTextures.AO, TexCoord()).r, 0));
+	SetAO(StandardAO + max(1 - texture(StandardTextures.AO, TexCoord()).r, 0));
 #else
-	SetAO(StandardValues.AO);
+	SetAO(StandardAO);
 #endif
 #ifdef TEXTURE_USE_NORMAL
 	vec3	normal_sample = texture(StandardTextures.Normal, TexCoord()).xyz * 2 - 1;

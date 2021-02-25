@@ -43,7 +43,7 @@ void	CheckOpacity()
 		return;
 	#endif
 	#if OPACITYMODE == MASK
-		if(Opacity() > StandardValues.OpacityCutoff) {
+		if(Opacity() > OpacityCutoff()) {
 			SetOpacity(1);
 			return;
 		}

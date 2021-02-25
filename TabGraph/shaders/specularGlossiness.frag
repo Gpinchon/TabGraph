@@ -26,12 +26,16 @@ struct t_SpecularGlossinessTextures {
 #endif
 
 struct t_SpecularGlossinessValues {
-	vec4		Diffuse;
-	vec3		Specular;
-	float		Glossiness;
+	vec3	Diffuse;
+	vec3	Specular;
+	float	Glossiness;
+	float	Opacity;
 };
 
-uniform t_SpecularGlossinessValues	SpecularGlossinessValues;
+uniform vec3	SpecularGlossinessDiffuse = vec3(1);
+uniform vec3	SpecularGlossinessSpecular = vec3(1);
+uniform float	SpecularGlossinessGlossiness = float(1);
+uniform float	SpecularGlossinessOpacity = float(1);
 #ifdef SPECULAR_GLOSSINESS_USE_TEXTURES
 uniform t_SpecularGlossinessTextures	SpecularGlossinessTextures;
 #endif
@@ -39,11 +43,14 @@ uniform t_SpecularGlossinessTextures	SpecularGlossinessTextures;
 
 void SpecularGlossiness() {
 	t_SpecularGlossinessValues values;
-	values.Diffuse = SpecularGlossinessValues.Diffuse;
-	values.Specular = SpecularGlossinessValues.Specular;
-	values.Glossiness = SpecularGlossinessValues.Glossiness;
+	values.Diffuse = SpecularGlossinessDiffuse;
+	values.Specular = SpecularGlossinessSpecular;
+	values.Glossiness = SpecularGlossinessGlossiness;
+	values.Opacity = SpecularGlossinessOpacity;
 #ifdef SPECULAR_GLOSSINESS_TEXTURE_USE_DIFFUSE
-	values.Diffuse *= texture(SpecularGlossinessTextures.Diffuse, TexCoord());
+	vec4 diffuseSample = texture(SpecularGlossinessTextures.Diffuse, TexCoord());
+	values.Diffuse *= diffuseSample.rgb;
+	values.Opacity *= diffuseSample.a;
 #endif
 #ifdef SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULAR
 	values.Specular *= texture(SpecularGlossinessTextures.Specular, TexCoord()).rgb;
@@ -56,7 +63,7 @@ void SpecularGlossiness() {
 	SetCDiff(CDiff() * values.Diffuse.rgb * (1 - max(values.Specular.r, max(values.Specular.g, values.Specular.b))));
 	SetF0(values.Specular);
 	SetAlpha(max(0.05, pow(1 - values.Glossiness, 2)));
-	SetOpacity(Opacity() * values.Diffuse.a);
+	SetOpacity(Opacity() * values.Opacity);
 	//SetCDiff(mix(values.Diffuse.rgb * (1 - F0()), vec3(0), values.Glossiness));
 	//SetF0(mix(F0(), values.Diffuse.rgb, values.Glossiness));
 	//SetAlpha(Alpha() * map(values.Roughness * values.Roughness, 0, 1, 0.05, 1));

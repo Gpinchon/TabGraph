@@ -9,9 +9,6 @@ R""(
 #define METALLIC_ROUGHNESS_USE_TEXTURES
 #endif
 
-//#ifdef TEXTURE_USE_SPECULAR
-//uniform sampler2D	TextureSpecular;
-//#endif
 #ifdef METALLIC_ROUGHNESS_USE_TEXTURES
 struct t_MetallicRoughnessTextures {
 	#ifdef METALLIC_ROUGHNESS_TEXTURE_USE_BASECOLOR
@@ -30,12 +27,17 @@ struct t_MetallicRoughnessTextures {
 #endif
 
 struct t_MetallicRoughnessValues {
-	vec4		BaseColor;
-	float		Roughness;
-	float		Metallic;
+	vec3	BaseColor;
+	float	Roughness;
+	float	Metallic;
+	float	Opacity;
 };
 
-uniform t_MetallicRoughnessValues	MetallicRoughnessValues;
+uniform vec3	MetallicRoughnessBaseColor = vec3(1);
+uniform float	MetallicRoughnessRoughness = float(1);
+uniform float	MetallicRoughnessMetallic = float(1);
+uniform float	MetallicRoughnessOpacity = float(1);
+
 #ifdef METALLIC_ROUGHNESS_USE_TEXTURES
 uniform t_MetallicRoughnessTextures	MetallicRoughnessTextures;
 #endif
@@ -43,11 +45,14 @@ uniform t_MetallicRoughnessTextures	MetallicRoughnessTextures;
 
 void MetallicRoughness() {
 	t_MetallicRoughnessValues values;
-	values.BaseColor = MetallicRoughnessValues.BaseColor;
-	values.Roughness = MetallicRoughnessValues.Roughness;
-	values.Metallic = MetallicRoughnessValues.Metallic;
+	values.BaseColor = MetallicRoughnessBaseColor;
+	values.Roughness = MetallicRoughnessRoughness;
+	values.Metallic = MetallicRoughnessMetallic;
+	values.Opacity = MetallicRoughnessOpacity;
 #ifdef METALLIC_ROUGHNESS_TEXTURE_USE_BASECOLOR
-	values.BaseColor *= texture(MetallicRoughnessTextures.BaseColor, TexCoord());
+	vec4 baseColor = texture(MetallicRoughnessTextures.BaseColor, TexCoord());
+	values.BaseColor *= baseColor.rgb;
+	values.Opacity *= baseColor.a;
 #endif
 #ifdef METALLIC_ROUGHNESS_TEXTURE_USE_ROUGHNESS
 	values.Roughness *= texture(MetallicRoughnessTextures.Roughness, TexCoord()).r;
@@ -63,7 +68,7 @@ void MetallicRoughness() {
 	SetCDiff(CDiff() * mix(values.BaseColor.rgb * (1. - 0.04), vec3(0), values.Metallic));
 	SetF0(mix(vec3(0.04), values.BaseColor.rgb , values.Metallic));
 	SetAlpha(max(0.05, values.Roughness * values.Roughness));
-	SetOpacity(Opacity() * values.BaseColor.a);
+	SetOpacity(Opacity() * values.Opacity);
 }
 
 )""
