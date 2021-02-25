@@ -10,23 +10,24 @@
 #include <glm/vec4.hpp>
 
 class MetallicRoughness : public MaterialExtension {
-    READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureBaseColor, nullptr);
-    READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureMetallicRoughness, nullptr);
-    READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureRoughness, nullptr);
-    READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureMetallic, nullptr);
-    READONLYPROPERTY(float, Roughness, 1);
-    READONLYPROPERTY(float, Metallic, 1);
-    READONLYPROPERTY(glm::vec4, BaseColor, 1);
-
 public:
     MetallicRoughness();
+    std::shared_ptr<Texture2D> GetTextureBaseColor();
+    std::shared_ptr<Texture2D> GetTextureMetallicRoughness();
+    std::shared_ptr<Texture2D> GetTextureRoughness();
+    std::shared_ptr<Texture2D> GetTextureMetallic();
+    float GetRoughness() const;
+    float GetMetallic() const;
+    float GetOpacity() const;
+    glm::vec3 GetBaseColor() const;
     void SetTextureBaseColor(std::shared_ptr<Texture2D>);
     void SetTextureMetallicRoughness(std::shared_ptr<Texture2D>);
     void SetTextureRoughness(std::shared_ptr<Texture2D>);
     void SetTextureMetallic(std::shared_ptr<Texture2D>);
     void SetRoughness(float);
     void SetMetallic(float);
-    void SetBaseColor(glm::vec4);
+    void SetOpacity(float);
+    void SetBaseColor(glm::vec3);
 
 private:
     virtual std::shared_ptr<Component> _Clone() override

@@ -2,19 +2,24 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-02-18 22:12:30
+* @Last Modified time: 2021-02-19 00:32:02
 */
 
 #pragma once
 
 #include "Component.hpp" // for Component
+#include "Render.hpp"
 
-#include <glm/glm.hpp> // for glm::vec3, glm::vec2
 #include <memory> // for shared_ptr, weak_ptr
-#include <string> // for string
-#include <vector> // for vector
+#include <array> // for array
+#include "glm/ext/vector_float2.hpp"  // for vec2
+#include "glm/ext/vector_float3.hpp"  // for vec3
+#include "Property.hpp"               // for READONLYPROPERTY, PRIVATEPROPERTY, PROPERTY
+#include "xstring"                    // for string
 
-class Shader;
+namespace Shader {
+    class Program;
+};
 class Texture2D;
 class MaterialExtension;
 
@@ -40,17 +45,15 @@ public:
     READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureHeight, nullptr);
     READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureAO, nullptr);
     READONLYPROPERTY(std::shared_ptr<Texture2D>, TextureBRDFLUT, nullptr);
-    READONLYPROPERTY(std::shared_ptr<Shader>, MaterialShader, nullptr);
-    READONLYPROPERTY(std::shared_ptr<Shader>, GeometryShader, nullptr);
 
 public:
     Material(const std::string& name);
     virtual void AddExtension(std::shared_ptr<MaterialExtension> extension) final;
     virtual void RemoveExtension(std::shared_ptr<MaterialExtension> extension) final;
     virtual std::shared_ptr<MaterialExtension> GetExtension(const std::string& name) const final;
-    virtual void Bind();
-    void SetGeometryShader(std::shared_ptr<Shader> shader);
-    void SetMaterialShader(std::shared_ptr<Shader> shader);
+    virtual void Bind(const Render::Pass &pass);
+    std::shared_ptr<Shader::Program> GetShader(const Render::Pass& pass);
+    void SetShader(const Render::Pass& pass, std::shared_ptr<Shader::Program> shader);
     void SetOpacityMode(OpacityModeValue value);
     void SetOpacityCutoff(float value);
     void SetDiffuse(glm::vec3 value);
@@ -73,6 +76,7 @@ protected:
         auto clone = Component::Create<Material>(*this);
         return clone;
     }
-    void bind_values();
-    void bind_textures();
+    void bind_values(const Render::Pass& pass);
+    void bind_textures(const Render::Pass& pass);
+    std::array<std::shared_ptr<Shader::Program>, (int)Render::Pass::MaxValue> _shaders;
 };

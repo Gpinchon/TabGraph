@@ -13,54 +13,93 @@ SpecularGlossiness::SpecularGlossiness()
     static auto extensionCode =
 #include "specularGlossiness.frag"
         ;
-    GetShaderExtension()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(extensionCode, "SpecularGlossiness();")));
-    GetShaderExtension()->SetUniform("SpecularGlossinessValues.Diffuse", GetDiffuse());
-    GetShaderExtension()->SetUniform("SpecularGlossinessValues.Specular", GetSpecular());
-    GetShaderExtension()->SetUniform("SpecularGlossinessValues.Glossiness", GetGlossiness());
+    SetCode({ extensionCode, "SpecularGlossiness();" });
+    //SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>()));
+    //SetUniform("SpecularGlossinessDiffuse", GetDiffuse());
+    //SetUniform("SpecularGlossinessSpecular", GetSpecular());
+    //SetUniform("SpecularGlossinessGlossiness", GetGlossiness());
+}
+
+std::shared_ptr<Texture2D> SpecularGlossiness::GetTextureDiffuse() const
+{
+    return GetTexture("SpecularGlossinessTextures.Diffuse");
+}
+
+std::shared_ptr<Texture2D> SpecularGlossiness::GetTextureSpecular() const
+{
+    return GetTexture("SpecularGlossinessTextures.Specular");
+}
+
+std::shared_ptr<Texture2D> SpecularGlossiness::GetTextureGlossiness() const
+{
+    return GetTexture("SpecularGlossinessTextures.Glossiness");
+}
+
+std::shared_ptr<Texture2D> SpecularGlossiness::GetTextureSpecularGlossiness() const
+{
+    return GetTexture("SpecularGlossinessTextures.SpecularGlossiness");
+}
+
+glm::vec3 SpecularGlossiness::GetDiffuse() const
+{
+    return GetColor("SpecularGlossinessDiffuse");
+}
+
+glm::vec3 SpecularGlossiness::GetSpecular() const
+{
+    return GetColor("SpecularGlossinessSpecular");
+}
+
+float SpecularGlossiness::GetGlossines() const
+{
+    return GetValue("SpecularGlossinessGlossiness");
+}
+
+float SpecularGlossiness::GetOpacity() const
+{
+    return GetValue("SpecularGlossinessOpacity");
 }
 
 void SpecularGlossiness::SetTextureDiffuse(std::shared_ptr<Texture2D> texture)
 {
-    GetShaderExtension()->SetTexture("SpecularGlossinessTextures.Diffuse", texture);
-    texture ? GetShaderExtension()->SetDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_DIFFUSE") : GetShaderExtension()->RemoveDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_DIFFUSE");
-    _SetTextureDiffuse(texture);
+    SetTexture("SpecularGlossinessTextures.Diffuse", texture);
+    texture ? SetDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_DIFFUSE") : RemoveDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_DIFFUSE");
 }
 
 void SpecularGlossiness::SetTextureSpecular(std::shared_ptr<Texture2D> texture)
 {
-    GetShaderExtension()->SetTexture("SpecularGlossinessTextures.Specular", texture);
-    texture ? GetShaderExtension()->SetDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULAR") : GetShaderExtension()->RemoveDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULAR");
-    _SetTextureSpecular(texture);
+    SetTexture("SpecularGlossinessTextures.Specular", texture);
+    texture ? SetDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULAR") : RemoveDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULAR");
 }
 
 void SpecularGlossiness::SetTextureGlossiness(std::shared_ptr<Texture2D> texture)
 {
-    GetShaderExtension()->SetTexture("SpecularGlossinessTextures.Glossiness", texture);
-    texture ? GetShaderExtension()->SetDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_GLOSSINESS") : GetShaderExtension()->RemoveDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_GLOSSINESS");
-    _SetTextureGlossiness(texture);
+    SetTexture("SpecularGlossinessTextures.Glossiness", texture);
+    texture ? SetDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_GLOSSINESS") : RemoveDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_GLOSSINESS");
 }
 
 void SpecularGlossiness::SetTextureSpecularGlossiness(std::shared_ptr<Texture2D> texture)
 {
-    GetShaderExtension()->SetTexture("SpecularGlossinessTextures.SpecularGlossiness", texture);
-    texture ? GetShaderExtension()->SetDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULARGLOSSINESS") : GetShaderExtension()->RemoveDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULARGLOSSINESS");
-    _SetTextureSpecularGlossiness(texture);
+    SetTexture("SpecularGlossinessTextures.SpecularGlossiness", texture);
+    texture ? SetDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULARGLOSSINESS") : RemoveDefine("SPECULAR_GLOSSINESS_TEXTURE_USE_SPECULARGLOSSINESS");
 }
 
-void SpecularGlossiness::SetDiffuse(glm::vec4 value)
+void SpecularGlossiness::SetDiffuse(glm::vec3 value)
 {
-    GetShaderExtension()->SetUniform("SpecularGlossinessValues.Diffuse", value);
-    _SetDiffuse(value);
+    SetColor("SpecularGlossinessDiffuse", value);
 }
 
 void SpecularGlossiness::SetSpecular(glm::vec3 value)
 {
-    GetShaderExtension()->SetUniform("SpecularGlossinessValues.Specular", value);
-    _SetSpecular(value);
+    SetColor("SpecularGlossinessSpecular", value);
 }
 
 void SpecularGlossiness::SetGlossiness(float value)
 {
-    GetShaderExtension()->SetUniform("SpecularGlossinessValues.Glossiness", value);
-    _SetGlossiness(value);
+    SetValue("SpecularGlossinessGlossiness", value);
+}
+
+void SpecularGlossiness::SetOpacity(float value)
+{
+    SetValue("SpecularGlossinessOpacity", value);
 }
