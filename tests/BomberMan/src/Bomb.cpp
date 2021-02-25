@@ -53,7 +53,7 @@ std::shared_ptr<Bomb> Bomb::Create(const glm::ivec2& position)
     for (auto& animation : bombAssetClone->GetComponents<Animation>())
         bomb->AddAnimation(animation);
     bomb->PlayAnimation("idle", true);
-    bomb->_bombMaterial = bomb->GetComponentInChildrenByName<Material>("Body");
+    bomb->_bombMaterial = bombNode->GetComponentInChildrenByName<Material>("Body");
     bomb->_spawnTime = std::chrono::high_resolution_clock::now();
     Game::CurrentLevel()->SetGameEntityPosition(position, bomb);
     return bomb;

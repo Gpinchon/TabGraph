@@ -215,7 +215,7 @@ void Level::_FixedUpdateCPU(float delta)
     //}
 }
 
-void Level::Render(const RenderPass& pass, const RenderMod& mod)
+void Level::Render(const Render::Pass& pass, const Render::Mode& mod)
 {
     Scene::Render(pass, mod);
     for (const auto& entity : _entities) {
@@ -228,7 +228,7 @@ void Level::Render(const RenderPass& pass, const RenderMod& mod)
     }
 }
 
-void Level::RenderDepth(const RenderMod& mod)
+void Level::RenderDepth(const Render::Mode& mod)
 {
     Scene::RenderDepth(mod);
     for (const auto& entity : _entities) {
