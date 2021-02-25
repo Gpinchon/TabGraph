@@ -30,7 +30,7 @@ public:                             \
     }                               \
                                     \
 protected:                          \
-    void _Set##var(const type& val) \
+    void _Set##var(type val)        \
     {                               \
         if (val != _##var) {        \
             _##var = val;           \
@@ -47,7 +47,7 @@ private:                                \
     {                                   \
         return _##var;                  \
     }                                   \
-    void _Set##var(const type& val)     \
+    void _Set##var(type val)            \
     {                                   \
         bool changed = val != _##var;   \
         _##var = val;                   \
