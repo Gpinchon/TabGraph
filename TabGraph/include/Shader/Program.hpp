@@ -10,6 +10,7 @@
 #include "Property.hpp"
 #include "Shader/Stage.hpp"
 
+#include <glm/fwd.hpp>
 #include <string>
 
 class Texture;
@@ -29,13 +30,23 @@ public:
     Program& Compile();
     Program& Attach(const Stage &stage);
     Program& Use();
-    Program& SetUniform(const std::string& name, const std::shared_ptr<Texture> value);
+    Program& SetTexture(const std::string& name, const std::shared_ptr<Texture> value);
     Program& SetUniform(const std::string& name, const float value);
-    Program& SetUniform(const std::string& name, const float* value, const uint16_t count, const uint16_t index = 0);
+    Program& SetUniform(const std::string& name, const float* value, const uint16_t count = 1, const uint16_t index = 0);
     Program& SetUniform(const std::string& name, const int32_t value);
-    Program& SetUniform(const std::string& name, const int32_t* value, const uint16_t count, const uint16_t index = 0);
+    Program& SetUniform(const std::string& name, const int32_t* value, const uint16_t count = 1, const uint16_t index = 0);
     Program& SetUniform(const std::string& name, const uint32_t value);
-    Program& SetUniform(const std::string& name, const uint32_t* value, const uint16_t count, const uint16_t index = 0);
+    Program& SetUniform(const std::string& name, const uint32_t* value, const uint16_t count = 1, const uint16_t index = 0);
+    Program& SetUniform(const std::string& name, const glm::vec2& value);
+    Program& SetUniform(const std::string& name, const glm::vec2* value, const uint16_t count, const uint16_t index);
+    Program& SetUniform(const std::string& name, const glm::vec3& value);
+    Program& SetUniform(const std::string& name, const glm::vec3* value, const uint16_t count, const uint16_t index);
+    Program& SetUniform(const std::string& name, const glm::vec4& value);
+    Program& SetUniform(const std::string& name, const glm::vec4* value, const uint16_t count, const uint16_t index);
+    Program& SetUniform(const std::string& name, const glm::mat4& value);
+    Program& SetUniform(const std::string& name, const glm::mat4* value, const uint16_t count = 1, const uint16_t index = 0);
+    Program& SetUniform(const std::string& name, const glm::mat3& value);
+    Program& SetUniform(const std::string& name, const glm::mat3* value, const uint16_t count = 1, const uint16_t index = 0);
     Program& SetDefine(const std::string& name, const std::string& value = "");
     Program& RemoveDefine(const std::string& name);
     void Done();

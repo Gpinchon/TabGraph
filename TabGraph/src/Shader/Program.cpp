@@ -49,9 +49,9 @@ Program& Program::Use()
     return *this;
 }
 
-Program& Program::SetUniform(const std::string& name, const std::shared_ptr<Texture> value)
+Program& Program::SetTexture(const std::string& name, const std::shared_ptr<Texture> value)
 {
-    _GetImpl()->SetUniform(name, value);
+    _GetImpl()->SetTexture(name, value);
     return *this;
 }
 
@@ -86,6 +86,66 @@ Program& Program::SetUniform(const std::string& name, const uint32_t value)
 }
 
 Program& Program::SetUniform(const std::string& name, const uint32_t* value, const uint16_t count, const uint16_t index)
+{
+    _GetImpl()->SetUniform(name, value, count, index);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::vec2& value)
+{
+    _GetImpl()->SetUniform(name, value);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::vec2* value, const uint16_t count, const uint16_t index)
+{
+    _GetImpl()->SetUniform(name, value, count, index);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::vec3& value)
+{
+    _GetImpl()->SetUniform(name, value);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::vec3* value, const uint16_t count, const uint16_t index)
+{
+    _GetImpl()->SetUniform(name, value, count, index);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::vec4& value)
+{
+    _GetImpl()->SetUniform(name, value);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::vec4* value, const uint16_t count, const uint16_t index)
+{
+    _GetImpl()->SetUniform(name, value, count, index);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::mat4& value)
+{
+    _GetImpl()->SetUniform(name, value);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::mat4* value, const uint16_t count, const uint16_t index)
+{
+    _GetImpl()->SetUniform(name, value, count, index);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::mat3& value)
+{
+    _GetImpl()->SetUniform(name, value);
+    return *this;
+}
+
+Program& Program::SetUniform(const std::string& name, const glm::mat3* value, const uint16_t count, const uint16_t index)
 {
     _GetImpl()->SetUniform(name, value, count, index);
     return *this;

@@ -13,16 +13,17 @@ namespace Shader {
          * technique : what is to be added inside of main (function calls for instance)
         */
         struct Code {
-            std::string code;
-            std::string technique;
+            Code(const std::string& code = "", const std::string& technique = "") : code(code), technique(technique) {};
+            std::string code{ "" };
+            std::string technique{ "" };
             bool operator!=(const Code& other) {
                 return code != other.code || technique != other.technique;
             }
-            Code& operator+(const Code& other) {
+            Code operator+(const Code& other) {
                 Code newCode{ code, technique };
                 return newCode += other;
             }
-            Code& operator-(const Code& other) {
+            Code operator-(const Code& other) {
                 Code newCode{ code, technique };
                 return newCode -= other;
             }
@@ -54,7 +55,7 @@ namespace Shader {
             MaxValue
         };
         PROPERTY(Stage::Type, Type, Stage::Type::None);
-        PROPERTY(Code, Code, { "", "" });
+        PROPERTY(Stage::Code, Code, "" );
 
     public:
         Stage(const Stage& other);

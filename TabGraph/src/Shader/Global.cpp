@@ -2,16 +2,16 @@
 * @Author: gpinchon
 * @Date:   2021-02-22 11:10:17
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-02-22 11:22:01
+* @Last Modified time: 2021-02-23 19:25:55
 */
 #include "Shader/Global.hpp"
 #include "Driver/OpenGL/Shader.hpp"
 
 namespace Shader {
 namespace Global {
-    void Global::SetUniform(const std::string& name, const std::shared_ptr<Texture> value)
+    void Global::SetTexture(const std::string& name, const std::shared_ptr<Texture> value)
     {
-        Impl::SetUniform(name, value);
+        Impl::SetTexture(name, value);
     }
 
     void Global::SetUniform(const std::string& name, const float value)
@@ -40,6 +40,56 @@ namespace Global {
     }
 
     void Global::SetUniform(const std::string& name, const uint32_t* value, const uint16_t count, const uint16_t index)
+    {
+        Impl::SetUniform(name, value, count, index);
+    }
+
+    void SetUniform(const std::string& name, const glm::vec2& value)
+    {
+        Impl::SetUniform(name, value);
+    }
+
+    void SetUniform(const std::string& name, const glm::vec2* value, const uint16_t count, const uint16_t index)
+    {
+        Impl::SetUniform(name, value, count, index);
+    }
+
+    void SetUniform(const std::string& name, const glm::vec3& value)
+    {
+        Impl::SetUniform(name, value);
+    }
+
+    void SetUniform(const std::string& name, const glm::vec3* value, const uint16_t count, const uint16_t index)
+    {
+        Impl::SetUniform(name, value, count, index);
+    }
+
+    void SetUniform(const std::string& name, const glm::vec4& value)
+    {
+        Impl::SetUniform(name, value);
+    }
+
+    void SetUniform(const std::string& name, const glm::vec4* value, const uint16_t count, const uint16_t index)
+    {
+        Impl::SetUniform(name, value, count, index);
+    }
+
+    void SetUniform(const std::string& name, const glm::mat4& value)
+    {
+        Impl::SetUniform(name, value);
+    }
+
+    void SetUniform(const std::string& name, const glm::mat4* value, const uint16_t count, const uint16_t index)
+    {
+        Impl::SetUniform(name, value, count, index);
+    }
+
+    void SetUniform(const std::string& name, const glm::mat3& value)
+    {
+        Impl::SetUniform(name, value);
+    }
+
+    void SetUniform(const std::string& name, const glm::mat3* value, const uint16_t count, const uint16_t index)
     {
         Impl::SetUniform(name, value, count, index);
     }
