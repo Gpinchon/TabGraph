@@ -8,24 +8,26 @@
 #pragma once
 
 #include "Node.hpp" // for Node
-#include "glm/glm.hpp" // for glm::vec3, s_vec3
+
 #include <GL/glew.h> // for GLbitfield, GL_ALL_BARRIER_BITS
 #include <memory> // for shared_ptr, weak_ptr
-#include <string> // for string
-#include <vector> // for vector
+#include <glm/fwd.hpp>  // for ivec3
+#include <string>      // for string
 
-class Shader; // lines 12-12
-class Texture; // lines 13-13
+namespace Shader {
+    class Program;
+}
+class Texture;
 
 class ComputeObject : public Node {
 public:
-    ComputeObject(const std::string& name, std::shared_ptr<Shader> computeShader = nullptr);
-    virtual std::shared_ptr<Shader> shader();
+    ComputeObject(const std::string& name, std::shared_ptr<Shader::Program> computeShader = nullptr);
+    virtual std::shared_ptr<Shader::Program> shader();
     virtual std::shared_ptr<Texture> in_texture();
     virtual std::shared_ptr<Texture> out_texture();
     virtual void set_in_texture(std::shared_ptr<Texture>);
     virtual void set_out_texture(std::shared_ptr<Texture>);
-    virtual void set_shader(std::shared_ptr<Shader>);
+    virtual void set_shader(std::shared_ptr<Shader::Program>);
     //virtual void load();
     virtual void run();
     glm::ivec3 num_groups();
@@ -37,7 +39,7 @@ protected:
     std::vector<std::shared_ptr<ComputeObject>> _compute_objects;
     std::weak_ptr<Texture> _in_texture;
     std::weak_ptr<Texture> _out_texture;
-    std::weak_ptr<Shader> _shader;
+    std::weak_ptr<Shader::Program> _shader;
     GLbitfield _memory_barrier { GL_ALL_BARRIER_BITS };
     glm::ivec3 _num_groups { 0, 0, 0 };
 };

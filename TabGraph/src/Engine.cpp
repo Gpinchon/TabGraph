@@ -69,10 +69,6 @@ void Engine::Init()
     Engine::SetSwapInterval(Config::Global().Get("SwapInterval", 0));
 }
 
-#include "Camera/Camera.hpp"
-#include "Scene/Scene.hpp"
-#include "Shader/Shader.hpp"
-
 void Engine::Start()
 {
     double ticks;

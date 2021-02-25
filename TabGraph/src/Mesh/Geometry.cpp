@@ -14,9 +14,10 @@
 #include "Debug.hpp"
 #include "Material/Material.hpp" // for Material
 #include "Physics/BoundingAABB.hpp" // for AABB
-#include "Shader/Shader.hpp" // for Shader
+#include "Shader/Program.hpp" // for Shader
 #include "Texture/Texture.hpp" // for Texture
 #include "Tools/Tools.hpp"
+
 #include <algorithm>
 
 size_t geometryNbr(0);

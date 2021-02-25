@@ -13,10 +13,12 @@
 #include <vector> // for vector
 
 class Cubemap;
-class Shader;
+namespace Shader {
+    class Program;
+}
 
 class Environment : public Component {
-    PROPERTY(std::shared_ptr<Shader>, Shader, nullptr);
+    PROPERTY(std::shared_ptr<Shader::Program>, Shader, nullptr);
     PROPERTY(std::shared_ptr<Cubemap>, Diffuse, nullptr);
     PROPERTY(std::shared_ptr<Cubemap>, Irradiance, nullptr);
 

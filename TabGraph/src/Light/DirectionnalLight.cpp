@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-11-24 21:47:21
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-11-27 22:54:08
+* @Last Modified time: 2021-02-24 23:04:15
 */
 
 #include "Light/DirectionnalLight.hpp"
@@ -14,29 +14,46 @@
 #include "Mesh/Geometry.hpp"
 #include "Render.hpp"
 #include "Scene/Scene.hpp"
-#include "Shader/Shader.hpp"
+#include "Shader/Global.hpp"
+#include "Shader/Program.hpp"
 
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 
-auto DirectionnalLightGeometry()
+static inline auto DirectionnalLightGeometry()
 {
     static auto geometry = CubeMesh::CreateGeometry("DirectionnalLightGeometry", glm::vec3(1));
     return geometry;
 }
 
+static inline auto DirectionnalLightVertexCode()
+{
+    static auto lightingVertexCode =
+#include "light.vert"
+        ;
+    static Shader::Stage::Code shaderCode { lightingVertexCode, "TransformGeometry();" };
+    return shaderCode;
+}
+
+static inline auto DirectionnalLightFragmentCode()
+{
+    static auto deferred_frag_code =
+#include "deferred.frag"
+        ;
+    static auto lightingFragmentCode =
+#include "directionnalLight.frag"
+        ;
+    static Shader::Stage::Code shaderCode = Shader::Stage::Code { deferred_frag_code, "FillFragmentData();" } + Shader::Stage::Code { lightingFragmentCode, "Lighting();" };
+    return shaderCode;
+}
+
 auto DirectionnalLightShader()
 {
-    static std::shared_ptr<Shader> shader;
+    static std::shared_ptr<Shader::Program> shader;
     if (shader == nullptr) {
-        auto lightingFragmentCode =
-#include "directionnalLight.frag"
-            ;
-        auto lightingVertexCode =
-#include "light.vert"
-            ;
-        shader = Component::Create<Shader>("DirectionnalLightShader", Shader::Type::LightingShader);
-        shader->SetStage(Component::Create<ShaderStage>(GL_VERTEX_SHADER, Component::Create<ShaderCode>(lightingVertexCode, "TransformGeometry();")));
-        shader->Stage(GL_FRAGMENT_SHADER)->AddExtension(Component::Create<ShaderCode>(lightingFragmentCode, "Lighting();"));
+        shader = Component::Create<Shader::Program>("DirectionnalLightShader");
+        shader->SetDefine("LIGHTSHADER");
+        shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DirectionnalLightVertexCode()));
+        shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DirectionnalLightFragmentCode()));
     }
     return shader;
 }
@@ -111,7 +128,7 @@ auto GetUp(const glm::vec3& direction)
 
 std::array<glm::vec3, 8> ExtractFrustum(const std::shared_ptr<Camera>& camera)
 {
-    std::array<glm::vec3, 8> NDCCube{
+    std::array<glm::vec3, 8> NDCCube {
         glm::vec3(-1.0f, -1.0f, 1.0f),
         glm::vec3(-1.0f, 1.0f, 1.0f),
         glm::vec3(1.0f, 1.0f, 1.0f),
@@ -175,19 +192,19 @@ std::array<glm::vec4, 6> ExtractPlanes(const glm::mat4& matrix, bool normalizePl
 
 void DirectionnalLight::Draw()
 {
-    auto shader = GetComponent<Shader>();
+    auto shader = GetComponent<Shader::Program>();
     auto geometryBuffer = Render::GeometryBuffer();
     glm::vec3 geometryPosition;
     if (Infinite())
         geometryPosition = Scene::Current()->CurrentCamera()->WorldPosition();
     else
         geometryPosition = GetParent() ? GetParent()->WorldPosition() + GetPosition() : GetPosition();
-    if (GetCastShadow()) {
+    if (GetCastShadow())
         shader->SetDefine("SHADOW");
-        shader->SetTexture("Light.Shadow", GetComponent<Framebuffer>()->depth());
-    }
     else
         shader->RemoveDefine("SHADOW");
+    shader->Use();
+    shader->SetTexture("Light.Shadow", GetCastShadow() ? GetComponent<Framebuffer>()->depth() : nullptr);
     shader->SetUniform("Light.Max", Max());
     shader->SetUniform("Light.Min", Min());
     shader->SetUniform("Light.Projection", (Infinite() ? ShadowProjectionMatrixInfinite() : ShadowProjectionMatrixFinite()) * ShadowViewMatrix());
@@ -199,9 +216,8 @@ void DirectionnalLight::Draw()
     shader->SetTexture("Texture.Geometry.F0", geometryBuffer->attachement(2));
     shader->SetTexture("Texture.Geometry.Normal", geometryBuffer->attachement(4));
     shader->SetTexture("Texture.Geometry.Depth", geometryBuffer->depth());
-    GetComponent<Shader>()->use();
     DirectionnalLightGeometry()->Draw();
-    GetComponent<Shader>()->use(false);
+    shader->Done();
 }
 
 void DirectionnalLight::DrawShadowInfinite()
@@ -210,20 +226,20 @@ void DirectionnalLight::DrawShadowInfinite()
     auto radius = glm::distance(WorldPosition(), Max());
     auto camPos = WorldPosition() - Direction() * radius;
 
-    Shader::SetGlobalUniform("Camera.Position", camPos);
-    Shader::SetGlobalUniform("Camera.Matrix.View", ShadowViewMatrix());
-    Shader::SetGlobalUniform("Camera.Matrix.Projection", ShadowProjectionMatrixInfinite());
+    Shader::Global::SetUniform("Camera.Position", camPos);
+    Shader::Global::SetUniform("Camera.Matrix.View", ShadowViewMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.Projection", ShadowProjectionMatrixInfinite());
     GetComponent<Framebuffer>()->bind();
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    Scene::Current()->RenderDepth(RenderMod::RenderAll);
+    Scene::Current()->RenderDepth(Render::Mode::All);
     GetComponent<Framebuffer>()->bind(false);
     Scene::Current()->SetCurrentCamera(camera);
-    Shader::SetGlobalUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
-    Shader::SetGlobalUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
-    Shader::SetGlobalUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    Shader::Global::SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
+    Shader::Global::SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
 }
 
 void DirectionnalLight::DrawShadowFinite()
@@ -232,20 +248,20 @@ void DirectionnalLight::DrawShadowFinite()
     auto radius = glm::distance(WorldPosition(), Max());
     auto camPos = WorldPosition() - Direction() * radius;
 
-    Shader::SetGlobalUniform("Camera.Position", camPos);
-    Shader::SetGlobalUniform("Camera.Matrix.View", ShadowViewMatrix());
-    Shader::SetGlobalUniform("Camera.Matrix.Projection", ShadowProjectionMatrixFinite());
+    Shader::Global::SetUniform("Camera.Position", camPos);
+    Shader::Global::SetUniform("Camera.Matrix.View", ShadowViewMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.Projection", ShadowProjectionMatrixFinite());
     GetComponent<Framebuffer>()->bind();
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    Scene::Current()->RenderDepth(RenderMod::RenderAll);
+    Scene::Current()->RenderDepth(Render::Mode::All);
     GetComponent<Framebuffer>()->bind(false);
     Scene::Current()->SetCurrentCamera(camera);
-    Shader::SetGlobalUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
-    Shader::SetGlobalUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
-    Shader::SetGlobalUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    Shader::Global::SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
+    Shader::Global::SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
 }
 
 #include "Camera/Camera.hpp"
@@ -276,7 +292,7 @@ glm::mat4 DirectionnalLight::ShadowProjectionMatrixFinite() const
 {
     auto viewMatrix = ShadowViewMatrix();
 
-    static std::array<glm::vec3, 7> vertex{};
+    static std::array<glm::vec3, 7> vertex {};
     vertex.at(0) = Max();
     vertex.at(1) = glm::vec3(Min().x, Min().y, Max().z);
     vertex.at(2) = glm::vec3(Min().x, Max().y, Max().z);
@@ -312,4 +328,3 @@ glm::mat4 DirectionnalLight::ShadowViewMatrix() const
 //{
 //    SetTransformMatrix(glm::lookAt(Position(), glm::vec3(0, 0, 0), Common::Up()));
 //}
-

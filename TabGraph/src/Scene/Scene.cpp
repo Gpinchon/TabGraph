@@ -62,14 +62,14 @@ void Scene::Add(std::shared_ptr<Animation> animation)
     AddComponent(animation);
 }
 
-void Scene::Render(const RenderPass&pass, const RenderMod& mode)
+void Scene::Render(const Render::Pass& pass, const Render::Mode& mode)
 {
     for (auto node : Scene::Current()->GetComponents<Node>())
         node->Draw(std::static_pointer_cast<Scene>(shared_from_this()), pass, mode, true);
 }
 
-void Scene::RenderDepth(const RenderMod& mode)
-{
+void Scene::RenderDepth(const Render::Mode& mode)
+{ 
     for (auto node : Scene::Current()->GetComponents<Node>())
         node->DrawDepth(std::static_pointer_cast<Scene>(shared_from_this()), mode, true);
 }

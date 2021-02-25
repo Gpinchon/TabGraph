@@ -40,6 +40,8 @@ Framebuffer::~Framebuffer()
     glDeleteFramebuffers(1, &glid);
 }
 
+#include "Shader/Global.hpp"
+
 void Framebuffer::bind(bool to_bind)
 {
     if (!to_bind) {
@@ -50,12 +52,14 @@ void Framebuffer::bind(bool to_bind)
     setup_attachements();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GetHandle());
     glViewport(0, 0, Size().x, Size().y);
+    Shader::Global::SetUniform("Resolution", glm::vec3(Size(), Size().x / float(Size().y)));
 }
 
 void Framebuffer::bind_default()
 {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glViewport(0, 0, Window::GetSize().x, Window::GetSize().y);
+    Shader::Global::SetUniform("Resolution", glm::vec3(Window::GetSize(), Window::GetSize().x / float(Window::GetSize().y)));
 }
 
 std::shared_ptr<Texture2D> Framebuffer::Create_attachement(Pixel::SizedFormat format)

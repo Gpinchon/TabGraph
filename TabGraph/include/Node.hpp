@@ -11,7 +11,6 @@
 #include "Component.hpp"
 #include "Event/Signal.hpp"
 
-
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp>
@@ -21,22 +20,16 @@
 #include <string> // for string
 #include <vector> // for vector
 
-enum class RenderMod {
-    RenderAll,
-    RenderOpaque,
-    RenderTransparent
-};
-
-enum class RenderPass {
-    Geometry,
-    Material
-};
-
 class BoundingAABB;
 class RigidBody;
 class Animation;
 class Mesh;
 class Scene;
+
+namespace Render {
+    enum class Pass;
+    enum class Mode;
+}
 
 class Node : public Component {
     /** The local position */
@@ -49,9 +42,9 @@ public:
     Node();
     Node(const Node& node);
     Node(const std::string& name);
-    virtual bool Draw(std::shared_ptr<Scene> scene, RenderPass pass, RenderMod = RenderMod::RenderAll, bool drawChildren = false);
+    virtual bool Draw(std::shared_ptr<Scene> scene, const Render::Pass &pass, const Render::Mode &mode, bool drawChildren = false);
     //virtual bool Draw(RenderPass pass, RenderMod = RenderMod::RenderAll, bool drawChildren = false);
-    virtual bool DrawDepth(std::shared_ptr<Scene> scene, RenderMod = RenderMod::RenderAll, bool drawChildren = false);
+    virtual bool DrawDepth(std::shared_ptr<Scene> scene, const Render::Mode &mode, bool drawChildren = false);
 
     /** @return the Node's parent */
     //std::shared_ptr<Node> Parent() const { return _parent.lock(); };

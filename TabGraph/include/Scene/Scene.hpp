@@ -23,8 +23,10 @@ class Animation;
 class AABB;
 class RigidBody;
 class Environment;
-enum class RenderPass;
-enum class RenderMod;
+namespace Render {
+    enum class Pass;
+    enum class Mode;
+}
 
 /**
  * @brief scene container
@@ -43,8 +45,8 @@ public:
     void Add(std::shared_ptr<Node>);
     void Add(std::shared_ptr<Animation>);
     void Add(std::shared_ptr<RigidBody>);
-    virtual void Render(const RenderPass&, const RenderMod&);
-    virtual void RenderDepth(const RenderMod&);
+    virtual void Render(const Render::Pass&, const Render::Mode&);
+    virtual void RenderDepth(const Render::Mode&);
     std::shared_ptr<AABB> GetLimits() const;
     std::shared_ptr<Environment> GetEnvironment() const;
     void SetEnvironment(const std::shared_ptr<Environment>& env);

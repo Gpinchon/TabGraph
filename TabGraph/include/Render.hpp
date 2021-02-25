@@ -11,12 +11,25 @@
 #include <atomic>
 #include <memory> // for shared_ptr
 
-class Shader; // lines 13-13
+namespace Shader {
+	class Program;
+};
 class Geometry; // lines 12-12
 class Framebuffer;
 
 /** @brief Render manages the graphical rendering and frame pacing */
 namespace Render {
+	enum class Pass {
+		Geometry,
+		Material,
+		MaxValue
+	};
+	enum class Mode {
+		All,
+		Opaque,
+		Transparent,
+		MaxValue
+	};
 	void Init();
 	typedef void* Context;
 	Context GetContext();
@@ -29,12 +42,12 @@ namespace Render {
 		*	@brief Adds a post-treatment Shader to be applied after rasterization path
 		*	@param shader The post-treatment Shader to add
 		*/
-	void AddPostTreatment(std::shared_ptr<Shader> shader);
+	void AddPostTreatment(std::shared_ptr<Shader::Program> shader);
 	/**
 		*	@brief Removes a post-treatment Shader from the list
 		*	@param shader The post-treatment Shader to remove
 		*/
-	void RemovePostTreatment(std::shared_ptr<Shader> shader);
+	void RemovePostTreatment(std::shared_ptr<Shader::Program> shader);
 
 	uint32_t FrameNumber();
 

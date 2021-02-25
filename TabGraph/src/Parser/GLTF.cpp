@@ -175,11 +175,11 @@ static inline auto ParseMaterialExtensions(const std::vector<std::shared_ptr<Tex
                 material->AddExtension(materialExtension);
                 try {
                     auto diffuseFactor(pbrSpecularGlossiness["diffuseFactor"].GetArray());
-                    materialExtension->SetDiffuse(glm::vec4(
+                    materialExtension->SetDiffuse(glm::vec3(
                         diffuseFactor[0].GetFloat(),
                         diffuseFactor[1].GetFloat(),
-                        diffuseFactor[2].GetFloat(),
-                        diffuseFactor[3].GetFloat()));
+                        diffuseFactor[2].GetFloat()));
+                    materialExtension->SetOpacity(diffuseFactor[3].GetFloat());
                 } catch (const std::exception&) {
                     debugLog("No diffuseFactor found for " + material->GetName());
                 }
@@ -294,10 +294,10 @@ static inline auto ParseMaterials(const rapidjson::Document& document, std::vect
                 }
                 try {
                     auto baseColor(pbrMetallicRoughness["baseColorFactor"].GetArray());
-                    materialExtension->SetBaseColor(glm::vec4(baseColor[0].GetFloat(),
+                    materialExtension->SetBaseColor(glm::vec3(baseColor[0].GetFloat(),
                         baseColor[1].GetFloat(),
-                        baseColor[2].GetFloat(),
-                        baseColor[3].GetFloat()));
+                        baseColor[2].GetFloat()));
+                    materialExtension->SetOpacity(baseColor[3].GetFloat());
                 } catch (std::exception&) {
                     debugLog("No baseColorFactor property")
                 }

@@ -23,6 +23,11 @@ class MeshSkin;
 class Material;
 class BufferAccessor;
 
+namespace Render {
+    enum class Pass;
+    enum class Mode;
+};
+
 class Mesh : public Component {
     READONLYPROPERTY(bool, Loaded, false);
     PROPERTY(glm::mat4, GeometryTransform, 1);
@@ -30,8 +35,8 @@ public:
     Mesh();
     Mesh(const std::string& name);
     Mesh(const Mesh& other);
-    bool Draw(const glm::mat4& parentTransform, const glm::mat4& parentLastTransform, const RenderPass& pass, RenderMod mod = RenderMod::RenderAll);
-    bool DrawDepth(const glm::mat4& parentTransform, RenderMod mod = RenderMod::RenderAll);
+    bool Draw(const glm::mat4& parentTransform, const glm::mat4& parentLastTransform, const Render::Pass& pass, const Render::Mode &mod);
+    bool DrawDepth(const glm::mat4& parentTransform, const Render::Mode &mod);
     bool Drawable() const;
     void center();
     void set_cull_mod(GLenum);

@@ -15,7 +15,7 @@
 #include "Physics/BoundingElement.hpp" // for BoundingElement
 #include "Render.hpp"
 #include "Scene/Scene.hpp"
-#include "Shader/Shader.hpp" // for Shader
+#include "Shader/Program.hpp" // for Shader
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureBuffer.hpp"
 
@@ -52,7 +52,7 @@ void Mesh::AddGeometry(std::shared_ptr<Geometry> group)
 
 #include "Config.hpp"
 
-bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTransform, const RenderPass& pass, RenderMod mod)
+bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTransform, const Render::Pass& pass, const Render::Mode &mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
     auto transformMatrix = parentTransform * GetGeometryTransform();
@@ -62,7 +62,7 @@ bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTra
     auto normal_matrix = glm::inverseTranspose(glm::mat3(transformMatrix));
 
     Load();
-    std::shared_ptr<Shader> last_shader;
+    std::shared_ptr<Shader::Program> last_shader;
     auto skinned{ HasComponentOfType<MeshSkin>() };
     auto jointsIndex = _jointMatricesIndex;
     auto prevJointsIndex = (_jointMatricesIndex - 1) % _jointMatrices.size();
@@ -76,24 +76,21 @@ bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTra
             continue;
         }
         auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
-        //if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
-        if (mod == RenderMod::RenderOpaque && isTransparent)
+        //if (mod == Render::Mode::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
+        if (mod == Render::Mode::Opaque && isTransparent)
             continue;
-        else if (mod == RenderMod::RenderTransparent && !isTransparent)
+        else if (mod == Render::Mode::Transparent && !isTransparent)
             continue;
-        std::shared_ptr<Shader> shader;
-        if (pass == RenderPass::Geometry)
-            shader = material->GetGeometryShader();
-        else if (pass == RenderPass::Material)
-            shader = material->GetMaterialShader();
+        std::shared_ptr<Shader::Program> shader{ material->GetShader(pass) };
         if (nullptr == shader)
             continue;
-        material->Bind();
+        material->Bind(pass);
+        shader->Use();
         //std::cout << unsigned(vg->Id()) << std::endl;
         shader->SetUniform("DrawID", unsigned(vg->GetId()));
         if (last_shader != shader) {
             //last_shader->use(false);
-            if (pass == RenderPass::Material) {
+            if (pass == Render::Pass::Material) {
                 if (isTransparent&& fastTransparency)
                     shader->SetDefine("FASTTRANSPARENCY");
                 shader->SetTexture("DiffuseTexture", Render::LightBuffer()->attachement(0));
@@ -118,13 +115,12 @@ bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTra
             glDisable(GL_CULL_FACE);
         else
             glEnable(GL_CULL_FACE);
-        shader->use();
         ret |= vg->Draw();
         if (material->GetDoubleSided())
             glEnable(GL_CULL_FACE);
     }
-    last_shader->use(false);
-    if (pass == RenderPass::Geometry) {
+    last_shader->Done();
+    if (pass == Render::Pass::Geometry) {
         _prevTransformMatrix = GetGeometryTransform();
         if (skinned) {
             glDeleteSync(_drawSync[prevJointsIndex]);
@@ -136,7 +132,7 @@ bool Mesh::Draw(const glm::mat4& parentTransform, const glm::mat4& parentPrevTra
     return ret;
 }
 
-bool Mesh::DrawDepth(const glm::mat4& parentTransform, RenderMod mod)
+bool Mesh::DrawDepth(const glm::mat4& parentTransform, const Render::Mode &mod)
 {
     auto currentCamera(Scene::Current() ? Scene::Current()->CurrentCamera() : nullptr);
     auto transformMatrix = parentTransform * GetGeometryTransform();
@@ -145,7 +141,7 @@ bool Mesh::DrawDepth(const glm::mat4& parentTransform, RenderMod mod)
     auto normal_matrix = glm::inverseTranspose(glm::mat3(transformMatrix));
 
     Load();
-    std::shared_ptr<Shader> last_shader;
+    std::shared_ptr<Shader::Program> last_shader;
     auto skinned{ HasComponentOfType<MeshSkin>() };
     auto jointsIndex = _jointMatricesIndex;
     for (auto vg : Geometrys()) {
@@ -157,13 +153,14 @@ bool Mesh::DrawDepth(const glm::mat4& parentTransform, RenderMod mod)
             continue;
         }
         auto isTransparent(material->GetOpacityMode() == Material::OpacityModeValue::Blend);
-        //if (mod == RenderMod::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
-        if (mod == RenderMod::RenderOpaque && isTransparent)
+        //if (mod == Render::Mode::RenderOpaque && (isTransparent && material->GetOpacity() < 1))
+        if (mod == Render::Mode::Opaque && isTransparent)
             continue;
-        else if (mod == RenderMod::RenderTransparent && !isTransparent)
+        else if (mod == Render::Mode::Transparent && !isTransparent)
             continue;
-        auto shader{ material->GetGeometryShader() };
-        material->Bind();
+        material->Bind(Render::Pass::Geometry);
+        auto shader{ material->GetShader(Render::Pass::Geometry) };
+        shader->Use();
         shader->SetUniform("DrawID", unsigned(vg->GetId()));
         if (last_shader != shader) {
             shader->SetUniform("Matrix.Model", transformMatrix);
@@ -176,11 +173,12 @@ bool Mesh::DrawDepth(const glm::mat4& parentTransform, RenderMod mod)
             glDisable(GL_CULL_FACE);
         else
             glEnable(GL_CULL_FACE);
-        shader->use();
         ret |= vg->Draw();
-        shader->use(false);
+        shader->Done();
         glEnable(GL_CULL_FACE);
     }
+    if (last_shader != nullptr)
+        last_shader->Done();
     return ret;
 }
 

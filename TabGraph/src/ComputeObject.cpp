@@ -7,9 +7,9 @@
 
 #include "ComputeObject.hpp"
 #include "Debug.hpp"
-#include "Shader/Shader.hpp"
+#include "Shader/Program.hpp"
 
-ComputeObject::ComputeObject(const std::string& name, std::shared_ptr<Shader> computeShader)
+ComputeObject::ComputeObject(const std::string& name, std::shared_ptr<Shader::Program> computeShader)
     : Node(name)
 {
     int workgroup_count[3];
@@ -20,12 +20,12 @@ ComputeObject::ComputeObject(const std::string& name, std::shared_ptr<Shader> co
     _num_groups = glm::vec3(workgroup_count[0], workgroup_count[1], workgroup_count[2]);
 }
 
-std::shared_ptr<Shader> ComputeObject::shader()
+std::shared_ptr<Shader::Program> ComputeObject::shader()
 {
     return (_shader.lock());
 }
 
-void ComputeObject::set_shader(std::shared_ptr<Shader> ishader)
+void ComputeObject::set_shader(std::shared_ptr<Shader::Program> ishader)
 {
     _shader = ishader;
 }
@@ -37,16 +37,17 @@ void ComputeObject::run()
     auto outTexturePtr = out_texture();
     if (shaderPtr == nullptr)
         return;
-    shaderPtr->use();
-    if (inTexturePtr == outTexturePtr) {
-        shaderPtr->bind_image("inout_data", inTexturePtr, 0, false, 0, GL_READ_WRITE, GL_TEXTURE0);
-    } else {
-        shaderPtr->bind_image("in_data", inTexturePtr, 0, false, 0, GL_READ_ONLY, GL_TEXTURE0);
-        shaderPtr->bind_image("out_data", outTexturePtr, 0, false, 0, GL_WRITE_ONLY, GL_TEXTURE1);
-    }
+    shaderPtr->Use();
+    //TODO reimplement this properly
+    //if (inTexturePtr == outTexturePtr) {
+    //    shaderPtr->bind_image("inout_data", inTexturePtr, 0, false, 0, GL_READ_WRITE, GL_TEXTURE0);
+    //} else {
+    //    shaderPtr->bind_image("in_data", inTexturePtr, 0, false, 0, GL_READ_ONLY, GL_TEXTURE0);
+    //    shaderPtr->bind_image("out_data", outTexturePtr, 0, false, 0, GL_WRITE_ONLY, GL_TEXTURE1);
+    //}
     glDispatchCompute(30, 40, 1);
     glMemoryBarrier(memory_barrier());
-    shaderPtr->use(false);
+    shaderPtr->Done();
 }
 
 std::shared_ptr<Texture> ComputeObject::out_texture()

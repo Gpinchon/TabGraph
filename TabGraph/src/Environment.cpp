@@ -8,26 +8,42 @@
 #include "Environment.hpp"
 #include "Mesh/Geometry.hpp"
 #include "Render.hpp"
-#include "Shader/Shader.hpp"
+#include "Shader/Program.hpp"
 #include "Texture/Cubemap.hpp"
+
+auto GetVertexCode() {
+    static auto deferred_vert_code =
+#include "deferred.vert"
+        ;
+    static Shader::Stage::Code shaderCode{ deferred_vert_code, "FillVertexData();" };
+    return shaderCode;
+}
+
+auto GetFragmentCode() {
+    static std::string envShader =
+#include "environment.frag"
+        ;
+    static Shader::Stage::Code shaderCode { envShader, "OutputEnv();" };
+    return shaderCode;
+}
 
 Environment::Environment(const std::string& name)
     : Component(name)
 {
-    auto envShader =
-#include "environment.frag"
-        ;
-    SetShader(Component::Create<Shader>(name + "Shader", Shader::Type::LightingShader));
-    GetShader()->SetStage(Component::Create<ShaderStage>(GL_FRAGMENT_SHADER, Component::Create<ShaderCode>(envShader, "OutputEnv();")));
+    
+    SetShader(Component::Create<Shader::Program>(name + "Shader"));
+    GetShader()->SetDefine("LIGHTSHADER");
+    GetShader()->Attach(Shader::Stage(Shader::Stage::Type::Vertex, GetVertexCode()));
+    GetShader()->Attach(Shader::Stage(Shader::Stage::Type::Fragment, GetFragmentCode()));
 }
 
 void Environment::Draw()
 {
+    GetShader()->Use();
     GetShader()->SetTexture("Environment.Diffuse", GetDiffuse());
     GetShader()->SetTexture("Environment.Irradiance", GetIrradiance());
-    GetShader()->use();
     Render::DisplayQuad()->Draw();
-    GetShader()->use(false);
+    GetShader()->Done();
 }
 
 void Environment::unload()

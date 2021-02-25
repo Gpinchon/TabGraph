@@ -11,7 +11,7 @@
 #include "Mesh/Mesh.hpp"
 #include "Physics/BoundingAABB.hpp"
 #include "Physics/RigidBody.hpp"
-#include "Node.hpp"
+#include "Render.hpp"
 
 #include <glm/ext.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -73,7 +73,7 @@ void Node::_UpdateMeshSkin(float delta)
         mesh->UpdateSkin(WorldTransformMatrix());
 }
 
-bool Node::Draw(std::shared_ptr<Scene> scene, RenderPass pass, RenderMod renderMod, bool drawChildren)
+bool Node::Draw(std::shared_ptr<Scene> scene, const Render::Pass &pass, const Render::Mode &renderMod, bool drawChildren)
 {
     bool drew = false;
     for (auto& mesh : GetComponents<Mesh>()) {
@@ -83,12 +83,12 @@ bool Node::Draw(std::shared_ptr<Scene> scene, RenderPass pass, RenderMod renderM
         for (auto& child : GetChildren())
             drew |= child->Draw(scene, pass, renderMod, drawChildren);
     }
-    if (pass == RenderPass::Geometry)
+    if (pass == Render::Pass::Geometry)
         _prevTransformMatrix = WorldTransformMatrix();
     return drew;
 }
 
-bool Node::DrawDepth(std::shared_ptr<Scene> scene, RenderMod renderMod, bool drawChildren)
+bool Node::DrawDepth(std::shared_ptr<Scene> scene, const Render::Mode &renderMod, bool drawChildren)
 {
     bool drew = false;
     for (auto mesh : GetComponents<Mesh>()) {
