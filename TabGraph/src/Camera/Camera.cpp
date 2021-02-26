@@ -26,6 +26,74 @@ glm::mat4 Camera::ViewMatrix()
 
 #include "Render.hpp"
 
+//Halton sequence scaled to [-1:1]
+static const glm::vec2 haltonSequence[64] = {
+    glm::vec2(0, -0.333333),
+    glm::vec2(-0.5, 0.333333),
+    glm::vec2(0.5, -0.777778),
+    glm::vec2(-0.75, -0.111111),
+    glm::vec2(0.25, 0.555556),
+    glm::vec2(-0.25, -0.555556),
+    glm::vec2(0.75, 0.111111),
+    glm::vec2(-0.875, 0.777778),
+    glm::vec2(0.125, -0.925926),
+    glm::vec2(-0.375, -0.259259),
+    glm::vec2(0.625, 0.407407),
+    glm::vec2(-0.625, -0.703704),
+    glm::vec2(0.375, -0.037037),
+    glm::vec2(-0.125, 0.62963),
+    glm::vec2(0.875, -0.481481),
+    glm::vec2(-0.9375, 0.185185),
+    glm::vec2(0.0625, 0.851852),
+    glm::vec2(-0.4375, -0.851852),
+    glm::vec2(0.5625, -0.185185),
+    glm::vec2(-0.6875, 0.481482),
+    glm::vec2(0.3125, -0.62963),
+    glm::vec2(-0.1875, 0.037037),
+    glm::vec2(0.8125, 0.703704),
+    glm::vec2(-0.8125, -0.407407),
+    glm::vec2(0.1875, 0.259259),
+    glm::vec2(-0.3125, 0.925926),
+    glm::vec2(0.6875, -0.975309),
+    glm::vec2(-0.5625, -0.308642),
+    glm::vec2(0.4375, 0.358025),
+    glm::vec2(-0.0625, -0.753086),
+    glm::vec2(0.9375, -0.0864198),
+    glm::vec2(-0.96875, 0.580247),
+    glm::vec2(0.03125, -0.530864),
+    glm::vec2(-0.46875, 0.135803),
+    glm::vec2(0.53125, 0.802469),
+    glm::vec2(-0.71875, -0.901235),
+    glm::vec2(0.28125, -0.234568),
+    glm::vec2(-0.21875, 0.432099),
+    glm::vec2(0.78125, -0.679012),
+    glm::vec2(-0.84375, -0.0123457),
+    glm::vec2(0.15625, 0.654321),
+    glm::vec2(-0.34375, -0.45679),
+    glm::vec2(0.65625, 0.209877),
+    glm::vec2(-0.59375, 0.876543),
+    glm::vec2(0.40625, -0.82716),
+    glm::vec2(-0.09375, -0.160494),
+    glm::vec2(0.90625, 0.506173),
+    glm::vec2(-0.90625, -0.604938),
+    glm::vec2(0.09375, 0.0617284),
+    glm::vec2(-0.40625, 0.728395),
+    glm::vec2(0.59375, -0.382716),
+    glm::vec2(-0.65625, 0.283951),
+    glm::vec2(0.34375, 0.950617),
+    glm::vec2(-0.15625, -0.950617),
+    glm::vec2(0.84375, -0.283951),
+    glm::vec2(-0.78125, 0.382716),
+    glm::vec2(0.21875, -0.728395),
+    glm::vec2(-0.28125, -0.0617284),
+    glm::vec2(0.71875, 0.604938),
+    glm::vec2(-0.53125, -0.506173),
+    glm::vec2(0.46875, 0.160494),
+    glm::vec2(-0.03125, 0.82716),
+    glm::vec2(0.96875, -0.876543),
+    glm::vec2(-0.984375, -0.209877)
+};
+
 glm::mat4 Camera::ProjectionMatrix() const
 {
     glm::mat4 proj;
@@ -37,50 +105,9 @@ glm::mat4 Camera::ProjectionMatrix() const
             proj = glm::infinitePerspective(glm::radians(Fov()), float(windowSize.x) / float(windowSize.y), Znear());
     } else
         proj = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
-    switch (Render::FrameNumber() % 4) {
-    case 0:
-        proj[2][0] += 0.25 / float(windowSize.x);
-        proj[2][1] += 0.25 / float(windowSize.y);
-        break;
-    case 2:
-        proj[2][0] -= 0.25 / float(windowSize.x);
-        proj[2][1] -= 0.25 / float(windowSize.y);
-        break;
-        /*
-    case 0:
-        proj[2][0] += 0.5 / float(Window::size().x);
-        proj[2][1] += 0.5 / float(Window::size().y);
-        break;
-    case 1:
-        //proj[2][0] -= 0.5 / float(Window::size().x);
-        proj[2][1] += 0.5 / float(Window::size().y);
-        break;
-    case 2:
-        proj[2][0] -= 0.5 / float(Window::size().x);
-        proj[2][1] += 0.5 / float(Window::size().y);
-    case 3:
-        proj[2][0] += 0.5 / float(Window::size().x);
-        //proj[2][1] += 0.5 / float(Window::size().y);
-        break;
-    case 4:
-        break;
-    case 5:
-        proj[2][0] -= 0.5 / float(Window::size().x);
-        //proj[2][1] += 0.5 / float(Window::size().y);
-        break;
-    case 6:
-        //proj[2][0] -= 0.5 / float(Window::size().x);
-        proj[2][1] -= 0.5 / float(Window::size().y);
-        break;
-    case 7:
-        proj[2][0] += 0.5 / float(Window::size().x);
-        proj[2][1] -= 0.5 / float(Window::size().y);
-    case 8:
-        proj[2][0] -= 0.5 / float(Window::size().x);
-        proj[2][1] -= 0.5 / float(Window::size().y);
-        break;
-    */
-    }
+    auto halton{ haltonSequence[Render::FrameNumber() % 64] };
+    proj[2][0] += halton.x * 0.25 / float(windowSize.x);
+    proj[2][1] += halton.y * 0.25 / float(windowSize.y);
     return proj;
 }
 
