@@ -122,58 +122,31 @@ vec4	castRay(vec3 R, float StepOffset)
 	vec3 RayStartUVz = RayStartScreen * 0.5 + 0.5;
 	vec3 RayEndUVz = RayEndScreen * 0.5 + 0.5;
 	vec3 RayStepUVz = (RayEndUVz - RayStartUVz);
-	const float CompareTolerance = abs(RayStepUVz.z) * Step * 2;
+	const float CompareTolerance = abs(RayStepUVz.z) * Step * 1.25;
 	vec4 Result = vec4( 0, 0, 0, 1 );
 	float LastDiff = 0;
-	/*
-	vec4 SampleTime = (StepOffset * Step + Step) * vec4( 1, 2, 3, 4 );
-	float Level = 0;
-	for (int i = 0; i < NumSteps; i += 4) {
-		vec4 SampleUV0 = RayStartUVz.xyxy + RayStepUVz.xyxy * SampleTime.xxyy;
-		vec4 SampleUV1 = RayStartUVz.xyxy + RayStepUVz.xyxy * SampleTime.zzww;
-		vec4 SampleZ   = RayStartUVz.zzzz + RayStepUVz.zzzz * SampleTime;
-		vec4 SampleDepth = SampleDepthTexture(Level, SampleUV0, SampleUV1);
-		vec4 DepthDiff = SampleDepth - SampleZ;
-		bvec4 Hit = lessThan(abs(-DepthDiff - CompareTolerance), vec4(CompareTolerance));
-		if (any(Hit))
-		{
-			float closestHit = 1;
-			int closestHitIndex = 0;
-			for (int j = 0; j < 4; ++j)
-			{
-				if (Hit[j] && abs(DepthDiff[j]) < closestHit)
-				{
-					closestHit = abs(DepthDiff[j]);
-					closestHitIndex = j;
-				}
-			}
-			vec3 HitUVz = RayStartUVz + RayStepUVz * SampleTime[closestHitIndex];
-			Result = vec4(HitUVz, SampleTime[closestHitIndex] * SampleTime[closestHitIndex]);
-			break;
-		}
-		LastDiff = DepthDiff.w;
-		Level += Alpha() * (16.0 * Step);
-		SampleTime += 4.0 * Step;
-	}
-	*/
 	float SampleTime = StepOffset * Step + Step;
+	float Level = 0;
 	for (int i = 0; i < NumSteps; ++i)
 	{
 		vec3 UVz = RayStartUVz + RayStepUVz * SampleTime;
-		float Level = Alpha() * (i * 4.0 / NumSteps);
 		float SampleZ = textureLod(Texture.Geometry.Depth, UVz.xy, Level).r;
 		float DepthDiff = SampleZ - UVz.z;
 		if (abs(-DepthDiff - CompareTolerance) < CompareTolerance)
 		{
 			// Find more accurate hit using line segment intersection
-			float TimeLerp = clamp( LastDiff / (LastDiff - DepthDiff), 0, 1);
-			float IntersectTime = SampleTime + TimeLerp * Step - Step;
+			float TimeLerp = clamp(LastDiff / (LastDiff - DepthDiff), 0, 1);
+			float IntersectTime = SampleTime + TimeLerp * Step;
+			if (i > 0) { //else, last time we intersected with ourselves, no need to go back
+				IntersectTime -= Step;
+			}
 			UVz = RayStartUVz + RayStepUVz * IntersectTime;
 			Result = vec4(UVz, IntersectTime * IntersectTime);
 			break;
 		}
 		LastDiff = DepthDiff;
 		SampleTime += Step;
+		Level += (4.0 / NumSteps) * Alpha();
 	}
 	return Result;
 }
