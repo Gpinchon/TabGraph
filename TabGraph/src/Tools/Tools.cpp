@@ -8,6 +8,7 @@
 #include "Tools/Tools.hpp"
 #include <SDL_events.h>
 #include <iostream>
+#include <glm/glm.hpp>
 
 using namespace Tools;
 
@@ -210,5 +211,28 @@ void PrintEventName(SDL_Event* event)
         std::cout << "Event : SDL_LASTEVENT" << std::endl;
         break;
     }
+    }
+}
+namespace Tools {
+    float Halton(int b, int i)
+    {
+        float r = 0.0;
+        float f = 1.0;
+        while (i > 0) {
+            f = f / float(b);
+            r = r + f * float(i % b);
+            i = int(floor(float(i) / float(b)));
+        }
+        return r;
+    }
+
+    float Halton2(int i)
+    {
+        return Halton(2, i);
+    }
+
+    glm::vec2 Halton23(int i)
+    {
+        return glm::vec2(Halton2(i), Halton(3, i));
     }
 }

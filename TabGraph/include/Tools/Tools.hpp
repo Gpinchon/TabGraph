@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <type_traits>
+#include <glm/fwd.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265359f
@@ -20,7 +21,10 @@
 union SDL_Event;
 
 namespace Tools {
-void PrintEventName(SDL_Event*);
+	void PrintEventName(SDL_Event*);
+	float Halton(int b, int i);
+	float Halton2(int i);
+	glm::vec2 Halton23(int i);
 }
 
 /*
