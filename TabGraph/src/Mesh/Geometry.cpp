@@ -12,10 +12,8 @@
 #include "Buffer/BufferView.hpp"
 #include "Camera/Camera.hpp" // for Camera
 #include "Debug.hpp"
-#include "Material/Material.hpp" // for Material
 #include "Physics/BoundingAABB.hpp" // for AABB
-#include "Shader/Program.hpp" // for Shader
-#include "Texture/Texture.hpp" // for Texture
+#include "Driver/OpenGL/Buffer.hpp"
 #include "Tools/Tools.hpp"
 
 #include <algorithm>
@@ -129,32 +127,32 @@ static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int in
     if (accessor == nullptr)
         return;
     auto bufferView(accessor->GetBufferView());
-    //auto buffer(bufferView->GetBuffer());
     auto byteOffset(accessor->GetByteOffset());
     bufferView->Load();
-    //GL_MAX_VERTEX_ATTRIB_RELATIVE_OFFSET == 33497;
-    //glBindBuffer((GLenum)bufferView->GetType(), bufferView->GetHandle());
     glEnableVertexAttribArray(index);
+    //bufferView->Bind();
+    //glVertexAttribPointer(
+    //    index,
+    //    (uint8_t)accessor->GetType(),
+    //    (GLenum)accessor->GetComponentType(),
+    //    accessor->GetNormalized(),
+    //    bufferView->GetByteStride() ? bufferView->GetByteStride() : accessor->GetTypeOctetsSize(),
+    //    BUFFER_OFFSET(accessor->GetByteOffset())
+    //);
+    //bufferView->Done();
     glVertexAttribFormat(
         index,
         (uint8_t)accessor->GetType(),
         (GLenum)accessor->GetComponentType(),
         accessor->GetNormalized(),
-        0//accessor->GetByteOffset()
+        0
     );
     glBindVertexBuffer(
         index,
         bufferView->GetHandle(),
-        accessor->GetByteOffset(),//0,
+        accessor->GetByteOffset(),
         bufferView->GetByteStride() ? bufferView->GetByteStride() : accessor->GetTypeOctetsSize()
     );
-    /*glVertexAttribPointer(
-        index,
-        (uint8_t)accessor->GetType(),
-        (GLenum)accessor->GetComponentType(),
-        accessor->GetNormalized(),
-        bufferView->GetByteStride(),
-        BUFFER_OFFSET(byteOffset));*/
 }
 
 void Geometry::Load()
@@ -162,10 +160,6 @@ void Geometry::Load()
     if (GetLoaded())
         return;
     debugLog(GetName());
-    /*for (auto accessor : _accessors) {
-        if (accessor != nullptr)
-            accessor->GetBufferView()->Load();
-    }*/
     if (Indices() != nullptr)
         Indices()->GetBufferView()->Load();
     glGenVertexArrays(1, &_vaoGlid);
@@ -189,14 +183,11 @@ bool Geometry::Draw()
     if (Indices() != nullptr) {
         auto bufferView(Indices()->GetBufferView());
         auto byteOffset(Indices()->GetByteOffset() );
-        glBindBuffer((GLenum)bufferView->GetType(), bufferView->GetHandle());
+        bufferView->Bind();
         glDrawElements((GLenum)GetDrawingMode(), Indices()->GetCount(), (GLenum)Indices()->GetComponentType(), BUFFER_OFFSET(byteOffset));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    } else if (auto accessor(Accessor(Geometry::AccessorKey::Position)); accessor != nullptr) {
+        bufferView->Done();
+    } else if (auto accessor(Accessor(Geometry::AccessorKey::Position)); accessor != nullptr)
         glDrawArrays((GLenum)GetDrawingMode(), 0, accessor->GetCount());
-        //auto byteOffset(accessor->GetByteOffset());
-        //glDrawArrays((GLenum)GetDrawingMode(), byteOffset / accessor->GetTypeOctetsSize(), accessor->GetCount());
-    }
     glBindVertexArray(0);
 
     return (true);
