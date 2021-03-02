@@ -30,7 +30,7 @@ void ParseBinaryData(const std::shared_ptr<Asset>& asset)
             std::ifstream file(uri.GetPath(), std::ios::binary);
             file.read(reinterpret_cast<char*>(data.data()), data.size());
         }
-        binaryData = std::shared_ptr<BinaryData>(new BinaryData(data));
+        binaryData = Component::Create<BinaryData>(data);
     }
     asset->SetComponent(binaryData);
     asset->SetAssetType(BinaryData::AssetType);
