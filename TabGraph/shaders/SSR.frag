@@ -134,14 +134,13 @@ vec4	castRay(vec3 R, float StepOffset)
 		float DepthDiff = SampleZ - UVz.z;
 		if (abs(-DepthDiff - CompareTolerance) < CompareTolerance)
 		{
-			// Find more accurate hit using line segment intersection
-			float TimeLerp = clamp(LastDiff / (LastDiff - DepthDiff), 0, 1);
-			float IntersectTime = SampleTime + TimeLerp * Step;
-			if (i > 0) { //else, last time we intersected with ourselves, no need to go back
-				IntersectTime -= Step;
+			if (i > 0) { //else, this is the first loop, no need to go back
+				// Find more accurate hit using line segment intersection
+				float TimeLerp = clamp(LastDiff / (LastDiff - DepthDiff), 0, 1);
+				SampleTime += TimeLerp * Step - Step;
 			}
-			UVz = RayStartUVz + RayStepUVz * IntersectTime;
-			Result = vec4(UVz, IntersectTime * IntersectTime);
+			UVz = RayStartUVz + RayStepUVz * SampleTime;
+			Result = vec4(UVz, SampleTime * SampleTime);
 			break;
 		}
 		LastDiff = DepthDiff;
