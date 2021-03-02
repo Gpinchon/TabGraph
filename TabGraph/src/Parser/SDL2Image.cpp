@@ -122,6 +122,7 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
         if (data.empty()) {
             auto& bufferView{ asset->GetComponent<BufferView>() };
             if (bufferView != nullptr) { //We're loading raw bytes from a BufferView
+                bufferView->Load();
                 auto dataPtr{ bufferView->Get(0, bufferView->GetByteLength()) };
                 data = std::vector<std::byte>(
                     dataPtr, dataPtr + bufferView->GetByteLength()
