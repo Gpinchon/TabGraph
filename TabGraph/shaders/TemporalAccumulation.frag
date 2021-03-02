@@ -67,7 +67,7 @@ void TemporalAccumulation()
     vec3 minColor = mix(min_3x3, min_2x2, 0.5);
     vec3 maxColor = mix(max_3x3, max_2x2, 0.5);
     historyColor.rgb = clip_aabb(minColor, maxColor, out_0.rgb, historyColor.rgb);
-    float alpha = 0.9 + 0.09 * (1 - abs(Luminance(historyColor.rgb) - Luminance(out_0.rgb)));
+    float alpha = 0.9 + 0.05 * (1 - abs(Luminance(historyColor.rgb) - Luminance(out_0.rgb)));
     //Use rolling average over time
     //out = x * (1 − a) + y * a
     out_0.rgb = mix(out_0.rgb, historyColor, alpha);
