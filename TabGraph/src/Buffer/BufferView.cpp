@@ -8,6 +8,7 @@
 #include "Assets/Asset.hpp"
 #include "Assets/BinaryData.hpp"
 #include "Render.hpp"
+#include "Driver/OpenGL/Buffer.hpp"
 
 size_t s_bufferViewNbr = 0;
 
@@ -19,6 +20,7 @@ BufferView::BufferView(size_t byteLength, std::shared_ptr<Asset> buffer, Mode mo
 
 BufferView::BufferView() : Component("BufferView_" + std::to_string(++s_bufferViewNbr))
 {
+    SetStorage(GetStorage());
 }
 
 BufferView::BufferView(std::shared_ptr<Asset> buffer, Mode mode)
@@ -34,107 +36,78 @@ BufferView::BufferView(size_t byteLength, Mode mode) : BufferView()
     SetMode(mode);
 }
 
+const BufferView::Handle& BufferView::GetHandle() const
+{
+    assert(GetStorage() != Storage::CPU);
+    return _GetImplGPU()->GetHandle();
+}
+
 std::byte* BufferView::Get(size_t index, size_t size)
 {
-    if (GetMappingMode() == MappingMode::WriteOnly)
-        MapRange(
-            MappingMode::ReadWrite,
-            std::min(index, GetMappingStart()),
-            std::max(index + size, GetMappingEnd()));
-    else if (GetMappingMode() == MappingMode::None)
-        MapRange(
-            MappingMode::ReadOnly,
-            index,
-            index + size);
-    return _mappingPointer + (index - GetMappingStart());
+    if (GetStorage() == Storage::CPU)
+        return _rawData.data() + index;
+    else
+        return _GetImplGPU()->Get(*this, index, size);
 }
 
 void BufferView::Set(std::byte* data, size_t index, size_t size)
 {
-    if (GetMappingMode() == MappingMode::ReadOnly)
-        MapRange(
-            MappingMode::ReadWrite,
-            std::min(index, GetMappingStart()),
-            std::max(index + size, GetMappingEnd()));
-    else if (GetMappingMode() == MappingMode::None)
-        MapRange(
-            MappingMode::WriteOnly,
-            index,
-            index + size);
-    std::memcpy(_mappingPointer + (index - GetMappingStart()), data, size);
-    if (GetType() == Type::CPU || GetMode() != Mode::Persistent)
-        return;
-    _flushStart = std::min(_flushStart, index);
-    _flushEnd = std::max(_flushEnd, index + size);
-    if (!_beforeRenderSlot.Connected())
-        _beforeRenderSlot = Render::OnBeforeRender().ConnectMember(this, &BufferView::_onBeforeRender);
+    if (GetStorage() == Storage::CPU)
+        std::copy(data, data + size, _rawData.data() + index);
+    else
+        _GetImplGPU()->Set(*this, data, index, size);
 }
 
 std::byte* BufferView::MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate)
 {
     assert(mappingMode != MappingMode::None);
-    if (mappingMode == GetMappingMode() &&
-        start >= GetMappingStart() &&
-        end <= GetMappingEnd())
-        return _mappingPointer + (start - GetMappingStart());
-    if (GetMappingMode() != MappingMode::None) {
-        //this is a remap
-        Unmap();
-    }
-    if (!GetLoaded())
-        Load();
-    if (GetType() == Type::CPU) {
-        _mappingPointer = &_rawData.at(start);
-    }
-    else {
-        Bind();
-        if (invalidate)
-            _mappingPointer = (std::byte*)glMapBufferRange((GLenum)GetType(), start, end, (GLbitfield)mappingMode | GL_MAP_INVALIDATE_RANGE_BIT);
-        else
-            _mappingPointer = (std::byte*)glMapBufferRange((GLenum)GetType(), start, end, (GLbitfield)mappingMode);
-        BindDefault(GetType());
-    }
-    _SetMappingMode(mappingMode);
-    _SetMappingStart(start);
-    _SetMappingEnd(end);
-    return _mappingPointer + (start - GetMappingStart());
+    assert(GetStorage() != Storage::CPU);
+    return _GetImplGPU()->MapRange(*this, mappingMode, start, end, invalidate);
 }
 
 void BufferView::Unmap()
 {
-    if (GetType() != Type::CPU) {
-        Bind();
-        glUnmapBuffer((GLenum)GetType());
-        BindDefault(GetType());
-        _beforeRenderSlot.Disconnect();
-    }
-    _mappingPointer = nullptr;
-    _SetMappingMode(MappingMode::None);
-    _SetMappingStart(0);
-    _SetMappingEnd(0);
-    _flushStart = 0;
-    _flushEnd = 0;
+    assert(GetStorage() != Storage::CPU);
+    _GetImplGPU()->Unmap(*this);
 }
 
 void BufferView::FlushRange(size_t start, size_t end)
 {
-    if (GetType() == Type::CPU)
-        return;
-    Bind();
-    glFlushMappedBufferRange((GLenum)GetType(), start, end);
-    BindDefault(GetType());
+    assert(GetType() != Type::Unknown);
+    assert(GetStorage() != Storage::CPU);
+    _GetImplGPU()->FlushRange(*this, start, end);
 }
 
 void BufferView::Bind()
 {
-    assert(GetType() != Type::Unknown && GetType() != Type::CPU);
-    glBindBuffer((GLenum)GetType(), GetHandle());
+    assert(GetType() != Type::Unknown);
+    assert(GetStorage() != Storage::CPU);
+    _GetImplGPU()->Bind(*this);
 }
 
-void BufferView::BindDefault(Type bufferType)
+size_t BufferView::GetMappingEnd()
 {
-    assert(bufferType != Type::Unknown && bufferType != Type::CPU);
-    glBindBuffer((GLenum)bufferType, 0);
+    assert(GetType() != Type::Unknown);
+    assert(GetStorage() != Storage::CPU);
+    return _GetImplGPU()->GetMappingEnd();
+}
+
+size_t BufferView::GetMappingStart()
+{
+    assert(GetType() != Type::Unknown);
+    assert(GetStorage() != Storage::CPU);
+    return _GetImplGPU()->GetMappingStart();
+}
+
+void BufferView::BindNone(BufferView::Type type)
+{
+    assert(type != Type::Unknown);
+    BufferView::ImplGPU::BindNone(type);
+}
+
+void BufferView::Done()
+{
+    BindNone(GetType());
 }
 
 void BufferView::Load()
@@ -151,45 +124,50 @@ void BufferView::Load()
             SetByteLength(bufferAssetData->GetByteLength());
         bufferData = bufferAssetData->Get(GetByteOffset());
     }
-    if (GetType() == Type::CPU) {
+    if (GetStorage() == Storage::CPU) {
         if (bufferData != nullptr)
             _rawData = std::vector<std::byte>(bufferData, bufferData + GetByteLength());
         else
             _rawData = std::vector<std::byte>(GetByteLength());
     }
-    else {
-        GLuint id;
-        glCreateBuffers(1, &id);
-        glBindBuffer((GLenum)GetType(), id);
-        glBufferStorage((GLenum)GetType(), GetByteLength(), bufferData, (GLbitfield)GetMode());
-        glBindBuffer((GLenum)GetType(), 0);
-        SetHandle(id);
-    }
+    else
+        _GetImplGPU()->Load(*this, bufferData);
     if (bufferAsset != nullptr)
         RemoveComponent<Asset>(bufferAsset);
-        //_mappingPointer = (std::byte*)glMapBufferRange((GLenum)GetType(), 0, GetByteLength(), (GLbitfield)GetMode());
-    SetLoaded(true);
-    if (GetMode() == Mode::Persistent)
-        _mappingPointer = MapRange(GetPersistentMappingMode(), 0, GetByteLength());
+    _SetLoaded(true);
 }
 
 void BufferView::Unload()
 {
-    if (GetType() == Type::CPU) {
+    if (GetStorage() == Storage::CPU) {
         _rawData.clear();
+        _rawData.shrink_to_fit();
     }
-    else {
-        auto handle = GetHandle();
-        glDeleteBuffers(1, &handle);
-        SetHandle(0);
-    }
-    SetLoaded(false);
+    else
+        _GetImplGPU()->Unload();
+    _SetLoaded(false);
 }
 
-void BufferView::_onBeforeRender(float)
+void BufferView::SetStorage(Storage storage)
 {
-    FlushRange(_flushStart, _flushEnd);
-    _flushStart = 0;
-    _flushEnd = 0;
-    _beforeRenderSlot.Disconnect();
+    if (storage == Storage::GPU) {
+        if (_GetImplGPU() == nullptr)
+            _SetImplGPU(std::make_shared<BufferView::ImplGPU>());
+        if (GetLoaded()) {
+            _GetImplGPU()->Load(*this, _rawData.data());
+            _rawData.clear();
+            _rawData.shrink_to_fit();
+        }
+    }
+    else if (storage == Storage::CPU) {
+        //repatriate data from GPU if possible
+        if (_GetImplGPU() != nullptr) {
+            if (GetLoaded() && GetMode() != Mode::Immutable) {
+                auto data{ _GetImplGPU()->MapRange(*this, MappingMode::ReadOnly, 0, GetByteLength()) };
+                _rawData = { data, data + GetByteLength() };
+            }
+            _SetImplGPU(nullptr);
+        }
+    }
+    _SetStorage(storage);
 }

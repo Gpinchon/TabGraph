@@ -27,6 +27,7 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Environment.cpp
@@ -106,6 +107,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Config.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Buffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Environment.hpp

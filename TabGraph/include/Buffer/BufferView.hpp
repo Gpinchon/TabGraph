@@ -7,7 +7,8 @@
 #pragma once
 
 #include "Component.hpp"
-#include <GL/glew.h>
+#include "Property.hpp"
+
 #include <memory>
 
 class Asset;
@@ -15,57 +16,83 @@ class Asset;
 /** A view into a buffer generally representing a subset of the buffer. */
 class BufferView : public Component {
 public:
-    using Handle = uint32_t;
-    enum class Type {
-        Unknown = -1,
+    class Handle;
+    enum class Storage {
+        /**
+         * @brief GPU only buffer, accessible through mapping functions
+        */
+        GPU,
         /**
          * @brief CPU only buffer, won't be loaded to GPU
         */
-        CPU = 0,
+        CPU
+    };
+    enum class Type {
+        Unknown = -1,
         /**
          * @brief for geometry Vertex buffer
         */
-        Array = GL_ARRAY_BUFFER,
+        Array,
         /**
          * @brief for geometry Index buffer
         */
-        ElementArray = GL_ELEMENT_ARRAY_BUFFER,
+        ElementArray,
         /**
          * @brief used to write results of glReadPixels
         */
-        PixelPack = GL_PIXEL_PACK_BUFFER,
+        PixelPack,
         /**
          * @brief used to store texture raw data
         */
-        PixelUnpack = GL_PIXEL_UNPACK_BUFFER,
+        PixelUnpack,
         /**
          * @brief used to store texture buffer data
         */
-        TextureBuffer = GL_TEXTURE_BUFFER
+        TextureBuffer,
+        MaxValue
     };
     enum class Mode {
-        Default = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT,
-        Dynamic = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT | GL_CLIENT_STORAGE_BIT,
-        Persistent = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT,
-        Immutable = 0
+        //Can be mapped in Read or Write, not really fast
+        Default,
+        //Can be mapped in Read or Write, for frequently updated buffers
+        Dynamic,
+        //Persistent mapping, fastest for frequently updated buffers
+        Persistent,
+        //Fastest for GPU-resident buffers, cannot be mapped
+        Immutable,
+        MaxValue
     };
     enum class MappingMode {
         None = -1,
-        ReadOnly = GL_MAP_READ_BIT,
-        WriteOnly = GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT,
-        ReadWrite = GL_MAP_WRITE_BIT | GL_MAP_READ_BIT |  GL_MAP_FLUSH_EXPLICIT_BIT
+        ReadOnly,
+        WriteOnly,
+        ReadWrite,
+        MaxValue
     };
+    struct Info {
+        Info(const BufferView& buffer) :
+            type(buffer.GetType()),
+            mode(buffer.GetMode()),
+            persistentMappingMode(buffer.GetPersistentMappingMode())
+        {
+        }
+        Type type;
+        Mode mode;
+        MappingMode persistentMappingMode;
+    };
+    class ImplGPU;
+    PRIVATEPROPERTY(std::shared_ptr<ImplGPU>, ImplGPU, nullptr);
+    READONLYPROPERTY(Storage, Storage, Storage::GPU);
+    PROPERTY(MappingMode, PersistentMappingMode, MappingMode::None);
+    PROPERTY(MappingMode, MappingMode, MappingMode::None);
     PROPERTY(size_t, ByteLength, 0);
     PROPERTY(size_t, ByteStride, 0);
     PROPERTY(size_t, ByteOffset, 0);
-    PROPERTY(Handle, Handle, 0);
     PROPERTY(Type, Type, Type::Unknown);
     PROPERTY(Mode, Mode, Mode::Default);
-    PROPERTY(bool, Loaded, false);
-    PROPERTY(MappingMode, PersistentMappingMode, MappingMode::None);
-    READONLYPROPERTY(MappingMode, MappingMode, MappingMode::None);
-    READONLYPROPERTY(size_t, MappingStart, 0);
-    READONLYPROPERTY(size_t, MappingEnd, 0);
+    READONLYPROPERTY(bool, Loaded, false);
+    //READONLYPROPERTY(size_t, MappingStart, 0);
+    //READONLYPROPERTY(size_t, MappingEnd, 0);
 
 public:
     BufferView();
@@ -77,24 +104,25 @@ public:
     BufferView(std::shared_ptr<Asset> buffer, Mode = Mode::Default);
     BufferView(size_t byteLength, std::shared_ptr<Asset> buffer, Mode = Mode::Default);
     BufferView(size_t byteLength, Mode = Mode::Default);
+    const Handle& GetHandle() const;
     std::byte* Get(size_t index, size_t size);
     void Set(std::byte* data, size_t index, size_t size);
     std::byte* MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate = false);
+    size_t GetMappingEnd();
+    size_t GetMappingStart();
     void Unmap();
     void FlushRange(size_t start, size_t end);
-    void Bind();
-    static void BindDefault(Type bufferType);
-    virtual void Load();
-    virtual void Unload();
+    void Bind(); 
+    void Done();
+    void Load();
+    void Unload();
+    static void BindNone(Type bufferType);
+
+    void SetStorage(Storage storage);
 
 private:
     virtual std::shared_ptr<Component> _Clone() override {
         return std::static_pointer_cast<Component>(Component::Create<BufferView>(*this));
     }
-    void _onBeforeRender(float);
-    std::byte* _mappingPointer{ nullptr };
-    Signal<float>::ScoppedSlot _beforeRenderSlot;
-    size_t _flushStart{ 0 };
-    size_t _flushEnd{ 0 };
     std::vector<std::byte> _rawData{};
 };
