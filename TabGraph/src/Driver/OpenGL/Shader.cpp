@@ -111,6 +111,10 @@ Program::Impl::~Impl()
 {
     glDeleteShader(GetHandle());
 }
+const Program::Handle& Program::Impl::GetHandle() const
+{
+    return _handle;
+}
 void Program::Impl::Attach(const Stage& stage)
 {
     _stages.at((int)stage.GetType()) = stage;
@@ -327,6 +331,7 @@ void Program::Impl::SetDefine(const std::string& name, const std::string& value)
         _SetCompiled(false);
     }
 }
+
 void Program::Impl::RemoveDefine(const std::string& name)
 {
     if (_defines.erase(name) > 0) {
@@ -335,6 +340,7 @@ void Program::Impl::RemoveDefine(const std::string& name)
         _SetCompiled(false);
     }
 }
+
 void Program::Impl::Use()
 {
     for (const auto& globalDefine : s_globalDefines)
@@ -361,10 +367,17 @@ void Program::Impl::Use()
     for (const auto& globalTexture : s_globalTextures)
         SetTexture(globalTexture.first, globalTexture.second);
 }
+
 void Program::Impl::UseNone()
 {
     glUseProgram(0);
 }
+
+void Program::Impl::_SetHandle(uint32_t value)
+{
+    _handle = value;
+}
+
 namespace Global {
     namespace Impl {
         void SetTexture(const std::string& name, const std::shared_ptr<Texture> value)

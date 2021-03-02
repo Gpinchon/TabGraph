@@ -13,7 +13,7 @@ namespace Shader {
     static auto shaderProgramNbr = 0u;
 Program::Program() : Component("Shader_" + std::to_string(++shaderProgramNbr))
 {
-    _SetImpl(new Program::Impl);
+    _SetImpl(std::make_shared<Program::Impl>());
 }
 
 Program::Program(const std::string& name) : Program()
@@ -23,7 +23,11 @@ Program::Program(const std::string& name) : Program()
 
 Program::~Program()
 {
-    delete _GetImpl();
+}
+
+const Program::Handle &Program::GetHandle() const
+{
+    return _GetImpl()->GetHandle();
 }
 
 Stage& Program::GetStage(Stage::Type type)
@@ -166,6 +170,11 @@ Program& Program::RemoveDefine(const std::string& name)
 void Program::Done()
 {
     UseNone();
+}
+
+bool Program::GetCompiled() const
+{
+    return _GetImpl()->GetCompiled();
 }
 
 void Program::UseNone()

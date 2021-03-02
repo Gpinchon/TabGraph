@@ -18,14 +18,15 @@ class Texture;
 namespace Shader {
 class Program : public Component {
 public:
+    class Handle;
     class Impl;
-    PRIVATEPROPERTY(Impl*, Impl, nullptr);
-    READONLYPROPERTY(bool, Compiled, false);
+    PRIVATEPROPERTY(std::shared_ptr<Impl>, Impl, nullptr);
 
 public:
     Program();
     Program(const std::string& name);
     ~Program();
+    const Handle &GetHandle() const;
     Stage& GetStage(Stage::Type);
     Program& Compile();
     Program& Attach(const Stage &stage);
@@ -50,7 +51,9 @@ public:
     Program& SetDefine(const std::string& name, const std::string& value = "");
     Program& RemoveDefine(const std::string& name);
     void Done();
+    bool GetCompiled() const;
     static void UseNone();
+
 private :
     virtual std::shared_ptr<Component> _Clone() override
     {

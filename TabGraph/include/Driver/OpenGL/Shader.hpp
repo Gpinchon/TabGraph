@@ -15,14 +15,22 @@
 class Texture;
 
 namespace Shader {
+    struct Program::Handle {
+        Handle(uint32_t v) : _v(v) {
+        }
+        operator uint32_t() const {
+            return _v;
+        }
+    private:
+        uint32_t _v{ 0 };
+    };
 class Program::Impl {
-    using Handle = uint32_t;
-    READONLYPROPERTY(Impl::Handle, Handle, 0);
     READONLYPROPERTY(bool, Compiled, false);
     PROPERTY(std::string, GLSLVersion, "440");
 
 public:
     ~Impl();
+    const Handle& GetHandle() const;
     void Attach(const Stage& stage);
     Stage& GetStage(Stage::Type);
     void Compile();
@@ -49,10 +57,12 @@ public:
     static void UseNone();
 
 private:
+    void _SetHandle(uint32_t value);
     std::array<Stage, (int)Stage::Type::MaxValue> _stages;
     std::map<std::string, std::string> _defines;
     std::map<std::string, int32_t> _uniformLocs;
     std::map<int32_t, int32_t> _textureIndice;
+    Handle _handle{ 0 };
 };
 namespace Global {
     namespace Impl {
