@@ -18,7 +18,7 @@ private:
     virtual std::shared_ptr<Component> _Clone() override {
         return Component::Create<MeshSkin>(*this);
     }
-    virtual void _Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent) override {
+    virtual void _Replace(const std::shared_ptr<Component> oldComponent, const std::shared_ptr<Component> newComponent) override {
         auto nodePtr = std::dynamic_pointer_cast<Node>(oldComponent);
         if (nodePtr != nullptr)
             std::replace(_joints.begin(), _joints.end(), nodePtr, std::static_pointer_cast<Node>(newComponent));

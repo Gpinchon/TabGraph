@@ -42,7 +42,7 @@ private:
     virtual std::shared_ptr<Component> _Clone() override {
         return Component::Create<Animation>(*this);
     }
-    virtual void _Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent) {
+    virtual void _Replace(const std::shared_ptr<Component> oldComponent, const std::shared_ptr<Component> newComponent) {
         for (auto &channel : GetChannels()) {
             if (channel.Target() == oldComponent)
                 channel.SetTarget(std::static_pointer_cast<Node>(newComponent));

@@ -23,7 +23,7 @@ public:
     void SetRadius(float);
 
 private:
-    virtual void _Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent) override
+    virtual void _Replace(const std::shared_ptr<Component> oldComponent, const std::shared_ptr<Component> newComponent) override
     {
         if (oldComponent == Target())
             SetTarget(std::static_pointer_cast<Node>(newComponent));

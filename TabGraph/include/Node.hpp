@@ -118,7 +118,7 @@ private:
     virtual void _UpdateMeshSkin(float);
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
     float _meshSkinUpdateDelta{ 0 };
-    virtual void _Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent) override {
+    virtual void _Replace(const std::shared_ptr<Component> oldComponent, const std::shared_ptr<Component> newComponent) override {
         if (GetParent() == oldComponent)
             SetParent(std::static_pointer_cast<Node>(newComponent));
         else if (HasChild(std::static_pointer_cast<Node>(newComponent)))

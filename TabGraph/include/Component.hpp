@@ -39,7 +39,7 @@ public:
      * @return true if component is found
     */
     template <typename T, typename = IsSharedPointerOfType<Component, T>>
-    bool HasComponentOfType(const std::shared_ptr<T>& component) const;
+    bool HasComponentOfType(std::shared_ptr<T> component) const;
     /**
      * @brief Searches for a specific type
      * @tparam T the type of component to search for
@@ -52,7 +52,7 @@ public:
      * @param component 
      * @return true if component is found
     */
-    bool HasComponent(const std::shared_ptr<Component>& component) const noexcept;
+    bool HasComponent(std::shared_ptr<Component> component) const noexcept;
     /**
      * @brief Attaches the specified component to the object
      * @tparam T 
@@ -60,7 +60,7 @@ public:
      * @return 
     */
     template <typename T>
-    int64_t AddComponent(const std::shared_ptr<T>& component);
+    int64_t AddComponent(std::shared_ptr<T> component);
     /**
      * @brief Sets the first component attached to this object to component, adds it if component type is missing
      * @tparam T 
@@ -68,7 +68,7 @@ public:
      * @return 
     */
     template <typename T>
-    void SetComponent(const std::shared_ptr<T>& component) noexcept;
+    void SetComponent(std::shared_ptr<T> component) noexcept;
     /**
      * @brief TODO
      * @tparam T 
@@ -83,13 +83,13 @@ public:
      * @param component 
      * @return 
     */
-    auto SetComponent(std::type_index type, const std::shared_ptr<Component>& component);
+    auto SetComponent(std::type_index type, std::shared_ptr<Component> component);
     /** Removes all the components of specified type from the object */
     template <typename T>
     void RemoveComponents();
     /** Removes the specified component from the object */
     template <typename T>
-    void RemoveComponent(const std::shared_ptr<T>& component);
+    void RemoveComponent(std::shared_ptr<T> component);
     /**
      * @brief 
      * @tparam T 
@@ -189,7 +189,7 @@ public:
      * @return 
     */
     template <typename T>
-    int64_t GetComponentIndex(const std::shared_ptr<T>& component) const noexcept;
+    int64_t GetComponentIndex(std::shared_ptr<T> component) const noexcept;
     /**
      * @brief 
      * @tparam T 
@@ -250,7 +250,7 @@ public:
      * @param oldComponent 
      * @param newComponent 
     */
-    void Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent);
+    void Replace(std::shared_ptr<Component> oldComponent, std::shared_ptr<Component> newComponent);
     /**
      * @brief TODO
      * @tparam T 
@@ -258,9 +258,9 @@ public:
      * @param newComponent 
     */
     template <typename T>
-    void Replace(const std::shared_ptr<T>& oldComponent, const std::shared_ptr<T>& newComponent);
+    void Replace(std::shared_ptr<T> oldComponent, std::shared_ptr<T> newComponent);
 
-    virtual std::shared_ptr<Component> operator+=(const std::shared_ptr<Component>& other)
+    virtual std::shared_ptr<Component> operator+=(std::shared_ptr<Component> other)
     {
         if (other != nullptr) {
             for (const auto& otherTypes : other->_componentsMap) {
@@ -272,7 +272,7 @@ public:
         return std::static_pointer_cast<Component>(shared_from_this());
     }
 
-    virtual std::shared_ptr<Component> operator+(const std::shared_ptr<Component>& other)
+    virtual std::shared_ptr<Component> operator+(std::shared_ptr<Component> other)
     {
         auto clone = _Clone();
         *clone += other;
@@ -280,28 +280,28 @@ public:
     }
 
 private:
-    int64_t GetComponentIndex(std::type_index typeIndex, const std::shared_ptr<Component>& component) const noexcept;
-    int64_t AddComponent(std::type_index typeIndex, const std::shared_ptr<Component>& component) noexcept;
-    virtual void _Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent) {};
+    int64_t GetComponentIndex(std::type_index typeIndex, std::shared_ptr<Component> component) const noexcept;
+    int64_t AddComponent(std::type_index typeIndex, std::shared_ptr<Component> component) noexcept;
+    virtual void _Replace(std::shared_ptr<Component> oldComponent, std::shared_ptr<Component> newComponent) {};
     virtual std::shared_ptr<Component> _Clone() = 0;
     ComponentTypesMap _componentsMap;
     std::type_index _typeIndex { typeid(*this) };
 };
 
 template <typename T, typename = IsSharedPointerOfType<Component, T>>
-inline auto operator+=(std::shared_ptr<T>& a, const std::shared_ptr<T>& b)
+inline auto operator+=(std::shared_ptr<T> a, std::shared_ptr<T> b)
 {
     return std::static_pointer_cast<T>(a->operator+=(b));
 }
 
 template <typename T, typename = IsSharedPointerOfType<Component, T>>
-inline auto operator+(const std::shared_ptr<T>& a, const std::shared_ptr<T>& b)
+inline auto operator+(std::shared_ptr<T> a, std::shared_ptr<T> b)
 {
     return std::static_pointer_cast<T>(a->operator+(b));
 }
 
 template <typename T, typename>
-inline bool Component::HasComponentOfType(const std::shared_ptr<T>& component) const
+inline bool Component::HasComponentOfType(std::shared_ptr<T> component) const
 {
     auto componentsIt = _componentsMap.find(typeid(T));
     if (componentsIt != _componentsMap.end()) {
@@ -346,13 +346,13 @@ inline std::shared_ptr<Component> Component::Clone()
     return clone;
 }
 
-inline bool Component::HasComponent(const std::shared_ptr<Component>& component) const noexcept
+inline bool Component::HasComponent(std::shared_ptr<Component> component) const noexcept
 {
     auto components{ GetComponents() };
     return std::find(components.begin(), components.end(), component) != components.end();
 }
 
-inline auto Component::SetComponent(std::type_index type, const std::shared_ptr<Component>& component)
+inline auto Component::SetComponent(std::type_index type, std::shared_ptr<Component> component)
 {
     //AddComponent(component);
     auto& comps = _componentsMap[type];
@@ -373,7 +373,7 @@ inline auto Component::GetComponent(std::type_index type) const
 }
 
 template <typename T>
-inline int64_t Component::AddComponent(const std::shared_ptr<T>& component)
+inline int64_t Component::AddComponent(std::shared_ptr<T> component)
 {
     if (component == nullptr || component.get() == this)
         return -1;
@@ -381,7 +381,7 @@ inline int64_t Component::AddComponent(const std::shared_ptr<T>& component)
 }
 
 template <typename T>
-inline void Component::SetComponent(const std::shared_ptr<T>& component) noexcept
+inline void Component::SetComponent(std::shared_ptr<T> component) noexcept
 {
     SetComponent(typeid(T), component);
 }
@@ -399,7 +399,7 @@ inline void Component::RemoveComponents()
 }
 
 template <typename T>
-inline void Component::RemoveComponent(const std::shared_ptr<T>& component)
+inline void Component::RemoveComponent(std::shared_ptr<T> component)
 {
     auto &componentsIt = _componentsMap.find(typeid(T));
     if (componentsIt == _componentsMap.end())
@@ -519,7 +519,7 @@ inline std::shared_ptr<T> Component::GetComponentInChildrenByName(const std::str
 }
 
 template <typename T>
-inline int64_t Component::GetComponentIndex(const std::shared_ptr<T>& component) const noexcept
+inline int64_t Component::GetComponentIndex(std::shared_ptr<T> component) const noexcept
 {
     return GetComponentIndex(typeid(T), component);
 }
@@ -539,7 +539,7 @@ inline std::vector<std::shared_ptr<T>> Component::GetComponents() const noexcept
     if (it != _componentsMap.end()) {
         vec.reserve(it->second.size());
         std::transform(it->second.begin(), it->second.end(), std::back_inserter(vec),
-            [](const std::shared_ptr<Component>& shptr) {
+            [](std::shared_ptr<Component> shptr) {
                 return std::static_pointer_cast<T>(shptr);
             });
         //return std::unordered_set<std::shared_ptr<T>>(it->second.begin(), it->second.end());
@@ -569,7 +569,7 @@ inline std::shared_ptr<T> Component::Create(Params&&... args)
 }
 
 template <typename T>
-inline void Component::Replace(const std::shared_ptr<T>& oldComponent, const std::shared_ptr<T>& newComponent)
+inline void Component::Replace(std::shared_ptr<T> oldComponent, std::shared_ptr<T> newComponent)
 {
     _Replace(oldComponent, newComponent);
     auto componentsIt = _componentsMap.find(typeid(T));
@@ -622,7 +622,7 @@ inline std::unordered_set<std::type_index> Component::GetComponentsTypes() const
     return types;
 }
 
-inline void Component::Replace(const std::shared_ptr<Component>& oldComponent, const std::shared_ptr<Component>& newComponent)
+inline void Component::Replace(std::shared_ptr<Component> oldComponent, std::shared_ptr<Component> newComponent)
 {
     _Replace(oldComponent, newComponent);
     for (auto& type : _componentsMap) {
@@ -630,7 +630,7 @@ inline void Component::Replace(const std::shared_ptr<Component>& oldComponent, c
     }
 }
 
-inline int64_t Component::GetComponentIndex(std::type_index typeIndex, const std::shared_ptr<Component>& component) const noexcept
+inline int64_t Component::GetComponentIndex(std::type_index typeIndex, std::shared_ptr<Component> component) const noexcept
 {
     auto componentsIt = _componentsMap.find(typeIndex);
     if (componentsIt == _componentsMap.end())
@@ -641,7 +641,7 @@ inline int64_t Component::GetComponentIndex(std::type_index typeIndex, const std
     return std::distance(componentsIt->second.begin(), componentIt);
 }
 
-inline int64_t Component::AddComponent(std::type_index typeIndex, const std::shared_ptr<Component>& component) noexcept
+inline int64_t Component::AddComponent(std::type_index typeIndex, std::shared_ptr<Component> component) noexcept
 {
     if (std::find(_componentsMap[typeIndex].begin(), _componentsMap[typeIndex].end(), component) == _componentsMap[typeIndex].end()) {
         _componentsMap[typeIndex].emplace_back(component);

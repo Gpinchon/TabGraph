@@ -8,11 +8,11 @@ class BufferAccessor;
 class TextureBuffer : public Texture
 {
 public:
-	TextureBuffer(Pixel::SizedFormat internalFormat, const std::shared_ptr<BufferAccessor> bufferAccessor);
+	TextureBuffer(Pixel::SizedFormat internalFormat, std::shared_ptr<BufferAccessor> bufferAccessor);
 	virtual void Load() override;
 	virtual void GenerateMipmap() override {};
 	std::shared_ptr<BufferAccessor> Accessor() const;
-	void SetAccessor(const std::shared_ptr<BufferAccessor> bufferAccessor);
+	void SetAccessor(std::shared_ptr<BufferAccessor> bufferAccessor);
 
 private:
 	virtual std::shared_ptr<Component> _Clone() override {
