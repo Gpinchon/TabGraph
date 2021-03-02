@@ -83,7 +83,7 @@ static inline auto& DefaultBRDFLUT()
 }
 
 Material::Material(const std::string& name)
-    : Component(name)
+    : MaterialExtension(name)
 {
     static std::string material_frag_code =
 #include "material.frag"
@@ -97,15 +97,6 @@ Material::Material(const std::string& name)
     GetShader(Render::Pass::Material)->SetDefine("MATERIAL");
     GetShader(Render::Pass::Material)->Attach(Shader::Stage(Shader::Stage::Type::Vertex, GetForwardVertexExtension()));
     GetShader(Render::Pass::Material)->Attach(Shader::Stage(Shader::Stage::Type::Fragment, GetForwardFragmentExtension() + GetInstanceIDExtension() + GetMaterialPassExtension()));
-
-    SetOpacityMode(GetOpacityMode());
-    SetOpacityCutoff(GetOpacityCutoff());
-    SetDiffuse(GetDiffuse());
-    SetEmissive(GetEmissive());
-    SetUVScale(GetUVScale());
-    SetOpacity(GetOpacity());
-    SetParallax(GetParallax());
-    SetIor(GetIor());
     SetTextureBRDFLUT(DefaultBRDFLUT());
 }
 
@@ -134,7 +125,6 @@ std::shared_ptr<MaterialExtension> Material::GetExtension(const std::string& nam
 
 void Material::Bind(const Render::Pass& pass)
 {
-    //shader()->use();
     switch (GetOpacityMode()) {
     case (OpacityModeValue::Opaque):
         GetShader(pass)->SetDefine("OPACITYMODE", "OPAQUE");
@@ -146,21 +136,41 @@ void Material::Bind(const Render::Pass& pass)
         GetShader(pass)->SetDefine("OPACITYMODE", "BLEND");
         break;
     }
-    GetTextureDiffuse() ? GetShader(pass)->SetDefine("TEXTURE_USE_DIFFUSE") : GetShader(pass)->RemoveDefine("TEXTURE_USE_DIFFUSE");
-    GetTextureEmissive() ? GetShader(pass)->SetDefine("TEXTURE_USE_EMISSIVE") : GetShader(pass)->RemoveDefine("TEXTURE_USE_EMISSIVE");
-    GetTextureNormal() ? GetShader(pass)->SetDefine("TEXTURE_USE_NORMAL") : GetShader(pass)->RemoveDefine("TEXTURE_USE_NORMAL");
-    GetTextureHeight() ? GetShader(pass)->SetDefine("TEXTURE_USE_HEIGHT") : GetShader(pass)->RemoveDefine("TEXTURE_USE_HEIGHT");
-    GetTextureAO() ? GetShader(pass)->SetDefine("TEXTURE_USE_AO") : GetShader(pass)->RemoveDefine("TEXTURE_USE_AO");
-    for (const auto extension : GetComponents<MaterialExtension>()) {
+    const auto& extensions{ GetComponents<MaterialExtension>() };
+    for (const auto &define : GetDefines())
+        GetShader(pass)->SetDefine(define.first, define.second);
+    for (const auto &extension : extensions) {
         for (const auto& define : extension->GetDefines()) {
             GetShader(pass)->SetDefine(define.first, define.second);
         }
     }
     GetShader(pass)->Use();
-    bind_textures(pass);
-    bind_values(pass);
+    GetShader(pass)->SetUniform("UVScale", GetUVScale());
+    for (const auto& color : GetColors()) {
+        GetShader(pass)->SetUniform(color.first, color.second);
+    }
+    for (const auto& value : GetValues()) {
+        GetShader(pass)->SetUniform(value.first, value.second);
+    }
+    for (const auto& texture : GetTextures()) {
+        GetShader(pass)->SetTexture(texture.first, texture.second);
+    }
+    for (const auto &extension : extensions) {
+        for (const auto& color : extension->GetColors()) {
+            GetShader(pass)->SetUniform(color.first, color.second);
+        }
+        for (const auto& value : extension->GetValues()) {
+            GetShader(pass)->SetUniform(value.first, value.second);
+        }
+        for (const auto& texture : extension->GetTextures()) {
+            GetShader(pass)->SetTexture(texture.first, texture.second);
+        }
+    }
+    if (Scene::Current()->GetEnvironment() != nullptr) {
+        GetShader(pass)->SetTexture("Environment.Diffuse", Scene::Current()->GetEnvironment()->GetDiffuse());
+        GetShader(pass)->SetTexture("Environment.Irradiance", Scene::Current()->GetEnvironment()->GetIrradiance());
+    }
     GetShader(pass)->Done();
-    //shader()->use(false);
 }
 
 std::shared_ptr<Shader::Program> Material::GetShader(const Render::Pass& pass)
@@ -173,110 +183,132 @@ void Material::SetShader(const Render::Pass& pass, std::shared_ptr<Shader::Progr
     _shaders.at(int(pass)) = shader;
 }
 
-void Material::bind_textures(const Render::Pass& pass)
+glm::vec3 Material::GetDiffuse(void)
 {
-    if (Scene::Current()->GetEnvironment() != nullptr) {
-        GetShader(pass)->SetTexture("Environment.Diffuse", Scene::Current()->GetEnvironment()->GetDiffuse());
-        GetShader(pass)->SetTexture("Environment.Irradiance", Scene::Current()->GetEnvironment()->GetIrradiance());
-    }
-    GetShader(pass)->SetTexture("StandardTextures.Diffuse", GetTextureDiffuse());
-    GetShader(pass)->SetTexture("StandardTextures.Emissive", GetTextureEmissive());
-    GetShader(pass)->SetTexture("StandardTextures.Normal", GetTextureNormal());
-    GetShader(pass)->SetTexture("StandardTextures.Height", GetTextureHeight());
-    GetShader(pass)->SetTexture("StandardTextures.AO", GetTextureAO());
-    GetShader(pass)->SetTexture("StandardTextures.BRDFLUT", GetTextureBRDFLUT());
-    for (const auto extension : GetComponents<MaterialExtension>()) {
-        for (const auto& texture : extension->GetTextures()) {
-            GetShader(pass)->SetTexture(texture.first, texture.second);
-        }
-    }
+    return GetColor("StandardDiffuse");
 }
 
-void Material::bind_values(const Render::Pass& pass)
+glm::vec3 Material::GetEmissive(void)
 {
-    GetShader(pass)->SetUniform("StandardOpacityCutoff", GetOpacityCutoff());
-    GetShader(pass)->SetUniform("StandardDiffuse",GetDiffuse());
-    GetShader(pass)->SetUniform("StandardEmissive", GetEmissive());
-    GetShader(pass)->SetUniform("StandardOpacity", GetOpacity());
-    GetShader(pass)->SetUniform("StandardParallax", GetParallax());
-    GetShader(pass)->SetUniform("StandardIor", GetIor());
-    GetShader(pass)->SetUniform("UVScale", GetUVScale());
-    for (const auto extension : GetComponents<MaterialExtension>()) {
-        for (const auto& color : extension->GetColors()) {
-            GetShader(pass)->SetUniform(color.first, color.second);
-        }
-        for (const auto& value : extension->GetValues()) {
-            GetShader(pass)->SetUniform(value.first, value.second);
-        }
-    }
+    return GetColor("StandardEmissive");
 }
 
-void Material::SetOpacityMode(OpacityModeValue value)
+float Material::GetOpacityCutoff(void)
 {
-    _SetOpacityMode(value);
+    return GetValue("StandardOpacityCutoff");
+}
+
+float Material::GetOpacity(void)
+{
+    return GetValue("StandardOpacity");
+}
+
+float Material::GetParallax(void)
+{
+    return GetValue("StandardParallax");
+}
+
+float Material::GetIor(void)
+{
+    return GetValue("StandardIor");
+}
+
+std::shared_ptr<Texture2D> Material::GetTextureDiffuse(void)
+{
+    return GetTexture("StandardTextureDiffuse");
+}
+
+std::shared_ptr<Texture2D> Material::GetTextureEmissive(void)
+{
+    return GetTexture("StandardTextureEmissive");
+}
+
+std::shared_ptr<Texture2D> Material::GetTextureNormal(void)
+{
+    return GetTexture("StandardTextureNormal");
+}
+
+std::shared_ptr<Texture2D> Material::GetTextureHeight(void)
+{
+    return GetTexture("StandardTextureHeight");
+}
+
+std::shared_ptr<Texture2D> Material::GetTextureAO(void)
+{
+    return GetTexture("StandardTextureAO");
+}
+
+std::shared_ptr<Texture2D> Material::GetTextureBRDFLUT(void)
+{
+    return GetTexture("StandardTextureBRDFLUT");
 }
 
 void Material::SetOpacityCutoff(float value)
 {
-    _SetOpacityCutoff(value);
+    SetValue("StandardOpacityCutoff", value);
 }
 
 void Material::SetDiffuse(glm::vec3 value)
 {
-    _SetDiffuse(value);
+    SetColor("StandardDiffuse", value);
 }
 
 void Material::SetEmissive(glm::vec3 value)
 {
-    _SetEmissive(value);
-}
-
-void Material::SetUVScale(glm::vec2 value)
-{
-    _SetUVScale(value);
+    SetColor("StandardEmissive", value);
 }
 
 void Material::SetOpacity(float value)
 {
-    _SetOpacity(value);
+    SetValue("StandardOpacity", value);
 }
 
 void Material::SetParallax(float value)
 {
-    _SetParallax(value);
+    SetValue("StandardParallax", value);
 }
 
 void Material::SetIor(float value)
 {
-    _SetIor(value);
+    SetValue("StandardIor", value);
 }
 
 void Material::SetTextureDiffuse(std::shared_ptr<Texture2D> value)
 {
-    _SetTextureDiffuse(value);
+    SetTexture("StandardTextureDiffuse", value);
+    for (auto &shader : _shaders)
+        value ? shader->SetDefine("TEXTURE_USE_DIFFUSE") : shader->RemoveDefine("TEXTURE_USE_DIFFUSE");
 }
 
 void Material::SetTextureEmissive(std::shared_ptr<Texture2D> value)
 {
-    _SetTextureEmissive(value);
+    SetTexture("StandardTextureEmissive", value);
+    for (auto& shader : _shaders)
+        value ? shader->SetDefine("TEXTURE_USE_EMISSIVE") : shader->RemoveDefine("TEXTURE_USE_EMISSIVE");
 }
 
 void Material::SetTextureNormal(std::shared_ptr<Texture2D> value)
 {
-    _SetTextureNormal(value);
+    SetTexture("StandardTextureNormal", value);
+    for (auto& shader : _shaders)
+        value ? shader->SetDefine("TEXTURE_USE_NORMAL") : shader->RemoveDefine("TEXTURE_USE_NORMAL");
 }
 
 void Material::SetTextureHeight(std::shared_ptr<Texture2D> value)
 {
-    _SetTextureHeight(value);
+    SetTexture("StandardTextureHeight", value);
+    for (auto& shader : _shaders)
+        value ? shader->SetDefine("TEXTURE_USE_HEIGHT") : shader->RemoveDefine("TEXTURE_USE_HEIGHT");
 }
 
 void Material::SetTextureAO(std::shared_ptr<Texture2D> value)
 {
-    _SetTextureAO(value);
+    SetTexture("StandardTextureAO", value);
+    for (auto& shader : _shaders)
+        value ? shader->SetDefine("TEXTURE_USE_AO") : shader->RemoveDefine("TEXTURE_USE_AO");
 }
 
-void Material::SetTextureBRDFLUT(const std::shared_ptr<Texture2D>& value)
+void Material::SetTextureBRDFLUT(std::shared_ptr<Texture2D> value)
 {
-    _SetTextureBRDFLUT(value);
+    SetTexture("StandardTextureBRDFLUT", value);
 }

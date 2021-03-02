@@ -20,38 +20,9 @@ struct t_Environment {
 	samplerCube	Irradiance;
 };
 
-struct t_StandardTextures {
-#ifdef TEXTURE_USE_HEIGHT
-	sampler2D	Height;
-#endif
-#ifdef TEXTURE_USE_DIFFUSE
-	sampler2D	Diffuse;
-#endif
-#ifdef TEXTURE_USE_EMISSIVE
-	sampler2D	Emissive;
-#endif
-#ifdef TEXTURE_USE_NORMAL
-	sampler2D	Normal;
-#endif
-#ifdef TEXTURE_USE_AO
-	sampler2D	AO;
-#endif
-	sampler2D	BRDFLUT;
-};
-
 #define OPAQUE	0
 #define MASK	1
 #define BLEND	2
-
-struct t_StandardValues {
-	vec3		Diffuse;
-	vec3		Emissive;
-	float		OpacityCutoff;
-	float		Opacity;
-	float		Parallax;
-	float		Ior;
-	float		AO;
-};
 
 struct t_BRDF {
 	vec3	CDiff;
@@ -78,7 +49,22 @@ struct t_Camera {
 
 uniform t_Camera			Camera;
 uniform t_Camera			PrevCamera;
-uniform t_StandardTextures	StandardTextures;
+#ifdef TEXTURE_USE_HEIGHT
+uniform sampler2D			StandardTextureHeight;
+#endif
+#ifdef TEXTURE_USE_DIFFUSE
+uniform sampler2D			StandardTextureDiffuse;
+#endif
+#ifdef TEXTURE_USE_EMISSIVE
+uniform sampler2D			StandardTextureEmissive;
+#endif
+#ifdef TEXTURE_USE_NORMAL
+uniform sampler2D			StandardTextureNormal;
+#endif
+#ifdef TEXTURE_USE_AO
+uniform sampler2D			StandardTextureAO;
+#endif
+uniform sampler2D			StandardTextureBRDFLUT;
 uniform vec3				StandardDiffuse = vec3(1);
 uniform vec3				StandardEmissive = vec3(0);
 uniform float				StandardOpacityCutoff = float(0.5);
@@ -86,7 +72,6 @@ uniform float				StandardOpacity = float(1);
 uniform float				StandardParallax = float(0.05);
 uniform float				StandardIor = float(1);
 uniform float				StandardAO = float(0);
-//uniform t_StandardValues	StandardValues;
 uniform t_Matrix			Matrix;
 uniform t_Environment		Environment;
 uniform vec3				Resolution;
@@ -144,7 +129,7 @@ vec2	_Velocity;
 #define AO() (_AO)
 #define SetAO(aO) (_AO = aO)
 
-#define BRDF(NdV, Roughness) (texture(StandardTextures.BRDFLUT, vec2(NdV, Roughness)).xy)
+#define BRDF(NdV, Roughness) (texture(StandardTextureBRDFLUT, vec2(NdV, Roughness)).xy)
 
 t_Frag	Frag;
 
@@ -224,17 +209,17 @@ void	Parallax_Mapping(in vec3 tbnV, out float parallaxHeight)
 	float curLayerHeight = 0;
 	vec2 dtex = Parallax() * tbnV.xy / tbnV.z / numLayers;
 	vec2 currentTextureCoords = T;
-	float heightFromTexture = 1 - texture(StandardTextures.Height, currentTextureCoords).r;
+	float heightFromTexture = 1 - texture(StandardTextureHeight, currentTextureCoords).r;
 	while(tries > 0 && heightFromTexture > curLayerHeight) 
 	{
 		tries--;
 		curLayerHeight += layerHeight; 
 		currentTextureCoords -= dtex;
-		heightFromTexture = 1 - texture(StandardTextures.Height, currentTextureCoords).r;
+		heightFromTexture = 1 - texture(StandardTextureHeight, currentTextureCoords).r;
 	}
 	vec2 prevTCoords = currentTextureCoords + dtex;
 	float nextH	= heightFromTexture - curLayerHeight;
-	float prevH	= 1 - texture(StandardTextures.Height, prevTCoords).r
+	float prevH	= 1 - texture(StandardTextureHeight, prevTCoords).r
 	- curLayerHeight + layerHeight;
 	float weight = nextH / (nextH - prevH);
 	vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0 - weight);
@@ -274,7 +259,7 @@ void	FillFragmentData()
 	Parallax_Mapping(tbn * viewDir, ph);
 #endif
 #ifdef TEXTURE_USE_DIFFUSE
-	vec4	albedo_sample = texture(StandardTextures.Diffuse, TexCoord());
+	vec4	albedo_sample = texture(StandardTextureDiffuse, TexCoord());
 	SetCDiff(StandardDiffuse * albedo_sample.rgb);
 	SetOpacity(StandardOpacity * albedo_sample.a);
 #else
@@ -282,18 +267,18 @@ void	FillFragmentData()
 	SetOpacity(StandardOpacity);
 #endif
 #ifdef TEXTURE_USE_EMISSIVE
-	vec3 emissive = texture(StandardTextures.Emissive, TexCoord()).rgb;
+	vec3 emissive = texture(StandardTextureEmissive, TexCoord()).rgb;
 	SetEmissive(StandardEmissive * emissive);
 #else
 	SetEmissive(StandardEmissive);
 #endif
 #ifdef TEXTURE_USE_AO
-	SetAO(StandardAO + max(1 - texture(StandardTextures.AO, TexCoord()).r, 0));
+	SetAO(StandardAO + max(1 - texture(StandardTextureAO, TexCoord()).r, 0));
 #else
 	SetAO(StandardAO);
 #endif
 #ifdef TEXTURE_USE_NORMAL
-	vec3	normal_sample = texture(StandardTextures.Normal, TexCoord()).xyz * 2 - 1;
+	vec3	normal_sample = texture(StandardTextureNormal, TexCoord()).xyz * 2 - 1;
 	vec3	new_normal = normal_sample * tbn;
 	SetWorldNormal(normalize(new_normal));
 #endif
