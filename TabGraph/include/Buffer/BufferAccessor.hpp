@@ -141,6 +141,7 @@ inline void BufferAccessor::Set(const T val, size_t index)
     assert(sizeof(T) == GetTypeOctetsSize());
     auto bufferView{ GetBufferView() };
     auto byteStride{ bufferView->GetByteStride() ? bufferView->GetByteStride() : GetTypeOctetsSize() };
+    bufferView->Load();
     bufferView->Set((std::byte*)&val, GetByteOffset() + (index * byteStride), sizeof(T));
 }
 
@@ -150,5 +151,6 @@ inline T BufferAccessor::Get(size_t index)
     assert(sizeof(T) == GetTypeOctetsSize());
     auto bufferView{ GetBufferView() };
     auto byteStride{ bufferView->GetByteStride() ? bufferView->GetByteStride() : GetTypeOctetsSize() };
+    bufferView->Load();
     return *reinterpret_cast<T*>(bufferView->Get(GetByteOffset() + (index * byteStride), sizeof(T)));
 }

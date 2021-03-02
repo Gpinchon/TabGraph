@@ -6,9 +6,10 @@
 */
 #include "Texture/TextureBuffer.hpp"
 #include "Buffer/BufferAccessor.hpp"
+#include "Driver/OpenGL/Buffer.hpp"
 #include "Debug.hpp"
 
-TextureBuffer::TextureBuffer(Pixel::SizedFormat internalFormat, const std::shared_ptr<BufferAccessor> bufferAccessor)
+TextureBuffer::TextureBuffer(Pixel::SizedFormat internalFormat, std::shared_ptr<BufferAccessor> bufferAccessor)
     : Texture(Texture::Type::TextureBuffer, internalFormat)
 {
     SetAccessor(bufferAccessor);
@@ -18,30 +19,17 @@ void TextureBuffer::Load()
 {
     if (GetLoaded())
         return;
-    //Accessor()->GetBufferView()->GetBuffer()->Load();
-    Accessor()->GetBufferView()->Load();
+    auto bufferView{ Accessor()->GetBufferView() };
+    //assert(bufferView->GetType() == BufferView::Type::TextureBuffer);
+    bufferView->Load();
     _SetHandle(Texture::Create(GetType()));
-    glBindBuffer(GL_TEXTURE_BUFFER, Accessor()->GetBufferView()->GetHandle());
+    auto handle{ uint32_t(bufferView->GetHandle()) };
     glTextureBuffer(
         GetHandle(),
         (GLenum)GetPixelDescription().GetSizedFormat(),
-        Accessor()->GetBufferView()->GetHandle());
+        handle
+    );
     _SetLoaded(true);
-    //Texture::load();
-    //glBindTexture(GL_TEXTURE_BUFFER, GetGlid());
-    //glTexBuffer(GL_TEXTURE_BUFFER, (GLenum)GetPixelDescription(), Accessor()->GetBufferView()->GetBuffer()->GetGlid());
-    //glBindTexture(GL_TEXTURE_BUFFER, 0);
-    //glBindBuffer(GL_TEXTURE_BUFFER, 0);
-    
-    //glBindTexture(target(), glid());
-    //glCreateTextures(GL_TEXTURE_BUFFER, 1, &_glid);
-    //if (glCheckError(Name()) throw std::runtime_error("");
-    //glTextureBuffer(
-    //	glid(),
-    //	InternalFormat(),
-    //	Accessor()->GetBufferView()->GetBuffer()->Glid()
-    //);
-    //if (glCheckError(Name()) throw std::runtime_error("");
 }
 
 std::shared_ptr<BufferAccessor> TextureBuffer::Accessor() const
@@ -49,7 +37,7 @@ std::shared_ptr<BufferAccessor> TextureBuffer::Accessor() const
     return GetComponent<BufferAccessor>();
 }
 
-void TextureBuffer::SetAccessor(const std::shared_ptr<BufferAccessor> bufferAccessor)
+void TextureBuffer::SetAccessor(std::shared_ptr<BufferAccessor> bufferAccessor)
 {
     SetComponent<BufferAccessor>(bufferAccessor);
 }
