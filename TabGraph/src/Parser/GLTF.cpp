@@ -681,8 +681,8 @@ static inline auto ParseAnimations(const rapidjson::Document& document, const st
             for (const auto& sampler : animation["samplers"].GetArray()) {
                 auto samplerInput(bufferAccessors.at(sampler["input"].GetInt()));
                 auto samplerOutput(bufferAccessors.at(sampler["output"].GetInt()));
-                samplerInput->GetBufferView()->SetType(BufferView::Type::CPU);
-                samplerOutput->GetBufferView()->SetType(BufferView::Type::CPU);
+                samplerInput->GetBufferView()->SetStorage(BufferView::Storage::CPU);
+                samplerOutput->GetBufferView()->SetStorage(BufferView::Storage::CPU);
                 auto newSampler(AnimationSampler(samplerInput, samplerOutput));
                 try {
                     std::string interpolation(sampler["interpolation"].GetString());
@@ -739,7 +739,7 @@ static inline auto ParseSkins(const rapidjson::Document& document, const std::ve
             }
             try {
                 auto accessor { bufferAccessors.at(skin["inverseBindMatrices"].GetInt()) };
-                accessor->GetBufferView()->SetType(BufferView::Type::CPU);
+                accessor->GetBufferView()->SetStorage(BufferView::Storage::CPU);
                 newSkin->SetInverseBindMatrices(accessor);
             } catch (std::exception&) {
                 debugLog("Skin " + newSkin->GetName() + " has no inverseBindMatrices");
@@ -889,7 +889,7 @@ static inline auto ParseImages(const std::filesystem::path path, const rapidjson
                 imageAsset->SetUri(std::string("data:") + gltfImagee["mimeType"].GetString() + ",");
                 auto bufferViewIndex { imageBufferViewItr->value.GetInt() };
                 imageAsset->AddComponent(bufferViews.at(bufferViewIndex));
-                bufferViews.at(bufferViewIndex)->SetType(BufferView::Type::CPU);
+                bufferViews.at(bufferViewIndex)->SetStorage(BufferView::Storage::CPU);
             }
             //TODO : learn how to use bufferView and mimeType
             imagesVector.push_back(imageAsset);
