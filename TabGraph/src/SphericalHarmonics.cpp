@@ -6,6 +6,7 @@
 */
 
 #include "SphericalHarmonics.hpp"
+#include "Tools/Tools.hpp"
 
 #define _USE_MATH_DEFINES // for C++
 #include <algorithm>
@@ -81,19 +82,10 @@ SphericalHarmonics::SphericalHarmonics(uint32_t samples, uint32_t bands)
     for (auto a{ 0u }; a < samples; ++a) {
         for (auto b{ 0u }; b < samples; ++b) {
             glm::dvec2 random{
-                std::rand() / double(RAND_MAX) * 2 - 1,
-                std::rand() / double(RAND_MAX) * 2 - 1
+                Tools::Halton23(i + 1) * 2.f - 1.f
             };
             auto x{ std::clamp((a + random.x) * samplesRcp, 0.0, 1.0) };
             auto y{ std::clamp((b + random.y) * samplesRcp, 0.0, 1.0) };
-            //compute positive spherical coordinates
-            //float theta = M_PI * x;
-            //float phi = 2.0 * M_PI * y;
-            //glm::vec3 vec = {
-            //    sin(theta)* cos(phi),
-            //    sin(theta) * sin(phi),
-            //    cos(phi)
-            //};
             auto theta{ 2.0 * std::acos(std::sqrt(1.0 - x)) };
             auto phi{ 2.0 * M_PI * y };
             auto sinTheta{ std::sin(theta) };
@@ -106,7 +98,7 @@ SphericalHarmonics::SphericalHarmonics(uint32_t samples, uint32_t bands)
                 cosTheta
             };
             _shSamples.at(i).vec = vec;
-            _shSamples.at(i).sph = glm::vec3(theta, phi, 1.0);
+            _shSamples.at(i).sph = glm::vec2(theta, phi);
             for (auto l{ 0 }; l < bands; ++l) {
                 for (int m{ -l }; m <= l; ++m) {
                     auto index{ l * (l + 1) + m };
