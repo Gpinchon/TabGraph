@@ -1,4 +1,20 @@
 R""(
+float InterleavedGradientNoise(vec2 uv, float FrameId)
+{
+    // magic values are found by experimentation
+    uv += FrameId * (vec2(47, 17) * 0.695f);
+
+    const vec3 magic = vec3( 0.06711056f, 0.00583715f, 52.9829189f );
+    return fract(magic.z * fract(dot(uv, magic.xy)));
+}
+
+vec2 Hammersley16(const in uint Index, const in uint NumSamples, const in uvec2 Random )
+{
+    float E1 = fract( Index / float(NumSamples) + float( Random.x ) * (1.0 / 65536.0) );
+    float E2 = float( ( bitfieldReverse(Index) >> 16 ) ^ Random.y ) * (1.0 / 65536.0);
+    return vec2( E1, E2 );
+}
+
 vec2 Hammersley(uint Index, uint NumSamples, uvec2 Random)
 {
     float E1 = fract( Index / float(NumSamples) + float( Random.x & 0xffff ) / (1<<16) );
