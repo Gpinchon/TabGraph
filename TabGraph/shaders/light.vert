@@ -1,9 +1,4 @@
 R""(
-struct t_Matrix {
-	mat4	Model;
-	mat4	Normal;
-};
-
 struct t_CameraMatrix {
 	mat4	View;
 	mat4	Projection;
@@ -18,7 +13,7 @@ struct t_Camera {
 layout(location = 0) in vec3	in_Position;
 
 uniform t_Camera		Camera;
-uniform t_Matrix		Matrix;
+uniform mat4			GeometryMatrix;
 uniform vec3			Resolution;
 
 out VertexData {
@@ -28,7 +23,7 @@ out VertexData {
 
 void TransformGeometry()
 {
-	gl_Position = Camera.Matrix.Projection * Camera.Matrix.View * Matrix.Model * vec4(in_Position, 1.0);
+	gl_Position = Camera.Matrix.Projection * Camera.Matrix.View * GeometryMatrix * vec4(in_Position, 1.0);
 	Output.TexCoord = gl_Position.xy / vec2(Resolution.xy);
 }
 )""
