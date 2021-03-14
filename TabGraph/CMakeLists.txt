@@ -40,6 +40,7 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionnalLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/PointLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Sky.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SpotLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/Material.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MaterialExtension.cpp
@@ -72,6 +73,7 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Global.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Program.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Stage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/SphericalHarmonics.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/StackTracer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/PixelUtils.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Cubemap.cpp
@@ -121,6 +123,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Light.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/DirectionnalLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/PointLight.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Sky.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/SpotLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/Material.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/MaterialExtension.hpp
@@ -155,6 +158,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Scene/Scene.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Global.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Program.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/SphericalHarmonics.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Stage.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/StackTracer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain_GDAL.hpp
@@ -189,8 +193,11 @@ set(TABGRAPH_SHADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.vert
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/present.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Random.glsl
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SampleShadowMap.glsl
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/setInstanceID.glsl
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/specularGlossiness.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/sphericalHarmonics.glsl
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/ssao.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SSR.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/TemporalAccumulation.frag
