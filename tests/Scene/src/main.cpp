@@ -125,7 +125,7 @@ void ExitCallback(const SDL_KeyboardEvent&)
     Engine::Stop();
 }
 
-//std::shared_ptr<Light> s_light;
+std::shared_ptr<Light> s_light;
 std::vector<std::shared_ptr<Camera>> s_cameras;
 
 void ChangeCamera(const SDL_KeyboardEvent& event)
@@ -137,7 +137,7 @@ void ChangeCamera(const SDL_KeyboardEvent& event)
     if (s_currentCamera >= s_cameras.size())
         s_currentCamera = 0;
     Scene::Current()->SetCurrentCamera(s_cameras.at(s_currentCamera));
-    //s_light->SetParent(Scene::Current()->CurrentCamera());
+    s_light->SetParent(Scene::Current()->CurrentCamera());
 }
 
 void ControllerButton(const SDL_ControllerButtonEvent& event) {
@@ -170,6 +170,7 @@ void SetupCallbacks()
 #include "Environment.hpp"
 #include "Assets/Image.hpp"
 #include "Light/PointLight.hpp"
+#include "Light/Sky.hpp"
 
 int main(int argc, char** argv)
 {
@@ -198,16 +199,19 @@ int main(int argc, char** argv)
                 return -43;
             }
             scene->SetCurrentCamera(fpsCamera);
-            auto dirLight =  Component::Create<DirectionnalLight>("MainLight", glm::vec3(0.5), glm::vec3(1, 10, 1), false);
+            auto skyLight{ Component::Create<Sky>() };
+            skyLight->SetSunDir(glm::vec3(0, 0.75, 1));
+            auto dirLight =  Component::Create<DirectionnalLight>("MainLight", glm::vec3(0.025), -skyLight->GetSunDir(), false);
             dirLight->SetHalfSize(glm::vec3(50));
-            //auto pointLight = Component::Create<PointLight>("PointLight", glm::vec3(1, 0, 0));
+            auto pointLight = Component::Create<PointLight>("PointLight", glm::vec3(1, 0, 0));
             //pointLight->SetPosition(glm::vec3(0, 0.1, 0));
-           // pointLight->SetPower(2);
-            //pointLight->SetParent(fpsCamera);
-            //s_light = dirLight;
+            pointLight->SetPower(2);
+            pointLight->SetParent(fpsCamera);
+            s_light = pointLight;
+            
             scene->Add(dirLight);
-            //scene->Add(pointLight);
-            //pointLight->SetParent(scene->CurrentCamera());
+            scene->Add(skyLight);
+            scene->Add(pointLight);
             auto newEnv = Component::Create<Environment>("Environment");
             newEnv->SetDiffuse(Component::Create<Cubemap>(Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/diffuse.hdr").string())));//"EnvironmentCube", TextureParser::parse("Environment", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
             newEnv->SetIrradiance(Component::Create<Cubemap>(Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/environment.hdr").string())));//"EnvironmentDiffuse", TextureParser::parse("EnvironmentDiffuse", (Engine::ResourcePath() / "env/environment.hdr").string())));
