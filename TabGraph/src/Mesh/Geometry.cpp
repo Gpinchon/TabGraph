@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-11 08:46:21
+* @Last Modified time: 2021-03-23 01:10:30
 */
 
 #include "Mesh/Geometry.hpp"
@@ -13,42 +13,60 @@
 #include "Camera/Camera.hpp" // for Camera
 #include "Debug.hpp"
 #include "Physics/BoundingAABB.hpp" // for AABB
-#include "Driver/OpenGL/Buffer.hpp"
+#include "Renderer/GeometryRenderer.hpp"
 #include "Tools/Tools.hpp"
 
 #include <algorithm>
 
-size_t geometryNbr(0);
+static size_t geometryNbr(0);
 
-Geometry::Geometry()
-    : Component("Geometry_" + std::to_string(geometryNbr))
+Renderer::GeometryRenderer& Geometry::GetRenderer()
 {
-    geometryNbr++;
+    return *_renderer;
 }
 
 Geometry::Geometry(const std::string& name)
     : Component(name)
     , _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(0)))
+    , _renderer(new Renderer::GeometryRenderer(*this))
 {
     geometryNbr++;
 }
 
-Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t> indices, BufferView::Mode mode)
+Geometry::Geometry()
+    : Geometry("Geometry_" + std::to_string(geometryNbr))
+{
+}
+
+Geometry::Geometry(const Geometry& other)
+    : Component(other)
+    , _renderer(new Renderer::GeometryRenderer(*this))
+{
+    _centroid = other._centroid;
+    _bounds = std::static_pointer_cast<BoundingAABB>(other._bounds->Clone());
+    _accessors = other._accessors;
+    _indices = other._indices;
+    _morphTargets = other._morphTargets;
+}
+
+Geometry::Geometry(
+    const std::vector<glm::vec3>& vertices,
+    const std::vector<glm::vec3>& normals,
+    const std::vector<glm::vec2>& texCoords,
+    const std::vector<uint32_t> indices,
+    BufferView::Mode mode)
+    : Geometry()
 {
     assert(vertices.size() == normals.size());
     assert(normals.size() == texCoords.size());
-    auto vertexBuffer{
+    auto vertexBuffer {
         Component::Create<BinaryData>(
-        vertices.size() * sizeof(glm::vec3) +
-        normals.size() * sizeof(glm::vec3) +
-        texCoords.size() * sizeof(glm::vec2) +
-        indices.size() * sizeof(uint32_t)
-        )
+            vertices.size() * sizeof(glm::vec3) + normals.size() * sizeof(glm::vec3) + texCoords.size() * sizeof(glm::vec2) + indices.size() * sizeof(uint32_t))
     };
-    auto verticeByteSize{ vertices.size() * sizeof(glm::vec3) };
-    auto normalsByteSize{ normals.size() * sizeof(glm::vec3) };
-    auto texcoordByteSize{ texCoords.size() * sizeof(glm::vec2) };
-    auto indiceByteSize{ indices.size() * sizeof(uint32_t) };
+    auto verticeByteSize { vertices.size() * sizeof(glm::vec3) };
+    auto normalsByteSize { normals.size() * sizeof(glm::vec3) };
+    auto texcoordByteSize { texCoords.size() * sizeof(glm::vec2) };
+    auto indiceByteSize { indices.size() * sizeof(uint32_t) };
     vertexBuffer->Set(
         (std::byte*)vertices.data(),
         0,
@@ -65,17 +83,17 @@ Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm
         (std::byte*)indices.data(),
         verticeByteSize + normalsByteSize + texcoordByteSize,
         indiceByteSize);
-    auto vertexBufferAsset{ Component::Create<Asset>() };
+    auto vertexBufferAsset { Component::Create<Asset>() };
     vertexBufferAsset->SetComponent(vertexBuffer);
     vertexBufferAsset->SetLoaded(true);
-    auto vertexBufferView{ Component::Create<BufferView>(vertexBufferAsset, mode) };
+    auto vertexBufferView { Component::Create<BufferView>(vertexBufferAsset, mode) };
     vertexBufferView->SetType(BufferView::Type::Array);
     vertexBufferView->SetByteLength(verticeByteSize + normalsByteSize + texcoordByteSize);
-    
-    auto vertexAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32 , BufferAccessor::Type::Vec3, vertexBufferView) };
-    auto normalAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32 , BufferAccessor::Type::Vec3, vertexBufferView) };
-    auto texcoordAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32 , BufferAccessor::Type::Vec2, vertexBufferView) };
-    
+
+    auto vertexAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Vec3, vertexBufferView) };
+    auto normalAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Vec3, vertexBufferView) };
+    auto texcoordAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Vec2, vertexBufferView) };
+
     vertexAccessor->SetByteOffset(0);
     vertexAccessor->SetCount(vertices.size());
     normalAccessor->SetByteOffset(verticeByteSize);
@@ -89,12 +107,26 @@ Geometry::Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm
 
     if (indices.empty())
         return;
-    auto indiceBufferView{ Component::Create<BufferView>(vertexBufferAsset, mode) };
+    auto indiceBufferView { Component::Create<BufferView>(vertexBufferAsset, mode) };
     indiceBufferView->SetType(BufferView::Type::ElementArray);
     indiceBufferView->SetByteLength(indiceByteSize);
     indiceBufferView->SetByteOffset(verticeByteSize + normalsByteSize + texcoordByteSize);
-    auto indiceAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Uint32 , BufferAccessor::Type::Scalar, indiceBufferView) };
+    auto indiceAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Uint32, BufferAccessor::Type::Scalar, indiceBufferView) };
     SetIndices(indiceAccessor);
+}
+
+Geometry::Geometry(
+    const std::vector<glm::vec3>& vertices,
+    const std::vector<glm::vec3>& normals,
+    const std::vector<glm::vec2>& texCoords,
+    BufferView::Mode mode)
+    : Geometry(
+        vertices,
+        normals,
+        texCoords,
+        {}, //empty indices
+        mode)
+{
 }
 
 Geometry::AccessorKey Geometry::GetAccessorKey(const std::string& key)
@@ -120,87 +152,6 @@ Geometry::AccessorKey Geometry::GetAccessorKey(const std::string& key)
     else if (lowerKey == "weights_0")
         return Geometry::AccessorKey::Weights_0;
     return Geometry::AccessorKey::Invalid;
-}
-
-static inline void BindAccessor(std::shared_ptr<BufferAccessor> accessor, int index)
-{
-    if (accessor == nullptr)
-        return;
-    auto bufferView(accessor->GetBufferView());
-    auto byteOffset(accessor->GetByteOffset());
-    bufferView->Load();
-    glEnableVertexAttribArray(index);
-    //bufferView->Bind();
-    //glVertexAttribPointer(
-    //    index,
-    //    (uint8_t)accessor->GetType(),
-    //    (GLenum)accessor->GetComponentType(),
-    //    accessor->GetNormalized(),
-    //    bufferView->GetByteStride() ? bufferView->GetByteStride() : accessor->GetTypeOctetsSize(),
-    //    BUFFER_OFFSET(accessor->GetByteOffset())
-    //);
-    //bufferView->Done();
-    glVertexAttribFormat(
-        index,
-        (uint8_t)accessor->GetType(),
-        (GLenum)accessor->GetComponentType(),
-        accessor->GetNormalized(),
-        0
-    );
-    glBindVertexBuffer(
-        index,
-        bufferView->GetHandle(),
-        accessor->GetByteOffset(),
-        bufferView->GetByteStride() ? bufferView->GetByteStride() : accessor->GetTypeOctetsSize()
-    );
-}
-
-void Geometry::Load()
-{
-    if (GetLoaded())
-        return;
-    debugLog(GetName());
-    if (Indices() != nullptr)
-        Indices()->GetBufferView()->Load();
-    glGenVertexArrays(1, &_vaoGlid);
-    glBindVertexArray(_vaoGlid);
-    BindAccessor(Accessor(Geometry::AccessorKey::Position), 0);
-    BindAccessor(Accessor(Geometry::AccessorKey::Normal), 1);
-    BindAccessor(Accessor(Geometry::AccessorKey::Tangent), 2);
-    BindAccessor(Accessor(Geometry::AccessorKey::TexCoord_0), 3);
-    BindAccessor(Accessor(Geometry::AccessorKey::TexCoord_1), 4);
-    BindAccessor(Accessor(Geometry::AccessorKey::Color_0), 5);
-    BindAccessor(Accessor(Geometry::AccessorKey::Joints_0), 6);
-    BindAccessor(Accessor(Geometry::AccessorKey::Weights_0), 7);
-    glBindVertexArray(0);
-    SetLoaded(true);
-}
-
-bool Geometry::Draw()
-{
-    Load();
-    glBindVertexArray(_vaoGlid);
-    if (Indices() != nullptr) {
-        auto bufferView(Indices()->GetBufferView());
-        auto byteOffset(Indices()->GetByteOffset() );
-        bufferView->Bind();
-        glDrawElements((GLenum)GetDrawingMode(), Indices()->GetCount(), (GLenum)Indices()->GetComponentType(), BUFFER_OFFSET(byteOffset));
-        bufferView->Done();
-    } else if (auto accessor(Accessor(Geometry::AccessorKey::Position)); accessor != nullptr)
-        glDrawArrays((GLenum)GetDrawingMode(), 0, accessor->GetCount());
-    glBindVertexArray(0);
-
-    return (true);
-}
-
-uint32_t Geometry::MaterialIndex()
-{
-    return _materialIndex;
-}
-
-void Geometry::SetMaterialIndex(uint32_t index)
-{
-    _materialIndex = index;
 }
 
 std::shared_ptr<BufferAccessor> Geometry::Accessor(const Geometry::AccessorKey key) const
@@ -408,17 +359,4 @@ size_t Geometry::VertexCount() const
     boundingElement->max = boundingElement->max - center;
     boundingElement->center = boundingElement->center - center;
     SetPosition(boundingElement->center - center);
-}*/
-
-/*void Geometry::set_material(std::shared_ptr<Material> mtl)
-{
-    if (mtl != nullptr)
-        _material = mtl;
-    else
-        _material.reset();
-}
-
-std::shared_ptr<Material> Geometry::material()
-{
-    return (_material.lock());
 }*/

@@ -5,18 +5,6 @@
 * @Last Modified time: 2021-02-03 17:50:36
 */
 #include "Assets/BinaryData.hpp"
-#include "Assets/Asset.hpp"
-#include "Assets/AssetsParser.hpp"
-#include "Assets/Uri.hpp"
-#include "Debug.hpp"
-#include "Render.hpp"
-
-#include <algorithm>
-#include <cstddef>
-#include <cstring>
-#include <fstream>
-#include <stdio.h>
-#include <wchar.h>
 
 BinaryData::BinaryData(const std::vector<std::byte>& data)
     : _data(data)

@@ -7,12 +7,15 @@
 
 #pragma once
 
-#include "Texture/Texture2D.hpp" // for Texture2D
-#include <GL/glew.h> // for GLenum
+#include "Component.hpp"
+#include "Texture/PixelUtils.hpp"
+
 #include <glm/glm.hpp> // for glm::vec2
 #include <memory> // for shared_ptr
 #include <string> // for string
 #include <vector> // for vector
+
+class Texture2D;
 
 class Framebuffer : public Component {
     using Handle = GLuint;
@@ -27,19 +30,19 @@ public:
     * @param color_attachements : number of color attachements to be Created
     * @param depth : set to 1 to enable depth buffer
     */
-    Framebuffer(const std::string& name, glm::ivec2 size, int color_attachements, int depth = 0);
+    Framebuffer(const std::string& name, glm::ivec2 size, int color_attachements = 0, int depth = 0, int multiSample = 0);
     /** @return the currently bound Framebuffer resolution */
     static glm::ivec2 CurrentSize();
     
     static void bind_default();
     void bind(bool to_bind = true);
     /** @return the specified color attachement */
-    std::shared_ptr<Texture2D> attachement(unsigned color_attachement);
+    std::shared_ptr<Texture2D> GetColorBuffer(unsigned color_attachement);
     /** @return the depth buffer */
-    std::shared_ptr<Texture2D> depth();
+    std::shared_ptr<Texture2D> GetDepthBuffer();
+    /** @return the stencil buffer */
+    std::shared_ptr<Texture2D> GetStencilBuffer();
 
-    /** @brief Adds a new attachement to the current buffer and returns it */
-    std::shared_ptr<Texture2D> Create_attachement(Pixel::SizedFormat format);
     void BlitTo(std::shared_ptr<Framebuffer> to,
         glm::ivec2 src0, glm::ivec2 src1,
         glm::ivec2 dst0, glm::ivec2 dst1,
@@ -50,12 +53,20 @@ public:
         GLenum filter = GL_NEAREST);
     virtual glm::ivec2 Size() const;
     virtual void Resize(const glm::ivec2& new_size);
-    /** @brief Sets the texture2D to the specified index */
-    virtual void set_attachement(unsigned color_attachement, std::shared_ptr<Texture2D>, unsigned mipLevel = 0);
     /** @brief Adds a color attachement at the end of the attachements list and returns index */
-    virtual size_t AddAttachement(std::shared_ptr<Texture2D>);
+    virtual Framebuffer &AddColorBuffer(std::shared_ptr<Texture2D> buffer, unsigned mipLevel = 0);
+    /** @brief Adds a color attachement at the end of the attachements list and returns index */
+    virtual Framebuffer &AddColorBuffer(Pixel::SizedFormat pixelFormat, unsigned mipLevel = 0);
+    /** @brief Sets the texture2D to the specified index */
+    virtual Framebuffer &SetColorBuffer(std::shared_ptr<Texture2D> buffer, unsigned color_attachement = 0, unsigned mipLevel = 0);
+    /**
+     * @brief Sets the stencil buffer
+     * @param buffer : the buffer to be used as stencil buffer
+     * @param mipLevel : the mip level to write to
+    */
+    virtual Framebuffer &SetStencilBuffer(std::shared_ptr<Texture2D> buffer, unsigned mipLevel = 0);
     /** @brief Set the depth buffer */
-    virtual void SetDepthBuffer(std::shared_ptr<Texture2D>, unsigned mipLevel = 0);
+    virtual Framebuffer &SetDepthBuffer(std::shared_ptr<Texture2D> buffer, unsigned mipLevel = 0);
     virtual ~Framebuffer() override;
     virtual void Load();
 
@@ -68,8 +79,9 @@ private:
         return framebuffer;
     }
     void setup_attachements();
-    std::vector<std::pair<std::shared_ptr<Texture2D>, unsigned>> _color_attachements;
-    std::pair<std::shared_ptr<Texture2D>, unsigned> _depth;
+    std::vector<std::pair<std::shared_ptr<Texture2D>, unsigned>> _colorBuffers;
+    std::pair<std::shared_ptr<Texture2D>, unsigned> _depthBuffer;
+    std::pair<std::shared_ptr<Texture2D>, unsigned> _stencilBuffer;
     glm::ivec2 _size { 0, 0 };
     bool _attachementsChanged { true };
 };

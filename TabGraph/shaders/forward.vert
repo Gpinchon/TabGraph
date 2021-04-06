@@ -1,4 +1,13 @@
 R""(
+//Pass
+#define DeferredGeometry		0
+#define DeferredLighting		1
+#define DeferredMaterial		2
+#define ForwardTransparent		3
+#define ForwardOpaque			4
+#define ShadowDepth				5
+#define GeometryPostTreatment	6
+
 struct t_Matrix {
 	mat4	Model;
 	mat3	Normal;
@@ -38,21 +47,29 @@ uniform t_Camera				PrevCamera;
 uniform t_Camera				Camera;
 uniform t_Matrix				PrevMatrix;
 uniform t_Matrix				Matrix;
+uniform mat4					SkinTransform;
+uniform mat4					SkinPrevTransform;
 uniform samplerBuffer			Joints;
 uniform samplerBuffer			PrevJoints;
 uniform bool					Skinned = false;
 uniform vec2					UVScale = vec2(1);
 
-out VertexData {
+out VertexOutput {
 	vec3	WorldPosition;
 	vec3	WorldNormal;
 	vec2	TexCoord;
 } Output;
 
+out vec3 ModelPosition;
 out vec4 Position;
 out vec4 PreviousPosition;
-
 out float CameraSpaceDepth;
+#if Pass == ForwardTransparent || Pass == ForwardOpaque
+out vec3 VertexDiffuse;
+#if OpacityMode == Blend
+out vec3 BackVertexDiffuse;
+#endif //OpacityMode == Blend
+#endif
 
 bool _WorldPositionSet = false;
 
@@ -157,22 +174,28 @@ void	FillVertexData()
         in_Weight_0.y * PrevJoint[1] +
         in_Weight_0.z * PrevJoint[2] +
         in_Weight_0.w * PrevJoint[3];
-        mat4 ModelMatrix = Matrix.Model * SkinMatrix;
+        mat4 ModelMatrix = Matrix.Model * SkinTransform * SkinMatrix;
 		SetWorldPosition(vec3(ModelMatrix * vec4(in_Position, 1.0)));
-		SetWorldNormal(mat3(inverse(transpose(ModelMatrix))) * in_Normal);
-		mat4 PrevModelMatrix = PrevMatrix.Model * PrevSkinMatrix;
+		SetWorldNormal(normalize(mat3(inverse(transpose(ModelMatrix))) * in_Normal));
+		mat4 PrevModelMatrix = PrevMatrix.Model * SkinPrevTransform * PrevSkinMatrix;
 		PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * PrevModelMatrix * vec4(in_Position, 1.0);
 	}
 	else {
 		SetWorldPosition(WorldPosition());
-		SetWorldNormal(WorldNormal());
+		SetWorldNormal(normalize(WorldNormal()));
 		PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * PrevMatrix.Model * vec4(in_Position, 1.0);
 	}
-	
+	ModelPosition = in_Position;
 	SetTexCoord(TexCoord() * UVScale);
 	vec4 cameraSpacePosition = Camera.Matrix.View * vec4(WorldPosition(), 1);
 	CameraSpaceDepth = cameraSpacePosition.z;
 	SetClipSpacePosition(Position = (Camera.Matrix.Projection * cameraSpacePosition));
+#if Pass == ForwardTransparent || Pass == ForwardOpaque
+	VertexDiffuse = SampleSH(WorldNormal());
+	#if OpacityMode == Blend
+	BackVertexDiffuse = SampleSH(-WorldNormal());
+	#endif
+#endif
 }
 
 )""

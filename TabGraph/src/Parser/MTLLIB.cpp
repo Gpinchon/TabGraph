@@ -95,7 +95,7 @@ static inline void parse_texture(std::shared_ptr<Material> mtl, const std::strin
         if (textureType == "map_Kd") {
             mtl->SetTextureDiffuse(GetOrCreateImage(path));
             /*if (mtl->TextureDiffuse()->values_per_pixel() == 4) {
-                mtl->SetOpacityMode(Material::OpacityModeValue::Blend);
+                mtl->SetOpacityMode(Material::OpacityMode::Blend);
             }*/
         } else if (textureType == "map_Ks") {
             auto extension = GetOrCreateSpecularGlossinessExtention(mtl);
@@ -150,7 +150,7 @@ static inline void parse_number(std::vector<std::string>& split, std::shared_ptr
     } else if (split[0] == "Tr") {
         mtl->SetOpacity(1 - std::stof(split[1]));
         if (mtl->GetOpacity() < 1.f) {
-            mtl->SetOpacityMode(Material::OpacityModeValue::Blend);
+            mtl->SetOpacityMode(Material::OpacityMode::Blend);
             mtl->SetDoubleSided(true);
         }
     }

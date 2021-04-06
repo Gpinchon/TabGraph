@@ -7,7 +7,7 @@
 #include "Buffer/BufferView.hpp"
 #include "Assets/Asset.hpp"
 #include "Assets/BinaryData.hpp"
-#include "Render.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Driver/OpenGL/Buffer.hpp"
 
 size_t s_bufferViewNbr = 0;

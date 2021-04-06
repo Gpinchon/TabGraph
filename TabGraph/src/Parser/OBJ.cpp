@@ -230,7 +230,7 @@ void parse_vg(ObjContainer& p, const std::string& name = "")
     } else {
         p.currentGeometry = Component::Create<Geometry>(name);
     }
-    p.container->GetComponent<Mesh>()->AddGeometry(p.currentGeometry);
+    p.container->GetComponent<Mesh>()->AddGeometry(p.currentGeometry, nullptr);
 }
 
 void correct_vt(glm::vec2* vt)
@@ -361,21 +361,16 @@ static void parse_line(ObjContainer& p, const char* line)
     } else if (split[0][0] == 'f') {
         parse_f(p, split);
     } else if (split[0][0] == 'g' || split[0][0] == 'o') {
-        auto mtlIndex(-1);
-        if (p.currentGeometry != nullptr)
-            mtlIndex = p.currentGeometry->MaterialIndex();
+        auto mtl{ p.container->GetComponent<Mesh>()->GetGeometryMaterial(p.currentGeometry) };
         parse_vg(p, split[1]);
-        p.currentGeometry->SetMaterialIndex(mtlIndex);
+        p.container->GetComponent<Mesh>()->SetGeometryMaterial(p.currentGeometry, mtl);
     } else if (split[0] == "usemtl") {
         if (p.currentGeometry == nullptr || p.currentGeometry->Accessor(Geometry::AccessorKey::Position))
             parse_vg(p);
-        auto mtl = p.container->GetComponentByName<Material>(split.at(1));
-        auto mtlIndex(p.container->GetComponent<Mesh>()->GetMaterialIndex(mtl));
-        if (mtlIndex == -1) {
-            p.container->GetComponent<Mesh>()->AddMaterial(mtl);
-            mtlIndex = p.container->GetComponent<Mesh>()->GetMaterialIndex(mtl);
-        }
-        p.currentGeometry->SetMaterialIndex(mtlIndex);
+        p.container->GetComponent<Mesh>()->SetGeometryMaterial(
+            p.currentGeometry,
+            p.container->GetComponentByName<Material>(split.at(1))
+        );
     } else if (split[0] == "mtllib") {
         auto mtllibAsset{ Component::Create<Asset>((p.path.parent_path() / split[1]).string()) };
         AssetsParser::Parse(mtllibAsset);

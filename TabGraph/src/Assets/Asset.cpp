@@ -21,9 +21,9 @@ Uri Asset::GetUri() const
 	return _uri;
 }
 
-std::atomic<bool>& Asset::GetLoaded()
+bool Asset::GetLoaded()
 {
-	return _loaded;
+	return _loaded.load();
 }
 
 void Asset::SetLoaded(bool loaded)

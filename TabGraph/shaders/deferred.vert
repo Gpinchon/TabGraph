@@ -12,10 +12,10 @@ struct t_Camera {
 
 uniform t_Camera	Camera;
 
-out VertexData {
+out VertexOutput {
 	vec2	TexCoord;
 	vec3	CubeTexCoord;
-} Vert;
+} Output;
 
 void SetClipSpacePosition(in vec4 position)
 {
@@ -29,22 +29,22 @@ vec4 ClipSpacePosition()
 
 void SetTexCoord(in vec2 texCoord)
 {
-	Vert.TexCoord = texCoord;
+	Output.TexCoord = texCoord;
 }
 
 vec2 TexCoord()
 {
-	return Vert.TexCoord;
+	return Output.TexCoord;
 }
 
 void SetCubeTexCoord(in vec3 cubeTexCoord)
 {
-	Vert.CubeTexCoord = cubeTexCoord;
+	Output.CubeTexCoord = cubeTexCoord;
 }
 
 vec3 CubeTexCoord()
 {
-	return Vert.CubeTexCoord;
+	return Output.CubeTexCoord;
 }
 
 void	FillVertexData()

@@ -39,25 +39,25 @@ const Shader::Stage::Code& MaterialExtension::GetCode() const
 const glm::vec3 MaterialExtension::GetColor(const std::string& name) const
 {
 	auto value{ _colors.find(name) };
-	return value != _colors.end() ? glm::vec3(0) : value->second;
+	return value == _colors.end() ? glm::vec3(0) : value->second;
 }
 
 const float MaterialExtension::GetValue(const std::string& name) const
 {
 	auto value{ _values.find(name) };
-	return value != _values.end() ? float(0) : value->second;
+	return value == _values.end() ? float(0) : value->second;
 }
 
 const std::string MaterialExtension::GetDefine(const std::string& name) const
 {
 	auto value{ _defines.find(name) };
-	return value != _defines.end() ? "" : value->second;
+	return value == _defines.end() ? "" : value->second;
 }
 
 const std::shared_ptr<Texture2D> MaterialExtension::GetTexture(const std::string& name) const
 {
 	auto value{ _textures.find(name) };
-	return value != _textures.end() ? nullptr : value->second;
+	return value == _textures.end() ? nullptr : value->second;
 }
 
 const MaterialExtension::Colors& MaterialExtension::GetColors() const

@@ -3,15 +3,14 @@ R""(
 #define RADIUS 0.05f
 
 #if SSAO_QUALITY == 1
-#define SAMPLENBR 8
+#define SAMPLENBR 4
 #elif SSAO_QUALITY == 2
-#define SAMPLENBR 16
+#define SAMPLENBR 8
 #elif SSAO_QUALITY == 3
-#define SAMPLENBR 32
+#define SAMPLENBR 16
 #else //SSAO_QUALITY == 4
-#define SAMPLENBR 64
+#define SAMPLENBR 32
 #endif
-
 
 float InterleavedGradientNoise(vec2 uv, float FrameId)
 {
@@ -29,29 +28,10 @@ vec2 Hammersley(uint SampleIdx, uint SampleCnt)
     return vec2(u, v);
 }
 
-vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float alpha)
-{	
-    float phi = 2.0 * PI * Xi.x;
-    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (alpha*alpha - 1.0) * Xi.y));
-    float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
-	
-    // from spherical coordinates to cartesian coordinates
-    vec3 H;
-    H.x = cos(phi) * sinTheta;
-    H.y = sin(phi) * sinTheta;
-    H.z = cosTheta;
-	
-    // from tangent-space vector to world-space sample vector
-    vec3 up        = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-    vec3 tangent   = normalize(cross(up, N));
-    vec3 bitangent = cross(N, tangent);
-	
-    vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
-    return normalize(sampleVec);
-}
-
 void	SSAO()
 {
+	if (Depth() == 1)
+		discard;
 	float occlusion = 0.f;
 	const vec3 N = WorldNormal();
 	const vec3 P = WorldPosition();

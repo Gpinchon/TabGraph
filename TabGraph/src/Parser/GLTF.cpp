@@ -226,7 +226,7 @@ static inline auto ParseMaterials(const rapidjson::Document& document, std::vect
         auto materialIndex(0);
         for (const auto& materialValue : document["materials"].GetArray()) {
             auto material(Component::Create<Material>("Material " + std::to_string(materialIndex)));
-            material->SetUVScale(glm::vec2(1, -1));
+            material->SetUVScale(glm::vec2(1, 1));
             try {
                 material->SetName(materialValue["name"].GetString());
             } catch (std::exception&) {
@@ -239,12 +239,12 @@ static inline auto ParseMaterials(const rapidjson::Document& document, std::vect
             }
             try {
                 std::string alphaMode = materialValue["alphaMode"].GetString();
-                if (alphaMode == "OPAQUE")
-                    material->SetOpacityMode(Material::OpacityModeValue::Opaque);
+                if (alphaMode == "Opaque")
+                    material->SetOpacityMode(Material::OpacityMode::Opaque);
                 if (alphaMode == "MASK")
-                    material->SetOpacityMode(Material::OpacityModeValue::Mask);
+                    material->SetOpacityMode(Material::OpacityMode::Mask);
                 if (alphaMode == "BLEND")
-                    material->SetOpacityMode(Material::OpacityModeValue::Blend);
+                    material->SetOpacityMode(Material::OpacityMode::Blend);
             } catch (std::exception&) {
                 debugLog("Material " + material->GetName() + " has no alphaCutoff property")
             }
@@ -547,12 +547,12 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const std::v
             for (const auto& primitive : mesh["primitives"].GetArray()) {
                 debugLog("Found new primitive");
                 auto geometry(Component::Create<Geometry>());
+                auto materialPtr{ defaultMaterial };
                 try {
                     auto& material(primitive["material"]);
                     if (size_t(material.GetInt()) >= materials.size())
                         std::cerr << "Material index " << material.GetInt() << " out of bound " << materials.size() << std::endl;
-                    currentMesh->AddMaterial(materials.at(material.GetInt()));
-                    geometry->SetMaterialIndex(currentMesh->GetMaterialIndex(materials.at(material.GetInt())));
+                    materialPtr = materials.at(material.GetInt());
                 } catch (std::exception&) {
                     debugLog("Geometry " + geometry->GetName() + " has no material")
                 }
@@ -583,13 +583,11 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const std::v
                 } catch (std::exception&) {
                     debugLog("Geometry " + geometry->GetName() + " has no mode property")
                 }
-                currentMesh->AddGeometry(geometry);
+                currentMesh->AddGeometry(geometry, materialPtr);
             }
         } catch (std::exception&) {
             debugLog("Mesh " + currentMesh->GetName() + " has no primitives");
         }
-        if (currentMesh->GetMaterial(0) == nullptr)
-            currentMesh->AddMaterial(defaultMaterial);
         meshVector.push_back(currentMesh);
     }
     debugLog("Done parsing meshes");

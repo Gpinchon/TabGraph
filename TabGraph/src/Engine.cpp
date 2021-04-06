@@ -7,10 +7,10 @@
 
 #include "Engine.hpp"
 #include "Config.hpp" // for Config
-#include "Environment.hpp" // for Environment
+#include "Skybox.hpp" // for Skybox
 #include "Event/Events.hpp" // for Events
 #include "Node.hpp" // for Node
-#include "Render.hpp" // for AddPostTreatment, RequestRedraw
+#include "Renderer/Renderer.hpp" // for AddPostTreatment, RequestRedraw
 #include "Scene/Scene.hpp"
 #include "Window.hpp" // for Window
 
@@ -65,7 +65,7 @@ EnginePrivate& EnginePrivate::Get()
 void Engine::Init()
 {
     Window::Init(Config::Global().Get("WindowName", std::string("")), Config::Global().Get("WindowSize", glm::vec2(1280, 720)));
-    Render::Init();
+    Renderer::Init();
     Engine::SetSwapInterval(Config::Global().Get("SwapInterval", 0));
 }
 
@@ -75,7 +75,7 @@ void Engine::Start()
     double lastTicks;
     double fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
 
-    SDL_GL_MakeCurrent((SDL_Window*)Window::GetHandle(), Render::GetContext());
+    //SDL_GL_MakeCurrent((SDL_Window*)Window::GetHandle(), Renderer::GetContext());
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
     while (EnginePrivate::Get().loop) {
         ticks = SDL_GetTicks() / 1000.0;
@@ -85,7 +85,7 @@ void Engine::Start()
             EnginePrivate::Get().onFixedUpdate(ticks - fixedTiming);
             fixedTiming = ticks;
         }
-        Render::Scene();
+        Renderer::RenderFrame();
         lastTicks = ticks;
     }
 }

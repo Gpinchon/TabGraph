@@ -15,6 +15,7 @@ class Asset;
 
 /** A view into a buffer generally representing a subset of the buffer. */
 class BufferView : public Component {
+    class ImplGPU;
 public:
     class Handle;
     enum class Storage {
@@ -80,7 +81,6 @@ public:
         Mode mode;
         MappingMode persistentMappingMode;
     };
-    class ImplGPU;
     PRIVATEPROPERTY(std::shared_ptr<ImplGPU>, ImplGPU, nullptr);
     READONLYPROPERTY(Storage, Storage, Storage::GPU);
     PROPERTY(MappingMode, PersistentMappingMode, MappingMode::None);
@@ -121,6 +121,7 @@ public:
     void SetStorage(Storage storage);
 
 private:
+    friend ImplGPU;
     virtual std::shared_ptr<Component> _Clone() override {
         return std::static_pointer_cast<Component>(Component::Create<BufferView>(*this));
     }

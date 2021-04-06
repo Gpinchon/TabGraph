@@ -107,6 +107,7 @@ void ParseHDR(const std::shared_ptr<Asset>& asset)
     fclose(file);
     auto image{ Component::Create<Image>(size, Pixel::SizedFormat::Float32_RGB, data) };
     asset->SetComponent(image);
+    asset->SetAssetType(Image::AssetType);
     std::cout << " Done." << std::endl;
     asset->SetLoaded(true);
 }

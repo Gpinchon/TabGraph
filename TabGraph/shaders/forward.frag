@@ -20,9 +20,19 @@ struct t_Environment {
 	samplerCube	Irradiance;
 };
 
-#define OPAQUE	0
-#define MASK	1
-#define BLEND	2
+//Pass
+#define DeferredGeometry		0
+#define DeferredLighting		1
+#define DeferredMaterial		2
+#define ForwardTransparent		3
+#define ForwardOpaque			4
+#define ShadowDepth				5
+#define GeometryPostTreatment	6
+
+//OpacityMode
+#define Opaque	0
+#define Mask	1
+#define Blend	2
 
 struct t_BRDF {
 	vec3	CDiff;
@@ -64,7 +74,7 @@ uniform sampler2D			StandardTextureNormal;
 #ifdef TEXTURE_USE_AO
 uniform sampler2D			StandardTextureAO;
 #endif
-uniform sampler2D			StandardTextureBRDFLUT;
+
 uniform vec3				StandardDiffuse = vec3(1);
 uniform vec3				StandardEmissive = vec3(0);
 uniform float				StandardOpacityCutoff = float(0.5);
@@ -73,44 +83,80 @@ uniform float				StandardParallax = float(0.05);
 uniform float				StandardIor = float(1);
 uniform float				StandardAO = float(0);
 uniform t_Matrix			Matrix;
-uniform t_Environment		Environment;
+uniform samplerCube			Skybox;
 uniform vec3				Resolution;
 uniform float				Time;
 uniform uint				FrameNumber;
 
-in VertexData {
+in VertexOutput {
 	vec3	WorldPosition;
 	vec3	WorldNormal;
 	vec2	TexCoord;
 } Input;
 
+in vec3 ModelPosition;
 in vec4 Position;
 in vec4 PreviousPosition;
-
-#ifdef GEOMETRY
-layout(location = 0) out vec4	_CDiff; //BRDF CDiff, Transparency
-layout(location = 1) out vec3	_Emissive;
-layout(location = 2) out vec4	_F0; //BRDF F0, BRDF Alpha
-layout(location = 3) out float	_AO;
-layout(location = 4) out vec3	_Normal;
-layout(location = 5) out uint	_InstanceID;
-layout(location = 6) out vec2	_Velocity;
-#elif defined(MATERIAL) || defined(DEPTH)
-vec4	_CDiff; //BRDF CDiff, Transparency
-vec3	_Emissive;
-vec4	_F0; //BRDF F0, BRDF Alpha
-float	_AO;
-vec3	_Normal;
-uint	_InstanceID;
-vec2	_Velocity;
+#if Pass == ForwardTransparent || Pass == ForwardOpaque
+in vec3 VertexDiffuse;
+#if OpacityMode == Blend
+in vec3 BackVertexDiffuse;
+#endif //OpacityMode == Blend
 #endif
+
+#if Pass == DeferredGeometry
+layout(location = 0) out vec4	_CDiff; //BRDF CDiff, Ambient Occlusion
+layout(location = 1) out vec4	_F0; //BRDF F0, BRDF Alpha
+layout(location = 2) out vec3	_Normal;
+layout(location = 3) out vec2	_Velocity;
+layout(location = 4) out vec4	_Color;
+#define _Emissive _Color.rgb
+#endif //Pass == DeferredGeometry
+
+#if Pass == ForwardTransparent || Pass == ForwardOpaque || Pass == ShadowDepth
+vec4	_CDiff = vec4(0); //BRDF CDiff, Ambient Occlusion
+vec4	_F0 = vec4(0); //BRDF F0, BRDF Alpha
+vec3	_Normal = vec3(0);
+vec2	_Velocity = vec2(0);
+vec3	_Emissive = vec3(0);
+#endif //Pass == ForwardTransparent || Pass == ForwardOpaque || Pass == ShadowDepth
+
+#if Pass == ForwardTransparent
+layout(location = 0) out vec4	_Color;
+layout(location = 1) out float	_AlphaCoverage;
+layout(location = 2) out vec2	_Distortion;
+layout(location = 3) out vec4	_Transmission;
+
+#define Color() (_Color)
+#define AlphaCoverage() (_AlphaCoverage)
+#define Distortion() (_Distortion)
+#define TransmissionColor() (_Transmission.rgb)
+#define TransmissionRoughness() (_Transmission.a)
+
+#define SetColor(color) (_Color = color)
+#define SetAlphaCoverage(alphaCoverage) (_AlphaCoverage = alphaCoverage)
+#define SetDistortion(distortion) (_Distortion = distortion)
+#define SetTransmissionColor(color) (_Transmission.rgb = color)
+#define SetTransmissionRoughness(roughness) (_Transmission.a = roughness)
+#endif //Pass == ForwardTransparent
+
+#if Pass == ForwardOpaque
+layout(location = 0) out vec4	_Color;
+#define Color() (_Color)
+#define SetColor(color) (_Color = color)
+#endif //Pass == ForwardOpaque
+
+float _Opacity = 1.f;
+
+#define _AO _CDiff.a
+#define _Alpha _F0.a
 
 #define ScreenTexCoord() (gl_FragCoord.xy / Resolution.xy)
 
 #define OpacityCutoff() (StandardOpacityCutoff)
 
-#define Opacity() (_CDiff.a)
-#define SetOpacity(opacity) (_CDiff.a = opacity)
+#define Opacity() (_Opacity)
+#define SetOpacity(opacity) (_Opacity = opacity)
 
 #define CDiff() (_CDiff.rgb)
 #define SetCDiff(cDiff) (_CDiff.rgb = cDiff)
@@ -118,8 +164,8 @@ vec2	_Velocity;
 #define F0() (_F0.rgb)
 #define SetF0(f0) (_F0.rgb = f0)
 
-#define Alpha() (_F0.a)
-#define SetAlpha(alpha) (_F0.a = alpha)
+#define Alpha() (_Alpha)
+#define SetAlpha(alpha) (_Alpha = alpha)
 
 #define Emissive() (_Emissive)
 #define SetEmissive(emissive) (_Emissive = emissive)
@@ -128,8 +174,6 @@ vec2	_Velocity;
 
 #define AO() (_AO)
 #define SetAO(aO) (_AO = aO)
-
-#define BRDF(NdV, Roughness) (texture(StandardTextureBRDFLUT, vec2(NdV, Roughness)).xy)
 
 t_Frag	Frag;
 

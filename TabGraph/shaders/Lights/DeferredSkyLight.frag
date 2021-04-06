@@ -1,5 +1,6 @@
 R""(
 struct t_Light {
+    float   SpecularPower;
     vec3    Min;
     vec3    Max;
     bool    Infinite;
@@ -10,16 +11,16 @@ struct t_Light {
 };
 
 uniform t_Light Light;
+uniform samplerCube SpecularLUT;
 
 void    Lighting()
 {
-	const vec3  V = normalize(Camera.Position - WorldPosition());
+	const vec3  V = normalize(WorldPosition() - Camera.Position);
     const vec3  N = WorldNormal();
-    const vec3  R = reflect(-V, N);
-    const float NdV = max(0, dot(N, V));
+    const vec3  R = reflect(V, N);
     const float alphaSqrt = sqrt(Alpha());
     vec3        Diffuse = vec3(SampleSH(N));
-    float		SpecularFactor = 0;
+    vec3        Specular = sampleLod(SpecularLUT, R, alphaSqrt * 2).rgb * Light.SpecularPower;
     float       Attenuation = 1;
     #ifdef SHADOW
         float bias = 0.01 * tan(acos(NdotL));
@@ -27,15 +28,14 @@ void    Lighting()
         if (Attenuation == 0)
             return ;
         Diffuse *= Attenuation;
+        Specular * Attenuation
     #endif //SHADOW
-    if (all(equal(Diffuse, vec3(0)))) {
-        return ;
-    }
     bool isAboveMax = any(greaterThan(WorldPosition(), Light.Max));
     bool isUnderMin = any(lessThan(WorldPosition(), Light.Min));
     if (!Light.Infinite && (isAboveMax || isUnderMin)) {
         return ;
     }
-    out_0 = vec4(Diffuse, SpecularFactor * Attenuation);
+    SetDiffuse(vec4(Diffuse, 1));
+    SetReflection(vec4(Specular, 1));
 }
 )""

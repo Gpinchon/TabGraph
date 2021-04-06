@@ -62,7 +62,7 @@ void SpecularGlossiness() {
 #endif
 	SetCDiff(CDiff() * values.Diffuse.rgb * (1 - max(values.Specular.r, max(values.Specular.g, values.Specular.b))));
 	SetF0(values.Specular);
-	SetAlpha(max(0.05, pow(1 - values.Glossiness, 2)));
+	SetAlpha(Alpha() * max(0.05, pow(1 - values.Glossiness, 2)));
 	SetOpacity(Opacity() * values.Opacity);
 	//SetCDiff(mix(values.Diffuse.rgb * (1 - F0()), vec3(0), values.Glossiness));
 	//SetF0(mix(F0(), values.Diffuse.rgb, values.Glossiness));

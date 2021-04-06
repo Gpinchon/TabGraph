@@ -13,6 +13,8 @@
 #include <glm/vec4.hpp>
 
 namespace Pixel {
+glm::vec4 LinearToSRGB(glm::vec4 color);
+
 enum class SizedFormat : GLenum {
     Unknown = -1,
     /// <summary>
@@ -99,7 +101,13 @@ enum class SizedFormat : GLenum {
 
     Depth16 = GL_DEPTH_COMPONENT16,
     Depth24 = GL_DEPTH_COMPONENT24,
-    Depth32 = GL_DEPTH_COMPONENT32
+    Depth32 = GL_DEPTH_COMPONENT32,
+    Depth32F = GL_DEPTH_COMPONENT32F,
+
+    Depth24_Stencil8 = GL_DEPTH24_STENCIL8,
+    Depth32F_Stencil8 = GL_DEPTH32F_STENCIL8,
+    Stencil8 = GL_STENCIL_INDEX8,
+    MaxValue
 };
 
 enum class UnsizedFormat : GLenum {
@@ -112,7 +120,9 @@ enum class UnsizedFormat : GLenum {
     RG_Integer = GL_RG_INTEGER,
     RGB_Integer = GL_RGB_INTEGER,
     RGBA_Integer = GL_RGBA_INTEGER,
-    Depth = GL_DEPTH_COMPONENT
+    Depth = GL_DEPTH_COMPONENT,
+    Depth_Stencil = GL_DEPTH_STENCIL,
+    Stencil = GL_STENCIL
 };
 
 enum class Type : GLenum {

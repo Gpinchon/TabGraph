@@ -83,8 +83,9 @@ std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, f
 std::shared_ptr<Mesh> CapsuleMesh::Create(const std::string& name, float heigth, float radius, int sectorCount, int heightSubdivision)
 {
     auto m = Component::Create<Mesh>(name);
-    auto vg = CapsuleMesh::CreateGeometry(name + "Geometry", heigth, radius, sectorCount, heightSubdivision);
-    m->AddGeometry(vg);
-    m->AddMaterial(Component::Create<Material>(name + "Material"));
+    m->AddGeometry(
+        CapsuleMesh::CreateGeometry(name + "Geometry", heigth, radius, sectorCount, heightSubdivision),
+        Component::Create<Material>(name + "Material")
+    );
     return m;
 }

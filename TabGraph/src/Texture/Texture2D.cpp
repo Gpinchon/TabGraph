@@ -4,12 +4,9 @@
 #include "Texture/PixelUtils.hpp"
 #include "Config.hpp"
 #include "Debug.hpp" // for glCheckError, debugLog
-//#include "Framebuffer.hpp"
-//#include "Mesh/Geometry.hpp" // for Geometry
-//#include "Parser/GLSL.hpp" // for GLSL
-#include "Render.hpp" // for DisplayQuad
-//#include "Shader/Shader.hpp" // for Shader
+#include "Renderer/Renderer.hpp" // for DisplayQuad
 #include "Tools/Tools.hpp"
+
 #include <cstring> // for memcpy
 #include <glm/gtx/rotate_vector.hpp>
 
@@ -38,17 +35,25 @@ Texture2D::Texture2D(std::shared_ptr<Asset> image, uint8_t multiSample) : Textur
 void Texture2D::Load() {
     if (GetLoaded())
         return;
-    if (GetComponent<Asset>() == nullptr) {
+    
+    auto asset{ GetComponent<Asset>() };
+    
+    if (asset == nullptr) {
         //We don't have an image to load from, just allocate on GPU
         _AllocateStorage();
         _SetLoaded(true);
         RestoreParameters();
     }
-    else if (!_onBeforeRenderSlot.Connected() && !_onImageLoadedSlot.Connected()) //We're already loading/We'll upload texture on next render, calm down...
-    {
-        auto imageAsset{ GetComponent<Asset>() };
-        _onImageLoadedSlot = imageAsset->OnLoaded().ConnectMember(this, &Texture2D::_OnImageLoaded);
-        imageAsset->LoadAsync();
+    else {
+        auto assetLoaded{ asset->GetLoaded() };
+        if (assetLoaded) {
+            _UploadImage(GetComponent<Asset>());
+        }
+        else if (!assetLoaded) //We're already loading/We'll upload texture on next render, calm down...
+        {
+            auto imageAsset{ GetComponent<Asset>() };
+            imageAsset->LoadAsync();
+        }
     }
 }
 
@@ -80,18 +85,6 @@ void Texture2D::_AllocateStorage() {
             GetSize().y
         );
     glBindTexture((GLenum)GetType(), 0);
-}
-
-inline void Texture2D::_OnImageLoaded(std::shared_ptr<Asset> imageAsset) {
-    assert(imageAsset->GetLoaded());
-    if (!_onBeforeRenderSlot.Connected())
-        _onBeforeRenderSlot = Render::OnBeforeRender().ConnectMember(this, &Texture2D::_OnBeforeRender);
-    _onImageLoadedSlot.Disconnect();
-}
-
-inline void Texture2D::_OnBeforeRender(float) {
-    _UploadImage(GetComponent<Asset>());
-    _onBeforeRenderSlot.Disconnect();
 }
 
 inline void Texture2D::_UploadImage(std::shared_ptr<Asset> imageAsset) {

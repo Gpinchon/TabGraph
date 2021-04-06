@@ -125,22 +125,99 @@ Pixel::SizedFormat GetDepthSizedformat(Pixel::Type type, bool normalizedType)
         assert(true && "Depth texture cannot be of type Int8");
         break;
     case Pixel::Type::Uint16:
-        assert(true && "Depth texture cannot be of type Int8");
+        assert(true && "Depth texture cannot be of type Uint16");
         break;
     case Pixel::Type::Int16:
-        assert(true && "Depth texture cannot be of type Int8");
+        assert(true && "Depth texture cannot be of type Int16");
         break;
     case Pixel::Type::Uint32:
-        assert(true && "Depth texture cannot be of type Int8");
+        return Pixel::SizedFormat::Depth32;
         break;
     case Pixel::Type::Int32:
-        assert(true && "Depth texture cannot be of type Int8");
+        assert(true && "Depth texture cannot be of type Int32");
         break;
     case Pixel::Type::Float16:
         return Pixel::SizedFormat::Depth16;
     case Pixel::Type::Float32:
-        return Pixel::SizedFormat::Depth32;
+        return Pixel::SizedFormat::Depth32F;
     }
+}
+
+Pixel::SizedFormat GetDepthStencilSizedFormat(Pixel::Type type, bool normalizedType)
+{
+    assert(type != Pixel::Type::Unknown);
+    switch (type)
+    {
+    case Pixel::Type::Uint8:
+        assert(true && "Depth texture cannot be of type Uint8");
+        break;
+    case Pixel::Type::Int8:
+        assert(true && "Depth texture cannot be of type Int8");
+        break;
+    case Pixel::Type::Uint16:
+        assert(true && "Depth texture cannot be of type Uint16");
+        break;
+    case Pixel::Type::Int16:
+        assert(true && "Depth texture cannot be of type Int16");
+        break;
+    case Pixel::Type::Uint32:
+        return Pixel::SizedFormat::Depth24_Stencil8;
+        break;
+    case Pixel::Type::Int32:
+        assert(true && "Depth texture cannot be of type Int32");
+        break;
+    case Pixel::Type::Float16:
+        assert(true && "Depth texture cannot be of type Float16");
+        break;
+    case Pixel::Type::Float32:
+        return Pixel::SizedFormat::Depth32F_Stencil8;
+        break;
+    }
+    
+}
+
+Pixel::SizedFormat GetStencilSizedFormat(Pixel::Type type, bool normalizedType)
+{
+    assert(type != Pixel::Type::Unknown);
+    switch (type)
+    {
+    case Pixel::Type::Uint8:
+        return Pixel::SizedFormat::Stencil8;
+        break;
+    case Pixel::Type::Int8:
+        assert(true && "Stencil texture cannot be of type Int8");
+        break;
+    case Pixel::Type::Uint16:
+        assert(true && "Stencil texture cannot be of type Uint16");
+        break;
+    case Pixel::Type::Int16:
+        assert(true && "Stencil texture cannot be of type Int16");
+        break;
+    case Pixel::Type::Uint32:
+        assert(true && "Stencil texture cannot be of type Uint32");
+        break;
+    case Pixel::Type::Int32:
+        assert(true && "Stencil texture cannot be of type Int32");
+        break;
+    case Pixel::Type::Float16:
+        assert(true && "Stencil texture cannot be of type Float16");
+        break;
+    case Pixel::Type::Float32:
+        assert(true && "Stencil texture cannot be of type Float32");
+        break;
+    }
+}
+
+#include <glm/glm.hpp>
+
+glm::vec4 Pixel::LinearToSRGB(glm::vec4 color)
+{
+    const glm::vec3 linearRGB{ color.r, color.g, color.b };
+    glm::bvec3 cutoff = lessThan(linearRGB, glm::vec3(0.0031308));
+    glm::vec3 higher = glm::vec3(1.055) * pow(linearRGB, glm::vec3(1.0 / 2.4)) - glm::vec3(0.055);
+    glm::vec3 lower = linearRGB * glm::vec3(12.92);
+
+    return glm::vec4(mix(higher, lower, cutoff), color.a);
 }
 
 Pixel::SizedFormat Pixel::GetSizedFormat(UnsizedFormat unsizedFormat, Type type, bool normalized)
@@ -157,6 +234,10 @@ Pixel::SizedFormat Pixel::GetSizedFormat(UnsizedFormat unsizedFormat, Type type,
         return GetRGBASizedFormat(type, normalized);
     case UnsizedFormat::Depth:
         return GetDepthSizedformat(type, normalized);
+    case UnsizedFormat::Depth_Stencil:
+        return GetDepthStencilSizedFormat(type, normalized);
+    case UnsizedFormat::Stencil:
+        return GetStencilSizedFormat(type, normalized);
     }
 }
 
@@ -167,9 +248,11 @@ uint8_t Pixel::GetUnsizedFormatComponentsNbr(UnsizedFormat format)
     case UnsizedFormat::R:
     case UnsizedFormat::R_Integer:
     case UnsizedFormat::Depth:
+    case UnsizedFormat::Stencil:
         return 1;
     case UnsizedFormat::RG:
     case UnsizedFormat::RG_Integer:
+    case UnsizedFormat::Depth_Stencil:
         return 2;
     case UnsizedFormat::RGB:
     case UnsizedFormat::RGB_Integer:
@@ -450,6 +533,22 @@ Pixel::Description::Description(SizedFormat format)
     case SizedFormat::Depth32:
         _unsizedFormat = UnsizedFormat::Depth;
         _type = Type::Float32;
+        break;
+    case SizedFormat::Depth32F:
+        _unsizedFormat = UnsizedFormat::Depth;
+        _type = Type::Float32;
+        break;
+    case SizedFormat::Depth24_Stencil8:
+        _unsizedFormat = UnsizedFormat::Depth;
+        _type = Type::Uint32;
+        break;
+    case SizedFormat::Depth32F_Stencil8:
+        _unsizedFormat = UnsizedFormat::Depth_Stencil;
+        _type = Type::Uint32;
+        break;
+    case SizedFormat::Stencil8:
+        _unsizedFormat = UnsizedFormat::Stencil;
+        _type = Type::Uint8;
         break;
     }
     _sizedFormat = format;

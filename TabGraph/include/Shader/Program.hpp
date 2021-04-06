@@ -17,13 +17,16 @@ class Texture;
 
 namespace Shader {
 class Program : public Component {
-public:
     class Handle;
     class Impl;
+    friend Impl;
+    friend Handle;
+    //std::unique_ptr<Impl> _impl;
     PRIVATEPROPERTY(std::shared_ptr<Impl>, Impl, nullptr);
 
 public:
     Program();
+    //Program(const Program &other);
     Program(const std::string& name);
     ~Program();
     const Handle &GetHandle() const;
@@ -39,11 +42,11 @@ public:
     Program& SetUniform(const std::string& name, const uint32_t value);
     Program& SetUniform(const std::string& name, const uint32_t* value, const uint16_t count = 1, const uint16_t index = 0);
     Program& SetUniform(const std::string& name, const glm::vec2& value);
-    Program& SetUniform(const std::string& name, const glm::vec2* value, const uint16_t count, const uint16_t index);
+    Program& SetUniform(const std::string& name, const glm::vec2* value, const uint16_t count = 1, const uint16_t index = 0);
     Program& SetUniform(const std::string& name, const glm::vec3& value);
-    Program& SetUniform(const std::string& name, const glm::vec3* value, const uint16_t count, const uint16_t index);
+    Program& SetUniform(const std::string& name, const glm::vec3* value, const uint16_t count = 1, const uint16_t index = 0);
     Program& SetUniform(const std::string& name, const glm::vec4& value);
-    Program& SetUniform(const std::string& name, const glm::vec4* value, const uint16_t count, const uint16_t index);
+    Program& SetUniform(const std::string& name, const glm::vec4* value, const uint16_t count = 1, const uint16_t index = 0);
     Program& SetUniform(const std::string& name, const glm::mat4& value);
     Program& SetUniform(const std::string& name, const glm::mat4* value, const uint16_t count = 1, const uint16_t index = 0);
     Program& SetUniform(const std::string& name, const glm::mat3& value);
@@ -55,6 +58,7 @@ public:
     static void UseNone();
 
 private :
+    
     virtual std::shared_ptr<Component> _Clone() override
     {
         auto program(Component::Create<Program>(*this));

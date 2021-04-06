@@ -62,8 +62,9 @@ std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size,
     //vg->SetAccessor(Geometry::AccessorKey::Normal, normalAccessor);
     //vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, texcoordAccessor);
     //vg->SetIndices(indiceAccessor);
-    auto vg{ Component::Create<Geometry>(vertices, normals, texCoord, indices) };
-    m->AddGeometry(vg);
-    m->AddMaterial(Component::Create<Material>(m->GetName() + "_material"));
+    m->AddGeometry(
+        Component::Create<Geometry>(vertices, normals, texCoord, indices),
+        Component::Create<Material>(m->GetName() + "_material")
+    );
     return (m);
 }

@@ -12,35 +12,32 @@ struct t_Light {
 };
 
 uniform t_Light     Light;
-uniform sampler2D   SpecularLUT;
-uniform sampler2D   DefaultBRDFLUT;
 
-vec2 ToUV(in vec3 n)
-{       
-    vec2 uv;
-    
-    uv.x = atan(-n.x, n.y);
-    uv.x = (uv.x + PI / 2.0) / (PI * 2.0) + PI * (28.670 / 360.0);
-    
-    uv.y = acos(n.z) / PI;
-    
-    return uv;
+float SpecularFactor(const in float NdotH, const in float SpecularPower)
+{
+    return ((SpecularPower + 2) / 8 ) * pow(clamp(NdotH, 0, 1), SpecularPower);
+}
+
+float GlossToSpecularPower(const in float gloss)
+{
+    return exp2(10 * gloss + 1);
 }
 
 void    Lighting()
 {
-    const vec3  V = normalize(Camera.Position - WorldPosition());
+    const vec3  V = -normalize(WorldPosition() - Camera.Position);
     const vec3  N = WorldNormal();
     const vec3  L = Light.Direction;
-    const vec3  R = reflect(-V, N);
+    const vec3  H = normalize(L + V);
     const float NdV = max(0, dot(N, V));
     const float NdL = max(0, dot(N, L));
-    const float alphaSqrt = sqrt(Alpha());
+    const float NdH = max(0, dot(N, H));
+    //const float alphaSqrt = sqrt(Alpha());
     //const vec2    brdf = texture(DefaultBRDFLUT, vec2(NdV, alphaSqrt)).xy;
     //const vec3    fresnel = F0() * brdf.x + brdf.y;
-    const vec3  Specular = sampleLod(SpecularLUT, ToUV(R), Alpha()).rgb;// * fresnel;
-    const float SpecularFactor = length(Specular);
-    vec3        Diffuse = NdL * Light.Color;
+    
+    vec3        Diffuse = Light.Color * NdL;
+    vec3        Specular = Diffuse * SpecularFactor(NdH, GlossToSpecularPower(1 - sqrt(Alpha())));
     float       Attenuation = 1;
     #ifdef SHADOW
         float bias = 0.01 * tan(acos(NdL));
@@ -48,6 +45,7 @@ void    Lighting()
         if (Attenuation == 0)
             return ;
         Diffuse *= Attenuation;
+        Specular *= Attenuation;
     #endif //SHADOW
     if (all(equal(Diffuse, vec3(0)))) {
         return ;
@@ -57,7 +55,8 @@ void    Lighting()
     if (!Light.Infinite && (isAboveMax || isUnderMin)) {
         return ;
     }
-    out_0 = vec4(Diffuse, SpecularFactor * Attenuation);
+    SetDiffuse(vec4(Diffuse, 1));
+    SetReflection(vec4(Specular, 1));
 }
 
 )""

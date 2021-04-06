@@ -190,8 +190,9 @@ std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, fl
 std::shared_ptr<Mesh> SphereMesh::Create(const std::string& name, float radius, unsigned subdivision)
 {
     auto m = Component::Create<Mesh>(name);
-    auto vg = SphereMesh::CreateGeometry(name + "Geometry", radius, subdivision);
-    m->AddGeometry(vg);
-    m->AddMaterial(Component::Create<Material>(name + "Material"));
+    m->AddGeometry(
+        SphereMesh::CreateGeometry(name + "Geometry", radius, subdivision),
+        Component::Create<Material>(name + "Material")
+    );
     return (m);
 }

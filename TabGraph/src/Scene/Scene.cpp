@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-19 13:07:58
+* @Last Modified time: 2021-03-28 07:58:53
 */
 
 #include "Scene/Scene.hpp"
@@ -12,26 +12,34 @@
 #include "Engine.hpp"
 #include "Light/Light.hpp"
 #include "Node.hpp"
+#include "Physics/BoundingAABB.hpp"
 #include "Physics/PhysicsEngine.hpp"
 #include "Physics/RigidBody.hpp"
-#include "Environment.hpp"
+#include "Renderer/SceneRenderer.hpp"
+#include "Skybox.hpp"
 
 #include <algorithm>
 #include <iostream>
 
+Renderer::SceneRenderer& Scene::GetRenderer()
+{
+    return *_renderer;
+}
+
 Scene::Scene(const std::string& name)
-    : _name(name)
+    : Component(name)
+    , _renderer(std::make_unique<Renderer::SceneRenderer>(*this))
 {
 }
 
-std::string Scene::Name() const
+Scene::Scene(const Scene& other)
+    : Component(other)
+    , _up(other._up)
+    , _aabb(std::static_pointer_cast<BoundingAABB>(other._aabb->Clone()))
+    , _currentCamera(other._currentCamera)
+    , _skyboxIndex(other._skyboxIndex)
+    , _renderer(std::make_unique<Renderer::SceneRenderer>(*this))
 {
-    return _name;
-}
-
-void Scene::SetName(const std::string& name)
-{
-    _name = name;
 }
 
 void Scene::AddRootNode(std::shared_ptr<Node> node)
@@ -60,18 +68,6 @@ void Scene::Add(std::shared_ptr<Node> node)
 void Scene::Add(std::shared_ptr<Animation> animation)
 {
     AddComponent(animation);
-}
-
-void Scene::Render(const Render::Pass& pass, const Render::Mode& mode)
-{
-    for (auto node : Scene::Current()->GetComponents<Node>())
-        node->Draw(std::static_pointer_cast<Scene>(shared_from_this()), pass, mode, true);
-}
-
-void Scene::RenderDepth(const Render::Mode& mode)
-{ 
-    for (auto node : Scene::Current()->GetComponents<Node>())
-        node->DrawDepth(std::static_pointer_cast<Scene>(shared_from_this()), mode, true);
 }
 
 std::shared_ptr<Scene>& CurrentScene()
@@ -129,56 +125,16 @@ std::shared_ptr<T> GetByPointer(std::shared_ptr<Node> node, const std::shared_pt
     //}
     return nullptr;
 }
-/*
-std::shared_ptr<Node> Scene::GetNode(std::shared_ptr<Node> node) const
+
+std::shared_ptr<Skybox> Scene::GetSkybox() const
 {
-    for (const auto& object : Nodes()) {
-        auto result(GetByPointer(node, object));
-        if (result != nullptr)
-            return result;
-    }
-    return nullptr;
+    return GetComponent<Skybox>(_skyboxIndex);
 }
 
-std::shared_ptr<Node> Scene::GetNodeByName(const std::string& name) const
+void Scene::SetSkybox(const std::shared_ptr<Skybox>& env)
 {
-    for (const auto& object : Nodes()) {
-        auto result(GetByName(name, object));
-        if (result != nullptr)
-            return result;
-    }
-    return nullptr;
-}
-
-std::shared_ptr<Light> Scene::GetLightByName(const std::string& name) const
-{
-    for (const auto& object : Lights()) {
-        auto result(GetByName(name, object));
-        if (result != nullptr)
-            return result;
-    }
-    return nullptr;
-}
-
-std::shared_ptr<Camera> Scene::GetCameraByName(const std::string& name) const
-{
-    for (const auto& object : Cameras()) {
-        auto result(GetByName(name, object));
-        if (result != nullptr)
-            return result;
-    }
-    return nullptr;
-}
-*/
-std::shared_ptr<Environment> Scene::GetEnvironment() const
-{
-    return GetComponent<Environment>(_environmentIndex);
-}
-
-void Scene::SetEnvironment(const std::shared_ptr<Environment>& env)
-{
-    _environmentIndex = AddComponent(env);
-    EnvironmentChanged(env);
+    _skyboxIndex = AddComponent(env);
+    SkyboxChanged(env);
 }
 
 glm::vec3 Scene::Up() const
@@ -191,7 +147,7 @@ void Scene::SetUp(glm::vec3 up)
     _up = up;
 }
 
-std::shared_ptr<AABB> Scene::GetLimits() const
+std::shared_ptr<BoundingAABB> Scene::GetLimits() const
 {
     return _aabb;
 }

@@ -9,7 +9,7 @@
 #include "Engine.hpp"
 #include "Tools/Tools.hpp"
 #include "Node.hpp"
-#include "Render.hpp"
+#include "Renderer/Renderer.hpp"
 
 OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
     : Camera(iname, proj)
@@ -18,7 +18,7 @@ OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float 
     _theta = theta;
     _radius = radius;
     SetFov(ifov);
-    _Update(0);
+    _Update();
 }
 
 std::shared_ptr<Node> OrbitCamera::Target() const
@@ -26,14 +26,13 @@ std::shared_ptr<Node> OrbitCamera::Target() const
     return _target.lock();
 }
 
-void OrbitCamera::_Update(float)
+void OrbitCamera::_Update()
 {
     glm::vec3 targetPosition(0);
     if (Target() != nullptr)
         targetPosition = Target()->WorldPosition();
     SetPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
     LookAt(targetPosition);
-    _updateSlot.Disconnect();
 }
 
 float OrbitCamera::Phi() const
@@ -43,9 +42,10 @@ float OrbitCamera::Phi() const
 
 void OrbitCamera::SetPhi(float phi)
 {
+    if (phi == _phi)
+        return;
     _phi = phi;
-    if (!_updateSlot.Connected())
-        _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
+    _Update();
 }
 
 float OrbitCamera::Theta() const
@@ -55,9 +55,10 @@ float OrbitCamera::Theta() const
 
 void OrbitCamera::SetTheta(float theta)
 {
+    if (theta == _theta)
+        return;
     _theta = theta;
-    if (!_updateSlot.Connected())
-        _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
+    _Update();
 }
 
 float OrbitCamera::Radius() const
@@ -67,14 +68,16 @@ float OrbitCamera::Radius() const
 
 void OrbitCamera::SetRadius(float radius)
 {
+    if (radius == _radius)
+        return;
     _radius = radius;
-    if (!_updateSlot.Connected())
-        _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
+    _Update();
 }
 
-void OrbitCamera::SetTarget(const std::shared_ptr<Node>& target)
+void OrbitCamera::SetTarget(const std::shared_ptr<Node> target)
 {
+    if (target == _target.lock())
+        return;
     _target = target;
-    if (!_updateSlot.Connected())
-        _updateSlot = Render::OnBeforeRender().ConnectMember(this, &OrbitCamera::_Update);
+    _Update();
 }

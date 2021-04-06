@@ -1,4 +1,5 @@
 #include "UI/UIManager.hpp"
+#include "Driver/OpenGL/Renderer/Renderer.hpp"
 #include "Window.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
@@ -6,7 +7,7 @@
 
 #include <SDL.h>
 
-void UIManager::Init(Window::Handle windowHandle, Render::Context renderContext) {
+void UIManager::Init(Window::Handle windowHandle, Renderer::Context &renderContext) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();

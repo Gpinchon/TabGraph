@@ -1,15 +1,13 @@
 ﻿R""(
-struct RenderHistory {
-    mat4 viewMatrix;
-    mat4 projectionMatrix;
-    sampler2D color;
-    sampler2D emissive;
-};
+layout(location = 0) out vec4 out_0;
 
-uniform RenderHistory	    in_renderHistory;
-uniform sampler2D			in_CurrentColor;
-uniform sampler2D			in_CurrentEmissive;
-uniform sampler2D           in_CurrentVelocity;
+uniform sampler2D   in_PreviousColor;
+uniform sampler2D	in_CurrentColor;
+uniform sampler2D   in_CurrentVelocity;
+uniform vec3        Resolution;
+
+#define ScreenTexCoord() (gl_FragCoord.xy / Resolution.xy)
+#define Luminance(linearColor) dot(linearColor, vec3(0.299, 0.587, 0.114))
 
 /**
  * @ref http://s3.amazonaws.com/arena-attachments/655504/c5c71c5507f0f8bf344252958254fb7d.pdf?1468341463
@@ -50,7 +48,8 @@ void TemporalAccumulation()
         vec2 newUV = ScreenTexCoord() + (neighborsOffset3x3[i] * pixSize);
         vec3 color = texture(in_CurrentColor, newUV).rgb;
         vec2 velocitySample = texelFetch(in_CurrentVelocity, ivec2(ScreenTexCoord() * textureSize(in_CurrentVelocity, 0) + neighborsOffset3x3[i]), 0).xy;
-        velocity = max(velocity, velocitySample);
+        if (length(velocity) < length(velocitySample))
+            velocity = velocitySample;
         min_3x3 = min(min_3x3, color);
         max_3x3 = max(max_3x3, color);
         if (i % 2 == 0) { //We are at corners or middle
@@ -61,7 +60,7 @@ void TemporalAccumulation()
             out_0.rgb = color;
     }
     const vec2 historyUV = ScreenTexCoord() + velocity;
-    vec3 historyColor = texture(in_renderHistory.color, historyUV).rgb;
+    vec3 historyColor = texture(in_PreviousColor, historyUV).rgb;
     if (any(lessThan(historyUV, vec2(0))) || any(greaterThan(historyUV, vec2(1))))
         return;
     vec3 minColor = mix(min_3x3, min_2x2, 0.5);
@@ -69,7 +68,7 @@ void TemporalAccumulation()
     historyColor.rgb = clip_aabb(minColor, maxColor, out_0.rgb, historyColor.rgb);
     float alpha = 0.9 + 0.05 * (1 - abs(Luminance(historyColor.rgb) - Luminance(out_0.rgb)));
     //Use rolling average over time
-    //out = x * (1 − a) + y * a
+    //out = x * (1 - a) + y * a
     out_0.rgb = mix(out_0.rgb, historyColor, alpha);
 }
 

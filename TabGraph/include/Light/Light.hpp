@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-14 19:22:07
+* @Last Modified time: 2021-03-17 23:30:50
 */
 
 #pragma once
@@ -13,15 +13,17 @@
 #include <string> // for string
 #include <vector> // for vector
 
-class Framebuffer;
+class LightProbe;
 
 class Light : public Node {
     PROPERTY(glm::vec3, Color, 1);
     PROPERTY(bool, CastShadow, false);
+    PROPERTY(float, SpecularPower, 1);
 
 public:
     Light(const std::string& name, glm::vec3 color);
     Light();
     virtual void render_shadow() = 0;
     virtual void Draw() = 0;
+    virtual void DrawProbe(LightProbe& lightProbe) = 0;
 };

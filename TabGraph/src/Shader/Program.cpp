@@ -16,6 +16,12 @@ Program::Program() : Component("Shader_" + std::to_string(++shaderProgramNbr))
     _SetImpl(std::make_shared<Program::Impl>());
 }
 
+/*Program::Program(const Program& other) : Component(other)
+{
+    shaderProgramNbr++;
+    _SetImpl(std::make_shared<Program::Impl>(_GetImpl()));
+}*/
+
 Program::Program(const std::string& name) : Program()
 {
     SetName(name);

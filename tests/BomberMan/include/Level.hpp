@@ -24,8 +24,8 @@ public:
     std::shared_ptr<GameEntity> GetGameEntity(glm::ivec2 position) const;
     void SetSpawnPoint(glm::ivec2);
     glm::ivec2 SpawnPoint() const;
-    virtual void Render(const Render::Pass&, const Render::Mode&) override;
-    virtual void RenderDepth(const Render::Mode&) override;
+    virtual void Render(const Renderer::Pass&, const Renderer::Mode&) override;
+    virtual void RenderDepth(const Renderer::Mode&) override;
 
 private:
     virtual void _UpdateCPU(float delta);

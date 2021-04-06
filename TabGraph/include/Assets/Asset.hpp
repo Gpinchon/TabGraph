@@ -14,7 +14,7 @@ public :
 	~Asset();
 	void SetUri(const Uri& uri);
 	Uri GetUri() const;
-	std::atomic<bool>& GetLoaded();
+	bool GetLoaded();
 	void SetLoaded(bool);
 	Signal<std::shared_ptr<Asset>> &OnLoaded();
 	virtual void Load();

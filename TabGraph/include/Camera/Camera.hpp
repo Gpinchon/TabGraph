@@ -31,11 +31,11 @@ public:
      * @brief alias for TransformMatrix
      * @return the camera's view matrix
      */
-    glm::mat4 ViewMatrix();
-    /**
-     * @brief READONLY : Computed on demand
-     */
-    virtual glm::mat4 ProjectionMatrix() const;
+    glm::mat4 GetViewMatrix();
+    void SetViewMatrix(glm::mat4 viewMatrix);
+    virtual glm::mat4 GetProjectionMatrix();
+    virtual void SetProjectionMatrix(glm::mat4 projectionMatrix);
+
     //virtual void SetProjectionMatrix(glm::mat4);
     virtual glm::vec4 Frustum() const;
     virtual void SetFrustum(glm::vec4 frustum);
@@ -63,10 +63,15 @@ private:
     {
         return Component::Create<Camera>(*this);
     }
-    Camera::Projection _projection_type { Projection::Perspective };
-    //glm::mat4 _projection { 0 };
+    Camera::Projection _projectionType { Projection::Perspective };
+    glm::mat4 _projectionMatrix { 0 };
+    glm::mat4 _viewMatrix{ 1 };
     glm::vec4 _frustum { -50, 50, -50, 50 };
     float _fov { 45 };
     float _znear { 0.1 };
     float _zfar { 0 };
+
+protected:
+    bool _projectionMatrixNeedsUpdate{ true };
+    bool _viewMatrixNeedsUpdate{ true };
 };

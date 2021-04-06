@@ -8,13 +8,12 @@
 #pragma once
 
 #include "Camera/Camera.hpp"
-#include "Event/Signal.hpp"
 
 class OrbitCamera : public Camera {
 public:
     OrbitCamera(const std::string&, float fov, float phi, float theta, float radius, Camera::Projection proj = Projection::Perspective);
     std::shared_ptr<Node> Target() const;
-    void SetTarget(const std::shared_ptr<Node>& target);
+    void SetTarget(const std::shared_ptr<Node> target);
     float Phi() const;
     void SetPhi(float);
     float Theta() const;
@@ -32,8 +31,7 @@ private:
     {
         return Component::Create<OrbitCamera>(*this);
     }
-    virtual void _Update(float delta);
-    Signal<float>::ScoppedSlot _updateSlot;
+    virtual void _Update();
     float _phi { 0 };
     float _theta { 0 };
     float _radius { 0 };

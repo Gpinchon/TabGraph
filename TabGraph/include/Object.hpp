@@ -10,10 +10,6 @@
 #include "Event/Signal.hpp"
 #include "Property.hpp"
 
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#include <stdlib.h>
-
 #include <memory> // for enable_shared_from_this, shared_ptr
 #include <string> // for string
 #include <typeindex>

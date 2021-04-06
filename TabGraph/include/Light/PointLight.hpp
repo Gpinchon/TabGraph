@@ -9,4 +9,7 @@ public:
 	PointLight(const std::string& name, glm::vec3 color, bool cast_shadow = false);
 	virtual void render_shadow();
 	virtual void Draw();
+
+	// Hérité via Light
+	virtual void DrawProbe(LightProbe& lightProbe) override;
 };

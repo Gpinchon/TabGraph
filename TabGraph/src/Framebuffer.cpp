@@ -6,12 +6,14 @@
 */
 
 #include "Framebuffer.hpp"
+#include "Texture/Texture2D.hpp" // for Texture2D
 #include "Debug.hpp" // for glCheckError
 #include "Window.hpp" // for Window
 
+#include <GL/glew.h> // for GLenum
 #include <stdexcept> // for runtime_error
 
-Framebuffer::Framebuffer(const std::string& name, glm::ivec2 size, int color_attachements, int depth)
+Framebuffer::Framebuffer(const std::string& name, glm::ivec2 size, int color_attachements, int depth, int multiSample)
     : Component(name)
 {
     int i;
@@ -19,11 +21,17 @@ Framebuffer::Framebuffer(const std::string& name, glm::ivec2 size, int color_att
     _size = size;
     i = 0;
     while (i < color_attachements) {
-        Create_attachement(Pixel::SizedFormat::Uint8_NormalizedRGBA);
+        if (multiSample > 0)
+            SetColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Uint8_NormalizedRGBA, multiSample), i);
+        else
+            SetColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Uint8_NormalizedRGBA), i);
         i++;
     }
     if (depth != 0) {
-        Create_attachement(Pixel::SizedFormat::Depth24);
+        if (multiSample > 0)
+            SetDepthBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Depth24, multiSample));
+        else
+            SetDepthBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Depth24));
     }
 }
 
@@ -60,31 +68,6 @@ void Framebuffer::bind_default()
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glViewport(0, 0, Window::GetSize().x, Window::GetSize().y);
     Shader::Global::SetUniform("Resolution", glm::vec3(Window::GetSize(), Window::GetSize().x / float(Window::GetSize().y)));
-}
-
-std::shared_ptr<Texture2D> Framebuffer::Create_attachement(Pixel::SizedFormat format)
-{
-    bool isDepth{
-        format == Pixel::SizedFormat::Depth16 ||
-        format == Pixel::SizedFormat::Depth24 ||
-        format == Pixel::SizedFormat::Depth32
-    };
-    std::string tname;
-    if (isDepth)
-        tname = (GetName() + "_depth");
-    else
-        tname = (GetName() + "_attachement_" + std::to_string(_color_attachements.size()));
-    auto a = Component::Create<Texture2D>(Size(), format);
-    a->SetName(tname);
-    a->SetParameter<Texture::Parameter::WrapS>(Texture::Wrap::ClampToEdge);
-    a->SetParameter<Texture::Parameter::WrapT>(Texture::Wrap::ClampToEdge);
-    if (isDepth) {
-        _depth = std::pair(a, 0);
-    } else {
-        _color_attachements.push_back(std::pair(a, 0));
-    }
-    _attachementsChanged = true;
-    return (a);
 }
 
 void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::ivec2 src1, glm::ivec2 dst0, glm::ivec2 dst1, GLbitfield mask, GLenum filter)
@@ -142,55 +125,36 @@ void Framebuffer::setup_attachements()
 {
     if (!_attachementsChanged)
         return;
-    GLenum format[2];
     std::vector<GLenum> color_attachements;
-    for (auto attachement : _color_attachements)
-        attachement.first->Load();
-    if (_depth.first != nullptr)
-        _depth.first->Load();
-
+    for (auto attachement : _colorBuffers) {
+        if (attachement.first != nullptr)
+            attachement.first->Load();
+    }
+    //Distinct depth and stencil buffers are not allowed, use Depth24_Stencil8 texture format.
+    if (_depthBuffer.first != nullptr && _stencilBuffer.first != nullptr)
+        assert(_depthBuffer.first == _stencilBuffer.first);
+    if (_depthBuffer.first != nullptr)
+        _depthBuffer.first->Load();
+    if (_stencilBuffer.first != nullptr)
+        _stencilBuffer.first->Load();
     glBindFramebuffer(GL_FRAMEBUFFER, GetHandle());
-    for (auto i = 0u; i < _color_attachements.size(); ++i) {
-        auto attachement(_color_attachements.at(i));
-        if (attachement.first->GetPixelDescription().GetUnsizedFormat() != Pixel::UnsizedFormat::Depth) {
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attachement.first->GetHandle(), attachement.second);
-            color_attachements.push_back(GL_COLOR_ATTACHMENT0 + i);
+    if (_depthBuffer.first != nullptr)
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthBuffer.first->GetHandle(), _depthBuffer.second);
+    if (_stencilBuffer.first != nullptr)
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, _stencilBuffer.first->GetHandle(), _stencilBuffer.second);
+    for (auto i = 0u; i < _colorBuffers.size(); ++i) {
+        auto attachement(_colorBuffers.at(i));
+        if (attachement.first == nullptr) {
+            color_attachements.push_back(GL_NONE);
+            continue;
         }
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, attachement.first->GetHandle(), attachement.second);
+        color_attachements.push_back(GL_COLOR_ATTACHMENT0 + i);
     }
-    if (_depth.first != nullptr) {
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth.first->GetHandle(), _depth.second);
-    }
-    if (!color_attachements.empty())
-        glDrawBuffers(color_attachements.size(), &color_attachements.at(0));
-    else
-        glDrawBuffers(0, nullptr);
+    glDrawBuffers(color_attachements.size(), color_attachements.data());
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     _attachementsChanged = false;
 }
-/*
-void Framebuffer::_resize_attachement(const int& attachement, const glm::vec2& ns)
-{
-    auto t = Framebuffer::attachement(attachement);
-    if (t == nullptr) {
-        return;
-    }
-    t->Resize(ns);
-    //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachement, t->glid(), 0);
-    //if (glCheckError(Name()))
-        throw std::runtime_error("");
-}
-
-void Framebuffer::_resize_depth(const glm::vec2& ns)
-{
-    if (_depth.first == nullptr) {
-        return;
-    }
-    _depth.first->Resize(ns);
-    //glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth->glid(), 0);
-    //if (glCheckError(Name()))
-        throw std::runtime_error("");
-}
-*/
 
 glm::ivec2 Framebuffer::Size() const
 {
@@ -203,54 +167,67 @@ void Framebuffer::Resize(const glm::ivec2& new_size)
         return;
     }
     _size = new_size;
-    for (auto attachement : _color_attachements)
-        attachement.first->SetSize(new_size);
-    if (_depth.first != nullptr)
-        _depth.first->SetSize(new_size);
+    for (auto attachement : _colorBuffers) {
+        if (attachement.first != nullptr)
+            attachement.first->SetSize(new_size);
+    }
+    if (_depthBuffer.first != nullptr)
+        _depthBuffer.first->SetSize(new_size);
+    if (_stencilBuffer.first != nullptr)
+        _stencilBuffer.first->SetSize(new_size);
     _attachementsChanged = true;
 }
 
-size_t Framebuffer::AddAttachement(std::shared_ptr<Texture2D> texture2D)
+Framebuffer& Framebuffer::AddColorBuffer(std::shared_ptr<Texture2D> attachement, unsigned mipLevel)
 {
-    _color_attachements.push_back(std::pair(texture2D, 0));
-    set_attachement(_color_attachements.size() - 1, texture2D);
-    return _color_attachements.size() - 1;
+    return SetColorBuffer(attachement, _colorBuffers.size());
 }
 
-void Framebuffer::set_attachement(unsigned color_attachement, std::shared_ptr<Texture2D> texture2D, unsigned mipLevel)
+Framebuffer& Framebuffer::AddColorBuffer(Pixel::SizedFormat pixelFormat, unsigned mipLevel)
 {
+    return AddColorBuffer(Component::Create<Texture2D>(Size(), pixelFormat), mipLevel);
+}
+
+Framebuffer& Framebuffer::SetColorBuffer(std::shared_ptr<Texture2D> attachement, unsigned color_attachement, unsigned mipLevel)
+{
+    //_colorBuffers.push_back(std::pair(attachement, mipLevel));
+    if (_colorBuffers.size() <= color_attachement)
+        _colorBuffers.resize(color_attachement + 1);
     try {
-        _color_attachements.at(color_attachement).first = texture2D;
-        _color_attachements.at(color_attachement).second = mipLevel;
-    } catch (std::runtime_error& e) {
+        _colorBuffers.at(color_attachement) = std::make_pair(attachement, mipLevel);
+    }
+    catch (std::runtime_error& e) {
         throw std::runtime_error(GetName() + " : " + e.what());
     }
     _attachementsChanged = true;
-    /*bind();
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + color_attachement, texture2D ? texture2D->glid() : 0, mipLevel);
-    if (glCheckError(Name()))
-        throw std::runtime_error("");
-    bind(false);*/
+    return *this;
 }
 
-void Framebuffer::SetDepthBuffer(std::shared_ptr<Texture2D> depth, unsigned mipLevel)
+Framebuffer& Framebuffer::SetStencilBuffer(std::shared_ptr<Texture2D> buffer, unsigned mipLevel)
 {
-    _depth.first = depth;
-    _depth.second = mipLevel;
+    _stencilBuffer = std::make_pair(buffer, mipLevel);
     _attachementsChanged = true;
-    /*bind();
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth ? depth->glid() : 0, mipLevel);
-    if (glCheckError(Name()))
-        throw std::runtime_error("");
-    bind(false);*/
+    return *this;
 }
 
-std::shared_ptr<Texture2D> Framebuffer::attachement(unsigned color_attachement)
+Framebuffer& Framebuffer::SetDepthBuffer(std::shared_ptr<Texture2D> buffer, unsigned mipLevel)
 {
-    return _color_attachements.at(color_attachement).first;
+    _depthBuffer = std::make_pair(buffer, mipLevel);
+    _attachementsChanged = true;
+    return *this;
 }
 
-std::shared_ptr<Texture2D> Framebuffer::depth()
+std::shared_ptr<Texture2D> Framebuffer::GetColorBuffer(unsigned color_attachement)
 {
-    return _depth.first;
+    return _colorBuffers.at(color_attachement).first;
+}
+
+std::shared_ptr<Texture2D> Framebuffer::GetDepthBuffer()
+{
+    return _depthBuffer.first;
+}
+
+std::shared_ptr<Texture2D> Framebuffer::GetStencilBuffer()
+{
+    return _stencilBuffer.first;
 }

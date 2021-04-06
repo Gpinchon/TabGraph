@@ -61,10 +61,9 @@ void	Lighting()
 	vec3	H = normalize(V + L);
 	float	NdotL = max(dot(N , L), 0.0);
 	float	NdotH = max(dot(N , H), 0.0);
-	vec3	diffuse = Light.Color * Attenuation * NdotL;
-	float	SpecularPower = GlossToSpecularPower(1 - sqrt(Alpha()));
-
-	out_0 = vec4(diffuse, SpecularFactor(NdotH, SpecularPower) * Attenuation);
-	out_1 = vec4(0);
+	vec3	Diffuse = Light.Color * NdotL;
+	const vec3	Specular = Light.Color * SpecularFactor(NdotH, GlossToSpecularPower(1 - sqrt(Alpha())));
+	SetDiffuse(vec4(Diffuse * Attenuation, 1));
+    SetReflection(min(vec4(Specular * Attenuation, 1), 10.f));
 }
 )""

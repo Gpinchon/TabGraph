@@ -167,10 +167,11 @@ void SetupCallbacks()
 #include <csignal>
 #include <filesystem>
 #include "Texture/Cubemap.hpp"
-#include "Environment.hpp"
+#include "Skybox.hpp"
 #include "Assets/Image.hpp"
 #include "Light/PointLight.hpp"
-#include "Light/Sky.hpp"
+#include "Light/SkyLight.hpp"
+#include "Light/HDRLight.hpp"
 
 int main(int argc, char** argv)
 {
@@ -199,28 +200,33 @@ int main(int argc, char** argv)
                 return -43;
             }
             scene->SetCurrentCamera(fpsCamera);
-            auto skyLight{ Component::Create<Sky>() };
-            skyLight->SetSunDir(glm::vec3(0, 0.75, 1));
-            auto dirLight =  Component::Create<DirectionnalLight>("MainLight", glm::vec3(0.025), -skyLight->GetSunDir(), false);
-            dirLight->SetHalfSize(glm::vec3(50));
-            auto pointLight = Component::Create<PointLight>("PointLight", glm::vec3(1, 0, 0));
+            auto newEnv = Component::Create<Skybox>("Skybox");
+            auto diffuseAsset{ Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/diffuse.hdr").string()) };
+            newEnv->SetTexture(Component::Create<Cubemap>(diffuseAsset));//"EnvironmentCube", TextureParser::parse("Skybox", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
+            scene->SetSkybox(newEnv);
+
+            auto hdrLight{ Component::Create<HDRLight>(diffuseAsset) };
+            //auto skyLight{ Component::Create<SkyLight>() };
+            //skyLight->SetSunDirection(glm::vec3(1, 1, 1));
+            //skyLight->SetSpecularPower(0);
+            //auto dirLight =  Component::Create<DirectionnalLight>("MainLight", glm::vec3(0.025), -skyLight->GetSunDirection(), false);
+            //dirLight->SetHalfSize(glm::vec3(50));
+            auto dirLight = Component::Create<DirectionnalLight>("MainLight", glm::vec3(1), glm::vec3(1, 1, 1), false);
+            auto pointLight = Component::Create<PointLight>("PointLight", glm::vec3(1, 1, 1));
             //pointLight->SetPosition(glm::vec3(0, 0.1, 0));
             pointLight->SetPower(2);
             pointLight->SetParent(fpsCamera);
             s_light = pointLight;
             
+            scene->Add(hdrLight);
+            //scene->Add(skyLight);
             scene->Add(dirLight);
-            scene->Add(skyLight);
             scene->Add(pointLight);
-            auto newEnv = Component::Create<Environment>("Environment");
-            newEnv->SetDiffuse(Component::Create<Cubemap>(Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/diffuse.hdr").string())));//"EnvironmentCube", TextureParser::parse("Environment", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
-            newEnv->SetIrradiance(Component::Create<Cubemap>(Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/environment.hdr").string())));//"EnvironmentDiffuse", TextureParser::parse("EnvironmentDiffuse", (Engine::ResourcePath() / "env/environment.hdr").string())));
-            scene->SetEnvironment(newEnv);
+            
             Scene::SetCurrent(scene);
         }
         SetupCallbacks();
         Engine::Start();
     }
-    _CrtDumpMemoryLeaks();
     return 0;
 }

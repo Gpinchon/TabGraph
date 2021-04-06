@@ -26,7 +26,7 @@ class Animation;
 class Mesh;
 class Scene;
 
-namespace Render {
+namespace Renderer {
     enum class Pass;
     enum class Mode;
 }
@@ -42,14 +42,7 @@ public:
     Node();
     Node(const Node& node);
     Node(const std::string& name);
-    virtual bool Draw(std::shared_ptr<Scene> scene, const Render::Pass &pass, const Render::Mode &mode, bool drawChildren = false);
-    //virtual bool Draw(RenderPass pass, RenderMod = RenderMod::RenderAll, bool drawChildren = false);
-    virtual bool DrawDepth(std::shared_ptr<Scene> scene, const Render::Mode &mode, bool drawChildren = false);
 
-    /** @return the Node's parent */
-    //std::shared_ptr<Node> Parent() const { return _parent.lock(); };
-    /** sets the parent to parent and calls AddChild in parent */
-    //void SetParent(std::shared_ptr<Node> parent);
     void AddChild(std::shared_ptr<Node>);
     /** @return true if @arg child is in children list */
     bool HasChild(std::shared_ptr<Node> child) { return HasComponent(child); };
@@ -104,7 +97,15 @@ public:
     void LookAt(const glm::vec3& target, const glm::vec3& up = Common::Up());
     void LookAt(const std::shared_ptr<Node>& target, const glm::vec3& up = Common::Up());
     Signal<std::shared_ptr<Node>> ParentChanged;
+    /**
+     * @brief 
+     * @return the Node's parent
+    */
     std::shared_ptr<Node> GetParent() const;
+    /**
+     * @brief sets the parent to parent and calls AddChild in parent
+     * @param parent : the Node's new parent
+    */
     void SetParent(std::shared_ptr<Node> parent);
 
 private:
@@ -115,9 +116,7 @@ private:
         return newNode;
     }
 
-    virtual void _UpdateMeshSkin(float);
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
-    float _meshSkinUpdateDelta{ 0 };
     virtual void _Replace(const std::shared_ptr<Component> oldComponent, const std::shared_ptr<Component> newComponent) override {
         if (GetParent() == oldComponent)
             SetParent(std::static_pointer_cast<Node>(newComponent));

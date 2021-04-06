@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-11-24 21:47:21
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-02-24 23:04:15
+* @Last Modified time: 2021-03-15 00:04:45
 */
 
 #include "Light/DirectionnalLight.hpp"
@@ -12,11 +12,13 @@
 #include "Framebuffer.hpp"
 #include "Mesh/CubeMesh.hpp"
 #include "Mesh/Geometry.hpp"
-#include "Render.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Renderer/SceneRenderer.hpp"
+#include "Renderer/GeometryRenderer.hpp"
 #include "Scene/Scene.hpp"
 #include "Shader/Global.hpp"
 #include "Shader/Program.hpp"
-
+#include "Texture/Cubemap.hpp"
 #include "SphericalHarmonics.hpp"
 
 #include <glm/glm.hpp>
@@ -29,57 +31,62 @@ static inline auto DirectionnalLightGeometry()
 
 static inline auto DirectionnalLightVertexCode()
 {
-    static auto lightingVertexCode =
-#include "light.vert"
+    auto lightingVertexCode =
+#include "Lights/TransformGeometry.vert"
         ;
-    static Shader::Stage::Code shaderCode { lightingVertexCode, "TransformGeometry();" };
+    Shader::Stage::Code shaderCode { lightingVertexCode, "TransformGeometry();" };
     return shaderCode;
 }
 
 static inline auto DirectionnalLightFragmentCode()
 {
-    static auto deferred_frag_code =
+    auto deferred_frag_code =
 #include "deferred.frag"
         ;
-    static auto randomCode =
+    auto randomCode =
 #include "Random.glsl"
         ;
-    static auto shadowCode =
+    auto shadowCode =
 #include "SampleShadowMap.glsl"
         ;
-    static auto lightingFragmentCode =
-#include "directionnalLight.frag"
+    auto deferredDirLightFragmentCode =
+#include "Lights/DeferredDirectionnalLight.frag"
         ;
-    static Shader::Stage::Code shaderCode =
+    Shader::Stage::Code shaderCode =
         Shader::Stage::Code { deferred_frag_code, "FillFragmentData();" } +
         Shader::Stage::Code { randomCode } +
         Shader::Stage::Code { shadowCode } +
-        Shader::Stage::Code { lightingFragmentCode, "Lighting();" };
+        Shader::Stage::Code { deferredDirLightFragmentCode, "Lighting();" };
     return shaderCode;
 }
 
-auto DirectionnalLightShader()
+static inline auto DeferredDirectionnalLightShader()
 {
-    static std::shared_ptr<Shader::Program> shader;
+    std::shared_ptr<Shader::Program> shader;
     if (shader == nullptr) {
         shader = Component::Create<Shader::Program>("DirectionnalLightShader");
-        shader->SetDefine("LIGHTSHADER");
+        shader->SetDefine("Pass", "DeferredLighting");
         shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DirectionnalLightVertexCode()));
         shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DirectionnalLightFragmentCode()));
     }
     return shader;
 }
 
-auto DirectionnalLightLUTShader() {
-    static std::shared_ptr<Shader::Program> shader;
+static inline auto ProbeDirectionnalLightShader()
+{
+    std::shared_ptr<Shader::Program> shader;
     if (shader == nullptr) {
-        auto deferredVertexCode = 
+        auto LayeredCubemapRenderCode =
+#include "LayeredCubemapRender.geom"
+            ;
+        auto deferredVertexCode =
 #include "deferred.vert"
             ;
         auto dirLightFragCode =
-#include "dirLightDiffuseLUT.frag"
+#include "Lights/ProbeDirectionnalLight.frag"
             ;
         shader = Component::Create<Shader::Program>("DirectionnalLUTShader");
+        shader->Attach(Shader::Stage(Shader::Stage::Type::Geometry, { LayeredCubemapRenderCode, "LayeredCubemapRender();" }));
         shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertexCode, "FillVertexData();" }));
         shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { dirLightFragCode, "Lighting();" }));
     }
@@ -88,6 +95,8 @@ auto DirectionnalLightLUTShader() {
 
 DirectionnalLight::DirectionnalLight()
 {
+    _probeShader = ProbeDirectionnalLightShader();
+    _deferredShader = DeferredDirectionnalLightShader();
     static auto g_dirLightNbr = 0u;
     SetName("DirectionalLight_" + std::to_string(g_dirLightNbr));
     ++g_dirLightNbr;
@@ -100,50 +109,39 @@ DirectionnalLight::DirectionnalLight(const std::string& name, glm::vec3 color, g
     SetColor(color);
     SetDirection(direction);
     SetHalfSize(glm::vec3(500));
-    SetComponent(DirectionnalLightShader());
     SetCastShadow(cast_shadow);
     if (cast_shadow) {
-        _SetShadowBuffer(Component::Create<Framebuffer>(GetName() + "_shadowMap", glm::vec2(Config::Global().Get("ShadowRes", 1024)), 0, 0));
-        _GetShadowBuffer()->Create_attachement(Pixel::SizedFormat::Depth24);
-        _GetShadowBuffer()->depth()->SetParameter<Texture::Parameter::CompareMode>(Texture::CompareMode::CompareRefToTexture);
-        _GetShadowBuffer()->depth()->SetParameter<Texture::Parameter::CompareFunc>(Texture::CompareFunc::LessEqual);
+        auto shadowRes{ glm::vec2(Config::Global().Get("ShadowRes", 1024)) };
+        _SetShadowBuffer(Component::Create<Framebuffer>(GetName() + "_shadowMap", shadowRes, 0, 0));
+        _GetShadowBuffer()->SetDepthBuffer(Component::Create<Texture2D>(shadowRes, Pixel::SizedFormat::Depth24));
+        _GetShadowBuffer()->GetDepthBuffer()->SetParameter<Texture::Parameter::CompareMode>(Texture::CompareMode::CompareRefToTexture);
+        _GetShadowBuffer()->GetDepthBuffer()->SetParameter<Texture::Parameter::CompareFunc>(Texture::CompareFunc::LessEqual);
     }
-}
-
-glm::vec3 DirectionnalLight::GetDirection() const
-{
-    return _direction;
 }
 
 void DirectionnalLight::SetDirection(const glm::vec3& direction)
 {
-    _direction = normalize(direction);
+    _SetDirection(normalize(direction));
 }
-glm::vec3 DirectionnalLight::HalfSize() const
+
+glm::vec3 DirectionnalLight::GetHalfSize() const
 {
     return GetScale() / 2.f;
 }
+
 void DirectionnalLight::SetHalfSize(const glm::vec3& halfSize)
 {
     SetScale(halfSize * 2.f);
 }
-glm::vec3 DirectionnalLight::Min() const
+
+glm::vec3 DirectionnalLight::GetMin() const
 {
-    return WorldPosition() - HalfSize();
-}
-glm::vec3 DirectionnalLight::Max() const
-{
-    return WorldPosition() + HalfSize();
+    return WorldPosition() - GetHalfSize();
 }
 
-bool DirectionnalLight::Infinite() const
+glm::vec3 DirectionnalLight::GetMax() const
 {
-    return _infinite;
-}
-
-void DirectionnalLight::SetInfinite(bool infinite)
-{
-    _infinite = infinite;
+    return WorldPosition() + GetHalfSize();
 }
 
 auto GetUp(const glm::vec3& direction)
@@ -166,7 +164,7 @@ std::array<glm::vec3, 8> ExtractFrustum(const std::shared_ptr<Camera>& camera)
         glm::vec3(1.0f, 1.0f, -1.0f),
         glm::vec3(1.0f, -1.0f, -1.0f)
     };
-    auto invVP = glm::inverse(camera->ProjectionMatrix() * camera->ViewMatrix());
+    auto invVP = glm::inverse(camera->GetProjectionMatrix() * camera->GetViewMatrix());
     for (auto& v : NDCCube) {
         glm::vec4 normalizedCoord = invVP * glm::vec4(v, 1);
         v = glm::vec3(normalizedCoord) / normalizedCoord.w;
@@ -177,7 +175,7 @@ std::array<glm::vec3, 8> ExtractFrustum(const std::shared_ptr<Camera>& camera)
 void DirectionnalLight::render_shadow()
 {
     if (GetCastShadow())
-        Infinite() ? DrawShadowInfinite() : DrawShadowFinite();
+        GetInfinite() ? DrawShadowInfinite() : DrawShadowFinite();
 }
 
 void NormalizePlane(glm::vec4& plane)
@@ -220,79 +218,41 @@ std::array<glm::vec4, 6> ExtractPlanes(const glm::mat4& matrix, bool normalizePl
 
 void DirectionnalLight::Draw()
 {
-    static auto SH{ SphericalHarmonics(100) };
-    static auto sphericalHarmonicsColor{
-        SH.ProjectFunction(
-        [=](const SphericalHarmonics::Sample& sample) {
-                return GetColor() * glm::dot(sample.vec, glm::normalize(GetDirection()));
-        })
-    };
-    if (_diffuseLUTNeedsUpdate) {
-        if (_specularLUT == nullptr) {
-            _specularLUT = Component::Create<Texture2D>(glm::ivec2(256), Pixel::SizedFormat::Float16_RGB);
-            _specularLUT->SetParameter<Texture::Parameter::WrapS>(Texture::Wrap::ClampToEdge);
-            _specularLUT->SetParameter<Texture::Parameter::WrapT>(Texture::Wrap::ClampToEdge);
-            _specularLUT->Load();
-            _specularLUT->GenerateMipmap();
-        }
-        static auto s_diffuseLUTBuffer = Component::Create<Framebuffer>("DiffuseLUTBuffer", glm::ivec2(256));
-        glDisable(GL_CULL_FACE);
-        s_diffuseLUTBuffer->set_attachement(0, nullptr);
-        s_diffuseLUTBuffer->Resize(glm::ivec2(256));
-        for (auto level = 0u; level < _specularLUT->GetMipMapNbr(); ++level) {
-            s_diffuseLUTBuffer->set_attachement(0, _specularLUT, level);
-            s_diffuseLUTBuffer->bind();
-            float BRDFAlpha{ level / float(_specularLUT->GetMipMapNbr()) };
-            DirectionnalLightLUTShader()->Use()
-                .SetUniform("SpecularMode", true)
-                .SetUniform("BRDFAlpha", BRDFAlpha);
-            glClear(GL_COLOR_BUFFER_BIT);
-            Render::DisplayQuad()->Draw();
-            s_diffuseLUTBuffer->set_attachement(0, nullptr);
-            s_diffuseLUTBuffer->Resize(s_diffuseLUTBuffer->Size() / 2);
-        }
-        _diffuseLUTNeedsUpdate = false;
-        //re-bind lighting buffer
-        Render::LightBuffer()->bind();
-        glEnable(GL_CULL_FACE);
-    }
-
-    auto geometryBuffer = Render::GeometryBuffer();
+    auto geometryBuffer = Renderer::DeferredGeometryBuffer();
     glm::vec3 geometryPosition;
-    if (Infinite())
+    if (GetInfinite())
         geometryPosition = Scene::Current()->CurrentCamera()->WorldPosition();
     else
         geometryPosition = GetParent() ? GetParent()->WorldPosition() + GetPosition() : GetPosition();
     if (GetCastShadow())
-        DirectionnalLightShader()->SetDefine("SHADOW");
+        _deferredShader->SetDefine("SHADOW");
     else
-        DirectionnalLightShader()->RemoveDefine("SHADOW");
-    DirectionnalLightShader()->Use()
-        .SetTexture("SpecularLUT", _specularLUT)
-        .SetTexture("DefaultBRDFLUT", Render::DefaultBRDFLUT())
-        .SetTexture("Light.Shadow", GetCastShadow() ? _GetShadowBuffer()->depth() : nullptr)
-        .SetUniform("SphericalHarmonics[0]", sphericalHarmonicsColor.data(), sphericalHarmonicsColor.size())
-        .SetUniform("SHCartesianShapes[0]", SH.GetCartesianCoeffs().data(), SH.GetCartesianCoeffs().size())
-        .SetUniform("Light.Max", Max())
-        .SetUniform("Light.Min", Min())
-        .SetUniform("Light.Projection", (Infinite() ? ShadowProjectionMatrixInfinite() : ShadowProjectionMatrixFinite()) * ShadowViewMatrix())
+        _deferredShader->RemoveDefine("SHADOW");
+    glDisable(GL_CULL_FACE);
+    _deferredShader->Use()
         .SetUniform("Light.Color", GetColor())
         .SetUniform("Light.Direction", GetDirection())
-        .SetUniform("Light.Infinite", Infinite())
-        .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * GetLocalScaleMatrix())
-        .SetTexture("Texture.Geometry.CDiff", geometryBuffer->attachement(0))
-        .SetTexture("Texture.Geometry.F0", geometryBuffer->attachement(2))
-        .SetTexture("Texture.Geometry.Normal", geometryBuffer->attachement(4))
-        .SetTexture("Texture.Geometry.Depth", geometryBuffer->depth());
-    DirectionnalLightGeometry()->Draw();
-    DirectionnalLightShader()->Done();
+        .SetTexture("Light.Shadow", GetCastShadow() ? _GetShadowBuffer()->GetDepthBuffer() : nullptr)
+        .SetUniform("Light.Max", GetMax())
+        .SetUniform("Light.Min", GetMin())
+        .SetUniform("Light.Projection", (GetInfinite() ? ShadowProjectionMatrixInfinite() : ShadowProjectionMatrixFinite()) * ShadowViewMatrix())
+        .SetUniform("Light.Infinite", GetInfinite()).SetUniform("GeometryMatrix", glm::translate(geometryPosition) * GetLocalScaleMatrix())
+        .SetTexture("Texture.Geometry.CDiff", geometryBuffer->GetColorBuffer(0))
+        .SetTexture("Texture.Geometry.F0", geometryBuffer->GetColorBuffer(1))
+        .SetTexture("Texture.Geometry.Normal", geometryBuffer->GetColorBuffer(2))
+        .SetTexture("Texture.Geometry.Depth", geometryBuffer->GetDepthBuffer());
+    Renderer::Render(DirectionnalLightGeometry(), true);
+    _deferredShader->Done();
 }
 
 void DirectionnalLight::DrawShadowInfinite()
 {
     auto camera = Scene::Current()->CurrentCamera();
-    auto radius = glm::distance(WorldPosition(), Max());
+    auto radius = glm::distance(WorldPosition(), GetMax());
     auto camPos = WorldPosition() - GetDirection() * radius;
+    static std::shared_ptr<Camera> tempCamera(new Camera("dirLightCamera"));
+    tempCamera->SetProjectionMatrix(ShadowProjectionMatrixInfinite());
+    tempCamera->SetViewMatrix(ShadowViewMatrix());
 
     Shader::Global::SetUniform("Camera.Position", camPos);
     Shader::Global::SetUniform("Camera.Matrix.View", ShadowViewMatrix());
@@ -302,19 +262,28 @@ void DirectionnalLight::DrawShadowInfinite()
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    Scene::Current()->RenderDepth(Render::Mode::All);
+    Renderer::Render(Scene::Current(), {
+        Renderer::Options::Pass::ShadowDepth,
+        Renderer::Options::Mode::All,
+        tempCamera,
+        Scene::Current(),
+        Renderer::FrameNumber()
+    });
     _shadowBuffer->bind(false);
     Scene::Current()->SetCurrentCamera(camera);
     Shader::Global::SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
-    Shader::Global::SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
-    Shader::Global::SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->GetViewMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->GetProjectionMatrix());
 }
 
 void DirectionnalLight::DrawShadowFinite()
 {
     auto camera = Scene::Current()->CurrentCamera();
-    auto radius = glm::distance(WorldPosition(), Max());
+    auto radius = glm::distance(WorldPosition(), GetMax());
     auto camPos = WorldPosition() - GetDirection() * radius;
+    static std::shared_ptr<Camera> tempCamera(new Camera("dirLightCamera"));
+    tempCamera->SetProjectionMatrix(ShadowProjectionMatrixFinite());
+    tempCamera->SetViewMatrix(ShadowViewMatrix());
 
     Shader::Global::SetUniform("Camera.Position", camPos);
     Shader::Global::SetUniform("Camera.Matrix.View", ShadowViewMatrix());
@@ -324,12 +293,18 @@ void DirectionnalLight::DrawShadowFinite()
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    Scene::Current()->RenderDepth(Render::Mode::All);
+    Renderer::Render(Scene::Current(), {
+        Renderer::Options::Pass::ShadowDepth,
+        Renderer::Options::Mode::All,
+        tempCamera,
+        Scene::Current(),
+        Renderer::FrameNumber()
+    });
     _shadowBuffer->bind(false);
     Scene::Current()->SetCurrentCamera(camera);
     Shader::Global::SetUniform("Camera.Position", Scene::Current()->CurrentCamera()->WorldPosition());
-    Shader::Global::SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->ViewMatrix());
-    Shader::Global::SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->ProjectionMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.View", Scene::Current()->CurrentCamera()->GetViewMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.Projection", Scene::Current()->CurrentCamera()->GetProjectionMatrix());
 }
 
 glm::mat4 DirectionnalLight::ShadowProjectionMatrixInfinite() const
@@ -359,15 +334,16 @@ glm::mat4 DirectionnalLight::ShadowProjectionMatrixFinite() const
     auto viewMatrix = ShadowViewMatrix();
 
     static std::array<glm::vec3, 7> vertex {};
-    vertex.at(0) = Max();
-    vertex.at(1) = glm::vec3(Min().x, Min().y, Max().z);
-    vertex.at(2) = glm::vec3(Min().x, Max().y, Max().z);
-    vertex.at(3) = glm::vec3(Min().x, Max().y, Min().z);
-    vertex.at(4) = glm::vec3(Max().x, Max().y, Min().z);
-    vertex.at(5) = glm::vec3(Max().x, Min().y, Min().z);
-    vertex.at(6) = glm::vec3(Max().x, Min().y, Max().z);
-    glm::vec3 maxOrtho = viewMatrix * glm::vec4(Min(), 1);
-    glm::vec3 minOrtho = viewMatrix * glm::vec4(Min(), 1);
+    const auto min { GetMin() }, max { GetMax() };
+    vertex.at(0) = GetMax();
+    vertex.at(1) = glm::vec3(min.x, min.y, max.z);
+    vertex.at(2) = glm::vec3(min.x, max.y, max.z);
+    vertex.at(3) = glm::vec3(min.x, max.y, min.z);
+    vertex.at(4) = glm::vec3(max.x, max.y, min.z);
+    vertex.at(5) = glm::vec3(max.x, min.y, min.z);
+    vertex.at(6) = glm::vec3(max.x, min.y, max.z);
+    glm::vec3 maxOrtho = viewMatrix * glm::vec4(min, 1);
+    glm::vec3 minOrtho = viewMatrix * glm::vec4(min, 1);
     for (auto& v : vertex) {
         v = viewMatrix * glm::vec4(v, 1);
         maxOrtho.x = std::max(maxOrtho.x, v.x);
@@ -385,19 +361,9 @@ glm::mat4 DirectionnalLight::ShadowProjectionMatrixFinite() const
 
 glm::mat4 DirectionnalLight::ShadowViewMatrix() const
 {
-    auto radius = glm::distance(WorldPosition(), Max());
+    auto radius = glm::distance(WorldPosition(), GetMax());
     auto camPos = WorldPosition() - GetDirection() * radius;
     return glm::lookAt(camPos, WorldPosition(), GetUp(GetDirection()));
-}
-
-std::shared_ptr<Shader::Program> DirectionnalLight::_GetShader() const
-{
-    return _shader;
-}
-
-void DirectionnalLight::_SetShader(std::shared_ptr<Shader::Program> shader)
-{
-    _shader = shader;
 }
 
 std::shared_ptr<Framebuffer> DirectionnalLight::_GetShadowBuffer() const
@@ -408,4 +374,25 @@ std::shared_ptr<Framebuffer> DirectionnalLight::_GetShadowBuffer() const
 void DirectionnalLight::_SetShadowBuffer(std::shared_ptr<Framebuffer> shadowBuffer)
 {
     _shadowBuffer = shadowBuffer;
+}
+
+#include "Light/LightProbe.hpp"
+
+void DirectionnalLight::DrawProbe(LightProbe& lightProbe)
+{
+    static auto diffuseSH{
+        lightProbe.GetSphericalHarmonics().ProjectFunction(
+            [=](const SphericalHarmonics::Sample& sample) {
+                return GetColor() * glm::dot(sample.vec, glm::normalize(GetDirection()));
+            })
+    };
+    for (auto i = 0u; i < diffuseSH.size(); ++i)
+        lightProbe.GetDiffuseSH().at(i) += diffuseSH.at(i);
+    lightProbe.GetReflectionBuffer()->bind();
+    _probeShader->Use()
+        .SetUniform("SpecularMode", true)
+        .SetUniform("Light.Color", GetColor())
+        .SetUniform("Light.Direction", GetDirection());
+    Renderer::Render(Renderer::DisplayQuad());
+    //Framebuffer::bind_default();
 }

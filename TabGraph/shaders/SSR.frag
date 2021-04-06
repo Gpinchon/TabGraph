@@ -1,13 +1,15 @@
 R""(
-
+layout(early_fragment_tests) in;
 uniform sampler2D	LastColor;
+
+#pragma optionNV (unroll all)
 
 #if SSR_QUALITY == 1
 #define NumSteps 8
 #define NumRays 1
 #elif SSR_QUALITY == 2
-#define NumSteps 16
-#define NumRays 1
+#define NumSteps 8
+#define NumRays 2
 #elif SSR_QUALITY == 3
 #define NumSteps 8
 #define NumRays 4
@@ -35,20 +37,6 @@ vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float alpha)
 	
     vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
     return normalize(sampleVec);
-}
-
-vec2 Hammersley(uint Index, uint NumSamples, uvec2 Random)
-{
-	float E1 = fract( Index / float(NumSamples) + float( Random.x & 0xffff ) / (1<<16) );
-	float E2 = float( bitfieldReverse(Index) ^ Random.y ) * 2.3283064365386963e-10;
-	return vec2( E1, E2 );
-}
-
-vec2 Hammersley(uint SampleIdx, uint SampleCnt)
-{
-    float u = float(SampleIdx) / float(SampleCnt);
-    float v = float(bitfieldReverse(SampleIdx)) * 2.3283064365386963e-10;
-    return vec2(u, v);
 }
 
 vec4	LastWorldToView(in vec3 position)
@@ -82,56 +70,51 @@ vec3	GetLastUVz(in vec2 UV, in float z)
 vec4 SampleDepthTexture(float Level, vec4 SampleUV0, vec4 SampleUV1 )
 {
 	vec4 SampleDepth;
-	// SampleUV{0,1}.{xy,zw} should already be in the HZB UV frame using HZBUvFactorAndInvFactor.xy
-	SampleDepth.x = textureLod(Texture.Geometry.Depth, SampleUV0.xy, (Level)).r;
-	SampleDepth.y = textureLod(Texture.Geometry.Depth, SampleUV0.zw, (Level)).r;
-	SampleDepth.z = textureLod(Texture.Geometry.Depth, SampleUV1.xy, (Level)).r;
-	SampleDepth.w = textureLod(Texture.Geometry.Depth, SampleUV1.zw, (Level)).r;
+	SampleDepth.x = textureLod(Texture.Geometry.Depth, SampleUV0.xy, Level).r;
+	SampleDepth.y = textureLod(Texture.Geometry.Depth, SampleUV0.zw, Level).r;
+	SampleDepth.z = textureLod(Texture.Geometry.Depth, SampleUV1.xy, Level).r;
+	SampleDepth.w = textureLod(Texture.Geometry.Depth, SampleUV1.zw, Level).r;
 	return SampleDepth;
 }
 
 //Simplified AABB-Ray Intersection
 // See : https://gamedev.stackexchange.com/questions/18436/most-efficient-aabb-vs-ray-collision-algorithms
-void IntersectClippingBounds(const in vec3 origin, const in vec3 dir, out vec3 coord)
-{
-	vec3 vmin = vec3(-1, -1, -1);
-	vec3 vmax = vec3(1, 1, 1);
-	float t[7];
-	t[0] = (vmin.x - origin.x)/dir.x;
-	t[1] = (vmax.x - origin.x)/dir.x;
-	t[2] = (vmin.y - origin.y)/dir.y;
-	t[3] = (vmax.y - origin.y)/dir.y;
-	t[4] = (vmin.z - origin.z)/dir.z;
-	t[5] = (vmax.z - origin.z)/dir.z;
-	t[6] = min(min(max(t[0], t[1]), max(t[2], t[3])), max(t[4], t[5]));
-	coord = origin + dir * t[6];
+void IntersectClippingBounds(const in vec3 rayOrigin, const in vec3 rayDir, out vec3 rayEnd) {
+	const vec3 vmin = vec3(-1, -1, -1);
+	const vec3 vmax = vec3( 1,  1,  1);
+	//const vec3 t0 = (vmin - rayOrigin)/rayDir;
+	//const vec3 t1 = (vmax - rayOrigin)/rayDir;
+	//const float dist = min(min(max(t0.x, t1.x), max(t0.y, t1.y)), max(t0.z, t1.z));
+	//rayEnd = rayOrigin + rayDir * dist;
+	const vec3 t1 = (vmin - rayOrigin)/ rayDir;
+    const vec3 t2 = (vmax - rayOrigin)/ rayDir;
+    float tmin = min(t1.x, t2.x);
+    float tmax = max(t1.x, t2.x);
+    tmin = max(tmin, min(t1.y, t2.y));
+    tmax = min(tmax, max(t1.y, t2.y));
+    tmin = max(tmin, min(t1.z, t2.z));
+    tmax = min(tmax, max(t1.z, t2.z));
+	rayEnd = rayOrigin + rayDir * max(tmax, tmin);
 }
 
-#pragma optionNV (unroll all)
+const float Step = 1.f / float(NumSteps + 1);
 
-vec4	castRay(vec3 R, float StepOffset)
+vec4	castRay(const in vec3 RayStartClip, const in vec3 RayDirClip,  const in float StepOffset)
 {
-	const float Step = 1 / float(NumSteps + 1);
-	vec4 RayStartClip	= WorldToClip(WorldPosition());
-	vec4 RayEndClip	= WorldToClip(WorldPosition() + R * RayStartClip.w);
-	vec3 RayStartScreen = RayStartClip.xyz / RayStartClip.w;
-	vec3 RayEndScreen = RayEndClip.xyz / RayEndClip.w;
-	vec3 RayDirScreen = normalize(RayEndScreen - RayStartScreen);
+	vec3 RayEndClip;
 	//Clip ray agains Normalized Device Coordinate's bounding box
-	IntersectClippingBounds(RayStartScreen, RayDirScreen, RayEndScreen);
-	vec3 RayStartUVz = RayStartScreen * 0.5 + 0.5;
-	vec3 RayEndUVz = RayEndScreen * 0.5 + 0.5;
-	vec3 RayStepUVz = (RayEndUVz - RayStartUVz);
-	const float CompareTolerance = abs(RayStepUVz.z) * Step * 1.25;
-	vec4 Result = vec4( 0, 0, 0, 1 );
+	IntersectClippingBounds(RayStartClip, RayDirClip, RayEndClip);
+	const vec3 RayStartUVz = RayStartClip * 0.5 + 0.5;
+	const vec3 RayEndUVz = RayEndClip * 0.5 + 0.5;
+	const vec3 RayStepUVz = (RayEndUVz - RayStartUVz);
+	const float CompareTolerance = abs(RayStepUVz.z) * Step * 2;
 	float LastDiff = 0;
-	float SampleTime = StepOffset * Step + Step;
 	float Level = 0;
-	for (int i = 0; i < NumSteps; ++i)
-	{
-		vec3 UVz = RayStartUVz + RayStepUVz * SampleTime;
-		float SampleZ = textureLod(Texture.Geometry.Depth, UVz.xy, Level).r;
-		float DepthDiff = SampleZ - UVz.z;
+	float SampleTime = StepOffset * Step + Step;
+	for (int i = 0; i < NumSteps; ++i) {
+		const vec3 UVz = RayStartUVz + RayStepUVz * SampleTime;
+		const float SampleZ = textureLod(Texture.Geometry.Depth, UVz.xy, Level).r;
+		const float DepthDiff = SampleZ - UVz.z;
 		if (abs(-DepthDiff - CompareTolerance) < CompareTolerance)
 		{
 			if (i > 0) { //else, this is the first loop, no need to go back
@@ -139,15 +122,58 @@ vec4	castRay(vec3 R, float StepOffset)
 				float TimeLerp = clamp(LastDiff / (LastDiff - DepthDiff), 0, 1);
 				SampleTime += TimeLerp * Step - Step;
 			}
-			UVz = RayStartUVz + RayStepUVz * SampleTime;
-			Result = vec4(UVz, SampleTime * SampleTime);
-			break;
+			return vec4(RayStartUVz + RayStepUVz * SampleTime, SampleTime * SampleTime);
 		}
 		LastDiff = DepthDiff;
-		SampleTime += Step;
+		//Level += Alpha() * (16.0 * Step);
 		Level += (4.0 / NumSteps) * Alpha();
+		SampleTime += Step;
 	}
-	return Result;
+	/*vec4 SampleTime = (StepOffset * Step + Step) * vec4( 1, 2, 3, 4 );
+	for (int i = 0; i < NumSteps; i += 4) {
+		vec4 SampleUV0 = RayStartUVz.xyxy + RayStepUVz.xyxy * SampleTime.xxyy;
+		vec4 SampleUV1 = RayStartUVz.xyxy + RayStepUVz.xyxy * SampleTime.zzww;
+		vec4 SampleZ   = RayStartUVz.zzzz + RayStepUVz.zzzz * SampleTime;
+		vec4 SampleDepth = SampleDepthTexture(Level, SampleUV0, SampleUV1);
+		vec4 DepthDiff = SampleDepth - SampleZ;
+		bvec4 Hit = lessThan(abs(-DepthDiff - CompareTolerance), vec4(CompareTolerance));
+		//bvec4 Hit = lessThan(SampleDepth, SampleZ);
+		if (any(Hit))
+		{
+			float DepthDiff0 = DepthDiff[2];
+            float DepthDiff1 = DepthDiff[3];
+            float Time0 = 3;
+            if (Hit[2])
+            {
+                DepthDiff0 = DepthDiff[1];
+                DepthDiff1 = DepthDiff[2];
+                Time0 = 2;
+            }
+            if (Hit[1])
+            {
+                DepthDiff0 = DepthDiff[0];
+                DepthDiff1 = DepthDiff[1];
+                Time0 = 1;
+            }
+            if (Hit[0])
+            {
+                DepthDiff0 = LastDiff;
+                DepthDiff1 = DepthDiff[0];
+                Time0 = 0;
+            }
+			Time0 += float(i);
+			float IntersectTime = Time0 * Step;
+			if (Time0 > 1) {
+				float TimeLerp = clamp(DepthDiff0 / (DepthDiff0 - DepthDiff1), 0, 1);
+				IntersectTime += TimeLerp * Step - Step;
+			}
+            return vec4(RayStartUVz + RayStepUVz * IntersectTime, IntersectTime * IntersectTime);
+		}
+		LastDiff = DepthDiff.w;
+		Level += Alpha() * (16.0 * Step);
+		SampleTime += 4.0 * Step;
+	}*/
+	return vec4(0, 0, 0, 1);
 }
 
 vec4	SampleScreenColor(vec3 UVz)
@@ -162,67 +188,60 @@ float GetRoughnessFade()
 	return min(sqrt(Alpha()) * ROUGHNESSMASKSCALE + 2, 1.0);
 }
 
-//Use Rodrigues' rotation formula to rotate v about k
-vec3 rotateAround(vec3 v, vec3 k, float angle)
-{
-	return v * cos(angle) + cross(k, v) * sin(angle) + k * dot(k, v) * (1 - cos(angle));
-}
-
-float InterleavedGradientNoise(vec2 uv, float FrameId)
-{
-	// magic values are found by experimentation
-	uv += FrameId * (vec2(47, 17) * 0.695f);
-
-    const vec3 magic = vec3( 0.06711056f, 0.00583715f, 52.9829189f );
-    return fract(magic.z * fract(dot(uv, magic.xy)));
-}
-
-uvec3 Rand3DPCG16(ivec3 p)
-{
-	uvec3 v = uvec3(p);
-	v = v * 1664525u + 1013904223u;
-	v.x += v.y*v.z;
-	v.y += v.z*v.x;
-	v.z += v.x*v.y;
-	v.x += v.y*v.z;
-	v.y += v.z*v.x;
-	v.z += v.x*v.y;
-	return v >> 16u;
-}
-
 void	SSR()
 {
-	if (Depth() == 1)
-		discard;
-	vec3	V = normalize(WorldPosition() - Camera.Position);
-	uvec2	PixelPos = ivec2(gl_FragCoord.xy);
-	uint	frameIndex = FrameNumber % 8;
-	float	Noise =	InterleavedGradientNoise(gl_FragCoord.xy, frameIndex);
-	uvec3	Random = Rand3DPCG16(ivec3(PixelPos, frameIndex));
-	out_1 = vec4(0);
-	for(int i = 0; i < NumRays; i++ ) {
-		float	StepOffset = Noise;
-		StepOffset -= 0.5;
-		//Generate random normals using Hammersley distribution
-		vec2	E = Hammersley(i, NumRays, Random.xy);
-		//Compute Half vector using GGX Importance Sampling
-		//Project Half vector from Tangent space to World space
-		vec3	H = ImportanceSampleGGX(E, WorldNormal(), Alpha());
-		//H = rotateAround(H, WorldNormal(), Noise * 6.2831853);
-		vec3	R = reflect(V, H);
-		vec4	SSRResult = castRay(R, StepOffset);
-		if (SSRResult.w < 1)
-		{
-			float SSRParticipation = clamp(4 - 4 * SSRResult.w, 0, 1);
+	_Reflection = vec4(0);
+	const float	RoughnessFade = GetRoughnessFade();
+	const vec3	Position = WorldPosition();
+	const vec3	Normal = WorldNormal();
+	const vec3	V = normalize(Position - Camera.Position);
+	const uint	frameIndex = FrameNumber % 8;
+	const uvec3	Random = Rand3DPCG16(ivec3(gl_FragCoord.xy, frameIndex));
+	const float	StepOffset = InterleavedGradientNoise(gl_FragCoord.xy, frameIndex) - 0.5;
+	const mat4	TransformMatrix = Camera.Matrix.Projection * Camera.Matrix.View;
+	vec3	RayStartClip = vec3(ScreenTexCoord(), Depth()) * 2 - 1;
+	const int	RayNbr = Alpha() < 0.05 ? 1 : NumRays;
+	if (RayNbr > 1) {
+		for(int i = 0; i < NumRays; i++ ) {
+			//Generate random normals using Hammersley distribution
+			const vec2	E = Hammersley16(i, NumRays, Random.xy);
+			//Compute Half vector using GGX Importance Sampling
+			//Project Half vector from Tangent space to World space
+			vec3	H = ImportanceSampleGGX(E, Normal, Alpha());
+			vec3	R = normalize(reflect(V, H));
+/*
+			vec4	RayDirClip = TransformMatrix * vec4(R, 1);
+			RayDirClip.xyz /= abs(RayDirClip.w);
+			RayDirClip.xyz = normalize(RayDirClip.xyz);
+*/
+
+			vec4	RayEndClip	= TransformMatrix * vec4(Position + R * 1000, 1);
+			RayEndClip.xyz /= abs(RayEndClip.w);
+			vec3	RayDirClip = normalize(RayEndClip.xyz - RayStartClip.xyz);
+
+			vec4	SSRResult = castRay(RayStartClip.xyz, RayDirClip.xyz, StepOffset);
+			float	SSRParticipation = clamp(4 - 4 * SSRResult.w, 0, 1);
 			//Attenuate reflection factor when getting closer to screen border
-			vec4 SampleColor = vec4(SampleScreenColor(SSRResult.xyz).rgb, SSRParticipation);
+			vec4	SampleColor = vec4(SampleScreenColor(SSRResult.xyz).rgb, SSRParticipation);
 			SampleColor.rgb /= 1 + Luminance(SampleColor.rgb);
-			out_1 += SampleColor * SSRParticipation;
+			_Reflection += SampleColor * SSRParticipation;
 		}
+		_Reflection /= float(RayNbr);
 	}
-	out_1 /= NumRays;
-	out_1.rgb /= 1 - Luminance(out_1.rgb);
-	out_1 *= GetRoughnessFade();
+	else {
+		vec3	R = reflect(V, WorldNormal());
+		vec4	RayEndClip	= TransformMatrix * vec4(Position + R * 1000, 1);
+		RayEndClip.xyz /= abs(RayEndClip.w);
+		vec3	RayDirClip = normalize(RayEndClip.xyz - RayStartClip.xyz);
+		vec4	SSRResult = castRay(RayStartClip.xyz, RayDirClip, StepOffset);
+		float	SSRParticipation = clamp(4 - 4 * SSRResult.w, 0, 1);
+		//Attenuate reflection factor when getting closer to screen border
+		vec4	SampleColor = vec4(SampleScreenColor(SSRResult.xyz).rgb, SSRParticipation);
+		SampleColor.rgb /= 1 + Luminance(SampleColor.rgb);
+		_Reflection = SampleColor * SSRParticipation;
+	}
+	_Reflection.rgb /= 1 - Luminance(_Reflection.rgb);
+	_Reflection *= RoughnessFade;
 }
 
 )""

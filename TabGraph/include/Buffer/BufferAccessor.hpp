@@ -9,7 +9,7 @@
 #include "Component.hpp"
 #include "Buffer/BufferView.hpp"
 
-#include <GL/glew.h>
+//#include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <variant>
@@ -31,16 +31,17 @@ public:
         Vec4 = 4,
         Mat2 = 4,
         Mat3 = 9,
-        Mat4 = 16,
+        Mat4 = 16
     };
-    enum class ComponentType : GLenum {
+    enum class ComponentType {
         Unknown = -1,
-        Int8 = GL_BYTE,
-        Uint8 = GL_UNSIGNED_BYTE,
-        Int16 = GL_SHORT,
-        Uint16 = GL_UNSIGNED_SHORT,
-        Uint32 = GL_UNSIGNED_INT,
-        Float32 = GL_FLOAT
+        Int8,
+        Uint8,
+        Int16,
+        Uint16,
+        Uint32,
+        Float32,
+        MaxValue
     };
     /**
      * @brief Is the data to be normalized by OpenGL ?

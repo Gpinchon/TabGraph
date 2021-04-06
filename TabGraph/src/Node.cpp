@@ -11,7 +11,7 @@
 #include "Mesh/Mesh.hpp"
 #include "Physics/BoundingAABB.hpp"
 #include "Physics/RigidBody.hpp"
-#include "Render.hpp"
+#include "Renderer/Renderer.hpp"
 
 #include <glm/ext.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -25,7 +25,6 @@ Node::Node()
     : Component("Node_" + std::to_string(++nodeNbr))
     , _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(1)))
 {
-    Engine::OnFixedUpdate().ConnectMember(this, &Node::_UpdateMeshSkin);
     PositionChanged.ConnectMember(this, &Node::_OnPositionChanged);
     RotationChanged.ConnectMember(this, &Node::_OnRotationChanged);
     ScaleChanged.ConnectMember(this, &Node::_OnScaleChanged);
@@ -45,7 +44,6 @@ Node::Node(const Node& node)
     , _localScaleMatrix(node._localScaleMatrix)
     , _parent(node._parent)
 {
-    Engine::OnFixedUpdate().ConnectMember(this, &Node::_UpdateMeshSkin);
     PositionChanged.ConnectMember(this, &Node::_OnPositionChanged);
     RotationChanged.ConnectMember(this, &Node::_OnRotationChanged);
     ScaleChanged.ConnectMember(this, &Node::_OnScaleChanged);
@@ -61,44 +59,6 @@ Node::~Node()
 {
     //_renderUpdateSlot.Disconnect();
     //Engine::OnFixedUpdate().Disconnect(_renderUpdateSlot);
-}
-
-void Node::_UpdateMeshSkin(float delta)
-{
-    _meshSkinUpdateDelta += delta;
-    if (_meshSkinUpdateDelta < 0.015)
-        return;
-    _meshSkinUpdateDelta = 0;
-    for (auto& mesh : GetComponents<Mesh>())
-        mesh->UpdateSkin(WorldTransformMatrix());
-}
-
-bool Node::Draw(std::shared_ptr<Scene> scene, const Render::Pass &pass, const Render::Mode &renderMod, bool drawChildren)
-{
-    bool drew = false;
-    for (auto& mesh : GetComponents<Mesh>()) {
-        drew |= mesh->Draw(WorldTransformMatrix(), _prevTransformMatrix, pass, renderMod);
-    }
-    if (drawChildren) {
-        for (auto& child : GetChildren())
-            drew |= child->Draw(scene, pass, renderMod, drawChildren);
-    }
-    if (pass == Render::Pass::Geometry)
-        _prevTransformMatrix = WorldTransformMatrix();
-    return drew;
-}
-
-bool Node::DrawDepth(std::shared_ptr<Scene> scene, const Render::Mode &renderMod, bool drawChildren)
-{
-    bool drew = false;
-    for (auto mesh : GetComponents<Mesh>()) {
-        drew |= mesh->DrawDepth(WorldTransformMatrix(), renderMod);
-    }
-    if (drawChildren) {
-        for (auto child : GetChildren())
-            drew |= child->DrawDepth(scene, renderMod, drawChildren);
-    }
-    return drew;
 }
 
 #include <iostream>

@@ -126,8 +126,9 @@ std::shared_ptr<Geometry> CubeMesh::CreateGeometry(const std::string& name, glm:
 std::shared_ptr<Mesh> CubeMesh::Create(const std::string& name, glm::vec3 size)
 {
     auto m = Component::Create<Mesh>(name);
-    auto vg = CubeMesh::CreateGeometry(name + "Geometry", size);
-    m->AddGeometry(vg);
-    m->AddMaterial(Component::Create<Material>(name + "Material"));
+    m->AddGeometry(
+        CubeMesh::CreateGeometry(name + "Geometry", size),
+        Component::Create<Material>(name + "Material")
+    );
     return (m);
 }

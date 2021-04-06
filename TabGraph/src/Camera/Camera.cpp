@@ -16,15 +16,10 @@
 Camera::Camera(const std::string& name, Camera::Projection proj)
     : Node(name)
 {
-    _projection_type = proj;
+    SetProjectionType(proj);
 }
 
-glm::mat4 Camera::ViewMatrix()
-{
-    return glm::inverse(WorldTransformMatrix());
-}
-
-#include "Render.hpp"
+#include "Renderer/Renderer.hpp"
 
 //Halton sequence scaled to [-1:1]
 const glm::vec2 haltonSequence[256] = {
@@ -286,21 +281,39 @@ const glm::vec2 haltonSequence[256] = {
     glm::vec2(-0.996094, -0.0342935)
 };
 
-glm::mat4 Camera::ProjectionMatrix() const
+glm::mat4 Camera::GetProjectionMatrix()
 {
-    glm::mat4 proj;
+    if (!_projectionMatrixNeedsUpdate)
+        return _projectionMatrix;
     const auto windowSize{ Window::GetSize() };
     if (ProjectionType() == Camera::Projection::Perspective) {
         if (Zfar() > 0)
-            proj = glm::perspective(glm::radians(Fov()), float(windowSize.x) / float(windowSize.y), Znear(), Zfar());
+            _projectionMatrix = glm::perspective(glm::radians(Fov()), float(windowSize.x) / float(windowSize.y), Znear(), Zfar());
         else
-            proj = glm::infinitePerspective(glm::radians(Fov()), float(windowSize.x) / float(windowSize.y), Znear());
+            _projectionMatrix = glm::infinitePerspective(glm::radians(Fov()), float(windowSize.x) / float(windowSize.y), Znear());
     } else
-        proj = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
-    auto halton{ haltonSequence[Render::FrameNumber() % 256] * 0.25f };
-    proj[2][0] += halton.x / float(windowSize.x);
-    proj[2][1] += halton.y / float(windowSize.y);
-    return proj;
+        _projectionMatrix = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
+    auto halton{ haltonSequence[Renderer::FrameNumber() % 256] * 0.25f };
+    _projectionMatrix[2][0] += halton.x / float(windowSize.x);
+    _projectionMatrix[2][1] += halton.y / float(windowSize.y);
+    return _projectionMatrix;
+}
+
+void Camera::SetProjectionMatrix(glm::mat4 projectionMatrix)
+{
+    _projectionMatrix = projectionMatrix;
+    _projectionMatrixNeedsUpdate = false;
+}
+
+glm::mat4 Camera::GetViewMatrix()
+{
+    return glm::inverse(WorldTransformMatrix());
+}
+
+void Camera::SetViewMatrix(glm::mat4 viewMatrix)
+{
+    _viewMatrix = viewMatrix;
+    _viewMatrixNeedsUpdate = false;
 }
 
 glm::vec4 Camera::Frustum() const
@@ -310,6 +323,7 @@ glm::vec4 Camera::Frustum() const
 
 void Camera::SetFrustum(glm::vec4 frustum)
 {
+    _projectionMatrixNeedsUpdate |= frustum != _frustum;
     _frustum = frustum;
 }
 
@@ -320,6 +334,7 @@ float Camera::Fov() const
 
 void Camera::SetFov(float fov)
 {
+    _projectionMatrixNeedsUpdate |= fov != _fov;
     _fov = fov;
 }
 
@@ -330,6 +345,7 @@ float Camera::Znear() const
 
 void Camera::SetZnear(float znear)
 {
+    _projectionMatrixNeedsUpdate |= znear != _znear;
     _znear = znear;
 }
 
@@ -340,15 +356,17 @@ float Camera::Zfar() const
 
 void Camera::SetZfar(float zfar)
 {
+    _projectionMatrixNeedsUpdate |= zfar != _zfar;
     _zfar = zfar;
 }
 
 Camera::Projection Camera::ProjectionType() const
 {
-    return _projection_type;
+    return _projectionType;
 }
 
 void Camera::SetProjectionType(Camera::Projection projectionType)
 {
-    _projection_type = projectionType;
+    _projectionMatrixNeedsUpdate |= projectionType != _projectionType;
+    _projectionType = projectionType;
 }

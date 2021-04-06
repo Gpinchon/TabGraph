@@ -1,15 +1,12 @@
 R""(
-layout(location = 0) out vec4	out_Buffer0;
-layout(location = 1) out vec4	out_Buffer1;
+layout(location = 0) out vec3	out_ColorBuffer0;
 
-uniform sampler2D	in_TransparentBuffer0;
-uniform sampler2D	in_TransparentBuffer1;
-uniform sampler2D	in_TransparentBuffer2;
-uniform sampler2D	in_TransparentBuffer3;
-uniform sampler2D	in_TransparentDepth;
-uniform sampler2D	in_OpaqueBuffer0;
-uniform sampler2D	in_OpaqueBuffer1;
-//uniform sampler2D	in_OpaqueBufferDepth;
+uniform sampler2D	in_TransparentColor; //Transp Color
+uniform sampler2D	in_TransparentAlphaCoverage; //Transp Coverage
+uniform sampler2D	in_TransparentDistortion; //Transp Distortion
+uniform sampler2D	in_TransparentTransmission;
+
+uniform sampler2D	in_OpaqueColor; //Opaque Color
 
 in vec2 frag_UV;
 
@@ -38,28 +35,25 @@ vec4 BlendColor(vec4 s, vec4 d) {
 #ifndef textureQueryLevels
 float compMax(vec3 v) { return max(max(v.x, v.y), v.z); }
 float compMax(vec2 v) { return max(v.x, v.y); }
-#define textureQueryLevels(tex) int(log2(compMax(textureSize(tex, 0))))
+#define textureQueryLevels(tex) int(1 + log2(compMax(textureSize(tex, 0))))
 #endif
 
 #define sampleLod(tex, uv, lod) textureLod(tex, uv, lod * textureQueryLevels(tex))
 
 void Composite()
 {
-	gl_FragDepth = texture(in_TransparentDepth, frag_UV).r;
-    vec4 transparentRefract =  texture(in_TransparentBuffer3, frag_UV, 0);
+	vec4 transmissionColor = texture(in_TransparentTransmission, frag_UV, 0);
+    vec4 transparentRefract =  texture(in_TransparentDistortion, frag_UV, 0);
     vec2 refractUV = warpUV(vec2(0), vec2(1), frag_UV + transparentRefract.xy);
 
-	vec4 accum = texture(in_TransparentBuffer0, frag_UV, 0);
-    float r = texture(in_TransparentBuffer1, frag_UV, 0).r;
-    vec4 transparentColor = vec4(accum.rgb / clamp(accum.a, 6.1*1e-4, 6.55*1e5), r);
-    vec4 transparentEmissive = vec4(texture(in_TransparentBuffer2, frag_UV, 0).rgb, transparentColor.a);
+	vec4 accum = texture(in_TransparentColor, frag_UV, 0);
+    float coverage = texture(in_TransparentAlphaCoverage, frag_UV, 0).r;
+    //vec4 transparentColor = vec4(accum.rgb / clamp(accum.a, 6.1*1e-4, 6.55*1e5), r);
+    if (isinf(maxComponent(abs(accum))))
+		accum.rgb = vec3(accum.a);
+	vec3 transpColor = accum.rgb / max(accum.a, 0.00001);
+	vec3 opaqueColor = transmissionColor.rgb * sampleLod(in_OpaqueColor, refractUV, transmissionColor.a).rgb;
 
-	vec4 opaqueColor = sampleLod(in_OpaqueBuffer0, refractUV, transparentRefract.z);
-    vec4 opaqueEmissive = sampleLod(in_OpaqueBuffer1, refractUV, transparentRefract.z);
-
-	out_Buffer0 = BlendColor(transparentColor, opaqueColor);
-	out_Buffer1 = opaqueEmissive + transparentEmissive;
-	if (r == 1)
-		discard;
+	out_ColorBuffer0 = transpColor * (1 - coverage) + opaqueColor * coverage;
 }
 )""

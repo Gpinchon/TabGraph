@@ -27,10 +27,15 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/GeometryRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/MeshRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Renderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SceneRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SkyboxRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/VertexArray.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Environment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Framebuffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Events.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/GameController.cpp
@@ -38,9 +43,11 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Keyboard.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Mouse.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/LightProbe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionnalLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/HDRLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/PointLight.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Sky.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SkyLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SpotLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/Material.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MaterialExtension.cpp
@@ -68,11 +75,16 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/RigidBody.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/SimplexSolver.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Quadtree.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Render.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Renderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/GeometryRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/MeshRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SceneRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SkyboxRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/Scene.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Global.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Program.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Stage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Skybox.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SphericalHarmonics.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/StackTracer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/PixelUtils.cpp
@@ -109,10 +121,15 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Config.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/GeometryRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/MeshRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Renderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/SceneRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/SkyboxRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Buffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/VertexArray.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Environment.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Framebuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Signal.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Events.hpp
@@ -121,9 +138,11 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Keyboard.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Light.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/LightProbe.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/DirectionnalLight.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/HDRLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/PointLight.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Sky.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/SkyLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/SpotLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/Material.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/MaterialExtension.hpp
@@ -154,12 +173,17 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/SimplexSolver.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Property.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Quadtree.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Render.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Renderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/GeometryRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/MeshRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/SceneRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/SkyboxRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Scene/Scene.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Global.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Program.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/SphericalHarmonics.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Stage.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/SphericalHarmonics.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Skybox.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/StackTracer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain_GDAL.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain.hpp
@@ -176,18 +200,24 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Window.hpp
 )
 
-set(TABGRAPH_SHADER_FILES 
+set(TABGRAPH_SHADER_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Lights/TransformGeometry.vert
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Lights/DeferredDirectionnalLight.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Lights/DeferredHDRLight.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Lights/DeferredPointLight.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Lights/DeferredSkyLight.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Lights/ProbeDirectionnalLight.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Lights/ProbeHDRLight.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Lights/ProbeSkyLight.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/blur.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/checkOpacity.glsl
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/compositing.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/deferred.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/deferred.vert
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/directionnalLight.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/environment.frag
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Skybox.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.vert
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/hzb.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/light.vert
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/material.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/metallicRoughness.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.frag
@@ -195,7 +225,6 @@ set(TABGRAPH_SHADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/present.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Random.glsl
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/SampleShadowMap.glsl
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/setInstanceID.glsl
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/specularGlossiness.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/sphericalHarmonics.glsl
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/ssao.frag

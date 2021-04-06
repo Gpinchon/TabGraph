@@ -73,7 +73,7 @@ public:
         {
         };
         auto operator()(Args... args) {
-            return _func(args...);
+            if (_func) return _func(args...);
         }
         std::function<void(Args...)> _func{};
         SlotID _id{ 0 };

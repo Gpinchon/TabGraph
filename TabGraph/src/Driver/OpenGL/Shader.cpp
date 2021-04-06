@@ -230,8 +230,13 @@ void Program::Impl::SetTexture(const std::string& name, const std::shared_ptr<Te
                 glBindTexture((GLenum)value->GetType(), value->GetHandle());
             }
             else {
-                //TODO properly reset sampler
-                glBindTexture(GL_TEXTURE_2D, 0);
+                glBindTexture((GLenum)Texture::Type::Texture1D, 0);
+                glBindTexture((GLenum)Texture::Type::Texture2D, 0);
+                glBindTexture((GLenum)Texture::Type::Texture2DMultisample, 0);
+                glBindTexture((GLenum)Texture::Type::Texture3D, 0);
+                glBindTexture((GLenum)Texture::Type::Texture3DMultisample, 0);
+                glBindTexture((GLenum)Texture::Type::TextureBuffer, 0);
+                glBindTexture((GLenum)Texture::Type::TextureCubemap, 0);
             }
             glUniform1i(loc->second, index->second);
         }

@@ -151,7 +151,7 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
     auto newSurface = SDL_ConvertSurfaceFormat(surface, surface->format->Amask ? SDL_PIXELFORMAT_RGBA32 : SDL_PIXELFORMAT_RGB24, 0);
     SDL_FreeSurface(surface);
     surface = newSurface;
-    invert_surface_vertical(surface);
+    //invert_surface_vertical(surface);
 
     debugLog("Image Format after conversion :");
     debugLog(SDL_GetPixelFormatName(surface->format->format));

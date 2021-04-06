@@ -137,7 +137,7 @@ void Player::Move(const glm::vec2& direction, float delta)
     //Game::CurrentLevel()->SetGameEntity(newPlayerPosition, std::static_pointer_cast<Player>(shared_from_this()));
 }
 
-#include "Render.hpp"
+#include "Renderer/Renderer.hpp"
 
 void Player::Die()
 {
@@ -147,7 +147,7 @@ void Player::Die()
     }
     PlayAnimation("death", false);
 
-    std::cout << "DED on Frame "<< Render::FrameNumber() << std::endl;
+    std::cout << "DED on Frame "<< Renderer::FrameNumber() << std::endl;
 }
 
 void Player::_FixedUpdateCPU(float delta)

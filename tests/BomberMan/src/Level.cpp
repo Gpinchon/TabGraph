@@ -9,7 +9,8 @@
 #include "Assets/Image.hpp"
 #include "Camera/OrbitCamera.hpp"
 #include "Engine.hpp"
-#include "Environment.hpp"
+#include "Skybox.hpp"
+#include "Light/HDRLight.hpp"
 #include "Light/DirectionnalLight.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/Mesh.hpp"
@@ -60,6 +61,7 @@ std::shared_ptr<Level> Level::Create(const std::string& name, const glm::ivec2& 
     light->SetHalfSize(glm::vec3(size.x / 2.f, 1.5, size.y / 2.f));
     light->SetPosition(glm::vec3(size.x / 2.f, 0, size.y / 2.f));
     light->SetInfinite(false);
+
     auto camera = Component::Create<OrbitCamera>("MainCamera", 45.f, glm::pi<float>() / 2.f, 1, radius / 2.f);
     camera->SetTarget(floorNode);
     
@@ -150,12 +152,15 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
 
     folder = path.parent_path() / "env/hdr/";
     std::cout << folder << std::endl;
-    auto newEnv = Component::Create<Environment>("Environment");
-    newEnv->SetDiffuse(Component::Create<Cubemap>(Component::Create<Asset>(folder / "diffuse.hdr")));
-    newEnv->SetIrradiance(Component::Create<Cubemap>(Component::Create<Asset>(folder / "environment.hdr")));
+    auto newEnv = Component::Create<Skybox>("Skybox");
+    auto diffuseMap{ Component::Create<Asset>(folder / "diffuse.hdr") };
+    newEnv->SetDiffuse(Component::Create<Cubemap>(diffuseMap));
     level->SetEnvironment(newEnv);
+
+    auto lightHDR{ Component::Create<HDRLight>(diffuseMap) };
+    level->Add(lightHDR);
     
-    level->SetEnvironment(level->GetComponent<Environment>(0));
+    level->SetEnvironment(level->GetComponent<Skybox>(0));
     std::cout << level->GetEnvironment() << std::endl;
     return level;
 }
@@ -215,7 +220,7 @@ void Level::_FixedUpdateCPU(float delta)
     //}
 }
 
-void Level::Render(const Render::Pass& pass, const Render::Mode& mod)
+void Level::Render(const Renderer::Pass& pass, const Renderer::Mode& mod)
 {
     Scene::Render(pass, mod);
     for (const auto& entity : _entities) {
@@ -228,7 +233,7 @@ void Level::Render(const Render::Pass& pass, const Render::Mode& mod)
     }
 }
 
-void Level::RenderDepth(const Render::Mode& mod)
+void Level::RenderDepth(const Renderer::Mode& mod)
 {
     Scene::RenderDepth(mod);
     for (const auto& entity : _entities) {

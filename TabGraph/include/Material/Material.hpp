@@ -9,7 +9,7 @@
 
 #include "Component.hpp" // for Component
 #include "Material/MaterialExtension.hpp"
-#include "Render.hpp"
+#include "Renderer/Renderer.hpp"
 
 #include "Property.hpp" // for READONLYPROPERTY, PRIVATEPROPERTY, PROPERTY
 #include "glm/ext/vector_float2.hpp" // for vec2
@@ -26,13 +26,14 @@ class MaterialExtension;
 
 class Material : public MaterialExtension {
 public:
-    enum class OpacityModeValue {
+    enum class OpacityMode {
         Opaque,
         Mask,
-        Blend
+        Blend,
+        MaxValue
     };
     PROPERTY(bool, DoubleSided, false);
-    PROPERTY(OpacityModeValue, OpacityMode, OpacityModeValue::Opaque);
+    PROPERTY(OpacityMode, OpacityMode, OpacityMode::Opaque);
     PROPERTY(glm::vec2, UVScale, 1);
 
 public:
@@ -40,9 +41,9 @@ public:
     virtual void AddExtension(std::shared_ptr<MaterialExtension> extension) final;
     virtual void RemoveExtension(std::shared_ptr<MaterialExtension> extension) final;
     virtual std::shared_ptr<MaterialExtension> GetExtension(const std::string& name) const final;
-    virtual void Bind(const Render::Pass& pass);
-    std::shared_ptr<Shader::Program> GetShader(const Render::Pass& pass);
-    void SetShader(const Render::Pass& pass, std::shared_ptr<Shader::Program> shader);
+    virtual void Bind(const Renderer::Options::Pass& pass);
+    std::shared_ptr<Shader::Program> GetShader(const Renderer::Options::Pass& pass);
+    void SetShader(const Renderer::Options::Pass& pass, std::shared_ptr<Shader::Program> shader);
 
     glm::vec3 GetDiffuse(void);
     glm::vec3 GetEmissive(void);
@@ -77,5 +78,5 @@ protected:
         auto clone = Component::Create<Material>(*this);
         return clone;
     }
-    std::array<std::shared_ptr<Shader::Program>, (int)Render::Pass::MaxValue> _shaders;
+    std::array<std::shared_ptr<Shader::Program>, (int)Renderer::Options::Pass::MaxValue> _shaders;
 };

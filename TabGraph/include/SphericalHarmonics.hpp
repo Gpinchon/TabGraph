@@ -20,9 +20,9 @@ public:
         /**
         * sph.x == theta[0..PI]
         * sph.y == phi[0..2*PI]
-        * sph.z == r[1]
+        * r is assumed to be 1
         */
-        glm::vec3 sph{ 0 };
+        float theta{ 0 }, phi{ 0 };
         glm::vec3 vec{ 0 };
         std::vector<double> coeff{ 0 };
     };
@@ -33,14 +33,12 @@ public:
     */
     SphericalHarmonics(uint32_t samples, uint32_t bands = 4);
     const std::vector<SphericalHarmonics::Sample>& GetSamples() const;
-    const std::vector<glm::vec3>& GetCartesianCoeffs() const;
-    std::vector<float> ProjectFunction(std::function<float(const SphericalHarmonics::Sample&)>);
-    std::vector<glm::vec3> ProjectFunction(std::function<glm::vec3(const SphericalHarmonics::Sample&)>);
-    static std::vector<glm::vec3> ProjectCartesian(const std::vector<SphericalHarmonics::Sample>& samples);
+    std::vector<float> ProjectFunction(std::function<float(const SphericalHarmonics::Sample&)>) const;
+    std::vector<glm::vec3> ProjectFunction(std::function<glm::vec3(const SphericalHarmonics::Sample&)>) const;
 
 private:
     std::vector<SphericalHarmonics::Sample> _shSamples;
-    std::vector<glm::vec3>                  _shCartesian;
+    const uint8_t                           _bands{ 0 };
 };
 
 int factorial(int x);

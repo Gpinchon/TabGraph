@@ -46,14 +46,25 @@ const std::map<std::string, std::string>& Stage::GetDefines() const
 {
     return _defines;
 }
+
+const Stage::Code& Stage::GetCode() const
+{
+    return _code;
+}
+
+void Stage::SetCode(const Code& code)
+{
+    _code = code;
+}
+
 Stage& Stage::operator+=(const Code& code)
 {
-    SetCode(GetCode() += code);
+    _code += code;
     return *this;
 }
 Stage& Stage::operator-=(const Code& code)
 {
-    SetCode(GetCode() -= code);
+    _code -= code;
     return *this;
 }
 }

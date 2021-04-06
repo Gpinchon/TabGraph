@@ -33,7 +33,7 @@ private:
     static Mouse* _instance;
     Signal<const SDL_MouseMotionEvent&> _onMove {};
     Signal<const SDL_MouseWheelEvent&> _onWheel {};
-    std::array<Signal<const SDL_MouseButtonEvent&>, 5> _onButtonDown { {} };
-    std::array<Signal<const SDL_MouseButtonEvent&>, 5> _onButtonUp { {} };
-    std::array<Signal<const SDL_MouseButtonEvent&>, 5> _onButton { {} };
+    std::array<Signal<const SDL_MouseButtonEvent&>, 16> _onButtonDown { {} };
+    std::array<Signal<const SDL_MouseButtonEvent&>, 16> _onButtonUp { {} };
+    std::array<Signal<const SDL_MouseButtonEvent&>, 16> _onButton { {} };
 };

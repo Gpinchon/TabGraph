@@ -16,7 +16,7 @@ uniform t_Camera		Camera;
 uniform mat4			GeometryMatrix;
 uniform vec3			Resolution;
 
-out VertexData {
+out VertexOutput {
 	vec2	TexCoord;
 	vec3	CubeTexCoord;
 } Output;

@@ -5,10 +5,14 @@ R""(
 #define lequal(a, b) all(lessThanEqual(a, b))
 #define Luminance(linearColor) dot(linearColor, vec3(0.299, 0.587, 0.114))
 
-struct t_Environment {
-	samplerCube	Diffuse;
-	samplerCube	Irradiance;
-};
+//Pass
+#define DeferredGeometry		0
+#define DeferredLighting		1
+#define DeferredMaterial		2
+#define ForwardTransparent		3
+#define ForwardOpaque			4
+#define ShadowDepth				5
+#define GeometryPostTreatment	6
 
 struct t_Frag {
 	vec3		WorldPosition;
@@ -32,17 +36,22 @@ struct t_BRDF {
 	float	Alpha;
 };
 
+#if Pass == DeferredMaterial
+struct t_LightingTextures {
+	sampler2D	Diffuse;
+	sampler2D	Reflection;
+};
+#endif
+
 struct t_GeometryTextures {
-	sampler2D		CDiff;
-	sampler2D		F0;
-	sampler2D		Normal;
-	sampler2D		Depth;
-	sampler2D		Emissive;
-	sampler2D		AO;
-	isampler2D		ID;
+	sampler2D	CDiff;
+	sampler2D	F0;
+	sampler2D	Normal;
+	sampler2D	Velocity;
+	sampler2D	Depth;
 };
 
-in VertexData {
+in VertexOutput {
 	vec2	TexCoord;
 	vec3	CubeTexCoord;
 } Input;
@@ -56,8 +65,10 @@ vec3 CubeTexCoord() {
 }
 
 struct t_Textures {
-	t_GeometryTextures	Geometry;
-	t_Environment		Environment;
+	t_GeometryTextures Geometry;
+#if Pass == DeferredMaterial
+	t_LightingTextures Lighting;
+#endif
 };
 
 #define map(value, low1, high1, low2, high2) (low2 + (value - low1) * (high2 - low2) / (high1 - low1))
@@ -69,27 +80,49 @@ uniform t_Camera		PrevCamera;
 uniform t_Camera		Camera;
 uniform t_Textures		Texture;
 
-#ifdef LIGHTSHADER
-	layout(location = 0) out vec4	out_0;
-	layout(location = 1) out vec4	out_1;
-	layout(location = 2) out vec4	out_2;
-	vec4	_CDiff; //BRDF CDiff, Transparency
-	vec3	_Emissive;
-	vec4	_F0; //BRDF F0, BRDF Alpha
-	float	_AO;
-	vec3	_Normal;
-#endif //LIGHTSHADER
+#if Pass == DeferredLighting
+vec4	_CDiff; //BRDF CDiff, Ambient Occlusion
+vec4	_F0; //BRDF F0, BRDF Alpha
+vec3	_Normal;
+vec3	_Velocity;
+layout(location = 0) out vec4	_Diffuse;
+layout(location = 1) out vec4	_Reflection;
+#define _Emissive _Diffuse
 
-#ifdef POSTSHADER
-	layout(location = 0) out vec4	_CDiff; //BRDF CDiff, Transparency
-	layout(location = 1) out vec3	_Emissive;
-	layout(location = 2) out vec4	_F0; //BRDF F0, BRDF Alpha
-	layout(location = 3) out float	_AO;
-	layout(location = 4) out vec3	_Normal;
-#endif //POSTSHADER
+#define Diffuse() (_Diffuse)
+#define SetDiffuse(diffuse) (_Diffuse = diffuse)
 
-#define Opacity() (_CDiff.a)
-#define SetOpacity(opacity) (_CDiff.a = opacity)
+#define Reflection() (_Reflection)
+#define SetReflection(reflection) (_Reflection = reflection)
+
+#elif Pass == DeferredMaterial
+vec4	_CDiff; //BRDF CDiff, Ambient Occlusion
+vec4	_F0; //BRDF F0, BRDF Alpha
+vec3	_Normal;
+vec3	_Velocity;
+vec4	_Diffuse;
+vec4	_Reflection;
+layout(location = 0) out vec4 _Color;
+#define _Emissive _Diffuse
+
+#define Diffuse() (_Diffuse)
+#define SetDiffuse(diffuse) (_Diffuse = diffuse)
+
+#define Reflection() (_Reflection)
+#define SetReflection(reflection) (_Reflection = reflection)
+
+#elif Pass == GeometryPostTreatment
+layout(location = 0) out vec4	_CDiff; //BRDF CDiff, Ambient Occlusion
+layout(location = 1) out vec4	_F0; //BRDF F0, BRDF Alpha
+layout(location = 2) out vec3	_Normal;
+layout(location = 3) out vec3	_Velocity;
+layout(location = 4) out vec4	_Color;
+#define _Emissive _Color
+
+#endif
+
+#define _AO _CDiff.a
+#define _Alpha _F0.a
 
 #define CDiff() (_CDiff.rgb)
 #define SetCDiff(cDiff) (_CDiff.rgb = cDiff)
@@ -97,22 +130,30 @@ uniform t_Textures		Texture;
 #define F0() (_F0.rgb)
 #define SetF0(f0) (_F0.rgb = f0)
 
-#define Alpha() (_F0.a)
-#define SetAlpha(alpha) (_F0.a = alpha)
+#define Alpha() (_Alpha)
+#define SetAlpha(alpha) (_Alpha = alpha)
 
-#define Emissive() (_Emissive)
-#define SetEmissive(emissive) (_Emissive = emissive)
-	
 #define AO() (_AO)
 #define SetAO(ao) (_AO = ao)
 
 #define WorldNormal() (_Normal)
 #define SetWorldNormal(normal) (_Normal = normalize(normal))
 
+#define Velocity() (_Velocity)
+#define SetVelocity(velocity) (_Velocity = velocity)
+
+#define Diffuse() (_Diffuse)
+#define SetDiffuse(diffuse) (_Diffuse = diffuse)
+
+#define Reflection() (_Reflection)
+#define SetReflection(reflection) (_Reflection = reflection)
+
+#define Emissive() (_Emissive)
+#define SetEmissive(emissive) (_Emissive = emissive)
+
 float _depth;
 float Depth() { return _depth; }
 float Depth(vec2 uv) { return textureLod(Texture.Geometry.Depth, uv, 0).r; }
-#define SetDepth(depth) (gl_FragDepth = depth)
 
 #define ScreenTexCoord() (gl_FragCoord.xy / Resolution.xy)
 
@@ -173,8 +214,6 @@ vec3	ScreenToWorld(in vec2 uv, in float depth)
 	projectedCoord = Camera.InvMatrix.View * Camera.InvMatrix.Projection * projectedCoord;
 	return (projectedCoord.xyz / projectedCoord.w);
 }
-
-#define SetWorldPosition(worldPosition) (gl_FragDepth = WorldToScreen(worldPosition).z)
 
 vec3	WorldPosition(in vec2 uv)
 {
@@ -254,19 +293,20 @@ void FillFragmentData(void)
 {
 	vec4	CDiff_sample = textureLod(Texture.Geometry.CDiff, ScreenTexCoord(), 0);
 	vec4	F0_sample = textureLod(Texture.Geometry.F0, ScreenTexCoord(), 0);
-	vec3	Normal_sample = textureLod(Texture.Geometry.Normal, ScreenTexCoord(), 0).xyz;
-	float	Depth_sample = textureLod(Texture.Geometry.Depth, ScreenTexCoord(), 0).x;
-	vec3	Emissive_sample = textureLod(Texture.Geometry.Emissive, ScreenTexCoord(), 0).rgb;
-	float	AO_sample = textureLod(Texture.Geometry.AO, ScreenTexCoord(), 0).x;
-	SetCDiff(CDiff_sample.rgb);
-	SetOpacity(CDiff_sample.a);
-	SetF0(F0_sample.rgb);
-	SetAlpha(F0_sample.a);
-	SetWorldNormal(Normal_sample);
-	SetEmissive(Emissive_sample);
-	SetAO(AO_sample);
-	//SetWorldNormal(decodeNormal(EncodedNormal()));
-	_depth = Depth_sample;
-	SetWorldPosition(WorldPosition(ScreenTexCoord()));
+	vec4	Normal_sample = textureLod(Texture.Geometry.Normal, ScreenTexCoord(), 0);
+	vec4	Velocity_sample = textureLod(Texture.Geometry.Velocity, ScreenTexCoord(), 0);
+	vec4	Depth_sample = textureLod(Texture.Geometry.Depth, ScreenTexCoord(), 0);
+#if Pass == DeferredMaterial
+	vec4	Diffuse_sample = textureLod(Texture.Lighting.Diffuse, ScreenTexCoord(), 0);
+	vec4	Reflection_sample = textureLod(Texture.Lighting.Reflection, ScreenTexCoord(), 0);
+	_Diffuse = Diffuse_sample.rgba;
+	_Reflection = Reflection_sample.rgba;
+#endif
+	_CDiff = CDiff_sample.rgba; _AO = CDiff_sample.a;
+	_F0 = F0_sample.rgba; _Alpha = F0_sample.a;
+	_Normal = Normal_sample.rgb;
+	_Velocity = Velocity_sample.rgb;
+	_depth = Depth_sample.r;
+	WorldPosition(ScreenTexCoord());
 }
 )""

@@ -2,17 +2,19 @@
 * @Author: gpinchon
 * @Date:   2021-03-12 16:01:21
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-14 19:08:11
+* @Last Modified time: 2021-03-17 23:29:22
 */
 
 #include "Light/DirectionnalLight.hpp"
+#include "SphericalHarmonics.hpp"
 
-class Sky : public DirectionnalLight {
+class Cubemap;
+
+class SkyLight : public DirectionnalLight {
 public:
-    Sky();
-    virtual void Draw() override;
-    glm::vec3 GetSunDir() const;
-    void SetSunDir(const glm::vec3& dir);
+    SkyLight();
+    glm::vec3 GetSunDirection() const;
+    void SetSunDirection(const glm::vec3& dir);
     float GetSunPower() const;
     void SetSunPower(const float power);
     /**
@@ -46,8 +48,13 @@ public:
     glm::vec3 GetBetaMie() const;
     void SetBetaMie(glm::vec3 betaMie);
 
+    virtual void Draw() override;
+    virtual void DrawProbe(LightProbe& lightProbe) override;
+
 private:
-    std::vector<glm::vec3> _sphericalHarmonics;
+    void _UpdateLUT();
+    std::vector<glm::vec3> _SHDiffuse;
+    std::shared_ptr<Cubemap> _reflectionLUT;
     float _sunPower { 20.f };
     float _planetRadius { 6360e3 };
     float _atmosphereRadius { 6420e3 };
@@ -55,5 +62,4 @@ private:
     float _hMie { 1200 };
     glm::vec3 _betaRayleigh { 5.5e-6, 13.0e-6, 22.4e-6 };
     glm::vec3 _betaMie { 21e-6 };
-    bool _SHNeedsUpdate { true };
 };
