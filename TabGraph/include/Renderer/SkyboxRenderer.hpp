@@ -6,7 +6,10 @@
 */
 #pragma once
 
-#include <glm/fwd.hpp>
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/SkyboxRenderer.hpp"
+//#endif
+
 #include <memory>
 
 class Skybox;
@@ -16,20 +19,4 @@ struct Options;
 void OnFrameBegin(std::shared_ptr<Skybox> skybox, uint32_t frameNbr, float delta);
 void Render(std::shared_ptr<Skybox> skybox, const Renderer::Options& options);
 void OnFrameEnd(std::shared_ptr<Skybox> skybox, uint32_t frameNbr, float delta);
-
-class SkyboxRenderer {
-    class Impl;
-    friend Impl;
-
-public:
-    ~SkyboxRenderer();
-    SkyboxRenderer(const SkyboxRenderer&) = delete;
-    SkyboxRenderer(Skybox& skybox);
-    Impl& GetImpl();
-    void Render(const Renderer::Options& options);
-
-private:
-    std::unique_ptr<Impl> _impl;
-    Skybox& _skybox;
-};
 };

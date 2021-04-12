@@ -6,19 +6,12 @@
 */
 
 #include "Renderer/SkyboxRenderer.hpp"
-//#ifdef OPENGL
-#include "Driver/OpenGL/Renderer/SkyboxRenderer.hpp"
-//#endif
+
 #include "Skybox.hpp"
 
 namespace Renderer {
-    void SkyboxRenderer::Render(const::Renderer::Options& options)
-    {
-        GetImpl().Render(_skybox, options);
-    }
-
-    void Render(std::shared_ptr<Skybox> skybox, const Renderer::Options& options)
-    {
-        skybox->GetRenderer().Render(options);
-    }
+void Render(std::shared_ptr<Skybox> skybox, const Renderer::Options& options)
+{
+    skybox->GetRenderer().Render(options);
+}
 };

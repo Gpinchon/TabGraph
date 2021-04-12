@@ -6,14 +6,23 @@
 */
 
 #include "Renderer/GeometryRenderer.hpp"
-//#ifdef OPENGL
-#include "Driver/OpenGL/Renderer/GeometryRenderer.hpp"
-//#endif
 
 #include "Mesh/Geometry.hpp"
 
 namespace Renderer {
-    GeometryRenderer::GeometryRenderer(Geometry& geometry)
+    void OnFrameBegin(std::shared_ptr<Geometry> geometry, uint32_t frameNbr, float delta)
+    {
+        geometry->GetRenderer().OnFrameBegin(frameNbr, delta);
+    }
+    void Render(std::shared_ptr<Geometry> geometry, bool doubleSided)
+    {
+        geometry->GetRenderer().Render(doubleSided);
+    }
+    void OnFrameEnd(std::shared_ptr<Geometry> geometry, uint32_t frameNbr, float delta)
+    {
+        geometry->GetRenderer().OnFrameEnd(frameNbr, delta);
+    }
+    /*GeometryRenderer::GeometryRenderer(Geometry& geometry)
         : _impl(new GeometryRenderer::Impl())
         , _geometry(geometry)
     {
@@ -41,5 +50,5 @@ namespace Renderer {
     void GeometryRenderer::OnFrameEnd(uint32_t frameNbr, float delta)
     {
         GetImpl().OnFrameEnd(_geometry, frameNbr, delta);
-    }
+    }*/
 };

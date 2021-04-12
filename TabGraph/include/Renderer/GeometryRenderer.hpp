@@ -7,6 +7,10 @@
 
 #pragma once
 
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/GeometryRenderer.hpp"
+//#endif
+
 #include <memory>
 
 class Geometry;
@@ -17,22 +21,21 @@ class Options;
 void OnFrameBegin(std::shared_ptr<Geometry> geometry, uint32_t frameNbr, float delta);
 void Render(std::shared_ptr<Geometry> geometry, bool doubleSided = false);
 void OnFrameEnd(std::shared_ptr<Geometry> geometry, uint32_t frameNbr, float delta);
-
-class GeometryRenderer {
-    class Impl;
-    friend Impl;
-
-public:
-    GeometryRenderer(const GeometryRenderer&) = delete;
-    GeometryRenderer(Geometry& geometry);
-    ~GeometryRenderer();
-    Impl& GetImpl();
-    void OnFrameBegin(uint32_t frameNbr, float delta);
-    void Render(bool doubleSided = false);
-    void OnFrameEnd(uint32_t frameNbr, float delta);
-
-private:
-    std::unique_ptr<Impl> _impl;
-    Geometry& _geometry;
-};
+//class GeometryRenderer {
+//    class Impl;
+//    friend Impl;
+//
+//public:
+//    GeometryRenderer(const GeometryRenderer&) = delete;
+//    GeometryRenderer(Geometry& geometry);
+//    ~GeometryRenderer();
+//    Impl& GetImpl();
+//    void OnFrameBegin(uint32_t frameNbr, float delta);
+//    void Render(bool doubleSided = false);
+//    void OnFrameEnd(uint32_t frameNbr, float delta);
+//
+//private:
+//    std::unique_ptr<Impl> _impl;
+//    Geometry& _geometry;
+//};
 };

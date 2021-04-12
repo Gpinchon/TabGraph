@@ -6,22 +6,24 @@
 */
 #pragma once
 
-#include "Renderer/MeshRenderer.hpp"
-
 #include <GL/glew.h>
 #include <array>
 #include <glm/glm.hpp>
 #include <memory>
 
 class TextureBuffer;
+class Mesh;
 
 namespace Renderer {
-class MeshRenderer::Impl {
+struct Options;
+class MeshRenderer {
 public:
-    void Load(Mesh& mesh);
-    void OnFrameBegin(Mesh& mesh, uint32_t frameNbr, float delta);
-    void Render(Mesh& mesh, const ::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform);
-    void OnFrameEnd(Mesh& mesh, uint32_t frameNbr, float delta);
+    MeshRenderer(Mesh&);
+    MeshRenderer(const MeshRenderer&) = delete;
+    void Load();
+    void OnFrameBegin(uint32_t frameNbr, float delta);
+    void Render(const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform);
+    void OnFrameEnd(uint32_t frameNbr, float delta);
 
 private:
     std::array<GLsync, 2> _drawSync{ nullptr };
@@ -29,5 +31,6 @@ private:
     glm::mat4 _prevTransformMatrix{ 1 };
     int _jointMatricesIndex{ 0 };
     bool _loaded{ false };
+    Mesh& _mesh;
 };
 };

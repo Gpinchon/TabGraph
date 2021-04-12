@@ -21,15 +21,18 @@ class LightProbe;
 class Scene;
 
 namespace Renderer {
-class Options;
-class SceneRenderer::Impl {
+struct Options;
+class SceneRenderer {
 public:
-    void OnFrameBegin(Scene&, uint32_t frameNbr, float delta);
-    void Render(Scene&, const Renderer::Options& options, const glm::mat4& rootMatrix);
-    void OnFrameEnd(Scene&, uint32_t frameNbr, float delta);
+    SceneRenderer(Scene&);
+    SceneRenderer(SceneRenderer&) = delete;
+    void OnFrameBegin(uint32_t frameNbr, float delta);
+    void Render(const Renderer::Options& options, const glm::mat4& rootMatrix);
+    void OnFrameEnd(uint32_t frameNbr, float delta);
     LightProbe& GetClosestLightProbe(const glm::vec3& position);
 
 private:
+    Scene& _scene;
     struct MeshState {
         glm::mat4 transform;
         glm::mat4 prevTransform;

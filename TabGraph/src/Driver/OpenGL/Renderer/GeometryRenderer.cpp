@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-03-22 20:52:18
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-28 07:54:34
+* @Last Modified time: 2021-04-12 18:39:32
 */
 
 #include "Driver/OpenGL/Renderer/GeometryRenderer.hpp"
@@ -42,62 +42,57 @@ static inline auto GLComponentType(BufferAccessor::ComponentType type)
 }
 
 namespace Renderer {
-void OnFrameBegin(std::shared_ptr<Geometry> geometry, uint32_t frameNbr, float delta)
+GeometryRenderer::GeometryRenderer(Geometry& geometry)
+    : _geometry(geometry)
 {
-    geometry->GetRenderer().OnFrameBegin(frameNbr, delta);
-}
-void Render(std::shared_ptr<Geometry> geometry, bool doubleSided)
-{
-    geometry->GetRenderer().Render(doubleSided);
-}
-void OnFrameEnd(std::shared_ptr<Geometry> geometry, uint32_t frameNbr, float delta)
-{
-    geometry->GetRenderer().OnFrameEnd(frameNbr, delta);
 }
 
-GeometryRenderer::Impl::~Impl()
+GeometryRenderer::~GeometryRenderer()
 {
 }
-void GeometryRenderer::Impl::OnFrameBegin(Geometry& geometry, uint32_t frameNbr, float delta)
+
+void GeometryRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
 {
 }
-void GeometryRenderer::Impl::Render(Geometry& geometry, bool doubleSided)
+
+void GeometryRenderer::Render(bool doubleSided)
 {
     if (_vao == nullptr) {
         _vao = std::make_unique<VertexArray>();
         _vao->Bind()
-            .BindAccessor(geometry.Accessor(Geometry::AccessorKey::Position), 0)
-            .BindAccessor(geometry.Accessor(Geometry::AccessorKey::Normal), 1)
-            .BindAccessor(geometry.Accessor(Geometry::AccessorKey::Tangent), 2)
-            .BindAccessor(geometry.Accessor(Geometry::AccessorKey::TexCoord_0), 3)
-            .BindAccessor(geometry.Accessor(Geometry::AccessorKey::TexCoord_1), 4)
-            .BindAccessor(geometry.Accessor(Geometry::AccessorKey::Color_0), 5)
-            .BindAccessor(geometry.Accessor(Geometry::AccessorKey::Joints_0), 6)
-            .BindAccessor(geometry.Accessor(Geometry::AccessorKey::Weights_0), 7)
+            .BindAccessor(_geometry.Accessor(Geometry::AccessorKey::Position), 0)
+            .BindAccessor(_geometry.Accessor(Geometry::AccessorKey::Normal), 1)
+            .BindAccessor(_geometry.Accessor(Geometry::AccessorKey::Tangent), 2)
+            .BindAccessor(_geometry.Accessor(Geometry::AccessorKey::TexCoord_0), 3)
+            .BindAccessor(_geometry.Accessor(Geometry::AccessorKey::TexCoord_1), 4)
+            .BindAccessor(_geometry.Accessor(Geometry::AccessorKey::Color_0), 5)
+            .BindAccessor(_geometry.Accessor(Geometry::AccessorKey::Joints_0), 6)
+            .BindAccessor(_geometry.Accessor(Geometry::AccessorKey::Weights_0), 7)
             .Done();
-        if (geometry.Indices() != nullptr)
-            geometry.Indices()->GetBufferView()->Load();
+        if (_geometry.Indices() != nullptr)
+            _geometry.Indices()->GetBufferView()->Load();
     }
     if (doubleSided)
         glDisable(GL_CULL_FACE);
     else
         glEnable(GL_CULL_FACE);
     _vao->Bind();
-    if (geometry.Indices() != nullptr) {
-        auto drawingMode { GLDrawingMode(geometry.GetDrawingMode()) };
-        auto compType { GLComponentType(geometry.Indices()->GetComponentType()) };
-        auto bufferView(geometry.Indices()->GetBufferView());
-        auto byteOffset(geometry.Indices()->GetByteOffset());
+    if (_geometry.Indices() != nullptr) {
+        auto drawingMode { GLDrawingMode(_geometry.GetDrawingMode()) };
+        auto compType { GLComponentType(_geometry.Indices()->GetComponentType()) };
+        auto bufferView(_geometry.Indices()->GetBufferView());
+        auto byteOffset(_geometry.Indices()->GetByteOffset());
         bufferView->Bind();
-        glDrawElements(drawingMode, geometry.Indices()->GetCount(), compType, BUFFER_OFFSET(byteOffset));
+        glDrawElements(drawingMode, _geometry.Indices()->GetCount(), compType, BUFFER_OFFSET(byteOffset));
         bufferView->Done();
-    } else if (auto accessor(geometry.Accessor(Geometry::AccessorKey::Position)); accessor != nullptr) {
-        auto drawingMode { GLDrawingMode(geometry.GetDrawingMode()) };
+    } else if (auto accessor(_geometry.Accessor(Geometry::AccessorKey::Position)); accessor != nullptr) {
+        auto drawingMode { GLDrawingMode(_geometry.GetDrawingMode()) };
         glDrawArrays(drawingMode, 0, accessor->GetCount());
     }
     VertexArray::BindNone();
 }
-void GeometryRenderer::Impl::OnFrameEnd(Geometry& geometry, uint32_t frameNbr, float delta)
+
+void GeometryRenderer::OnFrameEnd(uint32_t frameNbr, float delta)
 {
 }
 };

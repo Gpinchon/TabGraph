@@ -8,21 +8,24 @@
 #pragma once
 
 #include "Renderer/GeometryRenderer.hpp"
-#include "Driver/OpenGL/VertexArray.hpp"
 
 #include <memory>
 
-//class VertexArray;
+class Geometry;
+class VertexArray;
 
 namespace Renderer {
-    class GeometryRenderer::Impl {
+    class GeometryRenderer {
     public:
-        ~Impl();
-        void OnFrameBegin(Geometry& geometry, uint32_t frameNbr, float delta);
-        void Render(Geometry& geometry, bool doubleSided = false);
-        void OnFrameEnd(Geometry& geometry, uint32_t frameNbr, float delta);
+        GeometryRenderer(Geometry& geometry);
+        GeometryRenderer(const GeometryRenderer&) = delete;
+        ~GeometryRenderer();
+        void OnFrameBegin(uint32_t frameNbr, float delta);
+        void Render(bool doubleSided = false);
+        void OnFrameEnd(uint32_t frameNbr, float delta);
 
     private:
+        Geometry& _geometry;
         std::unique_ptr<VertexArray> _vao;
     };
 }

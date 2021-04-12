@@ -14,44 +14,32 @@
 #include "Shader/Program.hpp"
 #include "Texture/Cubemap.hpp"
 
-static auto EnvShader()
+static inline auto EnvShader()
 {
-    static std::shared_ptr<Shader::Program> shader;
-    if (shader == nullptr) {
-        auto deferredVertCode =
+    auto deferredVertCode =
 #include "deferred.vert"
             ;
-        auto skyboxFragCode =
+    auto skyboxFragCode =
 #include "Skybox.frag"
             ;
-        shader = Component::Create<Shader::Program>("EnvShader");
-        shader->SetDefine("Pass", "DeferredLighting");
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertCode, "FillVertexData();" }));
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { skyboxFragCode, "OutputEnv();" }));
-    }
+    std::shared_ptr<Shader::Program> shader = Component::Create<Shader::Program>("EnvShader");
+    shader->SetDefine("Pass", "DeferredLighting");
+    shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertCode, "FillVertexData();" }));
+    shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { skyboxFragCode, "OutputEnv();" }));
     return shader;
 }
 
 namespace Renderer {
-    SkyboxRenderer::~SkyboxRenderer()
-    {
-    }
+SkyboxRenderer::SkyboxRenderer(Skybox& skybox)
+    : _skybox(skybox)
+{
+    _shader = EnvShader();
+}
 
-    SkyboxRenderer::SkyboxRenderer(Skybox& skybox)
-        : _skybox(skybox)
-        , _impl(new SkyboxRenderer::Impl)
-    {
-    }
-
-    SkyboxRenderer::Impl& SkyboxRenderer::GetImpl()
-    {
-        return *_impl;
-    }
-
-    void SkyboxRenderer::Impl::Render(Skybox& skybox, const Renderer::Options& options)
-    {
-        EnvShader()->Use().SetTexture("Skybox", skybox.GetTexture());
-        Renderer::Render(Renderer::DisplayQuad(), true);
-        EnvShader()->Done();
-    }
+void SkyboxRenderer::Render(const Renderer::Options& options)
+{
+    EnvShader()->Use().SetTexture("Skybox", _skybox.GetTexture());
+    Renderer::Render(Renderer::DisplayQuad(), true);
+    EnvShader()->Done();
+}
 };

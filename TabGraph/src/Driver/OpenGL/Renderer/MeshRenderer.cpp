@@ -2,37 +2,42 @@
 * @Author: gpinchon
 * @Date:   2021-03-23 13:40:55
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-01 18:59:05
+* @Last Modified time: 2021-04-12 18:39:38
 */
 
 #include "Driver/OpenGL/Renderer/MeshRenderer.hpp"
 #include "Config.hpp"
+#include "Framebuffer.hpp"
+#include "Light/LightProbe.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/Geometry.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Mesh/MeshSkin.hpp"
 #include "Renderer/GeometryRenderer.hpp"
-#include "Shader/Program.hpp"
-#include "Texture/TextureBuffer.hpp"
-#include "Scene/Scene.hpp"
 #include "Renderer/SceneRenderer.hpp"
-#include "Light/LightProbe.hpp"
-#include "Framebuffer.hpp"
+#include "Scene/Scene.hpp"
+#include "Shader/Program.hpp"
 #include "Texture/Texture2D.hpp"
+#include "Texture/TextureBuffer.hpp"
 
 namespace Renderer {
-void MeshRenderer::Impl::Load(Mesh& mesh)
+MeshRenderer::MeshRenderer(Mesh& mesh)
+    : _mesh(mesh)
+{
+}
+
+void MeshRenderer::Load()
 {
     if (_loaded)
         return;
-    if (mesh.HasComponentOfType<MeshSkin>()) {
+    if (_mesh.HasComponentOfType<MeshSkin>()) {
         for (auto i = 0; i < _jointMatrices.size(); ++i) {
             if (_jointMatrices.at(i) != nullptr)
                 continue;
             auto bufferAccessor = Component::Create<BufferAccessor>(
                 BufferAccessor::ComponentType::Float32,
                 BufferAccessor::Type::Mat4,
-                mesh.GetComponent<MeshSkin>()->Joints().size());
+                _mesh.GetComponent<MeshSkin>()->Joints().size());
             bufferAccessor->GetBufferView()->SetType(BufferView::Type::TextureBuffer);
             bufferAccessor->GetBufferView()->SetMode(BufferView::Mode::Persistent);
             bufferAccessor->GetBufferView()->SetPersistentMappingMode(BufferView::MappingMode::WriteOnly);
@@ -44,12 +49,12 @@ void MeshRenderer::Impl::Load(Mesh& mesh)
     _loaded = true;
 }
 
-void MeshRenderer::Impl::OnFrameBegin(Mesh& mesh, uint32_t frameNbr, float delta)
+void MeshRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
 {
-    mesh.Load();
-    Load(mesh);
+    _mesh.Load();
+    Load();
     _jointMatricesIndex = (_jointMatricesIndex + 1) % _jointMatrices.size();
-    auto meshSkin { mesh.GetComponent<MeshSkin>() };
+    auto meshSkin { _mesh.GetComponent<MeshSkin>() };
     if (meshSkin == nullptr)
         return;
     //auto invMatrix = glm::inverse(parentTransform);
@@ -75,30 +80,29 @@ void MeshRenderer::Impl::OnFrameBegin(Mesh& mesh, uint32_t frameNbr, float delta
     //jointMatricesAccessor->GetBufferView()->Unmap();
 }
 
-void MeshRenderer::Impl::Render(
-    Mesh& mesh,
+void MeshRenderer::Render(
     const ::Renderer::Options& options,
     const glm::mat4& parentTransform,
     const glm::mat4& parentLastTransform)
 {
     auto currentCamera(options.camera);
-    auto transformMatrix = parentTransform * mesh.GetGeometryTransform();
+    auto transformMatrix = parentTransform * _mesh.GetGeometryTransform();
     auto prevTransform = parentLastTransform * _prevTransformMatrix;
     auto skinTransform = glm::inverse(parentTransform);
     auto skinPrevTransform = glm::inverse(parentLastTransform);
-    auto &lightProbe = options.scene->GetRenderer().GetClosestLightProbe(transformMatrix * glm::vec4(0, 0, 0, 1));
+    auto& lightProbe = options.scene->GetRenderer().GetClosestLightProbe(transformMatrix * glm::vec4(0, 0, 0, 1));
 
     auto normal_matrix = glm::inverseTranspose(glm::mat3(transformMatrix));
 
     std::shared_ptr<Shader::Program> last_shader;
-    auto skinned { mesh.HasComponentOfType<MeshSkin>() };
+    auto skinned { _mesh.HasComponentOfType<MeshSkin>() };
     auto jointsIndex = _jointMatricesIndex;
     auto prevJointsIndex = (_jointMatricesIndex - 1) % _jointMatrices.size();
     auto fastTransparency { Config::Global().Get("FastTransparency", 1) };
-    for (const auto &vg : mesh.GetGeometries()) {
+    for (const auto& vg : _mesh.GetGeometries()) {
         if (nullptr == vg)
             continue;
-        const auto& material{ mesh.GetGeometryMaterial(vg) };
+        const auto& material { _mesh.GetGeometryMaterial(vg) };
         if (nullptr == material) {
             errorLog("Error : Invalid Material Index while rendering Mesh");
             continue;
@@ -122,8 +126,7 @@ void MeshRenderer::Impl::Render(
             .SetTexture("Joints", skinned ? _jointMatrices.at(jointsIndex) : nullptr)
             .SetTexture("PrevJoints", skinned ? _jointMatrices.at(prevJointsIndex) : nullptr)
             .SetUniform("Skinned", skinned);
-        if (options.pass == Options::Pass::ForwardOpaque || options.pass == Options::Pass::ForwardTransparent)
-        {
+        if (options.pass == Options::Pass::ForwardOpaque || options.pass == Options::Pass::ForwardTransparent) {
             shader->SetTexture("BRDFLUT", Renderer::DefaultBRDFLUT());
             shader->SetUniform("SH[0]", lightProbe.GetDiffuseSH().data(), lightProbe.GetDiffuseSH().size());
             shader->SetTexture("ReflectionMap", lightProbe.GetReflectionBuffer()->GetColorBuffer(0));
@@ -150,12 +153,12 @@ void MeshRenderer::Impl::Render(
     last_shader->Done();
 }
 
-void MeshRenderer::Impl::OnFrameEnd(Mesh& mesh, uint32_t frameNbr, float delta)
+void MeshRenderer::OnFrameEnd(uint32_t frameNbr, float delta)
 {
-    auto skinned { mesh.HasComponentOfType<MeshSkin>() };
+    auto skinned { _mesh.HasComponentOfType<MeshSkin>() };
     auto jointsIndex = _jointMatricesIndex;
     auto prevJointsIndex = (_jointMatricesIndex - 1) % _jointMatrices.size();
-    _prevTransformMatrix = mesh.GetGeometryTransform();
+    _prevTransformMatrix = _mesh.GetGeometryTransform();
     if (skinned) {
         glDeleteSync(_drawSync[prevJointsIndex]);
         _drawSync[prevJointsIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);

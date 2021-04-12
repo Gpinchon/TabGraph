@@ -6,23 +6,9 @@
 */
 #pragma once
 
-////#ifdef OPENGL
-//#include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
-////#endif
-//
-//#include <glm/fwd.hpp>
-//#include <memory>
-//
-//class Scene;
-//class LightProbe;
-//
-//namespace Renderer {
-//struct Options;
-//void OnFrameBegin(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta);
-//void Render(std::shared_ptr<Scene> scene, const Options& options);
-//void Render(std::shared_ptr<Scene> scene, const Options& options, const glm::mat4& rootMatrix);
-//void OnFrameEnd(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta);
-//};
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
+//#endif
 
 #include <glm/fwd.hpp>
 #include <memory>
@@ -36,25 +22,5 @@ void OnFrameBegin(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta);
 void Render(std::shared_ptr<Scene> scene, const Renderer::Options& options);
 void Render(std::shared_ptr<Scene> scene, const Renderer::Options& options, const glm::mat4& rootMatrix);
 void OnFrameEnd(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta);
-
-class SceneRenderer {
-    class Impl;
-    friend Impl;
-
-public:
-    SceneRenderer(Scene& scene);
-    SceneRenderer(const SceneRenderer&) = delete;
-    ~SceneRenderer();
-    Impl& GetImpl();
-    LightProbe& GetClosestLightProbe(const glm::vec3 &position);
-    void OnFrameBegin(uint32_t frameNbr, float delta);
-    void Render(const ::Renderer::Options& options);
-    void Render(const ::Renderer::Options& options, const glm::mat4& rootMatrix);
-    void OnFrameEnd(uint32_t frameNbr, float delta);
-
-private:
-    std::unique_ptr<Impl> _impl;
-    Scene& _scene;
-};
 };
 
