@@ -9,6 +9,7 @@
 #include "Mesh/Mesh.hpp"
 #include "Node.hpp"
 #include "Renderer/MeshRenderer.hpp"
+#include "Renderer/Light/LightRenderer.hpp"
 #include "Scene/Scene.hpp"
 #include "Light/LightProbe.hpp"
 #include "Light/Light.hpp"
@@ -22,9 +23,18 @@ void SceneRenderer::Impl::OnFrameBegin(Scene& scene, uint32_t frameNbr, float de
 {
     for (const auto& node : scene.GetComponents<Node>())
         _UpdateRenderList(node);
-    for (const auto& meshItr : _renderList)
-        Renderer::OnFrameBegin(meshItr.first, frameNbr, delta);
+    for (auto& transform : _nodeLastTransform) {
+        if (_nodesToKeep.count(transform.first) == 0)
+            _nodeLastTransform.erase(transform.first);
+    }
+    for (const auto& meshItr : _renderList) {
+        auto meshPtr{ meshItr.first.lock() };
+        Renderer::OnFrameBegin(meshPtr, frameNbr, delta);
+    }
+    if (frameNbr % 5 == 0)
+        return;
     for (auto& lightProbe : lightProbeGroup.GetLightProbes()) {
+        lightProbe.GetReflectionBuffer()->Load();
         for (auto& sh : lightProbe.GetDiffuseSH())
             sh = glm::vec3(0);
     }
@@ -32,7 +42,8 @@ void SceneRenderer::Impl::OnFrameBegin(Scene& scene, uint32_t frameNbr, float de
     glDisable(GL_BLEND);
     for (const auto& light : scene.GetComponents<Light>()) {
         for (auto& lightProbe : lightProbeGroup.GetLightProbes()) {
-            light->DrawProbe(lightProbe);
+            Renderer::UpdateLightProbe(light, lightProbe);
+            //light->DrawProbe(lightProbe);
         }
         if (first) {
             glEnable(GL_BLEND);
@@ -41,23 +52,27 @@ void SceneRenderer::Impl::OnFrameBegin(Scene& scene, uint32_t frameNbr, float de
             first = false;
         }
     }
-    for (auto& lightProbe : lightProbeGroup.GetLightProbes())
+    for (auto& lightProbe : lightProbeGroup.GetLightProbes()) {
         lightProbe.GetReflectionBuffer()->GetColorBuffer(0)->GenerateMipmap();
+    }
 }
 
 void SceneRenderer::Impl::Render(Scene& scene, const ::Renderer::Options& options, const glm::mat4& rootMatrix)
 {
     for (const auto& meshItr : _renderList) {
+        auto meshPtr{ meshItr.first.lock() };
         for (const auto& meshState : meshItr.second) {
-            Renderer::Render(meshItr.first, options, meshState.transform, meshState.prevTransform);
+            Renderer::Render(meshPtr, options, meshState.transform, meshState.prevTransform);
         }
     }
 }
 
 void SceneRenderer::Impl::OnFrameEnd(Scene& scene, uint32_t frameNbr, float delta)
 {
-    for (const auto& meshItr : _renderList)
-        Renderer::OnFrameEnd(meshItr.first, frameNbr, delta);
+    for (const auto& meshItr : _renderList) {
+        auto meshPtr{ meshItr.first.lock() };
+        Renderer::OnFrameEnd(meshPtr, frameNbr, delta);
+    }
     _renderList.clear();
 }
 
@@ -77,6 +92,7 @@ LightProbe& SceneRenderer::Impl::GetClosestLightProbe(const glm::vec3& position)
 
 void SceneRenderer::Impl::_UpdateRenderList(std::shared_ptr<Node> root)
 {
+    _nodesToKeep.insert(root);
     for (auto& mesh : root->GetComponents<Mesh>()) {
         _renderList[mesh].push_back({
             root->WorldTransformMatrix(),

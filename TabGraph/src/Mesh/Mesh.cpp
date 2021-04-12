@@ -30,6 +30,7 @@ Mesh::Mesh(const std::string& name)
 
 Mesh::Mesh(const Mesh& other)
     : Component(other)
+    , _geometries(other._geometries)
     , _renderer(new Renderer::MeshRenderer(*this))
 {
     SetGeometryTransform(other.GetGeometryTransform());
@@ -46,15 +47,22 @@ void Mesh::AddGeometry(std::shared_ptr<Geometry> geometry, std::shared_ptr<Mater
     return SetGeometryMaterial(geometry, material);
 }
 
+std::shared_ptr<Material> Mesh::GetGeometryMaterial(uint32_t geometryIndex) const
+{
+    auto itr{ _geometries.find(geometryIndex) };
+    return itr == _geometries.end() ? nullptr : GetComponent<Material>(itr->second);
+}
+
 std::shared_ptr<Material> Mesh::GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const
 {
-    auto itr{ _geometries.find(geometry) };
-    return itr == _geometries.end() ? nullptr : itr->second;
+    auto geometryIndex{ GetComponentIndex<Geometry>(geometry) };
+    auto itr{ _geometries.find(geometryIndex) };
+    return itr == _geometries.end() ? nullptr : GetComponent<Material>(itr->second);
 }
 
 void Mesh::SetGeometryMaterial(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material)
 {
-    _geometries[geometry] = material;
+    _geometries[AddComponent(geometry)] = AddComponent(material);
 }
 
 void Mesh::Load()
@@ -74,7 +82,8 @@ void Mesh::SetWeights(std::shared_ptr<BufferAccessor> weights)
     SetComponent(weights);
 }
 
-const std::map<std::shared_ptr<Geometry>, std::shared_ptr<Material>> Mesh::GetGeometries() const
+const std::vector<std::shared_ptr<Geometry>> Mesh::GetGeometries() const
 {
-    return _geometries;
+    return GetComponents<Geometry>();
+    //return _geometries;
 }

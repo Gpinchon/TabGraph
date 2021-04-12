@@ -1,13 +1,14 @@
 #pragma once
 
 #include "GameEntity.hpp"
+#include "Event/Signal.hpp"
 
 #include <chrono>
 
 class Flame : public GameEntity {
 public:
     Flame();
-    ~Flame() {};
+    ~Flame();
     static std::shared_ptr<Flame> Create(const glm::ivec2& position);
     std::chrono::time_point<std::chrono::high_resolution_clock> SpawnTime() const;
     std::chrono::duration<double> Timer() const;
@@ -20,4 +21,5 @@ private:
     virtual void _FixedUpdateCPU(float delta);
     std::chrono::duration<double> _timer { 0.5 }; //defaults to seconds
     const std::chrono::time_point<std::chrono::high_resolution_clock> _spawnTime;
+    Signal<float>::ScoppedSlot _updateSlot;
 };

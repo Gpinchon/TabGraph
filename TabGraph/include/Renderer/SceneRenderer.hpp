@@ -6,6 +6,24 @@
 */
 #pragma once
 
+////#ifdef OPENGL
+//#include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
+////#endif
+//
+//#include <glm/fwd.hpp>
+//#include <memory>
+//
+//class Scene;
+//class LightProbe;
+//
+//namespace Renderer {
+//struct Options;
+//void OnFrameBegin(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta);
+//void Render(std::shared_ptr<Scene> scene, const Options& options);
+//void Render(std::shared_ptr<Scene> scene, const Options& options, const glm::mat4& rootMatrix);
+//void OnFrameEnd(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta);
+//};
+
 #include <glm/fwd.hpp>
 #include <memory>
 
@@ -39,3 +57,4 @@ private:
     Scene& _scene;
 };
 };
+

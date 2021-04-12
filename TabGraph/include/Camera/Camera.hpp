@@ -36,6 +36,12 @@ public:
     virtual glm::mat4 GetProjectionMatrix();
     virtual void SetProjectionMatrix(glm::mat4 projectionMatrix);
 
+    /**
+     * @brief Computes the camera frustum's 8 corners
+     * @return the camera frustum's 8 corners in world space
+    */
+    virtual std::array<glm::vec3, 8> ExtractFrustum();
+
     //virtual void SetProjectionMatrix(glm::mat4);
     virtual glm::vec4 Frustum() const;
     virtual void SetFrustum(glm::vec4 frustum);

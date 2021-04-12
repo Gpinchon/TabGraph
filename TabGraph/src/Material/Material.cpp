@@ -61,7 +61,9 @@ Material::Material(const std::string& name)
 {
     SetShader(Renderer::Options::Pass::DeferredGeometry, Component::Create<Shader::Program>(GetName() + "_geometryShader"));
     GetShader(Renderer::Options::Pass::DeferredGeometry)->SetDefine("Pass", "DeferredGeometry");
-    GetShader(Renderer::Options::Pass::DeferredGeometry)->Attach(Shader::Stage(Shader::Stage::Type::Vertex, GetForwardVertexExtension()));
+    GetShader(Renderer::Options::Pass::DeferredGeometry)->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
+        GetForwardVertexExtension()
+    ));
     GetShader(Renderer::Options::Pass::DeferredGeometry)->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
         GetForwardFragmentExtension() +
         GetCheckOpacityExtension()
@@ -77,6 +79,17 @@ Material::Material(const std::string& name)
         GetForwardFragmentExtension() +
         GetForwardLitPassExtension()
     ));
+
+    SetShader(Renderer::Options::Pass::ShadowDepth, Component::Create<Shader::Program>(GetName() + "_materialShader"));
+    GetShader(Renderer::Options::Pass::ShadowDepth)->SetDefine("Pass", "ShadowDepth");
+    GetShader(Renderer::Options::Pass::ShadowDepth)->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
+        GetForwardVertexExtension()
+    ));
+    GetShader(Renderer::Options::Pass::ShadowDepth)->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
+        GetForwardFragmentExtension() +
+        GetCheckOpacityExtension()
+    ));
+
     SetTextureBRDFLUT(Renderer::DefaultBRDFLUT());
     SetOpacity(1);
 }
@@ -85,17 +98,24 @@ void Material::AddExtension(std::shared_ptr<MaterialExtension> extension)
 {
     AddComponent(extension);
     GetShader(Renderer::Options::Pass::DeferredGeometry)->GetStage(Shader::Stage::Type::Fragment) -= GetCheckOpacityExtension();
-    GetShader(Renderer::Options::Pass::ForwardTransparent)->GetStage(Shader::Stage::Type::Fragment) -= GetForwardLitPassExtension();
     GetShader(Renderer::Options::Pass::DeferredGeometry)->GetStage(Shader::Stage::Type::Fragment) += extension->GetCode();
-    GetShader(Renderer::Options::Pass::ForwardTransparent)->GetStage(Shader::Stage::Type::Fragment) += extension->GetCode();
     GetShader(Renderer::Options::Pass::DeferredGeometry)->GetStage(Shader::Stage::Type::Fragment) += GetCheckOpacityExtension();
+
+    GetShader(Renderer::Options::Pass::ForwardTransparent)->GetStage(Shader::Stage::Type::Fragment) -= GetForwardLitPassExtension();
+    GetShader(Renderer::Options::Pass::ForwardTransparent)->GetStage(Shader::Stage::Type::Fragment) += extension->GetCode();
     GetShader(Renderer::Options::Pass::ForwardTransparent)->GetStage(Shader::Stage::Type::Fragment) += GetForwardLitPassExtension();
+
+    GetShader(Renderer::Options::Pass::ShadowDepth)->GetStage(Shader::Stage::Type::Fragment) -= GetCheckOpacityExtension();
+    GetShader(Renderer::Options::Pass::ShadowDepth)->GetStage(Shader::Stage::Type::Fragment) += extension->GetCode();
+    GetShader(Renderer::Options::Pass::ShadowDepth)->GetStage(Shader::Stage::Type::Fragment) += GetCheckOpacityExtension();
+
 }
 
 void Material::RemoveExtension(std::shared_ptr<MaterialExtension> extension)
 {
     GetShader(Renderer::Options::Pass::DeferredGeometry)->GetStage(Shader::Stage::Type::Fragment) -= extension->GetCode();
     GetShader(Renderer::Options::Pass::ForwardTransparent)->GetStage(Shader::Stage::Type::Fragment) -= extension->GetCode();
+    GetShader(Renderer::Options::Pass::ShadowDepth)->GetStage(Shader::Stage::Type::Fragment) -= extension->GetCode();
     RemoveComponent(extension);
 }
 

@@ -841,7 +841,7 @@ static inline auto ParseScenes(
     return sceneVector;
 }
 
-#include "Light/DirectionnalLight.hpp"
+#include "Light/DirectionalLight.hpp"
 
 static inline auto ParseLights(const rapidjson::Document& document)
 {
@@ -857,7 +857,7 @@ static inline auto ParseLights(const rapidjson::Document& document)
                     try {
                         auto type = light["type"].GetString();
                         if (type == "directional")
-                            newLight = Component::Create<DirectionnalLight>();
+                            newLight = Component::Create<DirectionalLight>();
                         lightsVector.emplace_back(newLight);
                     } catch (std::exception&) {
                         debugLog("[MISSING REQUIRED VALUE] : Light has no type");

@@ -12,6 +12,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <math.h> // for sin, cos
+#include <array>
 
 Camera::Camera(const std::string& name, Camera::Projection proj)
     : Node(name)
@@ -303,6 +304,26 @@ void Camera::SetProjectionMatrix(glm::mat4 projectionMatrix)
 {
     _projectionMatrix = projectionMatrix;
     _projectionMatrixNeedsUpdate = false;
+}
+
+std::array<glm::vec3, 8> Camera::ExtractFrustum()
+{
+    static std::array<glm::vec3, 8> NDCCube{
+        glm::vec3(-1.0f, -1.0f, 1.0f),
+        glm::vec3(-1.0f, 1.0f, 1.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(1.0f, -1.0f, 1.0f),
+        glm::vec3(-1.0f, -1.0f, -1.0f),
+        glm::vec3(-1.0f, 1.0f, -1.0f),
+        glm::vec3(1.0f, 1.0f, -1.0f),
+        glm::vec3(1.0f, -1.0f, -1.0f)
+    };
+    auto invVP = glm::inverse(GetProjectionMatrix() * GetViewMatrix());
+    for (auto& v : NDCCube) {
+        glm::vec4 normalizedCoord = invVP * glm::vec4(v, 1);
+        v = glm::vec3(normalizedCoord) / normalizedCoord.w;
+    }
+    return NDCCube;
 }
 
 glm::mat4 Camera::GetViewMatrix()

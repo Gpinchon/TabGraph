@@ -36,13 +36,14 @@ public:
     Mesh(const Mesh& other);
     /** Adds the Geometry to Geometrys list */
     void AddGeometry(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material);
+    std::shared_ptr<Material> GetGeometryMaterial(uint32_t geometryIndex) const;
     std::shared_ptr<Material> GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const;
     void SetGeometryMaterial(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material);
 
     std::shared_ptr<BufferAccessor> GetWeights() const;
     void SetWeights(std::shared_ptr<BufferAccessor> weights);
 
-    const std::map<std::shared_ptr<Geometry>, std::shared_ptr<Material>> GetGeometries() const;
+    const std::vector<std::shared_ptr<Geometry>> GetGeometries() const;
 
     virtual void Load();
 
@@ -52,5 +53,6 @@ private:
         return Component::Create<Mesh>(*this);
     }
     std::unique_ptr<Renderer::MeshRenderer> _renderer;
-    std::map<std::shared_ptr<Geometry>, std::shared_ptr<Material>> _geometries;
+    //std::map<std::shared_ptr<Geometry>, std::shared_ptr<Material>> _geometries;
+    std::map<uint32_t, uint32_t> _geometries;
 };

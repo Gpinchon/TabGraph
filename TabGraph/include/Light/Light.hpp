@@ -8,11 +8,18 @@
 #pragma once
 
 #include "Node.hpp" // for Node
-#include "glm/glm.hpp" // for glm::vec3
+
+#include <glm/glm.hpp> // for glm::vec3
 #include <memory> // for shared_ptr, weak_ptr
 #include <string> // for string
 #include <vector> // for vector
 
+namespace Renderer {
+    class LightRenderer;
+    struct LightRendererDeleter {
+        void operator()(Renderer::LightRenderer*);
+    };
+}
 class LightProbe;
 
 class Light : public Node {
@@ -23,7 +30,10 @@ class Light : public Node {
 public:
     Light(const std::string& name, glm::vec3 color);
     Light();
-    virtual void render_shadow() = 0;
+    /*virtual void render_shadow() = 0;
     virtual void Draw() = 0;
-    virtual void DrawProbe(LightProbe& lightProbe) = 0;
+    virtual void DrawProbe(LightProbe& lightProbe) = 0;*/
+    Renderer::LightRenderer& GetRenderer();
+protected:
+    std::unique_ptr<Renderer::LightRenderer, Renderer::LightRendererDeleter> _renderer;
 };

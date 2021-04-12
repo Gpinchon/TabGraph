@@ -28,23 +28,30 @@ Renderer::SceneRenderer& Scene::GetRenderer()
 
 Scene::Scene(const std::string& name)
     : Component(name)
-    , _renderer(std::make_unique<Renderer::SceneRenderer>(*this))
+    , _renderer(new Renderer::SceneRenderer(*this))
 {
 }
 
 Scene::Scene(const Scene& other)
     : Component(other)
     , _up(other._up)
-    , _aabb(std::static_pointer_cast<BoundingAABB>(other._aabb->Clone()))
+    , _aabb(std::static_pointer_cast<BoundingAABB>(other._aabb ? other._aabb->Clone() : nullptr))
     , _currentCamera(other._currentCamera)
     , _skyboxIndex(other._skyboxIndex)
-    , _renderer(std::make_unique<Renderer::SceneRenderer>(*this))
+    , _renderer(new Renderer::SceneRenderer(*this))
 {
 }
 
 void Scene::AddRootNode(std::shared_ptr<Node> node)
 {
     AddComponent(node);
+}
+
+void Scene::Remove(std::shared_ptr<Node> node)
+{
+    if (node == nullptr)
+        return;
+    RemoveComponent(node);
 }
 
 void Scene::Add(std::shared_ptr<RigidBody> rigidBody)
@@ -150,4 +157,9 @@ void Scene::SetUp(glm::vec3 up)
 std::shared_ptr<BoundingAABB> Scene::GetLimits() const
 {
     return _aabb;
+}
+
+void Renderer::SceneRendererDeleter::operator()(Renderer::SceneRenderer* renderer)
+{
+    delete renderer;
 }

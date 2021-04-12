@@ -415,11 +415,20 @@ static auto& DeferredMaterialShader()
     return deferredMaterialShader;
 }
 
+#include "Renderer/Light/LightRenderer.hpp"
+
 void light_pass(std::shared_ptr<Framebuffer>& lightingBuffer)
 {
     auto& lights { Scene::Current()->GetComponents<Light>() };
     for (auto& light : lights) {
-        light->render_shadow();
+        Renderer::Render(light, {
+            Renderer::Options::Pass::ShadowDepth,
+            Renderer::Options::Mode::All,
+            Scene::Current()->CurrentCamera(),
+            Scene::Current(),
+            Renderer::FrameNumber()
+        });
+        //light->render_shadow();
     }
     lightingBuffer->bind();
     glClear(GL_COLOR_BUFFER_BIT);
@@ -429,7 +438,14 @@ void light_pass(std::shared_ptr<Framebuffer>& lightingBuffer)
     glBlendFunc(GL_ONE, GL_ONE);
     glBlendEquation(GL_FUNC_ADD);
     for (auto& light : lights) {
-        light->Draw();
+        Renderer::Render(light, {
+            Renderer::Options::Pass::DeferredLighting,
+            Renderer::Options::Mode::All,
+            Scene::Current()->CurrentCamera(),
+            Scene::Current(),
+            Renderer::FrameNumber()
+        });
+        //light->Draw();
     }
     lightingBuffer->bind(false);
     glCullFace(GL_BACK);
@@ -447,7 +463,13 @@ static inline auto OpaquePass()
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glDisable(GL_BLEND);
-        Renderer::Render(Scene::Current(), { Renderer::Options::Pass::DeferredGeometry, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
+        Renderer::Render(Scene::Current(), {
+            Renderer::Options::Pass::DeferredGeometry,
+            Renderer::Options::Mode::All,
+            Scene::Current()->CurrentCamera(),
+            Scene::Current(),
+            Renderer::FrameNumber()
+        });
         gBuffer->bind(false);
     }
     //SSAO & SSR pass
@@ -607,7 +629,8 @@ void Renderer::Impl::_RenderFrame()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
-    Renderer::Render(Scene::Current()->GetSkybox(), { Renderer::Options::Pass::ForwardOpaque, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
+    if (Scene::Current()->GetSkybox() != nullptr)
+        Renderer::Render(Scene::Current()->GetSkybox(), { Renderer::Options::Pass::ForwardOpaque, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
     gBuffer->bind(false);
     OpaquePass();
     TransparentPass();

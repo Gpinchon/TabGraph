@@ -140,8 +140,12 @@ void Framebuffer::setup_attachements()
     glBindFramebuffer(GL_FRAMEBUFFER, GetHandle());
     if (_depthBuffer.first != nullptr)
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthBuffer.first->GetHandle(), _depthBuffer.second);
+    else
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, 0, 0);
     if (_stencilBuffer.first != nullptr)
         glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, _stencilBuffer.first->GetHandle(), _stencilBuffer.second);
+    else
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, 0, 0);
     for (auto i = 0u; i < _colorBuffers.size(); ++i) {
         auto attachement(_colorBuffers.at(i));
         if (attachement.first == nullptr) {
@@ -205,15 +209,15 @@ Framebuffer& Framebuffer::SetColorBuffer(std::shared_ptr<Texture2D> attachement,
 
 Framebuffer& Framebuffer::SetStencilBuffer(std::shared_ptr<Texture2D> buffer, unsigned mipLevel)
 {
+    _attachementsChanged |= buffer != _stencilBuffer.first;
     _stencilBuffer = std::make_pair(buffer, mipLevel);
-    _attachementsChanged = true;
     return *this;
 }
 
 Framebuffer& Framebuffer::SetDepthBuffer(std::shared_ptr<Texture2D> buffer, unsigned mipLevel)
 {
+    _attachementsChanged |= buffer != _depthBuffer.first;
     _depthBuffer = std::make_pair(buffer, mipLevel);
-    _attachementsChanged = true;
     return *this;
 }
 

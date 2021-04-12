@@ -15,23 +15,24 @@ class GameEntity;
 class Level : public Scene {
 public:
     Level(const std::string& name, const glm::ivec2& size);
+    ~Level();
     static std::shared_ptr<Level> Parse(const std::filesystem::path path);
     static std::shared_ptr<Level> Create(const std::string& name, const glm::ivec2& size);
     //static std::shared_ptr<Level> CurrentLevel();
     glm::ivec2 Size() const;
-    void SetGameEntity(glm::ivec2 position, const std::shared_ptr<GameEntity> entity);
+    void SetGameEntity(glm::ivec2 position, std::shared_ptr<GameEntity> entity);
     void SetGameEntityPosition(glm::ivec2 position, std::shared_ptr<GameEntity> entity);
     std::shared_ptr<GameEntity> GetGameEntity(glm::ivec2 position) const;
     void SetSpawnPoint(glm::ivec2);
     glm::ivec2 SpawnPoint() const;
-    virtual void Render(const Renderer::Pass&, const Renderer::Mode&) override;
-    virtual void RenderDepth(const Renderer::Mode&) override;
+    //virtual void Render(const Renderer::Pass&, const Renderer::Mode&) override;
+    //virtual void RenderDepth(const Renderer::Mode&) override;
 
 private:
     virtual void _UpdateCPU(float delta);
     virtual void _FixedUpdateCPU(float delta);
     const glm::ivec2 _size;
     glm::ivec2 _spawnPoint;
-    std::vector<std::shared_ptr<GameEntity>> _entities;
+    std::vector<std::weak_ptr<GameEntity>> _entities;
     //static std::shared_ptr<Level> _currentLevel;
 };

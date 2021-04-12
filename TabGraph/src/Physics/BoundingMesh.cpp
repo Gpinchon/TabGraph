@@ -32,8 +32,7 @@ std::set<glm::vec3, compareVec> BoundingMesh::GetSATAxis(const glm::mat4& transf
     auto normalMatrix(glm::inverseTranspose(transform));
     auto mesh = GetMesh();
     std::set<glm::vec3, compareVec> axis;
-    for (const auto& geometryItr : mesh->GetGeometries()) {
-        const auto& geometry{ geometryItr.first };
+    for (const auto& geometry : mesh->GetGeometries()) {
         auto indices(geometry->Indices());
         if (indices != nullptr) {
             //GOOD NEWS EVERYONE ! We've got indices !
@@ -66,7 +65,7 @@ BoundingElement::ProjectionInterval BoundingMesh::Project(const glm::vec3& axis,
     auto maxDot = std::numeric_limits<float>::lowest();
     glm::vec3 maxV(std::numeric_limits<float>::infinity());
     glm::vec3 minV(std::numeric_limits<float>::infinity());
-    for (const auto& geometryItr : mesh->GetGeometries()) {
+    for (const auto& geometry : mesh->GetGeometries()) {
         /*auto indices(geometry->Indices());
         if (indices != nullptr) {
             //GOOD NEWS EVERYONE ! We've got indices !
@@ -82,7 +81,6 @@ BoundingElement::ProjectionInterval BoundingMesh::Project(const glm::vec3& axis,
             }
             continue;
         }*/
-        const auto& geometry{ geometryItr.first };
         for (auto index = 0u; index < geometry->VertexCount(); ++index) {
             auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, index));
             glm::vec3 transformedVertex(transform * glm::vec4(v, 1.f));
@@ -175,8 +173,7 @@ std::vector<glm::vec3> BoundingMesh::Clip(glm::vec3 axis, const glm::mat4& trans
 {
     auto mesh = GetMesh();
     std::vector<glm::vec3> output;
-    for (const auto& geometryItr : mesh->GetGeometries()) {
-        const auto& geometry{ geometryItr.first };
+    for (const auto& geometry : mesh->GetGeometries()) {
         auto indices(geometry->Indices());
         if (indices != nullptr) {
             auto startingPoint(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, indices->GetCount() - 1));

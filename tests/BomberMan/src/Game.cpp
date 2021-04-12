@@ -34,6 +34,7 @@ void Game::SetCurrentLevel(std::shared_ptr<Level> currentLevel)
 {
     for (auto i = 0; i < PlayerNumber(); ++i) {
         GetPlayer(i)->SetPosition(glm::vec2(currentLevel->SpawnPoint()) + 0.5f);
+        currentLevel->Add(GetPlayer(i));
         //currentLevel->SetGameEntityPosition(, GetPlayer(i));
     }
     getGameManager().currentLevel = currentLevel;

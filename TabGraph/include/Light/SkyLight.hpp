@@ -5,12 +5,12 @@
 * @Last Modified time: 2021-03-17 23:29:22
 */
 
-#include "Light/DirectionnalLight.hpp"
+#include "Light/DirectionalLight.hpp"
 #include "SphericalHarmonics.hpp"
 
 class Cubemap;
 
-class SkyLight : public DirectionnalLight {
+class SkyLight : public DirectionalLight {
 public:
     SkyLight();
     glm::vec3 GetSunDirection() const;
@@ -48,13 +48,9 @@ public:
     glm::vec3 GetBetaMie() const;
     void SetBetaMie(glm::vec3 betaMie);
 
-    virtual void Draw() override;
-    virtual void DrawProbe(LightProbe& lightProbe) override;
+    glm::vec3 GetIncidentLight(glm::vec3 direction) const;
 
 private:
-    void _UpdateLUT();
-    std::vector<glm::vec3> _SHDiffuse;
-    std::shared_ptr<Cubemap> _reflectionLUT;
     float _sunPower { 20.f };
     float _planetRadius { 6360e3 };
     float _atmosphereRadius { 6420e3 };

@@ -16,7 +16,7 @@
 #include "Event/Events.hpp"
 #include "Event/Keyboard.hpp"
 #include "Event/Mouse.hpp"
-#include "Light/DirectionnalLight.hpp"
+#include "Light/DirectionalLight.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/CubeMesh.hpp"
 #include "Mesh/Mesh.hpp"
@@ -211,7 +211,7 @@ int main(int argc, char** argv)
             //skyLight->SetSpecularPower(0);
             //auto dirLight =  Component::Create<DirectionnalLight>("MainLight", glm::vec3(0.025), -skyLight->GetSunDirection(), false);
             //dirLight->SetHalfSize(glm::vec3(50));
-            auto dirLight = Component::Create<DirectionnalLight>("MainLight", glm::vec3(1), glm::vec3(1, 1, 1), false);
+            auto dirLight = Component::Create<DirectionalLight>("MainLight", glm::vec3(0.5), glm::vec3(1, 1, 1), false);
             auto pointLight = Component::Create<PointLight>("PointLight", glm::vec3(1, 1, 1));
             //pointLight->SetPosition(glm::vec3(0, 0.1, 0));
             pointLight->SetPower(2);

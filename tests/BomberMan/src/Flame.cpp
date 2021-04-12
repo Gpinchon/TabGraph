@@ -22,7 +22,12 @@ Flame::Flame()
     , _spawnTime(std::chrono::high_resolution_clock::now())
 {
     _size = glm::vec2(0.7);
-    Engine::OnFixedUpdate().ConnectMember(this, &Flame::_FixedUpdateCPU);
+    _updateSlot = Engine::OnFixedUpdate().ConnectMember(this, &Flame::_FixedUpdateCPU);
+}
+
+Flame::~Flame()
+{
+    _updateSlot.Disconnect();
 }
 
 auto CreateFlameAsset()

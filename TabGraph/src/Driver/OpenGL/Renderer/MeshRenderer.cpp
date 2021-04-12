@@ -95,11 +95,10 @@ void MeshRenderer::Impl::Render(
     auto jointsIndex = _jointMatricesIndex;
     auto prevJointsIndex = (_jointMatricesIndex - 1) % _jointMatrices.size();
     auto fastTransparency { Config::Global().Get("FastTransparency", 1) };
-    for (const auto &vgItr : mesh.GetGeometries()) {
-        const auto& vg{ vgItr.first };
+    for (const auto &vg : mesh.GetGeometries()) {
         if (nullptr == vg)
             continue;
-        const auto& material{ vgItr.second };
+        const auto& material{ mesh.GetGeometryMaterial(vg) };
         if (nullptr == material) {
             errorLog("Error : Invalid Material Index while rendering Mesh");
             continue;

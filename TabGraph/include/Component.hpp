@@ -644,7 +644,7 @@ inline int64_t Component::GetComponentIndex(std::type_index typeIndex, std::shar
 inline int64_t Component::AddComponent(std::type_index typeIndex, std::shared_ptr<Component> component) noexcept
 {
     if (std::find(_componentsMap[typeIndex].begin(), _componentsMap[typeIndex].end(), component) == _componentsMap[typeIndex].end()) {
-        _componentsMap[typeIndex].emplace_back(component);
+        _componentsMap[typeIndex].push_back(component);
     }
     return GetComponentIndex(typeIndex, component);
 }

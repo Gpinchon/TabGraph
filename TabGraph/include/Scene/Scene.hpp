@@ -25,6 +25,10 @@ class RigidBody;
 class Skybox;
 namespace Renderer {
 class SceneRenderer;
+struct SceneRendererDeleter
+{
+    void operator()(Renderer::SceneRenderer*);
+};
 };
 
 /**
@@ -42,6 +46,7 @@ public:
     void SetCurrentCamera(std::shared_ptr<Camera>);
     ~Scene() = default;
     void AddRootNode(std::shared_ptr<Node>);
+    void Remove(std::shared_ptr<Node>);
     void Add(std::shared_ptr<Node>);
     void Add(std::shared_ptr<Animation>);
     void Add(std::shared_ptr<RigidBody>);
@@ -61,5 +66,5 @@ private:
     std::shared_ptr<BoundingAABB> _aabb { nullptr };
     int64_t _currentCamera { -1 };
     int64_t _skyboxIndex { -1 };
-    std::unique_ptr<Renderer::SceneRenderer> _renderer;
+    std::unique_ptr<Renderer::SceneRenderer, Renderer::SceneRendererDeleter> _renderer;
 };

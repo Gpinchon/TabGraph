@@ -11,7 +11,7 @@
 #include "Engine.hpp"
 #include "Skybox.hpp"
 #include "Light/HDRLight.hpp"
-#include "Light/DirectionnalLight.hpp"
+#include "Light/DirectionalLight.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Mesh/PlaneMesh.hpp"
@@ -47,6 +47,10 @@ Level::Level(const std::string& name, const glm::ivec2& size)
     //Engine::OnUpdate().ConnectMember(this, &Level::_UpdateCPU);
 }
 
+Level::~Level()
+{
+}
+
 #include "Texture/Texture2D.hpp"
 
 std::shared_ptr<Level> Level::Create(const std::string& name, const glm::ivec2& size)
@@ -57,21 +61,12 @@ std::shared_ptr<Level> Level::Create(const std::string& name, const glm::ivec2& 
     floorNode->SetPosition(glm::vec3(level->Size().x / 2.f, 0, level->Size().y / 2.f));
     //auto light = DirectionnalLight::Create("MainLight", glm::vec3(1.f), glm::vec3(1.f), 1.f, true);
     auto radius = size.x + size.y;
-    auto light = Component::Create<DirectionnalLight>("MainLight", glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), true);
+    auto light = Component::Create<DirectionalLight>("MainLight", glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), true);
     light->SetHalfSize(glm::vec3(size.x / 2.f, 1.5, size.y / 2.f));
     light->SetPosition(glm::vec3(size.x / 2.f, 0, size.y / 2.f));
     light->SetInfinite(false);
-
     auto camera = Component::Create<OrbitCamera>("MainCamera", 45.f, glm::pi<float>() / 2.f, 1, radius / 2.f);
     camera->SetTarget(floorNode);
-    
-    //auto floorTexture = Component::Create<Texture2D>("floorTexture", size, GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE, data.data());
-    //floorTexture->set_parameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //floorTexture->set_parameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    //camera->GetComponent<Transform>()->SetPosition(glm::vec3(0, 10, 1));
-    //camera->GetComponent<Transform>()->LookAt(glm::vec3(0, 0, 0));
-    floorMesh->GetMaterial(0)->SetDiffuse(glm::vec3(1.f));
-    //floorMesh->GetMaterial(0)->SetTextureDiffuse(floorTexture);
     floorNode->SetComponent(floorMesh);
     level->SetCurrentCamera(camera);
     level->Add(light);
@@ -146,22 +141,21 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
     auto floorTexture = Component::Create<Texture2D>(floorImageAsset);
     floorTexture->SetParameter<Texture::Parameter::MagFilter>(Texture::Filter::Nearest);
     floorTexture->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::Nearest);
-    level->GetComponentInChildrenByName<Mesh>("FloorMesh")->GetMaterial(0)->SetTextureDiffuse(floorTexture);
+    level->GetComponentInChildrenByName<Mesh>("FloorMesh")->GetGeometryMaterial(0)->SetTextureDiffuse(floorTexture);
     struct dirent* e;
     std::filesystem::path folder;
 
     folder = path.parent_path() / "env/hdr/";
     std::cout << folder << std::endl;
-    auto newEnv = Component::Create<Skybox>("Skybox");
+    auto skybox = Component::Create<Skybox>("Skybox");
     auto diffuseMap{ Component::Create<Asset>(folder / "diffuse.hdr") };
-    newEnv->SetDiffuse(Component::Create<Cubemap>(diffuseMap));
-    level->SetEnvironment(newEnv);
+    skybox->SetTexture(Component::Create<Cubemap>(diffuseMap));
+    level->SetSkybox(skybox);
 
     auto lightHDR{ Component::Create<HDRLight>(diffuseMap) };
     level->Add(lightHDR);
     
-    level->SetEnvironment(level->GetComponent<Skybox>(0));
-    std::cout << level->GetEnvironment() << std::endl;
+    
     return level;
 }
 
@@ -186,15 +180,23 @@ void Level::SetGameEntityPosition(glm::ivec2 position, std::shared_ptr<GameEntit
     SetGameEntity(position, entity);
 }
 
-void Level::SetGameEntity(glm::ivec2 position, const std::shared_ptr<GameEntity> entity)
+void Level::SetGameEntity(glm::ivec2 position, std::shared_ptr<GameEntity> entity)
 {
     position = glm::clamp(position, glm::ivec2(0), Size() - 1);
-    _entities.at(position.x + position.y * Size().x) = entity;
+    auto index{ position.x + position.y * Size().x };
+    Remove(_entities.at(index).lock());
+    _entities.at(index).lock().reset();
+    _entities.at(index).reset();
+    if (entity != nullptr) {
+        _entities.at(index) = entity;
+        Add(entity);
+    }
+    
 }
 
 std::shared_ptr<GameEntity> Level::GetGameEntity(glm::ivec2 position) const
 {
-    return _entities.at(position.x + position.y * Size().x);
+    return _entities.at(position.x + position.y * Size().x).lock();
 }
 
 void Level::_UpdateCPU(float delta)
@@ -219,7 +221,7 @@ void Level::_FixedUpdateCPU(float delta)
     //    Game::GetPlayer(index)->FixedUpdateCPU(delta);
     //}
 }
-
+/*
 void Level::Render(const Renderer::Pass& pass, const Renderer::Mode& mod)
 {
     Scene::Render(pass, mod);
@@ -244,3 +246,4 @@ void Level::RenderDepth(const Renderer::Mode& mod)
         Game::GetPlayer(index)->DrawDepth(std::static_pointer_cast<Scene>(shared_from_this()), mod, true);
     }
 }
+*/

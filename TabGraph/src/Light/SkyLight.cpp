@@ -17,8 +17,7 @@
 #include "SphericalHarmonics.hpp"
 #include "Texture/Texture2D.hpp"
 #include "Texture/Cubemap.hpp"
-
-static SphericalHarmonics s_SH{ 50 };
+#include "Renderer/Light/SkyLightRenderer.hpp"
 
 #define num_samples 16
 #define num_samples_light 8
@@ -92,7 +91,7 @@ bool get_sun_light(const ray_t &ray, float& optical_depthR, float& optical_depth
     return true;
 }
 
-glm::vec3 get_incident_light(ray_t ray, const SkyLight& sky)
+static inline glm::vec3 GetIncidentLight(ray_t ray, const SkyLight& sky)
 {
     const sphere_t atmosphere = sphere_t{
         glm::vec3(0, 0, 0), sky.GetAtmosphereRadius()
@@ -172,66 +171,9 @@ glm::vec3 get_incident_light(ray_t ray, const SkyLight& sky)
          sumM * phaseM * sky.GetBetaMie());
 }
 
-static inline auto DeferredSkyLightVertexCode()
-{
-    auto lightingVertexCode =
-#include "Lights/TransformGeometry.vert"
-        ;
-    static Shader::Stage::Code shaderCode{ lightingVertexCode, "TransformGeometry();" };
-    return shaderCode;
-}
-
-static inline auto DeferredSkyLightFragmentCode()
-{
-    auto deferred_frag_code =
-#include "deferred.frag"
-        ;
-    auto SHCode =
-#include "sphericalHarmonics.glsl"
-        ;
-    auto lightingFragmentCode =
-#include "Lights/DeferredSkyLight.frag"
-        ;
-    Shader::Stage::Code shaderCode =
-        Shader::Stage::Code{ deferred_frag_code, "FillFragmentData();" } +
-        Shader::Stage::Code{ SHCode } +
-        Shader::Stage::Code{ lightingFragmentCode, "Lighting();" };
-    return shaderCode;
-}
-
-auto SkyLightLUTShader()
-{
-    static std::shared_ptr<Shader::Program> shader;
-    if (shader == nullptr) {
-        auto LayeredCubemapRenderCode =
-#include "LayeredCubemapRender.geom"
-            ;
-        auto deferredVertexCode =
-#include "deferred.vert"
-            ;
-        auto skyLightFragCode =
-#include "Lights/ProbeSkyLight.frag"
-            ;
-        shader = Component::Create<Shader::Program>("DirectionnalLUTShader");
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Geometry, { LayeredCubemapRenderCode, "LayeredCubemapRender();" }));
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertexCode, "FillVertexData();" }));
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { skyLightFragCode, "ComputeSkyLight();" }));
-    }
-    return shader;
-}
-
-static inline auto SkyLightGeometry()
-{
-    static auto geometry = CubeMesh::CreateGeometry("SkyLightGeometry", glm::vec3(1));
-    return geometry;
-}
-
 SkyLight::SkyLight()
+    : DirectionalLight()
 {
-    _deferredShader = Component::Create<Shader::Program>("SkyLightShader");
-    _deferredShader->SetDefine("Pass", "DeferredLighting");
-    _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DeferredSkyLightVertexCode()));
-    _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DeferredSkyLightFragmentCode()));
 }
 
 glm::vec3 SkyLight::GetSunDirection() const
@@ -241,7 +183,8 @@ glm::vec3 SkyLight::GetSunDirection() const
 
 void SkyLight::SetSunDirection(const glm::vec3& sunDir)
 {
-    _needsUpdate |= sunDir != GetSunDirection();
+    if (sunDir != GetSunDirection())
+        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
     SetDirection(sunDir);
 }
 
@@ -252,7 +195,8 @@ float SkyLight::GetSunPower() const
 
 void SkyLight::SetSunPower(const float sunPower)
 {
-    _needsUpdate |= sunPower != _sunPower;
+    if (sunPower != _sunPower)
+        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
     _sunPower = sunPower;
 }
 
@@ -263,7 +207,8 @@ float SkyLight::GetPlanetRadius() const
 
 void SkyLight::SetPlanetRadius(float planetRadius)
 {
-    _needsUpdate |= planetRadius != _planetRadius;
+    if (planetRadius != _planetRadius)
+        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
     _planetRadius = planetRadius;
 }
 
@@ -274,7 +219,8 @@ float SkyLight::GetAtmosphereRadius() const
 
 void SkyLight::SetAtmosphereRadius(float atmosphereRadius)
 {
-    _needsUpdate |= atmosphereRadius != _atmosphereRadius;
+    if (atmosphereRadius != _atmosphereRadius)
+        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
     _atmosphereRadius = atmosphereRadius;
 }
 
@@ -285,7 +231,8 @@ float SkyLight::GetHRayleigh() const
 
 void SkyLight::SetHRayleigh(float hRayleigh)
 {
-    _needsUpdate |= hRayleigh != _hRayleigh;
+    if (hRayleigh != _hRayleigh)
+        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
     _hRayleigh = hRayleigh;
 }
 
@@ -296,7 +243,8 @@ float SkyLight::GetHMie() const
 
 void SkyLight::SetHMie(float hMie)
 {
-    _needsUpdate |= hMie != _hMie;
+    if (hMie != _hMie)
+        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
     _hMie = hMie;
 }
 
@@ -307,7 +255,8 @@ glm::vec3 SkyLight::GetBetaRayleigh() const
 
 void SkyLight::SetBetaRayleigh(glm::vec3 betaRayleigh)
 {
-    _needsUpdate |= betaRayleigh != _betaRayleigh;
+    if (betaRayleigh != _betaRayleigh)
+        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
     _betaRayleigh = betaRayleigh;
 }
 
@@ -318,84 +267,15 @@ glm::vec3 SkyLight::GetBetaMie() const
 
 void SkyLight::SetBetaMie(glm::vec3 betaMie)
 {
-    _needsUpdate |= betaMie != _betaMie;
+    if (betaMie != _betaMie)
+        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
     _betaMie = betaMie;
 }
 
-void SkyLight::Draw()
+glm::vec3 SkyLight::GetIncidentLight(glm::vec3 direction) const
 {
-    if (_needsUpdate) {
-        _UpdateLUT();
-        //re-bind lighting buffer
-        Renderer::DeferredLightingBuffer()->bind();
-    }
-    auto geometryBuffer = Renderer::DeferredGeometryBuffer();
-    glm::vec3 geometryPosition;
-    if (GetInfinite())
-        geometryPosition = Scene::Current()->CurrentCamera()->WorldPosition();
-    else
-        geometryPosition = GetParent() ? GetParent()->WorldPosition() + GetPosition() : GetPosition();
-    if (GetCastShadow())
-        _deferredShader->SetDefine("SHADOW");
-    else
-        _deferredShader->RemoveDefine("SHADOW");
-    _deferredShader->Use()
-        .SetTexture("SpecularLUT", _reflectionLUT)
-        .SetTexture("DefaultBRDFLUT", Renderer::DefaultBRDFLUT())
-        .SetUniform("SH[0]", _SHDiffuse.data(), _SHDiffuse.size())
-        .SetTexture("Light.Shadow", GetCastShadow() ? _GetShadowBuffer()->GetDepthBuffer() : nullptr)
-        .SetUniform("Light.SpecularPower", GetSpecularPower())
-        .SetUniform("Light.Max", GetMax())
-        .SetUniform("Light.Min", GetMin())
-        .SetUniform("Light.Projection", (GetInfinite() ? ShadowProjectionMatrixInfinite() : ShadowProjectionMatrixFinite()) * ShadowViewMatrix())
-        .SetUniform("Light.Infinite", GetInfinite())
-        .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * GetLocalScaleMatrix())
-        .SetTexture("Texture.Geometry.CDiff", geometryBuffer->GetColorBuffer(0))
-        .SetTexture("Texture.Geometry.F0", geometryBuffer->GetColorBuffer(1))
-        .SetTexture("Texture.Geometry.Normal", geometryBuffer->GetColorBuffer(2))
-        .SetTexture("Texture.Geometry.Depth", geometryBuffer->GetDepthBuffer());
-    Renderer::Render(SkyLightGeometry(), true);
-    _deferredShader->Done();
-}
-
-void SkyLight::DrawProbe(LightProbe& lightProbe)
-{
-    _UpdateLUT();
-}
-
-void SkyLight::_UpdateLUT()
-{
-    if (!_needsUpdate)
-        return;
-    _SHDiffuse = s_SH.ProjectFunction(
-        [=](const SphericalHarmonics::Sample& sample) {
-            return min(get_incident_light({
-                        glm::vec3(0, GetPlanetRadius() + 1, 0),
-                        sample.vec
-                }, *this), 1.f);
-        }
-    );
-    if (_reflectionLUT == nullptr) {
-        _reflectionLUT = Component::Create<Cubemap>(glm::ivec2(256), Pixel::SizedFormat::Float16_RGB);
-    }
-    static auto s_diffuseLUTBuffer = Component::Create<Framebuffer>("DiffuseLUTBuffer", glm::ivec2(256));
-    glDisable(GL_CULL_FACE);
-    s_diffuseLUTBuffer->SetColorBuffer(_reflectionLUT, 0);
-    s_diffuseLUTBuffer->bind();
-    SkyLightLUTShader()->Use()
-        .SetUniform("BetaMie", GetBetaMie())
-        .SetUniform("BetaRayleigh", GetBetaRayleigh())
-        .SetUniform("SunDirection", GetSunDirection())
-        .SetUniform("SunPower", GetSunPower())
-        .SetUniform("PlanetRadius", GetPlanetRadius())
-        .SetUniform("AtmosphereRadius", GetAtmosphereRadius())
-        .SetUniform("HRayLeigh", GetHRayleigh())
-        .SetUniform("HMie", GetHMie());
-    glClear(GL_COLOR_BUFFER_BIT);
-    Renderer::Render(Renderer::DisplayQuad());
-    Framebuffer::bind_default();
-    s_diffuseLUTBuffer->SetColorBuffer(nullptr, 0);
-    _reflectionLUT->GenerateMipmap();
-    _reflectionLUT->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::LinearMipmapLinear);
-    _needsUpdate = false;
+    return ::GetIncidentLight({
+            glm::vec3(0, GetPlanetRadius() + 1, 0),
+            direction
+        }, *this);
 }

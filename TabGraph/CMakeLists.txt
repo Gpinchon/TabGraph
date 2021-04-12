@@ -32,6 +32,11 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Renderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SceneRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SkyboxRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/HDRLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/SkyLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/PointLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/LightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/VertexArray.cpp
@@ -44,7 +49,7 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Mouse.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/LightProbe.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionnalLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionalLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/HDRLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/PointLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SkyLight.cpp
@@ -80,6 +85,11 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/MeshRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SceneRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SkyboxRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/DirectionalLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/HDRLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/SkyLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/PointLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/LightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/Scene.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Global.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Program.cpp
@@ -126,6 +136,11 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Renderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/SceneRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/SkyboxRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/LightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Buffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/VertexArray.hpp
@@ -139,7 +154,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Light.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/LightProbe.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/DirectionnalLight.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/DirectionalLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/HDRLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/PointLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/SkyLight.hpp
@@ -178,6 +193,11 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/MeshRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/SceneRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/SkyboxRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/DirectionalLightRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/HDRLightRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/SkyLightRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/PointLightRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/LightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Scene/Scene.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Global.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Program.hpp
@@ -218,7 +238,6 @@ set(TABGRAPH_SHADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.vert
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/hzb.frag
-	${CMAKE_CURRENT_SOURCE_DIR}/shaders/material.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/metallicRoughness.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.vert

@@ -16,8 +16,18 @@ Light::Light()
     ++g_lightNbr;
 }
 
+Renderer::LightRenderer& Light::GetRenderer()
+{
+    return *_renderer;
+}
+
 Light::Light(const std::string& name, glm::vec3 color)
     : Light()
 {
     SetColor(color);
+}
+
+void Renderer::LightRendererDeleter::operator()(Renderer::LightRenderer* ptr)
+{
+    delete ptr;
 }

@@ -20,19 +20,22 @@ Wall::Wall()
 }
 
 auto CreateWallAsset() {
-    auto wall(Component::Create<Wall>());
     auto wallAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/wall.gltf") };
     wallAsset->Load();
-    auto wallMeshes = wallAsset->GetComponentsInChildren<Mesh>();
-    for (const auto& mesh : wallMeshes)
+    return wallAsset->GetComponentsInChildren<Mesh>();
+    /*for (const auto& mesh : wallMeshes)
         wall->AddComponent(mesh);
     wall->SetScale(glm::vec3(0.45));
-    return wall;
+    return wall;*/
 }
 
 std::shared_ptr<Wall> Wall::Create()
 {
-    static auto wallAsset(CreateWallAsset());
-    auto wall{ std::static_pointer_cast<Wall>(wallAsset->Clone()) };
+    static auto wallMeshes(CreateWallAsset());
+    //auto wall{ std::static_pointer_cast<Wall>(wallAsset->Clone()) };
+    auto wall(Component::Create<Wall>());
+    for (const auto& mesh : wallMeshes)
+        wall->AddComponent(mesh);
+    wall->SetScale(glm::vec3(0.45));
     return wall;
 }
