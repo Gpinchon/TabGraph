@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-02-19 20:24:10
+* @Last Modified time: 2021-04-13 13:10:05
 */
 #pragma once
 
@@ -17,22 +17,20 @@ class Texture;
 
 namespace Shader {
 class Program : public Component {
-    class Handle;
     class Impl;
+    class Handle;
     friend Impl;
     friend Handle;
-    //std::unique_ptr<Impl> _impl;
-    PRIVATEPROPERTY(std::shared_ptr<Impl>, Impl, nullptr);
 
 public:
     Program();
-    //Program(const Program &other);
+    Program(const Program& other);
     Program(const std::string& name);
     ~Program();
-    const Handle &GetHandle() const;
+    const Handle& GetHandle() const;
     Stage& GetStage(Stage::Type);
     Program& Compile();
-    Program& Attach(const Stage &stage);
+    Program& Attach(const Stage& stage);
     Program& Use();
     Program& SetTexture(const std::string& name, const std::shared_ptr<Texture> value);
     Program& SetUniform(const std::string& name, const float value);
@@ -57,8 +55,8 @@ public:
     bool GetCompiled() const;
     static void UseNone();
 
-private :
-    
+private:
+    std::shared_ptr<Impl> _impl;
     virtual std::shared_ptr<Component> _Clone() override
     {
         auto program(Component::Create<Program>(*this));

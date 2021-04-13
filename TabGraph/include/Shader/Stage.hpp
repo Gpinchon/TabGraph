@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-01-04 09:42:57
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-02 00:15:39
+* @Last Modified time: 2021-04-13 13:10:18
 */
 #pragma once
 
@@ -15,9 +15,9 @@ namespace Shader {
 class Stage {
 public:
     /**
-         * code : the code to be added before main (functions for instance)
-         * technique : what is to be added inside of main (function calls for instance)
-        */
+     * code : the code to be added before main (functions for instance)
+     * technique : what is to be added inside of main (function calls for instance)
+    */
     struct Code {
         Code(const std::string& code = "", const std::string& technique = "")
             : code(code)
@@ -84,6 +84,6 @@ public:
 
 private:
     std::map<std::string, std::string> _defines {};
-    Stage::Code _code{ "" };
+    Stage::Code _code { "" };
 };
 };

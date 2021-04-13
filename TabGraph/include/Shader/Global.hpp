@@ -1,8 +1,14 @@
+/*
+* @Author: gpinchon
+* @Date:   2021-02-22 11:08:16
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-04-13 22:39:13
+*/
 #pragma once
 
-#include <string>
-#include <memory>
 #include <glm/fwd.hpp>
+#include <memory>
+#include <string>
 
 class Texture;
 

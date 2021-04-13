@@ -37,7 +37,8 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/SkyLightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/PointLightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Global.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Program.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/VertexArray.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Framebuffer.cpp
@@ -136,7 +137,8 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Buffer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Global.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Program.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/VertexArray.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Framebuffer.hpp

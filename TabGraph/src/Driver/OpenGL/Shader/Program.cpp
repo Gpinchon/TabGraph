@@ -1,16 +1,17 @@
 /*
 * @Author: gpinchon
-* @Date:   2021-02-20 22:19:57
+* @Date:   2021-04-13 22:39:37
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-02-23 19:22:14
+* @Last Modified time: 2021-04-13 23:23:00
 */
-#include "Driver/OpenGL/Shader.hpp"
+#include "Driver/OpenGL/Shader/Program.hpp"
+#include "Driver/OpenGL/Shader/Global.hpp"
 #include "Shader/Stage.hpp"
 #include "Texture/Texture.hpp"
 
 #include <array>
-#include <string>
 #include <glm/glm.hpp>
+#include <string>
 
 static inline bool IsTextureType(GLenum type)
 {
@@ -97,16 +98,6 @@ std::array<GLenum, 6> GLStageLUT = {
 };
 
 namespace Shader {
-static std::map<std::string, std::string> s_globalDefines;
-static std::map<std::string, std::vector<float>> s_globalFloats;
-static std::map<std::string, std::vector<glm::vec2>> s_globalVec2;
-static std::map<std::string, std::vector<glm::vec3>> s_globalVec3;
-static std::map<std::string, std::vector<glm::vec4>> s_globalVec4;
-static std::map<std::string, std::vector<glm::mat4>> s_globalMat4;
-static std::map<std::string, std::vector<glm::mat3>> s_globalMat3;
-static std::map<std::string, std::vector<int32_t>> s_globalInts;
-static std::map<std::string, std::vector<uint32_t>> s_globalUints;
-static std::map<std::string, std::shared_ptr<Texture>> s_globalTextures;
 Program::Impl::~Impl()
 {
     glDeleteShader(GetHandle());
@@ -158,8 +149,7 @@ void Program::Impl::Compile()
                 glGetShaderInfoLog(handle, loglength, nullptr, log.data());
                 std::string logString(log.begin(), log.end());
                 throw std::runtime_error(logString);
-            }
-            else {
+            } else {
                 throw std::runtime_error("Unknown Error");
             }
         }
@@ -178,8 +168,7 @@ void Program::Impl::Compile()
             glGetProgramInfoLog(GetHandle(), loglength, nullptr, log.data());
             std::string logString(log.begin(), log.end());
             throw std::runtime_error(logString);
-        }
-        else {
+        } else {
             throw std::runtime_error("Unknown Error");
         }
     }
@@ -191,30 +180,16 @@ void Program::Impl::Compile()
     }
     GLint numUniforms = 0;
     glGetProgramiv(GetHandle(), GL_ACTIVE_UNIFORMS, &numUniforms);
-    //glGetProgramInterfaceiv(GetHandle(), GL_UNIFORM, GL_ACTIVE_RESOURCES, &numUniforms);
-    //const GLenum properties[4] = { GL_BLOCK_INDEX, GL_TYPE, GL_NAME_LENGTH, GL_LOCATION };
     uint16_t textureIndex { 0 };
     char name[4096];
     while (--numUniforms >= 0) {
-        //GLint values[4];
         GLenum type;
         GLint size;
         glGetActiveUniform(GetHandle(), static_cast<GLuint>(numUniforms), 4096, nullptr, &size, &type, name);
-        auto loc{ glGetUniformLocation(GetHandle(), name) };
+        auto loc { glGetUniformLocation(GetHandle(), name) };
         _uniformLocs[name] = loc;
         if (IsTextureType(type))
             _textureIndice[loc] = ++textureIndex;
-        //glGetProgramResourceiv(GetHandle(), GL_UNIFORM, unif, 4, properties, 4, NULL, values);
-        // Skip any uniforms that are in a block.
-        //if (values[0] != -1)
-        //    continue;
-        //std::string name(values[2] - 1, '\0');
-        //glGetProgramResourceName(GetHandle(), GL_UNIFORM, unif, name.size() + 1, NULL, name.data());
-        //_uniformLocs[name] = values[3];
-        //if (IsTextureType(values[1])) {
-            //_textureIndice[values[3]] = textureIndex;
-            //++textureIndex;
-        //}
     }
     _SetCompiled(true);
 }
@@ -228,8 +203,7 @@ void Program::Impl::SetTexture(const std::string& name, const std::shared_ptr<Te
             if (value != nullptr) {
                 value->Load();
                 glBindTexture((GLenum)value->GetType(), value->GetHandle());
-            }
-            else {
+            } else {
                 glBindTexture((GLenum)Texture::Type::Texture1D, 0);
                 glBindTexture((GLenum)Texture::Type::Texture2D, 0);
                 glBindTexture((GLenum)Texture::Type::Texture2DMultisample, 0);
@@ -278,7 +252,7 @@ void Program::Impl::SetUniform(const std::string& name, const glm::vec2& value)
 }
 void Program::Impl::SetUniform(const std::string& name, const glm::vec2* value, const uint16_t count, const uint16_t index)
 {
-    auto loc{ _uniformLocs.find(name) };
+    auto loc { _uniformLocs.find(name) };
     if (loc != _uniformLocs.end())
         glUniform2fv(loc->second + index, count, (float*)value);
 }
@@ -288,7 +262,7 @@ void Program::Impl::SetUniform(const std::string& name, const glm::vec3& value)
 }
 void Program::Impl::SetUniform(const std::string& name, const glm::vec3* value, const uint16_t count, const uint16_t index)
 {
-    auto loc{ _uniformLocs.find(name) };
+    auto loc { _uniformLocs.find(name) };
     if (loc != _uniformLocs.end())
         glUniform3fv(loc->second + index, count, (float*)value);
 }
@@ -298,7 +272,7 @@ void Program::Impl::SetUniform(const std::string& name, const glm::vec4& value)
 }
 void Program::Impl::SetUniform(const std::string& name, const glm::vec4* value, const uint16_t count, const uint16_t index)
 {
-    auto loc{ _uniformLocs.find(name) };
+    auto loc { _uniformLocs.find(name) };
     if (loc != _uniformLocs.end())
         glUniform4fv(loc->second + index, count, (float*)value);
 }
@@ -309,7 +283,7 @@ void Program::Impl::SetUniform(const std::string& name, const glm::mat4& value)
 
 void Program::Impl::SetUniform(const std::string& name, const glm::mat4* value, const uint16_t count, const uint16_t index)
 {
-    auto loc{ _uniformLocs.find(name) };
+    auto loc { _uniformLocs.find(name) };
     if (loc != _uniformLocs.end())
         glUniformMatrix4fv(loc->second + index, count, false, (float*)value);
 }
@@ -321,7 +295,7 @@ void Program::Impl::SetUniform(const std::string& name, const glm::mat3& value)
 
 void Program::Impl::SetUniform(const std::string& name, const glm::mat3* value, const uint16_t count, const uint16_t index)
 {
-    auto loc{ _uniformLocs.find(name) };
+    auto loc { _uniformLocs.find(name) };
     if (loc != _uniformLocs.end())
         glUniformMatrix3fv(loc->second + index, count, false, (float*)value);
 }
@@ -348,28 +322,28 @@ void Program::Impl::RemoveDefine(const std::string& name)
 
 void Program::Impl::Use()
 {
-    for (const auto& globalDefine : s_globalDefines)
+    for (const auto& globalDefine : Global::Impl::GetDefines())
         SetDefine(globalDefine.first, globalDefine.second);
     if (!GetCompiled())
         Compile();
     glUseProgram(GetHandle());
-    for (const auto& globalVec2 : s_globalVec2)
+    for (const auto& globalVec2 : Global::Impl::GetVec2())
         SetUniform(globalVec2.first, globalVec2.second.data(), globalVec2.second.size(), 0);
-    for (const auto& globalVec3 : s_globalVec3)
+    for (const auto& globalVec3 : Global::Impl::GetVec3())
         SetUniform(globalVec3.first, globalVec3.second.data(), globalVec3.second.size(), 0);
-    for (const auto& globalVec4 : s_globalVec4)
+    for (const auto& globalVec4 : Global::Impl::GetVec4())
         SetUniform(globalVec4.first, globalVec4.second.data(), globalVec4.second.size(), 0);
-    for (const auto& globalMat4 : s_globalMat4)
+    for (const auto& globalMat4 : Global::Impl::GetMat4())
         SetUniform(globalMat4.first, globalMat4.second.data(), globalMat4.second.size(), 0);
-    for (const auto& globalMat3 : s_globalMat3)
+    for (const auto& globalMat3 : Global::Impl::GetMat3())
         SetUniform(globalMat3.first, globalMat3.second.data(), globalMat3.second.size(), 0);
-    for (const auto& globalFloat : s_globalFloats)
+    for (const auto& globalFloat : Global::Impl::GetFloats())
         SetUniform(globalFloat.first, globalFloat.second.data(), globalFloat.second.size(), 0);
-    for (const auto& globalInt : s_globalInts)
+    for (const auto& globalInt : Global::Impl::GetInts())
         SetUniform(globalInt.first, globalInt.second.data(), globalInt.second.size(), 0);
-    for (const auto& globalUint : s_globalUints)
+    for (const auto& globalUint : Global::Impl::GetUints())
         SetUniform(globalUint.first, globalUint.second.data(), globalUint.second.size(), 0);
-    for (const auto& globalTexture : s_globalTextures)
+    for (const auto& globalTexture : Global::Impl::GetTextures())
         SetTexture(globalTexture.first, globalTexture.second);
 }
 
@@ -382,109 +356,4 @@ void Program::Impl::_SetHandle(uint32_t value)
 {
     _handle = value;
 }
-
-namespace Global {
-    namespace Impl {
-        void SetTexture(const std::string& name, const std::shared_ptr<Texture> value)
-        {
-            s_globalTextures[name] = value;
-        }
-        void SetUniform(const std::string& name, const float value)
-        {
-            SetUniform(name, &value, 1, 0);
-        }
-        void SetUniform(const std::string& name, const float* value, const uint16_t count, const uint16_t index)
-        {
-            auto& values { s_globalFloats[name] };
-            if (values.size() <= index + count)
-                values.resize(index + count, 0);
-            std::copy(value, value + count, values.begin() + index);
-        }
-        void SetUniform(const std::string& name, const int32_t value)
-        {
-            SetUniform(name, &value, 1, 0);
-        }
-        void SetUniform(const std::string& name, const int32_t* value, const uint16_t count, const uint16_t index)
-        {
-            auto& values { s_globalInts[name] };
-            if (values.size() <= index + count)
-                values.resize(index + count, 0);
-            std::copy(value, value + count, values.begin() + index);
-        }
-        void SetUniform(const std::string& name, const uint32_t value)
-        {
-            SetUniform(name, &value, 1, 0);
-        }
-        void SetUniform(const std::string& name, const uint32_t* value, const uint16_t count, const uint16_t index)
-        {
-            auto& values { s_globalUints[name] };
-            if (values.size() <= index + count)
-                values.resize(index + count, 0);
-            std::copy(value, value + count, values.begin() + index);
-        }
-        void SetUniform(const std::string& name, const glm::vec2& value)
-        {
-            SetUniform(name, &value, 1, 0);
-        }
-        void SetUniform(const std::string& name, const glm::vec2* value, const uint16_t count, const uint16_t index)
-        {
-            auto& values{ s_globalVec2[name] };
-            if (values.size() <= index + count)
-                values.resize(index + count, glm::vec2(0));
-            std::copy(value, value + count, values.begin() + index);
-        }
-        void SetUniform(const std::string& name, const glm::vec3& value)
-        {
-            SetUniform(name, &value, 1, 0);
-        }
-        void SetUniform(const std::string& name, const glm::vec3* value, const uint16_t count, const uint16_t index)
-        {
-            auto& values{ s_globalVec3[name] };
-            if (values.size() <= index + count)
-                values.resize(index + count, glm::vec3(0));
-            std::copy(value, value + count, values.begin() + index);
-        }
-        void SetUniform(const std::string& name, const glm::vec4& value)
-        {
-            SetUniform(name, &value, 1, 0);
-        }
-        void SetUniform(const std::string& name, const glm::vec4* value, const uint16_t count, const uint16_t index)
-        {
-            auto& values{ s_globalVec4[name] };
-            if (values.size() <= index + count)
-                values.resize(index + count, glm::vec4(0));
-            std::copy(value, value + count, values.begin() + index);
-        }
-        void SetUniform(const std::string& name, const glm::mat4& value)
-        {
-            SetUniform(name, &value, 1, 0);
-        }
-        void SetUniform(const std::string& name, const glm::mat4* value, const uint16_t count, const uint16_t index)
-        {
-            auto& values{ s_globalMat4[name] };
-            if (values.size() <= index + count)
-                values.resize(index + count, glm::mat4(0));
-            std::copy(value, value + count, values.begin() + index);
-        }
-        void SetUniform(const std::string& name, const glm::mat3& value)
-        {
-            SetUniform(name, &value, 1, 0);
-        }
-        void SetUniform(const std::string & name, const glm::mat3 * value, const uint16_t count, const uint16_t index)
-        {
-            auto& values{ s_globalMat3[name] };
-            if (values.size() <= index + count)
-                values.resize(index + count, glm::mat4(0));
-            std::copy(value, value + count, values.begin() + index);
-        }
-        void SetDefine(const std::string& name, const std::string& value)
-        {
-            s_globalDefines[name] = value;
-        }
-        void RemoveDefine(const std::string& name)
-        {
-            s_globalDefines.erase(name);
-        }
-    };
-};
 };

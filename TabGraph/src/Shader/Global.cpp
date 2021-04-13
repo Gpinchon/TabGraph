@@ -5,7 +5,9 @@
 * @Last Modified time: 2021-02-23 19:25:55
 */
 #include "Shader/Global.hpp"
-#include "Driver/OpenGL/Shader.hpp"
+//#ifdef OPENGL
+#include "Driver/OpenGL/Shader/Global.hpp"
+//#endif
 
 namespace Shader {
 namespace Global {
