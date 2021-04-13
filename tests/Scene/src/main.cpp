@@ -148,7 +148,7 @@ void ControllerButton(const SDL_ControllerButtonEvent& event) {
 
 void SetupCallbacks()
 {
-    GameController::Get(0)->OnButton(SDL_CONTROLLER_BUTTON_A).Connect(&ControllerButton);
+    GameController::Get(0).OnButton(SDL_CONTROLLER_BUTTON_A).Connect(&ControllerButton);
     Keyboard::OnKey(SDL_SCANCODE_KP_PLUS).Connect(CallbackSpeed);
     Keyboard::OnKey(SDL_SCANCODE_KP_MINUS).Connect(CallbackSpeed);
     Keyboard::OnKey(SDL_SCANCODE_ESCAPE).Connect(ExitCallback);

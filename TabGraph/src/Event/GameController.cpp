@@ -182,15 +182,12 @@ GameController& GameController::_get()
     return controller;
 }
 
-Controller* GameController::Get(SDL_JoystickID device)
+Controller& GameController::Get(SDL_JoystickID device)
 {
-    auto controller = _get()._controllers.find(device);
-    if (controller == _get()._controllers.end()) {
-        auto newcontroller = new Controller(device);
-        _get()._controllers[device] = newcontroller;
-        return newcontroller;
+    if (_get()._controllers.count(device) == 0) {
+        _get()._controllers[device].reset(new Controller(device));
     }
-    return controller->second;
+    return *_get()._controllers[device];
 }
 
 void GameController::remove(SDL_JoystickID i)
@@ -207,12 +204,12 @@ void GameController::process_event(SDL_Event* event)
         controllerIndex = get_controller_index(event->cdevice.which);
     }
     if (controllerIndex != -1)
-        Get(controllerIndex)->process_event(event);
+        Get(controllerIndex).process_event(event);
 }
 
 int GameController::get_controller_index(SDL_JoystickID device)
 {
-    for (auto controller : _get()._controllers) {
+    for (auto &controller : _get()._controllers) {
         if (controller.second->is(device))
             return (controller.first);
     }

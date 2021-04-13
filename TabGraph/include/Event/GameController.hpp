@@ -17,12 +17,13 @@
 #include <SDL_stdinc.h> // for Uint8
 #include <array> // for array
 #include <map> // for map
+#include <memory>
 
 //TODO : add default button mapping and button repeat for gamepad and other InputDevice
 
 class Controller : InputDevice {
 public:
-    Controller() = default;
+    Controller() = delete;
     Controller(SDL_JoystickID id);
     ~Controller();
     bool is(SDL_JoystickID device);
@@ -56,13 +57,13 @@ private:
 
 class GameController : InputDevice {
 public:
-    static Controller* Get(SDL_JoystickID index);
+    static Controller& Get(SDL_JoystickID index);
     static void remove(SDL_JoystickID index);
     virtual void process_event(SDL_Event* event) override;
 
 private:
     int get_controller_index(SDL_JoystickID device);
-    std::map<SDL_JoystickID, Controller*> _controllers;
+    std::map<SDL_JoystickID, std::unique_ptr<Controller>> _controllers;
     static GameController& _get();
     GameController();
 };
