@@ -38,8 +38,8 @@ SkyboxRenderer::SkyboxRenderer(Skybox& skybox)
 
 void SkyboxRenderer::Render(const Renderer::Options& options)
 {
-    EnvShader()->Use().SetTexture("Skybox", _skybox.GetTexture());
+    _shader->Use().SetTexture("Skybox", _skybox.GetTexture());
     Renderer::Render(Renderer::DisplayQuad(), true);
-    EnvShader()->Done();
+    _shader->Done();
 }
 };
