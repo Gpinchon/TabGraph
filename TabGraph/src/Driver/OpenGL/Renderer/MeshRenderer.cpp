@@ -31,6 +31,7 @@ void MeshRenderer::Load()
     if (_loaded)
         return;
     if (_mesh.HasComponentOfType<MeshSkin>()) {
+        debugLog(_mesh.GetName() + " : Create Skin");
         for (auto i = 0; i < _jointMatrices.size(); ++i) {
             if (_jointMatrices.at(i) != nullptr)
                 continue;
@@ -44,7 +45,6 @@ void MeshRenderer::Load()
             _jointMatrices.at(i) = Component::Create<TextureBuffer>(Pixel::SizedFormat::Float32_RGBA, bufferAccessor);
             _jointMatrices.at(i)->Load();
         }
-        debugLog(mesh.GetName() + " : Create Skin");
     }
     _loaded = true;
 }
