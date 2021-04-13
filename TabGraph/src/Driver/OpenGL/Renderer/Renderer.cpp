@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-03-26 14:20:39
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-06 12:55:49
+* @Last Modified time: 2021-04-13 22:34:41
 */
 
 #include "Driver/OpenGL/Renderer/Renderer.hpp"
@@ -135,12 +135,13 @@ Renderer::Context& Renderer::Impl::GetContext()
     return GetImpl()->GetContext();
 }
 
-void HZBPass(std::shared_ptr<Texture2D> depthTexture)
+void Renderer::Impl::_HZBPass()
 {
+    auto depthTexture { DeferredGeometryBuffer()->GetDepthBuffer() };
     glDepthFunc(GL_ALWAYS);
     glEnable(GL_DEPTH_TEST);
-    static std::shared_ptr<Shader::Program> HZBShader;
-    if (HZBShader == nullptr) {
+    //static std::shared_ptr<Shader::Program> HZBShader;
+    if (_hzbShader == nullptr) {
         auto PassThroughVertexCode =
 #include "passthrough.vert"
             ;
@@ -149,11 +150,14 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
             ;
         auto ShaderVertexCode = Shader::Stage::Code { PassThroughVertexCode, "PassThrough();" };
         auto ShaderFragmentCode = Shader::Stage::Code { HZBFragmentCode, "HZB();" };
-        HZBShader = Component::Create<Shader::Program>("HZB");
-        HZBShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, ShaderVertexCode));
-        HZBShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, ShaderFragmentCode));
+        _hzbShader = Component::Create<Shader::Program>("HZB");
+        _hzbShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, ShaderVertexCode));
+        _hzbShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, ShaderFragmentCode));
     }
-    static auto framebuffer = Component::Create<Framebuffer>("HZB", depthTexture->GetSize(), 0, 0);
+    if (_hzbBuffer == nullptr) {
+        _hzbBuffer = Component::Create<Framebuffer>("HZB", depthTexture->GetSize(), 0, 0);
+    }
+    //static auto framebuffer = Component::Create<Framebuffer>("HZB", depthTexture->GetSize(), 0, 0);
     depthTexture->GenerateMipmap();
     depthTexture->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::LinearMipmapLinear);
     auto numLevels = MIPMAPNBR(depthTexture->GetSize()); //1 + unsigned(floorf(log2f(fmaxf(depthTexture->GetSize().x, depthTexture->GetSize().y))));
@@ -163,21 +167,21 @@ void HZBPass(std::shared_ptr<Texture2D> depthTexture)
         depthTexture->SetParameter<Texture::Parameter::MaxLevel>(i - 1);
         currentSize /= 2;
         currentSize = glm::max(currentSize, glm::ivec2(1));
-        framebuffer->Resize(currentSize);
+        _hzbBuffer->Resize(currentSize);
         //framebuffer->set_attachement(0, depthTexture, i);
-        framebuffer->SetDepthBuffer(depthTexture, i);
-        framebuffer->bind();
-        HZBShader->Use()
+        _hzbBuffer->SetDepthBuffer(depthTexture, i);
+        _hzbBuffer->bind();
+        _hzbShader->Use()
             .SetTexture("in_Texture_Color", depthTexture);
         Renderer::Render(Renderer::GetImpl()->DisplayQuad(), true);
-        HZBShader->Done();
-        framebuffer->SetDepthBuffer(nullptr);
+        _hzbShader->Done();
+        _hzbBuffer->SetDepthBuffer(nullptr);
         //framebuffer->set_attachement(0, nullptr);
     }
     depthTexture->SetParameter<Texture::Parameter::BaseLevel>(0);
     depthTexture->SetParameter<Texture::Parameter::MaxLevel>(numLevels - 1);
     depthTexture->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::LinearMipmapLinear);
-    framebuffer->bind(false);
+    _hzbBuffer->bind(false);
 }
 
 static inline auto DeferredVertexCode()
@@ -214,39 +218,36 @@ auto PassThroughShader()
     return passthroughShader;
 }
 
-void SSAOPass()
+void Renderer::Impl::_SSAOPass()
 {
     const auto gBuffer { Renderer::DeferredGeometryBuffer() };
     glm::ivec2 res = glm::ivec2(std::min(gBuffer->Size().x, gBuffer->Size().y)); // glm::vec2(1024) * Renderer::Private::InternalQuality();// *Config::Global().Get("SSAOResolutionFactor", 0.5f);
     glDepthMask(false);
-    static std::shared_ptr<Framebuffer> SSAOBuffer;
-    if (SSAOBuffer == nullptr) {
-        SSAOBuffer = Component::Create<Framebuffer>("SSAOBuffer", res);
-        SSAOBuffer->AddColorBuffer(Pixel::SizedFormat::Uint8_NormalizedRGBA);
+    if (_ssaoBuffer == nullptr) {
+        _ssaoBuffer = Component::Create<Framebuffer>("SSAOBuffer", res);
+        _ssaoBuffer->AddColorBuffer(Pixel::SizedFormat::Uint8_NormalizedRGBA);
     }
-    static std::shared_ptr<Shader::Program> SSAOShader;
-    if (SSAOShader == nullptr) {
+    if (_ssaoShader == nullptr) {
         auto SSAOFragmentCode =
 #include "ssao.frag"
             ;
-        SSAOShader = Component::Create<Shader::Program>("SSAO");
-        SSAOShader->Attach({ Shader::Stage::Type::Vertex, DeferredVertexCode() });
-        SSAOShader->Attach({ Shader::Stage::Type::Fragment, DeferredFragmentCode() + Shader::Stage::Code { SSAOFragmentCode, "SSAO();" } });
-        SSAOShader->SetDefine("Pass", "GeometryPostTreatment");
-        Renderer::GetImpl()->AddComponent(SSAOShader);
+        _ssaoShader = Component::Create<Shader::Program>("SSAO");
+        _ssaoShader->Attach({ Shader::Stage::Type::Vertex, DeferredVertexCode() });
+        _ssaoShader->Attach({ Shader::Stage::Type::Fragment, DeferredFragmentCode() + Shader::Stage::Code { SSAOFragmentCode, "SSAO();" } });
+        _ssaoShader->SetDefine("Pass", "GeometryPostTreatment");
     }
-    SSAOShader->SetDefine("SSAO_QUALITY", std::to_string(Config::Global().Get("SSAOQuality", 4)));
+    _ssaoShader->SetDefine("SSAO_QUALITY", std::to_string(Config::Global().Get("SSAOQuality", 4)));
 
-    SSAOBuffer->Resize(res);
-    SSAOBuffer->bind();
-    SSAOShader->Use()
+    _ssaoBuffer->Resize(res);
+    _ssaoBuffer->bind();
+    _ssaoShader->Use()
         .SetTexture("Texture.Geometry.Normal", gBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", gBuffer->GetDepthBuffer());
     glDisable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT);
     Renderer::Render(Renderer::DisplayQuad(), true);
 
-    PassThroughShader()->Use().SetTexture("in_ColorBuffer0", SSAOBuffer->GetColorBuffer(0)).SetUniform("in_UseColorBuffer0", true);
+    PassThroughShader()->Use().SetTexture("in_ColorBuffer0", _ssaoBuffer->GetColorBuffer(0)).SetUniform("in_UseColorBuffer0", true);
     gBuffer->bind();
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
@@ -265,21 +266,19 @@ static inline float ComputeRoughnessMaskScale()
     return RoughnessMaskScale * (Config::Global().Get("SSRQuality", 4) < 3 ? 2.0f : 1.0f);
 }
 
-auto SSRPass()
+void Renderer::Impl::_SSRPass()
 {
-    const auto gBuffer { Renderer::DeferredGeometryBuffer() };
-    const auto lBuffer { Renderer::DeferredLightingBuffer() };
+    const auto gBuffer { DeferredGeometryBuffer() };
+    const auto lBuffer { DeferredLightingBuffer() };
     const auto res { glm::ivec2(std::min(gBuffer->Size().x, gBuffer->Size().y)) };
-    static std::shared_ptr<Framebuffer> SSRBuffer;
-    if (SSRBuffer == nullptr) {
-        SSRBuffer = Component::Create<Framebuffer>("SSRBuffer", res);
-        SSRBuffer->AddColorBuffer(nullptr)
+    if (_ssrBuffer == nullptr) {
+        _ssrBuffer = Component::Create<Framebuffer>("SSRBuffer", res);
+        _ssrBuffer->AddColorBuffer(nullptr)
             .AddColorBuffer(Pixel::SizedFormat::Float16_RGBA)
-            .SetStencilBuffer(Component::Create<Texture2D>(SSRBuffer->Size(), Pixel::SizedFormat::Stencil8));
+            .SetStencilBuffer(Component::Create<Texture2D>(res, Pixel::SizedFormat::Stencil8));
     }
-    SSRBuffer->Resize(res);
-    static std::shared_ptr<Shader::Program> SSRShader;
-    if (SSRShader == nullptr) {
+    _ssrBuffer->Resize(res);
+    if (_ssrShader == nullptr) {
         auto deferred_vert_code =
 #include "deferred.vert"
             ;
@@ -292,16 +291,14 @@ auto SSRPass()
         auto deferred_frag_code =
 #include "deferred.frag"
             ;
-        SSRShader = Component::Create<Shader::Program>("SSR0");
-        SSRShader->SetDefine("Pass", "DeferredLighting");
-        SSRShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
+        _ssrShader = Component::Create<Shader::Program>("SSR0");
+        _ssrShader->SetDefine("Pass", "DeferredLighting");
+        _ssrShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
             Shader::Stage::Code { deferred_frag_code, "FillFragmentData();" } + Shader::Stage::Code { RandomCode } + Shader::Stage::Code { SSRFragmentCode, "SSR();" }));
-        SSRShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
+        _ssrShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
             Shader::Stage::Code { deferred_vert_code, "FillVertexData();" }));
-        Renderer::GetImpl()->AddComponent(SSRShader);
     }
-    static std::shared_ptr<Shader::Program> SSRApplyShader;
-    if (SSRApplyShader == nullptr) {
+    if (_ssrApplyShader == nullptr) {
         auto SSRApplyFragmentCode =
 #include "SSRApply.frag"
             ;
@@ -311,16 +308,14 @@ auto SSRPass()
         auto deferred_frag_code =
 #include "deferred.frag"
             ;
-        SSRApplyShader = Component::Create<Shader::Program>("SSR0");
-        SSRApplyShader->SetDefine("Pass", "DeferredLighting");
-        SSRApplyShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
+        _ssrApplyShader = Component::Create<Shader::Program>("SSR0");
+        _ssrApplyShader->SetDefine("Pass", "DeferredLighting");
+        _ssrApplyShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
             Shader::Stage::Code { deferred_frag_code, "FillFragmentData();" } + Shader::Stage::Code { SSRApplyFragmentCode, "SSRApply();" }));
-        SSRApplyShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
+        _ssrApplyShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
             Shader::Stage::Code { deferred_vert_code, "FillVertexData();" }));
-        Renderer::GetImpl()->AddComponent(SSRApplyShader);
     }
-    static std::shared_ptr<Shader::Program> SSRStencilShader;
-    if (SSRStencilShader == nullptr) {
+    if (_ssrStencilShader == nullptr) {
         auto SSRStencilFragmentCode =
 #include "SSRStencil.frag"
             ;
@@ -330,20 +325,19 @@ auto SSRPass()
         auto deferred_frag_code =
 #include "deferred.frag"
             ;
-        SSRStencilShader = Component::Create<Shader::Program>("SSR0");
-        SSRStencilShader->SetDefine("Pass", "DeferredLighting");
-        SSRStencilShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
+        _ssrStencilShader = Component::Create<Shader::Program>("SSR0");
+        _ssrStencilShader->SetDefine("Pass", "DeferredLighting");
+        _ssrStencilShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
             Shader::Stage::Code { deferred_frag_code, "FillFragmentData();" } + Shader::Stage::Code { SSRStencilFragmentCode, "SSRStencil();" }));
-        SSRStencilShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
+        _ssrStencilShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
             Shader::Stage::Code { deferred_vert_code, "FillVertexData();" }));
-        Renderer::GetImpl()->AddComponent(SSRStencilShader);
     }
-    SSRShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("SSR_QUALITY", std::to_string(Config::Global().Get("SSRQuality", 4)));
-    SSRShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Global().Get("SSRBorderFactor", 10)));
-    SSRShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
-    SSRStencilShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
+    _ssrShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("SSR_QUALITY", std::to_string(Config::Global().Get("SSRQuality", 4)));
+    _ssrShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("SCREEN_BORDER_FACTOR", std::to_string(Config::Global().Get("SSRBorderFactor", 10)));
+    _ssrShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
+    _ssrStencilShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
 
-    SSRBuffer->bind();
+    _ssrBuffer->bind();
     glEnable(GL_STENCIL_TEST);
     glStencilMask(0xFF);
     glClearStencil(0x00);
@@ -354,7 +348,7 @@ auto SSRPass()
         GL_REPLACE);
     glStencilFunc(GL_ALWAYS, 0x1, 0xff);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    SSRStencilShader->Use()
+    _ssrStencilShader->Use()
         .SetTexture("Texture.Geometry.F0", gBuffer->GetColorBuffer(1))
         .SetTexture("Texture.Geometry.Depth", gBuffer->GetDepthBuffer());
     Renderer::Render(Renderer::DisplayQuad(), true);
@@ -366,7 +360,7 @@ auto SSRPass()
         GL_KEEP);
     glStencilFunc(GL_EQUAL, 0x1, 0xff);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    SSRShader->Use()
+    _ssrShader->Use()
         .SetTexture("Texture.Geometry.F0", gBuffer->GetColorBuffer(1))
         .SetTexture("Texture.Geometry.Normal", gBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", gBuffer->GetDepthBuffer())
@@ -378,23 +372,22 @@ auto SSRPass()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
-    SSRApplyShader->Use()
+    _ssrApplyShader->Use()
         .SetTexture("Texture.Geometry.F0", gBuffer->GetColorBuffer(1))
         .SetTexture("Texture.Geometry.Normal", gBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", gBuffer->GetDepthBuffer())
-        .SetTexture("SSRTexture", SSRBuffer->GetColorBuffer(1));
+        .SetTexture("SSRTexture", _ssrBuffer->GetColorBuffer(1));
     Renderer::Render(Renderer::DisplayQuad(), true);
-    SSRApplyShader->Done();
+    _ssrApplyShader->Done();
     lBuffer->bind(false);
 
     glDisable(GL_BLEND);
     glDisable(GL_STENCIL_TEST);
 }
 
-static auto& DeferredMaterialShader()
+void Renderer::Impl::_DeferredMaterialPass()
 {
-    static std::shared_ptr<Shader::Program> deferredMaterialShader;
-    if (deferredMaterialShader == nullptr) {
+    if (_deferredMaterialShader == nullptr) {
         auto deferredMaterialCode =
 #include "deferredMaterial.frag"
             ;
@@ -404,15 +397,39 @@ static auto& DeferredMaterialShader()
         auto deferred_frag_code =
 #include "deferred.frag"
             ;
-        deferredMaterialShader = Component::Create<Shader::Program>("SSR0");
-        deferredMaterialShader->SetDefine("Pass", "DeferredMaterial");
-        deferredMaterialShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
+        _deferredMaterialShader = Component::Create<Shader::Program>("SSR0");
+        _deferredMaterialShader->SetDefine("Pass", "DeferredMaterial");
+        _deferredMaterialShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
             Shader::Stage::Code { deferred_frag_code, "FillFragmentData();" } + Shader::Stage::Code { deferredMaterialCode, "CalculateLighting();" }));
-        deferredMaterialShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
+        _deferredMaterialShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
             Shader::Stage::Code { deferred_vert_code, "FillVertexData();" }));
-        Renderer::GetImpl()->AddComponent(deferredMaterialShader);
     }
-    return deferredMaterialShader;
+    auto gBuffer { DeferredGeometryBuffer() };
+    auto lBuffer { DeferredLightingBuffer() };
+    auto oBuffer { OpaqueRenderBuffer() };
+    oBuffer->bind();
+    glDisable(GL_BLEND);
+    PassThroughShader()->Use().SetTexture("in_ColorBuffer0", gBuffer->GetColorBuffer(4)).SetUniform("in_UseColorBuffer0", true);
+    Renderer::Render(Renderer::DisplayQuad(), true);
+    PassThroughShader()->SetTexture("in_ColorBuffer0", nullptr).SetUniform("in_UseColorBuffer0", false);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+    glBlendEquation(GL_FUNC_ADD);
+    _deferredMaterialShader->Use()
+        .SetTexture("Texture.Geometry.CDiff", gBuffer->GetColorBuffer(0))
+        .SetTexture("Texture.Geometry.F0", gBuffer->GetColorBuffer(1))
+        .SetTexture("Texture.Geometry.Normal", gBuffer->GetColorBuffer(2))
+        .SetTexture("Texture.Geometry.Velocity", gBuffer->GetColorBuffer(3))
+        .SetTexture("Texture.Geometry.Color", gBuffer->GetColorBuffer(4))
+        .SetTexture("Texture.Geometry.Depth", gBuffer->GetDepthBuffer())
+        .SetTexture("Texture.Lighting.Diffuse", lBuffer->GetColorBuffer(0))
+        .SetTexture("Texture.Lighting.Reflection", lBuffer->GetColorBuffer(1))
+        //.SetTexture("Texture.Geometry.Diffuse", renderBuffer->attachement(6))
+        //.SetTexture("Texture.Geometry.Reflection", renderBuffer->attachement(7))
+        .SetTexture("BRDFLUT", Renderer::DefaultBRDFLUT());
+    Renderer::Render(Renderer::DisplayQuad(), true);
+    oBuffer->bind(false);
+    _deferredMaterialShader->Done();
 }
 
 #include "Renderer/Light/LightRenderer.hpp"
@@ -421,13 +438,7 @@ void light_pass(std::shared_ptr<Framebuffer>& lightingBuffer)
 {
     auto& lights { Scene::Current()->GetComponents<Light>() };
     for (auto& light : lights) {
-        Renderer::Render(light, {
-            Renderer::Options::Pass::ShadowDepth,
-            Renderer::Options::Mode::All,
-            Scene::Current()->CurrentCamera(),
-            Scene::Current(),
-            Renderer::FrameNumber()
-        });
+        Renderer::Render(light, { Renderer::Options::Pass::ShadowDepth, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
         //light->render_shadow();
     }
     lightingBuffer->bind();
@@ -438,24 +449,19 @@ void light_pass(std::shared_ptr<Framebuffer>& lightingBuffer)
     glBlendFunc(GL_ONE, GL_ONE);
     glBlendEquation(GL_FUNC_ADD);
     for (auto& light : lights) {
-        Renderer::Render(light, {
-            Renderer::Options::Pass::DeferredLighting,
-            Renderer::Options::Mode::All,
-            Scene::Current()->CurrentCamera(),
-            Scene::Current(),
-            Renderer::FrameNumber()
-        });
+        Renderer::Render(light, { Renderer::Options::Pass::DeferredLighting, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
         //light->Draw();
     }
     lightingBuffer->bind(false);
     glCullFace(GL_BACK);
+    glDisable(GL_BLEND);
 }
 
-static inline auto OpaquePass()
+void Renderer::Impl::_OpaquePass()
 {
-    auto gBuffer { Renderer::DeferredGeometryBuffer() };
-    auto lBuffer { Renderer::DeferredLightingBuffer() };
-    auto oBuffer { Renderer::OpaqueRenderBuffer() };
+    auto gBuffer { DeferredGeometryBuffer() };
+    auto lBuffer { DeferredLightingBuffer() };
+    auto oBuffer { OpaqueRenderBuffer() };
     //Geometry pass
     {
         gBuffer->bind();
@@ -463,76 +469,42 @@ static inline auto OpaquePass()
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glDisable(GL_BLEND);
-        Renderer::Render(Scene::Current(), {
-            Renderer::Options::Pass::DeferredGeometry,
-            Renderer::Options::Mode::All,
-            Scene::Current()->CurrentCamera(),
-            Scene::Current(),
-            Renderer::FrameNumber()
-        });
+        Renderer::Render(Scene::Current(), { Renderer::Options::Pass::DeferredGeometry, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
         gBuffer->bind(false);
     }
     //SSAO & SSR pass
     {
         if (Config::Global().Get("SSAOQuality", 4) > 0)
-            SSAOPass();
+            _SSAOPass();
         light_pass(lBuffer);
-        glDisable(GL_BLEND);
-        HZBPass(gBuffer->GetDepthBuffer());
+        _HZBPass();
         if (Config::Global().Get("SSRQuality", 4) > 0)
-            SSRPass();
+            _SSRPass();
     }
-    //Material Pass
-    {
-        oBuffer->bind();
-        glDisable(GL_BLEND);
-        PassThroughShader()->Use().SetTexture("in_ColorBuffer0", gBuffer->GetColorBuffer(4)).SetUniform("in_UseColorBuffer0", true);
-        Renderer::Render(Renderer::DisplayQuad(), true);
-        PassThroughShader()->SetTexture("in_ColorBuffer0", nullptr).SetUniform("in_UseColorBuffer0", false);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
-        glBlendEquation(GL_FUNC_ADD);
-        DeferredMaterialShader()->Use()
-
-            .SetTexture("Texture.Geometry.CDiff", gBuffer->GetColorBuffer(0))
-            .SetTexture("Texture.Geometry.F0", gBuffer->GetColorBuffer(1))
-            .SetTexture("Texture.Geometry.Normal", gBuffer->GetColorBuffer(2))
-            .SetTexture("Texture.Geometry.Velocity", gBuffer->GetColorBuffer(3))
-            .SetTexture("Texture.Geometry.Color", gBuffer->GetColorBuffer(4))
-            .SetTexture("Texture.Geometry.Depth", gBuffer->GetDepthBuffer())
-            .SetTexture("Texture.Lighting.Diffuse", lBuffer->GetColorBuffer(0))
-            .SetTexture("Texture.Lighting.Reflection", lBuffer->GetColorBuffer(1))
-            //.SetTexture("Texture.Geometry.Diffuse", renderBuffer->attachement(6))
-            //.SetTexture("Texture.Geometry.Reflection", renderBuffer->attachement(7))
-            .SetTexture("BRDFLUT", Renderer::DefaultBRDFLUT());
-        Renderer::Render(Renderer::DisplayQuad(), true);
-        oBuffer->bind(false);
-    }
+    _DeferredMaterialPass();
 }
 
-static inline auto CompositingPass()
+void Renderer::Impl::_CompositingPass()
 {
-    auto oBuffer { Renderer::OpaqueRenderBuffer() };
-    auto tBuffer { Renderer::ForwardTransparentRenderBuffer() };
-    static std::shared_ptr<Shader::Program> compositing_shader;
-    if (compositing_shader == nullptr) {
+    auto oBuffer { OpaqueRenderBuffer() };
+    auto tBuffer { ForwardTransparentRenderBuffer() };
+    if (_compositingShader == nullptr) {
         auto passthrough_vertex_code =
 #include "passthrough.vert"
             ;
         auto compositingShaderCode =
 #include "compositing.frag"
             ;
-        compositing_shader = Component::Create<Shader::Program>("compositing");
-        compositing_shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { passthrough_vertex_code, "PassThrough();" }));
-        compositing_shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { compositingShaderCode, "Composite();" }));
-        Renderer::GetImpl()->AddComponent(compositing_shader);
+        _compositingShader = Component::Create<Shader::Program>("compositing");
+        _compositingShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { passthrough_vertex_code, "PassThrough();" }));
+        _compositingShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { compositingShaderCode, "Composite();" }));
     }
     oBuffer->GetColorBuffer(0)->GenerateMipmap();
     oBuffer->GetColorBuffer(0)->SetParameter<Texture::Parameter::BaseLevel>(1);
     oBuffer->SetStencilBuffer(tBuffer->GetStencilBuffer());
 
     oBuffer->bind();
-    compositing_shader->Use()
+    _compositingShader->Use()
         .SetTexture("in_TransparentColor", tBuffer->GetColorBuffer(0))
         .SetTexture("in_TransparentAlphaCoverage", tBuffer->GetColorBuffer(1))
         .SetTexture("in_TransparentDistortion", tBuffer->GetColorBuffer(2))
@@ -547,7 +519,7 @@ static inline auto CompositingPass()
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
     Renderer::Render(Renderer::DisplayQuad(), true);
-    compositing_shader->Done();
+    _compositingShader->Done();
     oBuffer->bind(false);
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_DEPTH_TEST);
@@ -556,15 +528,15 @@ static inline auto CompositingPass()
     oBuffer->SetStencilBuffer(nullptr);
 }
 
-static inline void TransparentPass()
+void Renderer::Impl::_TransparentPass()
 {
     auto zero = glm::vec4(0);
     auto one = glm::vec4(1);
     auto fastTransparency { Config::Global().Get("FastTransparency", 1) };
-    auto gBuffer { Renderer::DeferredGeometryBuffer() };
-    auto lBuffer { Renderer::DeferredLightingBuffer() };
-    auto oBuffer { Renderer::OpaqueRenderBuffer() };
-    auto tBuffer { Renderer::ForwardTransparentRenderBuffer() };
+    auto gBuffer { DeferredGeometryBuffer() };
+    auto lBuffer { DeferredLightingBuffer() };
+    auto oBuffer { OpaqueRenderBuffer() };
+    auto tBuffer { ForwardTransparentRenderBuffer() };
 
     tBuffer->SetStencilBuffer(gBuffer->GetDepthBuffer());
     tBuffer->SetDepthBuffer(gBuffer->GetDepthBuffer());
@@ -603,7 +575,7 @@ static inline void TransparentPass()
     glStencilFunc(GL_ALWAYS, 0x1, 0xff);
 
     Renderer::Render(Scene::Current(), { Renderer::Options::Pass::ForwardTransparent, Renderer::Options::Mode::Transparent, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
-    CompositingPass();
+    _CompositingPass();
 }
 
 void Renderer::Impl::_RenderFrame()
@@ -632,8 +604,8 @@ void Renderer::Impl::_RenderFrame()
     if (Scene::Current()->GetSkybox() != nullptr)
         Renderer::Render(Scene::Current()->GetSkybox(), { Renderer::Options::Pass::ForwardOpaque, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
     gBuffer->bind(false);
-    OpaquePass();
-    TransparentPass();
+    _OpaquePass();
+    _TransparentPass();
     static std::shared_ptr<Shader::Program> TemporalAccumulationShader;
     if (TemporalAccumulationShader == nullptr) {
         auto TemporalAccumulationShaderCode =
@@ -688,6 +660,11 @@ std::shared_ptr<Framebuffer> Renderer::Impl::PreviousRenderBuffer()
     return GetImpl()->_previousRenderBuffer;
 }
 
+std::shared_ptr<Texture2D> Renderer::Impl::DefaultBRDFLUT()
+{
+    return GetImpl()->_DefaultBRDFLUT();
+}
+
 const std::shared_ptr<Geometry> Renderer::Impl::DisplayQuad()
 {
     static std::shared_ptr<Geometry> vao;
@@ -706,20 +683,19 @@ const uint32_t Renderer::Impl::FrameNumber()
     return GetImpl()->_frameNbr;
 }
 
-std::shared_ptr<Texture2D> Renderer::DefaultBRDFLUT()
+std::shared_ptr<Texture2D> Renderer::Impl::_DefaultBRDFLUT()
 {
-    static std::shared_ptr<Texture2D> brdf;
-    if (brdf == nullptr) {
+    if (_defaultBRDF == nullptr) {
         auto brdfImageAsset(Component::Create<Asset>());
-        brdf = Component::Create<Texture2D>(brdfImageAsset);
+        _defaultBRDF = Component::Create<Texture2D>(brdfImageAsset);
         auto brdfImage { Component::Create<Image>(glm::vec2(256, 256), Pixel::SizedFormat::Uint8_NormalizedRG, brdfLUT) };
         brdfImageAsset->SetComponent(brdfImage);
         brdfImageAsset->SetLoaded(true);
-        brdf->SetName("BrdfLUT");
-        brdf->SetParameter<Texture::Parameter::WrapS>(Texture::Wrap::ClampToEdge);
-        brdf->SetParameter<Texture::Parameter::WrapT>(Texture::Wrap::ClampToEdge);
+        _defaultBRDF->SetName("BrdfLUT");
+        _defaultBRDF->SetParameter<Texture::Parameter::WrapS>(Texture::Wrap::ClampToEdge);
+        _defaultBRDF->SetParameter<Texture::Parameter::WrapT>(Texture::Wrap::ClampToEdge);
     }
-    return brdf;
+    return _defaultBRDF;
 }
 
 void Renderer::Impl::RenderFrame()

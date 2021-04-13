@@ -74,6 +74,11 @@ std::shared_ptr<Framebuffer> Renderer::PreviousRenderBuffer()
     return GetImpl()->PreviousRenderBuffer();
 }
 
+std::shared_ptr<Texture2D> Renderer::DefaultBRDFLUT()
+{
+    return GetImpl()->DefaultBRDFLUT();
+}
+
 void Renderer::Init()
 {
     GetImpl()->Init();
