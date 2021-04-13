@@ -2,33 +2,26 @@
 * @Author: gpinchon
 * @Date:   2021-04-10 15:27:18
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-11 14:51:24
+* @Last Modified time: 2021-04-12 22:01:09
 */
 #pragma once
 
-//#include "Light/Light.hpp"
-#include "Renderer/Renderer.hpp"
 #include <memory>
 
 class Light;
 class LightProbe;
 
 namespace Renderer {
+struct Options;
 void Render(std::shared_ptr<Light>, const Renderer::Options&);
 void UpdateLightProbe(std::shared_ptr<Light>, LightProbe&);
 class LightRenderer {
 public:
-    class Impl;
-    struct ImplDeleter {
-        void operator()(LightRenderer::Impl*);
-    };
     LightRenderer(Light&);
-    void Render(const Renderer::Options&);
-    void UpdateLightProbe(LightProbe&);
+    virtual void Render(const Renderer::Options&) = 0;
+    virtual void UpdateLightProbe(LightProbe&) = 0;
 
 protected:
-    LightRenderer::Impl& GetImpl();
-    std::unique_ptr<LightRenderer::Impl, LightRenderer::ImplDeleter> _impl;
     Light& _light;
 };
 };

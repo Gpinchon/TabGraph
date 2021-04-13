@@ -6,23 +6,22 @@
 */
 #pragma once
 
-#include "Renderer/Light/PointLightRenderer.hpp"
-//#ifdef OPENGL
-#include "Driver/OpenGL/Renderer/Light/LightRenderer.hpp"
-//#endif
+#include "Renderer/Light/LightRenderer.hpp"
 
 #include <glm/glm.hpp>
 
-glm::mat4 PointLightShadowViewMatrix(PointLight&);
-glm::mat4 PointLightShadowProjectionMatrixInfinite(PointLight&, const Renderer::Options&);
-glm::mat4 PointLightShadowProjectionMatrixFinite(PointLight&);
+class Framebuffer;
+class PointLight;
+namespace Shader {
+class Program;
+};
 
 namespace Renderer {
-class PointLightRenderer::Impl : public LightRenderer::Impl {
+class PointLightRenderer : public LightRenderer {
 public:
-    Impl();
-    virtual void Render(Light&, const Renderer::Options&) override;
-    virtual void UpdateLightProbe(Light&, LightProbe&) override;
+    PointLightRenderer(PointLight &);
+    virtual void Render(const Renderer::Options&) override;
+    virtual void UpdateLightProbe(LightProbe&) override;
 
 protected:
     void _RenderDeferredLighting(PointLight&, const Renderer::Options&);
@@ -34,3 +33,7 @@ protected:
     std::shared_ptr<Framebuffer> _shadowBuffer;
 };
 };
+
+glm::mat4 PointLightShadowViewMatrix(PointLight&);
+glm::mat4 PointLightShadowProjectionMatrixInfinite(PointLight&, const Renderer::Options&);
+glm::mat4 PointLightShadowProjectionMatrixFinite(PointLight&);

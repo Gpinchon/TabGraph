@@ -13,6 +13,7 @@
 #include "Light/HDRLight.hpp"
 #include "Light/LightProbe.hpp"
 #include "Mesh/CubeMesh.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Renderer/GeometryRenderer.hpp"
 #include "Shader/Program.hpp"
 #include "Shader/Stage.hpp"
@@ -63,7 +64,8 @@ static inline auto DeferredHDRLightFragmentCode()
 
 namespace Renderer {
 static SphericalHarmonics s_SH{ 50 };
-HDRLightRenderer::Impl::Impl()
+HDRLightRenderer::HDRLightRenderer(HDRLight &light)
+    : LightRenderer(light)
 {
     auto LayeredCubemapRenderCode =
 #include "LayeredCubemapRender.geom"
@@ -83,21 +85,21 @@ HDRLightRenderer::Impl::Impl()
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DeferredHDRLightVertexCode()));
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DeferredHDRLightFragmentCode()));
 }
-void HDRLightRenderer::Impl::FlagDirty()
+void HDRLightRenderer::FlagDirty()
 {
 	_dirty = true;
 }
 
-void HDRLightRenderer::Impl::Render(Light& light, const Renderer::Options& options)
+void HDRLightRenderer::Render(const Renderer::Options& options)
 {
     if (options.pass == Renderer::Options::Pass::DeferredLighting) {
-        _RenderDeferredLighting(static_cast<HDRLight&>(light), options);
+        _RenderDeferredLighting(static_cast<HDRLight&>(_light), options);
     }
 }
 
-void HDRLightRenderer::Impl::UpdateLightProbe(Light& light, LightProbe& lightProbe)
+void HDRLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
 {
-    auto& hdrLight{ static_cast<HDRLight&>(light) };
+    auto& hdrLight{ static_cast<HDRLight&>(_light) };
     _Update(hdrLight);
     for (auto i = 0u; i < std::min(_SHDiffuse.size(), lightProbe.GetDiffuseSH().size()); ++i)
         lightProbe.GetDiffuseSH().at(i) += _SHDiffuse.at(i);
@@ -111,7 +113,7 @@ void HDRLightRenderer::Impl::UpdateLightProbe(Light& light, LightProbe& lightPro
     Renderer::Render(Renderer::DisplayQuad());
 }
 
-void HDRLightRenderer::Impl::_RenderDeferredLighting(HDRLight& light, const Renderer::Options& options)
+void HDRLightRenderer::_RenderDeferredLighting(HDRLight& light, const Renderer::Options& options)
 {
     _Update(light);
     auto geometryBuffer = Renderer::DeferredGeometryBuffer();
@@ -136,7 +138,7 @@ void HDRLightRenderer::Impl::_RenderDeferredLighting(HDRLight& light, const Rend
     _deferredShader->Done();
 }
 
-void HDRLightRenderer::Impl::_Update(HDRLight& light)
+void HDRLightRenderer::_Update(HDRLight& light)
 {
     if (!_dirty)
         return;

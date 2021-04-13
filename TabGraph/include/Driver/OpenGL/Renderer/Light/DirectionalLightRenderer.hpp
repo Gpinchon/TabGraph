@@ -6,23 +6,23 @@
 */
 #pragma once
 
-#include "Renderer/Light/DirectionalLightRenderer.hpp"
-//#ifdef OPENGL
-#include "Driver/OpenGL/Renderer/Light/LightRenderer.hpp"
-//#endif
+#include "Renderer/Light/LightRenderer.hpp"
 
 #include <glm/glm.hpp>
 
-glm::mat4 DirectionalLightShadowViewMatrix(DirectionalLight&);
-glm::mat4 DirectionalLightShadowProjectionMatrixInfinite(DirectionalLight&, const Renderer::Options&);
-glm::mat4 DirectionalLightShadowProjectionMatrixFinite(DirectionalLight&);
+class Framebuffer;
+class DirectionalLight;
+namespace Shader {
+class Program;
+}
 
 namespace Renderer {
-class DirectionalLightRenderer::Impl : public LightRenderer::Impl {
+struct Options;
+class DirectionalLightRenderer : public LightRenderer {
 public:
-    Impl();
-    virtual void Render(Light&, const Renderer::Options&) override;
-    virtual void UpdateLightProbe(Light&, LightProbe&) override;
+    DirectionalLightRenderer(DirectionalLight&);
+    virtual void Render(const Renderer::Options&) override;
+    virtual void UpdateLightProbe(LightProbe&) override;
 
 protected:
     void _RenderDeferredLighting(DirectionalLight&, const Renderer::Options&);
@@ -34,3 +34,7 @@ protected:
     std::shared_ptr<Framebuffer> _shadowBuffer;
 };
 };
+
+glm::mat4 DirectionalLightShadowViewMatrix(DirectionalLight&);
+glm::mat4 DirectionalLightShadowProjectionMatrixInfinite(DirectionalLight&, const Renderer::Options&);
+glm::mat4 DirectionalLightShadowProjectionMatrixFinite(DirectionalLight&);

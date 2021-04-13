@@ -6,18 +6,6 @@
 */
 #pragma once
 
-#include "Renderer/Light/LightRenderer.hpp"
-
-class HDRLight;
-
-namespace Renderer {
-class HDRLightRenderer : public LightRenderer {
-public:
-    HDRLightRenderer(HDRLight&);
-    void FlagDirty();
-
-private:
-    class Impl;
-    friend Impl;
-};
-};
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp"
+//#endif

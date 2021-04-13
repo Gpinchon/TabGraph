@@ -6,17 +6,6 @@
 */
 #pragma once
 
-#include "Renderer/Light/LightRenderer.hpp"
-
-class DirectionalLight;
-
-namespace Renderer {
-class DirectionalLightRenderer : public LightRenderer {
-public:
-    DirectionalLightRenderer(DirectionalLight&);
-
-private:
-    class Impl;
-    friend Impl;
-};
-};
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp"
+//#endif

@@ -6,24 +6,25 @@
 */
 #pragma once
 
-#include "Renderer/Light/SkyLightRenderer.hpp"
-//#ifdef OPENGL
-#include "Driver/OpenGL/Renderer/Light/LightRenderer.hpp"
-//#endif
+#include "Renderer/Light/LightRenderer.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
 
 class SkyLight;
 class Cubemap;
+class Framebuffer;
+namespace Shader {
+class Program;
+};
 
 namespace Renderer {
-class SkyLightRenderer::Impl : public LightRenderer::Impl {
+class SkyLightRenderer : public LightRenderer {
 public:
-    Impl();
+    SkyLightRenderer(SkyLight&);
     void FlagDirty();
-    virtual void Render(Light&, const Renderer::Options&) override;
-    virtual void UpdateLightProbe(Light&, LightProbe&) override;
+    virtual void Render(const Renderer::Options&) override;
+    virtual void UpdateLightProbe(LightProbe&) override;
 
 protected:
     void _RenderDeferredLighting(SkyLight&, const Renderer::Options&);

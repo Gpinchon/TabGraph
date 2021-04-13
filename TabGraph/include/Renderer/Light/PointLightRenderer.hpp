@@ -6,17 +6,6 @@
 */
 #pragma once
 
-#include "Renderer/Light/LightRenderer.hpp"
-
-class PointLight;
-
-namespace Renderer {
-class PointLightRenderer : public LightRenderer {
-public:
-    PointLightRenderer(PointLight&);
-
-private:
-    class Impl;
-    friend Impl;
-};
-};
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp"
+//#endif

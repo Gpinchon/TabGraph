@@ -8,6 +8,7 @@
 #include "Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp"
 #include "Light/PointLight.hpp"
 #include "Mesh/SphereMesh.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Renderer/GeometryRenderer.hpp"
 #include "Shader/Program.hpp"
 #include "Shader/Stage.hpp"
@@ -60,24 +61,25 @@ static inline auto PointLightShader()
     return shader;
 }
 
-PointLightRenderer::Impl::Impl()
+PointLightRenderer::PointLightRenderer(PointLight &light)
+    : LightRenderer(light)
 {
     _lightingShader = PointLightShader();
 }
 
-void PointLightRenderer::Impl::Render(Light& light, const Renderer::Options& options)
+void PointLightRenderer::Render(const Renderer::Options& options)
 {
     if (options.pass == Renderer::Options::Pass::DeferredLighting)
-        _RenderDeferredLighting(static_cast<PointLight&>(light), options);
+        _RenderDeferredLighting(static_cast<PointLight&>(_light), options);
     else if (options.pass == Renderer::Options::Pass::ShadowDepth)
-        _RenderShadow(static_cast<PointLight&>(light), options);
+        _RenderShadow(static_cast<PointLight&>(_light), options);
 }
 
-void PointLightRenderer::Impl::UpdateLightProbe(Light&, LightProbe&)
+void PointLightRenderer::UpdateLightProbe(LightProbe&)
 {
 }
 
-void PointLightRenderer::Impl::_RenderDeferredLighting(PointLight& light, const Renderer::Options& options)
+void PointLightRenderer::_RenderDeferredLighting(PointLight& light, const Renderer::Options& options)
 {
     auto geometryBuffer = Renderer::DeferredGeometryBuffer();
     _lightingShader->Use()
@@ -93,7 +95,7 @@ void PointLightRenderer::Impl::_RenderDeferredLighting(PointLight& light, const 
     _lightingShader->Done();
 }
 
-void PointLightRenderer::Impl::_RenderShadow(PointLight&, const Renderer::Options&)
+void PointLightRenderer::_RenderShadow(PointLight&, const Renderer::Options&)
 {
 }
 }

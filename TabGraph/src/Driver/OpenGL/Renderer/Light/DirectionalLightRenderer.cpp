@@ -12,6 +12,7 @@
 #include "Light/DirectionalLight.hpp"
 #include "Light/LightProbe.hpp"
 #include "Mesh/CubeMesh.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Renderer/GeometryRenderer.hpp"
 #include "Renderer/SceneRenderer.hpp"
 #include "Shader/Global.hpp"
@@ -93,21 +94,23 @@ static inline auto ProbeDirectionnalLightShader()
 }
 
 namespace Renderer {
-DirectionalLightRenderer::Impl::Impl() {
+DirectionalLightRenderer::DirectionalLightRenderer(DirectionalLight& light)
+    : LightRenderer(light)
+{
     _probeShader = ProbeDirectionnalLightShader();
     _deferredShader = DeferredDirectionnalLightShader();
 }
-void DirectionalLightRenderer::Impl::Render(Light& light, const Renderer::Options& options)
+void DirectionalLightRenderer::Render(const Renderer::Options& options)
 {
     if (options.pass == Renderer::Options::Pass::ShadowDepth)
-        _RenderShadow(static_cast<DirectionalLight&>(light), options);
+        _RenderShadow(static_cast<DirectionalLight&>(_light), options);
     else if (options.pass == Renderer::Options::Pass::DeferredLighting)
-        _RenderDeferredLighting(static_cast<DirectionalLight&>(light), options);
+        _RenderDeferredLighting(static_cast<DirectionalLight&>(_light), options);
 }
 
-void DirectionalLightRenderer::Impl::UpdateLightProbe(Light& light, LightProbe& lightProbe)
+void DirectionalLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
 {
-    auto &dirLight{ static_cast<DirectionalLight&>(light) };
+    auto &dirLight{ static_cast<DirectionalLight&>(_light) };
     //TODO implement FlagDirty mechanism
     static auto diffuseSH{
         lightProbe.GetSphericalHarmonics().ProjectFunction(
@@ -125,7 +128,7 @@ void DirectionalLightRenderer::Impl::UpdateLightProbe(Light& light, LightProbe& 
     Renderer::Render(Renderer::DisplayQuad());
 }
 
-void DirectionalLightRenderer::Impl::_RenderDeferredLighting(DirectionalLight& light, const Renderer::Options& options)
+void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, const Renderer::Options& options)
 {
     auto geometryBuffer = Renderer::DeferredGeometryBuffer();
     glm::vec3 geometryPosition;
@@ -156,7 +159,7 @@ void DirectionalLightRenderer::Impl::_RenderDeferredLighting(DirectionalLight& l
     _deferredShader->Done();
 }
 
-void DirectionalLightRenderer::Impl::_RenderShadow(DirectionalLight& light, const Renderer::Options& options)
+void DirectionalLightRenderer::_RenderShadow(DirectionalLight& light, const Renderer::Options& options)
 {
     if (light.GetCastShadow()) {
         if (_shadowBuffer == nullptr) {
@@ -170,7 +173,7 @@ void DirectionalLightRenderer::Impl::_RenderShadow(DirectionalLight& light, cons
     }
 }
 
-void DirectionalLightRenderer::Impl::_RenderShadowInfinite(DirectionalLight& light, const Renderer::Options& options)
+void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, const Renderer::Options& options)
 {
     auto radius = glm::distance(light.WorldPosition(), light.GetMax());
     auto camPos = light.WorldPosition() - light.GetDirection() * radius;
@@ -200,7 +203,7 @@ void DirectionalLightRenderer::Impl::_RenderShadowInfinite(DirectionalLight& lig
     Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjectionMatrix());
 }
 
-void DirectionalLightRenderer::Impl::_RenderShadowFinite(DirectionalLight& light, const Renderer::Options& options)
+void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, const Renderer::Options& options)
 {
     auto radius = glm::distance(light.WorldPosition(), light.GetMax());
     auto camPos = light.WorldPosition() - light.GetDirection() * radius;

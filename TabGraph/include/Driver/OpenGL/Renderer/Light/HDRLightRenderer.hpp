@@ -6,23 +6,23 @@
 */
 #pragma once
 
-#include "Renderer/Light/HDRLightRenderer.hpp"
-//#ifdef OPENGL
-#include "Driver/OpenGL/Renderer/Light/LightRenderer.hpp"
-//#endif
+#include "Renderer/Light/LightRenderer.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
 
 class HDRLight;
+namespace Shader {
+class Program;
+}
 
 namespace Renderer {
-class HDRLightRenderer::Impl : public LightRenderer::Impl {
+class HDRLightRenderer : public LightRenderer {
 public:
-    Impl();
+    HDRLightRenderer(HDRLight&);
     void FlagDirty();
-    virtual void Render(Light&, const Renderer::Options&) override;
-    virtual void UpdateLightProbe(Light&, LightProbe&) override;
+    virtual void Render(const Renderer::Options&) override;
+    virtual void UpdateLightProbe(LightProbe&) override;
 
 protected:
     void _RenderDeferredLighting(HDRLight&, const Renderer::Options&);

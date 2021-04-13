@@ -36,7 +36,6 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/HDRLightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/SkyLightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/PointLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/LightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/VertexArray.cpp
@@ -85,10 +84,6 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/MeshRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SceneRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SkyboxRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/DirectionalLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/HDRLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/SkyLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/PointLightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/LightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/Scene.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Global.cpp
@@ -140,7 +135,6 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/LightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Buffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/VertexArray.hpp

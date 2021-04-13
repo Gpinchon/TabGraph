@@ -11,6 +11,7 @@
 #include "Framebuffer.hpp"
 #include "Light/SkyLight.hpp"
 #include "Mesh/CubeMesh.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Renderer/GeometryRenderer.hpp"
 #include "Shader/Program.hpp"
 #include "SphericalHarmonics.hpp"
@@ -72,7 +73,8 @@ static inline auto SkyLightGeometry()
 
 namespace Renderer {
 static SphericalHarmonics s_SH{ 50 };
-SkyLightRenderer::Impl::Impl()
+SkyLightRenderer::SkyLightRenderer(SkyLight& light)
+    : LightRenderer(light)
 {
     _deferredShader = Component::Create<Shader::Program>("SkyLightShader");
     _deferredShader->SetDefine("Pass", "DeferredLighting");
@@ -80,27 +82,26 @@ SkyLightRenderer::Impl::Impl()
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DeferredSkyLightFragmentCode()));
 }
 
-void SkyLightRenderer::Impl::FlagDirty()
+void SkyLightRenderer::FlagDirty()
 {
 	_dirty = true;
 }
 
-void SkyLightRenderer::Impl::Render(Light& light, const Renderer::Options& options)
+void SkyLightRenderer::Render(const Renderer::Options& options)
 {
     if (options.pass == Renderer::Options::Pass::DeferredLighting)
-        _RenderDeferredLighting(static_cast<SkyLight&>(light), options);
+        _RenderDeferredLighting(static_cast<SkyLight&>(_light), options);
     else if (options.pass == Renderer::Options::Pass::ShadowDepth)
-        _RenderDeferredLighting(static_cast<SkyLight&>(light), options);
+        _RenderDeferredLighting(static_cast<SkyLight&>(_light), options);
 }
 
-void SkyLightRenderer::Impl::UpdateLightProbe(Light& light, LightProbe& lightProbe)
+void SkyLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
 {
-    auto &skyLight{ static_cast<SkyLight&>(light) };
-    _UpdateLUT(skyLight);
+    _UpdateLUT(static_cast<SkyLight&>(_light));
     //TODO really implement this
 }
 
-void SkyLightRenderer::Impl::_RenderDeferredLighting(SkyLight& light, const Renderer::Options& options)
+void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::Options& options)
 {
     if (_dirty) {
         _UpdateLUT(light);
@@ -137,7 +138,7 @@ void SkyLightRenderer::Impl::_RenderDeferredLighting(SkyLight& light, const Rend
     Renderer::Render(SkyLightGeometry(), true);
     _deferredShader->Done();
 }
-void SkyLightRenderer::Impl::_UpdateLUT(SkyLight& light)
+void SkyLightRenderer::_UpdateLUT(SkyLight& light)
 {
     if (!_dirty)
         return;
