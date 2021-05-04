@@ -1,6 +1,10 @@
 # TabGraph
 *tabGraph* is a full SceneGraph featuring a flexible Component system, giving a lot of freedom for adding new components to your scene and organizing it.
 
+# TODO List
+If you want to participate, here is the TODO list :
+![TODO](/TODO.md)
+
 # Features
 *tabGraph* features several functionnalities :
  - Temporal Anti-Aliasing
