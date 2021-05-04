@@ -33,6 +33,7 @@ public:
     std::string GetAuthority() const;
     void SetPath(const std::filesystem::path& str);
     std::filesystem::path GetPath() const;
+    std::filesystem::path DecodePath() const;
     void SetQuery(const std::string& str);
     std::string GetQuery() const;
     void SetFragment(const std::string& str);

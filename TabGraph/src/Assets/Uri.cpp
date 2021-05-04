@@ -115,6 +115,26 @@ std::filesystem::path Uri::GetPath() const
     return _path;
 }
 
+std::filesystem::path Uri::DecodePath() const
+{
+    std::string ret;
+    char ch;
+    int i, ii;
+    auto path{ GetPath().u8string() };
+    for (i = 0; i < path.length(); i++) {
+        if (int(path[i]) == 37) {
+            sscanf(path.substr(i + 1, 2).c_str(), "%x", &ii);
+            ch = static_cast<char>(ii);
+            ret += ch;
+            i = i + 2;
+        }
+        else {
+            ret += path[i];
+        }
+    }
+    return ret;
+}
+
 void Uri::SetQuery(const std::string& str)
 {
     _query = str;
