@@ -1,0 +1,13 @@
+# TODO List :
+ - Cleanup animations system
+ - Really implement LightProbes system
+ - Implement a Bullet module
+ - Implement proper Texture resize 
+ - Add Particle systems
+ - Add Sounds
+ - Add Interface
+ - Add DirectX backend
+ - Add Vulkan backend
+ - Create an edition tool to create and export scenes
+ - Finish default Physics Engine
+ - Finish Bomberman test project (with scores, sounds, enemies and so on)
