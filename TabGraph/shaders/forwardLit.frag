@@ -82,7 +82,7 @@ void ComputeColor() {
 #if Pass == ForwardTransparent
 	if (Opacity() == 1 || Opacity() <= 0.005)
 		discard;
-	SetOpacity(min(Opacity() + Luminance(specular), 1));
+	SetOpacity(min(Opacity() + Luminance(Opacity() * specular), 1));
 	WritePixel(color * Opacity(), Opacity());
 	ComputeRefraction(N, V);
 	ComputeTransmission();
