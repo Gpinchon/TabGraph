@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-04-11 14:44:44
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-11 14:44:54
+* @Last Modified time: 2021-05-04 20:02:25
 */
 
 #include "Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp"
@@ -13,12 +13,13 @@
 #include "Light/HDRLight.hpp"
 #include "Light/LightProbe.hpp"
 #include "Mesh/CubeMesh.hpp"
-#include "Renderer/Renderer.hpp"
 #include "Renderer/GeometryRenderer.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Shader/Program.hpp"
 #include "Shader/Stage.hpp"
 #include "SphericalHarmonics.hpp"
-#include "Texture/Cubemap.hpp"
+#include "Texture/Texture2D.hpp"
+#include "Texture/TextureCubemap.hpp"
 
 const glm::vec2 invAtan = glm::vec2(0.1591, 0.3183);
 static inline glm::vec2 SampleSphericalMap(glm::vec3 xyz)
@@ -40,7 +41,7 @@ static inline auto DeferredHDRLightVertexCode()
     auto lightingVertexCode =
 #include "Lights/TransformGeometry.vert"
         ;
-    Shader::Stage::Code shaderCode{ lightingVertexCode, "TransformGeometry();" };
+    Shader::Stage::Code shaderCode { lightingVertexCode, "TransformGeometry();" };
     return shaderCode;
 }
 
@@ -58,13 +59,13 @@ static inline auto DeferredHDRLightFragmentCode()
     auto lightingFragmentCode =
 #include "Lights/DeferredHDRLight.frag"
         ;
-    Shader::Stage::Code shaderCode = Shader::Stage::Code{ deferred_frag_code, "FillFragmentData();" } + Shader::Stage::Code{ SHCode } + Shader::Stage::Code{ lightingFragmentCode, "Lighting();" };
+    Shader::Stage::Code shaderCode = Shader::Stage::Code { deferred_frag_code, "FillFragmentData();" } + Shader::Stage::Code { SHCode } + Shader::Stage::Code { lightingFragmentCode, "Lighting();" };
     return shaderCode;
 }
 
 namespace Renderer {
-static SphericalHarmonics s_SH{ 50 };
-HDRLightRenderer::HDRLightRenderer(HDRLight &light)
+static SphericalHarmonics s_SH { 50 };
+HDRLightRenderer::HDRLightRenderer(HDRLight& light)
     : LightRenderer(light)
 {
     auto LayeredCubemapRenderCode =
@@ -87,7 +88,7 @@ HDRLightRenderer::HDRLightRenderer(HDRLight &light)
 }
 void HDRLightRenderer::FlagDirty()
 {
-	_dirty = true;
+    _dirty = true;
 }
 
 void HDRLightRenderer::Render(const Renderer::Options& options)
@@ -99,7 +100,7 @@ void HDRLightRenderer::Render(const Renderer::Options& options)
 
 void HDRLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
 {
-    auto& hdrLight{ static_cast<HDRLight&>(_light) };
+    auto& hdrLight { static_cast<HDRLight&>(_light) };
     _Update(hdrLight);
     for (auto i = 0u; i < std::min(_SHDiffuse.size(), lightProbe.GetDiffuseSH().size()); ++i)
         lightProbe.GetDiffuseSH().at(i) += _SHDiffuse.at(i);
@@ -134,7 +135,9 @@ void HDRLightRenderer::_RenderDeferredLighting(HDRLight& light, const Renderer::
         .SetTexture("Texture.Geometry.F0", geometryBuffer->GetColorBuffer(1))
         .SetTexture("Texture.Geometry.Normal", geometryBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", geometryBuffer->GetDepthBuffer());
-    Renderer::Render(HDRLightGeometry(), true);
+    glCullFace(GL_FRONT);
+    Renderer::Render(HDRLightGeometry(), false);
+    glCullFace(GL_BACK);
     _deferredShader->Done();
 }
 
@@ -142,22 +145,21 @@ void HDRLightRenderer::_Update(HDRLight& light)
 {
     if (!_dirty)
         return;
-    auto asset{ light.GetComponent<Asset>() };
+    auto asset { light.GetComponent<Asset>() };
     asset->Load();
     assert(asset->GetAssetType() == Image::AssetType);
-    auto image{ asset->GetComponent<Image>() };
+    auto image { asset->GetComponent<Image>() };
     _SHDiffuse = s_SH.ProjectFunction(
         [&](const SphericalHarmonics::Sample& sample) {
-            auto dir{ -sample.vec };
-            auto uv{ SampleSphericalMap(dir) };
-            glm::ivec2 texCoord{
+            auto dir { -sample.vec };
+            auto uv { SampleSphericalMap(dir) };
+            glm::ivec2 texCoord {
                 uv.x * image->GetSize().x,
                 uv.y * image->GetSize().y
             };
             texCoord = glm::clamp(texCoord, glm::ivec2(0), image->GetSize() - 1);
             return image->GetColor(texCoord);
-        }
-    );
+        });
     light.RemoveComponent(asset);
     _dirty = false;
 }

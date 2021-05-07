@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-04-11 16:24:38
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-11 16:34:47
+* @Last Modified time: 2021-05-04 20:02:26
 */
 
 #include "Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp"
@@ -11,18 +11,20 @@
 #include "Framebuffer.hpp"
 #include "Light/SkyLight.hpp"
 #include "Mesh/CubeMesh.hpp"
-#include "Renderer/Renderer.hpp"
 #include "Renderer/GeometryRenderer.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Shader/Program.hpp"
 #include "SphericalHarmonics.hpp"
-#include "Texture/Cubemap.hpp"
+#include "Texture/Texture2D.hpp"
+#include "Texture/TextureCubemap.hpp"
+#include "Texture/TextureSampler.hpp"
 
 static inline auto DeferredSkyLightVertexCode()
 {
     auto lightingVertexCode =
 #include "Lights/TransformGeometry.vert"
         ;
-    static Shader::Stage::Code shaderCode{ lightingVertexCode, "TransformGeometry();" };
+    static Shader::Stage::Code shaderCode { lightingVertexCode, "TransformGeometry();" };
     return shaderCode;
 }
 
@@ -37,10 +39,7 @@ static inline auto DeferredSkyLightFragmentCode()
     auto lightingFragmentCode =
 #include "Lights/DeferredSkyLight.frag"
         ;
-    Shader::Stage::Code shaderCode =
-        Shader::Stage::Code{ deferred_frag_code, "FillFragmentData();" } +
-        Shader::Stage::Code{ SHCode } +
-        Shader::Stage::Code{ lightingFragmentCode, "Lighting();" };
+    Shader::Stage::Code shaderCode = Shader::Stage::Code { deferred_frag_code, "FillFragmentData();" } + Shader::Stage::Code { SHCode } + Shader::Stage::Code { lightingFragmentCode, "Lighting();" };
     return shaderCode;
 }
 
@@ -72,7 +71,7 @@ static inline auto SkyLightGeometry()
 }
 
 namespace Renderer {
-static SphericalHarmonics s_SH{ 50 };
+static SphericalHarmonics s_SH { 50 };
 SkyLightRenderer::SkyLightRenderer(SkyLight& light)
     : LightRenderer(light)
 {
@@ -84,7 +83,7 @@ SkyLightRenderer::SkyLightRenderer(SkyLight& light)
 
 void SkyLightRenderer::FlagDirty()
 {
-	_dirty = true;
+    _dirty = true;
 }
 
 void SkyLightRenderer::Render(const Renderer::Options& options)
@@ -126,9 +125,7 @@ void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::
         .SetUniform("Light.SpecularPower", light.GetSpecularPower())
         .SetUniform("Light.Max", light.GetMax())
         .SetUniform("Light.Min", light.GetMin())
-        .SetUniform("Light.Projection", (light.GetInfinite() ?
-            DirectionalLightShadowProjectionMatrixInfinite(light, options) :
-            DirectionalLightShadowProjectionMatrixFinite(light)) * DirectionalLightShadowViewMatrix(light))
+        .SetUniform("Light.Projection", (light.GetInfinite() ? DirectionalLightShadowProjectionMatrixInfinite(light, options) : DirectionalLightShadowProjectionMatrixFinite(light)) * DirectionalLightShadowViewMatrix(light))
         .SetUniform("Light.Infinite", light.GetInfinite())
         .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * light.GetLocalScaleMatrix())
         .SetTexture("Texture.Geometry.CDiff", geometryBuffer->GetColorBuffer(0))
@@ -145,29 +142,20 @@ void SkyLightRenderer::_UpdateLUT(SkyLight& light)
     _SHDiffuse = s_SH.ProjectFunction(
         [&](const SphericalHarmonics::Sample& sample) {
             return min(light.GetIncidentLight(sample.vec), 1.f);
-        }
-    );
+        });
     if (_reflectionLUT == nullptr) {
-        _reflectionLUT = Component::Create<Cubemap>(glm::ivec2(256), Pixel::SizedFormat::Float16_RGB);
+        _reflectionLUT = Component::Create<TextureCubemap>(glm::ivec2(256), Pixel::SizedFormat::Float16_RGB);
     }
     static auto s_diffuseLUTBuffer = Component::Create<Framebuffer>("DiffuseLUTBuffer", glm::ivec2(256));
     s_diffuseLUTBuffer->SetColorBuffer(_reflectionLUT, 0);
     s_diffuseLUTBuffer->bind();
-    SkyLightLUTShader()->Use()
-        .SetUniform("BetaMie", light.GetBetaMie())
-        .SetUniform("BetaRayleigh", light.GetBetaRayleigh())
-        .SetUniform("SunDirection", light.GetSunDirection())
-        .SetUniform("SunPower", light.GetSunPower())
-        .SetUniform("PlanetRadius", light.GetPlanetRadius())
-        .SetUniform("AtmosphereRadius", light.GetAtmosphereRadius())
-        .SetUniform("HRayLeigh", light.GetHRayleigh())
-        .SetUniform("HMie", light.GetHMie());
+    SkyLightLUTShader()->Use().SetUniform("BetaMie", light.GetBetaMie()).SetUniform("BetaRayleigh", light.GetBetaRayleigh()).SetUniform("SunDirection", light.GetSunDirection()).SetUniform("SunPower", light.GetSunPower()).SetUniform("PlanetRadius", light.GetPlanetRadius()).SetUniform("AtmosphereRadius", light.GetAtmosphereRadius()).SetUniform("HRayLeigh", light.GetHRayleigh()).SetUniform("HMie", light.GetHMie());
     glClear(GL_COLOR_BUFFER_BIT);
     Renderer::Render(Renderer::DisplayQuad(), true);
     Framebuffer::bind_default();
     s_diffuseLUTBuffer->SetColorBuffer(nullptr, 0);
     _reflectionLUT->GenerateMipmap();
-    _reflectionLUT->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::LinearMipmapLinear);
+    _reflectionLUT->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
     _dirty = false;
 }
 };

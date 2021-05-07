@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Renderer/SceneRenderer.hpp"
+#include "Light/LightProbe.hpp"
 
 #include <glm/mat4x4.hpp>
 #include <array>
@@ -42,5 +43,6 @@ private:
     std::map<std::weak_ptr<Mesh>, std::vector<MeshState>, std::owner_less<>> _renderList;
     std::map<std::weak_ptr<Node>, glm::mat4, std::owner_less<>> _nodeLastTransform;
     std::set<std::weak_ptr<Node>, std::owner_less<>> _nodesToKeep;
+    LightProbeGroup _lightProbeGroup{ 1 };
 };
 };

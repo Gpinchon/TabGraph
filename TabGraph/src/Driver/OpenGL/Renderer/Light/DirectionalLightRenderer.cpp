@@ -19,6 +19,7 @@
 #include "Shader/Program.hpp"
 #include "SphericalHarmonics.hpp"
 #include "Texture/Texture2D.hpp"
+#include "Texture/TextureSampler.hpp"
 
 #include <GL/glew.h>
 #include <array>
@@ -136,11 +137,14 @@ void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, 
         geometryPosition = options.camera->WorldPosition();
     else
         geometryPosition = light.GetParent() ? light.GetParent()->WorldPosition() + light.GetPosition() : light.GetPosition();
-    if (light.GetCastShadow())
+    if (light.GetCastShadow()) {
+        _deferredShader->SetDefine("SHADOWBLURRADIUS", std::to_string(light.GetShadowBlurRadius()));
         _deferredShader->SetDefine("SHADOW");
+    }
     else
         _deferredShader->RemoveDefine("SHADOW");
     glDisable(GL_CULL_FACE);
+    
     _deferredShader->Use()
         .SetUniform("Light.Color", light.GetColor())
         .SetUniform("Light.Direction", light.GetDirection())
@@ -150,25 +154,31 @@ void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, 
         .SetUniform("Light.Projection", (light.GetInfinite() ?
             DirectionalLightShadowProjectionMatrixInfinite(light, options) :
             DirectionalLightShadowProjectionMatrixFinite(light)) * DirectionalLightShadowViewMatrix(light))
-        .SetUniform("Light.Infinite", light.GetInfinite()).SetUniform("GeometryMatrix", glm::translate(geometryPosition) * light.GetLocalScaleMatrix())
+        .SetUniform("Light.Infinite", light.GetInfinite())
+        .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * light.GetLocalScaleMatrix())
         .SetTexture("Texture.Geometry.CDiff", geometryBuffer->GetColorBuffer(0))
         .SetTexture("Texture.Geometry.F0", geometryBuffer->GetColorBuffer(1))
         .SetTexture("Texture.Geometry.Normal", geometryBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", geometryBuffer->GetDepthBuffer());
-    Renderer::Render(DirectionnalLightGeometry(), true);
+    glCullFace(GL_FRONT);
+    Renderer::Render(DirectionnalLightGeometry(), false);
+    glCullFace(GL_BACK);
     _deferredShader->Done();
 }
 
 void DirectionalLightRenderer::_RenderShadow(DirectionalLight& light, const Renderer::Options& options)
 {
     if (light.GetCastShadow()) {
+        auto shadowRes{ glm::ivec2(light.GetShadowResolution()) };
         if (_shadowBuffer == nullptr) {
-            auto shadowRes{ glm::vec2(Config::Global().Get("ShadowRes", 1024)) };
+            auto shadowBuffer{ Component::Create<Texture2D>(shadowRes, Pixel::SizedFormat::Depth24) };
+            shadowBuffer->GetTextureSampler()->SetCompareMode(TextureSampler::CompareMode::CompareRefToTexture);
+            shadowBuffer->GetTextureSampler()->SetCompareFunc(TextureSampler::CompareFunc::LessEqual);
+            shadowBuffer->SetMipMapNbr(1);
             _shadowBuffer = Component::Create<Framebuffer>(light.GetName() + "_shadowMap", shadowRes, 0, 0);
-            _shadowBuffer->SetDepthBuffer(Component::Create<Texture2D>(shadowRes, Pixel::SizedFormat::Depth24));
-            _shadowBuffer->GetDepthBuffer()->SetParameter<Texture::Parameter::CompareMode>(Texture::CompareMode::CompareRefToTexture);
-            _shadowBuffer->GetDepthBuffer()->SetParameter<Texture::Parameter::CompareFunc>(Texture::CompareFunc::LessEqual);
+            _shadowBuffer->SetDepthBuffer(shadowBuffer);
         }
+        _shadowBuffer->Resize(shadowRes);
         light.GetInfinite() ? _RenderShadowInfinite(light, options) : _RenderShadowFinite(light, options);
     }
 }

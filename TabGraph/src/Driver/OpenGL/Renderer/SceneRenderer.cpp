@@ -16,8 +16,6 @@
 #include "Scene/Scene.hpp"
 #include "Texture/Texture2D.hpp"
 
-static LightProbeGroup lightProbeGroup(1);
-
 namespace Renderer {
 SceneRenderer::SceneRenderer(Scene& scene)
     : _scene(scene)
@@ -38,7 +36,7 @@ void SceneRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
     }
     if (frameNbr % 5 == 0)
         return;
-    for (auto& lightProbe : lightProbeGroup.GetLightProbes()) {
+    for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
         lightProbe.GetReflectionBuffer()->Load();
         for (auto& sh : lightProbe.GetDiffuseSH())
             sh = glm::vec3(0);
@@ -46,7 +44,7 @@ void SceneRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
     bool first = true;
     glDisable(GL_BLEND);
     for (const auto& light : _scene.GetComponents<Light>()) {
-        for (auto& lightProbe : lightProbeGroup.GetLightProbes()) {
+        for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
             Renderer::UpdateLightProbe(light, lightProbe);
             //light->DrawProbe(lightProbe);
         }
@@ -57,7 +55,7 @@ void SceneRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
             first = false;
         }
     }
-    for (auto& lightProbe : lightProbeGroup.GetLightProbes()) {
+    for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
         lightProbe.GetReflectionBuffer()->GetColorBuffer(0)->GenerateMipmap();
     }
 }
@@ -85,7 +83,7 @@ LightProbe& SceneRenderer::GetClosestLightProbe(const glm::vec3& position)
 {
     LightProbe* closestLightProbe = nullptr;
     float shortestDistance = std::numeric_limits<float>::max();
-    for (auto& lightProbe : lightProbeGroup.GetLightProbes()) {
+    for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
         auto distance { glm::distance(position, lightProbe.GetAbsolutePosition()) };
         if (shortestDistance > distance) {
             shortestDistance = distance;

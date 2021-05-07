@@ -8,6 +8,7 @@
 
 #include "Shader/Program.hpp"
 #include "Shader/Stage.hpp"
+#include "Driver/OpenGL/ObjectHandle.hpp"
 
 #include <array>
 #include <glm/fwd.hpp>
@@ -15,18 +16,8 @@
 class Texture;
 
 namespace Shader {
-struct Program::Handle {
-    Handle(uint32_t v)
-        : _v(v)
-    {
-    }
-    operator uint32_t() const
-    {
-        return _v;
-    }
-
-private:
-    uint32_t _v { 0 };
+struct Program::Handle : public OpenGL::ObjectHandle {
+    Handle(uint32_t v) : OpenGL::ObjectHandle(v) {};
 };
 class Program::Impl {
     READONLYPROPERTY(bool, Compiled, false);
