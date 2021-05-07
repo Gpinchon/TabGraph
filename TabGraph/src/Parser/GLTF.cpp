@@ -22,6 +22,7 @@
 #include "Parser/InternalTools.hpp"
 #include "Scene/Scene.hpp"
 #include "Texture/Texture2D.hpp"
+#include "Texture/TextureSampler.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -32,7 +33,7 @@
 void ParseGLTF(std::shared_ptr<Asset>);
 
 auto GLTFMimeExtension {
-    AssetsParser::AddMimeExtension("model/gltf+json", ".gltf") //not standard but screw it.
+    AssetsParser::AddMimeExtension("model/gltf+json", ".gltf")
 };
 
 auto GLTFMimesParsers {
@@ -62,10 +63,6 @@ Uri CreateUri(const std::filesystem::path& parentPath, const std::string& dataPa
         return Uri(bufferPath);
     }
 }
-
-struct TextureSampler {
-    std::map<std::string, GLenum> settings;
-};
 
 static inline auto ParseCameras(const rapidjson::Document& document)
 {
@@ -101,14 +98,50 @@ static inline auto ParseCameras(const rapidjson::Document& document)
     return cameraVector;
 }
 
+auto GetFilter(int filter) {
+    switch (filter) {
+    case 9728:
+        return TextureSampler::Filter::Nearest;
+    case 9729:
+        return TextureSampler::Filter::Linear;
+    case 9984:
+        return TextureSampler::Filter::NearestMipmapNearest;
+    case 9985:
+        return TextureSampler::Filter::LinearMipmapNearest;
+    case 9986:
+        return TextureSampler::Filter::NearestMipmapLinear;
+    case 9987:
+        return TextureSampler::Filter::LinearMipmapLinear;
+    }
+}
+
+auto GetWrap(int wrap) {
+    switch (wrap)
+    {
+    case 33071:
+        return TextureSampler::Wrap::ClampToEdge;
+    case 33648:
+        return TextureSampler::Wrap::MirroredRepeat;
+    case 10497:
+        return TextureSampler::Wrap::Repeat;
+    }
+}
+
 static inline auto ParseTextureSamplers(const rapidjson::Document& document)
 {
-    std::vector<TextureSampler> samplerVector;
+    std::vector<std::shared_ptr<TextureSampler>> samplerVector;
     try {
         for (const auto& sampler : document["samplers"].GetArray()) {
-            TextureSampler newSampler;
+            auto newSampler{ std::make_shared<TextureSampler>() };
             for (rapidjson::Value::ConstMemberIterator setting = sampler.MemberBegin(); setting != sampler.MemberEnd(); setting++) {
-                newSampler.settings[setting->name.GetString()] = setting->value.GetInt();
+                if ("magFilter" == setting->name.GetString())
+                    newSampler->SetMagFilter(GetFilter(setting->value.GetInt()));
+                else if ("minFilter" == setting->name.GetString())
+                    newSampler->SetMinFilter(GetFilter(setting->value.GetInt()));
+                else if ("wrapS" == setting->name.GetString())
+                    newSampler->SetWrapS(GetWrap(setting->value.GetInt()));
+                else if ("wrapT" == setting->name.GetString())
+                    newSampler->SetWrapT(GetWrap(setting->value.GetInt()));
             }
             samplerVector.push_back(newSampler);
         }
@@ -138,14 +171,7 @@ static inline auto ParseTextures(const rapidjson::Document& document, std::vecto
             try {
                 try {
                     auto sampler(samplers.at(textureValue["sampler"].GetInt()));
-                    if (sampler.settings["magFilter"] != 0)
-                        texture->SetParameter<Texture::Parameter::MagFilter>((Texture::Filter)sampler.settings["magFilter"]);
-                    if (sampler.settings["minFilter"] != 0)
-                        texture->SetParameter<Texture::Parameter::MinFilter>((Texture::Filter)sampler.settings["magFilter"]);
-                    if (sampler.settings["wrapS"] != 0)
-                        texture->SetParameter<Texture::Parameter::WrapS>((Texture::Wrap)sampler.settings["wrapS"]);
-                    if (sampler.settings["wrapT"] != 0)
-                        texture->SetParameter<Texture::Parameter::WrapT>((Texture::Wrap)sampler.settings["wrapT"]);
+                    texture->SetTextureSampler(sampler);
                 } catch (std::exception&) {
                     debugLog("Texture " + std::to_string(textureIndex) + " has no sampler")
                 }
@@ -226,7 +252,6 @@ static inline auto ParseMaterials(const rapidjson::Document& document, std::vect
         auto materialIndex(0);
         for (const auto& materialValue : document["materials"].GetArray()) {
             auto material(Component::Create<Material>("Material " + std::to_string(materialIndex)));
-            material->SetUVScale(glm::vec2(1, 1));
             try {
                 material->SetName(materialValue["name"].GetString());
             } catch (std::exception&) {
@@ -370,9 +395,9 @@ static inline auto ParseBuffers(const std::filesystem::path path, const rapidjso
 static inline BufferView::Type GetBufferViewType(GLenum type)
 {
     switch (type) {
-    case GL_ARRAY_BUFFER:
+    case 34962:
         return BufferView::Type::Array;
-    case GL_ELEMENT_ARRAY_BUFFER:
+    case 34963:
         return BufferView::Type::ElementArray;
     default:
         return BufferView::Type::Unknown;
