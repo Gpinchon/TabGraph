@@ -2,12 +2,12 @@
 * @Author: gpinchon
 * @Date:   2021-01-04 09:42:57
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-24 18:53:46
+* @Last Modified time: 2021-05-04 20:02:25
 */
 
 #include "Skybox.hpp"
 #include "Renderer/SkyboxRenderer.hpp"
-#include "Texture/Cubemap.hpp"
+#include "Texture/TextureCubemap.hpp"
 
 Skybox::Skybox(const std::string& name)
     : Component(name)
@@ -15,7 +15,7 @@ Skybox::Skybox(const std::string& name)
 {
 }
 
-Skybox::Skybox(const std::string& name, std::shared_ptr<Cubemap> color)
+Skybox::Skybox(const std::string& name, std::shared_ptr<TextureCubemap> color)
     : Skybox(name)
 {
     SetTexture(color);

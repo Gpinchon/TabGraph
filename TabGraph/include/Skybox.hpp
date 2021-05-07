@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-24 18:49:59
+* @Last Modified time: 2021-05-04 20:02:26
 */
 
 #pragma once
@@ -12,22 +12,22 @@
 #include <string> // for string
 #include <vector> // for vector
 
-class Cubemap;
+class TextureCubemap;
 namespace Shader {
 class Program;
 }
 
 namespace Renderer {
-    class SkyboxRenderer;
+class SkyboxRenderer;
 }
 
 class Skybox : public Component {
 public:
-    PROPERTY(std::shared_ptr<Cubemap>, Texture, nullptr);
+    PROPERTY(std::shared_ptr<TextureCubemap>, Texture, nullptr);
 
 public:
     Skybox(const std::string& name);
-    Skybox(const std::string& name, std::shared_ptr<Cubemap> color);
+    Skybox(const std::string& name, std::shared_ptr<TextureCubemap> color);
     Skybox(const Skybox& other);
     void Load();
     void Unload();
