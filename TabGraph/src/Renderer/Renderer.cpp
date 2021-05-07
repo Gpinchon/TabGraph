@@ -2,27 +2,27 @@
 * @Author: gpinchon
 * @Date:   2021-03-22 18:30:22
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-22 18:53:12
+* @Last Modified time: 2021-05-04 20:02:24
 */
 
 #include "Renderer/Renderer.hpp"
-#include "Renderer/GeometryRenderer.hpp"
-#include "Renderer/SceneRenderer.hpp"
 #include "Camera/Camera.hpp" // for Camera
 #include "Config.hpp" // for Config
+#include "Debug.hpp"
 #include "Engine.hpp" // for UpdateMutex, SwapInterval
-#include "Skybox.hpp" // for Skybox
 #include "Framebuffer.hpp" // for Framebuffer
 #include "Light/Light.hpp" // for Light, Directionnal, Point
 #include "Mesh/Geometry.hpp" // for Geometry
+#include "Renderer/GeometryRenderer.hpp"
+#include "Renderer/SceneRenderer.hpp"
 #include "Scene/Scene.hpp"
-#include "Skybox.hpp"
 #include "Shader/Global.hpp" // for Shader::Global
 #include "Shader/Program.hpp" // for Shader::Program
-#include "Texture/Cubemap.hpp"
+#include "Skybox.hpp" // for Skybox
+#include "Skybox.hpp"
 #include "Texture/Texture2D.hpp" // for Texture2D
+#include "Texture/TextureCubemap.hpp"
 #include "Window.hpp" // for Window
-#include "Debug.hpp"
 
 //#ifdef OPENGL
 #include "Driver/OpenGL/Renderer/Renderer.hpp"
@@ -84,7 +84,7 @@ void Renderer::Init()
     GetImpl()->Init();
 }
 
-Renderer::Context &Renderer::GetContext()
+Renderer::Context& Renderer::GetContext()
 {
     return GetImpl()->GetContext();
 }
