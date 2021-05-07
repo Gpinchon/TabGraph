@@ -52,7 +52,7 @@ uniform mat4					SkinPrevTransform;
 uniform samplerBuffer			Joints;
 uniform samplerBuffer			PrevJoints;
 uniform bool					Skinned = false;
-uniform vec2					UVScale = vec2(1);
+uniform mat3					UVTransform = mat3(1);
 
 out VertexOutput {
 	vec3	WorldPosition;
@@ -186,7 +186,7 @@ void	FillVertexData()
 		PreviousPosition = PrevCamera.Matrix.Projection * PrevCamera.Matrix.View * PrevMatrix.Model * vec4(in_Position, 1.0);
 	}
 	ModelPosition = in_Position;
-	SetTexCoord(TexCoord() * UVScale);
+	SetTexCoord((UVTransform * vec3(TexCoord(), 1)).xy);
 	vec4 cameraSpacePosition = Camera.Matrix.View * vec4(WorldPosition(), 1);
 	CameraSpaceDepth = cameraSpacePosition.z;
 	SetClipSpacePosition(Position = (Camera.Matrix.Projection * cameraSpacePosition));
