@@ -132,7 +132,7 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
         rwOps = SDL_RWFromMem(data.data(), data.size());
     }
     else {
-        rwOps = SDL_RWFromFile(uri.GetPath().u8string().c_str(), "rb");
+        rwOps = SDL_RWFromFile(uri.DecodePath().u8string().c_str(), "rb");
     }
         
     auto surface = IMG_Load_RW(rwOps, 1);
