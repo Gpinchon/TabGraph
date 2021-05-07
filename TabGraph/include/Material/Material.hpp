@@ -35,6 +35,8 @@ public:
     PROPERTY(bool, DoubleSided, false);
     PROPERTY(OpacityMode, OpacityMode, OpacityMode::Opaque);
     PROPERTY(glm::vec2, UVScale, 1);
+    PROPERTY(glm::vec2, UVOffset, 0);
+    PROPERTY(float, UVRotation, 0);
 
 public:
     Material(const std::string& name);

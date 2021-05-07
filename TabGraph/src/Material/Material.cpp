@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-31 17:28:44
+* @Last Modified time: 2021-05-04 20:02:24
 */
 
 #include "Material/Material.hpp"
@@ -12,8 +12,8 @@
 #include "Scene/Scene.hpp" // for Scene
 #include "Shader/Program.hpp" // for Shader::Program
 #include "Shader/Stage.hpp" // for Shader::Stage
-#include "Texture/Cubemap.hpp"
 #include "Texture/Texture2D.hpp"
+#include "Texture/TextureCubemap.hpp"
 //#include "brdfLUT.hpp"
 
 static inline auto GetSHExtension()
@@ -61,34 +61,18 @@ Material::Material(const std::string& name)
 {
     SetShader(Renderer::Options::Pass::DeferredGeometry, Component::Create<Shader::Program>(GetName() + "_geometryShader"));
     GetShader(Renderer::Options::Pass::DeferredGeometry)->SetDefine("Pass", "DeferredGeometry");
-    GetShader(Renderer::Options::Pass::DeferredGeometry)->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
-        GetForwardVertexExtension()
-    ));
-    GetShader(Renderer::Options::Pass::DeferredGeometry)->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
-        GetForwardFragmentExtension() +
-        GetCheckOpacityExtension()
-    ));
+    GetShader(Renderer::Options::Pass::DeferredGeometry)->Attach(Shader::Stage(Shader::Stage::Type::Vertex, GetForwardVertexExtension()));
+    GetShader(Renderer::Options::Pass::DeferredGeometry)->Attach(Shader::Stage(Shader::Stage::Type::Fragment, GetForwardFragmentExtension() + GetCheckOpacityExtension()));
 
     SetShader(Renderer::Options::Pass::ForwardTransparent, Component::Create<Shader::Program>(GetName() + "_materialShader"));
     GetShader(Renderer::Options::Pass::ForwardTransparent)->SetDefine("Pass", "ForwardTransparent");
-    GetShader(Renderer::Options::Pass::ForwardTransparent)->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
-        GetSHExtension() +
-        GetForwardVertexExtension()
-    ));
-    GetShader(Renderer::Options::Pass::ForwardTransparent)->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
-        GetForwardFragmentExtension() +
-        GetForwardLitPassExtension()
-    ));
+    GetShader(Renderer::Options::Pass::ForwardTransparent)->Attach(Shader::Stage(Shader::Stage::Type::Vertex, GetSHExtension() + GetForwardVertexExtension()));
+    GetShader(Renderer::Options::Pass::ForwardTransparent)->Attach(Shader::Stage(Shader::Stage::Type::Fragment, GetForwardFragmentExtension() + GetForwardLitPassExtension()));
 
     SetShader(Renderer::Options::Pass::ShadowDepth, Component::Create<Shader::Program>(GetName() + "_materialShader"));
     GetShader(Renderer::Options::Pass::ShadowDepth)->SetDefine("Pass", "ShadowDepth");
-    GetShader(Renderer::Options::Pass::ShadowDepth)->Attach(Shader::Stage(Shader::Stage::Type::Vertex,
-        GetForwardVertexExtension()
-    ));
-    GetShader(Renderer::Options::Pass::ShadowDepth)->Attach(Shader::Stage(Shader::Stage::Type::Fragment,
-        GetForwardFragmentExtension() +
-        GetCheckOpacityExtension()
-    ));
+    GetShader(Renderer::Options::Pass::ShadowDepth)->Attach(Shader::Stage(Shader::Stage::Type::Vertex, GetForwardVertexExtension()));
+    GetShader(Renderer::Options::Pass::ShadowDepth)->Attach(Shader::Stage(Shader::Stage::Type::Fragment, GetForwardFragmentExtension() + GetCheckOpacityExtension()));
 
     SetTextureBRDFLUT(Renderer::DefaultBRDFLUT());
     SetOpacity(1);
@@ -108,7 +92,6 @@ void Material::AddExtension(std::shared_ptr<MaterialExtension> extension)
     GetShader(Renderer::Options::Pass::ShadowDepth)->GetStage(Shader::Stage::Type::Fragment) -= GetCheckOpacityExtension();
     GetShader(Renderer::Options::Pass::ShadowDepth)->GetStage(Shader::Stage::Type::Fragment) += extension->GetCode();
     GetShader(Renderer::Options::Pass::ShadowDepth)->GetStage(Shader::Stage::Type::Fragment) += GetCheckOpacityExtension();
-
 }
 
 void Material::RemoveExtension(std::shared_ptr<MaterialExtension> extension)
@@ -146,7 +129,14 @@ void Material::Bind(const Renderer::Options::Pass& pass)
         }
     }
     GetShader(pass)->Use();
-    GetShader(pass)->SetUniform("UVScale", GetUVScale());
+    auto UVTranslation{ glm::mat3(1,0,0, 0,1,0, GetUVOffset().x, GetUVOffset().y, 1) };
+    auto UVRotation{ glm::mat3(
+        cos(GetUVRotation()), sin(GetUVRotation()), 0,
+        -sin(GetUVRotation()), cos(GetUVRotation()), 0,
+        0, 0, 1
+    ) };
+    auto UVScale{ glm::mat3(GetUVScale().x, 0, 0, 0, GetUVScale().y, 0, 0, 0, 1) };
+    GetShader(pass)->SetUniform("UVTransform", UVTranslation * UVRotation * UVScale);
     for (const auto& color : GetColors()) {
         GetShader(pass)->SetUniform(color.first, color.second);
     }
