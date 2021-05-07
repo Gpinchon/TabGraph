@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-18 13:46:27
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-19 21:13:58
+* @Last Modified time: 2021-05-07 15:39:40
 */
 
 #include "Assets/AssetsParser.hpp" // for AssetsParser, AssetParsingFunction
@@ -13,7 +13,7 @@
 #include <memory> // for shared_ptr
 #include <string> // for string
 
-std::map<AssetsParser::MimeType, AssetsParser*>* AssetsParser::_parsers = nullptr;
+std::map<AssetsParser::MimeType, std::unique_ptr<AssetsParser>>* AssetsParser::_parsers = nullptr;
 std::map<AssetsParser::FileExtension, AssetsParser::MimeType>* AssetsParser::_mimesExtensions = nullptr;
 
 AssetsParser::AssetsParser(const MimeType& mimeType, ParsingFunction parsingFunction)
@@ -28,13 +28,11 @@ AssetsParser::MimeType AssetsParser::GetMimeFromExtension(const FileExtension& e
     return _getMimesExtensions()[extension];
 }
 
-AssetsParser* AssetsParser::Add(const MimeType& mimeType, ParsingFunction parsingFunction)
+AssetsParser& AssetsParser::Add(const MimeType& mimeType, ParsingFunction parsingFunction)
 {
-    //debugLog("Add Parser " + mimeType);
-    auto parser = new AssetsParser(mimeType, parsingFunction);
-    _getParsers()[mimeType] = parser;
-    
-    return parser;
+    auto parser{ new AssetsParser(mimeType, parsingFunction) };
+    _getParsers()[mimeType].reset(parser);
+    return *parser;
 }
 
 AssetsParser::MimeExtensionPair AssetsParser::AddMimeExtension(const MimeType& mime, const FileExtension& extension)
@@ -43,10 +41,10 @@ AssetsParser::MimeExtensionPair AssetsParser::AddMimeExtension(const MimeType& m
     return MimeExtensionPair(mime, extension);
 }
 
-std::map<AssetsParser::MimeType, AssetsParser*>& AssetsParser::_getParsers()
+std::map<AssetsParser::MimeType, std::unique_ptr<AssetsParser>>& AssetsParser::_getParsers()
 {
     if (_parsers == nullptr)
-        _parsers = new std::map<MimeType, AssetsParser*>;
+        _parsers = new std::map<MimeType, std::unique_ptr<AssetsParser>>;
     return *_parsers;
 }
 
@@ -76,6 +74,6 @@ void AssetsParser::Parse(std::shared_ptr<Asset> asset)
 
 AssetsParser::ParsingFunction AssetsParser::_get(const MimeType& mime)
 {
-    auto parser = _getParsers()[mime];
+    auto &parser = _getParsers()[mime];
     return parser ? parser->_parsingFunction : nullptr;
 }

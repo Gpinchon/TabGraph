@@ -2,15 +2,15 @@
 * @Author: gpinchon
 * @Date:   2020-08-18 12:54:57
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-02-01 08:38:35
+* @Last Modified time: 2021-05-07 15:38:45
 */
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <string>     // for string
 #include <filesystem>
+#include <functional>
 #include <map>
+#include <memory>
+#include <string> // for string
 
 class Asset;
 
@@ -32,7 +32,7 @@ public:
      * @param function the parsing function that will be used to parse that mime type
      * @return a pointer to the newly created AssetsParser
     */
-    static AssetsParser* Add(const MimeType& mime, ParsingFunction function);
+    static AssetsParser& Add(const MimeType& mime, ParsingFunction function);
     /**
      * @brief Adds a new extension for this mime type
      * @param mime @ref https://en.wikipedia.org/wiki/Media_type
@@ -50,8 +50,8 @@ private:
     AssetsParser() = delete;
     AssetsParser(const MimeType&, ParsingFunction);
     static ParsingFunction _get(const MimeType&);
-    static std::map<MimeType, AssetsParser*>& _getParsers();
-    static std::map<MimeType, AssetsParser*>* _parsers;
+    static std::map<MimeType, std::unique_ptr<AssetsParser>>& _getParsers();
+    static std::map<MimeType, std::unique_ptr<AssetsParser>>* _parsers;
     static std::map<FileExtension, MimeType>& _getMimesExtensions();
     static std::map<FileExtension, MimeType>* _mimesExtensions;
     MimeType _mimeType;
