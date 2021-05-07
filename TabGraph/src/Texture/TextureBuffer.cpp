@@ -6,30 +6,17 @@
 */
 #include "Texture/TextureBuffer.hpp"
 #include "Buffer/BufferAccessor.hpp"
-#include "Driver/OpenGL/Buffer.hpp"
 #include "Debug.hpp"
+//#ifdef OPENGL
+#include "Driver/OpenGL/Buffer.hpp"
+#include "Driver/OpenGL/Texture/TextureBuffer.hpp"
+//#endif
 
 TextureBuffer::TextureBuffer(Pixel::SizedFormat internalFormat, std::shared_ptr<BufferAccessor> bufferAccessor)
     : Texture(Texture::Type::TextureBuffer, internalFormat)
 {
     SetAccessor(bufferAccessor);
-}
-
-void TextureBuffer::Load()
-{
-    if (GetLoaded())
-        return;
-    auto bufferView{ Accessor()->GetBufferView() };
-    //assert(bufferView->GetType() == BufferView::Type::TextureBuffer);
-    bufferView->Load();
-    _SetHandle(Texture::Create(GetType()));
-    auto handle{ uint32_t(bufferView->GetHandle()) };
-    glTextureBuffer(
-        GetHandle(),
-        (GLenum)GetPixelDescription().GetSizedFormat(),
-        handle
-    );
-    _SetLoaded(true);
+    _impl.reset(new TextureBuffer::Impl(*this));
 }
 
 std::shared_ptr<BufferAccessor> TextureBuffer::Accessor() const

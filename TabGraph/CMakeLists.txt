@@ -8,103 +8,6 @@ cmake_policy(SET CMP0074 NEW)
 set(CMAKE_DEBUG_TARGET_PROPERTIES INCLUDE_DIRECTORIES)
 set(CMAKE_DEBUG_TARGET_PROPERTIES INTERFACE_INCLUDE_DIRECTORIES)
 
-
-set(TABGRAPH_SOURCE_FILES 
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationChannel.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/Animation.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationInterpolator.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationSampler.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Asset.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/AssetsParser.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/BinaryData.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Image.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Uri.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferAccessor.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferView.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/Camera.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/FPSCamera.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/OrbitCamera.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/GeometryRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/MeshRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Renderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SceneRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SkyboxRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/HDRLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/SkyLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/PointLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Global.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Program.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/VertexArray.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Framebuffer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Events.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/GameController.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Keyboard.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Mouse.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/LightProbe.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionalLight.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/HDRLight.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/PointLight.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SkyLight.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SpotLight.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/Material.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MaterialExtension.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MetallicRoughness.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/SpecularGlossiness.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/CapsuleMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/CubeMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/Geometry.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/Mesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/MeshSkin.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/PlaneMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/SphereMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Node.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Object.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingAABB.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingBox.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingElement.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingPlane.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingSphere.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/CollisionAlgorithmSAT.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/CollisionAlgorithmGJKRaycast.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/Intersection.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/PhysicsEngine.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/RigidBody.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/SimplexSolver.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Quadtree.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Renderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/GeometryRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/MeshRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SceneRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SkyboxRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/LightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/Scene.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Global.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Program.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Stage.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Skybox.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/SphericalHarmonics.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/StackTracer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/PixelUtils.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Cubemap.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture2D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureArray.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureBuffer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools/Base.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools/Tools.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/UI/UIManager.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Window.cpp
-)
-
 set(TABGRAPH_HEADER_FILES 
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationChannel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/Animation.hpp
@@ -136,7 +39,22 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/PixelUtils.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Texture.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Texture1D.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Texture1DArray.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Texture2D.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Texture2DArray.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Texture2DMultisample.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Texture2DMultisampleArray.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Texture3D.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureBuffer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureCubemap.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureCubemapArray.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureRectangle.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureSampler.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Buffer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/ObjectHandle.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Global.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Program.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/VertexArray.hpp
@@ -204,16 +122,141 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain_GDAL.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Terrain/Terrain.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/PixelUtils.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Cubemap.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture1D.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture2D.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureArray.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureBuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture1D.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture1DArray.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture2D.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture2DArray.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture2DMultisample.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture2DMultisampleArray.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Texture3D.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureBuffer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureCubemap.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureCubemapArray.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureRectangle.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureSampler.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/Base.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/Tools.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/UI/UIManager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Window.hpp
+)
+
+set(TABGRAPH_SOURCE_FILES 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationChannel.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/Animation.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationInterpolator.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationSampler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Asset.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/AssetsParser.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/BinaryData.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Image.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Uri.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferAccessor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/Camera.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/FPSCamera.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/OrbitCamera.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/GeometryRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/MeshRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Renderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SceneRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SkyboxRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/HDRLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/SkyLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/PointLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/PixelUtils.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture1D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture1DArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2DArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2DMultisample.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2DMultisampleArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture3D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureBuffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureCubemap.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureCubemapArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureRectangle.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureSampler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Global.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Program.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/VertexArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Framebuffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Events.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/GameController.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Keyboard.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Mouse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/LightProbe.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionalLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/HDRLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/PointLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SkyLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SpotLight.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/Material.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MaterialExtension.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MetallicRoughness.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/SpecularGlossiness.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/CapsuleMesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/CubeMesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/Geometry.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/Mesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/MeshSkin.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/PlaneMesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Mesh/SphereMesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Node.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Object.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingAABB.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingBox.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingElement.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingMesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingPlane.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingSphere.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/CollisionAlgorithmSAT.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/CollisionAlgorithmGJKRaycast.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/Intersection.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/PhysicsEngine.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/RigidBody.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/SimplexSolver.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Quadtree.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Renderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/GeometryRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/MeshRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SceneRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SkyboxRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/LightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/Scene.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Global.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Program.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Stage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Skybox.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/SphericalHarmonics.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/StackTracer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/PixelUtils.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture1D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture1DArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture2D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture2DArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture2DMultisample.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture2DMultisampleArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Texture3D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureBuffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureCubemap.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureCubemapArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureRectangle.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureSampler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools/Base.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools/Tools.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/UI/UIManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Window.cpp
 )
 
 set(TABGRAPH_SHADER_FILES

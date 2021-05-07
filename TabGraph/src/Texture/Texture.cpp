@@ -2,28 +2,41 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-11 08:42:10
+* @Last Modified time: 2021-04-30 14:22:57
 */
 
 #include "Texture/Texture.hpp"
-//#include "Buffer/Buffer.hpp"
-//#include "Config.hpp" // for Config
-#include "Debug.hpp" // for glCheckError, debugLog
-#include <algorithm> // for min
-#include <cstring> // for memcpy
-#include <stdint.h> // for int16_t, uint64_t
-#include <utility> // for pair
+#include "Texture/TextureSampler.hpp"
+#include "Debug.hpp"
+//#ifdef OPENGL
+#include "Driver/OpenGL/Texture/Texture.hpp"
+//#endif
 
-Texture::Texture(Texture::Type target, Pixel::Description pixelDesc)
+#include <algorithm>
+#include <cstring>
+#include <stdint.h>
+#include <utility>
+#include <array>
+
+Texture::Texture(Texture::Type type)
     : Component()
 {
-    _SetType(target);
-    SetPixelDescription(pixelDesc);
+    SetTextureSampler(std::make_shared<TextureSampler>());
+    _SetType(type);
 }
 
-Texture::Texture(Texture::Type target)
+Texture::Texture(const Texture& other)
+    : Component(other)
+    , _Type(other._Type)
+    , _TextureSampler(other._TextureSampler)
+    , _PixelDescription(other._PixelDescription)
 {
-    _SetType(target);
+}
+
+Texture::Texture(Texture::Type type, Pixel::Description pixelDesc)
+    : Texture(type)
+{
+    _SetPixelDescription(pixelDesc);
 }
 
 Texture::~Texture()
@@ -31,99 +44,38 @@ Texture::~Texture()
     Unload();
 }
 
-void Texture::RestoreParameters()
+void Texture::Load()
 {
-    for (const auto parameterf : _parametersf)
-        _SetParameterf(parameterf.first, parameterf.second);
-    for (const auto parameteri : _parametersi)
-        _SetParameteri(parameteri.first, parameteri.second);
-    for (const auto parameterfv : _parametersfv)
-        _SetParameterfv(parameterfv.first, parameterfv.second.data());
-    for (const auto parameteriv : _parametersiv)
-        _SetParameteriv(parameteriv.first, parameteriv.second.data());
+    _impl->Load();
 }
 
 void Texture::Unload()
 {
-    GLuint id = GetHandle();
-    _SetHandle(0);
-    glDeleteTextures(1, &id);
-    _SetLoaded(false);
+    _impl->Unload();
 }
 
 void Texture::GenerateMipmap()
 {
-    glGenerateTextureMipmap(GetHandle());
-    SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::LinearMipmapLinear);
+    _impl->GenerateMipmap();
 }
 
 void Texture::SetPixelDescription(Pixel::Description pixelDesc)
 {
     _SetPixelDescription(pixelDesc);
-    _SetLoaded(false);
+    _impl->Unload();
 }
 
-Texture::Handle Texture::Create(Texture::Type type)
+Texture::Impl& Texture::GetImpl()
 {
-    GLuint glid;
-    glGenTextures(1, &glid);
-    glBindTexture((GLenum)type, glid);
-    glBindTexture((GLenum)type, 0);
-    return glid;
+    return *_impl;
 }
 
-void Texture::_SetParameterf(Texture::Parameter p, const float v)
+const Texture::Handle& Texture::GetHandle() const
 {
-    if (GetLoaded()) {
-        if (glTextureParameterf == nullptr) {
-            glBindTexture((GLenum)GetType(), GetHandle());
-            glTexParameterf((GLenum)GetType(), (GLenum)p, v);
-            glBindTexture((GLenum)GetType(), 0);
-        }
-        else {
-            glTextureParameterf(GetHandle(), (GLenum)p, v);
-        }
-    }
+    return _impl->GetHandle();
 }
 
-void Texture::_SetParameteri(Texture::Parameter p, const int32_t v)
+bool Texture::GetLoaded() const
 {
-    if (GetLoaded()) {
-        if (glTextureParameteri == nullptr) {
-            glBindTexture((GLenum)GetType(), GetHandle());
-            glTexParameteri((GLenum)GetType(), (GLenum)p, v);
-            glBindTexture((GLenum)GetType(), 0);
-        }
-        else {
-            glTextureParameteri(GetHandle(), (GLenum)p, v);
-        }
-    }
-}
-
-void Texture::_SetParameterfv(Texture::Parameter p, const float* v)
-{
-    if (GetLoaded()) {
-        if (glTextureParameterfv == nullptr) {
-            glBindTexture((GLenum)GetType(), GetHandle());
-            glTexParameterfv((GLenum)GetType(), (GLenum)p, v);
-            glBindTexture((GLenum)GetType(), 0);
-        }
-        else {
-            glTextureParameterfv(GetHandle(), (GLenum)p, v);
-        }
-    }
-}
-
-void Texture::_SetParameteriv(Texture::Parameter p, const int32_t* v)
-{
-    if (GetLoaded()) {
-        if (glTextureParameteriv == nullptr) {
-            glBindTexture((GLenum)GetType(), GetHandle());
-            glTexParameteriv((GLenum)GetType(), (GLenum)p, v);
-            glBindTexture((GLenum)GetType(), 0);
-        }
-        else {
-            glTextureParameteriv(GetHandle(), (GLenum)p, v);
-        }
-    }
+    return _impl->GetLoaded();
 }
