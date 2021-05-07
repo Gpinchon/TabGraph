@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-09 19:54:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-20 17:09:08
+* @Last Modified time: 2021-05-04 20:02:24
 */
 #define USE_HIGH_PERFORMANCE_GPU
 #include "DLLExport.hpp"
@@ -33,13 +33,13 @@
 
 float speed = 1.f;
 
-void CallbackSpeed(const SDL_KeyboardEvent& event) {
+void CallbackSpeed(const SDL_KeyboardEvent& event)
+{
     if (event.type == SDL_KEYUP)
         return;
     if (Keyboard::key(SDL_SCANCODE_KP_MINUS) != 0u) {
         --speed;
-    }
-    else if (Keyboard::key(SDL_SCANCODE_KP_PLUS) != 0u) {
+    } else if (Keyboard::key(SDL_SCANCODE_KP_PLUS) != 0u) {
         ++speed;
     }
     speed = std::max(1.f, speed);
@@ -140,7 +140,8 @@ void ChangeCamera(const SDL_KeyboardEvent& event)
     s_light->SetParent(Scene::Current()->CurrentCamera());
 }
 
-void ControllerButton(const SDL_ControllerButtonEvent& event) {
+void ControllerButton(const SDL_ControllerButtonEvent& event)
+{
     std::cout << (event.type == SDL_CONTROLLERBUTTONDOWN ? "Button pressed " : "Button released ") << event.button << " on Controller " << event.which << std::endl;
 }
 
@@ -163,23 +164,24 @@ void SetupCallbacks()
     //Events::AddRefreshCallback(Callback<void()>::Create(CameraCallback));
 }
 
-#include "StackTracer.hpp"
-#include <csignal>
-#include <filesystem>
-#include "Texture/Cubemap.hpp"
-#include "Skybox.hpp"
 #include "Assets/Image.hpp"
+#include "Light/HDRLight.hpp"
 #include "Light/PointLight.hpp"
 #include "Light/SkyLight.hpp"
-#include "Light/HDRLight.hpp"
+#include "Skybox.hpp"
+#include "StackTracer.hpp"
+#include "Texture/TextureCubemap.hpp"
+#include <csignal>
+#include <filesystem>
 
 int main(int argc, char** argv)
 {
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     if (argc <= 1)
         return -42;
     {
-        //std::set_terminate([]() { std::cout << "Unhandled exception\n"; int* p = nullptr; p[0] = 1; });
         StackTracer::set_signal_handler(SIGABRT);
+        StackTracer::set_signal_handler(SIGSEGV);
         Config::Global().Parse(Engine::ResourcePath() / "config.ini");
         Engine::Init();
         std::filesystem::path filePath = (std::string(argv[1]));
@@ -190,7 +192,7 @@ int main(int argc, char** argv)
             std::cout << filePath << std::endl;
             auto fpsCamera = Component::Create<FPSCamera>("main_camera", 45);
             //fpsCamera->SetZfar(1000);
-            auto asset{ Component::Create<Asset>("file:" + filePath.string()) };
+            auto asset { Component::Create<Asset>("file:" + filePath.string()) };
             asset->Load();
             auto assetCameras = asset->GetComponents<Camera>();
             s_cameras.push_back(fpsCamera);
@@ -201,11 +203,11 @@ int main(int argc, char** argv)
             }
             scene->SetCurrentCamera(fpsCamera);
             auto newEnv = Component::Create<Skybox>("Skybox");
-            auto diffuseAsset{ Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/diffuse.hdr").string()) };
-            newEnv->SetTexture(Component::Create<Cubemap>(diffuseAsset));//"EnvironmentCube", TextureParser::parse("Skybox", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
+            auto diffuseAsset { Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/diffuse.hdr").string()) };
+            newEnv->SetTexture(Component::Create<TextureCubemap>(diffuseAsset)); //"EnvironmentCube", TextureParser::parse("Skybox", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
             scene->SetSkybox(newEnv);
 
-            auto hdrLight{ Component::Create<HDRLight>(diffuseAsset) };
+            auto hdrLight { Component::Create<HDRLight>(diffuseAsset) };
             //auto skyLight{ Component::Create<SkyLight>() };
             //skyLight->SetSunDirection(glm::vec3(1, 1, 1));
             //skyLight->SetSpecularPower(0);
@@ -217,16 +219,17 @@ int main(int argc, char** argv)
             pointLight->SetPower(2);
             pointLight->SetParent(fpsCamera);
             s_light = pointLight;
-            
+
             scene->Add(hdrLight);
             //scene->Add(skyLight);
-            scene->Add(dirLight);
+            //scene->Add(dirLight);
             scene->Add(pointLight);
-            
+
             Scene::SetCurrent(scene);
         }
         SetupCallbacks();
         Engine::Start();
     }
+    _CrtDumpMemoryLeaks();
     return 0;
 }
