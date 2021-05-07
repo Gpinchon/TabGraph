@@ -9,7 +9,6 @@
 #include "Component.hpp"
 #include "Buffer/BufferView.hpp"
 
-//#include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <variant>
