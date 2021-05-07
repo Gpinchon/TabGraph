@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-03-12 16:08:58
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-12 18:33:21
+* @Last Modified time: 2021-05-04 20:02:24
 */
 
 #include "Light/SkyLight.hpp"
@@ -10,14 +10,14 @@
 #include "Framebuffer.hpp"
 #include "Mesh/CubeMesh.hpp"
 #include "Mesh/Geometry.hpp"
-#include "Renderer/Renderer.hpp"
 #include "Renderer/GeometryRenderer.hpp"
+#include "Renderer/Light/SkyLightRenderer.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Scene/Scene.hpp"
 #include "Shader/Program.hpp"
 #include "SphericalHarmonics.hpp"
 #include "Texture/Texture2D.hpp"
-#include "Texture/Cubemap.hpp"
-#include "Renderer/Light/SkyLightRenderer.hpp"
+#include "Texture/TextureCubemap.hpp"
 
 #define num_samples 16
 #define num_samples_light 8
@@ -32,13 +32,14 @@ struct sphere_t {
     float radius;
 };
 
-bool isect_sphere(const ray_t ray, const sphere_t sphere, float &t0, float &t1)
+bool isect_sphere(const ray_t ray, const sphere_t sphere, float& t0, float& t1)
 {
     glm::vec3 rc = sphere.origin - ray.origin;
     float radius2 = sphere.radius * sphere.radius;
     float tca = dot(rc, ray.direction);
     float d2 = dot(rc, rc) - tca * tca;
-    if (d2 > radius2) return false;
+    if (d2 > radius2)
+        return false;
     float thc = sqrt(radius2 - d2);
     t0 = tca - thc;
     t1 = tca + thc;
@@ -48,8 +49,7 @@ bool isect_sphere(const ray_t ray, const sphere_t sphere, float &t0, float &t1)
 
 float rayleigh_phase_func(float mu)
 {
-    return
-        3. * (1. + mu * mu)
+    return 3. * (1. + mu * mu)
         / //------------------------
         (16. * M_PI);
 }
@@ -57,16 +57,15 @@ float rayleigh_phase_func(float mu)
 float henyey_greenstein_phase_func(float mu)
 {
     const float g = 0.76;
-    return
-        (1. - g * g)
+    return (1. - g * g)
         / //---------------------------------------------
         ((4. * M_PI) * pow(1. + g * g - 2. * g * mu, 1.5));
 }
 
-bool get_sun_light(const ray_t &ray, float& optical_depthR, float& optical_depthM, const SkyLight& sky)
+bool get_sun_light(const ray_t& ray, float& optical_depthR, float& optical_depthM, const SkyLight& sky)
 {
     float t0, t1;
-    const sphere_t atmosphere = sphere_t{
+    const sphere_t atmosphere = sphere_t {
         glm::vec3(0, 0, 0), sky.GetAtmosphereRadius()
     };
     isect_sphere(ray, atmosphere, t0, t1);
@@ -75,9 +74,7 @@ bool get_sun_light(const ray_t &ray, float& optical_depthR, float& optical_depth
     float march_step = t1 / float(num_samples_light);
 
     for (int i = 0; i < num_samples_light; i++) {
-        glm::vec3 s =
-            ray.origin +
-            ray.direction * float(march_pos + 0.5 * march_step);
+        glm::vec3 s = ray.origin + ray.direction * float(march_pos + 0.5 * march_step);
         float height = length(s) - sky.GetPlanetRadius();
         if (height < 0.)
             return false;
@@ -93,13 +90,13 @@ bool get_sun_light(const ray_t &ray, float& optical_depthR, float& optical_depth
 
 static inline glm::vec3 GetIncidentLight(ray_t ray, const SkyLight& sky)
 {
-    const sphere_t atmosphere = sphere_t{
+    const sphere_t atmosphere = sphere_t {
         glm::vec3(0, 0, 0), sky.GetAtmosphereRadius()
     };
     // "pierce" the atmosphere with the viewing ray
     float t0, t1;
     if (!isect_sphere(
-        ray, atmosphere, t0, t1)) {
+            ray, atmosphere, t0, t1)) {
         return glm::vec3(0);
     }
 
@@ -128,9 +125,7 @@ static inline glm::vec3 GetIncidentLight(ray_t ray, const SkyLight& sky)
     float march_pos = 0.;
 
     for (int i = 0; i < num_samples; i++) {
-        glm::vec3 s =
-            ray.origin +
-            ray.direction * float(march_pos + 0.5 * march_step);
+        glm::vec3 s = ray.origin + ray.direction * float(march_pos + 0.5 * march_step);
         float height = glm::length(s) - sky.GetPlanetRadius();
 
         // integrate the height scale
@@ -140,7 +135,7 @@ static inline glm::vec3 GetIncidentLight(ray_t ray, const SkyLight& sky)
         optical_depthM += hm;
 
         // gather the sunlight
-        ray_t light_ray{
+        ray_t light_ray {
             s,
             sky.GetSunDirection()
         };
@@ -153,9 +148,7 @@ static inline glm::vec3 GetIncidentLight(ray_t ray, const SkyLight& sky)
             sky);
 
         if (overground) {
-            glm::vec3 tau =
-                sky.GetBetaRayleigh() * (optical_depthR + optical_depth_lightR) +
-                sky.GetBetaMie() * 1.1f * (optical_depthM + optical_depth_lightM);
+            glm::vec3 tau = sky.GetBetaRayleigh() * (optical_depthR + optical_depth_lightR) + sky.GetBetaMie() * 1.1f * (optical_depthM + optical_depth_lightM);
             glm::vec3 attenuation = exp(-tau);
 
             sumR += hr * attenuation;
@@ -165,10 +158,7 @@ static inline glm::vec3 GetIncidentLight(ray_t ray, const SkyLight& sky)
         march_pos += march_step;
     }
 
-    return
-        sky.GetSunPower() *
-        (sumR * phaseR * sky.GetBetaRayleigh() +
-         sumM * phaseM * sky.GetBetaMie());
+    return sky.GetSunPower() * (sumR * phaseR * sky.GetBetaRayleigh() + sumM * phaseM * sky.GetBetaMie());
 }
 
 SkyLight::SkyLight()
@@ -274,8 +264,7 @@ void SkyLight::SetBetaMie(glm::vec3 betaMie)
 
 glm::vec3 SkyLight::GetIncidentLight(glm::vec3 direction) const
 {
-    return ::GetIncidentLight({
-            glm::vec3(0, GetPlanetRadius() + 1, 0),
-            direction
-        }, *this);
+    return ::GetIncidentLight({ glm::vec3(0, GetPlanetRadius() + 1, 0),
+                                  direction },
+        *this);
 }

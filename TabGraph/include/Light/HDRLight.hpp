@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-03-14 22:12:40
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-18 17:20:58
+* @Last Modified time: 2021-05-04 20:02:25
 */
 #pragma once
 
@@ -13,11 +13,11 @@ namespace Shader {
 class Program;
 }
 
-class Cubemap;
+class TextureCubemap;
 class Asset;
 
 class HDRLight : public Light {
-    READONLYPROPERTY(std::shared_ptr<Cubemap>, Reflection, nullptr);
+    READONLYPROPERTY(std::shared_ptr<TextureCubemap>, Reflection, nullptr);
     //READONLYPROPERTY(std::vector<glm::vec3>, DiffuseSH, 0);
     //READONLYPROPERTY(bool, NeedsUpdate, true);
     PROPERTY(bool, Infinite, true);

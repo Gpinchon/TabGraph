@@ -2,13 +2,13 @@
 * @Author: gpinchon
 * @Date:   2021-03-14 23:55:31
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-18 23:28:30
+* @Last Modified time: 2021-05-04 20:02:23
 */
 
 #include "Light/HDRLight.hpp"
 #include "Assets/Asset.hpp"
-#include "Texture/Cubemap.hpp"
 #include "Renderer/Light/HDRLightRenderer.hpp"
+#include "Texture/TextureCubemap.hpp"
 
 HDRLight::HDRLight(std::shared_ptr<Asset> hdrTexture)
     : Light()
@@ -42,7 +42,8 @@ void HDRLight::SetHDRTexture(std::shared_ptr<Asset> hdrTexture)
     if (hdrTexture != GetHDRTexture())
         static_cast<Renderer::HDRLightRenderer&>(GetRenderer()).FlagDirty();
     SetComponent(hdrTexture);
-    _SetReflection(Component::Create<Cubemap>(hdrTexture));
+    _SetReflection(Component::Create<TextureCubemap>(hdrTexture));
+    GetReflection()->SetAutoMipMap(true);
 }
 
 std::shared_ptr<Asset> HDRLight::GetHDRTexture()
@@ -50,7 +51,8 @@ std::shared_ptr<Asset> HDRLight::GetHDRTexture()
     return GetComponent<Asset>();
 }
 
-glm::vec2 ToImageCoords(double phi, double theta, int width, int height) {
+glm::vec2 ToImageCoords(double phi, double theta, int width, int height)
+{
     // Allow theta to repeat and map to 0 to pi. However, to account for cases
     // where y goes beyond the normal 0 to pi range, phi may need to be adjusted.
     theta = glm::clamp(glm::mod(theta, 2.0 * M_PI), 0.0, 2.0 * M_PI);
@@ -58,7 +60,7 @@ glm::vec2 ToImageCoords(double phi, double theta, int width, int height) {
         // theta is out of bounds. Effectively, theta has rotated past the pole
         // so after adjusting theta to be in range, rotating phi by pi forms an
         // equivalent direction.
-        theta = 2.0 * M_PI - theta;  // now theta is between 0 and pi
+        theta = 2.0 * M_PI - theta; // now theta is between 0 and pi
         phi += M_PI;
     }
     // Allow phi to repeat and map to the normal 0 to 2pi range.

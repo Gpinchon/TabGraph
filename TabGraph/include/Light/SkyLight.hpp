@@ -2,13 +2,13 @@
 * @Author: gpinchon
 * @Date:   2021-03-12 16:01:21
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-17 23:29:22
+* @Last Modified time: 2021-05-04 20:02:25
 */
 
 #include "Light/DirectionalLight.hpp"
 #include "SphericalHarmonics.hpp"
 
-class Cubemap;
+class TextureCubemap;
 
 class SkyLight : public DirectionalLight {
 public:

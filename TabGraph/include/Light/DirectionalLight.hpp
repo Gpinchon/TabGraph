@@ -9,6 +9,8 @@
 #include "Light/Light.hpp"
 
 class DirectionalLight : public Light {
+    PROPERTY(int, ShadowResolution, 1024);
+    PROPERTY(float, ShadowBlurRadius, 5.f / 256.f);
     PROPERTY(bool, Infinite, true);
     READONLYPROPERTY(glm::vec3, Direction, glm::vec3(0, 1, 0));
 
