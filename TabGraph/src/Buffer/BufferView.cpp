@@ -8,7 +8,10 @@
 #include "Assets/Asset.hpp"
 #include "Assets/BinaryData.hpp"
 #include "Renderer/Renderer.hpp"
+
+//#ifdef OPENGL
 #include "Driver/OpenGL/Buffer.hpp"
+//#endif
 
 size_t s_bufferViewNbr = 0;
 
