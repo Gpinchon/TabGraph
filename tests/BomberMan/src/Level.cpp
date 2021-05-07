@@ -2,21 +2,22 @@
 * @Author: gpinchon
 * @Date:   2020-08-08 20:11:05
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 22:10:31
+* @Last Modified time: 2021-05-04 20:02:24
 */
 
 #include "Assets/Asset.hpp"
 #include "Assets/Image.hpp"
 #include "Camera/OrbitCamera.hpp"
 #include "Engine.hpp"
-#include "Skybox.hpp"
-#include "Light/HDRLight.hpp"
 #include "Light/DirectionalLight.hpp"
+#include "Light/HDRLight.hpp"
 #include "Material/Material.hpp"
 #include "Mesh/Mesh.hpp"
 #include "Mesh/PlaneMesh.hpp"
-#include "Texture/Cubemap.hpp"
+#include "Skybox.hpp"
 #include "Texture/Texture2D.hpp"
+#include "Texture/TextureCubemap.hpp"
+#include "Texture/TextureSampler.hpp"
 
 #include "CrispyWall.hpp"
 #include "Game.hpp"
@@ -29,7 +30,7 @@ Level::Level(const std::string& name, const glm::ivec2& size)
     , _size(size)
     , _entities(size.x * size.y)
 {
-    
+
     /*
     for (auto x = 0; x < Size().x; ++x) {
         if (x != 0 && x != Size().x - 1)
@@ -109,7 +110,7 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             auto index = x + y * size.x;
             auto color1 = glm::vec4(0.133333, 0.270588, 0.000000, 1);
             auto color0 = glm::vec4(0.192156, 0.388235, 0.000000, 1);
-            auto color{ index % 2 ? color1 : color0 };
+            auto color { index % 2 ? color1 : color0 };
             floorImage->SetColor(glm::ivec2(x, y), color);
         }
     }
@@ -120,7 +121,7 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             case 1: {
                 auto wall = Wall::Create();
                 level->SetGameEntityPosition(glm::ivec2(x, y), wall);
-                auto color{ glm::vec4(0.274509, 0.050980, 0.050980, 1) };
+                auto color { glm::vec4(0.274509, 0.050980, 0.050980, 1) };
                 floorImage->SetColor(glm::ivec2(x, y), color);
                 break;
             }
@@ -135,27 +136,25 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             }
         }
     }
-    auto floorImageAsset{ Component::Create<Asset>() };
+    auto floorImageAsset { Component::Create<Asset>() };
     floorImageAsset->AddComponent(floorImage);
     floorImageAsset->SetLoaded(true);
     auto floorTexture = Component::Create<Texture2D>(floorImageAsset);
-    floorTexture->SetParameter<Texture::Parameter::MagFilter>(Texture::Filter::Nearest);
-    floorTexture->SetParameter<Texture::Parameter::MinFilter>(Texture::Filter::Nearest);
+    floorTexture->GetTextureSampler()->SetMagFilter(TextureSampler::Filter::Nearest);
+    floorTexture->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::Nearest);
     level->GetComponentInChildrenByName<Mesh>("FloorMesh")->GetGeometryMaterial(0)->SetTextureDiffuse(floorTexture);
-    struct dirent* e;
     std::filesystem::path folder;
 
     folder = path.parent_path() / "env/hdr/";
     std::cout << folder << std::endl;
     auto skybox = Component::Create<Skybox>("Skybox");
-    auto diffuseMap{ Component::Create<Asset>(folder / "diffuse.hdr") };
-    skybox->SetTexture(Component::Create<Cubemap>(diffuseMap));
+    auto diffuseMap { Component::Create<Asset>(folder / "diffuse.hdr") };
+    skybox->SetTexture(Component::Create<TextureCubemap>(diffuseMap));
     level->SetSkybox(skybox);
 
-    auto lightHDR{ Component::Create<HDRLight>(diffuseMap) };
+    auto lightHDR { Component::Create<HDRLight>(diffuseMap) };
     level->Add(lightHDR);
-    
-    
+
     return level;
 }
 
@@ -183,7 +182,7 @@ void Level::SetGameEntityPosition(glm::ivec2 position, std::shared_ptr<GameEntit
 void Level::SetGameEntity(glm::ivec2 position, std::shared_ptr<GameEntity> entity)
 {
     position = glm::clamp(position, glm::ivec2(0), Size() - 1);
-    auto index{ position.x + position.y * Size().x };
+    auto index { position.x + position.y * Size().x };
     Remove(_entities.at(index).lock());
     _entities.at(index).lock().reset();
     _entities.at(index).reset();
@@ -191,7 +190,6 @@ void Level::SetGameEntity(glm::ivec2 position, std::shared_ptr<GameEntity> entit
         _entities.at(index) = entity;
         Add(entity);
     }
-    
 }
 
 std::shared_ptr<GameEntity> Level::GetGameEntity(glm::ivec2 position) const
