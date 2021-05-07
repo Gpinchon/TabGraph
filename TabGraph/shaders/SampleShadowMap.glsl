@@ -11,11 +11,15 @@ R""(
 
 float   SampleShadowMap(const in float bias, const in mat4 projection, sampler2DShadow shadowTexture)
 {
-    vec4    shadowPos = projection * vec4(WorldPosition(), 1.0);
-    vec3    projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
-    float   sampleOffset = 5.f / 256.f;
+    const vec4    shadowPos = projection * vec4(WorldPosition(), 1.0);
+    const vec3    projCoord = vec3(shadowPos.xyz / shadowPos.w) * 0.5 + 0.5;
+    #ifdef SHADOWBLURRADIUS
+    const float   sampleOffset = SHADOWBLURRADIUS;
+    #else
+    const float   sampleOffset = 5.f / 256.f;
+    #endif
     float   shadow = 0;
-    uvec2   Random = Rand3DPCG16(ivec3(gl_FragCoord.xy, FrameNumber % 8)).xy;
+    const uvec2   Random = Rand3DPCG16(ivec3(gl_FragCoord.xy, FrameNumber % 8)).xy;
     for (int i = 0; i < SHADOW_SAMPLES; i++)
     {
         vec2    sampleUV = projCoord.xy + Hammersley(i, SHADOW_SAMPLES, Random) * sampleOffset;
