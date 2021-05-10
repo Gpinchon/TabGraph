@@ -1,8 +1,9 @@
 # TODO List
-## To refactor
+## To refactor/improve
  - Framebuffer : put OpenGL functions in Driver folder
  - Scene organisation : maybe use Octree ?
  - Terrain system
+ - Assets loading system
 
 ## To finish
  - Cleanup animations system
@@ -12,6 +13,8 @@
  - Optimize Scene rendering system
 
 ## To create from ground up
+ - Assets manager
+ - Assets packing system
  - Raytraced primitives rendering (blobs/spheres/cubes...)
  - Voxel rendering
  - Mesh instantiation system
