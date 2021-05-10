@@ -11,10 +11,6 @@
 #include <thread>
 #include <unordered_map>
 
-//Image::Image(const std::filesystem::path& filePath) : Asset(filePath)
-//{
-//}
-//const std::string Image::AssetType = "Image";
 static size_t s_imageNbr = 0;
 
 Image::Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::vector<std::byte> rawData) : Component("Image_" + std::to_string(s_imageNbr)), _data(rawData)// : Asset("data:image_" + std::to_string(s_imageNbr))
@@ -26,13 +22,6 @@ Image::Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::ve
         assert(rawData.size() == rawDataSize);
     _data.resize(rawDataSize);
 }
-
-//Image::Image(const Image& other) : AssetData(other)
-//{
-//    _PixelDescription = other._PixelDescription;
-//    _Size = other._Size;
-//    _data = other._data;
-//}
 
 Image::~Image()
 {
@@ -50,40 +39,6 @@ std::vector<std::byte>& Image::GetData()
     return _data;
 }
 
-//void Image::Load()
-//{
-//    bool isLoading{ true };
-//    GetLoading().compare_exchange_weak(isLoading, true);
-//    if (isLoading) //We are loading from another thread
-//        _parsingThread.join();
-//    if (GetLoaded()) //Image already loaded
-//        return;
-//    _DoLoad();
-//}
-
-//void Image::LoadAsync()
-//{
-//    bool isLoading{ true };
-//    GetLoading().compare_exchange_weak(isLoading, true);
-//    if (isLoading) //We are loading from another thread
-//        return;
-//        //_parsingThread.join();
-//    if (GetLoaded()) //Image already loaded
-//        return;
-//    if (!GetLoaded())
-//        _parsingThread = std::thread(&Image::_DoLoad, this);
-//}
-
-//void Image::Free()
-//{
-//    //We're loading this image from an other thread or it's not been loaded yet, don't free it.
-//    if (!GetLoaded() || GetLoading()) 
-//        return;
-//    GetData().clear();
-//    GetData().shrink_to_fit();
-//    SetLoaded(false);
-//}
-
 glm::vec4 Image::GetColor(glm::ivec2 texCoord)
 {
     assert(!GetData().empty() && "Image::GetColor : Unpacked Data is empty");
@@ -99,21 +54,12 @@ void Image::SetColor(glm::ivec2 texCoord, glm::vec4 color)
 void Image::SetPixelDescription(Pixel::Description pixelFormat)
 {
     _SetPixelDescription(pixelFormat);
-    //SetLoaded(false);
 }
 
 void Image::SetSize(glm::ivec2 size)
 {
     _SetSize(size);
-    //SetLoaded(false);
 }
-
-//void Image::_DoLoad()
-//{
-//    _loading = true;
-//    ImageParser::Parse(std::static_pointer_cast<Image>(shared_from_this()));
-//    _loading = false;
-//}
 
 std::byte* Image::_GetPointer(glm::ivec2 texCoord)
 {
@@ -122,12 +68,6 @@ std::byte* Image::_GetPointer(glm::ivec2 texCoord)
         texCoord.y * pitch +
         texCoord.x * GetPixelDescription().GetSize()
     };
-    //size_t index = (static_cast<size_t>(texCoord.x) * GetSize().y + texCoord.y) * GetPixelDescription().GetSize();
     assert(index < GetData().size() && "Image::_GetPointer : Unpacked Data index out of bound");
     return GetData().data() + index;
-}
-
-std::atomic<bool>& Image::GetLoading()
-{
-    return _loading;
 }

@@ -9,6 +9,7 @@
 #include "Assets/Asset.hpp"
 #include "Renderer/Light/HDRLightRenderer.hpp"
 #include "Texture/TextureCubemap.hpp"
+#include "Texture/TextureSampler.hpp"
 
 HDRLight::HDRLight(std::shared_ptr<Asset> hdrTexture)
     : Light()
@@ -44,6 +45,7 @@ void HDRLight::SetHDRTexture(std::shared_ptr<Asset> hdrTexture)
     SetComponent(hdrTexture);
     _SetReflection(Component::Create<TextureCubemap>(hdrTexture));
     GetReflection()->SetAutoMipMap(true);
+    GetReflection()->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
 }
 
 std::shared_ptr<Asset> HDRLight::GetHDRTexture()

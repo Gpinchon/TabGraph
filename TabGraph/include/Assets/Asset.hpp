@@ -17,7 +17,12 @@ public :
 	bool GetLoaded();
 	void SetLoaded(bool);
 	Signal<std::shared_ptr<Asset>> &OnLoaded();
+	/** @brief Loads the Image synchronously, must emit LoadedChanged(true) if loading was successful */
 	virtual void Load();
+	/**
+	 * @brief Loads the Asset asynchronously -> returns immediatly.
+	 * Emits LoadedChanged(true) if loading was successful.
+	*/
 	virtual void LoadAsync();
 
 private:
