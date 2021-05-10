@@ -124,6 +124,8 @@ void DirectionalLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
     lightProbe.GetReflectionBuffer()->bind();
     _probeShader->Use()
         .SetUniform("SpecularMode", true)
+        .SetUniform("Light.SpecularFactor", dirLight.GetSpecularFactor())
+        .SetUniform("Light.DiffuseFactor", dirLight.GetDiffuseFactor())
         .SetUniform("Light.Color", dirLight.GetColor())
         .SetUniform("Light.Direction", dirLight.GetDirection());
     Renderer::Render(Renderer::DisplayQuad());
@@ -146,6 +148,8 @@ void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, 
     glDisable(GL_CULL_FACE);
     
     _deferredShader->Use()
+        .SetUniform("Light.DiffuseFactor", light.GetDiffuseFactor())
+        .SetUniform("Light.SpecularFactor", light.GetSpecularFactor())
         .SetUniform("Light.Color", light.GetColor())
         .SetUniform("Light.Direction", light.GetDirection())
         .SetTexture("Light.Shadow", light.GetCastShadow() ? _shadowBuffer->GetDepthBuffer() : nullptr)

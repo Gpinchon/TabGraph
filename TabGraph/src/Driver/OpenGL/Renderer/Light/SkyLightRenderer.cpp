@@ -118,15 +118,16 @@ void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::
     else
         _deferredShader->RemoveDefine("SHADOW");
     _deferredShader->Use()
-        .SetTexture("SpecularLUT", _reflectionLUT)
-        .SetTexture("DefaultBRDFLUT", Renderer::DefaultBRDFLUT())
-        .SetUniform("SH[0]", _SHDiffuse.data(), _SHDiffuse.size())
         .SetTexture("Light.Shadow", light.GetCastShadow() ? _shadowBuffer->GetDepthBuffer() : nullptr)
-        .SetUniform("Light.SpecularPower", light.GetSpecularPower())
+        .SetUniform("Light.SpecularFactor", light.GetSpecularFactor())
+        .SetUniform("Light.DiffuseFactor", light.GetDiffuseFactor())
         .SetUniform("Light.Max", light.GetMax())
         .SetUniform("Light.Min", light.GetMin())
         .SetUniform("Light.Projection", (light.GetInfinite() ? DirectionalLightShadowProjectionMatrixInfinite(light, options) : DirectionalLightShadowProjectionMatrixFinite(light)) * DirectionalLightShadowViewMatrix(light))
         .SetUniform("Light.Infinite", light.GetInfinite())
+        .SetTexture("SpecularLUT", _reflectionLUT)
+        .SetTexture("DefaultBRDFLUT", Renderer::DefaultBRDFLUT())
+        .SetUniform("SH[0]", _SHDiffuse.data(), _SHDiffuse.size())
         .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * light.GetLocalScaleMatrix())
         .SetTexture("Texture.Geometry.CDiff", geometryBuffer->GetColorBuffer(0))
         .SetTexture("Texture.Geometry.F0", geometryBuffer->GetColorBuffer(1))
@@ -149,7 +150,17 @@ void SkyLightRenderer::_UpdateLUT(SkyLight& light)
     static auto s_diffuseLUTBuffer = Component::Create<Framebuffer>("DiffuseLUTBuffer", glm::ivec2(256));
     s_diffuseLUTBuffer->SetColorBuffer(_reflectionLUT, 0);
     s_diffuseLUTBuffer->bind();
-    SkyLightLUTShader()->Use().SetUniform("BetaMie", light.GetBetaMie()).SetUniform("BetaRayleigh", light.GetBetaRayleigh()).SetUniform("SunDirection", light.GetSunDirection()).SetUniform("SunPower", light.GetSunPower()).SetUniform("PlanetRadius", light.GetPlanetRadius()).SetUniform("AtmosphereRadius", light.GetAtmosphereRadius()).SetUniform("HRayLeigh", light.GetHRayleigh()).SetUniform("HMie", light.GetHMie());
+    SkyLightLUTShader()->Use()
+        .SetUniform("SpecularFactor", light.GetSpecularFactor())
+        .SetUniform("DiffuseFactor", light.GetDiffuseFactor())
+        .SetUniform("BetaMie", light.GetBetaMie())
+        .SetUniform("BetaRayleigh", light.GetBetaRayleigh())
+        .SetUniform("SunDirection", light.GetSunDirection())
+        .SetUniform("SunPower", light.GetSunPower())
+        .SetUniform("PlanetRadius", light.GetPlanetRadius())
+        .SetUniform("AtmosphereRadius", light.GetAtmosphereRadius())
+        .SetUniform("HRayLeigh", light.GetHRayleigh())
+        .SetUniform("HMie", light.GetHMie());
     glClear(GL_COLOR_BUFFER_BIT);
     Renderer::Render(Renderer::DisplayQuad(), true);
     Framebuffer::bind_default();

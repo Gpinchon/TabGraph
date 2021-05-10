@@ -106,6 +106,8 @@ void HDRLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
         lightProbe.GetDiffuseSH().at(i) += _SHDiffuse.at(i);
     lightProbe.GetReflectionBuffer()->bind();
     _probeShader->Use()
+        .SetUniform("Light.DiffuseFactor", hdrLight.GetDiffuseFactor())
+        .SetUniform("Light.SpecularFactor", hdrLight.GetSpecularFactor())
         .SetUniform("Light.Min", hdrLight.GetMin())
         .SetUniform("Light.Max", hdrLight.GetMax())
         .SetUniform("Light.Infinite", hdrLight.GetInfinite())
@@ -124,12 +126,14 @@ void HDRLightRenderer::_RenderDeferredLighting(HDRLight& light, const Renderer::
     else
         geometryPosition = light.GetParent() ? light.GetParent()->WorldPosition() + light.GetPosition() : light.GetPosition();
     _deferredShader->Use()
-        .SetTexture("ReflectionMap", light.GetReflection())
-        .SetTexture("DefaultBRDFLUT", Renderer::DefaultBRDFLUT())
-        .SetUniform("SH[0]", _SHDiffuse.data(), _SHDiffuse.size())
+        .SetUniform("Light.DiffuseFactor", light.GetDiffuseFactor())
+        .SetUniform("Light.SpecularFactor", light.GetSpecularFactor())
         .SetUniform("Light.Max", light.GetMax())
         .SetUniform("Light.Min", light.GetMin())
         .SetUniform("Light.Infinite", light.GetInfinite())
+        .SetTexture("ReflectionMap", light.GetReflection())
+        .SetTexture("DefaultBRDFLUT", Renderer::DefaultBRDFLUT())
+        .SetUniform("SH[0]", _SHDiffuse.data(), _SHDiffuse.size())
         .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * light.GetLocalScaleMatrix())
         .SetTexture("Texture.Geometry.CDiff", geometryBuffer->GetColorBuffer(0))
         .SetTexture("Texture.Geometry.F0", geometryBuffer->GetColorBuffer(1))

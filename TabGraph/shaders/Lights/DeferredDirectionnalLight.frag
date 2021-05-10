@@ -1,5 +1,7 @@
 R""(
 struct t_Light {
+    float   SpecularFactor;
+    float   DiffuseFactor;
     vec3    Min;
     vec3    Max;
     vec3    Direction;
@@ -55,8 +57,8 @@ void    Lighting()
     if (!Light.Infinite && (isAboveMax || isUnderMin)) {
         return ;
     }
-    SetDiffuse(vec4(Diffuse, 1));
-    SetReflection(vec4(Specular, 1));
+    SetDiffuse(vec4(Diffuse * Light.DiffuseFactor, 1));
+    SetReflection(vec4(Specular * Light.SpecularFactor, 1));
 }
 
 )""

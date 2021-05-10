@@ -83,6 +83,8 @@ void PointLightRenderer::_RenderDeferredLighting(PointLight& light, const Render
 {
     auto geometryBuffer = Renderer::DeferredGeometryBuffer();
     _lightingShader->Use()
+        .SetUniform("Light.DiffuseFactor", light.GetDiffuseFactor())
+        .SetUniform("Light.SpecularFactor", light.GetSpecularFactor())
         .SetUniform("Light.Power", light.GetPower())
         .SetUniform("Light.Radius", light.GetRadius())
         .SetUniform("Light.Color", light.GetColor())

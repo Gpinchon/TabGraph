@@ -1,5 +1,7 @@
 R""(
 struct t_Light {
+	float   SpecularFactor;
+    float   DiffuseFactor;
 	vec3	Position;
 	vec3	Color;
 	float	Radius;
@@ -63,7 +65,7 @@ void	Lighting()
 	float	NdotH = max(dot(N , H), 0.0);
 	vec3	Diffuse = Light.Color * NdotL;
 	const vec3	Specular = Light.Color * SpecularFactor(NdotH, GlossToSpecularPower(1 - sqrt(Alpha())));
-	SetDiffuse(vec4(Diffuse * Attenuation, 1));
-    SetReflection(min(vec4(Specular * Attenuation, 1), 10.f));
+	SetDiffuse(vec4(Diffuse * Attenuation * Light.DiffuseFactor, 1));
+    SetReflection(min(vec4(Specular * Attenuation * Light.SpecularFactor, 1), 10.f));
 }
 )""

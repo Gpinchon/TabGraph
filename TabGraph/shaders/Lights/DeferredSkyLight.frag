@@ -1,6 +1,7 @@
 R""(
 struct t_Light {
-    float   SpecularPower;
+    float   SpecularFactor;
+    float   DiffuseFactor;
     vec3    Min;
     vec3    Max;
     bool    Infinite;
@@ -19,8 +20,8 @@ void    Lighting()
     const vec3  N = WorldNormal();
     const vec3  R = reflect(V, N);
     const float alphaSqrt = sqrt(Alpha());
-    vec3        Diffuse = vec3(SampleSH(N));
-    vec3        Specular = sampleLod(SpecularLUT, R, alphaSqrt * 2).rgb * Light.SpecularPower;
+    vec3        Diffuse = vec3(SampleSH(N)) * Light.DiffuseFactor;
+    vec3        Specular = sampleLod(SpecularLUT, R, alphaSqrt * 2).rgb * Light.SpecularFactor;
     float       Attenuation = 1;
     #ifdef SHADOW
         float bias = 0.01 * tan(acos(NdotL));

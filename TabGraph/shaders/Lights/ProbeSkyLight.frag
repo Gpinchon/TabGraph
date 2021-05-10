@@ -5,6 +5,7 @@ layout(location = 0) out vec4   out_0;
 #define NUMSAMPLES 16
 #define NUMSAMPLESLIGHT 8
 
+uniform float DiffuseFactor = 1;
 uniform vec3  SunDirection = vec3(0, 1, 0);
 uniform float SunPower = 20;
 uniform float PlanetRadius = 6360e3;
@@ -205,7 +206,7 @@ void ComputeSkyLight() {
     const vec3  Direction = normalize(CubeMapUVToXYZ(gl_Layer, ScreenTexCoord()));
     out_0.rgb = get_incident_light(ray_t(
             vec3(0, PlanetRadius + 1, 0), Direction
-        ));
+        )) * DiffuseFactor;
 }
 
 )""

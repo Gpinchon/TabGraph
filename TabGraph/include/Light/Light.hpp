@@ -25,7 +25,8 @@ class LightProbe;
 class Light : public Node {
     PROPERTY(glm::vec3, Color, 1);
     PROPERTY(bool, CastShadow, false);
-    PROPERTY(float, SpecularPower, 1);
+    PROPERTY(float, SpecularFactor, 1);
+    PROPERTY(float, DiffuseFactor, 1);
 
 public:
     Light(const std::string& name, glm::vec3 color);
