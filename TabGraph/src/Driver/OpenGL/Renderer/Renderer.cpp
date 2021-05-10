@@ -531,6 +531,7 @@ void Renderer::Impl::_CompositingPass()
     }
     oBuffer->GetColorBuffer(0)->GenerateMipmap();
     oBuffer->GetColorBuffer(0)->GetTextureSampler()->SetMinLOD(1);
+    oBuffer->GetColorBuffer(0)->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
     oBuffer->SetStencilBuffer(tBuffer->GetStencilBuffer());
 
     oBuffer->bind();
@@ -555,6 +556,7 @@ void Renderer::Impl::_CompositingPass()
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
     oBuffer->GetColorBuffer(0)->GetTextureSampler()->SetMinLOD(0);
+    oBuffer->GetColorBuffer(0)->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapNearest);
     oBuffer->SetStencilBuffer(nullptr);
 }
 
