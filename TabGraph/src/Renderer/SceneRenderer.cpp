@@ -25,6 +25,11 @@ void Render(std::shared_ptr<Scene> scene, const Options& options)
     scene->GetRenderer().Render(options, glm::mat4(1));
 }
 
+void Render(std::shared_ptr<Scene> scene, const Options& options, const glm::mat4& rootMatrix)
+{
+    scene->GetRenderer().Render(options, rootMatrix);
+}
+
 void OnFrameEnd(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta)
 {
     scene->GetRenderer().OnFrameEnd(frameNbr, delta);
