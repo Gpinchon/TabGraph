@@ -29,6 +29,7 @@ Level::Level(const std::string& name, const glm::ivec2& size)
     : Scene(name)
     , _size(size)
     , _entities(size.x * size.y)
+    , _spawnPoint(glm::ivec2(0))
 {
 
     /*
