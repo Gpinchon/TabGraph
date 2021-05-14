@@ -41,7 +41,7 @@ struct compareVec {
 
 class BoundingElement : public Component {
 public:
-    enum Type {
+    enum class Type {
         Invalid = -1,
         Sphere,
         AABB,
