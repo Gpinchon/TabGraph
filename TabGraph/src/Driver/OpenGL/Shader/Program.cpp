@@ -206,19 +206,19 @@ void Program::Impl::SetTexture(const std::string& name, const std::shared_ptr<Te
             glActiveTexture(GL_TEXTURE0 + index->second);
             if (value != nullptr) {
                 value->Load();
-                glBindTexture(OpenGL::Texture::GetGLEnum(value->GetType()), value->GetHandle());
-                glBindSampler(index->second, value->GetTextureSampler()->GetHandle());
+                glBindTexture(OpenGL::GetEnum(value->GetType()), value->GetImpl().GetHandle());
+                glBindSampler(index->second, value->GetTextureSampler()->GetImpl().GetHandle());
             } else {
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::Texture1D), 0);
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::Texture1DArray), 0);
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::Texture2D), 0);
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::Texture2DArray), 0);
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::Texture2DMultisample), 0);
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::Texture2DMultisampleArray), 0);
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::Texture3D), 0);
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::TextureCubemap), 0);
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::TextureRectangle), 0);
-                glBindTexture(OpenGL::Texture::GetGLEnum(Texture::Type::TextureCubemapArray), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::Texture1D), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::Texture1DArray), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::Texture2D), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::Texture2DArray), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::Texture2DMultisample), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::Texture2DMultisampleArray), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::Texture3D), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::TextureCubemap), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::TextureRectangle), 0);
+                glBindTexture(OpenGL::GetEnum(Texture::Type::TextureCubemapArray), 0);
                 glBindSampler(index->second, 0);
             }
             glUniform1i(loc->second, index->second);

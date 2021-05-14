@@ -57,16 +57,6 @@ VertexArray& VertexArray::BindAccessor(std::shared_ptr<BufferAccessor> accessor,
     auto compType{ GLComponentType(accessor->GetComponentType()) };
     bufferView->Load();
     glEnableVertexAttribArray(index);
-    //bufferView->Bind();
-    //glVertexAttribPointer(
-    //    index,
-    //    (uint8_t)accessor->GetType(),
-    //    (GLenum)accessor->GetComponentType(),
-    //    accessor->GetNormalized(),
-    //    bufferView->GetByteStride() ? bufferView->GetByteStride() : accessor->GetTypeOctetsSize(),
-    //    BUFFER_OFFSET(accessor->GetByteOffset())
-    //);
-    //bufferView->Done();
     glVertexAttribFormat(
         index,
         (uint8_t)accessor->GetType(),
@@ -75,7 +65,7 @@ VertexArray& VertexArray::BindAccessor(std::shared_ptr<BufferAccessor> accessor,
         0);
     glBindVertexBuffer(
         index,
-        bufferView->GetHandle(),
+        OpenGL::GetHandle(bufferView),
         accessor->GetByteOffset(),
         bufferView->GetByteStride() ? bufferView->GetByteStride() : accessor->GetTypeOctetsSize());
     return *this;
