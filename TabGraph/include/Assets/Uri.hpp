@@ -40,6 +40,12 @@ public:
     std::string GetFragment() const;
     operator std::string() const;
     friend std::ostream& operator<<(std::ostream& os, const Uri& uri);
+    inline bool operator==(const Uri& other) const {
+        return operator std::string() == other.operator std::string();
+    }
+    inline bool operator!=(const Uri& other) const {
+        return !operator==(other);
+    };
 
 private:
     std::string _scheme{ "" };
