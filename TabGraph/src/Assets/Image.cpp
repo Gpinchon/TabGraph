@@ -23,12 +23,6 @@ Image::Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::ve
     _data.resize(rawDataSize);
 }
 
-Image::~Image()
-{
-    if (_parsingThread.joinable())
-        _parsingThread.join();
-}
-
 void Image::SetData(const std::vector<std::byte>& data)
 {
     _data = data;

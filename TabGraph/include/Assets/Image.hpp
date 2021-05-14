@@ -33,7 +33,6 @@ public:
      * @param rawData The pixel data to be used for the image
     */
     Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::vector<std::byte> rawData = {});
-    ~Image();
     /**
      * @brief 
      * @param data the new unpacked data, data size must be : Size.x * Size.y * Octets Per Pixel
