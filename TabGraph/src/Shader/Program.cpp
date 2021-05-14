@@ -34,11 +34,6 @@ Program::~Program()
 {
 }
 
-const Program::Handle &Program::GetHandle() const
-{
-    return _impl->GetHandle();
-}
-
 Stage& Program::GetStage(Stage::Type type)
 {
     return _impl->GetStage(type);

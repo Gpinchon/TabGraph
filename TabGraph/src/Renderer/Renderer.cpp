@@ -87,16 +87,6 @@ Renderer::Context& Renderer::GetContext()
     return GetImpl()->GetContext();
 }
 
-//Signal<uint32_t, float>& Renderer::OnFrameBegin()
-//{
-//    return GetImpl()->OnFrameBegin;
-//}
-//
-//Signal<uint32_t, float>& Renderer::OnFrameEnd()
-//{
-//    return GetImpl()->OnFrameEnd;
-//}
-
 void Renderer::RenderFrame()
 {
     GetImpl()->RenderFrame();

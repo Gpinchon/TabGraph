@@ -27,7 +27,6 @@ public:
     Program(const Program& other);
     Program(const std::string& name);
     ~Program();
-    const Handle& GetHandle() const;
     Stage& GetStage(Stage::Type);
     Program& Compile();
     Program& Attach(const Stage& stage);
