@@ -1,6 +1,11 @@
 R""(
-#define STRENGTH 1.f
-#define RADIUS 0.05f
+#ifndef SSAO_STRENGTH
+#define SSAO_STRENGTH 1.f
+#endif
+
+#ifndef SSAO_STRENGTH
+#define SSAO_RADIUS 0.05f
+#endif
 
 #if SSAO_QUALITY == 1
 #define SAMPLENBR 4
@@ -41,16 +46,16 @@ void	SSAO()
 	{
 		vec2 E = Hammersley(i, SAMPLENBR) * vec2(M_PI, 2 * M_PI);
 		E.y += noise;
-		vec2 sE= vec2(cos(E.y), sin(E.y)) * RADIUS * cos(E.x);
+		vec2 sE= vec2(cos(E.y), sin(E.y)) * SSAO_RADIUS * cos(E.x);
 		vec2 screenCoords = ScreenTexCoord() + sE;
 		vec3 V = WorldPosition(screenCoords) - P;
         float d = length(V);
         V /= d;
-        d *= RADIUS;
+        d *= SSAO_RADIUS;
 		occlusion += max(0.0, dot(N, V) - 0.025) * (1.0 / (1.0 + d));
 	}
 	occlusion /= float(SAMPLENBR);
-	occlusion *= STRENGTH;
+	occlusion *= SSAO_STRENGTH;
 	SetAO(max(0, occlusion));
 }
 
