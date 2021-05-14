@@ -126,6 +126,8 @@ auto GetWrap(int wrap) {
         return TextureSampler::Wrap::MirroredRepeat;
     case 10497:
         return TextureSampler::Wrap::Repeat;
+    default:
+        throw std::runtime_error("Unknown Texture Wrap mode");
     }
 }
 
