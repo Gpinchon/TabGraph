@@ -5,7 +5,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 BoundingSphere::BoundingSphere(const glm::vec3& center, float radius)
-    : BoundingElement(Sphere)
+    : BoundingElement(BoundingElement::Type::Sphere)
     , _center(center)
     , _radius(radius)
 {

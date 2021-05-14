@@ -2,7 +2,10 @@
 #include "Physics/BoundingSphere.hpp"
 #include "Physics/Ray.hpp"
 
-BoundingPlane::BoundingPlane(glm::vec3 normal, float distance) : BoundingElement(Plane), _normal(normal), _distance(distance)
+BoundingPlane::BoundingPlane(glm::vec3 normal, float distance)
+	: BoundingElement(BoundingElement::Type::Plane)
+	, _normal(normal)
+	, _distance(distance)
 {
 
 }
