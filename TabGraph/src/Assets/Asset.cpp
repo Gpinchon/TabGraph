@@ -1,7 +1,7 @@
 #include "Assets/Asset.hpp"
 #include "Assets/AssetsParser.hpp"
 
-Asset::Asset(const Uri& Uri) : _uri(Uri)
+Asset::Asset(const Uri& uri) : _Uri(uri)
 {
 }
 
@@ -9,16 +9,6 @@ Asset::~Asset()
 {
 	if (_loadingFuture.valid())
 		_loadingFuture.get();
-}
-
-void Asset::SetUri(const Uri& uri)
-{
-	_uri = uri;
-}
-
-Uri Asset::GetUri() const
-{
-	return _uri;
 }
 
 bool Asset::GetLoaded()
