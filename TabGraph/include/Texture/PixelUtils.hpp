@@ -2,11 +2,10 @@
 * @Author: gpinchon
 * @Date:   2021-01-12 18:26:58
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-12 22:44:04
+* @Last Modified time: 2021-05-12 13:16:52
 */
 #pragma once
 
-#include <GL/glew.h>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -15,126 +14,130 @@
 namespace Pixel {
 glm::vec4 LinearToSRGB(glm::vec4 color);
 
-enum class SizedFormat : GLenum {
+enum class SizedFormat {
     Unknown = -1,
     /// <summary>
     /// Normalized Uint8 pixel types
     /// </summary>
-    Uint8_NormalizedR = GL_R8,
-    Uint8_NormalizedRG = GL_RG8,
-    Uint8_NormalizedRGB = GL_RGB8,
-    Uint8_NormalizedRGBA = GL_RGBA8,
+    Uint8_NormalizedR,
+    Uint8_NormalizedRG,
+    Uint8_NormalizedRGB,
+    Uint8_NormalizedRGBA,
     /// <summary>
     /// Normalized Int8 pixel types
     /// </summary>
-    Int8_NormalizedR = GL_R8_SNORM,
-    Int8_NormalizedRG = GL_RG8_SNORM,
-    Int8_NormalizedRGB = GL_RGB8_SNORM,
-    Int8_NormalizedRGBA = GL_RGBA8_SNORM,
+    Int8_NormalizedR,
+    Int8_NormalizedRG,
+    Int8_NormalizedRGB,
+    Int8_NormalizedRGBA,
     /// <summary>
     /// Unnormalized Uint8 pixel types
     /// </summary>
-    Uint8_R = GL_R8UI,
-    Uint8_RG = GL_RG8UI,
-    Uint8_RGB = GL_RGB8UI,
-    Uint8_RGBA = GL_RGBA8UI,
+    Uint8_R,
+    Uint8_RG,
+    Uint8_RGB,
+    Uint8_RGBA,
     /// <summary>
     /// Unnormalized Int8 pixel types
     /// </summary>
-    Int8_R = GL_R8I,
-    Int8_RG = GL_RG8I,
-    Int8_RGB = GL_RGB8I,
-    Int8_RGBA = GL_RGBA8I,
+    Int8_R,
+    Int8_RG,
+    Int8_RGB,
+    Int8_RGBA,
     /// <summary>
     /// Normalized Uint16 pixel types
     /// </summary>
-    Uint16_NormalizedR = GL_R16,
-    Uint16_NormalizedRG = GL_RG16,
-    Uint16_NormalizedRGB = GL_RGB16,
-    Uint16_NormalizedRGBA = GL_RGBA16,
+    Uint16_NormalizedR,
+    Uint16_NormalizedRG,
+    Uint16_NormalizedRGB,
+    Uint16_NormalizedRGBA,
     /// <summary>
     /// Normalized Int16 pixel types
     /// </summary>
-    Int16_NormalizedR = GL_R16_SNORM,
-    Int16_NormalizedRG = GL_RG16_SNORM,
-    Int16_NormalizedRGB = GL_RGB16_SNORM,
-    Int16_NormalizedRGBA = GL_RGBA16_SNORM,
+    Int16_NormalizedR,
+    Int16_NormalizedRG,
+    Int16_NormalizedRGB,
+    Int16_NormalizedRGBA,
     /// <summary>
     /// Unnormalized Uint16 pixel types
     /// </summary>
-    Uint16_R = GL_R16UI,
-    Uint16_RG = GL_RG16UI,
-    Uint16_RGB = GL_RGB16UI,
-    Uint16_RGBA = GL_RGBA16UI,
+    Uint16_R,
+    Uint16_RG,
+    Uint16_RGB,
+    Uint16_RGBA,
     /// <summary>
     /// Unnormalized Uint16 pixel types
     /// </summary>
-    Int16_R = GL_R16I,
-    Int16_RG = GL_RG16I,
-    Int16_RGB = GL_RGB16I,
-    Int16_RGBA = GL_RGBA16I,
+    Int16_R,
+    Int16_RG,
+    Int16_RGB,
+    Int16_RGBA,
     /// <summary>
     /// Uint32 pixel types
     /// </summary>
-    Uint32_R = GL_R32UI,
-    Uint32_RG = GL_RG32UI,
-    Uint32_RGB = GL_RGB32UI,
-    Uint32_RGBA = GL_RGBA32UI,
+    Uint32_R,
+    Uint32_RG,
+    Uint32_RGB,
+    Uint32_RGBA,
     /// <summary>
     /// Int32 pixel types
     /// </summary>
-    Int32_R = GL_R32I,
-    Int32_RG = GL_RG32I,
-    Int32_RGB = GL_RGB32I,
-    Int32_RGBA = GL_RGBA32I,
+    Int32_R,
+    Int32_RG,
+    Int32_RGB,
+    Int32_RGBA,
     /// <summary>
     /// Floating Point pixel types
     /// </summary>
-    Float16_R = GL_R16F,
-    Float16_RG = GL_RG16F,
-    Float16_RGB = GL_RGB16F,
-    Float16_RGBA = GL_RGBA16F,
-    Float32_R = GL_R32F,
-    Float32_RG = GL_RG32F,
-    Float32_RGB = GL_RGB32F,
-    Float32_RGBA = GL_RGBA32F,
-
-    Depth16 = GL_DEPTH_COMPONENT16,
-    Depth24 = GL_DEPTH_COMPONENT24,
-    Depth32 = GL_DEPTH_COMPONENT32,
-    Depth32F = GL_DEPTH_COMPONENT32F,
-
-    Depth24_Stencil8 = GL_DEPTH24_STENCIL8,
-    Depth32F_Stencil8 = GL_DEPTH32F_STENCIL8,
-    Stencil8 = GL_STENCIL_INDEX8,
+    Float16_R,
+    Float16_RG,
+    Float16_RGB,
+    Float16_RGBA,
+    Float32_R,
+    Float32_RG,
+    Float32_RGB,
+    Float32_RGBA,
+    /// <summary>
+    /// Depth pixel types
+    /// </summary>
+    Depth16,
+    Depth24,
+    Depth32,
+    Depth32F,
+    /// <summary>
+    /// Depth/Stencil pixel types
+    /// </summary>
+    Depth24_Stencil8,
+    Depth32F_Stencil8,
+    Stencil8,
     MaxValue
 };
 
-enum class UnsizedFormat : GLenum {
+enum class UnsizedFormat {
     Unknown = -1,
-    R = GL_RED,
-    RG = GL_RG,
-    RGB = GL_RGB,
-    RGBA = GL_RGBA,
-    R_Integer = GL_RED_INTEGER,
-    RG_Integer = GL_RG_INTEGER,
-    RGB_Integer = GL_RGB_INTEGER,
-    RGBA_Integer = GL_RGBA_INTEGER,
-    Depth = GL_DEPTH_COMPONENT,
-    Depth_Stencil = GL_DEPTH_STENCIL,
-    Stencil = GL_STENCIL
+    R,
+    RG,
+    RGB,
+    RGBA,
+    R_Integer,
+    RG_Integer,
+    RGB_Integer,
+    RGBA_Integer,
+    Depth,
+    Depth_Stencil,
+    Stencil
 };
 
-enum class Type : GLenum {
+enum class Type {
     Unknown = -1,
-    Uint8 = GL_UNSIGNED_BYTE,
-    Int8 = GL_BYTE,
-    Uint16 = GL_UNSIGNED_SHORT,
-    Int16 = GL_SHORT,
-    Uint32 = GL_UNSIGNED_INT,
-    Int32 = GL_INT,
-    Float16 = GL_HALF_FLOAT,
-    Float32 = GL_FLOAT
+    Uint8,
+    Int8,
+    Uint16,
+    Int16,
+    Uint32,
+    Int32,
+    Float16,
+    Float32
 };
 
 using Color = glm::vec4;
@@ -203,13 +206,13 @@ struct Description {
     }
 
 private:
-    SizedFormat _sizedFormat{ Pixel::SizedFormat::Unknown };
-    UnsizedFormat _unsizedFormat{ Pixel::UnsizedFormat::Unknown };
-    Type _type{ Pixel::Type::Unknown };
-    uint8_t _typeSize{ 0 };
-    uint8_t _components{ 0 };
-    uint8_t _size{ 0 };
-    bool _normalized{ false };
-    bool _hasAlpha{ false };
+    SizedFormat _sizedFormat { Pixel::SizedFormat::Unknown };
+    UnsizedFormat _unsizedFormat { Pixel::UnsizedFormat::Unknown };
+    Type _type { Pixel::Type::Unknown };
+    uint8_t _typeSize { 0 };
+    uint8_t _components { 0 };
+    uint8_t _size { 0 };
+    bool _normalized { false };
+    bool _hasAlpha { false };
 };
 }

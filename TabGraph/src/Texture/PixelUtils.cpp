@@ -4,7 +4,9 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2021-01-21 17:07:05
 */
-#include "Texture\PixelUtils.hpp"
+#include "Texture/PixelUtils.hpp"
+
+#include <stdexcept>
 
 inline Pixel::SizedFormat GetRSizedformat(Pixel::Type type, bool normalizedType)
 {
@@ -30,6 +32,8 @@ inline Pixel::SizedFormat GetRSizedformat(Pixel::Type type, bool normalizedType)
     case Pixel::Type::Float32:
         assert(!normalizedType && "float32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Float32_R;
+    default:
+        throw std::runtime_error("Unknown R format");
     }
 }
 
@@ -57,6 +61,8 @@ inline Pixel::SizedFormat GetRGSizedformat(Pixel::Type type, bool normalizedType
     case Pixel::Type::Float32:
         assert(!normalizedType && "float32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Float32_RG;
+    default:
+        throw std::runtime_error("Unknown RG format");
     }
 }
 
@@ -84,6 +90,8 @@ inline Pixel::SizedFormat GetRGBSizedformat(Pixel::Type type, bool normalizedTyp
     case Pixel::Type::Float32:
         assert(!normalizedType && "float32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Float32_RGB;
+    default:
+        throw std::runtime_error("Unknown RGB format");
     }
 }
 
@@ -111,6 +119,8 @@ inline Pixel::SizedFormat GetRGBASizedFormat(Pixel::Type type, bool normalizedTy
     case Pixel::Type::Float32:
         assert(!normalizedType && "float32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Float32_RGBA;
+    default:
+        throw std::runtime_error("Unknown RGBA format");
     }
 }
 
@@ -140,7 +150,10 @@ Pixel::SizedFormat GetDepthSizedformat(Pixel::Type type, bool normalizedType)
         return Pixel::SizedFormat::Depth16;
     case Pixel::Type::Float32:
         return Pixel::SizedFormat::Depth32F;
+    default:
+        throw std::runtime_error("Unknown Depth format");
     }
+    return Pixel::SizedFormat::Unknown;
 }
 
 Pixel::SizedFormat GetDepthStencilSizedFormat(Pixel::Type type, bool normalizedType)
@@ -172,8 +185,10 @@ Pixel::SizedFormat GetDepthStencilSizedFormat(Pixel::Type type, bool normalizedT
     case Pixel::Type::Float32:
         return Pixel::SizedFormat::Depth32F_Stencil8;
         break;
+    default:
+        throw std::runtime_error("Unknown DepthStencil format");
     }
-    
+    return Pixel::SizedFormat::Unknown;
 }
 
 Pixel::SizedFormat GetStencilSizedFormat(Pixel::Type type, bool normalizedType)
@@ -205,7 +220,10 @@ Pixel::SizedFormat GetStencilSizedFormat(Pixel::Type type, bool normalizedType)
     case Pixel::Type::Float32:
         assert(true && "Stencil texture cannot be of type Float32");
         break;
+    default:
+        throw std::runtime_error("Unknown Stencil format");
     }
+    return Pixel::SizedFormat::Unknown;
 }
 
 #include <glm/glm.hpp>
@@ -238,6 +256,8 @@ Pixel::SizedFormat Pixel::GetSizedFormat(UnsizedFormat unsizedFormat, Type type,
         return GetDepthStencilSizedFormat(type, normalized);
     case UnsizedFormat::Stencil:
         return GetStencilSizedFormat(type, normalized);
+    default:
+        throw std::runtime_error("Unknown Pixel::UnsizedFormat/Type");
     }
 }
 
@@ -260,6 +280,8 @@ uint8_t Pixel::GetUnsizedFormatComponentsNbr(UnsizedFormat format)
     case UnsizedFormat::RGBA:
     case UnsizedFormat::RGBA_Integer:
         return 4;
+    default:
+        throw std::runtime_error("Unknown Pixel::UnsizedFormat");
     }
 }
 
@@ -278,6 +300,8 @@ uint8_t Pixel::GetTypeSize(Type type)
     case Type::Int32:
     case Type::Float32:
         return 4;
+    default:
+        throw std::runtime_error("Unknown Pixel::Type");
     }
 }
 
@@ -611,6 +635,7 @@ float GetNormalizedColorComponent(Pixel::Type type, std::byte* bytes)
     case Pixel::Type::Int16:
         return *reinterpret_cast<int16_t*>(bytes) / float(INT16_MAX);
     }
+    return 0;
 }
 
 float GetColorComponent(Pixel::Type type, std::byte* bytes)
@@ -634,6 +659,7 @@ float GetColorComponent(Pixel::Type type, std::byte* bytes)
     case Pixel::Type::Float32:
         return *reinterpret_cast<float*>(bytes);
     }
+    return 0;
 }
 
 Pixel::Color Pixel::Description::GetColorFromBytes(std::byte* bytes) const

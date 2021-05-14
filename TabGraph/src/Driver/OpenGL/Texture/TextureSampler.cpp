@@ -9,6 +9,83 @@
 
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <stdexcept>
+
+namespace OpenGL {
+unsigned GetEnum(::TextureSampler::Wrap value)
+{
+    switch (value) {
+    case TextureSampler::Wrap::Repeat:
+        return GL_REPEAT;
+    case TextureSampler::Wrap::ClampToBorder:
+        return GL_CLAMP_TO_BORDER;
+    case TextureSampler::Wrap::ClampToEdge:
+        return GL_CLAMP_TO_EDGE;
+    case TextureSampler::Wrap::MirroredRepeat:
+        return GL_MIRRORED_REPEAT;
+    case TextureSampler::Wrap::MirroredClampToEdge:
+        return GL_MIRROR_CLAMP_TO_EDGE;
+    default:
+        throw std::runtime_error("Unknown TextureSampler::Wrap");
+    }
+}
+
+unsigned GetEnum(::TextureSampler::Filter value)
+{
+    switch (value) {
+    case TextureSampler::Filter::Nearest:
+        return GL_NEAREST;
+    case TextureSampler::Filter::Linear:
+        return GL_LINEAR;
+    case TextureSampler::Filter::NearestMipmapLinear:
+        return GL_NEAREST_MIPMAP_LINEAR;
+    case TextureSampler::Filter::NearestMipmapNearest:
+        return GL_NEAREST_MIPMAP_NEAREST;
+    case TextureSampler::Filter::LinearMipmapLinear:
+        return GL_LINEAR_MIPMAP_LINEAR;
+    case TextureSampler::Filter::LinearMipmapNearest:
+        return GL_LINEAR_MIPMAP_NEAREST;
+    default:
+        throw std::runtime_error("Unknown TextureSampler::Filter");
+    }
+}
+
+unsigned GetEnum(::TextureSampler::CompareMode value)
+{
+    switch (value) {
+    case TextureSampler::CompareMode::None:
+        return GL_NONE;
+    case TextureSampler::CompareMode::CompareRefToTexture:
+        return GL_COMPARE_REF_TO_TEXTURE;
+    default:
+        throw std::runtime_error("Unknown TextureSampler::CompareMode");
+    }
+}
+
+unsigned GetEnum(::TextureSampler::CompareFunc value)
+{
+    switch (value) {
+    case TextureSampler::CompareFunc::LessEqual:
+        return GL_LEQUAL;
+    case TextureSampler::CompareFunc::GreaterEqual:
+        return GL_GEQUAL;
+    case TextureSampler::CompareFunc::Less:
+        return GL_LESS;
+    case TextureSampler::CompareFunc::Greater:
+        return GL_GREATER;
+    case TextureSampler::CompareFunc::Equal:
+        return GL_EQUAL;
+    case TextureSampler::CompareFunc::NotEqual:
+        return GL_NOTEQUAL;
+    case TextureSampler::CompareFunc::Always:
+        return GL_ALWAYS;
+    case TextureSampler::CompareFunc::Never:
+        return GL_NEVER;
+    default:
+        throw std::runtime_error("Unknown TextureSampler::CompareFunc");
+    }
+}
+};
 
 static inline auto GetWrapEnum(GLenum value)
 {
@@ -23,6 +100,8 @@ static inline auto GetWrapEnum(GLenum value)
         return TextureSampler::Wrap::MirroredRepeat;
     case GL_MIRROR_CLAMP_TO_EDGE:
         return TextureSampler::Wrap::MirroredClampToEdge;
+    default:
+        throw std::runtime_error("Unknown Wrap Enum");
     }
 }
 
@@ -42,6 +121,7 @@ static inline auto GetFilterEnum(GLenum value)
     case GL_LINEAR_MIPMAP_NEAREST:
         return TextureSampler::Filter::LinearMipmapNearest;
     }
+    return TextureSampler::Filter::Unknown;
 }
 
 static inline auto GetCompareModeEnum(GLenum value)
@@ -52,6 +132,7 @@ static inline auto GetCompareModeEnum(GLenum value)
     case GL_COMPARE_REF_TO_TEXTURE:
         return TextureSampler::CompareMode::CompareRefToTexture;
     }
+    return TextureSampler::CompareMode::Unknown;
 }
 
 static inline auto GetCompareFuncEnum(GLenum value)
@@ -74,72 +155,7 @@ static inline auto GetCompareFuncEnum(GLenum value)
     case GL_NEVER:
         return TextureSampler::CompareFunc::Never;
     }
-}
-
-static inline auto GetGLEnum(TextureSampler::Wrap value)
-{
-    switch (value) {
-    case TextureSampler::Wrap::Repeat:
-        return GL_REPEAT;
-    case TextureSampler::Wrap::ClampToBorder:
-        return GL_CLAMP_TO_BORDER;
-    case TextureSampler::Wrap::ClampToEdge:
-        return GL_CLAMP_TO_EDGE;
-    case TextureSampler::Wrap::MirroredRepeat:
-        return GL_MIRRORED_REPEAT;
-    case TextureSampler::Wrap::MirroredClampToEdge:
-        return GL_MIRROR_CLAMP_TO_EDGE;
-    }
-}
-
-static inline auto GetGLEnum(TextureSampler::Filter value)
-{
-    switch (value) {
-    case TextureSampler::Filter::Nearest:
-        return GL_NEAREST;
-    case TextureSampler::Filter::Linear:
-        return GL_LINEAR;
-    case TextureSampler::Filter::NearestMipmapLinear:
-        return GL_NEAREST_MIPMAP_LINEAR;
-    case TextureSampler::Filter::NearestMipmapNearest:
-        return GL_NEAREST_MIPMAP_NEAREST;
-    case TextureSampler::Filter::LinearMipmapLinear:
-        return GL_LINEAR_MIPMAP_LINEAR;
-    case TextureSampler::Filter::LinearMipmapNearest:
-        return GL_LINEAR_MIPMAP_NEAREST;
-    }
-}
-
-static inline auto GetGLEnum(TextureSampler::CompareMode value)
-{
-    switch (value) {
-    case TextureSampler::CompareMode::None:
-        return GL_NONE;
-    case TextureSampler::CompareMode::CompareRefToTexture:
-        return GL_COMPARE_REF_TO_TEXTURE;
-    }
-}
-
-static inline auto GetGLEnum(TextureSampler::CompareFunc value)
-{
-    switch (value) {
-    case TextureSampler::CompareFunc::LessEqual:
-        return GL_LEQUAL;
-    case TextureSampler::CompareFunc::GreaterEqual:
-        return GL_GEQUAL;
-    case TextureSampler::CompareFunc::Less:
-        return GL_LESS;
-    case TextureSampler::CompareFunc::Greater:
-        return GL_GREATER;
-    case TextureSampler::CompareFunc::Equal:
-        return GL_EQUAL;
-    case TextureSampler::CompareFunc::NotEqual:
-        return GL_NOTEQUAL;
-    case TextureSampler::CompareFunc::Always:
-        return GL_ALWAYS;
-    case TextureSampler::CompareFunc::Never:
-        return GL_NEVER;
-    }
+    return TextureSampler::CompareFunc::Unknown;
 }
 
 TextureSampler::Impl::Impl()
@@ -152,7 +168,7 @@ TextureSampler::Impl::~Impl()
     glDeleteSamplers(1, &_handle);
 }
 
-const TextureSampler::Handle& TextureSampler::Impl::GetHandle() const
+TextureSampler::Impl::Handle TextureSampler::Impl::GetHandle() const
 {
     return _handle;
 }
@@ -243,12 +259,12 @@ glm::vec4 TextureSampler::Impl::GetBorderColor() const
 
 void TextureSampler::Impl::SetMagFilter(Filter value)
 {
-    glSamplerParameteri(_handle, GL_TEXTURE_MAG_FILTER, GetGLEnum(value));
+    glSamplerParameteri(_handle, GL_TEXTURE_MAG_FILTER, OpenGL::GetEnum(value));
 }
 
 void TextureSampler::Impl::SetMinFilter(Filter value)
 {
-    glSamplerParameteri(_handle, GL_TEXTURE_MIN_FILTER, GetGLEnum(value));
+    glSamplerParameteri(_handle, GL_TEXTURE_MIN_FILTER, OpenGL::GetEnum(value));
 }
 
 void TextureSampler::Impl::SetMinLOD(float value)
@@ -268,27 +284,27 @@ void TextureSampler::Impl::SetLODBias(float value)
 
 void TextureSampler::Impl::SetWrapS(Wrap value)
 {
-    glSamplerParameteri(_handle, GL_TEXTURE_WRAP_S, GetGLEnum(value));
+    glSamplerParameteri(_handle, GL_TEXTURE_WRAP_S, OpenGL::GetEnum(value));
 }
 
 void TextureSampler::Impl::SetWrapT(Wrap value)
 {
-    glSamplerParameteri(_handle, GL_TEXTURE_WRAP_T, GetGLEnum(value));
+    glSamplerParameteri(_handle, GL_TEXTURE_WRAP_T, OpenGL::GetEnum(value));
 }
 
 void TextureSampler::Impl::SetWrapR(Wrap value)
 {
-    glSamplerParameteri(_handle, GL_TEXTURE_WRAP_R, GetGLEnum(value));
+    glSamplerParameteri(_handle, GL_TEXTURE_WRAP_R, OpenGL::GetEnum(value));
 }
 
 void TextureSampler::Impl::SetCompareMode(CompareMode value)
 {
-    glSamplerParameteri(_handle, GL_TEXTURE_COMPARE_MODE, GetGLEnum(value));
+    glSamplerParameteri(_handle, GL_TEXTURE_COMPARE_MODE, OpenGL::GetEnum(value));
 }
 
 void TextureSampler::Impl::SetCompareFunc(CompareFunc value)
 {
-    glSamplerParameteri(_handle, GL_TEXTURE_COMPARE_FUNC, GetGLEnum(value));
+    glSamplerParameteri(_handle, GL_TEXTURE_COMPARE_FUNC, OpenGL::GetEnum(value));
 }
 
 void TextureSampler::Impl::SetMaxAnisotropy(float value)

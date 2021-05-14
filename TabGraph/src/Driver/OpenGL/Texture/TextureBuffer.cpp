@@ -29,9 +29,9 @@ void TextureBuffer::Impl::Load()
     _handle = OpenGL::Texture::Generate();
     Bind();
     glTexBuffer(
-        OpenGL::Texture::GetGLEnum(Texture::Type::TextureBuffer),
-        OpenGL::Pixel::GetGLEnum(texture.GetPixelDescription().GetSizedFormat()),
-        bufferView->GetHandle()
+        OpenGL::GetEnum(Texture::Type::TextureBuffer),
+        OpenGL::GetEnum(texture.GetPixelDescription().GetSizedFormat()),
+        OpenGL::GetHandle(bufferView)
     );
     Done();
     SetLoaded(true);

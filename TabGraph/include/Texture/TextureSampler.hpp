@@ -12,8 +12,9 @@
 #include <memory>
 
 struct TextureSampler {
-    class Handle;
+    class Impl;
     enum class Wrap {
+        Unknown = -1,
         Repeat,
         ClampToBorder,
         ClampToEdge,
@@ -22,6 +23,7 @@ struct TextureSampler {
         MaxValue
     };
     enum class Filter {
+        Unknown = -1,
         Nearest,
         Linear,
         NearestMipmapLinear,
@@ -31,11 +33,13 @@ struct TextureSampler {
         MaxValue
     };
     enum class CompareMode {
+        Unknown = -1,
         None,
         CompareRefToTexture,
         MaxValue
     };
     enum class CompareFunc {
+        Unknown = -1,
         LessEqual,
         GreaterEqual,
         Less,
@@ -46,16 +50,12 @@ struct TextureSampler {
         Never,
         MaxValue
     };
-private:
-    class Impl;
-    friend Impl;
-    std::unique_ptr<Impl> _impl;
 
 public:
     TextureSampler();
     ~TextureSampler();
 
-    const Handle& GetHandle() const;
+    Impl& GetImpl();
 
     Filter GetMagFilter() const;
     Filter GetMinFilter() const;
@@ -82,4 +82,6 @@ public:
     void SetCompareFunc(CompareFunc value);
     void SetMaxAnisotropy(float value);
     void SetBorderColor(glm::vec4 value);
+private:
+    std::unique_ptr<Impl> _impl;
 };

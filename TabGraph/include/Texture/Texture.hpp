@@ -17,7 +17,6 @@ struct TextureSampler;
 
 class Texture : public Component {
 public:
-    class Handle;
     class Impl;
     enum class Type {
         Unknown = -1,
@@ -45,16 +44,11 @@ public:
     Texture(Texture::Type target, Pixel::Description pixelDescription);
     Texture(Texture::Type target);
     ~Texture();
-
     void Load();
     void Unload();
     void GenerateMipmap();
-    const Texture::Handle& GetHandle() const;
-
     bool GetLoaded() const;
-
     void SetPixelDescription(Pixel::Description pixelDescription);
-
     Impl& GetImpl();
 
 protected:

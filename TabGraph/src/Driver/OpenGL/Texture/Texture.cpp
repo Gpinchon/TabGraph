@@ -7,7 +7,7 @@
 
 #include "Driver/OpenGL/Texture/Texture.hpp"
 
-unsigned OpenGL::Texture::GetGLEnum(::Texture::Type type)
+unsigned OpenGL::GetEnum(::Texture::Type type)
 {
     switch (type) {
     case ::Texture::Type::Texture1D:
@@ -32,17 +32,19 @@ unsigned OpenGL::Texture::GetGLEnum(::Texture::Type type)
         return GL_TEXTURE_CUBE_MAP_ARRAY;
     case ::Texture::Type::TextureRectangle:
         return GL_TEXTURE_RECTANGLE;
+    default:
+        throw std::runtime_error("Unknown Texture::Type");
     }
 }
 
-::Texture::Handle OpenGL::Texture::Generate()
+::Texture::Impl::Handle OpenGL::Texture::Generate()
 {
     unsigned handle;
     glGenTextures(1, &handle);
     return handle;
 }
 
-void OpenGL::Texture::Delete(::Texture::Handle handle)
+void OpenGL::Texture::Delete(::Texture::Impl::Handle handle)
 {
     glDeleteTextures(1, &handle);
 }
@@ -62,26 +64,26 @@ bool Texture::Impl::GetLoaded() const
     return _loaded;
 }
 
-const Texture::Handle Texture::Impl::GetHandle() const
+const Texture::Impl::Handle Texture::Impl::GetHandle() const
 {
     return _handle;
 }
 
 void Texture::Impl::Bind() const
 {
-    glBindTexture(OpenGL::Texture::GetGLEnum(_texture.GetType()), GetHandle());
+    glBindTexture(OpenGL::GetEnum(_texture.GetType()), GetHandle());
 }
 
 void Texture::Impl::Done() const
 {
-    glBindTexture(OpenGL::Texture::GetGLEnum(_texture.GetType()), 0);
+    glBindTexture(OpenGL::GetEnum(_texture.GetType()), 0);
 }
 
 int Texture::Impl::GetMinLevel() const
 {
     int value;
     Bind();
-    glGetTexParameteriv(OpenGL::Texture::GetGLEnum(_texture.GetType()), GL_TEXTURE_BASE_LEVEL, &value);
+    glGetTexParameteriv(OpenGL::GetEnum(_texture.GetType()), GL_TEXTURE_BASE_LEVEL, &value);
     Done();
     return value;
 }
@@ -89,7 +91,7 @@ int Texture::Impl::GetMinLevel() const
 void Texture::Impl::SetMinLevel(int value)
 {
     Bind();
-    glTexParameteri(OpenGL::Texture::GetGLEnum(_texture.GetType()), GL_TEXTURE_BASE_LEVEL, value);
+    glTexParameteri(OpenGL::GetEnum(_texture.GetType()), GL_TEXTURE_BASE_LEVEL, value);
     Done();
 }
 
@@ -101,6 +103,6 @@ int Texture::Impl::GetMaxLevel() const
 void Texture::Impl::SetMaxLevel(int value)
 {
     Bind();
-    glTexParameteri(OpenGL::Texture::GetGLEnum(_texture.GetType()), GL_TEXTURE_MAX_LEVEL, value);
+    glTexParameteri(OpenGL::GetEnum(_texture.GetType()), GL_TEXTURE_MAX_LEVEL, value);
     Done();
 }

@@ -9,13 +9,22 @@
 #include "Driver/OpenGL/ObjectHandle.hpp"
 #include "Texture/Texture.hpp"
 
-class Texture::Handle : public OpenGL::ObjectHandle {
-public:
-    Handle(unsigned v) : OpenGL::ObjectHandle(v) {};
-};
-
 class Texture::Impl {
 public:
+    using Handle = OpenGL::ObjectHandle;
+    Impl(const Impl&) = delete;
+    Impl(Texture&);
+    const Handle GetHandle() const;
+    void Bind() const;
+    void Done() const;
+    virtual void Load() = 0;
+    virtual void Unload() = 0;
+    virtual void GenerateMipmap() = 0;
+
+    void SetLoaded(bool value);
+    bool GetLoaded() const;
+
+    //OpenGL specific settings
     enum class FormatCompatibilityType {
         Size,
         Class,
@@ -27,19 +36,6 @@ public:
         StencilIndex,
         MaxValue
     };
-    Impl(const Impl&) = delete;
-    Impl(Texture&);
-    const Texture::Handle GetHandle() const;
-    void Bind() const;
-    void Done() const;
-    virtual void Load() = 0;
-    virtual void Unload() = 0;
-    virtual void GenerateMipmap() = 0;
-
-    void SetLoaded(bool value);
-    bool GetLoaded() const;
-
-    //OpenGL specific settings
     void SetDepthStencilTextureMode(DepthStencilTextureMode value);
     DepthStencilTextureMode GetDepthStencilTextureMode() const;
 
@@ -58,15 +54,15 @@ public:
     void SetMaxLevel(int value);
 
 protected:
-    Texture::Handle _handle{ 0 };
+    Handle _handle{ 0 };
     Texture& _texture;
     bool _loaded{ false };
 };
 
 namespace OpenGL {
+unsigned GetEnum(::Texture::Type);
 namespace Texture {
-unsigned GetGLEnum(::Texture::Type);
-::Texture::Handle Generate();
-void Delete(::Texture::Handle);
+::Texture::Impl::Handle Generate();
+void Delete(::Texture::Impl::Handle);
 };
 };

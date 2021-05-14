@@ -51,19 +51,19 @@ void Texture2D::Impl::Unload()
 void Texture2D::Impl::GenerateMipmap()
 {
     Bind();
-    glGenerateMipmap(OpenGL::Texture::GetGLEnum(_texture.GetType()));
+    glGenerateMipmap(OpenGL::GetEnum(_texture.GetType()));
     Done();
 }
 
 void Texture2D::Impl::_AllocateStorage() {
     auto& texture{ static_cast<const Texture2D&>(_texture) };
-    auto type{ OpenGL::Texture::GetGLEnum(_texture.GetType()) };
+    auto type{ OpenGL::GetEnum(_texture.GetType()) };
     _handle = OpenGL::Texture::Generate();
     Bind();
     glTexStorage2D(
         type,
         texture.GetMipMapNbr(),
-        OpenGL::Pixel::GetGLEnum(texture.GetPixelDescription().GetSizedFormat()),
+        OpenGL::GetEnum(texture.GetPixelDescription().GetSizedFormat()),
         texture.GetSize().x,
         texture.GetSize().y
     );
@@ -81,14 +81,14 @@ inline void Texture2D::Impl::_UploadImage(std::shared_ptr<Asset> imageAsset) {
     _AllocateStorage();
     Bind();
     glTexSubImage2D(
-        OpenGL::Texture::GetGLEnum(Texture::Type::Texture2D),
+        OpenGL::GetEnum(Texture::Type::Texture2D),
         0,
         0,
         0,
         image->GetSize().x,
         image->GetSize().y,
-        OpenGL::Pixel::GetGLEnum(image->GetPixelDescription().GetUnsizedFormat()),
-        OpenGL::Pixel::GetGLEnum(image->GetPixelDescription().GetType()),
+        OpenGL::GetEnum(image->GetPixelDescription().GetUnsizedFormat()),
+        OpenGL::GetEnum(image->GetPixelDescription().GetType()),
         image->GetData().data()
     );
     Done();

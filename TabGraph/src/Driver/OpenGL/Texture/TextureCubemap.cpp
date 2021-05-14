@@ -53,8 +53,8 @@ void TextureCubemap::Impl::Load()
                 side->GetSize().x,
                 side->GetSize().y,
                 1,
-                (GLenum)side->GetPixelDescription().GetUnsizedFormat(),
-                (GLenum)side->GetPixelDescription().GetType(),
+                OpenGL::GetEnum(side->GetPixelDescription().GetUnsizedFormat()),
+                OpenGL::GetEnum(side->GetPixelDescription().GetType()),
                 side->GetData().data());
         }
         texture.RemoveComponent(imageAsset);
@@ -77,7 +77,7 @@ void TextureCubemap::Impl::Unload()
 void TextureCubemap::Impl::GenerateMipmap()
 {
     Bind();
-    glGenerateMipmap(OpenGL::Texture::GetGLEnum(Texture::Type::TextureCubemap));
+    glGenerateMipmap(OpenGL::GetEnum(Texture::Type::TextureCubemap));
     Done();
 }
 
@@ -87,9 +87,9 @@ void TextureCubemap::Impl::_AllocateStorage()
     _handle = OpenGL::Texture::Generate();
     Bind();
     glTexStorage2D(
-        OpenGL::Texture::GetGLEnum(Texture::Type::TextureCubemap),
+        OpenGL::GetEnum(Texture::Type::TextureCubemap),
         texture.GetMipMapNbr(),
-        OpenGL::Pixel::GetGLEnum(texture.GetPixelDescription().GetSizedFormat()),
+        OpenGL::GetEnum(texture.GetPixelDescription().GetSizedFormat()),
         texture.GetSize().x, texture.GetSize().y
     );
     Done();

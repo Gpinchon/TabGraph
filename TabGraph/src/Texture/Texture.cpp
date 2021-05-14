@@ -2,21 +2,21 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-30 14:22:57
+* @Last Modified time: 2021-05-11 13:41:54
 */
 
 #include "Texture/Texture.hpp"
-#include "Texture/TextureSampler.hpp"
 #include "Debug.hpp"
+#include "Texture/TextureSampler.hpp"
 //#ifdef OPENGL
 #include "Driver/OpenGL/Texture/Texture.hpp"
 //#endif
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <stdint.h>
 #include <utility>
-#include <array>
 
 Texture::Texture(Texture::Type type)
     : Component()
@@ -68,11 +68,6 @@ void Texture::SetPixelDescription(Pixel::Description pixelDesc)
 Texture::Impl& Texture::GetImpl()
 {
     return *_impl;
-}
-
-const Texture::Handle& Texture::GetHandle() const
-{
-    return _impl->GetHandle();
 }
 
 bool Texture::GetLoaded() const

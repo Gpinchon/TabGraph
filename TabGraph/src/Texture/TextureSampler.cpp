@@ -20,9 +20,9 @@ TextureSampler::~TextureSampler()
 {
 }
 
-const TextureSampler::Handle& TextureSampler::GetHandle() const
+TextureSampler::Impl& TextureSampler::GetImpl()
 {
-    return _impl->GetHandle();
+    return *_impl.get();
 }
 
 TextureSampler::Filter TextureSampler::GetMagFilter() const

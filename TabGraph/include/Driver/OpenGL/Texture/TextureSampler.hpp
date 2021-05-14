@@ -10,17 +10,13 @@
 
 #include "Driver/OpenGL/ObjectHandle.hpp"
 
-class TextureSampler::Handle : public OpenGL::ObjectHandle {
-public:
-    Handle(uint32_t v) : OpenGL::ObjectHandle(v) {};
-};
-
 class TextureSampler::Impl {
 public:
+    using Handle = OpenGL::ObjectHandle;
 	Impl();
 	~Impl();
 
-    const Handle& GetHandle() const;
+    Handle GetHandle() const;
 
     Filter GetMagFilter() const;
     Filter GetMinFilter() const;
@@ -47,6 +43,14 @@ public:
     void SetCompareFunc(CompareFunc value);
     void SetMaxAnisotropy(float value);
     void SetBorderColor(glm::vec4 value);
+
 private:
-	TextureSampler::Handle _handle{ 0 };
+	Handle _handle{ 0 };
 };
+
+namespace OpenGL {
+    unsigned GetEnum(::TextureSampler::Filter filter);
+    unsigned GetEnum(::TextureSampler::Wrap wrap);
+    unsigned GetEnum(::TextureSampler::CompareMode filter);
+    unsigned GetEnum(::TextureSampler::CompareFunc filter);
+}
