@@ -7,10 +7,9 @@
 
 #include "Light/SkyLight.hpp"
 #include "Camera/Camera.hpp"
-#include "Framebuffer.hpp"
-#include "Mesh/CubeMesh.hpp"
-#include "Mesh/Geometry.hpp"
-#include "Renderer/GeometryRenderer.hpp"
+#include "Surface/CubeMesh.hpp"
+#include "Surface/Geometry.hpp"
+#include "Renderer/Surface/GeometryRenderer.hpp"
 #include "Renderer/Light/SkyLightRenderer.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Scene/Scene.hpp"

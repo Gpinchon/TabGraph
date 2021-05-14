@@ -8,10 +8,10 @@
 #include "Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp"
 #include "Camera/Camera.hpp"
 #include "Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp"
-#include "Framebuffer.hpp"
+#include "Driver/OpenGL/Texture/Framebuffer.hpp"
 #include "Light/SkyLight.hpp"
-#include "Mesh/CubeMesh.hpp"
-#include "Renderer/GeometryRenderer.hpp"
+#include "Surface/CubeMesh.hpp"
+#include "Renderer/Surface/GeometryRenderer.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Shader/Program.hpp"
 #include "SphericalHarmonics.hpp"
@@ -74,8 +74,9 @@ namespace Renderer {
 static SphericalHarmonics s_SH { 50 };
 SkyLightRenderer::SkyLightRenderer(SkyLight& light)
     : LightRenderer(light)
+    , _diffuseLUTBuffer(std::make_shared<Framebuffer>(glm::ivec2(256)))
+    , _deferredShader(Component::Create<Shader::Program>("SkyLightShader"))
 {
-    _deferredShader = Component::Create<Shader::Program>("SkyLightShader");
     _deferredShader->SetDefine("Pass", "DeferredLighting");
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DeferredSkyLightVertexCode()));
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DeferredSkyLightFragmentCode()));
@@ -105,7 +106,7 @@ void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::
     if (_dirty) {
         _UpdateLUT(light);
         //re-bind lighting buffer
-        Renderer::DeferredLightingBuffer()->bind();
+        OpenGL::Framebuffer::Bind(Renderer::DeferredLightingBuffer());
     }
     auto geometryBuffer = Renderer::DeferredGeometryBuffer();
     glm::vec3 geometryPosition;
@@ -147,9 +148,9 @@ void SkyLightRenderer::_UpdateLUT(SkyLight& light)
     if (_reflectionLUT == nullptr) {
         _reflectionLUT = Component::Create<TextureCubemap>(glm::ivec2(256), Pixel::SizedFormat::Float16_RGB);
     }
-    static auto s_diffuseLUTBuffer = Component::Create<Framebuffer>("DiffuseLUTBuffer", glm::ivec2(256));
+    static auto s_diffuseLUTBuffer = std::make_shared<Framebuffer>(glm::ivec2(256));
     s_diffuseLUTBuffer->SetColorBuffer(_reflectionLUT, 0);
-    s_diffuseLUTBuffer->bind();
+    OpenGL::Framebuffer::Bind(s_diffuseLUTBuffer);
     SkyLightLUTShader()->Use()
         .SetUniform("SpecularFactor", light.GetSpecularFactor())
         .SetUniform("DiffuseFactor", light.GetDiffuseFactor())
@@ -163,7 +164,7 @@ void SkyLightRenderer::_UpdateLUT(SkyLight& light)
         .SetUniform("HMie", light.GetHMie());
     glClear(GL_COLOR_BUFFER_BIT);
     Renderer::Render(Renderer::DisplayQuad(), true);
-    Framebuffer::bind_default();
+    OpenGL::Framebuffer::Bind(nullptr);
     s_diffuseLUTBuffer->SetColorBuffer(nullptr, 0);
     _reflectionLUT->GenerateMipmap();
     _reflectionLUT->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);

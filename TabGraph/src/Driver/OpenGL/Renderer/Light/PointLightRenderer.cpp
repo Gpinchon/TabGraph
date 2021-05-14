@@ -7,12 +7,12 @@
 
 #include "Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp"
 #include "Light/PointLight.hpp"
-#include "Mesh/SphereMesh.hpp"
+#include "Surface/SphereMesh.hpp"
+#include "Renderer/Surface/GeometryRenderer.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Renderer/GeometryRenderer.hpp"
 #include "Shader/Program.hpp"
 #include "Shader/Stage.hpp"
-#include "Framebuffer.hpp"
+#include "Texture/Framebuffer.hpp"
 #include "Texture/Texture2D.hpp"
 
 namespace Renderer {

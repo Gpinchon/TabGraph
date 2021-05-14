@@ -6,14 +6,14 @@
 */
 
 #include "Light/LightProbe.hpp"
-#include "Framebuffer.hpp"
+#include "Texture/Framebuffer.hpp"
 #include "Texture/TextureCubemap.hpp"
 #include "Texture/TextureSampler.hpp"
 
 LightProbe::LightProbe(LightProbeGroup& lightProbeGroup)
     : _lightProbeGroup(lightProbeGroup)
 {
-    SetReflectionBuffer(Component::Create<Framebuffer>("DiffuseLUTBuffer", lightProbeGroup.GetResolution()));
+    SetReflectionBuffer(std::make_shared<Framebuffer>(lightProbeGroup.GetResolution()));
     auto cubemap { Component::Create<TextureCubemap>(lightProbeGroup.GetResolution(), Pixel::SizedFormat::Float16_RGB) };
     cubemap->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
     GetReflectionBuffer()->AddColorBuffer(cubemap);

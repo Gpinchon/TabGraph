@@ -9,15 +9,15 @@
 #include "Assets/Asset.hpp"
 #include "Assets/Image.hpp"
 #include "Camera/Camera.hpp"
-#include "Framebuffer.hpp"
+#include "Driver/OpenGL/Texture/Framebuffer.hpp"
 #include "Light/HDRLight.hpp"
 #include "Light/LightProbe.hpp"
-#include "Mesh/CubeMesh.hpp"
-#include "Renderer/GeometryRenderer.hpp"
 #include "Renderer/Renderer.hpp"
+#include "Renderer/Surface/GeometryRenderer.hpp"
 #include "Shader/Program.hpp"
 #include "Shader/Stage.hpp"
 #include "SphericalHarmonics.hpp"
+#include "Surface/CubeMesh.hpp"
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureCubemap.hpp"
 
@@ -104,7 +104,7 @@ void HDRLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
     _Update(hdrLight);
     for (auto i = 0u; i < std::min(_SHDiffuse.size(), lightProbe.GetDiffuseSH().size()); ++i)
         lightProbe.GetDiffuseSH().at(i) += _SHDiffuse.at(i);
-    lightProbe.GetReflectionBuffer()->bind();
+    OpenGL::Framebuffer::Bind(lightProbe.GetReflectionBuffer());
     _probeShader->Use()
         .SetUniform("Light.DiffuseFactor", hdrLight.GetDiffuseFactor())
         .SetUniform("Light.SpecularFactor", hdrLight.GetSpecularFactor())
@@ -114,6 +114,7 @@ void HDRLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
         .SetUniform("ProbePosition", lightProbe.GetAbsolutePosition())
         .SetTexture("ReflectionMap", hdrLight.GetReflection());
     Renderer::Render(Renderer::DisplayQuad());
+    OpenGL::Framebuffer::Bind(nullptr);
 }
 
 void HDRLightRenderer::_RenderDeferredLighting(HDRLight& light, const Renderer::Options& options)
@@ -162,7 +163,8 @@ void HDRLightRenderer::_Update(HDRLight& light)
                 uv.y * image->GetSize().y
             };
             texCoord = glm::clamp(texCoord, glm::ivec2(0), image->GetSize() - 1);
-            return image->GetColor(texCoord);
+            glm::vec3 color{ Pixel::LinearToSRGB(image->GetColor(texCoord)) };
+            return glm::clamp(color, glm::vec3(0), glm::vec3(1));
         });
     light.RemoveComponent(asset);
     _dirty = false;

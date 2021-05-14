@@ -35,6 +35,7 @@ protected:
     std::shared_ptr<TextureCubemap> _reflectionLUT;
     std::shared_ptr<Shader::Program> _deferredShader;
     std::shared_ptr<Shader::Program> _probeShader;
+    std::shared_ptr<Framebuffer> _diffuseLUTBuffer;
     bool _dirty { true };
 };
 };

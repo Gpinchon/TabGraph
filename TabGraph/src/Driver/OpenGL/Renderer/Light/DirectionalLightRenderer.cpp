@@ -6,14 +6,14 @@
 */
 
 #include "Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp"
+#include "Driver/OpenGL/Texture/Framebuffer.hpp"
 #include "Camera/Camera.hpp"
 #include "Config.hpp"
-#include "Framebuffer.hpp"
 #include "Light/DirectionalLight.hpp"
 #include "Light/LightProbe.hpp"
-#include "Mesh/CubeMesh.hpp"
+#include "Surface/CubeMesh.hpp"
 #include "Renderer/Renderer.hpp"
-#include "Renderer/GeometryRenderer.hpp"
+#include "Renderer/Surface/GeometryRenderer.hpp"
 #include "Renderer/SceneRenderer.hpp"
 #include "Shader/Global.hpp"
 #include "Shader/Program.hpp"
@@ -121,7 +121,7 @@ void DirectionalLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
     };
     for (auto i = 0u; i < std::min(diffuseSH.size(), lightProbe.GetDiffuseSH().size()); ++i)
         lightProbe.GetDiffuseSH().at(i) += diffuseSH.at(i);
-    lightProbe.GetReflectionBuffer()->bind();
+    OpenGL::Framebuffer::Bind(lightProbe.GetReflectionBuffer());
     _probeShader->Use()
         .SetUniform("SpecularMode", true)
         .SetUniform("Light.SpecularFactor", dirLight.GetSpecularFactor())
@@ -129,6 +129,7 @@ void DirectionalLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
         .SetUniform("Light.Color", dirLight.GetColor())
         .SetUniform("Light.Direction", dirLight.GetDirection());
     Renderer::Render(Renderer::DisplayQuad());
+    OpenGL::Framebuffer::Bind(nullptr);
 }
 
 void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, const Renderer::Options& options)
@@ -179,10 +180,10 @@ void DirectionalLightRenderer::_RenderShadow(DirectionalLight& light, const Rend
             shadowBuffer->GetTextureSampler()->SetCompareMode(TextureSampler::CompareMode::CompareRefToTexture);
             shadowBuffer->GetTextureSampler()->SetCompareFunc(TextureSampler::CompareFunc::LessEqual);
             shadowBuffer->SetMipMapNbr(1);
-            _shadowBuffer = Component::Create<Framebuffer>(light.GetName() + "_shadowMap", shadowRes, 0, 0);
+            _shadowBuffer = std::make_shared<Framebuffer>(shadowRes);
             _shadowBuffer->SetDepthBuffer(shadowBuffer);
         }
-        _shadowBuffer->Resize(shadowRes);
+        _shadowBuffer->SetSize(shadowRes);
         light.GetInfinite() ? _RenderShadowInfinite(light, options) : _RenderShadowFinite(light, options);
     }
 }
@@ -198,7 +199,7 @@ void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, co
     Shader::Global::SetUniform("Camera.Position", camPos);
     Shader::Global::SetUniform("Camera.Matrix.View", DirectionalLightShadowViewMatrix(light));
     Shader::Global::SetUniform("Camera.Matrix.Projection", DirectionalLightShadowProjectionMatrixInfinite(light, options));
-    _shadowBuffer->bind();
+    OpenGL::Framebuffer::Bind(_shadowBuffer);
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -210,7 +211,7 @@ void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, co
         options.scene,
         Renderer::FrameNumber()
         });
-    _shadowBuffer->bind(false);
+    OpenGL::Framebuffer::Bind(nullptr);
     //options.scene->SetCurrentCamera(camera);
     Shader::Global::SetUniform("Camera.Position", options.camera->WorldPosition());
     Shader::Global::SetUniform("Camera.Matrix.View", options.camera->GetViewMatrix());
@@ -228,7 +229,7 @@ void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, cons
     Shader::Global::SetUniform("Camera.Position", camPos);
     Shader::Global::SetUniform("Camera.Matrix.View", DirectionalLightShadowViewMatrix(light));
     Shader::Global::SetUniform("Camera.Matrix.Projection", DirectionalLightShadowProjectionMatrixFinite(light));
-    _shadowBuffer->bind();
+    OpenGL::Framebuffer::Bind(_shadowBuffer);
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -240,7 +241,7 @@ void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, cons
         options.scene,
         Renderer::FrameNumber()
         });
-    _shadowBuffer->bind(false);
+    OpenGL::Framebuffer::Bind(nullptr);
     //options.scene->SetCurrentCamera(camera);
     Shader::Global::SetUniform("Camera.Position", options.camera->WorldPosition());
     Shader::Global::SetUniform("Camera.Matrix.View", options.camera->GetViewMatrix());
