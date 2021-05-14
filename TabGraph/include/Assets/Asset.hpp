@@ -8,12 +8,11 @@
 
 class Asset : public Component {
 	PROPERTY(std::string, AssetType, "");
+	PROPERTY(Uri, Uri, );
 public :
 	Asset() = default;
 	Asset(const Uri&);
 	~Asset();
-	void SetUri(const Uri& uri);
-	Uri GetUri() const;
 	bool GetLoaded();
 	void SetLoaded(bool);
 	Signal<std::shared_ptr<Asset>> &OnLoaded();
@@ -26,7 +25,6 @@ public :
 	virtual void LoadAsync();
 
 private:
-	Uri _uri{};
 	std::atomic<bool> _loaded{ false };
 	std::mutex _loadingMutex{};
 	Signal<std::shared_ptr<Asset>> _onloaded{};
