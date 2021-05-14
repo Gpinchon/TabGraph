@@ -10,15 +10,6 @@
 
 size_t bufferAccessorNbr = 0;
 
-//BufferAccessor::BufferAccessor(GLenum componentType, size_t count, const BufferAccessor::Type type)
-//    : Component("BufferAccessor_" + std::to_string(bufferAccessorNbr))
-//    , _componentType(componentType)
-//    , _count(count)
-//    , _type(type)
-//{
-//    bufferAccessorNbr++;
-//}
-
 uint8_t GetComponentTypeOctetsSize(const BufferAccessor::ComponentType type)
 {
     switch (type) {
@@ -31,6 +22,8 @@ uint8_t GetComponentTypeOctetsSize(const BufferAccessor::ComponentType type)
     case BufferAccessor::ComponentType::Uint32:
     case BufferAccessor::ComponentType::Float32:
         return 4;
+    default:
+        throw std::runtime_error("Unknown BufferAccessor::ComponentType");
     }
 }
 
