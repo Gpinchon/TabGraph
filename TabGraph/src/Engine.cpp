@@ -7,7 +7,6 @@
 
 #include "Engine.hpp"
 #include "Config.hpp" // for Config
-#include "Skybox.hpp" // for Skybox
 #include "Event/Events.hpp" // for Events
 #include "Node.hpp" // for Node
 #include "Renderer/Renderer.hpp" // for AddPostTreatment, RequestRedraw
@@ -75,7 +74,6 @@ void Engine::Start()
     double lastTicks;
     double fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
 
-    //SDL_GL_MakeCurrent((SDL_Window*)Window::GetHandle(), Renderer::GetContext());
     SDL_GL_SetSwapInterval(Engine::SwapInterval());
     while (EnginePrivate::Get().loop) {
         ticks = SDL_GetTicks() / 1000.0;

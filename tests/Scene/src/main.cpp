@@ -18,8 +18,8 @@
 #include "Event/Mouse.hpp"
 #include "Light/DirectionalLight.hpp"
 #include "Material/Material.hpp"
-#include "Mesh/CubeMesh.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/CubeMesh.hpp"
+#include "Surface/Mesh.hpp"
 #include "Scene/Scene.hpp"
 #include "Tools/Tools.hpp"
 #include "Window.hpp"
@@ -168,7 +168,7 @@ void SetupCallbacks()
 #include "Light/HDRLight.hpp"
 #include "Light/PointLight.hpp"
 #include "Light/SkyLight.hpp"
-#include "Skybox.hpp"
+#include "Surface/Skybox.hpp"
 #include "StackTracer.hpp"
 #include "Texture/TextureCubemap.hpp"
 #include <csignal>
@@ -203,7 +203,7 @@ int main(int argc, char** argv)
             }
             scene->SetCurrentCamera(fpsCamera);
             auto newEnv = Component::Create<Skybox>("Skybox");
-            auto diffuseAsset { Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/diffuse.hdr").string()) };
+            auto diffuseAsset { Component::Create<Asset>("file:" + (Engine::ResourcePath() / "env/diffuse.jpg").string()) };
             newEnv->SetTexture(Component::Create<TextureCubemap>(diffuseAsset)); //"EnvironmentCube", TextureParser::parse("Skybox", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
             scene->SetSkybox(newEnv);
 
@@ -222,7 +222,7 @@ int main(int argc, char** argv)
 
             scene->Add(hdrLight);
             //scene->Add(skyLight);
-            //scene->Add(dirLight);
+            scene->Add(dirLight);
             scene->Add(pointLight);
 
             Scene::SetCurrent(scene);
