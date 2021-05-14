@@ -5,8 +5,8 @@
 * @Last Modified time: 2021-05-04 20:02:25
 */
 
-#include "Skybox.hpp"
-#include "Renderer/SkyboxRenderer.hpp"
+#include "Surface/Skybox.hpp"
+#include "Renderer/Surface/SkyboxRenderer.hpp"
 #include "Texture/TextureCubemap.hpp"
 
 Skybox::Skybox(const std::string& name)

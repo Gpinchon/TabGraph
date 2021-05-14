@@ -11,8 +11,8 @@
 #include "Camera/Camera.hpp"
 #include "Event/Keyboard.hpp"
 #include "Material/Material.hpp"
-#include "Mesh/CapsuleMesh.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/CapsuleMesh.hpp"
+#include "Surface/Mesh.hpp"
 #include "Scene/Scene.hpp"
 
 #include "Bomb.hpp"

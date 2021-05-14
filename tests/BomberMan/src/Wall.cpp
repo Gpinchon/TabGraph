@@ -5,8 +5,8 @@
 * @Last Modified time: 2020-08-17 14:00:45
 */
 #include "Material/Material.hpp"
-#include "Mesh/CubeMesh.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/CubeMesh.hpp"
+#include "Surface/Mesh.hpp"
 #include "Assets/Asset.hpp"
 #include "Engine.hpp"
 #include "Scene/Scene.hpp"

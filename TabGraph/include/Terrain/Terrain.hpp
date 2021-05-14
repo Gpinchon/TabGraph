@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Mesh/Mesh.hpp" // for Mesh
+#include "Surface/Mesh.hpp" // for Mesh
 #include <glm/glm.hpp> // for glm::vec2, glm::vec3
 #include <memory> // for shared_ptr
 #include <string> // for string

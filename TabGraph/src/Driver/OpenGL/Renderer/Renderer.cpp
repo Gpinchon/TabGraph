@@ -6,28 +6,27 @@
 */
 
 #include "Driver/OpenGL/Renderer/Renderer.hpp"
+#include "Renderer/Surface/GeometryRenderer.hpp"
+#include "Renderer/Surface/SurfaceRenderer.hpp"
+#include "Renderer/SceneRenderer.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Assets/Asset.hpp"
 #include "Assets/Image.hpp"
+#include "brdfLUT.hpp"
 #include "Camera/Camera.hpp"
 #include "Config.hpp"
-#include "Framebuffer.hpp"
+#include "Driver/OpenGL/Texture/Framebuffer.hpp"
+#include "Driver/OpenGL/Texture/Texture.hpp"
 #include "Light/Light.hpp"
-#include "Mesh/Geometry.hpp"
-#include "Renderer/GeometryRenderer.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Renderer/SkyboxRenderer.hpp"
+#include "Surface/Geometry.hpp"
 #include "Scene/Scene.hpp"
 #include "Shader/Global.hpp"
 #include "Shader/Program.hpp"
-#include "Skybox.hpp"
+#include "Surface/Skybox.hpp"
 #include "Texture/PixelUtils.hpp"
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureSampler.hpp"
 #include "Window.hpp"
-#include "brdfLUT.hpp"
-
-#include "Driver/OpenGL/Texture/Texture.hpp"
 
 #include <GL/glew.h> // for GL_TEXTURE0, glDepthFunc, glClear, glDis...
 #include <SDL_timer.h> // for SDL_GetTicks
@@ -48,12 +47,12 @@ void PrintExtensions()
 static inline auto CreateDeferredRenderBuffer(const std::string& name, const glm::ivec2& size)
 {
     auto depthStencilBuffer { Component::Create<Texture2D>(size, Pixel::SizedFormat::Depth24_Stencil8) };
-    auto buffer = Component::Create<Framebuffer>(name, size);
-    buffer->AddColorBuffer(Pixel::SizedFormat::Uint8_NormalizedRGBA); // BRDF CDiff, Ambient Occlusion
-    buffer->AddColorBuffer(Pixel::SizedFormat::Uint8_NormalizedRGBA); // BRDF F0, BRDF Alpha
-    buffer->AddColorBuffer(Pixel::SizedFormat::Int16_NormalizedRGB); // Normal
-    buffer->AddColorBuffer(Pixel::SizedFormat::Float16_RG); //Velocity
-    buffer->AddColorBuffer(Pixel::SizedFormat::Float16_RGB); // Color (Unlit/Emissive/Final Color)
+    auto buffer = std::make_shared<Framebuffer>(size);
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Uint8_NormalizedRGBA)); // BRDF CDiff, Ambient Occlusion
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Uint8_NormalizedRGBA)); // BRDF F0, BRDF Alpha
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Int16_NormalizedRGB)); // Normal
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RG)); //Velocity
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); // Color (Unlit/Emissive/Final Color)
     buffer->SetDepthBuffer(depthStencilBuffer);
     //buffer->SetStencilBuffer(depthStencilBuffer);
     buffer->GetColorBuffer(0)->SetAutoMipMap(false);
@@ -72,9 +71,9 @@ static inline auto CreateDeferredRenderBuffer(const std::string& name, const glm
 
 static inline auto CreateLightingBuffer(const std::string& name, const glm::ivec2& size)
 {
-    auto buffer = Component::Create<Framebuffer>(name, size);
-    buffer->AddColorBuffer(Pixel::SizedFormat::Float16_RGB); //Diffuse
-    buffer->AddColorBuffer(Pixel::SizedFormat::Float16_RGB); //Reflection
+    auto buffer = std::make_shared<Framebuffer>(size);
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); //Diffuse
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); //Reflection
     buffer->GetColorBuffer(0)->SetAutoMipMap(false);
     buffer->GetColorBuffer(1)->SetAutoMipMap(false);
     buffer->GetColorBuffer(0)->SetMipMapNbr(1);
@@ -84,11 +83,11 @@ static inline auto CreateLightingBuffer(const std::string& name, const glm::ivec
 
 static inline auto CreateTransparentForwardRenderBuffer(const std::string& name, const glm::ivec2& size)
 {
-    auto buffer = Component::Create<Framebuffer>(name, size);
-    buffer->AddColorBuffer(Pixel::SizedFormat::Float16_RGBA); //Color
-    buffer->AddColorBuffer(Pixel::SizedFormat::Uint8_NormalizedR); //Alpha Coverage
-    buffer->AddColorBuffer(Pixel::SizedFormat::Uint8_NormalizedRGB); //Distortion
-    buffer->AddColorBuffer(Pixel::SizedFormat::Uint8_NormalizedRGBA); //Transmission Color (RGB), BRDF Alpha(A)
+    auto buffer = std::make_shared<Framebuffer>(size);
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGBA)); //Color
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Uint8_NormalizedR)); //Alpha Coverage
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Uint8_NormalizedRGB)); //Distortion
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Uint8_NormalizedRGBA)); //Transmission Color (RGB), BRDF Alpha(A)
     buffer->GetColorBuffer(0)->SetAutoMipMap(false);
     buffer->GetColorBuffer(1)->SetAutoMipMap(false);
     buffer->GetColorBuffer(2)->SetAutoMipMap(false);
@@ -102,16 +101,16 @@ static inline auto CreateTransparentForwardRenderBuffer(const std::string& name,
 
 static inline auto CreateOpaqueRenderBuffer(const std::string& name, const glm::ivec2& size)
 {
-    auto buffer = Component::Create<Framebuffer>(name, size);
-    buffer->AddColorBuffer(Pixel::SizedFormat::Float16_RGB); //Color
+    auto buffer = std::make_shared<Framebuffer>(size);
+    buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); //Color
     buffer->GetColorBuffer(0)->SetAutoMipMap(true);
     return buffer;
 }
 
 static inline auto CreateFinalRenderBuffer(const std::string& name, glm::ivec2 res)
 {
-    auto buffer = Component::Create<Framebuffer>(name, res);
-    buffer->AddColorBuffer(Pixel::SizedFormat::Uint8_NormalizedRGB); //Color
+    auto buffer = std::make_shared<Framebuffer>(res);
+    buffer->AddColorBuffer(Component::Create<Texture2D>(res, Pixel::SizedFormat::Uint8_NormalizedRGB)); //Color
     buffer->GetColorBuffer(0)->SetAutoMipMap(false);
     buffer->GetColorBuffer(0)->SetMipMapNbr(1);
     return buffer;
@@ -162,7 +161,7 @@ void Renderer::Impl::Init()
 
 Renderer::Context& Renderer::Impl::GetContext()
 {
-    return GetImpl()->GetContext();
+    return _context;
 }
 
 void Renderer::Impl::_HZBPass()
@@ -185,9 +184,8 @@ void Renderer::Impl::_HZBPass()
         _hzbShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, ShaderFragmentCode));
     }
     if (_hzbBuffer == nullptr) {
-        _hzbBuffer = Component::Create<Framebuffer>("HZB", depthTexture->GetSize(), 0, 0);
+        _hzbBuffer = std::make_shared<Framebuffer>(depthTexture->GetSize());
     }
-    //static auto framebuffer = Component::Create<Framebuffer>("HZB", depthTexture->GetSize(), 0, 0);
     depthTexture->GenerateMipmap();
     depthTexture->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
     auto numLevels = depthTexture->GetMipMapNbr(); //1 + unsigned(floorf(log2f(fmaxf(depthTexture->GetSize().x, depthTexture->GetSize().y))));
@@ -197,10 +195,10 @@ void Renderer::Impl::_HZBPass()
         depthTexture->GetTextureSampler()->SetMaxLOD(i - 1);
         currentSize /= 2;
         currentSize = glm::max(currentSize, glm::ivec2(1));
-        _hzbBuffer->Resize(currentSize);
+        _hzbBuffer->SetSize(currentSize);
         //framebuffer->set_attachement(0, depthTexture, i);
         _hzbBuffer->SetDepthBuffer(depthTexture, i);
-        _hzbBuffer->bind();
+        OpenGL::Framebuffer::Bind(_hzbBuffer);
         _hzbShader->Use()
             .SetTexture("in_Texture_Color", depthTexture);
         Renderer::Render(Renderer::GetImpl()->DisplayQuad(), true);
@@ -211,7 +209,7 @@ void Renderer::Impl::_HZBPass()
     depthTexture->GetTextureSampler()->SetMinLOD(0);
     depthTexture->GetTextureSampler()->SetMaxLOD(numLevels - 1);
     depthTexture->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
-    _hzbBuffer->bind(false);
+    OpenGL::Framebuffer::Bind(nullptr);
 }
 
 static inline auto DeferredVertexCode()
@@ -251,11 +249,11 @@ auto PassThroughShader()
 void Renderer::Impl::_SSAOPass()
 {
     const auto gBuffer { Renderer::DeferredGeometryBuffer() };
-    glm::ivec2 res = glm::ivec2(std::min(gBuffer->Size().x, gBuffer->Size().y)); // glm::vec2(1024) * Renderer::Private::InternalQuality();// *Config::Global().Get("SSAOResolutionFactor", 0.5f);
+    glm::ivec2 res = glm::ivec2(std::min(gBuffer->GetSize().x, gBuffer->GetSize().y)); // glm::vec2(1024) * Renderer::Private::InternalQuality();// *Config::Global().Get("SSAOResolutionFactor", 0.5f);
     glDepthMask(false);
     if (_ssaoBuffer == nullptr) {
-        _ssaoBuffer = Component::Create<Framebuffer>("SSAOBuffer", res);
-        _ssaoBuffer->AddColorBuffer(Pixel::SizedFormat::Uint8_NormalizedRGBA);
+        _ssaoBuffer = std::make_shared<Framebuffer>(res);
+        _ssaoBuffer->AddColorBuffer(Component::Create<Texture2D>(res, Pixel::SizedFormat::Uint8_NormalizedRGBA));
     }
     if (_ssaoShader == nullptr) {
         auto SSAOFragmentCode =
@@ -267,9 +265,11 @@ void Renderer::Impl::_SSAOPass()
         _ssaoShader->SetDefine("Pass", "GeometryPostTreatment");
     }
     _ssaoShader->SetDefine("SSAO_QUALITY", std::to_string(Config::Global().Get("SSAOQuality", 4)));
+    _ssaoShader->SetDefine("SSAO_RADIUS", std::to_string(Config::Global().Get("SSAORadius", 0.025f)));
+    _ssaoShader->SetDefine("SSAO_STRENGTH", std::to_string(Config::Global().Get("SSAOStrength", 1)));
 
-    _ssaoBuffer->Resize(res);
-    _ssaoBuffer->bind();
+    _ssaoBuffer->SetSize(res);
+    OpenGL::Framebuffer::Bind(_ssaoBuffer);
     _ssaoShader->Use()
         .SetTexture("Texture.Geometry.Normal", gBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", gBuffer->GetDepthBuffer());
@@ -278,12 +278,12 @@ void Renderer::Impl::_SSAOPass()
     Renderer::Render(Renderer::DisplayQuad(), true);
 
     PassThroughShader()->Use().SetTexture("in_ColorBuffer0", _ssaoBuffer->GetColorBuffer(0)).SetUniform("in_UseColorBuffer0", true);
-    gBuffer->bind();
+    OpenGL::Framebuffer::Bind(gBuffer);
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
     glBlendEquation(GL_FUNC_ADD);
     Renderer::Render(Renderer::DisplayQuad(), true);
-    gBuffer->bind(false);
+    OpenGL::Framebuffer::Bind(nullptr);
     //reset global shader uniform
     PassThroughShader()->SetTexture("in_ColorBuffer0", nullptr).SetUniform("in_UseColorBuffer0", false).Done();
 }
@@ -300,14 +300,14 @@ void Renderer::Impl::_SSRPass()
 {
     const auto gBuffer { DeferredGeometryBuffer() };
     const auto lBuffer { DeferredLightingBuffer() };
-    const auto res { glm::ivec2(std::min(gBuffer->Size().x, gBuffer->Size().y)) };
+    const auto res { glm::ivec2(std::min(gBuffer->GetSize().x, gBuffer->GetSize().y)) };
     if (_ssrBuffer == nullptr) {
-        _ssrBuffer = Component::Create<Framebuffer>("SSRBuffer", res);
-        _ssrBuffer->AddColorBuffer(nullptr)
-            .AddColorBuffer(Pixel::SizedFormat::Float16_RGBA)
-            .SetStencilBuffer(Component::Create<Texture2D>(res, Pixel::SizedFormat::Stencil8));
+        _ssrBuffer = std::make_shared<Framebuffer>(res);
+        _ssrBuffer->AddColorBuffer(nullptr);
+        _ssrBuffer->AddColorBuffer(Component::Create<Texture2D>(res, Pixel::SizedFormat::Float16_RGBA));
+        _ssrBuffer->SetStencilBuffer(Component::Create<Texture2D>(res, Pixel::SizedFormat::Stencil8));
     }
-    _ssrBuffer->Resize(res);
+    _ssrBuffer->SetSize(res);
     if (_ssrShader == nullptr) {
         auto deferred_vert_code =
 #include "deferred.vert"
@@ -367,7 +367,7 @@ void Renderer::Impl::_SSRPass()
     _ssrShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
     _ssrStencilShader->GetStage(Shader::Stage::Type::Fragment).SetDefine("ROUGHNESSMASKSCALE", std::to_string(ComputeRoughnessMaskScale()));
 
-    _ssrBuffer->bind();
+    OpenGL::Framebuffer::Bind(_ssrBuffer);
     glEnable(GL_STENCIL_TEST);
     glStencilMask(0xFF);
     glClearStencil(0x00);
@@ -398,7 +398,7 @@ void Renderer::Impl::_SSRPass()
     Renderer::Render(Renderer::DisplayQuad(), true);
     glDisable(GL_STENCIL_TEST);
 
-    lBuffer->bind();
+    OpenGL::Framebuffer::Bind(lBuffer);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
@@ -409,7 +409,7 @@ void Renderer::Impl::_SSRPass()
         .SetTexture("SSRTexture", _ssrBuffer->GetColorBuffer(1));
     Renderer::Render(Renderer::DisplayQuad(), true);
     _ssrApplyShader->Done();
-    lBuffer->bind(false);
+    OpenGL::Framebuffer::Bind(nullptr);
 
     glDisable(GL_BLEND);
     glDisable(GL_STENCIL_TEST);
@@ -437,7 +437,7 @@ void Renderer::Impl::_DeferredMaterialPass()
     auto gBuffer { DeferredGeometryBuffer() };
     auto lBuffer { DeferredLightingBuffer() };
     auto oBuffer { OpaqueRenderBuffer() };
-    oBuffer->bind();
+    OpenGL::Framebuffer::Bind(oBuffer);
     glDisable(GL_BLEND);
     PassThroughShader()->Use().SetTexture("in_ColorBuffer0", gBuffer->GetColorBuffer(4)).SetUniform("in_UseColorBuffer0", true);
     Renderer::Render(Renderer::DisplayQuad(), true);
@@ -458,7 +458,7 @@ void Renderer::Impl::_DeferredMaterialPass()
         //.SetTexture("Texture.Geometry.Reflection", renderBuffer->attachement(7))
         .SetTexture("BRDFLUT", Renderer::DefaultBRDFLUT());
     Renderer::Render(Renderer::DisplayQuad(), true);
-    oBuffer->bind(false);
+    OpenGL::Framebuffer::Bind(nullptr);
     _deferredMaterialShader->Done();
 }
 
@@ -471,7 +471,7 @@ void light_pass(std::shared_ptr<Framebuffer>& lightingBuffer)
         Renderer::Render(light, { Renderer::Options::Pass::ShadowDepth, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
         //light->render_shadow();
     }
-    lightingBuffer->bind();
+    OpenGL::Framebuffer::Bind(lightingBuffer);
     glClear(GL_COLOR_BUFFER_BIT);
     glCullFace(GL_FRONT);
     glDisable(GL_DEPTH_TEST);
@@ -482,7 +482,7 @@ void light_pass(std::shared_ptr<Framebuffer>& lightingBuffer)
         Renderer::Render(light, { Renderer::Options::Pass::DeferredLighting, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
         //light->Draw();
     }
-    lightingBuffer->bind(false);
+    OpenGL::Framebuffer::Bind(nullptr);
     glCullFace(GL_BACK);
     glDisable(GL_BLEND);
 }
@@ -494,13 +494,19 @@ void Renderer::Impl::_OpaquePass()
     auto oBuffer { OpaqueRenderBuffer() };
     //Geometry pass
     {
-        gBuffer->bind();
+        OpenGL::Framebuffer::Bind(gBuffer);
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glDisable(GL_BLEND);
-        Renderer::Render(Scene::Current(), { Renderer::Options::Pass::DeferredGeometry, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
-        gBuffer->bind(false);
+        Renderer::Render(Scene::Current(), {
+            Renderer::Options::Pass::DeferredGeometry,
+            Renderer::Options::Mode::All,
+            Scene::Current()->CurrentCamera(),
+            Scene::Current(),
+            Renderer::FrameNumber()
+        });
+        OpenGL::Framebuffer::Bind(nullptr);
     }
     //SSAO & SSR pass
     {
@@ -534,7 +540,7 @@ void Renderer::Impl::_CompositingPass()
     oBuffer->GetColorBuffer(0)->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
     oBuffer->SetStencilBuffer(tBuffer->GetStencilBuffer());
 
-    oBuffer->bind();
+    OpenGL::Framebuffer::Bind(oBuffer);
     _compositingShader->Use()
         .SetTexture("in_TransparentColor", tBuffer->GetColorBuffer(0))
         .SetTexture("in_TransparentAlphaCoverage", tBuffer->GetColorBuffer(1))
@@ -551,7 +557,8 @@ void Renderer::Impl::_CompositingPass()
     glDisable(GL_BLEND);
     Renderer::Render(Renderer::DisplayQuad(), true);
     _compositingShader->Done();
-    oBuffer->bind(false);
+
+    OpenGL::Framebuffer::Bind(nullptr);
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
@@ -572,7 +579,7 @@ void Renderer::Impl::_TransparentPass()
 
     tBuffer->SetStencilBuffer(gBuffer->GetDepthBuffer());
     tBuffer->SetDepthBuffer(gBuffer->GetDepthBuffer());
-    tBuffer->bind();
+    OpenGL::Framebuffer::Bind(tBuffer);
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glColorMaski(2, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -622,20 +629,27 @@ void Renderer::Impl::_RenderFrame()
     auto oBuffer { Renderer::OpaqueRenderBuffer() };
     auto tBuffer { Renderer::ForwardTransparentRenderBuffer() };
     glm::ivec2 res = glm::vec2(Window::GetSize()) * Config::Global().Get("InternalQuality", 1.f);
-    fBuffer->Resize(res);
-    gBuffer->Resize(res);
-    lBuffer->Resize(res);
-    oBuffer->Resize(res);
-    tBuffer->Resize(res);
-    gBuffer->bind();
+    fBuffer->SetSize(res);
+    gBuffer->SetSize(res);
+    lBuffer->SetSize(res);
+    oBuffer->SetSize(res);
+    tBuffer->SetSize(res);
+    OpenGL::Framebuffer::Bind(gBuffer);
     glDepthMask(GL_TRUE);
     glClearDepth(1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
     if (Scene::Current()->GetSkybox() != nullptr)
-        Renderer::Render(Scene::Current()->GetSkybox(), { Renderer::Options::Pass::ForwardOpaque, Renderer::Options::Mode::All, Scene::Current()->CurrentCamera(), Scene::Current(), Renderer::FrameNumber() });
-    gBuffer->bind(false);
+        Renderer::Render(Scene::Current()->GetSkybox(),
+            {
+                Renderer::Options::Pass::ForwardOpaque,
+                Renderer::Options::Mode::All,
+                Scene::Current()->CurrentCamera(),
+                Scene::Current(),
+                Renderer::FrameNumber()
+            });
+    OpenGL::Framebuffer::Bind(nullptr);
     _OpaquePass();
     _TransparentPass();
     static std::shared_ptr<Shader::Program> TemporalAccumulationShader;
@@ -650,7 +664,7 @@ void Renderer::Impl::_RenderFrame()
             Shader::Stage::Code { TemporalAccumulationShaderCode, "TemporalAccumulation();" }));
         Renderer::GetImpl()->AddComponent(TemporalAccumulationShader);
     }
-    fBuffer->bind();
+    OpenGL::Framebuffer::Bind(fBuffer);
     glDisable(GL_BLEND);
     TemporalAccumulationShader->Use()
         .SetTexture("in_PreviousColor", Renderer::PreviousRenderBuffer()->GetColorBuffer(0))
@@ -658,7 +672,7 @@ void Renderer::Impl::_RenderFrame()
         .SetTexture("in_CurrentColor", oBuffer->GetColorBuffer(0));
     Renderer::Render(Renderer::DisplayQuad(), true);
     TemporalAccumulationShader->Done();
-    fBuffer->BlitTo(nullptr, GL_COLOR_BUFFER_BIT);
+    fBuffer->BlitTo(nullptr, BufferMask::ColorBits);
     Window::Swap();
 }
 

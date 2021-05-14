@@ -6,14 +6,14 @@
 */
 
 #include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
-#include "Framebuffer.hpp"
 #include "Light/Light.hpp"
 #include "Light/LightProbe.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/Mesh.hpp"
 #include "Node.hpp"
 #include "Renderer/Light/LightRenderer.hpp"
-#include "Renderer/MeshRenderer.hpp"
+#include "Renderer/Surface/SurfaceRenderer.hpp"
 #include "Scene/Scene.hpp"
+#include "Texture/Framebuffer.hpp"
 #include "Texture/Texture2D.hpp"
 
 namespace Renderer {

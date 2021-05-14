@@ -16,9 +16,9 @@
 #include "Camera/Camera.hpp"
 #include "Debug.hpp"
 #include "Material/Material.hpp"
-#include "Mesh/Geometry.hpp"
-#include "Mesh/Mesh.hpp"
-#include "Mesh/MeshSkin.hpp"
+#include "Surface/Geometry.hpp"
+#include "Surface/Mesh.hpp"
+#include "Surface/MeshSkin.hpp"
 #include "Parser/InternalTools.hpp"
 #include "Scene/Scene.hpp"
 #include "Texture/Texture2D.hpp"
@@ -112,6 +112,8 @@ auto GetFilter(int filter) {
         return TextureSampler::Filter::NearestMipmapLinear;
     case 9987:
         return TextureSampler::Filter::LinearMipmapLinear;
+    default:
+        throw std::runtime_error("Unknown Texture filter");
     }
 }
 

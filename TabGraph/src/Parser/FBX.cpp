@@ -7,8 +7,8 @@
 
 #include "Assets/AssetsParser.hpp"
 #include "Material/Material.hpp"
-#include "Mesh/Geometry.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/Geometry.hpp"
+#include "Surface/Mesh.hpp"
 #include "Parser/FBX/FBXDocument.hpp"
 #include "Parser/FBX/FBXNode.hpp"
 #include "Parser/FBX/FBXObject.hpp"

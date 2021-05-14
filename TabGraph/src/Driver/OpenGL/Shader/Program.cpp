@@ -8,11 +8,13 @@
 #include "Driver/OpenGL/Shader/Global.hpp"
 #include "Driver/OpenGL/Texture/Texture.hpp"
 #include "Driver/OpenGL/Texture/TextureSampler.hpp"
+#include "Driver/OpenGL/Texture/Framebuffer.hpp"
 #include "Shader/Stage.hpp"
 
 #include <array>
 #include <glm/glm.hpp>
 #include <string>
+
 
 static inline bool IsTextureType(GLenum type)
 {

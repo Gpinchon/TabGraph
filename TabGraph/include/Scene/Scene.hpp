@@ -41,7 +41,6 @@ public:
     Scene(const Scene& other);
     static std::shared_ptr<Scene> Current();
     static void SetCurrent(std::shared_ptr<Scene>);
-    //virtual void Render(const Renderer::Options&);
     std::shared_ptr<Camera> CurrentCamera() const;
     void SetCurrentCamera(std::shared_ptr<Camera>);
     ~Scene() = default;

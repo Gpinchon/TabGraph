@@ -18,8 +18,8 @@
 #include "Buffer/BufferView.hpp"
 #include "Engine.hpp" // for M_PI
 #include "Material/Material.hpp" // for Material
-#include "Mesh/Geometry.hpp" // for Geometry, CVEC4
-#include "Mesh/Mesh.hpp" // for Mesh
+#include "Surface/Geometry.hpp" // for Geometry, CVEC4
+#include "Surface/Mesh.hpp" // for Mesh
 #include "Parser/InternalTools.hpp" // for count_char, split_...
 #include "Physics/BoundingAABB.hpp" // for BoundingAABB
 #include "Physics/BoundingElement.hpp" // for BoundingElement

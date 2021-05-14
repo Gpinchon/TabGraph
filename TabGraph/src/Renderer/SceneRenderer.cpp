@@ -8,6 +8,10 @@
 #include "Renderer/SceneRenderer.hpp"
 #include "Scene/Scene.hpp"
 
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
+//#endif
+
 #include <glm/glm.hpp>
 
 namespace Renderer {

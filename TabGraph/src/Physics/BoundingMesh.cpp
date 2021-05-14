@@ -6,11 +6,13 @@
 */
 
 #include "Physics/BoundingMesh.hpp"
-#include "Mesh/Geometry.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/Geometry.hpp"
+#include "Surface/Mesh.hpp"
+
+#include <glm/gtc/matrix_inverse.hpp>
 
 BoundingMesh::BoundingMesh(const std::shared_ptr<Mesh>& geometry)
-    : BoundingElement(Geometry)
+    : BoundingElement(BoundingElement::Type::Geometry)
 {
     SetMesh(geometry);
 }

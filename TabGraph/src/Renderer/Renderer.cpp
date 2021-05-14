@@ -6,20 +6,18 @@
 */
 
 #include "Renderer/Renderer.hpp"
+#include "Renderer/SceneRenderer.hpp"
 #include "Camera/Camera.hpp" // for Camera
 #include "Config.hpp" // for Config
 #include "Debug.hpp"
 #include "Engine.hpp" // for UpdateMutex, SwapInterval
-#include "Framebuffer.hpp" // for Framebuffer
 #include "Light/Light.hpp" // for Light, Directionnal, Point
-#include "Mesh/Geometry.hpp" // for Geometry
-#include "Renderer/GeometryRenderer.hpp"
-#include "Renderer/SceneRenderer.hpp"
+#include "Surface/Geometry.hpp" // for Geometry
 #include "Scene/Scene.hpp"
 #include "Shader/Global.hpp" // for Shader::Global
 #include "Shader/Program.hpp" // for Shader::Program
-#include "Skybox.hpp" // for Skybox
-#include "Skybox.hpp"
+#include "Surface/Skybox.hpp" // for Skybox
+#include "Texture/Framebuffer.hpp" // for Framebuffer
 #include "Texture/Texture2D.hpp" // for Texture2D
 #include "Texture/TextureCubemap.hpp"
 #include "Window.hpp" // for Window

@@ -15,8 +15,11 @@
 #include "Physics/BoundingAABB.hpp"
 #include "Physics/PhysicsEngine.hpp"
 #include "Physics/RigidBody.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Skybox.hpp"
+#include "Surface/Skybox.hpp"
+
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
+//#endif
 
 #include <algorithm>
 #include <iostream>

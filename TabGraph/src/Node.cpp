@@ -8,7 +8,7 @@
 #include "Node.hpp"
 #include "Debug.hpp"
 #include "Engine.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/Mesh.hpp"
 #include "Physics/BoundingAABB.hpp"
 #include "Physics/RigidBody.hpp"
 #include "Renderer/Renderer.hpp"

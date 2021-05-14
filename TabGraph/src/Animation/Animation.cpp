@@ -7,7 +7,7 @@
 #include "Animation/Animation.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Debug.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/Mesh.hpp"
 #include "Node.hpp"
 #include "Engine.hpp"
 

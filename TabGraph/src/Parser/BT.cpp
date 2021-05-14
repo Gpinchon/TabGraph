@@ -10,7 +10,6 @@
 #include "Assets/Image.hpp"
 #include "Assets/AssetsParser.hpp" // for TextureParser
 #include "Parser/InternalTools.hpp" // for BTHeader, openFile
-#include <GL/glew.h> // for GLenum, GL_FLOAT, GL_HALF_FLOAT
 #include <glm/glm.hpp> // for glm::vec2
 #include <memory> // for allocator, shared_ptr
 #include <stdexcept> // for runtime_error

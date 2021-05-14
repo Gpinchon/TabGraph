@@ -3,7 +3,7 @@
 #include "BoundingMesh.hpp"
 #include "BoundingPlane.hpp"
 #include "BoundingSphere.hpp"
-#include "Mesh/Geometry.hpp"
+#include "Surface/Geometry.hpp"
 #include <glm/gtx/component_wise.hpp>
 
 inline Intersection IntersectFunction(const glm::vec3& point, const BoundingAABB& box)

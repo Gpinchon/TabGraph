@@ -52,14 +52,14 @@ Intersection BoundingElement::Intersect(const std::shared_ptr<BoundingElement> &
 Intersection BoundingElement::IntersectError(const std::shared_ptr<BoundingElement> &other) const
 {
 	std::cerr << "[ERROR] : Intersection function not implemented between types "
-		<< GetType() << " and " << other->GetType() << std::endl;
+		<< int(GetType()) << " and " << int(other->GetType()) << std::endl;
 	return Intersection(false, NAN);
 }
 
 Intersection BoundingElement::IntersectRay(const Ray &) const
 {
 	std::cerr << "[ERROR] : Intersection function not implemented between type "
-		<< GetType() << " and Ray"<< std::endl;
+		<< int(GetType()) << " and Ray"<< std::endl;
 	return Intersection(false, NAN);
 }
 /*
