@@ -15,9 +15,8 @@ class Asset;
 
 /** A view into a buffer generally representing a subset of the buffer. */
 class BufferView : public Component {
-    class ImplGPU;
 public:
-    class Handle;
+    class ImplGPU;
     enum class Storage {
         /**
          * @brief GPU only buffer, accessible through mapping functions
@@ -81,7 +80,7 @@ public:
         Mode mode;
         MappingMode persistentMappingMode;
     };
-    PRIVATEPROPERTY(std::shared_ptr<ImplGPU>, ImplGPU, nullptr);
+    READONLYPROPERTY(std::shared_ptr<ImplGPU>, ImplGPU, nullptr);
     READONLYPROPERTY(Storage, Storage, Storage::GPU);
     PROPERTY(MappingMode, PersistentMappingMode, MappingMode::None);
     PROPERTY(MappingMode, MappingMode, MappingMode::None);
@@ -91,8 +90,6 @@ public:
     PROPERTY(Type, Type, Type::Unknown);
     PROPERTY(Mode, Mode, Mode::Default);
     READONLYPROPERTY(bool, Loaded, false);
-    //READONLYPROPERTY(size_t, MappingStart, 0);
-    //READONLYPROPERTY(size_t, MappingEnd, 0);
 
 public:
     BufferView();
@@ -104,7 +101,6 @@ public:
     BufferView(std::shared_ptr<Asset> buffer, Mode = Mode::Default);
     BufferView(size_t byteLength, std::shared_ptr<Asset> buffer, Mode = Mode::Default);
     BufferView(size_t byteLength, Mode = Mode::Default);
-    const Handle& GetHandle() const;
     std::byte* Get(size_t index, size_t size);
     void Set(std::byte* data, size_t index, size_t size);
     std::byte* MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate = false);
@@ -117,7 +113,6 @@ public:
     void Load();
     void Unload();
     static void BindNone(Type bufferType);
-
     void SetStorage(Storage storage);
 
 private:

@@ -39,18 +39,12 @@ BufferView::BufferView(size_t byteLength, Mode mode) : BufferView()
     SetMode(mode);
 }
 
-const BufferView::Handle& BufferView::GetHandle() const
-{
-    assert(GetStorage() != Storage::CPU);
-    return _GetImplGPU()->GetHandle();
-}
-
 std::byte* BufferView::Get(size_t index, size_t size)
 {
     if (GetStorage() == Storage::CPU)
         return _rawData.data() + index;
     else
-        return _GetImplGPU()->Get(*this, index, size);
+        return GetImplGPU()->Get(*this, index, size);
 }
 
 void BufferView::Set(std::byte* data, size_t index, size_t size)
@@ -58,48 +52,48 @@ void BufferView::Set(std::byte* data, size_t index, size_t size)
     if (GetStorage() == Storage::CPU)
         std::copy(data, data + size, _rawData.data() + index);
     else
-        _GetImplGPU()->Set(*this, data, index, size);
+        GetImplGPU()->Set(*this, data, index, size);
 }
 
 std::byte* BufferView::MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate)
 {
     assert(mappingMode != MappingMode::None);
     assert(GetStorage() != Storage::CPU);
-    return _GetImplGPU()->MapRange(*this, mappingMode, start, end, invalidate);
+    return GetImplGPU()->MapRange(*this, mappingMode, start, end, invalidate);
 }
 
 void BufferView::Unmap()
 {
     assert(GetStorage() != Storage::CPU);
-    _GetImplGPU()->Unmap(*this);
+    GetImplGPU()->Unmap(*this);
 }
 
 void BufferView::FlushRange(size_t start, size_t end)
 {
     assert(GetType() != Type::Unknown);
     assert(GetStorage() != Storage::CPU);
-    _GetImplGPU()->FlushRange(*this, start, end);
+    GetImplGPU()->FlushRange(*this, start, end);
 }
 
 void BufferView::Bind()
 {
     assert(GetType() != Type::Unknown);
     assert(GetStorage() != Storage::CPU);
-    _GetImplGPU()->Bind(*this);
+    GetImplGPU()->Bind(*this);
 }
 
 size_t BufferView::GetMappingEnd()
 {
     assert(GetType() != Type::Unknown);
     assert(GetStorage() != Storage::CPU);
-    return _GetImplGPU()->GetMappingEnd();
+    return GetImplGPU()->GetMappingEnd();
 }
 
 size_t BufferView::GetMappingStart()
 {
     assert(GetType() != Type::Unknown);
     assert(GetStorage() != Storage::CPU);
-    return _GetImplGPU()->GetMappingStart();
+    return GetImplGPU()->GetMappingStart();
 }
 
 void BufferView::BindNone(BufferView::Type type)
@@ -134,7 +128,7 @@ void BufferView::Load()
             _rawData = std::vector<std::byte>(GetByteLength());
     }
     else
-        _GetImplGPU()->Load(*this, bufferData);
+        GetImplGPU()->Load(*this, bufferData);
     if (bufferAsset != nullptr)
         RemoveComponent<Asset>(bufferAsset);
     _SetLoaded(true);
@@ -147,26 +141,26 @@ void BufferView::Unload()
         _rawData.shrink_to_fit();
     }
     else
-        _GetImplGPU()->Unload();
+        GetImplGPU()->Unload();
     _SetLoaded(false);
 }
 
 void BufferView::SetStorage(Storage storage)
 {
     if (storage == Storage::GPU) {
-        if (_GetImplGPU() == nullptr)
+        if (GetImplGPU() == nullptr)
             _SetImplGPU(std::make_shared<BufferView::ImplGPU>());
         if (GetLoaded()) {
-            _GetImplGPU()->Load(*this, _rawData.data());
+            GetImplGPU()->Load(*this, _rawData.data());
             _rawData.clear();
             _rawData.shrink_to_fit();
         }
     }
     else if (storage == Storage::CPU) {
         //repatriate data from GPU if possible
-        if (_GetImplGPU() != nullptr) {
+        if (GetImplGPU() != nullptr) {
             if (GetLoaded() && GetMode() != Mode::Immutable) {
-                auto data{ _GetImplGPU()->MapRange(*this, MappingMode::ReadOnly, 0, GetByteLength()) };
+                auto data{ GetImplGPU()->MapRange(*this, MappingMode::ReadOnly, 0, GetByteLength()) };
                 _rawData = { data, data + GetByteLength() };
             }
             _SetImplGPU(nullptr);

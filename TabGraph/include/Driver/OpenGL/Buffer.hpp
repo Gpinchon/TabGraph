@@ -9,21 +9,15 @@
 #include "Buffer/BufferView.hpp"
 #include "Driver/OpenGL/ObjectHandle.hpp"
 
-class BufferView::Handle : public OpenGL::ObjectHandle {
-public:
-    Handle(uint32_t v) : OpenGL::ObjectHandle(v) {};
-};
-
 class BufferView::ImplGPU {
-    //PROPERTY(size_t, ByteLength, 0);
-    //READONLYPROPERTY(Handle, Handle, 0);
     READONLYPROPERTY(MappingMode, MappingMode, MappingMode::None);
     READONLYPROPERTY(size_t, MappingStart, 0);
     READONLYPROPERTY(size_t, MappingEnd, 0);
     READONLYPROPERTY(bool, Loaded, false);
 
 public:
-    const Handle& GetHandle() const;
+    using Handle = OpenGL::ObjectHandle;
+    const Handle GetHandle() const;
     std::byte* GetMappingPtr();
     std::byte* MapRange(const BufferView& buffer, MappingMode mappingMode, size_t start, size_t end, bool invalidate = false);
     std::byte* Get(const BufferView& buffer, size_t index, size_t size);
@@ -42,4 +36,8 @@ private:
     size_t _flushEnd { 0 };
     std::byte* _mappingPointer { nullptr };
     Handle _handle { 0 };
+};
+
+namespace OpenGL {
+BufferView::ImplGPU::Handle GetHandle(std::shared_ptr<BufferView> buffer);
 };

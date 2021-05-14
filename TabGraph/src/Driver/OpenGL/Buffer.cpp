@@ -34,7 +34,7 @@ static inline auto GLMode(BufferView::Mode mode) {
     return ModeLUT.at(int(mode));
 }
 
-const BufferView::Handle& BufferView::ImplGPU::GetHandle() const
+const BufferView::ImplGPU::Handle BufferView::ImplGPU::GetHandle() const
 {
     return _handle;
 }
@@ -167,4 +167,9 @@ void BufferView::ImplGPU::BindNone(Type type)
 void BufferView::ImplGPU::_SetHandle(uint32_t value)
 {
     _handle = value;
+}
+
+BufferView::ImplGPU::Handle OpenGL::GetHandle(std::shared_ptr<BufferView> buffer)
+{
+    return buffer->GetImplGPU()->GetHandle();
 }
