@@ -2,15 +2,14 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-01 19:48:53
+* @Last Modified time: 2021-05-12 14:34:34
 */
 
 #pragma once
 
 #include "Buffer/BufferAccessor.hpp"
 #include "Buffer/BufferView.hpp"
-#include "Node.hpp" // for RenderAll, RenderMod, Renderable
-#include "Object.hpp"
+#include "Surface/Surface.hpp"
 
 #include <array>
 #include <glm/glm.hpp> // for glm::vec2, s_vec2, s_vec3, glm::vec3
@@ -42,7 +41,7 @@ private:
     std::array<std::shared_ptr<BufferAccessor>, GeometryMorthTarget::MaxChannels> _morphChannels;
 };
 
-class Geometry : public Component {
+class Geometry : public Surface {
 public:
     enum class AccessorKey {
         Invalid = -1,
@@ -76,12 +75,12 @@ public:
     PROPERTY(bool, Loaded, false);
 
 public:
-    Renderer::GeometryRenderer& GetRenderer();
     Geometry();
     Geometry(const std::string& name);
     Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t> indices, BufferView::Mode = BufferView::Mode::Immutable);
     Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, BufferView::Mode = BufferView::Mode::Immutable);
     Geometry(const Geometry& other);
+    ~Geometry();
 
     static Geometry::AccessorKey GetAccessorKey(const std::string& key);
     glm::vec3 Centroid() const;
@@ -112,7 +111,6 @@ private:
     std::array<std::shared_ptr<BufferAccessor>, size_t(Geometry::AccessorKey::MaxAccessorKey)> _accessors;
     std::shared_ptr<BufferAccessor> _indices { nullptr };
     std::vector<GeometryMorthTarget> _morphTargets;
-    std::unique_ptr<Renderer::GeometryRenderer> _renderer;
 };
 
 template <typename T>

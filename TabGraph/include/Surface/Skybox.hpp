@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Component.hpp" // for Object
+#include "Surface/Surface.hpp" // for Object
 #include <memory> // for shared_ptr, weak_ptr
 #include <string> // for string
 #include <vector> // for vector
@@ -21,7 +21,7 @@ namespace Renderer {
 class SkyboxRenderer;
 }
 
-class Skybox : public Component {
+class Skybox : public Surface {
 public:
     PROPERTY(std::shared_ptr<TextureCubemap>, Texture, nullptr);
 
@@ -31,7 +31,6 @@ public:
     Skybox(const Skybox& other);
     void Load();
     void Unload();
-    Renderer::SkyboxRenderer& GetRenderer();
 
 protected:
     virtual std::shared_ptr<Component> _Clone() override
@@ -39,5 +38,4 @@ protected:
         auto env(Component::Create<Skybox>(*this));
         return env;
     }
-    std::unique_ptr<Renderer::SkyboxRenderer> _renderer;
 };

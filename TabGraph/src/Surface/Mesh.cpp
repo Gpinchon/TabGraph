@@ -2,13 +2,16 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-01 20:19:31
+* @Last Modified time: 2021-05-12 16:31:00
 */
 
-#include "Mesh/Mesh.hpp"
+#include "Surface/Mesh.hpp"
 #include "Material/Material.hpp"
-#include "Mesh/Geometry.hpp"
-#include "Renderer/MeshRenderer.hpp"
+#include "Surface/Geometry.hpp"
+
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/Surface/MeshRenderer.hpp"
+//#endif
 
 #include <memory> // for shared_ptr
 #include <stddef.h> // for size_t
@@ -22,24 +25,23 @@ Mesh::Mesh()
 }
 
 Mesh::Mesh(const std::string& name)
-    : Component(name)
-    , _renderer(new Renderer::MeshRenderer(*this))
+    : Surface(name)
 {
+    _renderer.reset(new Renderer::MeshRenderer(*this));
     meshNbr++;
 }
 
 Mesh::Mesh(const Mesh& other)
-    : Component(other)
+    : Surface(other)
     , _geometries(other._geometries)
-    , _renderer(new Renderer::MeshRenderer(*this))
 {
+    _renderer.reset(new Renderer::MeshRenderer(*this));
     SetGeometryTransform(other.GetGeometryTransform());
     meshNbr++;
 }
 
-Renderer::MeshRenderer& Mesh::GetRenderer() const
+Mesh::~Mesh()
 {
-    return *_renderer;
 }
 
 void Mesh::AddGeometry(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material)
@@ -49,14 +51,14 @@ void Mesh::AddGeometry(std::shared_ptr<Geometry> geometry, std::shared_ptr<Mater
 
 std::shared_ptr<Material> Mesh::GetGeometryMaterial(uint32_t geometryIndex) const
 {
-    auto itr{ _geometries.find(geometryIndex) };
+    auto itr { _geometries.find(geometryIndex) };
     return itr == _geometries.end() ? nullptr : GetComponent<Material>(itr->second);
 }
 
 std::shared_ptr<Material> Mesh::GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const
 {
-    auto geometryIndex{ GetComponentIndex<Geometry>(geometry) };
-    auto itr{ _geometries.find(geometryIndex) };
+    auto geometryIndex { GetComponentIndex<Geometry>(geometry) };
+    auto itr { _geometries.find(geometryIndex) };
     return itr == _geometries.end() ? nullptr : GetComponent<Material>(itr->second);
 }
 

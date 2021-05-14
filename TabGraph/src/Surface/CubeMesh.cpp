@@ -5,10 +5,10 @@
 * @Last Modified time: 2021-01-11 08:46:21
 */
 
-#include "Mesh/CubeMesh.hpp"
+#include "Surface/CubeMesh.hpp"
 #include "Material/Material.hpp" // for Material
-#include "Mesh/Geometry.hpp" // for CVEC4, Geometry
-#include "Mesh/Mesh.hpp" // for Mesh
+#include "Surface/Geometry.hpp" // for CVEC4, Geometry
+#include "Surface/Mesh.hpp" // for Mesh
 #include <vector> // for vector
 
 std::shared_ptr<Geometry> CubeMesh::CreateGeometry(const std::string& name, glm::vec3 size)

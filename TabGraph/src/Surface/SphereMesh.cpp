@@ -5,10 +5,10 @@
 * @Last Modified time: 2020-08-09 11:38:44
 */
 
-#include "Mesh/SphereMesh.hpp"
+#include "Surface/SphereMesh.hpp"
 #include "Material/Material.hpp"
-#include "Mesh/Geometry.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/Geometry.hpp"
+#include "Surface/Mesh.hpp"
 #include <map>
 
 #ifndef M_PI

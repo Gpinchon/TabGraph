@@ -1,4 +1,4 @@
-#include "Mesh/MeshSkin.hpp"
+#include "Surface/MeshSkin.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Node.hpp"
 

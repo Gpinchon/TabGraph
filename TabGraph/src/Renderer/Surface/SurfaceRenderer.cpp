@@ -1,0 +1,38 @@
+/*
+* @Author: gpinchon
+* @Date:   2021-05-12 15:59:40
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-05-12 18:09:11
+*/
+
+#include "Renderer/Surface/SurfaceRenderer.hpp"
+#include "Surface/Surface.hpp"
+
+#include <glm/mat4x4.hpp>
+
+namespace Renderer {
+void OnFrameBegin(std::shared_ptr<Surface> surface, uint32_t frameNbr, float delta)
+{
+    surface->GetRenderer().OnFrameBegin(frameNbr, delta);
+}
+
+void Render(std::shared_ptr<Surface> surface, const Options& options)
+{
+    Render(surface, options, glm::mat4(1));
+}
+
+void Render(std::shared_ptr<Surface> surface, const Options& options, const glm::mat4& parentTransform)
+{
+    Render(surface, options, parentTransform, glm::mat4(1));
+}
+
+void Render(std::shared_ptr<Surface> surface, const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform)
+{
+    surface->GetRenderer().Render(options, parentTransform, parentLastTransform);
+}
+
+void OnFrameEnd(std::shared_ptr<Surface> surface, uint32_t frameNbr, float delta)
+{
+    surface->GetRenderer().OnFrameEnd(frameNbr, delta);
+}
+};

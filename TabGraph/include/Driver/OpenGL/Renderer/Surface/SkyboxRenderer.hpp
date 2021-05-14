@@ -6,6 +6,8 @@
 */
 #pragma once
 
+#include "Renderer/Surface/SurfaceRenderer.hpp"
+
 #include <GL/glew.h>
 #include <array>
 #include <glm/glm.hpp>
@@ -19,11 +21,14 @@ class Program;
 
 namespace Renderer {
 struct Options;
-class SkyboxRenderer {
+class SkyboxRenderer : public SurfaceRenderer {
 public:
     SkyboxRenderer(Skybox&);
     SkyboxRenderer(SkyboxRenderer&) = delete;
     void Render(const Options& options);
+    virtual void OnFrameBegin(uint32_t frameNbr, float delta) override;
+    virtual void Render(const::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) override;
+    virtual void OnFrameEnd(uint32_t frameNbr, float delta) override;
 
 private:
     std::shared_ptr<Shader::Program> _shader;
@@ -31,6 +36,6 @@ private:
     std::array<std::shared_ptr<TextureBuffer>, 2> _jointMatrices{ nullptr };
     glm::mat4 _prevTransformMatrix{ 1 };
     int _jointMatricesIndex{ 0 };
-    Skybox& _skybox;
+    Skybox& _skybox;    
 };
 };

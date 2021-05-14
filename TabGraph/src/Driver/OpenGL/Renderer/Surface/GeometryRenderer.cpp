@@ -5,11 +5,11 @@
 * @Last Modified time: 2021-04-12 18:39:32
 */
 
-#include "Driver/OpenGL/Renderer/GeometryRenderer.hpp"
+#include "Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Driver/OpenGL/Buffer.hpp"
 #include "Driver/OpenGL/VertexArray.hpp"
-#include "Mesh/Geometry.hpp"
+#include "Surface/Geometry.hpp"
 
 auto GLDrawingMode(Geometry::DrawingMode drawingMode)
 {
@@ -94,5 +94,9 @@ void GeometryRenderer::Render(bool doubleSided)
 
 void GeometryRenderer::OnFrameEnd(uint32_t frameNbr, float delta)
 {
+}
+void GeometryRenderer::Render(const::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform)
+{
+    Render();
 }
 };

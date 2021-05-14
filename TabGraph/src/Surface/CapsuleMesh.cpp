@@ -4,10 +4,10 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2020-08-09 19:51:52
 */
-#include "Mesh/CapsuleMesh.hpp"
+#include "Surface/CapsuleMesh.hpp"
 #include "Material/Material.hpp"
-#include "Mesh/Geometry.hpp"
-#include "Mesh/Mesh.hpp"
+#include "Surface/Geometry.hpp"
+#include "Surface/Mesh.hpp"
 #include <glm/gtc/constants.hpp>
 
 std::vector<glm::vec3> getUnitCircleVertices(int sectorCount)

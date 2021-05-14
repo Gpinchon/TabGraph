@@ -2,10 +2,10 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-23 01:10:30
+* @Last Modified time: 2021-05-12 16:30:16
 */
 
-#include "Mesh/Geometry.hpp"
+#include "Surface/Geometry.hpp"
 #include "Assets/Asset.hpp"
 #include "Assets/BinaryData.hpp"
 #include "Buffer/BufferAccessor.hpp"
@@ -13,23 +13,21 @@
 #include "Camera/Camera.hpp" // for Camera
 #include "Debug.hpp"
 #include "Physics/BoundingAABB.hpp" // for AABB
-#include "Renderer/GeometryRenderer.hpp"
 #include "Tools/Tools.hpp"
+
+//#ifdef OPENGL
+#include "Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp"
+//#endif
 
 #include <algorithm>
 
 static size_t geometryNbr(0);
 
-Renderer::GeometryRenderer& Geometry::GetRenderer()
-{
-    return *_renderer;
-}
-
 Geometry::Geometry(const std::string& name)
-    : Component(name)
+    : Surface(name)
     , _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(0)))
-    , _renderer(new Renderer::GeometryRenderer(*this))
 {
+    _renderer.reset(new Renderer::GeometryRenderer(*this));
     geometryNbr++;
 }
 
@@ -39,14 +37,18 @@ Geometry::Geometry()
 }
 
 Geometry::Geometry(const Geometry& other)
-    : Component(other)
-    , _renderer(new Renderer::GeometryRenderer(*this))
+    : Surface(other)
 {
+    _renderer.reset(new Renderer::GeometryRenderer(*this));
     _centroid = other._centroid;
     _bounds = std::static_pointer_cast<BoundingAABB>(other._bounds->Clone());
     _accessors = other._accessors;
     _indices = other._indices;
     _morphTargets = other._morphTargets;
+}
+
+Geometry::~Geometry()
+{
 }
 
 Geometry::Geometry(

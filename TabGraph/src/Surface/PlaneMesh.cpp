@@ -5,10 +5,10 @@
 * @Last Modified time: 2021-01-11 08:46:18
 */
 
-#include "Mesh/PlaneMesh.hpp"
+#include "Surface/PlaneMesh.hpp"
 #include "Material/Material.hpp" // for Material
-#include "Mesh/Geometry.hpp" // for CVEC4, Geometry
-#include "Mesh/Mesh.hpp" // for Mesh
+#include "Surface/Geometry.hpp" // for CVEC4, Geometry
+#include "Surface/Mesh.hpp" // for Mesh
 #include <vector> // for vector
 
 std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size, unsigned subdivision)

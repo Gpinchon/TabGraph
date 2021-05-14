@@ -5,13 +5,11 @@
 * @Last Modified time: 2021-05-04 20:02:25
 */
 
-//#ifdef OPENGL
-#include "Driver/OpenGL/Renderer/SkyboxRenderer.hpp"
-//#endif
-#include "Renderer/GeometryRenderer.hpp"
+#include "Driver/OpenGL/Renderer/Surface/SkyboxRenderer.hpp"
+#include "Renderer/Surface/GeometryRenderer.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Shader/Program.hpp"
-#include "Skybox.hpp"
+#include "Surface/Skybox.hpp"
 #include "Texture/TextureCubemap.hpp"
 
 static inline auto EnvShader()
@@ -41,5 +39,18 @@ void SkyboxRenderer::Render(const Renderer::Options& options)
     _shader->Use().SetTexture("Skybox", _skybox.GetTexture());
     Renderer::Render(Renderer::DisplayQuad(), true);
     _shader->Done();
+}
+
+void SkyboxRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
+{
+}
+
+void SkyboxRenderer::Render(const::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform)
+{
+    Render(options);
+}
+
+void SkyboxRenderer::OnFrameEnd(uint32_t frameNbr, float delta)
+{
 }
 };
