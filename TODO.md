@@ -13,6 +13,7 @@
  - Optimize Scene rendering system
 
 ## To create from ground up
+ - Shader SPIR-V compiler
  - Assets manager
  - Assets packing system
  - Raytraced primitives rendering (blobs/spheres/cubes...)
