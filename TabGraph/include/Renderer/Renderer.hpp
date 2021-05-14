@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-02 21:35:34
+* @Last Modified time: 2021-05-11 00:15:57
 */
 
 #pragma once
@@ -50,12 +50,12 @@ struct Options {
     std::shared_ptr<Scene> scene;
     uint32_t frameNumber;
 };
-
 class Context;
-void Init();
-Context& GetContext();
 
 uint32_t FrameNumber();
+
+void Init();
+Context& GetContext();
 
 const std::shared_ptr<Geometry> DisplayQuad();
 

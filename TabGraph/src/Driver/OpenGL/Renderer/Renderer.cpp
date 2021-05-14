@@ -54,7 +54,6 @@ static inline auto CreateDeferredRenderBuffer(const std::string& name, const glm
     buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RG)); //Velocity
     buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); // Color (Unlit/Emissive/Final Color)
     buffer->SetDepthBuffer(depthStencilBuffer);
-    //buffer->SetStencilBuffer(depthStencilBuffer);
     buffer->GetColorBuffer(0)->SetAutoMipMap(false);
     buffer->GetColorBuffer(1)->SetAutoMipMap(false);
     buffer->GetColorBuffer(2)->SetAutoMipMap(false);

@@ -37,7 +37,6 @@ void SceneRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
     if (frameNbr % 5 == 0)
         return;
     for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
-        lightProbe.GetReflectionBuffer()->Load();
         for (auto& sh : lightProbe.GetDiffuseSH())
             sh = glm::vec3(0);
     }
@@ -46,7 +45,6 @@ void SceneRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
     for (const auto& light : _scene.GetComponents<Light>()) {
         for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
             Renderer::UpdateLightProbe(light, lightProbe);
-            //light->DrawProbe(lightProbe);
         }
         if (first) {
             glEnable(GL_BLEND);
