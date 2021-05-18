@@ -2,44 +2,41 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-11 08:48:16
+* @Last Modified time: 2021-05-18 16:06:48
 */
 
 #pragma once
 
-#include "Node.hpp" // for Node
-
-#include <GL/glew.h> // for GLbitfield, GL_ALL_BARRIER_BITS
+#include <glm/fwd.hpp> // for ivec3
 #include <memory> // for shared_ptr, weak_ptr
-#include <glm/fwd.hpp>  // for ivec3
-#include <string>      // for string
+#include <string> // for string
 
 namespace Shader {
-    class Program;
+class Program;
 }
 class Texture;
 
-class ComputeObject : public Node {
+class ComputeObject {
 public:
-    ComputeObject(const std::string& name, std::shared_ptr<Shader::Program> computeShader = nullptr);
-    virtual std::shared_ptr<Shader::Program> shader();
-    virtual std::shared_ptr<Texture> in_texture();
-    virtual std::shared_ptr<Texture> out_texture();
-    virtual void set_in_texture(std::shared_ptr<Texture>);
-    virtual void set_out_texture(std::shared_ptr<Texture>);
-    virtual void set_shader(std::shared_ptr<Shader::Program>);
-    //virtual void load();
-    virtual void run();
-    glm::ivec3 num_groups();
-    GLbitfield memory_barrier();
-    void set_num_groups(glm::ivec3);
-    void set_memory_barrier(GLbitfield);
+    enum class MemoryBarrier {
+        Unknown = -1,
+        MaxValue
+    };
+    class Impl;
+    ComputeObject(std::shared_ptr<Shader::Program> computeShader = nullptr);
+    ~ComputeObject();
+    std::shared_ptr<Shader::Program> GetShader() const;
+    std::shared_ptr<Texture> GetInputTexture() const;
+    std::shared_ptr<Texture> GetOutputTexture() const;
+    glm::ivec3 GetNumGroups() const;
+    MemoryBarrier GetMemoryBarrier() const;
+    void SetShader(std::shared_ptr<Shader::Program>);
+    void SetInputTexture(std::shared_ptr<Texture>);
+    void SetOutputTexture(std::shared_ptr<Texture>);
+    void SetNumGroups(glm::ivec3);
+    void SetMemoryBarrier(MemoryBarrier);
+    void Run();
 
 protected:
-    std::vector<std::shared_ptr<ComputeObject>> _compute_objects;
-    std::weak_ptr<Texture> _in_texture;
-    std::weak_ptr<Texture> _out_texture;
-    std::weak_ptr<Shader::Program> _shader;
-    GLbitfield _memory_barrier { GL_ALL_BARRIER_BITS };
-    glm::ivec3 _num_groups { 0, 0, 0 };
+    std::unique_ptr<Impl> _impl;
 };
