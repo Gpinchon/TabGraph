@@ -1,35 +1,34 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0074 NEW)
 
-#set(SDL2_BUILDING_LIBRARY ON)
+#[[Rendering API]]
+set(RenderingAPI "OpenGL" CACHE STRING
+  "Rendering API used at compile-time")
+set(RenderingAPIValues
+  "OpenGL;Vulkan;DirectX")
+set_property(CACHE RenderingAPI PROPERTY STRINGS ${RenderingAPIValues})
+add_compile_definitions(RENDERINGAPI=${RenderingAPI})
 
-#set(CMAKE_VERBOSE_MAKEFILE 1)
-#set(CMAKE_FIND_DEBUG_MODE ON)
+#[[UI Sub-System]]
+set(UISubSystem "NanoGUI" CACHE STRING
+  "UI Sub-System used at compile-time")
+set(UISubSystemValues
+  "NanoGUI;ImGUI")
+set_property(CACHE UISubSystem PROPERTY STRINGS ${UISubSystemValues})
+add_compile_definitions(UISUBSYSTEM=${UISubSystem})
+
+#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DDEBUG_MOD")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_MOD")
+set (CMAKE_CXX_FLAGS_RELEASE "-Ox")
+
 set(CMAKE_DEBUG_TARGET_PROPERTIES INCLUDE_DIRECTORIES)
 set(CMAKE_DEBUG_TARGET_PROPERTIES INTERFACE_INCLUDE_DIRECTORIES)
 
-set(TABGRAPH_HEADER_FILES 
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationChannel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/Animation.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationInterpolator.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationSampler.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/AssetsParser.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Asset.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/BinaryData.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Image.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Uri.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/brdfLUT.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferAccessor.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferView.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/Camera.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/FPSCamera.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/OrbitCamera.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Common.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Component.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/ComputeObject.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Config.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
+if (RenderingAPI STREQUAL "OpenGL")
+set(TABGRAPH_HEADER_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Global.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Program.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Renderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/SceneRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp
@@ -55,10 +54,67 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureSampler.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Framebuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Buffer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/ComputeObject.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Debug.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/ObjectHandle.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Global.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Program.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/VertexArray.hpp
+)
+
+set(TABGRAPH_SOURCE_FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Global.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Program.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Renderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SceneRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/GeometryRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/MeshRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/SkyboxRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/HDRLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/SkyLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/PointLightRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/PixelUtils.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture1D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture1DArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2DArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2DMultisample.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2DMultisampleArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture3D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureBuffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureCubemap.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureCubemapArray.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureRectangle.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureSampler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Framebuffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/ComputeObject.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/VertexArray.cpp
+)
+endif (RenderingAPI STREQUAL "OpenGL")
+
+set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationChannel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/Animation.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationInterpolator.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationSampler.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/AssetsParser.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Asset.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/BinaryData.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Image.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Uri.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/brdfLUT.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferAccessor.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/Camera.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/FPSCamera.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/OrbitCamera.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Common.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Component.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/ComputeObject.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Config.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Signal.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Events.hpp
@@ -141,7 +197,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Window.hpp
 )
 
-set(TABGRAPH_SOURCE_FILES 
+set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationChannel.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/Animation.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationInterpolator.cpp
@@ -159,34 +215,6 @@ set(TABGRAPH_SOURCE_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Renderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SceneRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/GeometryRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/MeshRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/SkyboxRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/HDRLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/SkyLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/PointLightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/PixelUtils.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture1D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture1DArray.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2DArray.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2DMultisample.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture2DMultisampleArray.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Texture3D.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureBuffer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureCubemap.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureCubemapArray.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureRectangle.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureSampler.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Framebuffer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Global.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Program.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/VertexArray.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Events.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/GameController.cpp
@@ -332,38 +360,36 @@ target_include_directories(TabGraphPlugins PRIVATE
 	"${RAPIDJSON_INCLUDE_DIR}"
 	)
 target_link_libraries(TabGraphPlugins PRIVATE TabGraph)
-#get_cmake_property(_variableNames VARIABLES)
-#list (SORT _variableNames)
-#foreach (_variableName ${_variableNames})
-#    message("${_variableName}=${${_variableName}}")
-#endforeach()
 
-FetchContent_Declare(
-	IMGUI
-	GIT_REPOSITORY	https://github.com/ocornut/imgui.git
-	GIT_TAG			v1.81
-)
-
-FetchContent_GetProperties(IMGUI)
-if(NOT IMGUI_POPULATED)
-	FetchContent_Populate(IMGUI)
-	message(STATUS "Fetched IMGUI to ${imgui_SOURCE_DIR}")
-	set(IMGUI_INCLUDE_DIR ${imgui_SOURCE_DIR})
-	set(IMGUI_SOURCE_FILES
-		${IMGUI_INCLUDE_DIR}/imgui.cpp
-		${IMGUI_INCLUDE_DIR}/imgui_draw.cpp
-		${IMGUI_INCLUDE_DIR}/imgui_tables.cpp
-		${IMGUI_INCLUDE_DIR}/imgui_widgets.cpp
-		${IMGUI_INCLUDE_DIR}/backends/imgui_impl_sdl.cpp
-		${IMGUI_INCLUDE_DIR}/backends/imgui_impl_opengl3.cpp
+if(UISubSystem EQUAL "ImGUI")
+	FetchContent_Declare(
+		IMGUI
+		GIT_REPOSITORY	https://github.com/ocornut/imgui.git
+		GIT_TAG			v1.81
 	)
-	add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
-	target_sources(TabGraph PRIVATE ${IMGUI_SOURCE_FILES})
-	target_include_directories(TabGraph PRIVATE
-		${IMGUI_INCLUDE_DIR}
-		${IMGUI_INCLUDE_DIR}/backends
-	)
-endif()
+	FetchContent_GetProperties(IMGUI)
+	if(NOT IMGUI_POPULATED)
+		FetchContent_Populate(IMGUI)
+		message(STATUS "Fetched IMGUI to ${imgui_SOURCE_DIR}")
+		set(IMGUI_INCLUDE_DIR ${imgui_SOURCE_DIR})
+		set(IMGUI_SOURCE_FILES
+			${IMGUI_INCLUDE_DIR}/imgui.cpp
+			${IMGUI_INCLUDE_DIR}/imgui_draw.cpp
+			${IMGUI_INCLUDE_DIR}/imgui_tables.cpp
+			${IMGUI_INCLUDE_DIR}/imgui_widgets.cpp
+			${IMGUI_INCLUDE_DIR}/backends/imgui_impl_sdl.cpp
+			${IMGUI_INCLUDE_DIR}/backends/imgui_impl_opengl3.cpp
+		)
+		if (RenderingAPI STREQUAL "OpenGL")
+			add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
+		endif (RenderingAPI STREQUAL "OpenGL")
+		target_sources(TabGraph PRIVATE ${IMGUI_SOURCE_FILES})
+		target_include_directories(TabGraph PRIVATE
+			${IMGUI_INCLUDE_DIR}
+			${IMGUI_INCLUDE_DIR}/backends
+		)
+	endif(NOT IMGUI_POPULATED)
+endif(UISubSystem EQUAL "ImGUI")
 
 target_link_libraries(TabGraph PUBLIC GLEW::GLEW)
 target_link_libraries(TabGraph PUBLIC imagehlp)

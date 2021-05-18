@@ -29,10 +29,6 @@ set(GLEW_USE_STATIC_LIBS ON)
 
 add_definitions(-DGLEW_STATIC)
 add_definitions(-DNOMINMAX)
-#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
-set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DDEBUG_MOD")
-set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_MOD")
-set (CMAKE_CXX_FLAGS_RELEASE "-Ox")
 
 include(cmake/FetchDependencies.cmake)
 
