@@ -32,21 +32,21 @@
 #pragma pack(1)
 struct t_bmp_info {
     uint32_t    header_size{ sizeof(t_bmp_info) };
-    int32_t     width;
-    int32_t     height;
-    uint16_t    color_planes;
-    uint16_t    bpp;
-    uint32_t    compression_method;
-    uint32_t    size;
-    int32_t     horizontal_resolution;
-    int32_t     vertical_resolution;
+    int32_t     width{ 0 };
+    int32_t     height{ 0 };
+    uint16_t    color_planes{ 0 };
+    uint16_t    bpp{ 0 };
+    uint32_t    compression_method{ 0 };
+    uint32_t    size{ 0 };
+    int32_t     horizontal_resolution{ 0 };
+    int32_t     vertical_resolution{ 0 };
     uint32_t    totalColors{ 0 };
     uint32_t    important_colors{ 0 };
 };
 
 struct t_bmp_header {
-    std::byte    type[2];
-    uint32_t     size;
+    std::byte    type[2]{ std::byte(0), std::byte(0) };
+    uint32_t     size{ 0 };
     std::byte    reserved1[2]{ std::byte(0), std::byte(0) };
     std::byte    reserved2[2]{ std::byte(0), std::byte(0) };
     uint32_t     data_offset{ sizeof(t_bmp_header) + sizeof(t_bmp_info) };
@@ -54,11 +54,11 @@ struct t_bmp_header {
 #pragma pack()
 
 struct t_bmp_parser {
-    FILE* fd;
+    FILE* fd{ nullptr };
     t_bmp_info info;
     t_bmp_header header;
     std::vector<std::byte> data { };
-    unsigned size_read;
+    unsigned size_read{ 0 };
 };
 
 static void prepare_header(t_bmp_header* header, t_bmp_info* info, std::shared_ptr<Image> t)
@@ -79,7 +79,7 @@ void SaveBMP(std::shared_ptr<Image> image, const std::string& imagepath)
 {
     t_bmp_header header;
     t_bmp_info info;
-    GLubyte* padding;
+    std::byte* padding = nullptr;
     int fd;
 
     prepare_header(&header, &info, image);
@@ -89,13 +89,16 @@ void SaveBMP(std::shared_ptr<Image> image, const std::string& imagepath)
     fd = open(imagepath.c_str(), O_RDWR | O_CREAT | O_BINARY,
         S_IRWXU | S_IRWXG | S_IRWXO);
 #endif
-    write(fd, &header, sizeof(t_bmp_header));
-    write(fd, &info, sizeof(t_bmp_info));
+    if (write(fd, &header, sizeof(t_bmp_header)) != sizeof(t_bmp_header))
+        throw std::runtime_error("Error while writing to " + imagepath);
+    if (write(fd, &info, sizeof(t_bmp_info)) != sizeof(t_bmp_info))
+        throw std::runtime_error("Error while writing to " + imagepath);
     for (auto y = 0u; y < image->GetSize().y; ++y) {
         for (auto x = 0u; x < image->GetSize().x; ++x) {
             auto floatColor{ image->GetColor(glm::ivec2(x, y)) };
             glm::vec<4, uint8_t> byteColor{ glm::clamp(floatColor, 0.f, 1.f) };
-            write(fd, &byteColor[0], 4);
+            if (write(fd, &byteColor[0], 4) != 4)
+                throw std::runtime_error("Error while writing to " + imagepath);
         }
     }
     //We should not need padding

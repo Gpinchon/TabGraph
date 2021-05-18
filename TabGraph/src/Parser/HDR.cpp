@@ -28,6 +28,7 @@ auto HDRMimesParsers{
     AssetsParser::Add("image/vnd.radiance", ParseHDR)
 };
 
+//this is not std::byte because we need arithmetic operators
 typedef unsigned char RGBE[4];
 #define R 0
 #define G 1
@@ -112,7 +113,7 @@ void ParseHDR(const std::shared_ptr<Asset>& asset)
     asset->SetLoaded(true);
 }
 
-float convertComponent(int expo, int val)
+float convertComponent(int expo, unsigned char val)
 {
     float v = val / 256.0f;
     float d = (float)pow(2, expo);
@@ -122,7 +123,7 @@ float convertComponent(int expo, int val)
 void workOnRGBE(RGBE* scan, int len, float* cols)
 {
     while (len-- > 0) {
-        int expo = scan[0][E] - 128;
+        auto expo = scan[0][E] - 128;
         cols[0] = convertComponent(expo, scan[0][R]);
         cols[1] = convertComponent(expo, scan[0][G]);
         cols[2] = convertComponent(expo, scan[0][B]);
@@ -142,7 +143,7 @@ bool decrunch(RGBE* scanline, int len, FILE* file)
         fseek(file, -1, SEEK_CUR);
         return oldDecrunch(scanline, len, file);
     }
-    fread(&scanline[0][G], sizeof(GLubyte), 2, file);
+    fread(&scanline[0][G], sizeof(std::byte), 2, file);
     i = getc(file);
     if (scanline[0][G] != 2 || scanline[0][B] & 128) {
         scanline[0][R] = 2;
@@ -151,18 +152,18 @@ bool decrunch(RGBE* scanline, int len, FILE* file)
     }
     for (i = 0; i < 4; i++) {
         for (j = 0; j < len;) {
-            GLubyte code = getc(file);
+            auto code = getc(file);
             if (code > 128) {
                 code &= 127;
-                GLubyte val = getc(file);
+                auto val = getc(file);
                 while (code--)
                     scanline[j++][i] = val;
             } else {
-                std::vector<GLubyte> vals(code);
-                fread(vals.data(), sizeof(GLubyte), code, file);
+                std::vector<std::byte> vals(code);
+                fread(vals.data(), sizeof(std::byte), code, file);
                 auto k = 0;
                 while (code--) {
-                    scanline[j++][i] = vals.at(k++);
+                    scanline[j++][i] = unsigned char(vals.at(k++));
                 }
             }
         }

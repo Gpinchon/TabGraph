@@ -396,7 +396,7 @@ static inline auto ParseBuffers(const std::filesystem::path path, const rapidjso
     return bufferVector;
 }
 
-static inline BufferView::Type GetBufferViewType(GLenum type)
+static inline BufferView::Type GetBufferViewType(unsigned type)
 {
     switch (type) {
     case 34962:
@@ -446,7 +446,7 @@ static inline auto ParseBufferViews(const rapidjson::Document& document, std::ve
     return bufferViewVector;
 }
 
-static inline BufferAccessor::ComponentType GetBufferAccessorComponentType(GLenum type)
+static inline BufferAccessor::ComponentType GetBufferAccessorComponentType(unsigned type)
 {
     switch (type) {
     case 5120: //GL_BYTE:
@@ -532,7 +532,7 @@ static inline auto ParseBufferAccessors(const rapidjson::Document& document, std
     return bufferAccessorVector;
 }
 
-static inline Geometry::DrawingMode GetGeometryDrawingMode(GLenum mode)
+static inline Geometry::DrawingMode GetGeometryDrawingMode(unsigned mode)
 {
     switch (mode) {
     case 0: //GL_POINTS:
