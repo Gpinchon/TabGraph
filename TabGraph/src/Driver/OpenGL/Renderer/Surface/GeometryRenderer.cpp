@@ -11,6 +11,8 @@
 #include "Driver/OpenGL/VertexArray.hpp"
 #include "Surface/Geometry.hpp"
 
+#include <GL/glew.h>
+
 auto GLDrawingMode(Geometry::DrawingMode drawingMode)
 {
     static std::array<GLenum, (size_t)Geometry::DrawingMode::MaxValue> s_drawingModeLUT = {

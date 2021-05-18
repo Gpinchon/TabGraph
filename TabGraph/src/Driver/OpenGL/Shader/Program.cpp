@@ -11,10 +11,10 @@
 #include "Driver/OpenGL/Texture/Framebuffer.hpp"
 #include "Shader/Stage.hpp"
 
+#include <GL/glew.h>
 #include <array>
 #include <glm/glm.hpp>
 #include <string>
-
 
 static inline bool IsTextureType(GLenum type)
 {

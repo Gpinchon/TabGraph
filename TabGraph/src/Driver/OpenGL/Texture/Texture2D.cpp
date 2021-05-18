@@ -10,6 +10,8 @@
 #include "Assets/Asset.hpp"
 #include "Assets/Image.hpp"
 
+#include <GL/glew.h>
+
 Texture2D::Impl::Impl(Texture2D& texture)
 	: Texture::Impl(texture)
 {

@@ -10,6 +10,7 @@
 #include "Assets/Asset.hpp"
 #include "Assets/Image.hpp"
 
+#include <GL/glew.h>
 
 TextureCubemap::Impl::Impl(TextureCubemap& texture)
     : Texture::Impl(texture)

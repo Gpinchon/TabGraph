@@ -10,6 +10,8 @@
 #include "Driver/OpenGL/Buffer.hpp"
 #include "Buffer/BufferAccessor.hpp"
 
+#include <GL/glew.h>
+
 TextureBuffer::Impl::Impl(TextureBuffer& texture)
 	: Texture::Impl(texture)
 {

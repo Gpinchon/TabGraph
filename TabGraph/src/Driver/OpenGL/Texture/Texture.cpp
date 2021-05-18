@@ -7,6 +7,8 @@
 
 #include "Driver/OpenGL/Texture/Texture.hpp"
 
+#include <GL/glew.h>
+
 unsigned OpenGL::GetEnum(::Texture::Type type)
 {
     switch (type) {

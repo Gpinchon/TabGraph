@@ -19,6 +19,8 @@
 #include "Texture/TextureCubemap.hpp"
 #include "Texture/TextureSampler.hpp"
 
+#include <GL/glew.h>
+
 static inline auto DeferredSkyLightVertexCode()
 {
     auto lightingVertexCode =

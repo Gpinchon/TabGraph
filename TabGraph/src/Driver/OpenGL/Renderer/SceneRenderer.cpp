@@ -16,6 +16,8 @@
 #include "Texture/Framebuffer.hpp"
 #include "Texture/Texture2D.hpp"
 
+#include <GL/glew.h>
+
 namespace Renderer {
 SceneRenderer::SceneRenderer(Scene& scene)
     : _scene(scene)

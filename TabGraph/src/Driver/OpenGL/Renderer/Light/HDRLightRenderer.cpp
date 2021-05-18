@@ -21,6 +21,8 @@
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureCubemap.hpp"
 
+#include <GL/glew.h>
+
 const glm::vec2 invAtan = glm::vec2(0.1591, 0.3183);
 static inline glm::vec2 SampleSphericalMap(glm::vec3 xyz)
 {
