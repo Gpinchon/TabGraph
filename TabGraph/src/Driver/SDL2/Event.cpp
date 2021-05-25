@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-05-20 12:13:34
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-22 12:39:43
+* @Last Modified time: 2021-05-25 18:59:28
 */
 
 #include <Driver/SDL2/Event.hpp>
@@ -15,7 +15,21 @@
 
 namespace SDL2 {
 const static std::map<SDL_EventType, Event::Type> s_eventTypeLUT {
+    { SDL_FIRSTEVENT, Event::Type::Unknown },
+    { SDL_QUIT, Event::Type::Quit },
+    { SDL_APP_TERMINATING, Event::Type::AppTerminating },
+    { SDL_APP_LOWMEMORY, Event::Type::AppLowMemory },
+    { SDL_APP_WILLENTERBACKGROUND, Event::Type::AppWillenterBackground },
+    { SDL_APP_DIDENTERBACKGROUND, Event::Type::AppDidenterBackground },
+    { SDL_APP_WILLENTERFOREGROUND, Event::Type::AppWillenterForeground },
+    { SDL_APP_DIDENTERFOREGROUND, Event::Type::AppDidenterForeground },
+    { SDL_LOCALECHANGED, Event::Type::LocaleChanged },
     { SDL_WINDOWEVENT, Event::Type::WindowEvent },
+    { SDL_KEYDOWN, Event::Type::KeyDown },
+    { SDL_KEYUP, Event::Type::KeyUp },
+    { SDL_TEXTEDITING, Event::Type::TextEditing },
+    { SDL_TEXTINPUT, Event::Type::TextInput },
+    { SDL_KEYMAPCHANGED, Event::Type::KeymapChanged },
     { SDL_MOUSEMOTION, Event::Type::MouseMotion },
     { SDL_MOUSEBUTTONDOWN, Event::Type::MouseButtonDown },
     { SDL_MOUSEBUTTONUP, Event::Type::MouseButtonUp },
@@ -37,11 +51,21 @@ const static std::map<SDL_EventType, Event::Type> s_eventTypeLUT {
     { SDL_CONTROLLERTOUCHPADMOTION, Event::Type::ControllerTouchpadMotion },
     { SDL_CONTROLLERTOUCHPADUP, Event::Type::ControllerTouchpadUp },
     { SDL_CONTROLLERSENSORUPDATE, Event::Type::ControllerSensorUpdate },
-    { SDL_QUIT, Event::Type::Quit },
-    { SDL_KEYDOWN, Event::Type::KeyDown },
-    { SDL_KEYUP, Event::Type::KeyUp },
-    { SDL_TEXTEDITING, Event::Type::TextEditing },
-    { SDL_TEXTINPUT, Event::Type::TextInput },
+    { SDL_FINGERDOWN, Event::Type::FingerDown },
+    { SDL_FINGERUP, Event::Type::FingerUp },
+    { SDL_FINGERMOTION, Event::Type::FingerMotion },
+    { SDL_DOLLARGESTURE, Event::Type::DollarGesture },
+    { SDL_DOLLARRECORD, Event::Type::DollarRecord },
+    { SDL_MULTIGESTURE, Event::Type::MultiGesture },
+    { SDL_CLIPBOARDUPDATE, Event::Type::ClipboardUpdate },
+    { SDL_DROPFILE, Event::Type::DropFile },
+    { SDL_DROPTEXT, Event::Type::DropText },
+    { SDL_DROPBEGIN, Event::Type::DropBegin },
+    { SDL_DROPCOMPLETE, Event::Type::DropComplete },
+    { SDL_AUDIODEVICEADDED, Event::Type::AudioDeviceAdded },
+    { SDL_AUDIODEVICEREMOVED, Event::Type::AudioDeviceremoved },
+    { SDL_SENSORUPDATE, Event::Type::SensorUpdate },
+    { SDL_USEREVENT, Event::Type::User },
     { SDL_LASTEVENT, Event::Type::MaxValue }
 };
 
