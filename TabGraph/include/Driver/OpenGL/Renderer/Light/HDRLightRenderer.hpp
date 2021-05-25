@@ -22,7 +22,7 @@ public:
     HDRLightRenderer(HDRLight&);
     void FlagDirty();
     virtual void Render(const Renderer::Options&) override;
-    virtual void UpdateLightProbe(LightProbe&) override;
+    virtual void UpdateLightProbe(const Renderer::Options&, LightProbe&) override;
 
 protected:
     void _RenderDeferredLighting(HDRLight&, const Renderer::Options&);

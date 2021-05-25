@@ -7,7 +7,7 @@
 
 #include "Shader/Program.hpp"
 #include "Shader/Stage.hpp"
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Shader/Program.hpp"
 //#endif
 

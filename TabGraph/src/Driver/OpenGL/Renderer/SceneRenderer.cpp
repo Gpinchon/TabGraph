@@ -5,16 +5,18 @@
 * @Last Modified time: 2021-04-12 18:39:43
 */
 
-#include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
-#include "Light/Light.hpp"
-#include "Light/LightProbe.hpp"
-#include "Surface/Mesh.hpp"
-#include "Node.hpp"
-#include "Renderer/Light/LightRenderer.hpp"
-#include "Renderer/Surface/SurfaceRenderer.hpp"
-#include "Scene/Scene.hpp"
-#include "Texture/Framebuffer.hpp"
-#include "Texture/Texture2D.hpp"
+#include <Animation/Animation.hpp>
+#include <Driver/OpenGL/Renderer/SceneRenderer.hpp>
+#include <Light/Light.hpp>
+#include <Light/LightProbe.hpp>
+#include <Surface/Mesh.hpp>
+#include <Node.hpp>
+#include <Renderer/Renderer.hpp>
+#include <Renderer/Light/LightRenderer.hpp>
+#include <Renderer/Surface/SurfaceRenderer.hpp>
+#include <Scene/Scene.hpp>
+#include <Texture/Framebuffer.hpp>
+#include <Texture/Texture2D.hpp>
 
 #include <GL/glew.h>
 
@@ -24,8 +26,12 @@ SceneRenderer::SceneRenderer(Scene& scene)
 {
 }
 
-void SceneRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
+void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
 {
+    for (const auto& animation : _scene.GetComponents<Animation>()) {
+        if (animation->Playing())
+            animation->Advance(options.delta);
+    }
     for (const auto& node : _scene.GetComponents<Node>())
         _UpdateRenderList(node);
     for (auto& transform : _nodeLastTransform) {
@@ -34,10 +40,9 @@ void SceneRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
     }
     for (const auto& meshItr : _renderList) {
         auto meshPtr { meshItr.first.lock() };
-        Renderer::OnFrameBegin(meshPtr, frameNbr, delta);
+        Renderer::OnFrameBegin(meshPtr, options);
     }
-    if (frameNbr % 5 == 0)
-        return;
+    if (options.frameNumber % 5 == 0) return;
     for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
         for (auto& sh : lightProbe.GetDiffuseSH())
             sh = glm::vec3(0);
@@ -46,7 +51,7 @@ void SceneRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
     glDisable(GL_BLEND);
     for (const auto& light : _scene.GetComponents<Light>()) {
         for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
-            Renderer::UpdateLightProbe(light, lightProbe);
+            Renderer::UpdateLightProbe(light, options, lightProbe);
         }
         if (first) {
             glEnable(GL_BLEND);
@@ -70,11 +75,11 @@ void SceneRenderer::Render(const ::Renderer::Options& options, const glm::mat4& 
     }
 }
 
-void SceneRenderer::OnFrameEnd(uint32_t frameNbr, float delta)
+void SceneRenderer::OnFrameEnd(const ::Renderer::Options& options)
 {
     for (const auto& meshItr : _renderList) {
         auto meshPtr { meshItr.first.lock() };
-        Renderer::OnFrameEnd(meshPtr, frameNbr, delta);
+        Renderer::OnFrameEnd(meshPtr, options);
     }
     _renderList.clear();
 }

@@ -2,19 +2,21 @@
 * @Author: gpinchon
 * @Date:   2020-06-08 13:30:04
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-21 14:21:30
+* @Last Modified time: 2021-05-19 14:26:36
 */
 
 #pragma once
 
-#include "Object.hpp"
-#include "Tools/Tools.hpp"
+#include <Debug.hpp>
+#include <Object.hpp>
+#include <Tools/Tools.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
+#include <typeindex>
 
 class Component : public Object {
     //PROPERTY(bool, NeedsFixedUpdateGPU, true);
@@ -317,8 +319,6 @@ inline bool Component::HasComponentOfType() const noexcept
     return _componentsMap.find(typeid(T)) != _componentsMap.end();
 }
 
-#include "Debug.hpp"
-
 inline std::shared_ptr<Component> Component::Clone()
 {
     auto clone = _Clone();
@@ -348,7 +348,7 @@ inline std::shared_ptr<Component> Component::Clone()
 
 inline bool Component::HasComponent(std::shared_ptr<Component> component) const noexcept
 {
-    auto components{ GetComponents() };
+    auto components { GetComponents() };
     return std::find(components.begin(), components.end(), component) != components.end();
 }
 
@@ -401,10 +401,10 @@ inline void Component::RemoveComponents()
 template <typename T>
 inline void Component::RemoveComponent(std::shared_ptr<T> component)
 {
-    auto &componentsIt = _componentsMap.find(typeid(T));
+    auto& componentsIt = _componentsMap.find(typeid(T));
     if (componentsIt == _componentsMap.end())
         return;
-    const auto &last = std::remove(componentsIt->second.begin(), componentsIt->second.end(), component);
+    const auto& last = std::remove(componentsIt->second.begin(), componentsIt->second.end(), component);
     if (last == componentsIt->second.end())
         return;
     componentsIt->second.erase(last, componentsIt->second.end());
@@ -575,7 +575,7 @@ inline void Component::Replace(std::shared_ptr<T> oldComponent, std::shared_ptr<
     auto componentsIt = _componentsMap.find(typeid(T));
     if (componentsIt != _componentsMap.end())
         std::replace(componentsIt->second.begin(), componentsIt->second.end(), oldComponent, newComponent);
-    auto components{ GetComponents() };
+    auto components { GetComponents() };
     std::replace(components.begin(), components.end(), oldComponent, newComponent);
 }
 

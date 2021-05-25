@@ -27,6 +27,7 @@ auto BTMimesParsers {
 };
 
 #pragma pack(1)
+/// \private
 struct BTHeader {
     unsigned char marker[10]; //"binterr1.3"
     int columns; //Width (east-west) dimension of the height grid.

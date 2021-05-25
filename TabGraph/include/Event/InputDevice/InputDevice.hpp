@@ -7,12 +7,10 @@
 
 #pragma once
 
-union SDL_Event;
+#include <Event/Signal.hpp>
 
-class InputDevice {
-public:
-    virtual void process_event(SDL_Event*) = 0;
+struct Event;
 
-protected:
-    InputDevice() = default;
+struct InputDevice : Trackable {
+    virtual void ProcessEvent(const Event&) = 0;
 };

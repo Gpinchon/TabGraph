@@ -30,8 +30,6 @@ Animation::Animation(const Animation& other) : Component(other)
     _playing = other._playing;
     _repeat = other._repeat;
     _currentTime = other._currentTime;
-    if (_playing)
-        _advanceSlot = Engine::OnFixedUpdate().ConnectMember(this, &Animation::Advance);
 }
 
 std::vector<AnimationChannel>& Animation::GetChannels()
@@ -62,15 +60,6 @@ void Animation::Reset()
         interpolator.SetPrevTime(0);
         interpolator.SetNextKey(0);
         interpolator.SetPrevKey(0);
-    }
-}
-
-void Animation::_OnFixedUpdate(float delta)
-{
-    _animationDelta += delta;
-    if (_animationDelta > 0.02) {
-        Advance(_animationDelta);
-        _animationDelta = 0;
     }
 }
 
@@ -160,16 +149,13 @@ void Animation::Play()
 {
     if (!Playing()) {
         _currentTime = 0;
-        _animationDelta = 0;
         _playing = true;
-        _advanceSlot = Engine::OnFixedUpdate().ConnectMember(this, &Animation::_OnFixedUpdate);
     }
 }
 
 void Animation::Stop()
 {
     Reset();
-    _advanceSlot.Disconnect();
     _playing = false;
 }
 

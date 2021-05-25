@@ -9,7 +9,7 @@
 #include "Material/Material.hpp"
 #include "Surface/Geometry.hpp"
 
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Renderer/Surface/MeshRenderer.hpp"
 //#endif
 

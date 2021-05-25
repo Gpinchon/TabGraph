@@ -100,13 +100,14 @@ void HDRLightRenderer::Render(const Renderer::Options& options)
     }
 }
 
-void HDRLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
+void HDRLightRenderer::UpdateLightProbe(const Renderer::Options& options, LightProbe& lightProbe)
 {
     auto& hdrLight { static_cast<HDRLight&>(_light) };
     _Update(hdrLight);
     for (auto i = 0u; i < std::min(_SHDiffuse.size(), lightProbe.GetDiffuseSH().size()); ++i)
         lightProbe.GetDiffuseSH().at(i) += _SHDiffuse.at(i);
     OpenGL::Framebuffer::Bind(lightProbe.GetReflectionBuffer());
+    options.renderer->SetViewPort(lightProbe.GetReflectionBuffer()->GetSize());
     _probeShader->Use()
         .SetUniform("Light.DiffuseFactor", hdrLight.GetDiffuseFactor())
         .SetUniform("Light.SpecularFactor", hdrLight.GetSpecularFactor())
@@ -115,14 +116,14 @@ void HDRLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
         .SetUniform("Light.Infinite", hdrLight.GetInfinite())
         .SetUniform("ProbePosition", lightProbe.GetAbsolutePosition())
         .SetTexture("ReflectionMap", hdrLight.GetReflection());
-    Renderer::Render(Renderer::DisplayQuad());
+    Renderer::Render(options.renderer->GetDisplayQuad());
     OpenGL::Framebuffer::Bind(nullptr);
 }
 
 void HDRLightRenderer::_RenderDeferredLighting(HDRLight& light, const Renderer::Options& options)
 {
     _Update(light);
-    auto geometryBuffer = Renderer::DeferredGeometryBuffer();
+    auto geometryBuffer = options.renderer->DeferredGeometryBuffer();
     glm::vec3 geometryPosition;
     if (light.GetInfinite())
         geometryPosition = options.camera->WorldPosition();
@@ -135,7 +136,7 @@ void HDRLightRenderer::_RenderDeferredLighting(HDRLight& light, const Renderer::
         .SetUniform("Light.Min", light.GetMin())
         .SetUniform("Light.Infinite", light.GetInfinite())
         .SetTexture("ReflectionMap", light.GetReflection())
-        .SetTexture("DefaultBRDFLUT", Renderer::DefaultBRDFLUT())
+        .SetTexture("DefaultBRDFLUT", options.renderer->GetDefaultBRDFLUT())
         .SetUniform("SH[0]", _SHDiffuse.data(), _SHDiffuse.size())
         .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * light.GetLocalScaleMatrix())
         .SetTexture("Texture.Geometry.CDiff", geometryBuffer->GetColorBuffer(0))

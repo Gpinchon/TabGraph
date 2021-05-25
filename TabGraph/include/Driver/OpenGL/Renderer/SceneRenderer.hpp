@@ -27,9 +27,9 @@ class SceneRenderer {
 public:
     SceneRenderer(Scene&);
     SceneRenderer(SceneRenderer&) = delete;
-    void OnFrameBegin(uint32_t frameNbr, float delta);
+    void OnFrameBegin(const Renderer::Options& options);
     void Render(const Renderer::Options& options, const glm::mat4& rootMatrix);
-    void OnFrameEnd(uint32_t frameNbr, float delta);
+    void OnFrameEnd(const Renderer::Options& options);
     LightProbe& GetClosestLightProbe(const glm::vec3& position);
 
 private:

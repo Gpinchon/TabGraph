@@ -5,34 +5,35 @@
 * @Last Modified time: 2020-08-17 14:00:36
 */
 
-#include "Engine.hpp"
-#include "Animation/Animation.hpp"
-#include "Assets/Asset.hpp"
-#include "Camera/Camera.hpp"
-#include "Event/Keyboard.hpp"
-#include "Material/Material.hpp"
-#include "Surface/CapsuleMesh.hpp"
-#include "Surface/Mesh.hpp"
-#include "Scene/Scene.hpp"
+#include <Engine.hpp>
+#include <Animation/Animation.hpp>
+#include <Assets/Asset.hpp>
+#include <Camera/Camera.hpp>
+#include <Event/InputDevice/Keyboard.hpp>
+#include <Material/Material.hpp>
+#include <Surface/CapsuleMesh.hpp>
+#include <Surface/Mesh.hpp>
+#include <Scene/Scene.hpp>
 
 #include "Bomb.hpp"
 #include "Game.hpp"
 #include "Level.hpp"
 #include "Player.hpp"
 
-#define DOWNK SDL_SCANCODE_DOWN
-#define UPK SDL_SCANCODE_UP
-#define LEFTK SDL_SCANCODE_LEFT
-#define RIGHTK SDL_SCANCODE_RIGHT
-#define ZOOMK SDL_SCANCODE_KP_PLUS
-#define UNZOOMK SDL_SCANCODE_KP_MINUS
+#define DOWNK Keyboard::Key::Down
+#define UPK Keyboard::Key::Up
+#define LEFTK Keyboard::Key::Left
+#define RIGHTK Keyboard::Key::Right
+#define ZOOMK Keyboard::Key::NumpadPlus
+#define DROPK Keyboard::Key::Space
+#define UNZOOMK Keyboard::Key::NumpadMinus
 
 Player::Player(const std::string& name, const glm::vec3& color)
     : GameEntity(name, "Player")
 {
     _height = 0;
     Engine::OnFixedUpdate().ConnectMember(this, &Player::_FixedUpdateCPU);
-    Keyboard::OnKeyDown(SDL_SCANCODE_SPACE).ConnectMember(this, &Player::DropBomb);
+    Keyboard::OnKeyDown(DROPK).ConnectMember(this, &Player::DropBomb);
 }
 
 auto CreatePlayerAsset()
@@ -67,9 +68,9 @@ void Player::SetSpeed(float speed)
     _speed = speed;
 }
 
-void Player::DropBomb(const SDL_KeyboardEvent& event) const
+void Player::DropBomb(const Event::Keyboard& event) const
 {
-    if (event.type != SDL_KEYUP && !event.repeat && Game::CurrentLevel()->GetGameEntity(Position()) == nullptr) {
+    if (event.state && !event.repeat && Game::CurrentLevel()->GetGameEntity(Position()) == nullptr) {
         std::cout << Position().x << ' ' << Position().y << std::endl;
         Bomb::Create(Position());
     } else if (Game::CurrentLevel()->GetGameEntity(Position()) != nullptr)
@@ -156,8 +157,8 @@ void Player::_FixedUpdateCPU(float delta)
         GetComponentByName<Animation>("death")->Playing())
         return;
     glm::vec2 input;
-    input.x = Keyboard::key(UPK) - Keyboard::key(DOWNK);
-    input.y = Keyboard::key(RIGHTK) - Keyboard::key(LEFTK);
+    input.x = Keyboard::GetKeyState(UPK) - Keyboard::GetKeyState(DOWNK);
+    input.y = Keyboard::GetKeyState(RIGHTK) - Keyboard::GetKeyState(LEFTK);
     auto inputLength = length(input);
     if (inputLength > 0.f) {
         input /= inputLength;

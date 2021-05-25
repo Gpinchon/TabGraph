@@ -5,7 +5,7 @@
 * @Last Modified time: 2021-02-23 19:25:55
 */
 #include "Shader/Global.hpp"
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Shader/Global.hpp"
 //#endif
 

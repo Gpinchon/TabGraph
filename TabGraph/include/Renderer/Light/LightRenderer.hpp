@@ -14,12 +14,12 @@ class LightProbe;
 namespace Renderer {
 struct Options;
 void Render(std::shared_ptr<Light>, const Renderer::Options&);
-void UpdateLightProbe(std::shared_ptr<Light>, LightProbe&);
+void UpdateLightProbe(std::shared_ptr<Light>, const Renderer::Options&, LightProbe&);
 class LightRenderer {
 public:
     LightRenderer(Light&);
     virtual void Render(const Renderer::Options&) = 0;
-    virtual void UpdateLightProbe(LightProbe&) = 0;
+    virtual void UpdateLightProbe(const Renderer::Options&, LightProbe&) = 0;
 
 protected:
     Light& _light;

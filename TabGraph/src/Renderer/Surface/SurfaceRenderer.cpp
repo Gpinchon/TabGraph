@@ -11,9 +11,9 @@
 #include <glm/mat4x4.hpp>
 
 namespace Renderer {
-void OnFrameBegin(std::shared_ptr<Surface> surface, uint32_t frameNbr, float delta)
+void OnFrameBegin(std::shared_ptr<Surface> surface, const Renderer::Options& options)
 {
-    surface->GetRenderer().OnFrameBegin(frameNbr, delta);
+    surface->GetRenderer().OnFrameBegin(options);
 }
 
 void Render(std::shared_ptr<Surface> surface, const Options& options)
@@ -31,8 +31,8 @@ void Render(std::shared_ptr<Surface> surface, const Options& options, const glm:
     surface->GetRenderer().Render(options, parentTransform, parentLastTransform);
 }
 
-void OnFrameEnd(std::shared_ptr<Surface> surface, uint32_t frameNbr, float delta)
+void OnFrameEnd(std::shared_ptr<Surface> surface, const Renderer::Options& options)
 {
-    surface->GetRenderer().OnFrameEnd(frameNbr, delta);
+    surface->GetRenderer().OnFrameEnd(options);
 }
 };

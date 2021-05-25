@@ -2,7 +2,7 @@
 #include "Texture/PixelUtils.hpp"
 #include "Assets/Asset.hpp"
 
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Texture/Texture2D.hpp"
 //#endif
 

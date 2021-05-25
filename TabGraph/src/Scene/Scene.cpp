@@ -17,7 +17,7 @@
 #include "Physics/RigidBody.hpp"
 #include "Surface/Skybox.hpp"
 
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
 //#endif
 
@@ -84,17 +84,6 @@ std::shared_ptr<Scene>& CurrentScene()
 {
     static std::shared_ptr<Scene> current(nullptr);
     return current;
-}
-
-std::shared_ptr<Scene> Scene::Current()
-{
-    return CurrentScene();
-}
-
-void Scene::SetCurrent(std::shared_ptr<Scene> scene)
-{
-    CurrentScene() = scene;
-    Common::SetUp(scene->Up());
 }
 
 std::shared_ptr<Camera> Scene::CurrentCamera() const

@@ -2,16 +2,16 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-18 17:47:00
+* @Last Modified time: 2021-05-19 00:12:55
 */
-#include "Buffer/BufferView.hpp"
-#include "Assets/Asset.hpp"
-#include "Assets/BinaryData.hpp"
-#include "Renderer/Renderer.hpp"
+#include <Assets/Asset.hpp>
+#include <Assets/BinaryData.hpp>
+#include <Buffer/BufferView.hpp>
+#include <Renderer/Renderer.hpp>
 
-//#ifdef OPENGL
-#include "Driver/OpenGL/Buffer.hpp"
-//#endif
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Buffer.hpp>
+#endif
 
 size_t s_bufferViewNbr = 0;
 
@@ -21,7 +21,8 @@ BufferView::BufferView(size_t byteLength, std::shared_ptr<Asset> buffer, Mode mo
     SetComponent(buffer);
 }
 
-BufferView::BufferView() : Component("BufferView_" + std::to_string(++s_bufferViewNbr))
+BufferView::BufferView()
+    : Component("BufferView_" + std::to_string(++s_bufferViewNbr))
 {
     SetStorage(GetStorage());
 }
@@ -33,7 +34,8 @@ BufferView::BufferView(std::shared_ptr<Asset> buffer, Mode mode)
     SetMode(mode);
 }
 
-BufferView::BufferView(size_t byteLength, Mode mode) : BufferView()
+BufferView::BufferView(size_t byteLength, Mode mode)
+    : BufferView()
 {
     SetByteLength(byteLength);
     SetMode(mode);
@@ -111,8 +113,8 @@ void BufferView::Load()
 {
     if (GetLoaded())
         return;
-    std::byte* bufferData{ nullptr };
-    auto bufferAsset{ GetComponent<Asset>() };
+    std::byte* bufferData { nullptr };
+    auto bufferAsset { GetComponent<Asset>() };
     if (bufferAsset != nullptr) {
         bufferAsset->Load();
         auto bufferAssetData = bufferAsset->GetComponent<BinaryData>();
@@ -126,8 +128,7 @@ void BufferView::Load()
             _rawData = std::vector<std::byte>(bufferData, bufferData + GetByteLength());
         else
             _rawData = std::vector<std::byte>(GetByteLength());
-    }
-    else
+    } else
         GetImplGPU()->Load(*this, bufferData);
     if (bufferAsset != nullptr)
         RemoveComponent<Asset>(bufferAsset);
@@ -139,8 +140,7 @@ void BufferView::Unload()
     if (GetStorage() == Storage::CPU) {
         _rawData.clear();
         _rawData.shrink_to_fit();
-    }
-    else
+    } else
         GetImplGPU()->Unload();
     _SetLoaded(false);
 }
@@ -155,12 +155,11 @@ void BufferView::SetStorage(Storage storage)
             _rawData.clear();
             _rawData.shrink_to_fit();
         }
-    }
-    else if (storage == Storage::CPU) {
+    } else if (storage == Storage::CPU) {
         //repatriate data from GPU if possible
         if (GetImplGPU() != nullptr) {
             if (GetLoaded() && GetMode() != Mode::Immutable) {
-                auto data{ GetImplGPU()->MapRange(*this, MappingMode::ReadOnly, 0, GetByteLength()) };
+                auto data { GetImplGPU()->MapRange(*this, MappingMode::ReadOnly, 0, GetByteLength()) };
                 _rawData = { data, data + GetByteLength() };
             }
             _SetImplGPU(nullptr);

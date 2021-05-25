@@ -13,12 +13,13 @@
 #include <glm/glm.hpp> // for glm::vec2
 #include <memory> // for shared_ptr
 
+struct Window;
 class Texture;
 
 enum class BufferMask {
     ColorBits = 0x1,
     DepthBits = 0x2,
-    StencilBits = 0x3
+    StencilBits = 0x4
 };
 
 static inline auto operator|(BufferMask a, BufferMask b)
@@ -66,6 +67,9 @@ public:
         BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
         TextureSampler::Filter filter = TextureSampler::Filter::Nearest);
     void BlitTo(std::shared_ptr<Framebuffer> to,
+        BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
+        TextureSampler::Filter filter = TextureSampler::Filter::Nearest);
+    void BlitTo(std::shared_ptr<Window> to,
         BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
         TextureSampler::Filter filter = TextureSampler::Filter::Nearest);
     glm::ivec2 GetSize() const;

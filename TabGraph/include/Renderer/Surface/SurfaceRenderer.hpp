@@ -14,13 +14,13 @@ class Surface;
 namespace Renderer {
 struct Options;
 struct SurfaceRenderer {
-    virtual void OnFrameBegin(uint32_t frameNbr, float delta) = 0;
-    virtual void Render(const ::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) = 0;
-    virtual void OnFrameEnd(uint32_t frameNbr, float delta) = 0;
+    virtual void OnFrameBegin(const Options& options) = 0;
+    virtual void Render(const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) = 0;
+    virtual void OnFrameEnd(const Options& options) = 0;
 };
-void OnFrameBegin(std::shared_ptr<Surface> surface, uint32_t frameNbr, float delta);
+void OnFrameBegin(std::shared_ptr<Surface> surface, const Options& options);
 void Render(std::shared_ptr<Surface> surface, const Options& options);
 void Render(std::shared_ptr<Surface> surface, const Options& options, const glm::mat4& parentTransform);
 void Render(std::shared_ptr<Surface> surface, const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform);
-void OnFrameEnd(std::shared_ptr<Surface> surface, uint32_t frameNbr, float delta);
+void OnFrameEnd(std::shared_ptr<Surface> surface, const Options& options);
 };

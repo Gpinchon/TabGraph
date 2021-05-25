@@ -26,9 +26,9 @@ public:
     SkyboxRenderer(Skybox&);
     SkyboxRenderer(SkyboxRenderer&) = delete;
     void Render(const Options& options);
-    virtual void OnFrameBegin(uint32_t frameNbr, float delta) override;
+    virtual void OnFrameBegin(const Renderer::Options& options) override;
     virtual void Render(const::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) override;
-    virtual void OnFrameEnd(uint32_t frameNbr, float delta) override;
+    virtual void OnFrameEnd(const Renderer::Options& options) override;
 
 private:
     std::shared_ptr<Shader::Program> _shader;

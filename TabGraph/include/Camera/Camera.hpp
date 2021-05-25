@@ -25,22 +25,21 @@ public:
         Perspective
     };
     Camera(const std::string& name, Camera::Projection proj = Projection::Perspective);
-    /** Overload this to change Camera's behavior */
-    //virtual void UpdateProjectionMatrix();
     /**
      * @brief alias for TransformMatrix
      * @return the camera's view matrix
      */
     glm::mat4 GetViewMatrix();
     void SetViewMatrix(glm::mat4 viewMatrix);
-    virtual glm::mat4 GetProjectionMatrix();
+    virtual glm::mat4 GetProjectionMatrix(const glm::ivec2& resolution);
     virtual void SetProjectionMatrix(glm::mat4 projectionMatrix);
 
     /**
      * @brief Computes the camera frustum's 8 corners
+     * @arg resolution : the resolution of the Window used to compute Projection Matrix
      * @return the camera frustum's 8 corners in world space
     */
-    virtual std::array<glm::vec3, 8> ExtractFrustum();
+    virtual std::array<glm::vec3, 8> ExtractFrustum(const glm::ivec2& resolution);
 
     //virtual void SetProjectionMatrix(glm::mat4);
     virtual glm::vec4 Frustum() const;

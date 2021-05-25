@@ -5,21 +5,22 @@
 * @Last Modified time: 2021-04-10 16:21:36
 */
 
-#include "Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp"
-#include "Driver/OpenGL/Texture/Framebuffer.hpp"
-#include "Camera/Camera.hpp"
-#include "Config.hpp"
-#include "Light/DirectionalLight.hpp"
-#include "Light/LightProbe.hpp"
-#include "Surface/CubeMesh.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Renderer/Surface/GeometryRenderer.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Shader/Global.hpp"
-#include "Shader/Program.hpp"
-#include "SphericalHarmonics.hpp"
-#include "Texture/Texture2D.hpp"
-#include "Texture/TextureSampler.hpp"
+#include <Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp>
+#include <Driver/OpenGL/Texture/Framebuffer.hpp>
+#include <Camera/Camera.hpp>
+#include <Config.hpp>
+#include <Light/DirectionalLight.hpp>
+#include <Light/LightProbe.hpp>
+#include <Surface/CubeMesh.hpp>
+#include <Renderer/Renderer.hpp>
+#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Renderer/SceneRenderer.hpp>
+#include <Shader/Global.hpp>
+#include <Shader/Program.hpp>
+#include <SphericalHarmonics.hpp>
+#include <Texture/Texture2D.hpp>
+#include <Texture/TextureSampler.hpp>
+#include <Window.hpp>
 
 #include <GL/glew.h>
 #include <array>
@@ -109,7 +110,7 @@ void DirectionalLightRenderer::Render(const Renderer::Options& options)
         _RenderDeferredLighting(static_cast<DirectionalLight&>(_light), options);
 }
 
-void DirectionalLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
+void DirectionalLightRenderer::UpdateLightProbe(const Renderer::Options& options, LightProbe& lightProbe)
 {
     auto &dirLight{ static_cast<DirectionalLight&>(_light) };
     //TODO implement FlagDirty mechanism
@@ -122,19 +123,20 @@ void DirectionalLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
     for (auto i = 0u; i < std::min(diffuseSH.size(), lightProbe.GetDiffuseSH().size()); ++i)
         lightProbe.GetDiffuseSH().at(i) += diffuseSH.at(i);
     OpenGL::Framebuffer::Bind(lightProbe.GetReflectionBuffer());
+    options.renderer->SetViewPort(lightProbe.GetReflectionBuffer()->GetSize());
     _probeShader->Use()
         .SetUniform("SpecularMode", true)
         .SetUniform("Light.SpecularFactor", dirLight.GetSpecularFactor())
         .SetUniform("Light.DiffuseFactor", dirLight.GetDiffuseFactor())
         .SetUniform("Light.Color", dirLight.GetColor())
         .SetUniform("Light.Direction", dirLight.GetDirection());
-    Renderer::Render(Renderer::DisplayQuad());
+    Renderer::Render(options.renderer->GetDisplayQuad());
     OpenGL::Framebuffer::Bind(nullptr);
 }
 
 void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, const Renderer::Options& options)
 {
-    auto geometryBuffer = Renderer::DeferredGeometryBuffer();
+    auto geometryBuffer = options.renderer->DeferredGeometryBuffer();
     glm::vec3 geometryPosition;
     if (light.GetInfinite())
         geometryPosition = options.camera->WorldPosition();
@@ -200,6 +202,7 @@ void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, co
     Shader::Global::SetUniform("Camera.Matrix.View", DirectionalLightShadowViewMatrix(light));
     Shader::Global::SetUniform("Camera.Matrix.Projection", DirectionalLightShadowProjectionMatrixInfinite(light, options));
     OpenGL::Framebuffer::Bind(_shadowBuffer);
+    options.renderer->SetViewPort(_shadowBuffer->GetSize());
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -209,13 +212,15 @@ void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, co
         Renderer::Options::Mode::All,
         tempCamera,
         options.scene,
-        Renderer::FrameNumber()
+        options.renderer,
+        options.frameNumber,
+        options.delta
         });
     OpenGL::Framebuffer::Bind(nullptr);
     //options.scene->SetCurrentCamera(camera);
     Shader::Global::SetUniform("Camera.Position", options.camera->WorldPosition());
     Shader::Global::SetUniform("Camera.Matrix.View", options.camera->GetViewMatrix());
-    Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjectionMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjectionMatrix(options.renderer->GetWindow()->GetSize()));
 }
 
 void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, const Renderer::Options& options)
@@ -230,6 +235,7 @@ void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, cons
     Shader::Global::SetUniform("Camera.Matrix.View", DirectionalLightShadowViewMatrix(light));
     Shader::Global::SetUniform("Camera.Matrix.Projection", DirectionalLightShadowProjectionMatrixFinite(light));
     OpenGL::Framebuffer::Bind(_shadowBuffer);
+    options.renderer->SetViewPort(_shadowBuffer->GetSize());
     glDepthMask(GL_TRUE);
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -239,13 +245,15 @@ void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, cons
         Renderer::Options::Mode::All,
         tempCamera,
         options.scene,
-        Renderer::FrameNumber()
+        options.renderer,
+        options.frameNumber,
+        options.delta
         });
     OpenGL::Framebuffer::Bind(nullptr);
     //options.scene->SetCurrentCamera(camera);
     Shader::Global::SetUniform("Camera.Position", options.camera->WorldPosition());
     Shader::Global::SetUniform("Camera.Matrix.View", options.camera->GetViewMatrix());
-    Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjectionMatrix());
+    Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjectionMatrix(options.renderer->GetWindow()->GetSize()));
 }
 };
 
@@ -268,7 +276,7 @@ glm::mat4 DirectionalLightShadowProjectionMatrixInfinite(DirectionalLight& light
 {
     auto viewMatrix = DirectionalLightShadowViewMatrix(light);
 
-    auto vertex = options.camera->ExtractFrustum();
+    auto vertex = options.camera->ExtractFrustum(options.renderer->GetWindow()->GetSize());
     glm::vec3 maxOrtho = viewMatrix * glm::vec4(vertex.at(0), 1);
     glm::vec3 minOrtho = viewMatrix * glm::vec4(vertex.at(0), 1);
     for (auto& v : vertex) {

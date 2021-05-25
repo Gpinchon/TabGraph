@@ -37,11 +37,11 @@ SkyboxRenderer::SkyboxRenderer(Skybox& skybox)
 void SkyboxRenderer::Render(const Renderer::Options& options)
 {
     _shader->Use().SetTexture("Skybox", _skybox.GetTexture());
-    Renderer::Render(Renderer::DisplayQuad(), true);
+    Renderer::Render(options.renderer->GetDisplayQuad(), true);
     _shader->Done();
 }
 
-void SkyboxRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
+void SkyboxRenderer::OnFrameBegin(const Renderer::Options&)
 {
 }
 
@@ -50,7 +50,7 @@ void SkyboxRenderer::Render(const::Renderer::Options& options, const glm::mat4& 
     Render(options);
 }
 
-void SkyboxRenderer::OnFrameEnd(uint32_t frameNbr, float delta)
+void SkyboxRenderer::OnFrameEnd(const Renderer::Options&)
 {
 }
 };

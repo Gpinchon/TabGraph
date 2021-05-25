@@ -2,28 +2,28 @@
 * @Author: gpinchon
 * @Date:   2021-03-22 18:30:22
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-04 20:02:24
+* @Last Modified time: 2021-05-24 13:31:16
 */
 
-#include "Renderer/Renderer.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Camera/Camera.hpp" // for Camera
-#include "Config.hpp" // for Config
-#include "Debug.hpp"
-#include "Engine.hpp" // for UpdateMutex, SwapInterval
-#include "Light/Light.hpp" // for Light, Directionnal, Point
-#include "Surface/Geometry.hpp" // for Geometry
-#include "Scene/Scene.hpp"
-#include "Shader/Global.hpp" // for Shader::Global
-#include "Shader/Program.hpp" // for Shader::Program
-#include "Surface/Skybox.hpp" // for Skybox
-#include "Texture/Framebuffer.hpp" // for Framebuffer
-#include "Texture/Texture2D.hpp" // for Texture2D
-#include "Texture/TextureCubemap.hpp"
-#include "Window.hpp" // for Window
+#include <Camera/Camera.hpp> // for Camera
+#include <Config.hpp> // for Config
+#include <Debug.hpp>
+#include <Engine.hpp> // for UpdateMutex, SwapInterval
+#include <Light/Light.hpp> // for Light, Directionnal, Point
+#include <Renderer/Renderer.hpp>
+#include <Renderer/SceneRenderer.hpp>
+#include <Scene/Scene.hpp>
+#include <Shader/Global.hpp> // for Shader::Global
+#include <Shader/Program.hpp> // for Shader::Program
+#include <Surface/Geometry.hpp> // for Geometry
+#include <Surface/Skybox.hpp> // for Skybox
+#include <Texture/Framebuffer.hpp> // for Framebuffer
+#include <Texture/Texture2D.hpp> // for Texture2D
+#include <Texture/TextureCubemap.hpp>
+#include <Window.hpp> // for Window
 
-//#ifdef OPENGL
-#include "Driver/OpenGL/Renderer/Renderer.hpp"
+//#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Renderer/Renderer.hpp>
 //#endif
 
 #include <algorithm> // for max, remove_if
@@ -36,63 +36,90 @@
 #include <thread> // for thread
 #include <vector> // for vector<>::iterator, vector
 
-// quad is a singleton
-const std::shared_ptr<Geometry> Renderer::DisplayQuad()
+namespace Renderer {
+
+std::shared_ptr<FrameRenderer> FrameRenderer::Create(std::weak_ptr<Window> window)
 {
-    return GetImpl()->DisplayQuad();
+    std::shared_ptr<FrameRenderer> renderer(new FrameRenderer(window));
+    return renderer;
 }
 
-std::shared_ptr<Framebuffer> Renderer::DeferredGeometryBuffer()
+void FrameRenderer::SetViewPort(const glm::ivec2& min, const glm::ivec2& max)
 {
-    return GetImpl()->DeferredGeometryBuffer();
+    _impl->SetViewPort(min, max);
 }
 
-std::shared_ptr<Framebuffer> Renderer::DeferredLightingBuffer()
-{
-    return GetImpl()->DeferredLightingBuffer();
+void FrameRenderer::SetViewPort(const glm::ivec2& size) {
+    return SetViewPort(glm::ivec2(0), size);
 }
 
-std::shared_ptr<Framebuffer> Renderer::ForwardTransparentRenderBuffer()
+FrameRenderer::FrameRenderer(std::weak_ptr<Window> window)
+    : _impl(new FrameRenderer::Impl(window, *this))
 {
-    return GetImpl()->ForwardTransparentRenderBuffer();
 }
 
-std::shared_ptr<Framebuffer> Renderer::OpaqueRenderBuffer()
+uint32_t FrameRenderer::GetFrameNumber() const
 {
-    return GetImpl()->OpaqueRenderBuffer();
+    return _impl->GetFrameNumber();
 }
 
-std::shared_ptr<Framebuffer> Renderer::FinalRenderBuffer()
+const std::shared_ptr<Window> FrameRenderer::GetWindow() const
 {
-    return GetImpl()->FinalRenderBuffer();
+    return _impl->GetWindow();
 }
 
-std::shared_ptr<Framebuffer> Renderer::PreviousRenderBuffer()
+const std::shared_ptr<Geometry> FrameRenderer::GetDisplayQuad() const
 {
-    return GetImpl()->PreviousRenderBuffer();
+    return _impl->GetDisplayQuad();
 }
 
-std::shared_ptr<Texture2D> Renderer::DefaultBRDFLUT()
+const std::shared_ptr<Texture2D> FrameRenderer::GetDefaultBRDFLUT() const
 {
-    return GetImpl()->DefaultBRDFLUT();
+    return _impl->GetDefaultBRDFLUT();
 }
 
-void Renderer::Init()
+std::shared_ptr<Framebuffer> FrameRenderer::DeferredGeometryBuffer()
 {
-    GetImpl()->Init();
+    return _impl->DeferredGeometryBuffer();
 }
 
-Renderer::Context& Renderer::GetContext()
+std::shared_ptr<Framebuffer> FrameRenderer::DeferredLightingBuffer()
 {
-    return GetImpl()->GetContext();
+    return _impl->DeferredLightingBuffer();
 }
 
-void Renderer::RenderFrame()
+std::shared_ptr<Framebuffer> FrameRenderer::ForwardTransparentRenderBuffer()
 {
-    GetImpl()->RenderFrame();
+    return _impl->ForwardTransparentRenderBuffer();
 }
 
-uint32_t Renderer::FrameNumber()
+std::shared_ptr<Framebuffer> FrameRenderer::OpaqueRenderBuffer()
 {
-    return GetImpl()->FrameNumber();
+    return _impl->OpaqueRenderBuffer();
 }
+
+std::shared_ptr<Framebuffer> FrameRenderer::FinalRenderBuffer()
+{
+    return _impl->FinalRenderBuffer();
+}
+
+std::shared_ptr<Framebuffer> FrameRenderer::PreviousRenderBuffer()
+{
+    return _impl->PreviousRenderBuffer();
+}
+
+void Renderer::FrameRenderer::RenderFrame(std::shared_ptr<Scene> scene)
+{
+    _impl->RenderFrame(scene);
+}
+
+void FrameRenderer::SetSwapInterval(SwapInterval swapInterval)
+{
+    return _impl->SetSwapInterval(swapInterval);
+}
+
+SwapInterval FrameRenderer::GetSwapInterval() const
+{
+    return _impl->GetSwapInterval();
+}
+};

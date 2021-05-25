@@ -10,12 +10,20 @@ set_property(CACHE RenderingAPI PROPERTY STRINGS ${RenderingAPIValues})
 add_compile_definitions(RENDERINGAPI=${RenderingAPI})
 
 #[[UI Sub-System]]
-set(UISubSystem "NanoGUI" CACHE STRING
+set(UISubSystem "ImGUI" CACHE STRING
   "UI Sub-System used at compile-time")
 set(UISubSystemValues
-  "NanoGUI;ImGUI")
+  "ImGUI;NanoGUI")
 set_property(CACHE UISubSystem PROPERTY STRINGS ${UISubSystemValues})
 add_compile_definitions(UISUBSYSTEM=${UISubSystem})
+
+#[[Media Library]]
+set(MediaLibrary "SDL2" CACHE STRING
+  "Media Library used at compile-time")
+set(MediaLibraryValues
+  "SDL2;GLFW;SFML")
+set_property(CACHE MediaLibrary PROPERTY STRINGS ${MediaLibraryValues})
+add_compile_definitions(MEDIALIBRARY=${MediaLibrary})
 
 #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DDEBUG_MOD")
@@ -25,8 +33,29 @@ set (CMAKE_CXX_FLAGS_RELEASE "-Ox")
 set(CMAKE_DEBUG_TARGET_PROPERTIES INCLUDE_DIRECTORIES)
 set(CMAKE_DEBUG_TARGET_PROPERTIES INTERFACE_INCLUDE_DIRECTORIES)
 
+if (MediaLibrary STREQUAL "SDL2")
+set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Engine.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/EventsManager.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Event.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/GameController.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Keyboard.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Mouse.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Window.hpp
+)
+set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Engine.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Event.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/EventsManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/GameController.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Keyboard.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Mouse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Window.cpp
+)
+endif (MediaLibrary STREQUAL "SDL2")
+
 if (RenderingAPI STREQUAL "OpenGL")
-set(TABGRAPH_HEADER_FILES
+set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Global.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Program.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Renderer.hpp
@@ -60,7 +89,7 @@ set(TABGRAPH_HEADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/VertexArray.hpp
 )
 
-set(TABGRAPH_SOURCE_FILES
+set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Global.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Program.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Renderer.cpp
@@ -116,10 +145,14 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/GameController.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/InputDevice.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Keyboard.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Signal.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Events.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Event.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/EventsManager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/GameController.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Keyboard.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Light.hpp
@@ -163,10 +196,6 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/SceneRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Surface/GeometryRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Surface/SurfaceRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/DirectionalLightRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/HDRLightRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/SkyLightRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/PointLightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/LightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Scene/Scene.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Global.hpp
@@ -216,11 +245,10 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Events.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/GameController.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Keyboard.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Mouse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/GameController.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/Keyboard.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/Mouse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/EventsManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/LightProbe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionalLight.cpp

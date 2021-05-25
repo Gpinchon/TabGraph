@@ -5,13 +5,13 @@
 * @Last Modified time: 2021-05-11 13:49:32
 */
 
-#include "Driver/OpenGL/Texture/Framebuffer.hpp"
-#include "Driver/OpenGL/Texture/Texture.hpp"
-#include "Driver/OpenGL/Texture/TextureSampler.hpp"
-#include "Shader/Global.hpp"
-#include "Texture/Texture2D.hpp"
-#include "Texture/TextureCubemap.hpp"
-#include "Window.hpp"
+#include <Driver/OpenGL/Texture/Framebuffer.hpp>
+#include <Driver/OpenGL/Texture/Texture.hpp>
+#include <Driver/OpenGL/Texture/TextureSampler.hpp>
+#include <Shader/Global.hpp>
+#include <Texture/Texture2D.hpp>
+#include <Texture/TextureCubemap.hpp>
+#include <Window.hpp>
 
 #include <stdexcept>
 #include <GL/glew.h>
@@ -89,8 +89,6 @@ void Framebuffer::Impl::Bind(OpenGL::Framebuffer::BindUsage usage)
 {
     _SetupAttachements();
     glBindFramebuffer(OpenGL::GetEnum(usage), _handle);
-    glViewport(0, 0, GetSize().x, GetSize().y);
-    Shader::Global::SetUniform("Resolution", glm::vec3(GetSize(), GetSize().x / float(GetSize().y)));
 }
 
 void Framebuffer::Impl::Done(OpenGL::Framebuffer::BindUsage usage)
@@ -101,8 +99,6 @@ void Framebuffer::Impl::Done(OpenGL::Framebuffer::BindUsage usage)
 void Framebuffer::Impl::BindDefault(OpenGL::Framebuffer::BindUsage usage)
 {
     glBindFramebuffer(OpenGL::GetEnum(usage), 0);
-    glViewport(0, 0, Window::GetSize().x, Window::GetSize().y);
-    Shader::Global::SetUniform("Resolution", glm::vec3(Window::GetSize(), Window::GetSize().x / float(Window::GetSize().y)));
 }
 
 void Framebuffer::Impl::_SetupAttachements()
@@ -199,10 +195,33 @@ void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0,
 
 void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, BufferMask mask, TextureSampler::Filter filter)
 {
-    if (to == nullptr)
-        BlitTo(to, glm::ivec2(0), GetSize(), glm::ivec2(0), Window::GetSize(), mask, filter);
-    else
-        BlitTo(to, glm::ivec2(0), GetSize(), glm::ivec2(0), to->GetSize(), mask, filter);
+    assert(to != nullptr);
+    BlitTo(to, glm::ivec2(0), GetSize(), glm::ivec2(0), to->GetSize(), mask, filter);
+}
+
+void Framebuffer::Impl::BlitTo(std::shared_ptr<Window> to, BufferMask mask, TextureSampler::Filter filter)
+{
+    assert(to != nullptr);
+    glm::vec2 src0{ 0 };
+    glm::vec2 dst0{ 0 };
+    auto src1{ GetSize() };
+    auto dst1{ to->GetSize() };
+
+    _SetupAttachements();
+    BindDefault(OpenGL::Framebuffer::BindUsage::Draw);
+    Bind(OpenGL::Framebuffer::BindUsage::Read);
+    glBlitFramebuffer(
+        src0.x,
+        src0.y,
+        src1.x,
+        src1.y,
+        dst0.x,
+        dst0.y,
+        dst1.x,
+        dst1.y,
+        OpenGL::GetBitfield(mask),
+        OpenGL::GetEnum(filter));
+    Done(OpenGL::Framebuffer::BindUsage::Read);
 }
 
 unsigned OpenGL::GetEnum(Framebuffer::BindUsage usage)

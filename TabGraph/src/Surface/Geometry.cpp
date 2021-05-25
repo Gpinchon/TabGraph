@@ -15,7 +15,7 @@
 #include "Physics/BoundingAABB.hpp" // for AABB
 #include "Tools/Tools.hpp"
 
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp"
 //#endif
 

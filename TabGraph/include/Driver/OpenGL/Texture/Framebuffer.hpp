@@ -13,16 +13,17 @@
 #include <vector>
 #include <glm/vec2.hpp>
 
+struct Window;
 class Texture;
 
 namespace OpenGL {
-    namespace Framebuffer {
-        enum class BindUsage {
-            None,
-            Draw,
-            Read
-        };
+namespace Framebuffer {
+    enum class BindUsage {
+        None,
+        Draw,
+        Read
     };
+};
 };
 
 class Framebuffer::Impl {
@@ -46,6 +47,9 @@ public:
         BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
         TextureSampler::Filter filter = TextureSampler::Filter::Nearest);
     void BlitTo(std::shared_ptr<Framebuffer> to,
+        BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
+        TextureSampler::Filter filter = TextureSampler::Filter::Nearest);
+    void BlitTo(std::shared_ptr<Window> to,
         BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
         TextureSampler::Filter filter = TextureSampler::Filter::Nearest);
 

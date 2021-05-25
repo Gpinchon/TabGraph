@@ -22,7 +22,7 @@ class DirectionalLightRenderer : public LightRenderer {
 public:
     DirectionalLightRenderer(DirectionalLight&);
     virtual void Render(const Renderer::Options&) override;
-    virtual void UpdateLightProbe(LightProbe&) override;
+    virtual void UpdateLightProbe(const Renderer::Options& options, LightProbe&) override;
 
 protected:
     void _RenderDeferredLighting(DirectionalLight&, const Renderer::Options&);

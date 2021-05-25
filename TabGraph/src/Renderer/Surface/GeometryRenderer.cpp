@@ -7,7 +7,7 @@
 
 #include "Renderer/Surface/SurfaceRenderer.hpp"
 
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp"
 //#endif
 

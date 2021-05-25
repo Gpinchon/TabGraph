@@ -2,14 +2,17 @@
 * @Author: gpinchon
 * @Date:   2021-03-14 23:55:31
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-04 20:02:23
+* @Last Modified time: 2021-05-18 18:19:52
 */
 
-#include "Light/HDRLight.hpp"
-#include "Assets/Asset.hpp"
-#include "Renderer/Light/HDRLightRenderer.hpp"
-#include "Texture/TextureCubemap.hpp"
-#include "Texture/TextureSampler.hpp"
+#include <Assets/Asset.hpp>
+#include <Light/HDRLight.hpp>
+#include <Texture/TextureCubemap.hpp>
+#include <Texture/TextureSampler.hpp>
+
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp>
+#endif
 
 HDRLight::HDRLight(std::shared_ptr<Asset> hdrTexture)
     : Light()

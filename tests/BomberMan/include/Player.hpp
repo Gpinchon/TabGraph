@@ -2,7 +2,7 @@
 
 #include "GameEntity.hpp"
 
-class SDL_KeyboardEvent;
+#include <Event/Event.hpp>
 
 class Player : public GameEntity {
 public:
@@ -11,7 +11,7 @@ public:
     void Move(const glm::vec2& direction, float delta);
     float Speed() const;
     void SetSpeed(float speed);
-    void DropBomb(const SDL_KeyboardEvent& event) const;
+    void DropBomb(const Event::Keyboard& event) const;
     virtual void Die() override;
 
 private:

@@ -8,7 +8,7 @@
 #include "Texture/Texture.hpp"
 #include "Debug.hpp"
 #include "Texture/TextureSampler.hpp"
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Texture/Texture.hpp"
 //#endif
 

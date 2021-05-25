@@ -2,21 +2,17 @@
 * @Author: gpinchon
 * @Date:   2021-01-08 17:02:47
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-11 08:41:46
+* @Last Modified time: 2021-05-24 13:44:38
 */
 
-#include "Engine.hpp"
-#include "Config.hpp" // for Config
-#include "Event/Events.hpp" // for Events
-#include "Node.hpp" // for Node
-#include "Renderer/Renderer.hpp" // for AddPostTreatment, RequestRedraw
-#include "Scene/Scene.hpp"
-#include "Window.hpp" // for Window
+#include <Config.hpp> // for Config
+#include <Engine.hpp>
+#include <Event/EventsManager.hpp> // for Events
+#include <Node.hpp> // for Node
+#include <Renderer/Renderer.hpp> // for AddPostTreatment, RequestRedraw
+#include <Scene/Scene.hpp>
+#include <Window.hpp> // for Window
 
-#include <SDL_events.h> // for SDL_PumpEvents, SDL_SetEventFilter
-#include <SDL_filesystem.h> // for SDL_GetBasePath
-#include <SDL_timer.h> // for SDL_GetTicks
-#include <SDL_video.h> // for SDL_GL_MakeCurrent
 #include <atomic> // for atomic
 #include <chrono> // for milliseconds
 #include <filesystem>
@@ -36,94 +32,71 @@
 #define _getcwd getcwd
 #endif //_getcwd
 
-struct EnginePrivate {
-    EnginePrivate();
-    static EnginePrivate& Get();
-    std::atomic<bool> loop { false };
-    int8_t swapInterval { 1 };
-    std::filesystem::path programPath;
-    std::filesystem::path execPath;
-    Signal<float> onFixedUpdate;
-    Signal<float> onUpdate;
-};
+#if MEDIALIBRARY == SDL2
+#include <Driver/SDL2/Engine.hpp>
+#endif //MEDIALIBRARY == SDL2
 
-EnginePrivate::EnginePrivate()
+std::shared_ptr<Engine> Engine::Create(std::shared_ptr<Renderer::FrameRenderer> frameRenderer)
 {
-    loop = true;
-    swapInterval = 1;
-    execPath = std::filesystem::current_path();
-    programPath = std::filesystem::absolute(SDL_GetBasePath()).parent_path();
+    std::shared_ptr<Engine> engine(new Engine(frameRenderer));
+    return engine;
 }
 
-EnginePrivate& EnginePrivate::Get()
+Engine::Engine(std::shared_ptr<Renderer::FrameRenderer> frameRenderer)
+    : _impl(new Engine::Impl(frameRenderer))
 {
-    static EnginePrivate _instance;
-    return _instance;
 }
 
-void Engine::Init()
+void Engine::SetCurrentScene(std::shared_ptr<Scene> scene)
 {
-    Window::Init(Config::Global().Get("WindowName", std::string("")), Config::Global().Get("WindowSize", glm::vec2(1280, 720)));
-    Renderer::Init();
-    Engine::SetSwapInterval(Config::Global().Get("SwapInterval", 0));
+    return _impl->SetCurrentScene(scene);
+}
+std::shared_ptr<Scene> Engine::GetCurrentScene() const
+{
+    return _impl->GetCurrentScene();
 }
 
 void Engine::Start()
 {
-    double ticks;
-    double lastTicks;
-    double fixedTiming = lastTicks = SDL_GetTicks() / 1000.f;
-
-    SDL_GL_SetSwapInterval(Engine::SwapInterval());
-    while (EnginePrivate::Get().loop) {
-        ticks = SDL_GetTicks() / 1000.0;
-        SDL_PumpEvents();
-        EnginePrivate::Get().onUpdate(ticks - lastTicks);
-        if (ticks - fixedTiming >= 0.015) {
-            EnginePrivate::Get().onFixedUpdate(ticks - fixedTiming);
-            fixedTiming = ticks;
-        }
-        Renderer::RenderFrame();
-        lastTicks = ticks;
-    }
+    return _impl->Start();
 }
 
 void Engine::Stop(void)
 {
-    EnginePrivate::Get().loop = false;
+    return _impl->Stop();
 }
 
-void Engine::SetSwapInterval(int8_t i)
+const std::filesystem::path Engine::GetProgramPath()
 {
-    EnginePrivate::Get().swapInterval = i;
+    return Impl::GetProgramPath();
 }
 
-int8_t Engine::SwapInterval()
+const std::filesystem::path Engine::GetExecutionPath()
 {
-    return (EnginePrivate::Get().swapInterval);
+    return Impl::GetProgramPath();
 }
 
-const std::filesystem::path Engine::ProgramPath()
+const std::filesystem::path Engine::GetResourcePath()
 {
-    return EnginePrivate::Get().programPath;
+    return (GetProgramPath() / "res");
 }
 
-const std::filesystem::path Engine::ExecutionPath()
+void Engine::SetFrameRenderer(std::shared_ptr<Renderer::FrameRenderer> frameRenderer)
 {
-    return EnginePrivate::Get().execPath;
+    return _impl->SetFrameRenderer(frameRenderer);
 }
 
-const std::filesystem::path Engine::ResourcePath()
+inline std::shared_ptr<Renderer::FrameRenderer> Engine::GetFrameRenderer() const
 {
-    return (Engine::ProgramPath() / "res");
+    return _impl->GetFrameRenderer();
 }
 
 Signal<float>& Engine::OnFixedUpdate()
 {
-    return EnginePrivate::Get().onFixedUpdate;
+    return _impl->OnFixedUpdate();
 }
 
 Signal<float>& Engine::OnUpdate()
 {
-    return EnginePrivate::Get().onUpdate;
+    return _impl->OnUpdate();
 }

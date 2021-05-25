@@ -53,7 +53,7 @@ GeometryRenderer::~GeometryRenderer()
 {
 }
 
-void GeometryRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
+void GeometryRenderer::OnFrameBegin(const Renderer::Options&)
 {
 }
 
@@ -94,9 +94,10 @@ void GeometryRenderer::Render(bool doubleSided)
     VertexArray::BindNone();
 }
 
-void GeometryRenderer::OnFrameEnd(uint32_t frameNbr, float delta)
+void GeometryRenderer::OnFrameEnd(const Renderer::Options&)
 {
 }
+
 void GeometryRenderer::Render(const::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform)
 {
     Render();

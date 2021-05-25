@@ -14,9 +14,9 @@ void Render(std::shared_ptr<Light> light, const Renderer::Options& options)
     light->GetRenderer().Render(options);
 }
 
-void UpdateLightProbe(std::shared_ptr<Light> light, LightProbe& lightProbe)
+void UpdateLightProbe(std::shared_ptr<Light> light, const Renderer::Options& options, LightProbe& lightProbe)
 {
-    light->GetRenderer().UpdateLightProbe(lightProbe);
+    light->GetRenderer().UpdateLightProbe(options, lightProbe);
 }
 
 LightRenderer::LightRenderer(Light& light)

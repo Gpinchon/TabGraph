@@ -39,8 +39,6 @@ public:
     Renderer::SceneRenderer& GetRenderer();
     Scene(const std::string& name);
     Scene(const Scene& other);
-    static std::shared_ptr<Scene> Current();
-    static void SetCurrent(std::shared_ptr<Scene>);
     std::shared_ptr<Camera> CurrentCamera() const;
     void SetCurrentCamera(std::shared_ptr<Camera>);
     ~Scene() = default;

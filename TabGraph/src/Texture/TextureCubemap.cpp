@@ -13,7 +13,7 @@
 #include "Engine.hpp"
 #include "Tools/Tools.hpp"
 
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Texture/TextureCubemap.hpp"
 //#endif
 

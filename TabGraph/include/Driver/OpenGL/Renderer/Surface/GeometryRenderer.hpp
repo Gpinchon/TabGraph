@@ -20,10 +20,10 @@ public:
     GeometryRenderer(Geometry& geometry);
     GeometryRenderer(const GeometryRenderer&) = delete;
     ~GeometryRenderer();
-    void OnFrameBegin(uint32_t frameNbr, float delta);
+    void OnFrameBegin(const Renderer::Options& options);
     void Render(bool doubleSided = false);
     virtual void Render(const::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) override;
-    void OnFrameEnd(uint32_t frameNbr, float delta);
+    void OnFrameEnd(const Renderer::Options& options);
 
 private:
     Geometry& _geometry;

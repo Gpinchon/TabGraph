@@ -2,20 +2,20 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-11 08:45:42
+* @Last Modified time: 2021-05-19 14:27:41
 */
 
 #pragma once
 
-#include "Common.hpp"
-#include "Component.hpp"
-#include "Event/Signal.hpp"
+#include <Common.hpp>
+#include <Component.hpp>
+#include <Event/Signal.hpp>
 
+#include <algorithm>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
-#include <glm/vec3.hpp>
 #include <glm/gtx/transform.hpp>
-#include <algorithm>
+#include <glm/vec3.hpp>
 #include <memory> // for shared_ptr, weak_ptr
 #include <string> // for string
 #include <vector> // for vector
@@ -27,8 +27,8 @@ class Mesh;
 class Scene;
 
 namespace Renderer {
-    enum class Pass;
-    enum class Mode;
+enum class Pass;
+enum class Mode;
 }
 
 class Node : public Component {
@@ -38,6 +38,7 @@ class Node : public Component {
     PROPERTY(glm::quat, Rotation, glm::vec3(0.0, 0.0, 0.0));
     /** The local scale */
     PROPERTY(glm::vec3, Scale, 1);
+
 public:
     Node();
     Node(const Node& node);
@@ -111,13 +112,14 @@ public:
 private:
     virtual std::shared_ptr<Component> _Clone() override
     {
-        auto newNode{ Component::Create<Node>(*this) };
+        auto newNode { Component::Create<Node>(*this) };
         newNode->RemoveComponents<Node>(); //Remove children
         return newNode;
     }
 
     std::shared_ptr<BoundingAABB> _bounds { nullptr };
-    virtual void _Replace(const std::shared_ptr<Component> oldComponent, const std::shared_ptr<Component> newComponent) override {
+    virtual void _Replace(const std::shared_ptr<Component> oldComponent, const std::shared_ptr<Component> newComponent) override
+    {
         if (GetParent() == oldComponent)
             SetParent(std::static_pointer_cast<Node>(newComponent));
         else if (HasChild(std::static_pointer_cast<Node>(newComponent)))
@@ -127,23 +129,26 @@ private:
     void _SetLocalTranslationMatrix(const glm::mat4& matrix);
     void _SetLocalRotationMatrix(const glm::mat4& matrix);
     void _SetLocalScaleMatrix(const glm::mat4& matrix);
-    void _OnPositionChanged(glm::vec3 position) {
+    void _OnPositionChanged(glm::vec3 position)
+    {
         _positionChanged = true;
     }
-    void _OnRotationChanged(glm::quat rotation) {
+    void _OnRotationChanged(glm::quat rotation)
+    {
         _rotationChanged = true;
     }
-    void _OnScaleChanged(glm::vec3 scale) {
+    void _OnScaleChanged(glm::vec3 scale)
+    {
         _scaleChanged = true;
     }
-    bool _positionChanged{ true };
-    bool _rotationChanged{ true };
-    bool _scaleChanged{ true };
+    bool _positionChanged { true };
+    bool _rotationChanged { true };
+    bool _scaleChanged { true };
 
-    glm::mat4 _localTransformMatrix{ glm::mat4(1) };
-    glm::mat4 _localTranslationMatrix{ glm::translate(glm::vec3(0)) };
-    glm::mat4 _localRotationMatrix{ glm::rotate(0.f, glm::vec3(0)) };
-    glm::mat4 _localScaleMatrix{ glm::scale(glm::vec3(1)) };
-    glm::mat4 _prevTransformMatrix{ glm::mat4(1) };
+    glm::mat4 _localTransformMatrix { glm::mat4(1) };
+    glm::mat4 _localTranslationMatrix { glm::translate(glm::vec3(0)) };
+    glm::mat4 _localRotationMatrix { glm::rotate(0.f, glm::vec3(0)) };
+    glm::mat4 _localScaleMatrix { glm::scale(glm::vec3(1)) };
+    glm::mat4 _prevTransformMatrix { glm::mat4(1) };
     std::weak_ptr<Node> _parent;
 };

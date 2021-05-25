@@ -23,9 +23,9 @@ public:
     MeshRenderer(Mesh&);
     MeshRenderer(const MeshRenderer&) = delete;
     void Load();
-    virtual void OnFrameBegin(uint32_t frameNbr, float delta) override;
+    virtual void OnFrameBegin(const Renderer::Options& options) override;
     virtual void Render(const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) override;
-    virtual void OnFrameEnd(uint32_t frameNbr, float delta) override;
+    virtual void OnFrameEnd(const Renderer::Options& options) override;
 
 private:
     std::array<GLsync, 2> _drawSync { nullptr };

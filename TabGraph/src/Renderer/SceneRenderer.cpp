@@ -8,16 +8,16 @@
 #include "Renderer/SceneRenderer.hpp"
 #include "Scene/Scene.hpp"
 
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
 //#endif
 
 #include <glm/glm.hpp>
 
 namespace Renderer {
-void OnFrameBegin(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta)
+void OnFrameBegin(std::shared_ptr<Scene> scene, const Options& options)
 {
-    scene->GetRenderer().OnFrameBegin(frameNbr, delta);
+    scene->GetRenderer().OnFrameBegin(options);
 }
 
 void Render(std::shared_ptr<Scene> scene, const Options& options)
@@ -30,8 +30,8 @@ void Render(std::shared_ptr<Scene> scene, const Options& options, const glm::mat
     scene->GetRenderer().Render(options, rootMatrix);
 }
 
-void OnFrameEnd(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta)
+void OnFrameEnd(std::shared_ptr<Scene> scene, const Options& options)
 {
-    scene->GetRenderer().OnFrameEnd(frameNbr, delta);
+    scene->GetRenderer().OnFrameEnd(options);
 }
 };

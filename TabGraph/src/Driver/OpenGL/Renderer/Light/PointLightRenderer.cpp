@@ -75,13 +75,13 @@ void PointLightRenderer::Render(const Renderer::Options& options)
         _RenderShadow(static_cast<PointLight&>(_light), options);
 }
 
-void PointLightRenderer::UpdateLightProbe(LightProbe&)
+void PointLightRenderer::UpdateLightProbe(const Renderer::Options&, LightProbe&)
 {
 }
 
 void PointLightRenderer::_RenderDeferredLighting(PointLight& light, const Renderer::Options& options)
 {
-    auto geometryBuffer = Renderer::DeferredGeometryBuffer();
+    auto geometryBuffer = options.renderer->DeferredGeometryBuffer();
     _lightingShader->Use()
         .SetUniform("Light.DiffuseFactor", light.GetDiffuseFactor())
         .SetUniform("Light.SpecularFactor", light.GetSpecularFactor())

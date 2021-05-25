@@ -1,0 +1,58 @@
+/*
+* @Author: gpinchon
+* @Date:   2019-02-22 16:13:28
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-05-21 14:53:25
+*/
+
+#include <Event/InputDevice/GameController.hpp>
+
+#if MEDIALIBRARY == SDL2
+#include <Driver/SDL2/GameController.hpp>
+#endif //MEDIALIBRARY == SDL2
+
+#include <iostream> // for basic_ostream::operator<<, operator<<, endl
+#include <map>
+
+namespace GameController {
+InputDevice& Get() {
+    static std::unique_ptr<InputDevice> s_instance(new InputDevice);
+    return *s_instance;
+}
+Signal<const Event::GameControllerAxis&>& OnAxis(uint8_t index, const GameController::Axis& axis)
+{
+    return Get().OnAxis(index, axis);
+}
+Signal<const Event::GameControllerButton&>& OnButton(uint8_t index, const GameController::Button& button)
+{
+    return Get().OnButton(index, button);
+}
+Signal<const Event::GameControllerButton&>& OnButtonUp(uint8_t index, const GameController::Button& button)
+{
+    return Get().OnButtonUp(index, button);
+}
+Signal<const Event::GameControllerButton&>& OnButtonDown(uint8_t index, const GameController::Button& button)
+{
+    return Get().OnButtonDown(index, button);
+}
+Signal<const Event::GameControllerDevice&>& OnConnection(uint8_t index)
+{
+    return Get().OnConnection(index);
+}
+Signal<const Event::GameControllerDevice&>& OnDisconnection(uint8_t index)
+{
+    return Get().OnDisconnection(index);
+}
+void Rumble(uint8_t index, float strength, int duration)
+{
+    return Get().Rumble(index, strength, duration);
+}
+float GetAxis(uint8_t index, GameController::Axis axis)
+{
+    return Get().GetAxis(index, axis);
+}
+bool GetButton(uint8_t index, GameController::Button button)
+{
+    return Get().GetButton(index, button);
+}
+};

@@ -6,7 +6,6 @@
 */
 
 #include <Driver/OpenGL/ComputeObject.hpp>
-
 #include <Shader/Program.hpp>
 
 #include <GL/glew.h>

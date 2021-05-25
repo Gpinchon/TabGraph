@@ -5,22 +5,14 @@
 * @Last Modified time: 2021-01-11 08:46:31
 */
 
-#include "Camera/Camera.hpp"
-#include "Common.hpp"
-#include "Window.hpp" // for Window
+#include <Camera/Camera.hpp>
+#include <Common.hpp>
+
 #include <glm/ext.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
-#include <math.h> // for sin, cos
+#include <math.h>
 #include <array>
-
-Camera::Camera(const std::string& name, Camera::Projection proj)
-    : Node(name)
-{
-    SetProjectionType(proj);
-}
-
-#include "Renderer/Renderer.hpp"
 
 //Halton sequence scaled to [-1:1]
 const glm::vec2 haltonSequence[256] = {
@@ -282,21 +274,26 @@ const glm::vec2 haltonSequence[256] = {
     glm::vec2(-0.996094, -0.0342935)
 };
 
-glm::mat4 Camera::GetProjectionMatrix()
+Camera::Camera(const std::string& name, Camera::Projection proj)
+    : Node(name)
 {
-    if (!_projectionMatrixNeedsUpdate)
-        return _projectionMatrix;
-    const auto windowSize{ Window::GetSize() };
+    SetProjectionType(proj);
+}
+
+glm::mat4 Camera::GetProjectionMatrix(const glm::ivec2& resolution)
+{
     if (ProjectionType() == Camera::Projection::Perspective) {
         if (Zfar() > 0)
-            _projectionMatrix = glm::perspective(glm::radians(Fov()), float(windowSize.x) / float(windowSize.y), Znear(), Zfar());
+            _projectionMatrix = glm::perspective(glm::radians(Fov()), float(resolution.x) / float(resolution.y), Znear(), Zfar());
         else
-            _projectionMatrix = glm::infinitePerspective(glm::radians(Fov()), float(windowSize.x) / float(windowSize.y), Znear());
+            _projectionMatrix = glm::infinitePerspective(glm::radians(Fov()), float(resolution.x) / float(resolution.y), Znear());
     } else
         _projectionMatrix = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
-    auto halton{ haltonSequence[Renderer::FrameNumber() % 256] * 0.25f };
-    _projectionMatrix[2][0] += halton.x / float(windowSize.x);
-    _projectionMatrix[2][1] += halton.y / float(windowSize.y);
+    static uint8_t frameNbr{ 0 };
+    auto &halton{ haltonSequence[frameNbr] * 0.25f };
+    ++frameNbr;
+    _projectionMatrix[2][0] += halton.x / float(resolution.x);
+    _projectionMatrix[2][1] += halton.y / float(resolution.y);
     return _projectionMatrix;
 }
 
@@ -306,7 +303,7 @@ void Camera::SetProjectionMatrix(glm::mat4 projectionMatrix)
     _projectionMatrixNeedsUpdate = false;
 }
 
-std::array<glm::vec3, 8> Camera::ExtractFrustum()
+std::array<glm::vec3, 8> Camera::ExtractFrustum(const glm::ivec2& resolution)
 {
     static std::array<glm::vec3, 8> NDCCube{
         glm::vec3(-1.0f, -1.0f, 1.0f),
@@ -318,7 +315,7 @@ std::array<glm::vec3, 8> Camera::ExtractFrustum()
         glm::vec3(1.0f, 1.0f, -1.0f),
         glm::vec3(1.0f, -1.0f, -1.0f)
     };
-    auto invVP = glm::inverse(GetProjectionMatrix() * GetViewMatrix());
+    auto invVP = glm::inverse(GetProjectionMatrix(resolution) * GetViewMatrix());
     for (auto& v : NDCCube) {
         glm::vec4 normalizedCoord = invVP * glm::vec4(v, 1);
         v = glm::vec3(normalizedCoord) / normalizedCoord.w;

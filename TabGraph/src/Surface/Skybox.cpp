@@ -8,7 +8,7 @@
 #include "Surface/Skybox.hpp"
 #include "Texture/TextureCubemap.hpp"
 
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Renderer/Surface/SkyboxRenderer.hpp"
 //#endif
 

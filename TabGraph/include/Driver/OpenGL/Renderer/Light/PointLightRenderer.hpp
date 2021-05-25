@@ -21,7 +21,7 @@ class PointLightRenderer : public LightRenderer {
 public:
     PointLightRenderer(PointLight &);
     virtual void Render(const Renderer::Options&) override;
-    virtual void UpdateLightProbe(LightProbe&) override;
+    virtual void UpdateLightProbe(const Renderer::Options&, LightProbe&) override;
 
 protected:
     void _RenderDeferredLighting(PointLight&, const Renderer::Options&);

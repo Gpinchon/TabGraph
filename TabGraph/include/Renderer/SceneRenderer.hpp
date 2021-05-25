@@ -14,9 +14,8 @@ class LightProbe;
 
 namespace Renderer {
 struct Options;
-void OnFrameBegin(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta);
+void OnFrameBegin(std::shared_ptr<Scene> scene, const Options& options);
 void Render(std::shared_ptr<Scene> scene, const Options& options);
 void Render(std::shared_ptr<Scene> scene, const Options& options, const glm::mat4& rootMatrix);
-void OnFrameEnd(std::shared_ptr<Scene> scene, uint32_t frameNbr, float delta);
+void OnFrameEnd(std::shared_ptr<Scene> scene, const Options& options);
 };
-

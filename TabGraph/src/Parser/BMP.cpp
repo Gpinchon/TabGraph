@@ -30,6 +30,7 @@
 #endif
 
 #pragma pack(1)
+/// \private
 struct t_bmp_info {
     uint32_t    header_size{ sizeof(t_bmp_info) };
     int32_t     width{ 0 };
@@ -44,6 +45,7 @@ struct t_bmp_info {
     uint32_t    important_colors{ 0 };
 };
 
+/// \private
 struct t_bmp_header {
     std::byte    type[2]{ std::byte(0), std::byte(0) };
     uint32_t     size{ 0 };
@@ -53,6 +55,7 @@ struct t_bmp_header {
 };
 #pragma pack()
 
+/// \private
 struct t_bmp_parser {
     FILE* fd{ nullptr };
     t_bmp_info info;

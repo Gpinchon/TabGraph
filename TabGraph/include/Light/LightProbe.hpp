@@ -13,8 +13,11 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-class Framebuffer;
+namespace Renderer {
+    struct FrameRenderer;
+}
 
+class Framebuffer;
 class LightProbeGroup;
 
 class LightProbe : public Object {
@@ -43,7 +46,9 @@ class LightProbeGroup : public Object {
     READONLYPROPERTY(glm::ivec2, Resolution, 128);
 
 public:
-    LightProbeGroup(size_t probesNbr, glm::ivec2 resolution = glm::ivec2(128)) : _lightProbes(probesNbr, *this) {
+    LightProbeGroup(size_t probesNbr, glm::ivec2 resolution = glm::ivec2(128))
+        : _lightProbes(probesNbr, *this)
+    {
         _SetResolution(resolution);
     }
     std::vector<LightProbe> &GetLightProbes();

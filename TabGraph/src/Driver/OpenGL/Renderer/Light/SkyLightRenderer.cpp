@@ -2,22 +2,22 @@
 * @Author: gpinchon
 * @Date:   2021-04-11 16:24:38
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-04 20:02:26
+* @Last Modified time: 2021-05-24 18:52:52
 */
 
-#include "Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp"
-#include "Camera/Camera.hpp"
-#include "Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp"
-#include "Driver/OpenGL/Texture/Framebuffer.hpp"
-#include "Light/SkyLight.hpp"
-#include "Surface/CubeMesh.hpp"
-#include "Renderer/Surface/GeometryRenderer.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Shader/Program.hpp"
-#include "SphericalHarmonics.hpp"
-#include "Texture/Texture2D.hpp"
-#include "Texture/TextureCubemap.hpp"
-#include "Texture/TextureSampler.hpp"
+#include <Camera/Camera.hpp>
+#include <Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp>
+#include <Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp>
+#include <Driver/OpenGL/Texture/Framebuffer.hpp>
+#include <Light/SkyLight.hpp>
+#include <Renderer/Renderer.hpp>
+#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Shader/Program.hpp>
+#include <SphericalHarmonics.hpp>
+#include <Surface/CubeMesh.hpp>
+#include <Texture/Texture2D.hpp>
+#include <Texture/TextureCubemap.hpp>
+#include <Texture/TextureSampler.hpp>
 
 #include <GL/glew.h>
 
@@ -97,20 +97,21 @@ void SkyLightRenderer::Render(const Renderer::Options& options)
         _RenderDeferredLighting(static_cast<SkyLight&>(_light), options);
 }
 
-void SkyLightRenderer::UpdateLightProbe(LightProbe& lightProbe)
+void SkyLightRenderer::UpdateLightProbe(const Renderer::Options& options, LightProbe& lightProbe)
 {
-    _UpdateLUT(static_cast<SkyLight&>(_light));
+    _UpdateLUT(static_cast<SkyLight&>(_light), options);
     //TODO really implement this
 }
 
 void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::Options& options)
 {
     if (_dirty) {
-        _UpdateLUT(light);
+        _UpdateLUT(light, options);
         //re-bind lighting buffer
-        OpenGL::Framebuffer::Bind(Renderer::DeferredLightingBuffer());
+        OpenGL::Framebuffer::Bind(options.renderer->DeferredLightingBuffer());
+        options.renderer->SetViewPort(options.renderer->DeferredLightingBuffer()->GetSize());
     }
-    auto geometryBuffer = Renderer::DeferredGeometryBuffer();
+    auto geometryBuffer = options.renderer->DeferredGeometryBuffer();
     glm::vec3 geometryPosition;
     if (light.GetInfinite())
         geometryPosition = options.camera->WorldPosition();
@@ -129,7 +130,7 @@ void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::
         .SetUniform("Light.Projection", (light.GetInfinite() ? DirectionalLightShadowProjectionMatrixInfinite(light, options) : DirectionalLightShadowProjectionMatrixFinite(light)) * DirectionalLightShadowViewMatrix(light))
         .SetUniform("Light.Infinite", light.GetInfinite())
         .SetTexture("SpecularLUT", _reflectionLUT)
-        .SetTexture("DefaultBRDFLUT", Renderer::DefaultBRDFLUT())
+        .SetTexture("DefaultBRDFLUT", options.renderer->GetDefaultBRDFLUT())
         .SetUniform("SH[0]", _SHDiffuse.data(), _SHDiffuse.size())
         .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * light.GetLocalScaleMatrix())
         .SetTexture("Texture.Geometry.CDiff", geometryBuffer->GetColorBuffer(0))
@@ -139,7 +140,7 @@ void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::
     Renderer::Render(SkyLightGeometry(), true);
     _deferredShader->Done();
 }
-void SkyLightRenderer::_UpdateLUT(SkyLight& light)
+void SkyLightRenderer::_UpdateLUT(SkyLight& light, const Renderer::Options& options)
 {
     if (!_dirty)
         return;
@@ -153,19 +154,10 @@ void SkyLightRenderer::_UpdateLUT(SkyLight& light)
     static auto s_diffuseLUTBuffer = std::make_shared<Framebuffer>(glm::ivec2(256));
     s_diffuseLUTBuffer->SetColorBuffer(_reflectionLUT, 0);
     OpenGL::Framebuffer::Bind(s_diffuseLUTBuffer);
-    SkyLightLUTShader()->Use()
-        .SetUniform("SpecularFactor", light.GetSpecularFactor())
-        .SetUniform("DiffuseFactor", light.GetDiffuseFactor())
-        .SetUniform("BetaMie", light.GetBetaMie())
-        .SetUniform("BetaRayleigh", light.GetBetaRayleigh())
-        .SetUniform("SunDirection", light.GetSunDirection())
-        .SetUniform("SunPower", light.GetSunPower())
-        .SetUniform("PlanetRadius", light.GetPlanetRadius())
-        .SetUniform("AtmosphereRadius", light.GetAtmosphereRadius())
-        .SetUniform("HRayLeigh", light.GetHRayleigh())
-        .SetUniform("HMie", light.GetHMie());
+    options.renderer->SetViewPort(s_diffuseLUTBuffer->GetSize());
+    SkyLightLUTShader()->Use().SetUniform("SpecularFactor", light.GetSpecularFactor()).SetUniform("DiffuseFactor", light.GetDiffuseFactor()).SetUniform("BetaMie", light.GetBetaMie()).SetUniform("BetaRayleigh", light.GetBetaRayleigh()).SetUniform("SunDirection", light.GetSunDirection()).SetUniform("SunPower", light.GetSunPower()).SetUniform("PlanetRadius", light.GetPlanetRadius()).SetUniform("AtmosphereRadius", light.GetAtmosphereRadius()).SetUniform("HRayLeigh", light.GetHRayleigh()).SetUniform("HMie", light.GetHMie());
     glClear(GL_COLOR_BUFFER_BIT);
-    Renderer::Render(Renderer::DisplayQuad(), true);
+    Renderer::Render(options.renderer->GetDisplayQuad(), true);
     OpenGL::Framebuffer::Bind(nullptr);
     s_diffuseLUTBuffer->SetColorBuffer(nullptr, 0);
     _reflectionLUT->GenerateMipmap();

@@ -49,7 +49,7 @@ void MeshRenderer::Load()
     _loaded = true;
 }
 
-void MeshRenderer::OnFrameBegin(uint32_t frameNbr, float delta)
+void MeshRenderer::OnFrameBegin(const Renderer::Options& options)
 {
     _mesh.Load();
     Load();
@@ -85,7 +85,6 @@ void MeshRenderer::Render(
     const glm::mat4& parentTransform,
     const glm::mat4& parentLastTransform)
 {
-    auto currentCamera(options.camera);
     auto transformMatrix = parentTransform * _mesh.GetGeometryTransform();
     auto prevTransform = parentLastTransform * _prevTransformMatrix;
     auto skinTransform = glm::inverse(parentTransform);
@@ -127,7 +126,7 @@ void MeshRenderer::Render(
             .SetTexture("PrevJoints", skinned ? _jointMatrices.at(prevJointsIndex) : nullptr)
             .SetUniform("Skinned", skinned);
         if (options.pass == Options::Pass::ForwardOpaque || options.pass == Options::Pass::ForwardTransparent) {
-            shader->SetTexture("BRDFLUT", Renderer::DefaultBRDFLUT());
+            shader->SetTexture("BRDFLUT", options.renderer->GetDefaultBRDFLUT());
             shader->SetUniform("SH[0]", lightProbe.GetDiffuseSH().data(), lightProbe.GetDiffuseSH().size());
             shader->SetTexture("ReflectionMap", lightProbe.GetReflectionBuffer()->GetColorBuffer(0));
         }
@@ -153,7 +152,7 @@ void MeshRenderer::Render(
     last_shader->Done();
 }
 
-void MeshRenderer::OnFrameEnd(uint32_t frameNbr, float delta)
+void MeshRenderer::OnFrameEnd(const Renderer::Options& options)
 {
     auto skinned { _mesh.HasComponentOfType<MeshSkin>() };
     auto jointsIndex = _jointMatricesIndex;

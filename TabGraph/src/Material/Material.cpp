@@ -74,7 +74,6 @@ Material::Material(const std::string& name)
     GetShader(Renderer::Options::Pass::ShadowDepth)->Attach(Shader::Stage(Shader::Stage::Type::Vertex, GetForwardVertexExtension()));
     GetShader(Renderer::Options::Pass::ShadowDepth)->Attach(Shader::Stage(Shader::Stage::Type::Fragment, GetForwardFragmentExtension() + GetCheckOpacityExtension()));
 
-    SetTextureBRDFLUT(Renderer::DefaultBRDFLUT());
     SetOpacity(1);
 }
 

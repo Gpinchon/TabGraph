@@ -2,11 +2,14 @@
 * @Author: gpinchon
 * @Date:   2020-11-24 21:47:21
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-03-15 00:04:45
+* @Last Modified time: 2021-05-19 00:13:17
 */
 
-#include "Light/DirectionalLight.hpp"
-#include "Renderer/Light/DirectionalLightRenderer.hpp"
+#include <Light/DirectionalLight.hpp>
+
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp>
+#endif
 
 #include <glm/glm.hpp>
 

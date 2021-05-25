@@ -7,7 +7,7 @@
 
 #include "Texture/Framebuffer.hpp"
 
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Texture/Framebuffer.hpp"
 //#endif
 
@@ -57,6 +57,11 @@ void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::
 }
 
 void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, BufferMask mask, TextureSampler::Filter filter)
+{
+    return _impl->BlitTo(to, mask, filter);
+}
+
+void Framebuffer::BlitTo(std::shared_ptr<Window> to, BufferMask mask, TextureSampler::Filter filter)
 {
     return _impl->BlitTo(to, mask, filter);
 }

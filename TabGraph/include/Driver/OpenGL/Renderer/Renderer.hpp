@@ -6,10 +6,12 @@
 */
 
 #pragma once
-#include "Component.hpp"
-#include "Event/Signal.hpp"
+#include <Renderer/Renderer.hpp>
+#include <Component.hpp>
+#include <Event/Signal.hpp>
 
 #include <memory>
+#include <glm/fwd.hpp>
 
 class Texture2D;
 class Framebuffer;
@@ -19,42 +21,46 @@ class Program;
 };
 
 namespace Renderer {
-class Context {
-public:
-    Context(void* context = nullptr)
-        : _v(context)
-    {
-    }
-    operator void* () const
-    {
-        return _v;
-    }
+struct FrameRenderer::Impl : public Component {
+    class Context {
+    public:
+        Context(void* context = nullptr)
+            : _v(context)
+        {
+        }
+        operator void* () const
+        {
+            return _v;
+        }
+
+    private:
+        void* _v{ nullptr };
+    };
+    Impl(std::weak_ptr<Window> window, FrameRenderer& renderer);
+    const Context& GetContext() const;
+    const uint32_t GetFrameNumber() const;
+    const std::shared_ptr<Geometry> GetDisplayQuad() const;
+    const std::shared_ptr<Texture2D> GetDefaultBRDFLUT() const;
+    const std::shared_ptr<Window> GetWindow() const;
+    void RenderFrame(std::shared_ptr<Scene> scene);
+    
+    void SetViewPort(const glm::ivec2& min, const glm::ivec2& max);
+    void SetViewPort(const glm::ivec2& size);
+    void SetSwapInterval(SwapInterval swapInterval);
+    SwapInterval GetSwapInterval() const;
+
+    std::shared_ptr<Framebuffer> DeferredGeometryBuffer();
+    std::shared_ptr<Framebuffer> DeferredLightingBuffer();
+    std::shared_ptr<Framebuffer> ForwardTransparentRenderBuffer();
+    std::shared_ptr<Framebuffer> OpaqueRenderBuffer();
+    std::shared_ptr<Framebuffer> FinalRenderBuffer();
+    std::shared_ptr<Framebuffer> PreviousRenderBuffer();
 
 private:
-    void* _v{ nullptr };
-};
-class Impl : public Component {
-public:
-    Impl();
-    void Init();
-    Context& GetContext();
-    static void RenderFrame();
-
-    static std::shared_ptr<Framebuffer> DeferredGeometryBuffer();
-    static std::shared_ptr<Framebuffer> DeferredLightingBuffer();
-    static std::shared_ptr<Framebuffer> ForwardTransparentRenderBuffer();
-    static std::shared_ptr<Framebuffer> OpaqueRenderBuffer();
-    static std::shared_ptr<Framebuffer> FinalRenderBuffer();
-    static std::shared_ptr<Framebuffer> PreviousRenderBuffer();
-    static std::shared_ptr<Texture2D> DefaultBRDFLUT();
-
-    static const std::shared_ptr<Geometry> DisplayQuad();
-    static const uint32_t FrameNumber();
-    virtual std::shared_ptr<Component> _Clone() override;
-
-private:
-    void _RenderFrame();
-
+    virtual std::shared_ptr<Component> _Clone() override
+    {
+        return Component::Create<FrameRenderer::Impl>(*this);
+    }
     std::shared_ptr<Framebuffer> _deferredLightingBuffer;
     std::shared_ptr<Framebuffer> _deferredRenderBuffer;
     std::shared_ptr<Framebuffer> _forwardTransparentRenderBuffer;
@@ -62,14 +68,15 @@ private:
     std::shared_ptr<Framebuffer> _finalRenderBuffer;
     std::shared_ptr<Framebuffer> _previousRenderBuffer;
 
-    void _OpaquePass();
+    void _RenderFrame(std::shared_ptr<Scene> scene);
+    void _OpaquePass(std::shared_ptr<Scene> scene);
+    void _LightPass(std::shared_ptr<Scene> scene);
+    void _TransparentPass(std::shared_ptr<Scene> scene);
     void _HZBPass();
     void _SSRPass();
     void _SSAOPass();
     void _DeferredMaterialPass();
-    void _TransparentPass();
     void _CompositingPass();
-    std::shared_ptr<Texture2D> _DefaultBRDFLUT();
 
     std::shared_ptr<Framebuffer> _ssrBuffer;
     std::shared_ptr<Shader::Program> _ssrShader;
@@ -87,9 +94,14 @@ private:
     std::shared_ptr<Shader::Program> _deferredMaterialShader;
 
     std::shared_ptr<Texture2D> _defaultBRDF;
+    std::shared_ptr<Geometry> _displayQuad;
+
+    std::weak_ptr<Window> _window;
 
     Context _context;
     uint32_t _frameNbr{ 0 };
+    FrameRenderer& _frameRenderer;
+    double _lastTicks{ 0 };
+    double _deltaTime{ 0 };
 };
-std::shared_ptr<Renderer::Impl> GetImpl();
 };

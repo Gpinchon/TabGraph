@@ -7,7 +7,7 @@
 #include "Texture/TextureBuffer.hpp"
 #include "Buffer/BufferAccessor.hpp"
 #include "Debug.hpp"
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Buffer.hpp"
 #include "Driver/OpenGL/Texture/TextureBuffer.hpp"
 //#endif

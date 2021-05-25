@@ -5,7 +5,7 @@
 * @Last Modified time: 2021-05-01 23:56:53
 */
 #include "Texture/TextureSampler.hpp"
-//#ifdef OPENGL
+//#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Texture/TextureSampler.hpp"
 //#endif
 

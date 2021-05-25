@@ -2,14 +2,14 @@
 * @Author: gpinchon
 * @Date:   2020-10-01 15:30:47
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-18 16:06:21
+* @Last Modified time: 2021-05-19 00:12:43
 */
 
 #include <ComputeObject.hpp>
 
-//#ifdef OPENGL
+#if RENDERINGAPI == OpenGL
 #include <Driver/OpenGL/ComputeObject.hpp>
-//#endif
+#endif
 
 ComputeObject::ComputeObject(std::shared_ptr<Shader::Program> computeShader)
     : _impl(new ComputeObject::Impl(*this))

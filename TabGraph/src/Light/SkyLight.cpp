@@ -2,30 +2,35 @@
 * @Author: gpinchon
 * @Date:   2021-03-12 16:08:58
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-04 20:02:24
+* @Last Modified time: 2021-05-18 18:26:25
 */
 
-#include "Light/SkyLight.hpp"
-#include "Camera/Camera.hpp"
-#include "Surface/CubeMesh.hpp"
-#include "Surface/Geometry.hpp"
-#include "Renderer/Surface/GeometryRenderer.hpp"
-#include "Renderer/Light/SkyLightRenderer.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Scene/Scene.hpp"
-#include "Shader/Program.hpp"
-#include "SphericalHarmonics.hpp"
-#include "Texture/Texture2D.hpp"
-#include "Texture/TextureCubemap.hpp"
+#include <Camera/Camera.hpp>
+#include <Light/SkyLight.hpp>
+#include <Renderer/Renderer.hpp>
+#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Scene/Scene.hpp>
+#include <Shader/Program.hpp>
+#include <SphericalHarmonics.hpp>
+#include <Surface/CubeMesh.hpp>
+#include <Surface/Geometry.hpp>
+#include <Texture/Texture2D.hpp>
+#include <Texture/TextureCubemap.hpp>
+
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp>
+#endif
 
 #define num_samples 16
 #define num_samples_light 8
 
+/// \private
 struct ray_t {
     glm::vec3 origin;
     glm::vec3 direction;
 };
 
+/// \private
 struct sphere_t {
     glm::vec3 origin;
     float radius;
