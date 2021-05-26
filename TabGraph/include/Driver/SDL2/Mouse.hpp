@@ -12,6 +12,7 @@
 #include <Event/Signal.hpp>
 
 #include <array>
+#include <stdexcept>
 
 namespace Mouse {
 struct InputDevice : ::InputDevice {

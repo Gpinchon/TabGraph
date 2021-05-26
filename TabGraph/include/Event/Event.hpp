@@ -14,6 +14,8 @@
 #include <chrono>
 #include <glm/vec2.hpp>
 #include <variant>
+#include <memory>
+#include <string>
 
 struct Window;
 
