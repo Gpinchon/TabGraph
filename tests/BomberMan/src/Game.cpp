@@ -1,5 +1,7 @@
-#include "Camera/Camera.hpp"
-#include "Event/Events.hpp"
+#include <Camera/Camera.hpp>
+#include <Engine.hpp>
+#include <Renderer/Renderer.hpp>
+#include <Window.hpp>
 
 #include "Game.hpp"
 #include "Level.hpp"
@@ -7,17 +9,18 @@
 
 #include <array>
 
-void GameRefresh(float);
-
 struct GameManager {
     GameManager()
+        : engine(Engine::Create(Renderer::FrameRenderer::Create(Window::Create("Bomberman", glm::ivec2(1280, 720)))))
     {
-        Events::OnRefresh().Connect(&GameRefresh);
+        engine->OnFixedUpdate().Connect(&Game::Update);
     }
     std::shared_ptr<Level> currentLevel;
-    std::array<std::shared_ptr<Player>, 4> players;
+    std::shared_ptr<Engine> engine;
     int playerNumber { 0 };
 };
+
+static std::unique_ptr<GameManager> s_gameManager;
 
 void GameRefresh(float delta)
 {
@@ -26,18 +29,13 @@ void GameRefresh(float delta)
 
 GameManager& getGameManager()
 {
-    static GameManager gameManager;
-    return gameManager;
+    return *s_gameManager;
 }
 
 void Game::SetCurrentLevel(std::shared_ptr<Level> currentLevel)
 {
-    for (auto i = 0; i < PlayerNumber(); ++i) {
-        GetPlayer(i)->SetPosition(glm::vec2(currentLevel->SpawnPoint()) + 0.5f);
-        currentLevel->Add(GetPlayer(i));
-        //currentLevel->SetGameEntityPosition(, GetPlayer(i));
-    }
     getGameManager().currentLevel = currentLevel;
+    getGameManager().engine->SetCurrentScene(currentLevel);
 }
 
 std::shared_ptr<Level> Game::CurrentLevel()
@@ -47,6 +45,7 @@ std::shared_ptr<Level> Game::CurrentLevel()
 
 void Game::Update(float step)
 {
+    getGameManager().currentLevel->Update(step);
 }
 
 int Game::PlayerNumber()
@@ -54,22 +53,25 @@ int Game::PlayerNumber()
     return getGameManager().playerNumber;
 }
 
-std::shared_ptr<Player> Game::GetPlayer(int index)
-{
-    assert(index < getGameManager().playerNumber);
-    return getGameManager().players.at(index);
-}
-
 int Game::AddPlayer()
 {
     if (getGameManager().playerNumber == 4)
         return -1;
-    auto newPlayer = Player::Create(glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f));
     getGameManager().playerNumber++;
-    getGameManager().players.at(getGameManager().playerNumber - 1) = newPlayer;
     return getGameManager().playerNumber - 1;
 }
 
 void Game::MovePlayer(int index, const glm::vec2& input)
 {
+}
+
+void Game::Init()
+{
+    if (s_gameManager == nullptr)
+        s_gameManager.reset(new GameManager);
+}
+
+void Game::Start()
+{
+    s_gameManager->engine->Start();
 }

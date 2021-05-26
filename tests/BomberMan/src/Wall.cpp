@@ -13,14 +13,14 @@
 
 #include "Wall.hpp"
 
-Wall::Wall()
-    : GameEntity("Wall")
+Wall::Wall(Level& level)
+    : GameEntity(level, "Wall")
 {
     
 }
 
 auto CreateWallAsset() {
-    auto wallAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/wall.gltf") };
+    auto wallAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/wall.gltf") };
     wallAsset->Load();
     return wallAsset->GetComponentsInChildren<Mesh>();
     /*for (const auto& mesh : wallMeshes)
@@ -29,11 +29,11 @@ auto CreateWallAsset() {
     return wall;*/
 }
 
-std::shared_ptr<Wall> Wall::Create()
+std::shared_ptr<Wall> Wall::Create(Level& level)
 {
     static auto wallMeshes(CreateWallAsset());
     //auto wall{ std::static_pointer_cast<Wall>(wallAsset->Clone()) };
-    auto wall(Component::Create<Wall>());
+    auto wall(Component::Create<Wall>(level));
     for (const auto& mesh : wallMeshes)
         wall->AddComponent(mesh);
     wall->SetScale(glm::vec3(0.45));

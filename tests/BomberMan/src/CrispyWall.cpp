@@ -16,15 +16,15 @@
 #include "Game.hpp"
 #include "Level.hpp"
 
-CrispyWall::CrispyWall()
-    : GameEntity("CrispyWall")
+CrispyWall::CrispyWall(Level& level)
+    : GameEntity(level, "CrispyWall")
 {
     _height = 0;
 }
 
 auto CreateCrispyWallAsset() {
     
-    auto crispyWallAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/crispyWall.gltf") };
+    auto crispyWallAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/crispyWall.gltf") };
     crispyWallAsset->Load();
     auto crispyWallMeshes{ crispyWallAsset->GetComponentsInChildren<Mesh>() };
     for (const auto& mesh : crispyWallMeshes)
@@ -32,9 +32,9 @@ auto CreateCrispyWallAsset() {
     return crispyWallMeshes;
 }
 
-std::shared_ptr<CrispyWall> CrispyWall::Create()
+std::shared_ptr<CrispyWall> CrispyWall::Create(Level& level)
 {
-    auto wall = Component::Create<CrispyWall>();
+    auto wall = Component::Create<CrispyWall>(level);
     static auto crispyWallAsset{ CreateCrispyWallAsset() };
     for (auto mesh : crispyWallAsset)
         wall->AddComponent(mesh);
@@ -43,5 +43,5 @@ std::shared_ptr<CrispyWall> CrispyWall::Create()
 
 void CrispyWall::Die()
 {
-    Game::CurrentLevel()->SetGameEntity(Position(), nullptr);
+    _level.SetGameEntity(Position(), nullptr);
 }

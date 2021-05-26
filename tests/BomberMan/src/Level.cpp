@@ -120,7 +120,7 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             auto index = x + y * size.x;
             switch (map.at(x).at(y)) {
             case 1: {
-                auto wall = Wall::Create();
+                auto wall = Wall::Create(*level.get());
                 level->SetGameEntityPosition(glm::ivec2(x, y), wall);
                 auto color { glm::vec4(0.274509, 0.050980, 0.050980, 1) };
                 floorImage->SetColor(glm::ivec2(x, y), color);
@@ -131,7 +131,7 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
                 break;
             }
             case 3: {
-                auto wall = CrispyWall::Create();
+                auto wall = CrispyWall::Create(*level.get());
                 level->SetGameEntityPosition(glm::ivec2(x, y), wall);
             }
             }
@@ -155,6 +155,13 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
 
     auto lightHDR { Component::Create<HDRLight>(diffuseMap) };
     level->Add(lightHDR);
+
+    for (auto i = 0u; i < Game::PlayerNumber(); ++i) {
+        auto player{ Player::Create(*level.get(), glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f)) };
+        player->SetPosition(level->SpawnPoint());
+        level->Add(player);
+        level->_players.push_back(player);
+    }
 
     return level;
 }
@@ -198,51 +205,14 @@ std::shared_ptr<GameEntity> Level::GetGameEntity(glm::ivec2 position) const
     return _entities.at(position.x + position.y * Size().x).lock();
 }
 
-void Level::_UpdateCPU(float delta)
+void Level::Update(float delta)
 {
-    //for (const auto& entity : _entities) {
-    //    if (entity != nullptr)
-    //        entity->UpdateCPU(delta);
-    //}
-    //for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-    //    Game::GetPlayer(index)->UpdateCPU(delta);
-    //}
-}
-
-void Level::_FixedUpdateCPU(float delta)
-{
-    //Scene::FixedUpdateCPU(delta);
-    //for (const auto& entity : _entities) {
-    //    if (entity != nullptr)
-    //        entity->FixedUpdateCPU(delta);
-    //}
-    //for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-    //    Game::GetPlayer(index)->FixedUpdateCPU(delta);
-    //}
-}
-/*
-void Level::Render(const Renderer::Pass& pass, const Renderer::Mode& mod)
-{
-    Scene::Render(pass, mod);
-    for (const auto& entity : _entities) {
-        if (entity != nullptr)
-            entity->Draw(std::static_pointer_cast<Scene>(shared_from_this()), pass, mod, true);
+    for (auto& entity : _entities) {
+        if (entity.lock() != nullptr)
+            entity.lock()->Update(delta);
     }
-    for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-        auto player(Game::GetPlayer(index));
-        player->Draw(std::static_pointer_cast<Scene>(shared_from_this()), pass, mod, true);
+    for (auto& player : _players) {
+        if (player.lock() != nullptr)
+            player.lock()->Update(delta);
     }
 }
-
-void Level::RenderDepth(const Renderer::Mode& mod)
-{
-    Scene::RenderDepth(mod);
-    for (const auto& entity : _entities) {
-        if (entity != nullptr)
-            entity->DrawDepth(std::static_pointer_cast<Scene>(shared_from_this()), mod, true);
-    }
-    for (auto index = 0; index < Game::PlayerNumber(); ++index) {
-        Game::GetPlayer(index)->DrawDepth(std::static_pointer_cast<Scene>(shared_from_this()), mod, true);
-    }
-}
-*/

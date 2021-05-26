@@ -11,6 +11,7 @@
 #include <filesystem>
 
 class GameEntity;
+class Player;
 
 class Level : public Scene {
 public:
@@ -25,14 +26,11 @@ public:
     std::shared_ptr<GameEntity> GetGameEntity(glm::ivec2 position) const;
     void SetSpawnPoint(glm::ivec2);
     glm::ivec2 SpawnPoint() const;
-    //virtual void Render(const Renderer::Pass&, const Renderer::Mode&) override;
-    //virtual void RenderDepth(const Renderer::Mode&) override;
+    void Update(float delta);
 
-private:
-    virtual void _UpdateCPU(float delta);
-    virtual void _FixedUpdateCPU(float delta);
+private:    
     const glm::ivec2 _size;
     glm::ivec2 _spawnPoint;
     std::vector<std::weak_ptr<GameEntity>> _entities;
-    //static std::shared_ptr<Level> _currentLevel;
+    std::vector<std::weak_ptr<Player>> _players;
 };

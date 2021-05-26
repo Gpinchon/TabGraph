@@ -6,25 +6,42 @@
 */
 
 #include "GameEntity.hpp"
+#include "Level.hpp"
 
-//#include "Physics/RigidBody.hpp"
-#include "Animation/Animation.hpp"
+#include <Animation/Animation.hpp>
 
-GameEntity::GameEntity(const GameEntity& entity) : Node(entity),
-    _size(entity._size), _height(entity._height), _type(entity._type), _animations(entity._animations), _currentAnimation(entity._currentAnimation)
+GameEntity::GameEntity(const GameEntity& entity) : Node(entity)
+    , _size(entity._size)
+    , _height(entity._height)
+    , _type(entity._type)
+    , _animations(entity._animations)
+    , _currentAnimation(entity._currentAnimation)
+    , _level(entity._level)
 {
 }
 
-GameEntity::GameEntity(const std::string& name, const std::string& entityType)
+GameEntity::GameEntity(Level& level, const std::string& name, const std::string& entityType)
     : Node(name)
     , _type(entityType)
+    , _level(level)
 {
 }
 
-GameEntity::GameEntity(const std::string& entityType)
+GameEntity::GameEntity(Level& level, const std::string& entityType)
     : Node("")
     , _type(entityType)
+    , _level(level)
 {
+}
+
+GameEntity::~GameEntity()
+{
+    for (auto& anim: _animations) {
+        auto animation{ anim.second.lock() };
+        if (animation == nullptr)
+            continue;
+        _level.RemoveComponent(animation);
+    }
 }
 
 std::string GameEntity::Type() const
@@ -68,13 +85,14 @@ void GameEntity::Die()
 
 void GameEntity::AddAnimation(const std::shared_ptr<Animation> &animation)
 {
-    AddComponent(animation);
+    //AddComponent(animation);
     _animations[animation->GetName()] = animation;
+    _level.Add(animation);
 }
 
 void GameEntity::PlayAnimation(const std::string& name, bool repeat)
 {
-    auto animation = _animations[name].lock();
+    auto animation = _animations.at(name).lock();
     if (animation != nullptr && !animation->Playing()) {
         animation->SetRepeat(repeat);
         animation->Play();

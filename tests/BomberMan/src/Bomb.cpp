@@ -5,12 +5,12 @@
 * @Last Modified time: 2020-08-17 13:52:03
 */
 
-#include "Surface/Mesh.hpp"
-#include "Surface/SphereMesh.hpp"
-#include "Material/Material.hpp"
-#include "Assets/Asset.hpp"
-#include "Engine.hpp"
-#include "Animation/Animation.hpp"
+#include <Surface/Mesh.hpp>
+#include <Surface/SphereMesh.hpp>
+#include <Material/Material.hpp>
+#include <Assets/Asset.hpp>
+#include <Engine.hpp>
+#include <Animation/Animation.hpp>
 
 #include <chrono>
 
@@ -19,12 +19,11 @@
 #include "Game.hpp"
 #include "Level.hpp"
 
-Bomb::Bomb()
-    : GameEntity("Bomb")
+Bomb::Bomb(Level& level)
+    : GameEntity(level, "Bomb")
     , _spawnTime(std::chrono::high_resolution_clock::now())
 {
     _height = 0;
-    Engine::OnFixedUpdate().ConnectMember(this, &Bomb::_FixedUpdateCPU);
 }
 
 Bomb::Bomb(const Bomb& bomb) : GameEntity(bomb)
@@ -33,21 +32,20 @@ Bomb::Bomb(const Bomb& bomb) : GameEntity(bomb)
     , _spawnTime(std::chrono::high_resolution_clock::now())
     , _bombMaterial(GetComponentInChildrenByName<Material>("Body"))
 {
-    Engine::OnFixedUpdate().ConnectMember(this, &Bomb::_FixedUpdateCPU);
 }
 
 auto CreateBombAsset() {
     
-    auto bombAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/bomb.gltf") };
+    auto bombAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/bomb.gltf") };
     bombAsset->Load();
     return bombAsset;
 }
 
-std::shared_ptr<Bomb> Bomb::Create(const glm::ivec2& position)
+std::shared_ptr<Bomb> Bomb::Create(Level& level, const glm::ivec2& position)
 {
     static auto bombAsset = CreateBombAsset();
     auto bombAssetClone{ bombAsset->GetComponent<Scene>()->Clone() };
-    auto bomb = Component::Create<Bomb>();
+    auto bomb = Component::Create<Bomb>(level);
     auto bombNode = bombAssetClone->GetComponentByName<Node>("Bomb");
     bomb->AddChild(bombNode);
     for (auto& animation : bombAssetClone->GetComponents<Animation>())
@@ -59,7 +57,7 @@ std::shared_ptr<Bomb> Bomb::Create(const glm::ivec2& position)
     return bomb;
 }
 
-void SpawnFlames(const glm::ivec2& position, const glm::ivec2& direction, int range)
+void Bomb::_SpawnFlames(const glm::ivec2& position, const glm::ivec2& direction, int range)
 {
     auto level = Game::CurrentLevel();
     for (auto i = 1; i < range; ++i) {
@@ -67,7 +65,7 @@ void SpawnFlames(const glm::ivec2& position, const glm::ivec2& direction, int ra
         if (flamePosition.x >= 0 && flamePosition.x < level->Size().x
             && flamePosition.y >= 0 && flamePosition.y < level->Size().y) {
             if (level->GetGameEntity(flamePosition) == nullptr || level->GetGameEntity(flamePosition)->Type() == "Flame")
-                Flame::Create(flamePosition);
+                Flame::Create(_level, flamePosition);
             else {
                 if (level->GetGameEntity(flamePosition)->Type() == "Bomb") {
                     auto bomb = std::static_pointer_cast<Bomb>(level->GetGameEntity(flamePosition));
@@ -76,7 +74,7 @@ void SpawnFlames(const glm::ivec2& position, const glm::ivec2& direction, int ra
                     //level->GetGameEntity(flamePosition)->Die();
                 } else if (level->GetGameEntity(flamePosition)->Type() == "CrispyWall") {
                     level->GetGameEntity(flamePosition)->Die();
-                    Flame::Create(flamePosition);
+                    Flame::Create(_level, flamePosition);
                 }
                 break;
             }
@@ -93,19 +91,18 @@ void Bomb::Die()
 {
     auto position = glm::ivec2(Position());
 
-    SpawnFlames(position, glm::ivec2(1, 0), Range());
-    SpawnFlames(position, glm::ivec2(-1, 0), Range());
-    SpawnFlames(position, glm::ivec2(0, 1), Range());
-    SpawnFlames(position, glm::ivec2(0, -1), Range());
-    Flame::Create(position);
+    _SpawnFlames(position, glm::ivec2(1, 0), Range());
+    _SpawnFlames(position, glm::ivec2(-1, 0), Range());
+    _SpawnFlames(position, glm::ivec2(0, 1), Range());
+    _SpawnFlames(position, glm::ivec2(0, -1), Range());
+    Flame::Create(_level, position);
 }
 
-void Bomb::_FixedUpdateCPU(float delta)
+void Bomb::Update(float delta)
 {
     auto deltaTime = std::chrono::high_resolution_clock::now() - SpawnTime();
     _bombMaterial->SetEmissive(glm::mix(glm::vec3(0), glm::vec3(0.3, 0, 0), deltaTime / Timer()));
-    if (deltaTime > Timer())
-        Die();
+    if (deltaTime > Timer()) Die();
 }
 
 std::chrono::time_point<std::chrono::high_resolution_clock> Bomb::SpawnTime() const

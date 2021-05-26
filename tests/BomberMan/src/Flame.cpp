@@ -17,12 +17,11 @@
 #include "Level.hpp"
 
 
-Flame::Flame()
-    : GameEntity("Flame")
+Flame::Flame(Level& level)
+    : GameEntity(level,  "Flame")
     , _spawnTime(std::chrono::high_resolution_clock::now())
 {
     _size = glm::vec2(0.7);
-    _updateSlot = Engine::OnFixedUpdate().ConnectMember(this, &Flame::_FixedUpdateCPU);
 }
 
 Flame::~Flame()
@@ -32,7 +31,7 @@ Flame::~Flame()
 
 auto CreateFlameAsset()
 {
-    auto flameAsset{ Component::Create<Asset>(Engine::ResourcePath() / "models/fire.gltf") };
+    auto flameAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/fire.gltf") };
     flameAsset->Load();
     auto meshes{ flameAsset->GetComponentsInChildren<Mesh>() };
     for (auto& mesh : meshes)
@@ -40,9 +39,9 @@ auto CreateFlameAsset()
     return meshes;
 }
 
-std::shared_ptr<Flame> Flame::Create(const glm::ivec2& position)
+std::shared_ptr<Flame> Flame::Create(Level& level, const glm::ivec2& position)
 {
-    auto flame = Component::Create<Flame>();
+    auto flame = Component::Create<Flame>(level);
     static auto flameAsset = CreateFlameAsset();
     for (const auto& mesh : flameAsset)
         flame->AddComponent(mesh);
@@ -66,7 +65,7 @@ void Flame::SetTimer(std::chrono::duration<double> timer)
     _timer = timer;
 }
 
-void Flame::_FixedUpdateCPU(float delta)
+void Flame::Update(float delta)
 {
     auto now = std::chrono::high_resolution_clock::now();
     if (now - SpawnTime() > Timer())

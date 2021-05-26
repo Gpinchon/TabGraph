@@ -28,25 +28,24 @@
 #define DROPK Keyboard::Key::Space
 #define UNZOOMK Keyboard::Key::NumpadMinus
 
-Player::Player(const std::string& name, const glm::vec3& color)
-    : GameEntity(name, "Player")
+Player::Player(Level& level, const std::string& name, const glm::vec3& color)
+    : GameEntity(level, name, "Player")
 {
     _height = 0;
-    Engine::OnFixedUpdate().ConnectMember(this, &Player::_FixedUpdateCPU);
     Keyboard::OnKeyDown(DROPK).ConnectMember(this, &Player::DropBomb);
 }
 
 auto CreatePlayerAsset()
 {
-    auto playerAsset = Component::Create<Asset>(Engine::ResourcePath() / "models/bomberman.gltf");
+    auto playerAsset = Component::Create<Asset>(Engine::GetResourcePath() / "models/bomberman.gltf");
     playerAsset->Load();
     playerAsset->GetComponent<Scene>()->GetComponent<Node>()->SetScale(glm::vec3(0.01f));
     return playerAsset;
 }
 
-std::shared_ptr<Player> Player::Create(const glm::vec3& color)
+std::shared_ptr<Player> Player::Create(Level& level, const glm::vec3& color)
 {
-    auto player = Component::Create<Player>("Player1", glm::vec3(1));
+    auto player = Component::Create<Player>(level, "Player1", glm::vec3(1));
     static auto playerAsset = CreatePlayerAsset();
     auto playerAssetClone = playerAsset->GetComponent<Scene>()->Clone();
     auto playerNode = playerAssetClone->GetComponent<Node>();
@@ -72,7 +71,7 @@ void Player::DropBomb(const Event::Keyboard& event) const
 {
     if (event.state && !event.repeat && Game::CurrentLevel()->GetGameEntity(Position()) == nullptr) {
         std::cout << Position().x << ' ' << Position().y << std::endl;
-        Bomb::Create(Position());
+        Bomb::Create(_level, Position());
     } else if (Game::CurrentLevel()->GetGameEntity(Position()) != nullptr)
         std::cout << Game::CurrentLevel()->GetGameEntity(Position())->Type() << std::endl;
 }
@@ -143,20 +142,17 @@ void Player::Move(const glm::vec2& direction, float delta)
 void Player::Die()
 {
     _lives--;
-    if (GetComponentByName<Animation>("death")->Playing()) {
+    if (_animations.at("death").lock()->Playing()) {
         std::cout << "Already DED" << std::endl;
     }
     PlayAnimation("death", false);
-
-    std::cout << "DED on Frame "<< Renderer::FrameNumber() << std::endl;
 }
 
-void Player::_FixedUpdateCPU(float delta)
+void Player::Update(float delta)
 {
-    if (Game::CurrentLevel() == nullptr ||
-        GetComponentByName<Animation>("death")->Playing())
+    if (Game::CurrentLevel() == nullptr || _animations.at("death").lock()->Playing())
         return;
-    glm::vec2 input;
+    glm::vec2 input{};
     input.x = Keyboard::GetKeyState(UPK) - Keyboard::GetKeyState(DOWNK);
     input.y = Keyboard::GetKeyState(RIGHTK) - Keyboard::GetKeyState(LEFTK);
     auto inputLength = length(input);
