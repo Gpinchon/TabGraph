@@ -171,13 +171,10 @@ void Framebuffer::Impl::SetDepthBuffer(std::shared_ptr<Texture> buffer, unsigned
 
 void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::ivec2 src1, glm::ivec2 dst0, glm::ivec2 dst1, BufferMask mask, TextureSampler::Filter filter)
 {
+    assert(to != nullptr);
     _SetupAttachements();
-    if (to != nullptr) {
-        to->GetImpl()._SetupAttachements();
-        to->GetImpl().Bind(OpenGL::Framebuffer::BindUsage::Draw);
-    }
-    else
-        BindDefault(OpenGL::Framebuffer::BindUsage::Draw);
+    to->GetImpl()._SetupAttachements();
+    to->GetImpl().Bind(OpenGL::Framebuffer::BindUsage::Draw);
     Bind(OpenGL::Framebuffer::BindUsage::Read);
     glBlitFramebuffer(
         src0.x,
@@ -195,7 +192,6 @@ void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0,
 
 void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, BufferMask mask, TextureSampler::Filter filter)
 {
-    assert(to != nullptr);
     BlitTo(to, glm::ivec2(0), GetSize(), glm::ivec2(0), to->GetSize(), mask, filter);
 }
 
