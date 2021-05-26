@@ -69,11 +69,11 @@ void Player::SetSpeed(float speed)
 
 void Player::DropBomb(const Event::Keyboard& event) const
 {
-    if (event.state && !event.repeat && Game::CurrentLevel()->GetGameEntity(Position()) == nullptr) {
+    if (event.state && !event.repeat && _level.GetGameEntity(Position()) == nullptr) {
         std::cout << Position().x << ' ' << Position().y << std::endl;
         Bomb::Create(_level, Position());
-    } else if (Game::CurrentLevel()->GetGameEntity(Position()) != nullptr)
-        std::cout << Game::CurrentLevel()->GetGameEntity(Position())->Type() << std::endl;
+    } else if (_level.GetGameEntity(Position()) != nullptr)
+        std::cout << _level.GetGameEntity(Position())->Type() << std::endl;
 }
 
 template <typename T>
@@ -91,20 +91,8 @@ struct Contact {
 
 auto AABBvsCircle(Contact& c, const glm::vec2& sphereCenter, float sphereRadius, const glm::vec2& boxPos, const glm::vec2& boxSize)
 {
-    /*glm::vec2 aabbSize((boxMax - boxMin) / 2.f);
-    glm::vec2 nearest = glm::max(boxPos - aabbSize, glm::min(sphereCenter, boxPos + aabbSize));
-    glm::vec2 delta = sphereCenter - nearest;
-    c.normal = -normalize(delta);
-    c.penetration = sphereRadius - length(delta);
-    return (delta.x * delta.x + delta.y * delta.y) < (sphereRadius * sphereRadius);*/
-    //auto NearestX = glm::max(boxPos.x, glm::min(sphereCenter.x, boxPos.x + aabbSize.x));
-    //auto NearestY = glm::max(boxPos.y, glm::min(sphereCenter.y, boxPos.y + aabbSize.y));
-    /*auto DeltaX = sphereCenter.x - NearestX;
-    auto DeltaY = sphereCenter.y - NearestY;
-    return (DeltaX * DeltaX + DeltaY * DeltaY) < (sphereRadius * sphereRadius);*/
-    //glm::vec2 aabb_half_extents(0.5f);
-    auto C = sphereCenter;
-    auto B = boxPos;
+    auto &C = sphereCenter;
+    auto &B = boxPos;
     auto BC = C - B; //D
     auto P = B + glm::clamp(BC, -boxSize, boxSize);
     auto CP = P - C;
@@ -130,14 +118,10 @@ void Player::Move(const glm::vec2& direction, float delta)
     auto dir = direction / dirLength;
     auto axis = dir * Speed() * delta;
     auto newPlayerPosition = Position() + axis;
-    //Game::CurrentLevel()->SetGameEntity(Position(), nullptr);
     LookAt(Position() - direction);
     SetPosition(newPlayerPosition);
     PlayAnimation("run", true);
-    //Game::CurrentLevel()->SetGameEntity(newPlayerPosition, std::static_pointer_cast<Player>(shared_from_this()));
 }
-
-#include "Renderer/Renderer.hpp"
 
 void Player::Die()
 {
@@ -150,7 +134,7 @@ void Player::Die()
 
 void Player::Update(float delta)
 {
-    if (Game::CurrentLevel() == nullptr || _animations.at("death").lock()->Playing())
+    if (_animations.at("death").lock()->Playing())
         return;
     glm::vec2 input{};
     input.x = Keyboard::GetKeyState(UPK) - Keyboard::GetKeyState(DOWNK);
@@ -158,7 +142,7 @@ void Player::Update(float delta)
     auto inputLength = length(input);
     if (inputLength > 0.f) {
         input /= inputLength;
-        auto cameraT = Game::CurrentLevel()->CurrentCamera();
+        auto cameraT = _level.CurrentCamera();
         auto cameraPosition = glm::vec2(cameraT->WorldPosition().x, cameraT->WorldPosition().z);
         auto cameraForward = normalize(glm::vec2(cameraT->Forward().x, cameraT->Forward().z));
         auto projPlayerPosition = ProjectPointOnPlane(Position(), cameraPosition, cameraForward);
@@ -166,18 +150,17 @@ void Player::Update(float delta)
         auto right = normalize(glm::vec2(cameraT->Right().x, cameraT->Right().z));
         Move(input * (forward + right), delta);
     }
-    else
-        PlayAnimation("idle", true);
-    bool collides;
+    else PlayAnimation("idle", true);
+    bool collides{ false };
     do {
         collides = false;
-        auto maxX = glm::clamp(int(Position().x + 1), 0, Game::CurrentLevel()->Size().x - 1);
-        auto minX = glm::clamp(int(Position().x - 1), 0, Game::CurrentLevel()->Size().x - 1);
-        auto maxY = glm::clamp(int(Position().y + 1), 0, Game::CurrentLevel()->Size().y - 1);
-        auto minY = glm::clamp(int(Position().y - 1), 0, Game::CurrentLevel()->Size().y - 1);
+        auto maxX = glm::clamp(int(Position().x + 1), 0, _level.Size().x - 1);
+        auto minX = glm::clamp(int(Position().x - 1), 0, _level.Size().x - 1);
+        auto maxY = glm::clamp(int(Position().y + 1), 0, _level.Size().y - 1);
+        auto minY = glm::clamp(int(Position().y - 1), 0, _level.Size().y - 1);
         for (auto x = minX; x <= maxX; ++x) {
             for (auto y = minY; y <= maxY; ++y) {
-                auto entity = Game::CurrentLevel()->GetGameEntity(glm::ivec2(x, y));
+                auto entity = _level.GetGameEntity(glm::ivec2(x, y));
                 if (entity == nullptr) {
                     continue;
                 }

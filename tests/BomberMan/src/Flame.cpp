@@ -46,7 +46,7 @@ std::shared_ptr<Flame> Flame::Create(Level& level, const glm::ivec2& position)
     for (const auto& mesh : flameAsset)
         flame->AddComponent(mesh);
     flame->SetScale(glm::vec3(0.5));
-    Game::CurrentLevel()->SetGameEntityPosition(position, flame);
+    level.SetGameEntityPosition(position, flame);
     return flame;
 }
 
@@ -69,5 +69,5 @@ void Flame::Update(float delta)
 {
     auto now = std::chrono::high_resolution_clock::now();
     if (now - SpawnTime() > Timer())
-        Game::CurrentLevel()->SetGameEntity(Position(), nullptr);
+        _level.SetGameEntity(Position(), nullptr);
 }

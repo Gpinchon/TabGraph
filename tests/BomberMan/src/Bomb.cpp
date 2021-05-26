@@ -53,27 +53,26 @@ std::shared_ptr<Bomb> Bomb::Create(Level& level, const glm::ivec2& position)
     bomb->PlayAnimation("idle", true);
     bomb->_bombMaterial = bombNode->GetComponentInChildrenByName<Material>("Body");
     bomb->_spawnTime = std::chrono::high_resolution_clock::now();
-    Game::CurrentLevel()->SetGameEntityPosition(position, bomb);
+    level.SetGameEntityPosition(position, bomb);
     return bomb;
 }
 
 void Bomb::_SpawnFlames(const glm::ivec2& position, const glm::ivec2& direction, int range)
 {
-    auto level = Game::CurrentLevel();
     for (auto i = 1; i < range; ++i) {
         auto flamePosition = position + direction * i;
-        if (flamePosition.x >= 0 && flamePosition.x < level->Size().x
-            && flamePosition.y >= 0 && flamePosition.y < level->Size().y) {
-            if (level->GetGameEntity(flamePosition) == nullptr || level->GetGameEntity(flamePosition)->Type() == "Flame")
+        if (flamePosition.x >= 0 && flamePosition.x < _level.Size().x
+            && flamePosition.y >= 0 && flamePosition.y < _level.Size().y) {
+            if (_level.GetGameEntity(flamePosition) == nullptr || _level.GetGameEntity(flamePosition)->Type() == "Flame")
                 Flame::Create(_level, flamePosition);
             else {
-                if (level->GetGameEntity(flamePosition)->Type() == "Bomb") {
-                    auto bomb = std::static_pointer_cast<Bomb>(level->GetGameEntity(flamePosition));
+                if (_level.GetGameEntity(flamePosition)->Type() == "Bomb") {
+                    auto bomb = std::static_pointer_cast<Bomb>(_level.GetGameEntity(flamePosition));
                     bomb->ResetTimer();
                     bomb->SetTimer(std::chrono::duration<double>(0.01));
                     //level->GetGameEntity(flamePosition)->Die();
-                } else if (level->GetGameEntity(flamePosition)->Type() == "CrispyWall") {
-                    level->GetGameEntity(flamePosition)->Die();
+                } else if (_level.GetGameEntity(flamePosition)->Type() == "CrispyWall") {
+                    _level.GetGameEntity(flamePosition)->Die();
                     Flame::Create(_level, flamePosition);
                 }
                 break;
