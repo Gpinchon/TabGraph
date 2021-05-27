@@ -26,12 +26,6 @@ private:
     std::shared_ptr<TrackablePointee> _controlBlock{ static_cast<TrackablePointee*>(0), [](TrackablePointee*) {} };
 };
 
-template <typename T>
-bool is_uninitialized(std::weak_ptr<T> const& weak) {
-    using wt = std::weak_ptr<T>;
-    return !weak.owner_before(wt{}) && !wt{}.owner_before(weak);
-}
-
 template <typename... Args>
 class Signal : public Trackable {
 public:
