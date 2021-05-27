@@ -306,12 +306,14 @@ namespace Keyboard {
 }
 }
 
-bool Keyboard::InputDevice::GetKeyState(Keyboard::Key key)
+namespace Keyboard {
+bool InputDevice::GetKeyState(Keyboard::Key key)
 {
     return SDL_GetKeyboardState(nullptr)[size_t(SDL2::Keyboard::s_reverseKeyLUT.at(key))];
 }
 
-Keyboard::InputDevice::InputDevice() {
-    EventsManager::Add(this, Event::Type::KeyUp);
-    EventsManager::Add(this, Event::Type::KeyDown);
+InputDevice::InputDevice() {
+    EventsManager::On(Event::Type::KeyUp).ConnectMember(this, &InputDevice::_ProcessEvent);
+    EventsManager::On(Event::Type::KeyDown).ConnectMember(this, &InputDevice::_ProcessEvent);
 }
+};

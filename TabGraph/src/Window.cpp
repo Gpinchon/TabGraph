@@ -20,7 +20,6 @@ static uint32_t s_currentWindow { 0 };
 std::shared_ptr<Window> Window::Create(const std::string& name, const glm::ivec2& resolution, const Style style)
 {
     auto window { std::shared_ptr<Window>(new Window(name, resolution, style)) };
-    EventsManager::Add(window.get(), Event::Type::WindowEvent);
     s_windows[window->GetId()] = window;
     return window;
 }
@@ -44,9 +43,10 @@ uint32_t Window::GetId()
 Window::Window(const std::string& name, const glm::ivec2 resolution, const Style style)
     : _impl(new Window::Impl(name, resolution, style))
 {
+    EventsManager::On(Event::Type::WindowEvent).ConnectMember(this, &Window::_ProcessEvent);
 }
 
-void Window::ProcessEvent(const Event& event)
+void Window::_ProcessEvent(const Event& event)
 {
     auto& windowEvent { event.Get<Event::Window>() };
     if (windowEvent.type == Event::Window::Type::FocusGained)

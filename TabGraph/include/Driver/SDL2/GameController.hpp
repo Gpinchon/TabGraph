@@ -9,19 +9,17 @@
 
 #include <Event/Event.hpp>
 #include <Event/GameController.hpp>
-#include <Event/InputDevice/InputDevice.hpp>
 #include <Event/Signal.hpp>
 
 #include <map>
 
 namespace GameController {
 class Gamepad;
-struct InputDevice : public ::InputDevice {
+struct InputDevice : Trackable {
     InputDevice();
     ~InputDevice();
     Gamepad& GetController(int32_t index);
     void RemoveController(int32_t index);
-    virtual void ProcessEvent(const Event& event) override;
     Signal<const Event::GameControllerAxis&>& OnAxis(uint8_t index, const GameController::Axis&);
     Signal<const Event::GameControllerButton&>& OnButton(uint8_t index, const GameController::Button&);
     Signal<const Event::GameControllerButton&>& OnButtonUp(uint8_t index, const GameController::Button&);
@@ -34,6 +32,7 @@ struct InputDevice : public ::InputDevice {
 
 private:
     int _GetControllerIndex(int32_t device);
+    void _ProcessEvent(const Event& event);
     std::map<int32_t, std::unique_ptr<Gamepad>> _controllers;
 };
 };

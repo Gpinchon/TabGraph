@@ -9,16 +9,19 @@
 
 #include <Event/Event.hpp>
 #include <Event/Keyboard.hpp>
-#include <Event/InputDevice/InputDevice.hpp>
 #include <Event/Signal.hpp>
 
 #include <array>
 
 namespace Keyboard {
-struct InputDevice : ::InputDevice {
+struct InputDevice : Trackable {
     InputDevice();
     bool GetKeyState(Keyboard::Key);
-    virtual void ProcessEvent(const Event& event) override
+    std::array<Signal<const Event::Keyboard&>, size_t(Keyboard::Key::MaxValue)> onKey;
+    std::array<Signal<const Event::Keyboard&>, size_t(Keyboard::Key::MaxValue)> onKeyUp;
+    std::array<Signal<const Event::Keyboard&>, size_t(Keyboard::Key::MaxValue)> onKeyDown;
+private:
+    void _ProcessEvent(const Event& event)
     {
         auto& keyboardEvent{ event.Get<Event::Keyboard>() };
         switch (event.type) {
@@ -34,9 +37,6 @@ struct InputDevice : ::InputDevice {
         }
         }
     }
-    std::array<Signal<const Event::Keyboard&>, size_t(Keyboard::Key::MaxValue)> onKey;
-    std::array<Signal<const Event::Keyboard&>, size_t(Keyboard::Key::MaxValue)> onKeyUp;
-    std::array<Signal<const Event::Keyboard&>, size_t(Keyboard::Key::MaxValue)> onKeyDown;
 };
 };
 

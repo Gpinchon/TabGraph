@@ -6,7 +6,6 @@
 */
 #pragma once
 
-#include <Event/InputDevice/InputDevice.hpp>
 #include <Event/Event.hpp>
 #include <Event/Keyboard.hpp>
 #include <Event/Signal.hpp>

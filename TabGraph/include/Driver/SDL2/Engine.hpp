@@ -8,9 +8,11 @@
 #pragma once
 
 #include <Engine.hpp>
-#include <Event/InputDevice/InputDevice.hpp>
+#include <Event/Signal.hpp>
 
-struct Engine::Impl : private InputDevice {
+struct Event;
+
+struct Engine::Impl : Trackable {
     Impl(std::shared_ptr<Renderer::FrameRenderer> frameRenderer);
     void Start();
     inline auto Stop() {
@@ -41,9 +43,8 @@ private:
     std::atomic<bool> _loop{ true };
     Signal<float> _onFixedUpdate;
     Signal<float> _onUpdate;
+    Signal<const Event&>::ScoppedSlot _quitSlot;
     std::shared_ptr<Renderer::FrameRenderer> _frameRenderer;
     std::shared_ptr<Scene> _currentScene;
-
-    // Hérité via InputDevice
-    virtual void ProcessEvent(const Event&) override;
+    void _ProcessEvent(const Event&);
 };

@@ -221,11 +221,11 @@ InputDevice::InputDevice()
         SDL_JoystickEventState(SDL_ENABLE);
         SDL_GameControllerEventState(SDL_ENABLE);
     }
-    EventsManager::Add(this, Event::Type::ControllerAxisMotion);
-    EventsManager::Add(this, Event::Type::ControllerButtonDown);
-    EventsManager::Add(this, Event::Type::ControllerButtonUp);
-    EventsManager::Add(this, Event::Type::ControllerDeviceAdded);
-    EventsManager::Add(this, Event::Type::ControllerDeviceRemoved);
+    EventsManager::On(Event::Type::ControllerAxisMotion).ConnectMember(this, &InputDevice::_ProcessEvent);
+    EventsManager::On(Event::Type::ControllerButtonDown).ConnectMember(this, &InputDevice::_ProcessEvent);
+    EventsManager::On(Event::Type::ControllerButtonUp).ConnectMember(this, &InputDevice::_ProcessEvent);
+    EventsManager::On(Event::Type::ControllerDeviceAdded).ConnectMember(this, &InputDevice::_ProcessEvent);
+    EventsManager::On(Event::Type::ControllerDeviceRemoved).ConnectMember(this, &InputDevice::_ProcessEvent);
 
     //EventsManager::Add(this, Event::Type::JoyAxisMotion);
     //EventsManager::Add(this, Event::Type::JoyButtonDown);
@@ -249,70 +249,6 @@ Gamepad& InputDevice::GetController(int32_t device)
 void InputDevice::RemoveController(int32_t i)
 {
     _controllers.erase(i);
-}
-
-void InputDevice::ProcessEvent(const Event& event)
-{
-    switch (event.type) {
-    case Event::Type::JoyAxisMotion:
-        break;
-    case Event::Type::JoyBallMotion:
-        break;
-    case Event::Type::JoyHatMotion:
-        break;
-    case Event::Type::JoyButtonDown:
-        break;
-    case Event::Type::JoyButtonUp:
-        break;
-    case Event::Type::JoyDeviceAdded:
-        break;
-    case Event::Type::JoyDeviceRemoved:
-        break;
-    case Event::Type::ControllerAxisMotion: {
-        auto& axisEvent { event.Get<Event::GameControllerAxis>() };
-        auto index { _GetControllerIndex(axisEvent.id) };
-        GetController(index).onAxis.at(size_t(axisEvent.axis))(axisEvent);
-        break;
-    }
-    case Event::Type::ControllerButtonDown: {
-        auto& buttonEvent { event.Get<Event::GameControllerButton>() };
-        auto index { _GetControllerIndex(buttonEvent.id) };
-        GetController(index).onButton.at(size_t(buttonEvent.button))(buttonEvent);
-        GetController(index).onButtonDown.at(size_t(buttonEvent.button))(buttonEvent);
-        break;
-    }
-    case Event::Type::ControllerButtonUp: {
-        auto& buttonEvent { event.Get<Event::GameControllerButton>() };
-        auto index { _GetControllerIndex(buttonEvent.id) };
-        GetController(index).onButton.at(size_t(buttonEvent.button))(buttonEvent);
-        GetController(index).onButtonUp.at(size_t(buttonEvent.button))(buttonEvent);
-        break;
-    }
-    case Event::Type::ControllerDeviceAdded: {
-        auto& buttonEvent { event.Get<Event::GameControllerDevice>() };
-        auto index { buttonEvent.id };
-        GetController(index).onConnection(buttonEvent);
-        break;
-    }
-    case Event::Type::ControllerDeviceRemoved: {
-        auto& buttonEvent { event.Get<Event::GameControllerDevice>() };
-        auto index { _GetControllerIndex(buttonEvent.id) };
-        GetController(index).onDisconnection(buttonEvent);
-        break;
-    }
-    case Event::Type::ControllerDeviceRemapped:
-        break;
-    case Event::Type::ControllerTouchpadDown:
-        break;
-    case Event::Type::ControllerTouchpadMotion:
-        break;
-    case Event::Type::ControllerTouchpadUp:
-        break;
-    case Event::Type::ControllerSensorUpdate:
-        break;
-    default:
-        throw std::runtime_error("Incorrect Event::Type");
-    }
 }
 
 Signal<const Event::GameControllerAxis&>& InputDevice::OnAxis(uint8_t index, const GameController::Axis& axis)
@@ -367,5 +303,69 @@ int InputDevice::_GetControllerIndex(int32_t device)
             return (controller.first);
     }
     return (-1);
+}
+
+void InputDevice::_ProcessEvent(const Event& event)
+{
+    switch (event.type) {
+    case Event::Type::JoyAxisMotion:
+        break;
+    case Event::Type::JoyBallMotion:
+        break;
+    case Event::Type::JoyHatMotion:
+        break;
+    case Event::Type::JoyButtonDown:
+        break;
+    case Event::Type::JoyButtonUp:
+        break;
+    case Event::Type::JoyDeviceAdded:
+        break;
+    case Event::Type::JoyDeviceRemoved:
+        break;
+    case Event::Type::ControllerAxisMotion: {
+        auto& axisEvent{ event.Get<Event::GameControllerAxis>() };
+        auto index{ _GetControllerIndex(axisEvent.id) };
+        GetController(index).onAxis.at(size_t(axisEvent.axis))(axisEvent);
+        break;
+    }
+    case Event::Type::ControllerButtonDown: {
+        auto& buttonEvent{ event.Get<Event::GameControllerButton>() };
+        auto index{ _GetControllerIndex(buttonEvent.id) };
+        GetController(index).onButton.at(size_t(buttonEvent.button))(buttonEvent);
+        GetController(index).onButtonDown.at(size_t(buttonEvent.button))(buttonEvent);
+        break;
+    }
+    case Event::Type::ControllerButtonUp: {
+        auto& buttonEvent{ event.Get<Event::GameControllerButton>() };
+        auto index{ _GetControllerIndex(buttonEvent.id) };
+        GetController(index).onButton.at(size_t(buttonEvent.button))(buttonEvent);
+        GetController(index).onButtonUp.at(size_t(buttonEvent.button))(buttonEvent);
+        break;
+    }
+    case Event::Type::ControllerDeviceAdded: {
+        auto& buttonEvent{ event.Get<Event::GameControllerDevice>() };
+        auto index{ buttonEvent.id };
+        GetController(index).onConnection(buttonEvent);
+        break;
+    }
+    case Event::Type::ControllerDeviceRemoved: {
+        auto& buttonEvent{ event.Get<Event::GameControllerDevice>() };
+        auto index{ _GetControllerIndex(buttonEvent.id) };
+        GetController(index).onDisconnection(buttonEvent);
+        break;
+    }
+    case Event::Type::ControllerDeviceRemapped:
+        break;
+    case Event::Type::ControllerTouchpadDown:
+        break;
+    case Event::Type::ControllerTouchpadMotion:
+        break;
+    case Event::Type::ControllerTouchpadUp:
+        break;
+    case Event::Type::ControllerSensorUpdate:
+        break;
+    default:
+        throw std::runtime_error("Incorrect Event::Type");
+    }
 }
 };

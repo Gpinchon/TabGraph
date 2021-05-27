@@ -24,14 +24,14 @@ EventsManager& EventsManager::_Get()
     return EventsManager;
 }
 
-void EventsManager::Add(InputDevice* device, Event::Type event_type)
+Signal<const Event&>& EventsManager::On(Event::Type type)
 {
-    return _Get()._impl->Add(device, event_type);
+    return _Get()._impl->On(type);
 }
 
-void EventsManager::Remove(InputDevice* device, Event::Type event_type)
+void EventsManager::PushEvent(const Event& event)
 {
-    return _Get()._impl->Remove(device, event_type);
+    return _Get()._impl->PushEvent(event);
 }
 
 void EventsManager::PollEvents()

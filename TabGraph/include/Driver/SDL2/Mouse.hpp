@@ -7,7 +7,6 @@
 #pragma once
 
 #include <Event/Event.hpp>
-#include <Event/InputDevice/InputDevice.hpp>
 #include <Event/Mouse.hpp>
 #include <Event/Signal.hpp>
 
@@ -15,36 +14,8 @@
 #include <stdexcept>
 
 namespace Mouse {
-struct InputDevice : ::InputDevice {
+struct InputDevice : Trackable {
     InputDevice();
-    virtual void ProcessEvent(const Event& event) override
-    {
-        switch (event.type) {
-        case Event::Type::MouseMotion: {
-            onMove(event.Get<Event::MouseMove>());
-            break;
-        }
-        case Event::Type::MouseButtonDown: {
-            const auto& eventData { event.Get<Event::MouseButton>() };
-            onButtonDown.at(size_t(eventData.button))(eventData);
-            onButton.at(size_t(eventData.button))(eventData);
-            break;
-        }
-
-        case Event::Type::MouseButtonUp: {
-            const auto& eventData { event.Get<Event::MouseButton>() };
-            onButtonUp.at(size_t(eventData.button))(eventData);
-            onButton.at(size_t(eventData.button))(eventData);
-            break;
-        }
-        case Event::Type::MouseWheel: {
-            onWheel(event.Get<Event::MouseWheel>());
-            break;
-        }
-        default:
-            throw std::runtime_error("Incorrect Event Type");
-        }
-    }
     ///@return true if mouse is in relative motion mode
     bool GetRelative() const;
     void SetRelative(bool relative);
@@ -57,6 +28,35 @@ struct InputDevice : ::InputDevice {
     std::array<Signal<const Event::MouseButton&>, size_t(Mouse::Button::MaxValue)> onButtonDown { {} };
     std::array<Signal<const Event::MouseButton&>, size_t(Mouse::Button::MaxValue)> onButtonUp { {} };
     std::array<Signal<const Event::MouseButton&>, size_t(Mouse::Button::MaxValue)> onButton { {} };
+private:
+    void _ProcessEvent(const Event& event)
+    {
+        switch (event.type) {
+        case Event::Type::MouseMotion: {
+            onMove(event.Get<Event::MouseMove>());
+            break;
+        }
+        case Event::Type::MouseButtonDown: {
+            const auto& eventData{ event.Get<Event::MouseButton>() };
+            onButtonDown.at(size_t(eventData.button))(eventData);
+            onButton.at(size_t(eventData.button))(eventData);
+            break;
+        }
+
+        case Event::Type::MouseButtonUp: {
+            const auto& eventData{ event.Get<Event::MouseButton>() };
+            onButtonUp.at(size_t(eventData.button))(eventData);
+            onButton.at(size_t(eventData.button))(eventData);
+            break;
+        }
+        case Event::Type::MouseWheel: {
+            onWheel(event.Get<Event::MouseWheel>());
+            break;
+        }
+        default:
+            throw std::runtime_error("Incorrect Event Type");
+        }
+    }
 };
 };
 

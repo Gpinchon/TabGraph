@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <Event/InputDevice/InputDevice.hpp>
 #include <Event/Event.hpp>
 #include <Event/Signal.hpp>
 
@@ -15,7 +14,7 @@
 #include <memory>
 #include <string>
 
-struct Window : InputDevice {
+struct Window : Trackable {
     class Impl;
     enum class Style {
         None = 0x1, //Window has no decoration
@@ -40,12 +39,12 @@ struct Window : InputDevice {
     glm::ivec2 GetSize() const;
     void SetFullscreen(const bool& fullscreen);
     void Swap();
-    virtual void ProcessEvent(const Event& event) override;
     Impl& GetImpl();
     Signal<Event::Window>& OnEvent(const Event::Window::Type type);
 
 private:
     Window(const std::string& name, const glm::ivec2 resolution, const Style style);
+    void _ProcessEvent(const Event& event);
     std::unique_ptr<Impl> _impl;
 };
 

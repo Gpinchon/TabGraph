@@ -16,7 +16,7 @@
 Engine::Impl::Impl(std::shared_ptr<Renderer::FrameRenderer> frameRenderer)
     : _frameRenderer(frameRenderer)
 {
-    EventsManager::Add(this, Event::Type::Quit);
+    _quitSlot = EventsManager::On(Event::Type::Quit).ConnectMember(this, &Engine::Impl::_ProcessEvent);
 }
 
 std::filesystem::path Engine::Impl::GetProgramPath()
@@ -29,7 +29,7 @@ std::filesystem::path Engine::Impl::GetExecutionPath()
     return std::filesystem::current_path();
 }
 
-void Engine::Impl::ProcessEvent(const Event&)
+void Engine::Impl::_ProcessEvent(const Event&)
 {
     Stop();
 }

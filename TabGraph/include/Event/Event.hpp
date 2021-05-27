@@ -16,11 +16,11 @@
 #include <variant>
 #include <memory>
 #include <string>
+#include <vector>
 
 struct Window;
 
-class Event {
-public:
+struct Event {
     enum class Type {
         Unknown = -1,
         //App events
@@ -87,6 +87,7 @@ public:
         SensorUpdate,
         //User event for custom events
         User,
+        AssetLoaded,
         MaxValue
     };
     struct Empty {
@@ -158,7 +159,12 @@ public:
         std::shared_ptr<::Window> window { nullptr };
     };
     struct User {
-        void* data { nullptr }; //user data
+        uint32_t type;
+        std::vector<std::byte> data;//user data
+    };
+    struct Asset {
+        bool loaded{ false };
+        std::shared_ptr<Asset> asset;
     };
     Type type { Event::Type::Unknown };
     const std::chrono::system_clock::time_point timestamp { std::chrono::system_clock::now() };
@@ -173,7 +179,9 @@ public:
         Event::GameControllerDevice,
         Event::GameControllerAxis,
         Event::GameControllerButton,
-        Event::Window>
+        Event::Window,
+        Event::User,
+        Event::Asset>
         data;
     template <typename T>
     const auto& Get() const

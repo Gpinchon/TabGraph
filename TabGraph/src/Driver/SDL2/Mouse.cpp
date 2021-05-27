@@ -58,10 +58,10 @@ namespace Mouse {
 
 namespace Mouse {
 InputDevice::InputDevice() {
-    EventsManager::Add(this, Event::Type::MouseMotion);
-    EventsManager::Add(this, Event::Type::MouseButtonDown);
-    EventsManager::Add(this, Event::Type::MouseButtonUp);
-    EventsManager::Add(this, Event::Type::MouseWheel);
+    EventsManager::On(Event::Type::MouseMotion).ConnectMember(this, &InputDevice::_ProcessEvent);
+    EventsManager::On(Event::Type::MouseButtonDown).ConnectMember(this, &InputDevice::_ProcessEvent);
+    EventsManager::On(Event::Type::MouseButtonUp).ConnectMember(this, &InputDevice::_ProcessEvent);
+    EventsManager::On(Event::Type::MouseWheel).ConnectMember(this, &InputDevice::_ProcessEvent);
 }
 bool InputDevice::GetRelative() const
 {

@@ -146,7 +146,6 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/GameController.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/InputDevice.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Keyboard.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Signal.hpp

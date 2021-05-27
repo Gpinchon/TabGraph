@@ -8,8 +8,9 @@
 
 #include <Event/Event.hpp>
 #include <Event/EventsManager.hpp>
-#include <Event/InputDevice/InputDevice.hpp>
+#include <Event/Signal.hpp>
 
+#include <array>
 #include <map>
 #include <set>
 
@@ -17,21 +18,15 @@ union SDL_Event;
 
 class EventsManager::Impl {
 public:
-    inline void Add(InputDevice* device, Event::Type event_type) {
-        _trackablePointees[event_type][device] = device->GetWeakPtr();
-        _inputDevices[event_type].insert(device);
+    inline Signal<const Event&>& On(Event::Type type) {
+        return _onEvent.at(size_t(type));
     }
-    inline void Remove(InputDevice* device, Event::Type eventType) {
-        auto inputDevices = _inputDevices.find(eventType);
-        if (inputDevices != _inputDevices.end()) {
-            inputDevices->second.erase(device);
-            _trackablePointees.at(eventType).erase(device);
-        }
+    inline void PushEvent(const Event& event) {
+        _customEvents.push_back(event);
     }
     void PollEvents();
 
 private:
-    std::unordered_map<Event::Type, std::unordered_map<InputDevice*, std::weak_ptr<TrackablePointee>>> _trackablePointees;
-    std::unordered_map<Event::Type, std::set<InputDevice*>> _inputDevices;
-    static int FilterEvent(void* data, SDL_Event* event);
+    std::array<Signal<const Event&>, size_t(Event::Type::MaxValue)> _onEvent;
+    std::vector<Event> _customEvents;
 };
