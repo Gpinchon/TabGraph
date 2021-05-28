@@ -5,10 +5,11 @@
 * @Last Modified time: 2021-05-02 20:50:11
 */
 
-#include "Driver/OpenGL/Texture/Texture2D.hpp"
-#include "Driver/OpenGL/Texture/PixelUtils.hpp"
-#include "Assets/Asset.hpp"
-#include "Assets/Image.hpp"
+#include <Driver/OpenGL/Texture/Texture2D.hpp>
+#include <Driver/OpenGL/Texture/PixelUtils.hpp>
+#include <Assets/Asset.hpp>
+#include <Assets/Image.hpp>
+#include <Event/EventsManager.hpp>
 
 #include <GL/glew.h>
 
@@ -17,28 +18,38 @@ Texture2D::Impl::Impl(Texture2D& texture)
 {
 }
 
+Texture2D::Impl::~Impl()
+{
+
+}
+
 void Texture2D::Impl::Load()
 {
-	if (GetLoaded())
-		return;
+	if (GetLoaded() || _loadedSlot.Connected())
+        return;
     auto& texture{ static_cast<const Texture2D&>(_texture) };
     auto asset{ texture.GetComponent<Asset>() };
-
     if (asset == nullptr) {
         //We don't have an image to load from, just allocate on GPU
         _AllocateStorage();
         SetLoaded(true);
+        return;
     }
-    else {
-        auto assetLoaded{ asset->GetLoaded() };
-        if (assetLoaded) {
-            _UploadImage(asset);
-        }
-        else if (!assetLoaded) //We're already loading/We'll upload texture on next render, calm down...
-        {
-            asset->LoadAsync();
-        }
+    auto assetLoaded{ asset->GetLoaded() };
+    if (assetLoaded) {
+        _UploadImage(asset);
+        return;
     }
+    //asset->Load();
+    //_UploadImage(asset);
+    asset->LoadAsync();
+    _loadedSlot = EventsManager::On(Event::Type::AssetLoaded).Connect([this](const Event& event) {
+        assert(!_loaded);
+        auto& assetEvent = event.Get<Event::Asset>();
+        if (assetEvent.asset != _texture.GetComponent<Asset>()) return;
+        _UploadImage(assetEvent.asset);
+        _loadedSlot.Disconnect();
+    });
 }
 
 void Texture2D::Impl::Unload()
@@ -48,6 +59,7 @@ void Texture2D::Impl::Unload()
     OpenGL::Texture::Delete(GetHandle());
     _handle = 0;
     SetLoaded(false);
+    _allocated = false;
 }
 
 void Texture2D::Impl::GenerateMipmap()
@@ -58,6 +70,7 @@ void Texture2D::Impl::GenerateMipmap()
 }
 
 void Texture2D::Impl::_AllocateStorage() {
+    assert(!_allocated);
     auto& texture{ static_cast<const Texture2D&>(_texture) };
     auto type{ OpenGL::GetEnum(_texture.GetType()) };
     _handle = OpenGL::Texture::Generate();
@@ -70,6 +83,7 @@ void Texture2D::Impl::_AllocateStorage() {
         texture.GetSize().y
     );
     Done();
+    _allocated = true;
 }
 
 inline void Texture2D::Impl::_UploadImage(std::shared_ptr<Asset> imageAsset) {

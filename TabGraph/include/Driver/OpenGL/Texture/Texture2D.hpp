@@ -5,8 +5,11 @@
 * @Last Modified time: 2021-05-02 20:41:39
 */
 #pragma once
-#include "Driver/OpenGL/Texture/Texture.hpp"
-#include "Texture/Texture2D.hpp"
+#include <Driver/OpenGL/Texture/Texture.hpp>
+#include <Texture/Texture2D.hpp>
+#include <Event/Signal.hpp>
+
+struct Event;
 
 class Texture2D::Impl : public Texture::Impl {
 public:
@@ -20,4 +23,6 @@ public:
 private:
     void _AllocateStorage();
     void _UploadImage(std::shared_ptr<Asset> imageAsset);
+    Signal<const Event&>::ScoppedSlot _loadedSlot;
+    bool _allocated{ false };
 };
