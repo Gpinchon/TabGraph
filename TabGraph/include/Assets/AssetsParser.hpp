@@ -20,6 +20,15 @@ public:
     using MimeType = std::string;
     using ParsingFunction = std::function<void(std::shared_ptr<Asset>)>;
     using MimeExtensionPair = std::pair<MimeType, FileExtension>;
+    struct ParsingTask {
+        enum class Type {
+            Sync,
+            Async
+        };
+        Type type{ Type::Sync };
+        std::weak_ptr<Asset> asset;
+    };
+    static void AddParsingTask(const ParsingTask&);
     /**
      * @brief Returns the MIME type if managed
      * @param extension the file extension to get the MIME type for
@@ -44,7 +53,7 @@ public:
      * @brief Parses the specified asset using available parsers, won't do anything if no parser was found
      * @param asset the Asset to load, mime type is figured out using Asset's Uri
     */
-    static void Parse(std::shared_ptr<Asset> asset);
+    static bool Parse(std::shared_ptr<Asset> asset);
 
 private:
     AssetsParser() = delete;

@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-05-20 12:10:30
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-22 20:05:12
+* @Last Modified time: 2021-05-27 15:16:47
 */
 
 #pragma once
@@ -13,12 +13,13 @@
 
 #include <chrono>
 #include <glm/vec2.hpp>
-#include <variant>
 #include <memory>
 #include <string>
+#include <variant>
 #include <vector>
 
 struct Window;
+class Asset;
 
 struct Event {
     enum class Type {
@@ -160,11 +161,11 @@ struct Event {
     };
     struct User {
         uint32_t type;
-        std::vector<std::byte> data;//user data
+        std::vector<std::byte> data; //user data
     };
     struct Asset {
-        bool loaded{ false };
-        std::shared_ptr<Asset> asset;
+        bool loaded { false };
+        std::shared_ptr<::Asset> asset;
     };
     Type type { Event::Type::Unknown };
     const std::chrono::system_clock::time_point timestamp { std::chrono::system_clock::now() };
@@ -189,3 +190,99 @@ struct Event {
         return std::get<T>(data);
     }
 };
+
+inline bool operator<(const Event::Empty& a, const Event::Empty& b)
+{
+    return false;
+}
+
+inline bool operator<(const Event::Keyboard& a, const Event::Keyboard& b)
+{
+    return a.window < b.window
+        && a.key < b.key
+        && a.state < b.state
+        && a.repeat < b.repeat
+        && a.alt < b.alt
+        && a.control < b.control
+        && a.shift < b.shift;
+}
+
+inline bool operator<(const Event::TextInput& a, const Event::TextInput& b)
+{
+    return a.text < b.text
+        && a.window < b.window;
+}
+
+inline bool operator<(const Event::TextEdit& a, const Event::TextEdit& b)
+{
+    return a.length < b.length
+        && a.start < b.start
+        && a.text < b.text
+        && a.window < b.window;
+}
+
+#include <glm/vec2.hpp>
+#include <glm/vector_relational.hpp>
+
+inline bool operator<(const Event::MouseMove& a, const Event::MouseMove& b)
+{
+    return glm::all(glm::lessThan(a.position, b.position))
+        && glm::all(glm::lessThan(a.relative, b.relative))
+        && a.window < b.window;
+}
+
+inline bool operator<(const Event::MouseButton& a, const Event::MouseButton& b)
+{
+    return a.button < b.button
+        && glm::all(glm::lessThan(a.position, b.position))
+        && a.window < b.window;
+}
+
+inline bool operator<(const Event::MouseWheel& a, const Event::MouseWheel& b)
+{
+    return glm::all(glm::lessThan(a.amount, b.amount))
+        && a.direction < b.direction
+        && glm::all(glm::lessThan(a.position, b.position))
+        && a.window < b.window;
+}
+
+inline bool operator<(const Event::GameControllerDevice& a, const Event::GameControllerDevice& b)
+{
+    return a.id < b.id;
+}
+
+inline bool operator<(const Event::GameControllerAxis& a, const Event::GameControllerAxis& b)
+{
+    return a.axis < b.axis
+        && a.id < b.id
+        && a.value < b.value;
+}
+
+inline bool operator<(const Event::GameControllerButton& a, const Event::GameControllerButton& b)
+{
+    return a.button < b.button
+        && a.id < b.id
+        && a.state < b.state;
+}
+
+inline bool operator<(const Event::Window& a, const Event::Window& b)
+{
+    return a.type < b.type
+        && a.window < b.window;
+}
+
+inline bool operator<(const Event::User& a, const Event::User& b)
+{
+    return a.data < b.data;
+}
+
+inline bool operator<(const Event::Asset& a, const Event::Asset& b)
+{
+    return a.asset < b.asset;
+}
+
+inline bool operator<(const Event& a, const Event& b)
+{
+    return a.type < b.type
+        && a.data < b.data;
+}
