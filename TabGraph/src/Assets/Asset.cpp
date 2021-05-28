@@ -3,10 +3,8 @@
 
 Asset::Asset(const Uri& uri) : _Uri(uri)
 {
-}
-
-Asset::~Asset()
-{
+	static auto s_assetNbr = 0u;
+	SetName("Asset_" + std::to_string(++s_assetNbr));
 }
 
 bool Asset::GetLoaded()
@@ -25,7 +23,9 @@ void Asset::Load()
 		AssetsParser::ParsingTask::Type::Sync,
 		std::static_pointer_cast<Asset>(shared_from_this()),
 	});
-	assert(GetLoaded());
+	while (!GetLoaded()) {}
+	if (!GetLoaded())
+		throw std::runtime_error(GetName() + " not loaded");
 }
 
 void Asset::LoadAsync()

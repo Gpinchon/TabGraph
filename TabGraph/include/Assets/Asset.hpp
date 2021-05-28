@@ -10,7 +10,6 @@ class Asset : public Component {
 public :
 	Asset() = default;
 	Asset(const Uri&);
-	~Asset();
 	bool GetLoaded();
 	void SetLoaded(bool);
 	/** @brief Loads the Image synchronously, must emit LoadedChanged(true) if loading was successful */
@@ -23,7 +22,6 @@ public :
 
 private:
 	std::atomic<bool> _loaded{ false };
-	// Hérité via Component
 	virtual std::shared_ptr<Component> _Clone() override
 	{
 		//You cannot not clone an asset
