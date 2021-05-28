@@ -136,8 +136,8 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
     }
         
     auto surface = IMG_Load_RW(rwOps, 1);
-    if (!surface || !surface->format)
-        throw std::runtime_error(std::string("Error parsing ") + uri.GetPath().string() + " : " + SDL_GetError());
+    assert(surface != nullptr);
+    assert(surface->format != nullptr);
 
     debugLog("Image Format before conversion :");
     debugLog(SDL_GetPixelFormatName(surface->format->format));
@@ -149,6 +149,7 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
     debugLog(hexToString(surface->format->Amask));
 
     auto newSurface = SDL_ConvertSurfaceFormat(surface, surface->format->Amask ? SDL_PIXELFORMAT_RGBA32 : SDL_PIXELFORMAT_RGB24, 0);
+    assert(newSurface != nullptr);
     SDL_FreeSurface(surface);
     surface = newSurface;
     //invert_surface_vertical(surface);
