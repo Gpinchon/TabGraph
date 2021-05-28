@@ -11,8 +11,7 @@
 #include <Event/Signal.hpp>
 
 #include <array>
-#include <map>
-#include <queue>
+#include <vector>
 #include <mutex>
 
 union SDL_Event;
@@ -23,14 +22,13 @@ public:
         return _onEvent.at(size_t(type));
     }
     inline void PushEvent(const Event& event) {
-        _lock.lock();
-        _customEvents.push(event);
-        _lock.unlock();
+        std::unique_lock lock(_lock);
+        _customEvents.push_back(event);
     }
     void PollEvents();
 
 private:
     std::array<Signal<const Event&>, size_t(Event::Type::MaxValue)> _onEvent;
-    std::queue<Event> _customEvents;
+    std::vector<Event> _customEvents;
     std::mutex _lock;
 };

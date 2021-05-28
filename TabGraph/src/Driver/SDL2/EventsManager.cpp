@@ -13,16 +13,17 @@
 
 void EventsManager::Impl::PollEvents()
 {
+    //secure current custom events and clear vector
     _lock.lock();
+    auto customEvents{ _customEvents };
+    _customEvents.clear();
+    _lock.unlock();
     SDL_Event SDLevent;
     while (SDL_PollEvent(&SDLevent)) {
         auto event = SDL2::CreateEvent(&SDLevent);
         On(event.type)(event);
     }
-    while (!_customEvents.empty()) {
-        auto event{ std::move(_customEvents.front()) };
-        _customEvents.pop();
+    for (const auto &event : customEvents) {
         On(event.type)(event);
     }
-    _lock.unlock();
 }
