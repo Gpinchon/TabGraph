@@ -23,6 +23,7 @@ void Asset::Load()
 		AssetsParser::ParsingTask::Type::Sync,
 		std::static_pointer_cast<Asset>(shared_from_this()),
 	});
+	//TODO figure out why I need to do this ?!
 	while (!GetLoaded()) {}
 	if (!GetLoaded())
 		throw std::runtime_error(GetName() + " not loaded");
