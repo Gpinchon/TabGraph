@@ -42,9 +42,9 @@ void Engine::Impl::Start()
 
     while (_loop) {
         ticks = SDL_GetTicks() / 1000.0;
-        EventsManager::PollEvents();
         _onUpdate(ticks - lastTicks);
         if (ticks - fixedTiming >= 0.015) {
+            EventsManager::PollEvents();
             _onFixedUpdate(ticks - fixedTiming);
             fixedTiming = ticks;
         }
