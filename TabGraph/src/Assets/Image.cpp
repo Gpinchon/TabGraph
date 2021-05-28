@@ -13,7 +13,9 @@
 
 static size_t s_imageNbr = 0;
 
-Image::Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::vector<std::byte> rawData) : Component("Image_" + std::to_string(s_imageNbr)), _data(rawData)// : Asset("data:image_" + std::to_string(s_imageNbr))
+Image::Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::vector<std::byte> rawData)
+    : Component("Image_" + std::to_string(++s_imageNbr))
+    , _data(rawData)
 {
     SetPixelDescription(pixelDescription);
     SetSize(size);
