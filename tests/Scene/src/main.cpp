@@ -2,28 +2,39 @@
 * @Author: gpinchon
 * @Date:   2020-08-09 19:54:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-04 20:02:24
+* @Last Modified time: 2021-05-26 18:33:52
 */
 #define USE_HIGH_PERFORMANCE_GPU
-#include "DLLExport.hpp"
+#include <DLLExport.hpp>
 
 #include <Animation/Animation.hpp>
 #include <Assets/Asset.hpp>
 #include <Assets/AssetsParser.hpp>
+#include <Assets/Image.hpp>
 #include <Camera/FPSCamera.hpp>
 #include <Config.hpp>
 #include <Engine.hpp>
 #include <Event/EventsManager.hpp>
+#include <Event/GameController.hpp>
 #include <Event/InputDevice/GameController.hpp>
 #include <Event/InputDevice/Keyboard.hpp>
 #include <Event/InputDevice/Mouse.hpp>
 #include <Light/DirectionalLight.hpp>
+#include <Light/HDRLight.hpp>
+#include <Light/PointLight.hpp>
+#include <Light/SkyLight.hpp>
 #include <Material/Material.hpp>
+#include <Scene/Scene.hpp>
+#include <StackTracer.hpp>
 #include <Surface/CubeMesh.hpp>
 #include <Surface/Mesh.hpp>
-#include <Scene/Scene.hpp>
+#include <Surface/Skybox.hpp>
+#include <Texture/TextureCubemap.hpp>
 #include <Tools/Tools.hpp>
 #include <Window.hpp>
+
+#include <csignal>
+#include <filesystem>
 
 #define QUITK Keyboard::Key::Escape
 #define DOWNK Keyboard::Key::PageDown
@@ -57,18 +68,6 @@ void CallbackQuality(const Event::Keyboard& event)
 std::shared_ptr<Light> s_light;
 std::vector<std::shared_ptr<Camera>> s_cameras;
 
-#include "Event/GameController.hpp"
-
-#include "Assets/Image.hpp"
-#include "Light/HDRLight.hpp"
-#include "Light/PointLight.hpp"
-#include "Light/SkyLight.hpp"
-#include "Surface/Skybox.hpp"
-#include "StackTracer.hpp"
-#include "Texture/TextureCubemap.hpp"
-#include <csignal>
-#include <filesystem>
-
 int main(int argc, char** argv)
 {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -81,7 +80,7 @@ int main(int argc, char** argv)
         auto window = Window::Create(Config::Global().Get("WindowName", std::string("")), Config::Global().Get("WindowSize", glm::vec2(1280, 720)));
         auto renderer = Renderer::FrameRenderer::Create(window);
         auto engine = Engine::Create(renderer);
-        renderer->SetSwapInterval(Renderer::SwapInterval(Config::Global().Get("SwapInterval", 0)));        
+        renderer->SetSwapInterval(Renderer::SwapInterval(Config::Global().Get("SwapInterval", 0)));
         std::filesystem::path filePath = (std::string(argv[1]));
         if (!filePath.is_absolute()) {
             filePath = Engine::GetExecutionPath() / filePath;
@@ -127,14 +126,20 @@ int main(int argc, char** argv)
         //setup callbacks
         {
             auto speedCB = [](const Event::Keyboard& event) {
-                if (!event.state) return;
-                if (event.key == SPEEDDOWNK) --speed;
-                else if (event.key == SPEEDUPK) ++speed;
+                if (!event.state)
+                    return;
+                if (event.key == SPEEDDOWNK)
+                    --speed;
+                else if (event.key == SPEEDUPK)
+                    ++speed;
                 speed = std::max(1.f, speed);
             };
             auto quitCB = [engine](const Event::Keyboard&) { engine->Stop(); };
             auto changeCameraCB = [engine](const Event::Keyboard& event) {
-                if (!event.state || event.repeat) return;
+                if (engine->GetCurrentScene() == nullptr)
+                    return;
+                if (!event.state || event.repeat)
+                    return;
                 static auto s_currentCamera = 0u;
                 s_currentCamera++;
                 if (s_currentCamera >= s_cameras.size())
@@ -143,25 +148,33 @@ int main(int argc, char** argv)
                 s_light->SetParent(engine->GetCurrentScene()->CurrentCamera());
             };
             auto animationCB = [engine](const Event::Keyboard& event) {
+                if (engine->GetCurrentScene() == nullptr)
+                    return;
                 if (!event.state || event.repeat || engine->GetCurrentScene()->GetComponents<Animation>().empty())
                     return;
                 static auto animations = engine->GetCurrentScene()->GetComponents<Animation>();
                 static auto currentAnimation(animations.begin());
                 (*currentAnimation)->Stop();
                 currentAnimation++;
-                if (currentAnimation == animations.end()) currentAnimation = animations.begin();
+                if (currentAnimation == animations.end())
+                    currentAnimation = animations.begin();
                 (*currentAnimation)->SetRepeat(true);
                 (*currentAnimation)->Play();
             };
             auto wheelCB = [engine](const Event::MouseWheel& event) {
-                auto scene{ engine->GetCurrentScene() };
+                if (engine->GetCurrentScene() == nullptr)
+                    return;
+                auto scene { engine->GetCurrentScene() };
                 scene->CurrentCamera()->SetFov(scene->CurrentCamera()->Fov() - event.amount.y);
                 scene->CurrentCamera()->SetFov(glm::clamp(scene->CurrentCamera()->Fov(), 1.0f, 70.f));
             };
             auto moveCB = [engine](const Event::MouseMove& event) {
+                if (engine->GetCurrentScene() == nullptr)
+                    return;
                 auto camera = std::dynamic_pointer_cast<FPSCamera>(engine->GetCurrentScene()->CurrentCamera());
-                if (camera == nullptr) return;
-                static glm::vec3 cameraRotation{};
+                if (camera == nullptr)
+                    return;
+                static glm::vec3 cameraRotation {};
                 if (Mouse::GetButtonState(Mouse::Button::Left)) {
                     cameraRotation.x -= event.relative.x * 0.05 * Config::Global().Get("MouseSensitivity", 2.f);
                     cameraRotation.y -= event.relative.y * 0.05 * Config::Global().Get("MouseSensitivity", 2.f);
@@ -173,8 +186,11 @@ int main(int argc, char** argv)
                 camera->SetRoll(cameraRotation.z);
             };
             auto refreshCB = [engine](float delta) {
+                if (engine->GetCurrentScene() == nullptr)
+                    return;
                 auto camera = std::dynamic_pointer_cast<FPSCamera>(engine->GetCurrentScene()->CurrentCamera());
-                if (camera == nullptr) return;
+                if (camera == nullptr)
+                    return;
                 glm::vec2 laxis = glm::vec2(0, 0);
                 float taxis = 0;
                 //Mouse::set_relative(SDL_TRUE);
