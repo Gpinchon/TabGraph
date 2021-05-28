@@ -1,9 +1,10 @@
 # TODO List
 ## To refactor/improve
- - Framebuffer : put OpenGL functions in Driver folder
+ - Figure out about that darn memory leak...
  - Scene organisation : maybe use Octree ?
  - Terrain system
- - Assets loading system
+ - <s>Assets loading system</s>
+ - <s>Framebuffer : put OpenGL functions in Driver folder</s>
 
 ## To finish
  - Cleanup animations system
