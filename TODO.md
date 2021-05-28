@@ -14,6 +14,7 @@
  - Optimize Scene rendering system
 
 ## To create from ground up
+ - [Morph targets][2]
  - Shader SPIR-V compiler
  - Assets manager
  - Assets packing system
@@ -32,3 +33,4 @@
  - Create an edition tool to create and export scenes
 
 [1]: https://github.com/bulletphysics/bullet3
+[2]: https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_017_SimpleMorphTarget.md
