@@ -51,6 +51,17 @@ void PrintExtensions()
 #endif
 
 namespace Renderer {
+    static inline auto FrameBufferSampler() {
+        static std::shared_ptr< TextureSampler> sampler;
+        if (sampler == nullptr) {
+            sampler = std::make_shared<TextureSampler>();
+            sampler->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
+            sampler->SetWrapR(TextureSampler::Wrap::ClampToEdge);
+            sampler->SetWrapS(TextureSampler::Wrap::ClampToEdge);
+            sampler->SetWrapT(TextureSampler::Wrap::ClampToEdge);
+        }
+        return sampler;
+    }
     static inline auto CreateDeferredRenderBuffer(const std::string& name, const glm::ivec2& size)
     {
         auto depthStencilBuffer{ Component::Create<Texture2D>(size, Pixel::SizedFormat::Depth24_Stencil8) };
@@ -61,6 +72,11 @@ namespace Renderer {
         buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RG)); //Velocity
         buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); // Color (Unlit/Emissive/Final Color)
         buffer->SetDepthBuffer(depthStencilBuffer);
+        buffer->GetColorBuffer(0)->SetTextureSampler(FrameBufferSampler());
+        buffer->GetColorBuffer(1)->SetTextureSampler(FrameBufferSampler());
+        buffer->GetColorBuffer(2)->SetTextureSampler(FrameBufferSampler());
+        buffer->GetColorBuffer(3)->SetTextureSampler(FrameBufferSampler());
+        buffer->GetColorBuffer(4)->SetTextureSampler(FrameBufferSampler());
         buffer->GetColorBuffer(0)->SetAutoMipMap(false);
         buffer->GetColorBuffer(1)->SetAutoMipMap(false);
         buffer->GetColorBuffer(2)->SetAutoMipMap(false);
@@ -80,6 +96,8 @@ namespace Renderer {
         auto buffer = std::make_shared<Framebuffer>(size);
         buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); //Diffuse
         buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); //Reflection
+        buffer->GetColorBuffer(0)->SetTextureSampler(FrameBufferSampler());
+        buffer->GetColorBuffer(1)->SetTextureSampler(FrameBufferSampler());
         buffer->GetColorBuffer(0)->SetAutoMipMap(false);
         buffer->GetColorBuffer(1)->SetAutoMipMap(false);
         buffer->GetColorBuffer(0)->SetMipMapNbr(1);
@@ -109,6 +127,7 @@ namespace Renderer {
     {
         auto buffer = std::make_shared<Framebuffer>(size);
         buffer->AddColorBuffer(Component::Create<Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); //Color
+        buffer->GetColorBuffer(0)->SetTextureSampler(FrameBufferSampler());
         buffer->GetColorBuffer(0)->SetAutoMipMap(true);
         return buffer;
     }
@@ -117,6 +136,7 @@ namespace Renderer {
     {
         auto buffer = std::make_shared<Framebuffer>(res);
         buffer->AddColorBuffer(Component::Create<Texture2D>(res, Pixel::SizedFormat::Uint8_NormalizedRGB)); //Color
+        buffer->GetColorBuffer(0)->SetTextureSampler(FrameBufferSampler());
         buffer->GetColorBuffer(0)->SetAutoMipMap(false);
         buffer->GetColorBuffer(0)->SetMipMapNbr(1);
         return buffer;
@@ -779,7 +799,7 @@ namespace Renderer {
 
     void FrameRenderer::Impl::RenderFrame(std::shared_ptr<Scene> scene)
     {
-        if (GetWindow() == nullptr) return;
+        if (GetWindow() == nullptr || scene == nullptr || scene->CurrentCamera() == nullptr) return;
         //static uint32_t frameNbr { 0 };
         double ticks{ SDL_GetTicks() / 1000.0 };
         _deltaTime = ticks - _lastTicks;
@@ -788,7 +808,7 @@ namespace Renderer {
         _finalRenderBuffer = _previousRenderBuffer;
         _previousRenderBuffer = temp;
         //Shader::Global::SetUniform("Resolution", glm::vec3(Window::GetSize(), Window::GetSize().x / float(Window::GetSize().y)));
-        Shader::Global::SetUniform("GetFrameNumber", _frameNbr);
+        Shader::Global::SetUniform("FrameNumber", _frameNbr);
         Shader::Global::SetUniform("Camera.Position", scene->CurrentCamera()->WorldPosition());
         Shader::Global::SetUniform("Camera.Matrix.View", scene->CurrentCamera()->GetViewMatrix());
         Shader::Global::SetUniform("Camera.Matrix.Projection", scene->CurrentCamera()->GetProjectionMatrix(GetWindow()->GetSize()));
