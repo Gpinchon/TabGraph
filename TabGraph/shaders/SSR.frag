@@ -82,10 +82,6 @@ vec4 SampleDepthTexture(float Level, vec4 SampleUV0, vec4 SampleUV1 )
 void IntersectClippingBounds(const in vec3 rayOrigin, const in vec3 rayDir, out vec3 rayEnd) {
 	const vec3 vmin = vec3(-1, -1, -1);
 	const vec3 vmax = vec3( 1,  1,  1);
-	//const vec3 t0 = (vmin - rayOrigin)/rayDir;
-	//const vec3 t1 = (vmax - rayOrigin)/rayDir;
-	//const float dist = min(min(max(t0.x, t1.x), max(t0.y, t1.y)), max(t0.z, t1.z));
-	//rayEnd = rayOrigin + rayDir * dist;
 	const vec3 t1 = (vmin - rayOrigin)/ rayDir;
     const vec3 t2 = (vmax - rayOrigin)/ rayDir;
     float tmin = min(t1.x, t2.x);
@@ -125,7 +121,6 @@ vec4	castRay(const in vec3 RayStartClip, const in vec3 RayDirClip,  const in flo
 			return vec4(RayStartUVz + RayStepUVz * SampleTime, SampleTime * SampleTime);
 		}
 		LastDiff = DepthDiff;
-		//Level += Alpha() * (16.0 * Step);
 		Level += (4.0 / NumSteps) * Alpha();
 		SampleTime += Step;
 	}
