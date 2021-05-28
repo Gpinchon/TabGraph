@@ -13,13 +13,16 @@
 
 void EventsManager::Impl::PollEvents()
 {
+    _lock.lock();
     SDL_Event SDLevent;
     while (SDL_PollEvent(&SDLevent)) {
         auto event = SDL2::CreateEvent(&SDLevent);
         On(event.type)(event);
     }
-    for (auto& event : _customEvents) {
+    while (!_customEvents.empty()) {
+        auto event{ std::move(_customEvents.front()) };
+        _customEvents.pop();
         On(event.type)(event);
     }
-    _customEvents.clear();
+    _lock.unlock();
 }
