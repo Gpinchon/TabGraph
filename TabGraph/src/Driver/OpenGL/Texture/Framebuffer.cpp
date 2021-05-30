@@ -22,8 +22,10 @@ auto ResizeAttachement(std::shared_ptr<Texture> attachement, glm::ivec2 res)
     {
     case (Texture::Type::Texture2D):
         std::static_pointer_cast<Texture2D>(attachement)->SetSize(res);
+        break;
     case (Texture::Type::TextureCubemap):
         std::static_pointer_cast<TextureCubemap>(attachement)->SetSize(res);
+        break;
     }
 }
 
