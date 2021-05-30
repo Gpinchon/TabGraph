@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-01-12 18:26:34
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-21 17:07:05
+* @Last Modified time: 2021-05-29 16:56:46
 */
 #include "Texture/PixelUtils.hpp"
 
@@ -10,7 +10,6 @@
 
 inline Pixel::SizedFormat GetRSizedformat(Pixel::Type type, bool normalizedType)
 {
-    assert(type != Pixel::Type::Unknown);
     switch (type) {
     case Pixel::Type::Uint8:
         return normalizedType ? Pixel::SizedFormat::Uint8_NormalizedR : Pixel::SizedFormat::Uint8_R;
@@ -21,10 +20,10 @@ inline Pixel::SizedFormat GetRSizedformat(Pixel::Type type, bool normalizedType)
     case Pixel::Type::Int16:
         return normalizedType ? Pixel::SizedFormat::Int16_NormalizedR : Pixel::SizedFormat::Int16_R;
     case Pixel::Type::Uint32:
-        assert(!normalizedType && "unsigned int pixel type cannot be normalized");
+        assert(!normalizedType && "uint2 pixel type cannot be normalized");
         return Pixel::SizedFormat::Uint32_R;
     case Pixel::Type::Int32:
-        assert(!normalizedType && "int pixel type cannot be normalized");
+        assert(!normalizedType && "int32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Int32_R;
     case Pixel::Type::Float16:
         assert(!normalizedType && "float16 pixel type cannot be normalized");
@@ -33,13 +32,12 @@ inline Pixel::SizedFormat GetRSizedformat(Pixel::Type type, bool normalizedType)
         assert(!normalizedType && "float32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Float32_R;
     default:
-        throw std::runtime_error("Unknown R format");
+        throw std::runtime_error("Incorrect R format");
     }
 }
 
 inline Pixel::SizedFormat GetRGSizedformat(Pixel::Type type, bool normalizedType)
 {
-    assert(type != Pixel::Type::Unknown);
     switch (type) {
     case Pixel::Type::Uint8:
         return normalizedType ? Pixel::SizedFormat::Uint8_NormalizedRG : Pixel::SizedFormat::Uint8_RG;
@@ -62,13 +60,12 @@ inline Pixel::SizedFormat GetRGSizedformat(Pixel::Type type, bool normalizedType
         assert(!normalizedType && "float32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Float32_RG;
     default:
-        throw std::runtime_error("Unknown RG format");
+        throw std::runtime_error("Incorrect RG format");
     }
 }
 
 inline Pixel::SizedFormat GetRGBSizedformat(Pixel::Type type, bool normalizedType)
 {
-    assert(type != Pixel::Type::Unknown);
     switch (type) {
     case Pixel::Type::Uint8:
         return normalizedType ? Pixel::SizedFormat::Uint8_NormalizedRGB : Pixel::SizedFormat::Uint8_RGB;
@@ -91,13 +88,12 @@ inline Pixel::SizedFormat GetRGBSizedformat(Pixel::Type type, bool normalizedTyp
         assert(!normalizedType && "float32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Float32_RGB;
     default:
-        throw std::runtime_error("Unknown RGB format");
+        throw std::runtime_error("Incorrect RGB format");
     }
 }
 
 inline Pixel::SizedFormat GetRGBASizedFormat(Pixel::Type type, bool normalizedType)
 {
-    assert(type != Pixel::Type::Unknown);
     switch (type) {
     case Pixel::Type::Uint8:
         return normalizedType ? Pixel::SizedFormat::Uint8_NormalizedRGBA : Pixel::SizedFormat::Uint8_RGBA;
@@ -120,38 +116,22 @@ inline Pixel::SizedFormat GetRGBASizedFormat(Pixel::Type type, bool normalizedTy
         assert(!normalizedType && "float32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Float32_RGBA;
     default:
-        throw std::runtime_error("Unknown RGBA format");
+        throw std::runtime_error("Incorrect RGBA format");
     }
 }
 
 Pixel::SizedFormat GetDepthSizedformat(Pixel::Type type, bool normalizedType)
 {
-    assert(type != Pixel::Type::Unknown);
+    assert(normalizedType);
     switch (type) {
-    case Pixel::Type::Uint8:
-        assert(true && "Depth texture cannot be of type Uint8");
-        break;
-    case Pixel::Type::Int8:
-        assert(true && "Depth texture cannot be of type Int8");
-        break;
-    case Pixel::Type::Uint16:
-        assert(true && "Depth texture cannot be of type Uint16");
-        break;
-    case Pixel::Type::Int16:
-        assert(true && "Depth texture cannot be of type Int16");
-        break;
     case Pixel::Type::Uint32:
         return Pixel::SizedFormat::Depth32;
-        break;
-    case Pixel::Type::Int32:
-        assert(true && "Depth texture cannot be of type Int32");
-        break;
     case Pixel::Type::Float16:
         return Pixel::SizedFormat::Depth16;
     case Pixel::Type::Float32:
         return Pixel::SizedFormat::Depth32F;
     default:
-        throw std::runtime_error("Unknown Depth format");
+        throw std::runtime_error("Incorrect Depth format");
     }
     return Pixel::SizedFormat::Unknown;
 }
@@ -159,34 +139,15 @@ Pixel::SizedFormat GetDepthSizedformat(Pixel::Type type, bool normalizedType)
 Pixel::SizedFormat GetDepthStencilSizedFormat(Pixel::Type type, bool normalizedType)
 {
     assert(type != Pixel::Type::Unknown);
-    switch (type)
-    {
-    case Pixel::Type::Uint8:
-        assert(true && "Depth texture cannot be of type Uint8");
-        break;
-    case Pixel::Type::Int8:
-        assert(true && "Depth texture cannot be of type Int8");
-        break;
-    case Pixel::Type::Uint16:
-        assert(true && "Depth texture cannot be of type Uint16");
-        break;
-    case Pixel::Type::Int16:
-        assert(true && "Depth texture cannot be of type Int16");
-        break;
+    switch (type) {
     case Pixel::Type::Uint32:
         return Pixel::SizedFormat::Depth24_Stencil8;
-        break;
-    case Pixel::Type::Int32:
-        assert(true && "Depth texture cannot be of type Int32");
-        break;
-    case Pixel::Type::Float16:
-        assert(true && "Depth texture cannot be of type Float16");
         break;
     case Pixel::Type::Float32:
         return Pixel::SizedFormat::Depth32F_Stencil8;
         break;
     default:
-        throw std::runtime_error("Unknown DepthStencil format");
+        throw std::runtime_error("Incorrect DepthStencil format");
     }
     return Pixel::SizedFormat::Unknown;
 }
@@ -194,8 +155,7 @@ Pixel::SizedFormat GetDepthStencilSizedFormat(Pixel::Type type, bool normalizedT
 Pixel::SizedFormat GetStencilSizedFormat(Pixel::Type type, bool normalizedType)
 {
     assert(type != Pixel::Type::Unknown);
-    switch (type)
-    {
+    switch (type) {
     case Pixel::Type::Uint8:
         return Pixel::SizedFormat::Stencil8;
         break;
@@ -230,7 +190,7 @@ Pixel::SizedFormat GetStencilSizedFormat(Pixel::Type type, bool normalizedType)
 
 glm::vec4 Pixel::LinearToSRGB(glm::vec4 color)
 {
-    const glm::vec3 linearRGB{ color.r, color.g, color.b };
+    const glm::vec3 linearRGB { color.r, color.g, color.b };
     glm::bvec3 cutoff = lessThan(linearRGB, glm::vec3(0.0031308));
     glm::vec3 higher = glm::vec3(1.055) * pow(linearRGB, glm::vec3(1.0 / 2.4)) - glm::vec3(0.055);
     glm::vec3 lower = linearRGB * glm::vec3(12.92);
@@ -573,6 +533,7 @@ Pixel::Description::Description(SizedFormat format)
     case SizedFormat::Stencil8:
         _unsizedFormat = UnsizedFormat::Stencil;
         _type = Type::Uint8;
+        break;
         break;
     }
     _sizedFormat = format;

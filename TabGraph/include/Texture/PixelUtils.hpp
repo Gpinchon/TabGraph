@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-01-12 18:26:58
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-12 13:16:52
+* @Last Modified time: 2021-05-29 18:21:49
 */
 #pragma once
 
@@ -125,7 +125,8 @@ enum class UnsizedFormat {
     RGBA_Integer,
     Depth,
     Depth_Stencil,
-    Stencil
+    Stencil,
+    MaxValue
 };
 
 enum class Type {
@@ -137,7 +138,8 @@ enum class Type {
     Uint32,
     Int32,
     Float16,
-    Float32
+    Float32,
+    MaxValue
 };
 
 using Color = glm::vec4;
