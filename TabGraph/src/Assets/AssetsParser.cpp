@@ -67,7 +67,7 @@ private :
 std::map<AssetsParser::MimeType, std::unique_ptr<AssetsParser>>* AssetsParser::_parsers = nullptr;
 std::map<AssetsParser::FileExtension, AssetsParser::MimeType>* AssetsParser::_mimesExtensions = nullptr;
 static std::mutex s_parsingTaskMutex;
-static std::set<std::shared_ptr<Asset>> s_parsingAssets;
+static std::set<std::weak_ptr<Asset>, std::owner_less<>> s_parsingAssets;
 static DispatchQueue s_dispatchQueue(ParsingThreads);
 
 inline void PushEvent(std::shared_ptr<Asset> asset) {
