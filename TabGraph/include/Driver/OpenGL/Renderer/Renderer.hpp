@@ -37,6 +37,7 @@ struct FrameRenderer::Impl : public Component {
         void* _v{ nullptr };
     };
     Impl(std::weak_ptr<Window> window, FrameRenderer& renderer);
+    ~Impl();
     const Context& GetContext() const;
     const uint32_t GetFrameNumber() const;
     const std::shared_ptr<Geometry> GetDisplayQuad() const;

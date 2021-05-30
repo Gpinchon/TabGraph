@@ -147,6 +147,7 @@ namespace Renderer {
         , _frameRenderer(renderer)
         , _lastTicks(SDL_GetTicks() / 1000.0)
     {
+#if MEDIALIBRARY == SDL2
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
@@ -157,6 +158,7 @@ namespace Renderer {
         if (_context == nullptr) {
             throw std::runtime_error(SDL_GetError());
         }
+#endif//MEDIALIBRARY == SDL2
         glewExperimental = GL_TRUE;
         auto error = glewInit();
         if (error != GLEW_OK) {
@@ -194,6 +196,13 @@ namespace Renderer {
         _displayQuad = Component::Create<Geometry>("GetDisplayQuad");
         _displayQuad->SetDrawingMode(Geometry::DrawingMode::Triangles);
         _displayQuad->SetAccessor(Geometry::AccessorKey::Position, accessor);
+    }
+
+    FrameRenderer::Impl::~Impl()
+    {
+#if MEDIALIBRARY == SDL2
+        SDL_GL_DeleteContext(GetContext());
+#endif//MEDIALIBRARY == SDL2
     }
 
     const FrameRenderer::Impl::Context& FrameRenderer::Impl::GetContext() const {
