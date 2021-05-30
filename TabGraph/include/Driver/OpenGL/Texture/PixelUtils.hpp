@@ -8,6 +8,7 @@
 #include "Texture/PixelUtils.hpp"
 
 namespace OpenGL {
+unsigned GetCompressedFormat(::Pixel::UnsizedFormat);
 unsigned GetEnum(::Pixel::SizedFormat);
 unsigned GetEnum(::Pixel::UnsizedFormat);
 unsigned GetEnum(::Pixel::Type);

@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-05-04 22:26:14
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-04 22:33:34
+* @Last Modified time: 2021-05-29 16:27:08
 */
 
 #include "Driver/OpenGL/Texture/PixelUtils.hpp"
@@ -159,6 +159,22 @@ unsigned GetEnum(::Pixel::UnsizedFormat format)
     }
 }
 
+unsigned GetCompressedFormat(::Pixel::UnsizedFormat format)
+{
+    switch (format) {
+    case (::Pixel::UnsizedFormat::R):
+        return GL_COMPRESSED_RED;
+    case (::Pixel::UnsizedFormat::RG):
+        return GL_COMPRESSED_RG;
+    case (::Pixel::UnsizedFormat::RGB):
+        return GL_COMPRESSED_RGB;
+    case (::Pixel::UnsizedFormat::RGBA):
+        return GL_COMPRESSED_RGBA;
+    default:
+        throw std::runtime_error("Specified Pixel::UnsizedFormat cannot be compressed");
+    }
+}
+
 unsigned GetEnum(::Pixel::Type type)
 {
     switch (type) {
@@ -178,7 +194,7 @@ unsigned GetEnum(::Pixel::Type type)
         return GL_HALF_FLOAT;
     case (::Pixel::Type::Float32):
         return GL_FLOAT;
-    default :
+    default:
         throw std::runtime_error("Unknown Pixel::Type");
     }
 }
