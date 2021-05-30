@@ -12,9 +12,17 @@
 
 #include <GL/glew.h>
 
-TextureBuffer::Impl::Impl(TextureBuffer& texture)
-	: Texture::Impl(texture)
+TextureBuffer::Impl::Impl(Pixel::SizedFormat internalFormat, std::shared_ptr<BufferAccessor> bufferAccessor)
+	: Texture::Impl(Texture::Type::TextureBuffer, internalFormat)
+    , _bufferAccessor(bufferAccessor)
 {
+}
+
+TextureBuffer::Impl::Impl(const Impl& other)
+    : Texture::Impl(other)
+    , _bufferAccessor(other._bufferAccessor)
+{
+    _type = Texture::Type::TextureBuffer;
 }
 
 TextureBuffer::Impl::~Impl()
@@ -25,14 +33,14 @@ void TextureBuffer::Impl::Load()
 {
 	if (GetLoaded())
 		return;
-    auto &texture{ static_cast<TextureBuffer&>(_texture) };
-    auto bufferView{ texture.Accessor()->GetBufferView() };
+    //auto &texture{ static_cast<TextureBuffer&>(_texture) };
+    auto bufferView{ GetBufferAccessor()->GetBufferView() };
     bufferView->Load();
     _handle = OpenGL::Texture::Generate();
     Bind();
     glTexBuffer(
         OpenGL::GetEnum(Texture::Type::TextureBuffer),
-        OpenGL::GetEnum(texture.GetPixelDescription().GetSizedFormat()),
+        OpenGL::GetEnum(GetPixelDescription().GetSizedFormat()),
         OpenGL::GetHandle(bufferView)
     );
     Done();
@@ -49,4 +57,17 @@ void TextureBuffer::Impl::Unload()
 
 void TextureBuffer::Impl::GenerateMipmap()
 {
+}
+
+void TextureBuffer::Impl::SetBufferAccessor(std::shared_ptr<BufferAccessor> bufferAccessor)
+{
+    if (bufferAccessor == _bufferAccessor)
+        return;
+    _bufferAccessor = bufferAccessor;
+    Unload();
+}
+
+std::shared_ptr<BufferAccessor> TextureBuffer::Impl::GetBufferAccessor() const
+{
+    return _bufferAccessor;
 }

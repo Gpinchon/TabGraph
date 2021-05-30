@@ -33,22 +33,26 @@ public:
         TextureRectangle,
         MaxValue
     };
-    PROPERTY(std::shared_ptr<TextureSampler>, TextureSampler, nullptr);
-    PROPERTY(int, MipMapNbr, 1);
-    PROPERTY(bool, AutoMipMap, true);
-    READONLYPROPERTY(Pixel::Description, PixelDescription, );
-    READONLYPROPERTY(Texture::Type, Type, Texture::Type::Unknown);
-
 public:
     Texture(const Texture&);
-    Texture(Texture::Type target, Pixel::Description pixelDescription);
-    Texture(Texture::Type target);
+    Texture();
     ~Texture();
     void Load();
     void Unload();
     void GenerateMipmap();
+
+    Texture::Type GetType() const;
+    Pixel::Description GetPixelDescription() const;
+    std::shared_ptr<TextureSampler> GetTextureSampler() const;
     bool GetLoaded() const;
-    void SetPixelDescription(Pixel::Description pixelDescription);
+    bool GetAutoMipMap() const;
+    uint8_t GetMipMapNbr() const;
+
+    void SetAutoMipMap(bool autoMipmap);
+    void SetTextureSampler(std::shared_ptr<TextureSampler> textureSampler);
+    void SetMipMapNbr(uint8_t mipNbr);
+    
+
     Impl& GetImpl();
 
 protected:

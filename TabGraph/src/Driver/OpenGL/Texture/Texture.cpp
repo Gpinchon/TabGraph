@@ -6,6 +6,7 @@
 */
 
 #include "Driver/OpenGL/Texture/Texture.hpp"
+#include "Texture/TextureSampler.hpp"
 
 #include <GL/glew.h>
 
@@ -51,60 +52,47 @@ void OpenGL::Texture::Delete(::Texture::Impl::Handle handle)
     glDeleteTextures(1, &handle);
 }
 
-Texture::Impl::Impl(Texture& texture)
-    : _texture(texture)
+Texture::Impl::Impl(const Impl& other)
+    : _type(other._type)
+    , _textureSampler(other._textureSampler)
+    , _mipMapNbr(other._mipMapNbr)
+    , _autoMipMap(other._autoMipMap)
+    , _pixelDescription(other._pixelDescription)
 {
 }
 
-void Texture::Impl::SetLoaded(bool value)
+Texture::Impl::Impl(Texture::Type type)
+    : _type(type)
+    , _textureSampler(std::make_shared<TextureSampler>())
 {
-    _loaded = value;
 }
 
-bool Texture::Impl::GetLoaded() const
+Texture::Impl::Impl(Texture::Type type, const Pixel::Description& description)
+    : _type(type)
+    , _pixelDescription(description)
+    , _textureSampler(std::make_shared<TextureSampler>())
 {
-    return _loaded;
 }
 
-const Texture::Impl::Handle Texture::Impl::GetHandle() const
+Texture::Impl::~Impl()
 {
-    return _handle;
+    OpenGL::Texture::Delete(_handle);
 }
 
 void Texture::Impl::Bind() const
 {
-    glBindTexture(OpenGL::GetEnum(_texture.GetType()), GetHandle());
+    glBindTexture(OpenGL::GetEnum(GetType()), GetHandle());
 }
 
 void Texture::Impl::Done() const
 {
-    glBindTexture(OpenGL::GetEnum(_texture.GetType()), 0);
+    glBindTexture(OpenGL::GetEnum(GetType()), 0);
 }
 
-int Texture::Impl::GetMinLevel() const
+void Texture::Impl::SetPixelDescription(const Pixel::Description& pixelDesc)
 {
-    int value;
-    Bind();
-    glGetTexParameteriv(OpenGL::GetEnum(_texture.GetType()), GL_TEXTURE_BASE_LEVEL, &value);
-    Done();
-    return value;
-}
-
-void Texture::Impl::SetMinLevel(int value)
-{
-    Bind();
-    glTexParameteri(OpenGL::GetEnum(_texture.GetType()), GL_TEXTURE_BASE_LEVEL, value);
-    Done();
-}
-
-int Texture::Impl::GetMaxLevel() const
-{
-    return 0;
-}
-
-void Texture::Impl::SetMaxLevel(int value)
-{
-    Bind();
-    glTexParameteri(OpenGL::GetEnum(_texture.GetType()), GL_TEXTURE_MAX_LEVEL, value);
-    Done();
+    if (pixelDesc == GetPixelDescription())
+        return;
+    _pixelDescription = pixelDesc;
+    Unload();
 }

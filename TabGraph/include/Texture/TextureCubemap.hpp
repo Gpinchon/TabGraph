@@ -23,9 +23,6 @@ class Image;
 
 class TextureCubemap : public Texture {
 public:
-    READONLYPROPERTY(glm::ivec2, Size, 0);
-
-public:
     class Impl;
     friend Impl;
     enum class Side {
@@ -48,6 +45,7 @@ public:
      *
      */
     static void ExtractSide(std::shared_ptr<Image> fromImage, std::shared_ptr<Image> toImage, TextureCubemap::Side side);
+    glm::ivec2 GetSize() const;
     void SetSize(glm::ivec2 size);
 
 private:

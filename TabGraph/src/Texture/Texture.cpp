@@ -18,25 +18,14 @@
 #include <stdint.h>
 #include <utility>
 
-Texture::Texture(Texture::Type type)
+Texture::Texture()
     : Component()
 {
-    SetTextureSampler(std::make_shared<TextureSampler>());
-    _SetType(type);
 }
 
 Texture::Texture(const Texture& other)
     : Component(other)
-    , _Type(other._Type)
-    , _TextureSampler(other._TextureSampler)
-    , _PixelDescription(other._PixelDescription)
 {
-}
-
-Texture::Texture(Texture::Type type, Pixel::Description pixelDesc)
-    : Texture(type)
-{
-    _SetPixelDescription(pixelDesc);
 }
 
 Texture::~Texture()
@@ -59,10 +48,9 @@ void Texture::GenerateMipmap()
     _impl->GenerateMipmap();
 }
 
-void Texture::SetPixelDescription(Pixel::Description pixelDesc)
+Texture::Type Texture::GetType() const
 {
-    _SetPixelDescription(pixelDesc);
-    _impl->Unload();
+    return _impl->GetType();
 }
 
 Texture::Impl& Texture::GetImpl()
@@ -70,7 +58,42 @@ Texture::Impl& Texture::GetImpl()
     return *_impl;
 }
 
+void Texture::SetAutoMipMap(bool autoMipmap)
+{
+    return _impl->SetAutoMipMap(autoMipmap);
+}
+
+void Texture::SetTextureSampler(std::shared_ptr<TextureSampler> textureSampler)
+{
+    return _impl->SetTextureSampler(textureSampler);
+}
+
 bool Texture::GetLoaded() const
 {
     return _impl->GetLoaded();
+}
+
+Pixel::Description Texture::GetPixelDescription() const
+{
+    return _impl->GetPixelDescription();
+}
+
+std::shared_ptr<TextureSampler> Texture::GetTextureSampler() const
+{
+    return _impl->GetTextureSampler();
+}
+
+void Texture::SetMipMapNbr(uint8_t mipNbr)
+{
+    return _impl->SetMipMapNbr(mipNbr);
+}
+
+bool Texture::GetAutoMipMap() const
+{
+    return _impl->GetAutoMipMap();
+}
+
+uint8_t Texture::GetMipMapNbr() const
+{
+    return _impl->GetMipMapNbr();
 }

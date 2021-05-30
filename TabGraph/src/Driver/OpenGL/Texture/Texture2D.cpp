@@ -13,22 +13,32 @@
 
 #include <GL/glew.h>
 
-Texture2D::Impl::Impl(Texture2D& texture)
-	: Texture::Impl(texture)
+Texture2D::Impl::Impl(const Impl& other)
+    : Texture::Impl(other)
+    , _compressed(other._compressed)
+    , _size(other._size)
+    , _asset(other._asset)
+{
+    _type = Texture::Type::Texture2D;
+}
+
+Texture2D::Impl::Impl(const glm::ivec2& size, const Pixel::Description& pixelDesc)
+	: Texture::Impl(Texture::Type::Texture2D, pixelDesc)
+    , _size(size)
 {
 }
 
-Texture2D::Impl::~Impl()
+Texture2D::Impl::Impl(std::shared_ptr<Asset> asset)
+    : Texture::Impl(Texture::Type::Texture2D)
+    , _asset(asset)
 {
-
 }
 
 void Texture2D::Impl::Load()
 {
 	if (GetLoaded() || _loadedSlot.Connected())
         return;
-    auto& texture{ static_cast<const Texture2D&>(_texture) };
-    auto asset{ texture.GetComponent<Asset>() };
+    auto asset{ GetImage() };
     if (asset == nullptr) {
         //We don't have an image to load from, just allocate on GPU
         _AllocateStorage();
@@ -46,7 +56,7 @@ void Texture2D::Impl::Load()
     _loadedSlot = EventsManager::On(Event::Type::AssetLoaded).Connect([this](const Event& event) {
         assert(!_loaded);
         auto& assetEvent = event.Get<Event::Asset>();
-        if (assetEvent.asset != _texture.GetComponent<Asset>()) return;
+        if (assetEvent.asset != GetImage()) return;
         _UploadImage(assetEvent.asset);
         _loadedSlot.Disconnect();
     });
@@ -59,41 +69,64 @@ void Texture2D::Impl::Unload()
     OpenGL::Texture::Delete(GetHandle());
     _handle = 0;
     SetLoaded(false);
-    _allocated = false;
 }
 
 void Texture2D::Impl::GenerateMipmap()
 {
     Bind();
-    glGenerateMipmap(OpenGL::GetEnum(_texture.GetType()));
+    glGenerateMipmap(OpenGL::GetEnum(GetType()));
     Done();
+}
+
+void Texture2D::Impl::SetSize(const glm::ivec2& size)
+{
+    if (GetSize() == size) return;
+    _size = size;
+    Unload();
+    if (GetAutoMipMap())
+        SetMipMapNbr(MIPMAPNBR(GetSize()));
+}
+
+void Texture2D::Impl::SetCompressed(bool compressed)
+{
+    if (compressed == GetCompressed())
+        return;
+    _compressed = compressed;
+    Unload();
 }
 
 void Texture2D::Impl::_AllocateStorage() {
-    assert(!_allocated);
-    auto& texture{ static_cast<const Texture2D&>(_texture) };
-    auto type{ OpenGL::GetEnum(_texture.GetType()) };
     _handle = OpenGL::Texture::Generate();
     Bind();
-    glTexStorage2D(
-        type,
-        texture.GetMipMapNbr(),
-        OpenGL::GetEnum(texture.GetPixelDescription().GetSizedFormat()),
-        texture.GetSize().x,
-        texture.GetSize().y
-    );
+    if (GetCompressed())
+        glTexImage2D(
+            OpenGL::GetEnum(GetType()),
+            0,
+            OpenGL::GetCompressedFormat(GetPixelDescription().GetUnsizedFormat()),
+            GetSize().x,
+            GetSize().y,
+            0,
+            OpenGL::GetEnum(GetPixelDescription().GetUnsizedFormat()),
+            OpenGL::GetEnum(GetPixelDescription().GetType()),
+            nullptr);
+    else
+        glTexStorage2D(
+            OpenGL::GetEnum(GetType()),
+            GetMipMapNbr(),
+            OpenGL::GetEnum(GetPixelDescription().GetSizedFormat()),
+            GetSize().x,
+            GetSize().y
+        );
     Done();
-    _allocated = true;
 }
 
 inline void Texture2D::Impl::_UploadImage(std::shared_ptr<Asset> imageAsset) {
-    auto& texture{ static_cast<Texture2D&>(_texture) };
     auto image{ imageAsset->GetComponent<Image>() };
     assert(image != nullptr);
-    texture.SetPixelDescription(image->GetPixelDescription());
-    texture.SetSize(image->GetSize());
-    if (texture.GetAutoMipMap())
-        texture.SetMipMapNbr(MIPMAPNBR(image->GetSize()));
+    _pixelDescription = image->GetPixelDescription();
+    SetSize(image->GetSize());
+    if (GetAutoMipMap())
+        _mipMapNbr = MIPMAPNBR(image->GetSize());
     _AllocateStorage();
     Bind();
     glTexSubImage2D(
@@ -108,8 +141,8 @@ inline void Texture2D::Impl::_UploadImage(std::shared_ptr<Asset> imageAsset) {
         image->GetData().data()
     );
     Done();
-    if (texture.GetAutoMipMap())
+    if (GetAutoMipMap())
         GenerateMipmap();
-    texture.RemoveComponent(imageAsset);
+    SetImage(nullptr);
     SetLoaded(true);
 }

@@ -9,29 +9,37 @@
 Texture2D::Texture2D(const Texture2D& other)
     : Texture(other)
 {
-    _impl.reset(new Texture2D::Impl(*this));
-    SetSize(other._Size);
+    _impl.reset(new Texture2D::Impl(static_cast<const Texture2D::Impl&>(*other._impl.get())));
 }
 
-Texture2D::Texture2D(glm::ivec2 size, Pixel::SizedFormat internalFormat)
-    : Texture(Texture::Type::Texture2D, internalFormat)
+Texture2D::Texture2D(const glm::ivec2& size, const Pixel::Description& pixelDesc)
+    : Texture()
 {
-    _impl.reset(new Texture2D::Impl(*this));
-    SetSize(size);
+    _impl.reset(new Texture2D::Impl(size, pixelDesc));
 }
 
-Texture2D::Texture2D(std::shared_ptr<Asset> image) : Texture(Texture::Type::Texture2D)
+Texture2D::Texture2D(std::shared_ptr<Asset> image)
+    : Texture()
 {
-    _impl.reset(new Texture2D::Impl(*this));
-    SetComponent(image);
+    _impl.reset(new Texture2D::Impl(image));
 }
 
-void Texture2D::SetSize(glm::ivec2 size)
+void Texture2D::SetSize(const glm::ivec2& size)
 {
-    if (size == GetSize())
-        return;
-    _impl->Unload();
-    if (GetAutoMipMap())
-        SetMipMapNbr(MIPMAPNBR(size));
-    _SetSize(size);
+    return static_cast<Texture2D::Impl*>(_impl.get())->SetSize(size);
+}
+
+glm::ivec2 Texture2D::GetSize() const
+{
+    return static_cast<Texture2D::Impl*>(_impl.get())->GetSize();
+}
+
+void Texture2D::SetCompressed(bool compressed)
+{
+    return static_cast<Texture2D::Impl*>(_impl.get())->SetCompressed(compressed);
+}
+
+bool Texture2D::GetCompressed() const
+{
+    return static_cast<Texture2D::Impl*>(_impl.get())->GetCompressed();;
 }

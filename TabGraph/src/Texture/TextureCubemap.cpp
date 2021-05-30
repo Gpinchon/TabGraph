@@ -26,23 +26,19 @@
 TextureCubemap::TextureCubemap(const TextureCubemap& other)
     : Texture(other)
 {
-    _impl.reset(new TextureCubemap::Impl(*this));
-    SetSize(other.GetSize());
+    _impl.reset(new TextureCubemap::Impl(static_cast<const TextureCubemap::Impl&>(*other._impl.get())));
 }
 
 TextureCubemap::TextureCubemap(glm::ivec2 size, Pixel::SizedFormat format)
-    : Texture(Texture::Type::TextureCubemap, format)
+    : Texture()
 {
-    _impl.reset(new TextureCubemap::Impl(*this));
-    SetSize(size);
+    _impl.reset(new TextureCubemap::Impl(size, format));
 }
 
 TextureCubemap::TextureCubemap(std::shared_ptr<Asset> image)
-    : Texture(Texture::Type::TextureCubemap)
+    : Texture()
 {
-    _impl.reset(new TextureCubemap::Impl(*this));
-    SetComponent(image);
-    _SetType(Texture::Type::TextureCubemap);
+    _impl.reset(new TextureCubemap::Impl(image));
 }
 
 TextureCubemap::~TextureCubemap()
@@ -142,12 +138,12 @@ void TextureCubemap::ExtractSide(std::shared_ptr<Image> fromImage, std::shared_p
     std::cout << "." << std::flush;
 }
 
+glm::ivec2 TextureCubemap::GetSize() const
+{
+    return static_cast<TextureCubemap::Impl*>(_impl.get())->GetSize();
+}
+
 void TextureCubemap::SetSize(glm::ivec2 size)
 {
-    if (size == GetSize())
-        return;
-    _impl->Unload();
-    if (GetAutoMipMap())
-        SetMipMapNbr(MIPMAPNBR(size));
-    _SetSize(size);
+    return static_cast<TextureCubemap::Impl*>(_impl.get())->SetSize(size);
 }

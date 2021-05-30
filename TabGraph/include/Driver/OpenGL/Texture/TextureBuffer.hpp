@@ -10,9 +10,16 @@
 
 class TextureBuffer::Impl : public Texture::Impl {
 public:
-    Impl(TextureBuffer&);
+    Impl(Pixel::SizedFormat internalFormat, std::shared_ptr<BufferAccessor> bufferAccessor);
+    Impl(const Impl& other);
     ~Impl();
     virtual void Load() override;
     virtual void Unload() override;
     virtual void GenerateMipmap() override;
+
+    void SetBufferAccessor(std::shared_ptr<BufferAccessor> bufferAccessor);
+    std::shared_ptr<BufferAccessor> GetBufferAccessor() const;
+
+private:
+    std::shared_ptr<BufferAccessor> _bufferAccessor;
 };

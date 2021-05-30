@@ -11,18 +11,45 @@
 
 struct Event;
 
+namespace Pixel {
+struct Description;
+}
+
 class Texture2D::Impl : public Texture::Impl {
 public:
-    Impl(const Impl&) = delete;
-    Impl(Texture2D&);
+    Impl(const Impl& other);
+    Impl(const glm::ivec2& size, const Pixel::Description& pixelDesc);
+    Impl(std::shared_ptr<Asset>);
     ~Impl();
     virtual void Load() override;
     virtual void Unload() override;
     virtual void GenerateMipmap() override;
 
+    void SetSize(const glm::ivec2& size);
+    void SetCompressed(bool);
+    inline void SetImage(std::shared_ptr<Asset> asset)
+    {
+        _asset = asset;
+    }
+
+    inline glm::ivec2 GetSize() const
+    {
+        return _size;
+    }
+    inline bool GetCompressed() const
+    {
+        return _compressed;
+    }
+    inline std::shared_ptr<Asset> GetImage() const
+    {
+        return _asset;
+    }
+
 private:
     void _AllocateStorage();
     void _UploadImage(std::shared_ptr<Asset> imageAsset);
+    bool _compressed{ false };
+    glm::ivec2 _size{ 0 };
+    std::shared_ptr<Asset> _asset;
     Signal<const Event&>::ScoppedSlot _loadedSlot;
-    bool _allocated{ false };
 };

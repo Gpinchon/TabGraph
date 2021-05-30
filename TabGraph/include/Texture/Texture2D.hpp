@@ -11,7 +11,6 @@ class Texture2D : public Texture {
 public:
     class Impl;
     friend Impl;
-    READONLYPROPERTY(glm::ivec2, Size, 0);
 
 public:
     Texture2D(const Texture2D&);
@@ -19,14 +18,17 @@ public:
      * @param size : the resolutionin pixels
      * @param internalFormat : the sized format that will be used to store the texture on the GPU
     */
-    Texture2D(glm::ivec2 size, Pixel::SizedFormat internalFormat);
+    Texture2D(const glm::ivec2& size, const Pixel::Description& pixelDesc);
     /**
      * @brief Creates a Texture2D with an image to load from
      * the image is released when loading is done with RemoveComponent
      * @param image the image to use for loading, released when loading is done
     */
     Texture2D(std::shared_ptr<Asset> image);
-    void SetSize(glm::ivec2 size);
+    void SetSize(const glm::ivec2& size);
+    glm::ivec2 GetSize() const;
+    void SetCompressed(bool compressed);
+    bool GetCompressed() const;
 
 private:
     std::shared_ptr<Component> _Clone() override {

@@ -12,12 +12,23 @@
 
 #include <GL/glew.h>
 
-TextureCubemap::Impl::Impl(TextureCubemap& texture)
-    : Texture::Impl(texture)
+TextureCubemap::Impl::Impl(const Impl& other)
+    : Texture::Impl(other)
+    , _size(other._size)
+    , _asset(other._asset)
+{
+    _type = Texture::Type::TextureCubemap;
+}
+
+TextureCubemap::Impl::Impl(std::shared_ptr<Asset> image)
+    : Texture::Impl(Texture::Type::TextureCubemap)
+    , _asset(image)
 {
 }
 
-TextureCubemap::Impl::~Impl()
+TextureCubemap::Impl::Impl(const glm::ivec2& size, const Pixel::SizedFormat& format)
+    : Texture::Impl(Texture::Type::TextureCubemap, format)
+    , _size(size)
 {
 }
 
@@ -25,21 +36,20 @@ void TextureCubemap::Impl::Load()
 {
     if (GetLoaded())
         return;
-    auto &texture{ static_cast<TextureCubemap&>(_texture) };
-    auto imageAsset { _texture.GetComponent<Asset>() };
+    auto imageAsset { GetImage() };
     if (imageAsset != nullptr) {
         imageAsset->Load();
         auto image { imageAsset->GetComponent<Image>() };
         assert(image != nullptr);
-        texture.SetSize(glm::ivec2(std::min(image->GetSize().x, image->GetSize().y)));
-        _texture.SetPixelDescription(image->GetPixelDescription());
-        if (texture.GetAutoMipMap())
-            texture.SetMipMapNbr(MIPMAPNBR(image->GetSize()));
+        SetSize(glm::ivec2(std::min(image->GetSize().x, image->GetSize().y)));
+        SetPixelDescription(image->GetPixelDescription());
+        if (GetAutoMipMap())
+            SetMipMapNbr(MIPMAPNBR(image->GetSize()));
         _AllocateStorage();
         std::array<std::shared_ptr<Image>, 6> sides;
         std::array<std::thread, 6> loadingThreads;
         for (auto sideIndex = 0; sideIndex < 6; ++sideIndex) {
-            sides.at(sideIndex) = Component::Create<Image>(texture.GetSize(), texture.GetPixelDescription());
+            sides.at(sideIndex) = Component::Create<Image>(GetSize(), GetPixelDescription());
             loadingThreads.at(sideIndex) = std::thread(ExtractSide, image, sides.at(sideIndex), (TextureCubemap::Side)sideIndex);
         }
         for (auto sideIndex = 0; sideIndex < 6; ++sideIndex) {
@@ -58,12 +68,38 @@ void TextureCubemap::Impl::Load()
                 OpenGL::GetEnum(side->GetPixelDescription().GetType()),
                 side->GetData().data());
         }
-        texture.RemoveComponent(imageAsset);
-        if (texture.GetAutoMipMap())
-            texture.GenerateMipmap();
+        SetImage(nullptr);
+        if (GetAutoMipMap())
+            GenerateMipmap();
     } else
         _AllocateStorage();
     SetLoaded(true);
+}
+
+void TextureCubemap::Impl::SetImage(std::shared_ptr<Asset> image)
+{
+    if (image == GetImage()) return;
+    _asset = image;
+    Unload();
+}
+
+void TextureCubemap::Impl::SetSize(const glm::ivec2 size)
+{
+    if (size == GetSize()) return;
+    _size = size;
+    Unload();
+    if (GetAutoMipMap())
+        SetMipMapNbr(MIPMAPNBR(GetSize()));
+}
+
+std::shared_ptr<Asset> TextureCubemap::Impl::GetImage() const
+{
+    return _asset;
+}
+
+glm::ivec2 TextureCubemap::Impl::GetSize() const
+{
+    return _size;
 }
 
 void TextureCubemap::Impl::Unload()
@@ -84,14 +120,13 @@ void TextureCubemap::Impl::GenerateMipmap()
 
 void TextureCubemap::Impl::_AllocateStorage()
 {
-    auto &texture{ static_cast<TextureCubemap&>(_texture) };
     _handle = OpenGL::Texture::Generate();
     Bind();
     glTexStorage2D(
         OpenGL::GetEnum(Texture::Type::TextureCubemap),
-        texture.GetMipMapNbr(),
-        OpenGL::GetEnum(texture.GetPixelDescription().GetSizedFormat()),
-        texture.GetSize().x, texture.GetSize().y
+        GetMipMapNbr(),
+        OpenGL::GetEnum(GetPixelDescription().GetSizedFormat()),
+        GetSize().x, GetSize().y
     );
     Done();
 }
