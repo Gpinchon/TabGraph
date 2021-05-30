@@ -134,9 +134,9 @@ int main(int argc, char** argv)
                     ++speed;
                 speed = std::max(1.f, speed);
             };
-            auto quitCB = [engine](const Event::Keyboard&) { engine->Stop(); };
-            auto changeCameraCB = [engine](const Event::Keyboard& event) {
-                if (engine->GetCurrentScene() == nullptr)
+            auto quitCB = [engine = std::weak_ptr(engine)](const Event::Keyboard&) { engine.lock()->Stop(); };
+            auto changeCameraCB = [engine = std::weak_ptr(engine)](const Event::Keyboard& event) {
+                if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
                 if (!event.state || event.repeat)
                     return;
@@ -144,15 +144,15 @@ int main(int argc, char** argv)
                 s_currentCamera++;
                 if (s_currentCamera >= s_cameras.size())
                     s_currentCamera = 0;
-                engine->GetCurrentScene()->SetCurrentCamera(s_cameras.at(s_currentCamera));
-                s_light->SetParent(engine->GetCurrentScene()->CurrentCamera());
+                engine.lock()->GetCurrentScene()->SetCurrentCamera(s_cameras.at(s_currentCamera));
+                s_light->SetParent(engine.lock()->GetCurrentScene()->CurrentCamera());
             };
-            auto animationCB = [engine](const Event::Keyboard& event) {
-                if (engine->GetCurrentScene() == nullptr)
+            auto animationCB = [engine = std::weak_ptr(engine)](const Event::Keyboard& event) {
+                if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
-                if (!event.state || event.repeat || engine->GetCurrentScene()->GetComponents<Animation>().empty())
+                if (!event.state || event.repeat || engine.lock()->GetCurrentScene()->GetComponents<Animation>().empty())
                     return;
-                static auto animations = engine->GetCurrentScene()->GetComponents<Animation>();
+                static auto animations = engine.lock()->GetCurrentScene()->GetComponents<Animation>();
                 static auto currentAnimation(animations.begin());
                 (*currentAnimation)->Stop();
                 currentAnimation++;
@@ -161,17 +161,17 @@ int main(int argc, char** argv)
                 (*currentAnimation)->SetRepeat(true);
                 (*currentAnimation)->Play();
             };
-            auto wheelCB = [engine](const Event::MouseWheel& event) {
-                if (engine->GetCurrentScene() == nullptr)
+            auto wheelCB = [engine = std::weak_ptr(engine)](const Event::MouseWheel& event) {
+                if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
-                auto scene { engine->GetCurrentScene() };
+                auto scene { engine.lock()->GetCurrentScene() };
                 scene->CurrentCamera()->SetFov(scene->CurrentCamera()->Fov() - event.amount.y);
                 scene->CurrentCamera()->SetFov(glm::clamp(scene->CurrentCamera()->Fov(), 1.0f, 70.f));
             };
-            auto moveCB = [engine](const Event::MouseMove& event) {
-                if (engine->GetCurrentScene() == nullptr)
+            auto moveCB = [engine = std::weak_ptr(engine)](const Event::MouseMove& event) {
+                if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
-                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine->GetCurrentScene()->CurrentCamera());
+                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine.lock()->GetCurrentScene()->CurrentCamera());
                 if (camera == nullptr)
                     return;
                 static glm::vec3 cameraRotation {};
@@ -185,10 +185,10 @@ int main(int argc, char** argv)
                 camera->SetPitch(cameraRotation.y);
                 camera->SetRoll(cameraRotation.z);
             };
-            auto refreshCB = [engine](float delta) {
-                if (engine->GetCurrentScene() == nullptr)
+            auto refreshCB = [engine = std::weak_ptr(engine)](float delta) {
+                if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
-                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine->GetCurrentScene()->CurrentCamera());
+                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine.lock()->GetCurrentScene()->CurrentCamera());
                 if (camera == nullptr)
                     return;
                 glm::vec2 laxis = glm::vec2(0, 0);
