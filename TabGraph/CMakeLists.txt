@@ -149,6 +149,7 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Keyboard.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Signal.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/DispatchQueue.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Event.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/EventsManager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/GameController.hpp
@@ -244,10 +245,10 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/EventsManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/GameController.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/Keyboard.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/Mouse.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/EventsManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/LightProbe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionalLight.cpp

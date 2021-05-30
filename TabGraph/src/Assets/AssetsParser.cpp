@@ -9,66 +9,32 @@
 #include <Assets/Asset.hpp>
 #include <Debug.hpp>
 #include <Event/EventsManager.hpp>
+#include <Event/DispatchQueue.hpp>
 
 #include <filesystem>
-#include <map> // for map
-#include <memory> // for shared_ptr
-#include <string> // for string
+#include <map>
+#include <memory>
+#include <string>
 #include <assert.h>
-#include <chrono>
 #include <set>
-#include <queue>
-#include <thread>
-#include <mutex>
 
 constexpr auto ParsingThreads = 4;
 
-struct DispatchQueue {
-    DispatchQueue(size_t threadsCount = 1)
-        : _threads(threadsCount)
-    {
-        for (auto& thread : _threads)
-            thread = std::thread(&DispatchQueue::_DispatchThreadHandler, this);
-    }
-    ~DispatchQueue() {
-        _running = false;
-        _cv.notify_all();
-        for (auto& thread : _threads)
-            if (thread.joinable()) thread.join();
-    }
-    void Dispatch(std::function<void(void)> fun) {
-        std::unique_lock<std::mutex> lock(_lock);
-        _queue.push(fun);
-        lock.unlock();
-        _cv.notify_one();
-    }
-private :
-    void _DispatchThreadHandler(void) {
-        std::unique_lock<std::mutex> lock(_lock);
-        while (_running) {
-            _cv.wait(lock, [this] {
-                return _queue.size() || !_running;
-            });
-            if (_queue.empty()) continue;
-            auto fun{ std::move(_queue.front()) };
-            _queue.pop();
-            lock.unlock();
-            fun();
-            lock.lock();
-        }
-    }
-    bool _running{ true };
-    std::vector<std::thread> _threads;
-    std::mutex _lock;
-    std::condition_variable _cv;
-    std::queue<std::function<void(void)>> _queue;
-};
-
-std::map<AssetsParser::MimeType, std::unique_ptr<AssetsParser>>* AssetsParser::_parsers = nullptr;
-std::map<AssetsParser::FileExtension, AssetsParser::MimeType>* AssetsParser::_mimesExtensions = nullptr;
 static std::mutex s_parsingTaskMutex;
 static std::set<std::weak_ptr<Asset>, std::owner_less<>> s_parsingAssets;
 static DispatchQueue s_dispatchQueue(ParsingThreads);
+
+std::map<AssetsParser::MimeType, std::unique_ptr<AssetsParser>>& _getParsers()
+{
+    static std::map<AssetsParser::MimeType, std::unique_ptr<AssetsParser>> s_parsers;
+    return s_parsers;
+}
+
+std::map<AssetsParser::FileExtension, AssetsParser::MimeType>& _getMimesExtensions()
+{
+    static std::map<AssetsParser::FileExtension, AssetsParser::MimeType> s_mimesExtensions;
+    return s_mimesExtensions;
+}
 
 inline void PushEvent(std::shared_ptr<Asset> asset) {
     Event event;
@@ -128,20 +94,6 @@ AssetsParser::MimeExtensionPair AssetsParser::AddMimeExtension(const MimeType& m
 {
     _getMimesExtensions()[extension] = mime;
     return MimeExtensionPair(mime, extension);
-}
-
-std::map<AssetsParser::MimeType, std::unique_ptr<AssetsParser>>& AssetsParser::_getParsers()
-{
-    if (_parsers == nullptr)
-        _parsers = new std::map<MimeType, std::unique_ptr<AssetsParser>>;
-    return *_parsers;
-}
-
-std::map<AssetsParser::FileExtension, AssetsParser::MimeType>& AssetsParser::_getMimesExtensions()
-{
-    if (_mimesExtensions == nullptr)
-        _mimesExtensions = new std::map<FileExtension, MimeType>;
-    return *_mimesExtensions;
 }
 
 bool AssetsParser::Parse(std::shared_ptr<Asset> asset)

@@ -6,12 +6,15 @@
 */
 #pragma once
 
-#include <filesystem>
 #include <functional>
-#include <map>
 #include <memory>
-#include <string> // for string
+#include <string>
 
+namespace std {
+namespace filesystem {
+    class path;
+}
+}
 class Asset;
 
 class AssetsParser {
@@ -59,10 +62,6 @@ private:
     AssetsParser() = delete;
     AssetsParser(const MimeType&, ParsingFunction);
     static ParsingFunction _get(const MimeType&);
-    static std::map<MimeType, std::unique_ptr<AssetsParser>>& _getParsers();
-    static std::map<MimeType, std::unique_ptr<AssetsParser>>* _parsers;
-    static std::map<FileExtension, MimeType>& _getMimesExtensions();
-    static std::map<FileExtension, MimeType>* _mimesExtensions;
     MimeType _mimeType;
     ParsingFunction _parsingFunction;
 };
