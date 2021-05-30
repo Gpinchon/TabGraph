@@ -182,6 +182,7 @@ static inline auto ParseTextures(const rapidjson::Document& document, std::vecto
             } catch (std::exception& e) {
                 debugLog("Error parsing texture " + std::to_string(textureIndex) + ' ' + e.what());
             }
+            texture->SetCompressed(true);
             textureVector.push_back(texture);
             textureIndex++;
         }
