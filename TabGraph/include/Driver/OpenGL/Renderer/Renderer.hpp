@@ -9,6 +9,7 @@
 #include <Renderer/Renderer.hpp>
 #include <Component.hpp>
 #include <Event/Signal.hpp>
+#include <Driver/OpenGL/Renderer/Context.hpp>
 
 #include <memory>
 #include <glm/fwd.hpp>
@@ -22,23 +23,8 @@ class Program;
 
 namespace Renderer {
 struct FrameRenderer::Impl : public Component {
-    class Context {
-    public:
-        Context(void* context = nullptr)
-            : _v(context)
-        {
-        }
-        operator void* () const
-        {
-            return _v;
-        }
-
-    private:
-        void* _v{ nullptr };
-    };
     Impl(std::weak_ptr<Window> window, FrameRenderer& renderer);
-    ~Impl();
-    const Context& GetContext() const;
+    const OpenGL::Context& GetContext() const;
     const uint32_t GetFrameNumber() const;
     const std::shared_ptr<Geometry> GetDisplayQuad() const;
     const std::shared_ptr<Texture2D> GetDefaultBRDFLUT() const;
@@ -62,6 +48,7 @@ private:
     {
         return Component::Create<FrameRenderer::Impl>(*this);
     }
+    OpenGL::Context _context;
     std::shared_ptr<Framebuffer> _deferredLightingBuffer;
     std::shared_ptr<Framebuffer> _deferredRenderBuffer;
     std::shared_ptr<Framebuffer> _forwardTransparentRenderBuffer;
@@ -99,7 +86,6 @@ private:
 
     std::weak_ptr<Window> _window;
 
-    Context _context;
     uint32_t _frameNbr{ 0 };
     FrameRenderer& _frameRenderer;
     double _lastTicks{ 0 };
