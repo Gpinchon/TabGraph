@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0074 NEW)
 
+set(DispatchQueueThreadsNbr "16" CACHE STRING
+  "Number of threads used for Application's DispatchQueue")
+add_compile_definitions(DISPATCHQUEUETHREADSNBR=${DispatchQueueThreadsNbr})
+
 #[[Rendering API]]
 set(RenderingAPI "OpenGL" CACHE STRING
   "Rendering API used at compile-time")
@@ -143,13 +147,13 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/ComputeObject.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Config.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/DispatchQueue.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/GameController.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Keyboard.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Signal.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/DispatchQueue.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Event.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/EventsManager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/GameController.hpp
@@ -244,6 +248,7 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/DispatchQueue.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/EventsManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/GameController.cpp
