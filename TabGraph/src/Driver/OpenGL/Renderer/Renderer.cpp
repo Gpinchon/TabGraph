@@ -31,7 +31,7 @@
 #include <Light/Light.hpp>
 
 #if MEDIALIBRARY == SDL2
-#include <Driver/SDL2/Window.hpp>
+//#include <Driver/SDL2/Window.hpp>
 #include <SDL_timer.h> // for SDL_GetTicks
 #include <SDL_video.h> // for SDL_GL_MakeCurrent, SDL_GL_SetSwapInterval
 #endif //MEDIALIBRARY == SDL2
@@ -146,19 +146,8 @@ namespace Renderer {
         : _window(window)
         , _frameRenderer(renderer)
         , _lastTicks(SDL_GetTicks() / 1000.0)
+        , _context(window, 4, 3)
     {
-#if MEDIALIBRARY == SDL2
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-        _context = SDL_GL_CreateContext((SDL_Window*)GetWindow()->GetImpl().GetHandle());
-        if (_context == nullptr) {
-            throw std::runtime_error(SDL_GetError());
-        }
-#endif//MEDIALIBRARY == SDL2
         glewExperimental = GL_TRUE;
         auto error = glewInit();
         if (error != GLEW_OK) {
@@ -198,14 +187,7 @@ namespace Renderer {
         _displayQuad->SetAccessor(Geometry::AccessorKey::Position, accessor);
     }
 
-    FrameRenderer::Impl::~Impl()
-    {
-#if MEDIALIBRARY == SDL2
-        SDL_GL_DeleteContext(GetContext());
-#endif//MEDIALIBRARY == SDL2
-    }
-
-    const FrameRenderer::Impl::Context& FrameRenderer::Impl::GetContext() const {
+    const OpenGL::Context& FrameRenderer::Impl::GetContext() const {
         return _context;
     }
 

@@ -62,6 +62,7 @@ if (RenderingAPI STREQUAL "OpenGL")
 set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Global.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Program.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Context.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Renderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/SceneRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp
@@ -96,6 +97,7 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Global.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Program.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Context.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Renderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SceneRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/GeometryRenderer.cpp
