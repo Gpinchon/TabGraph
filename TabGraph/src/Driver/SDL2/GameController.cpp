@@ -216,9 +216,9 @@ SDL_JoystickID Gamepad::GetId()
 
 InputDevice::InputDevice()
 {
-    if (!SDL_WasInit(SDL_INIT_JOYSTICK)) {
-        SDL_InitSubSystem(SDL_INIT_JOYSTICK);
-        SDL_JoystickEventState(SDL_ENABLE);
+    if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER)) {
+        if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
+            throw std::runtime_error(SDL_GetError());
         SDL_GameControllerEventState(SDL_ENABLE);
     }
     EventsManager::On(Event::Type::ControllerAxisMotion).ConnectMember(this, &InputDevice::_ProcessEvent);
@@ -227,6 +227,11 @@ InputDevice::InputDevice()
     EventsManager::On(Event::Type::ControllerDeviceAdded).ConnectMember(this, &InputDevice::_ProcessEvent);
     EventsManager::On(Event::Type::ControllerDeviceRemoved).ConnectMember(this, &InputDevice::_ProcessEvent);
 
+    //if (!SDL_WasInit(SDL_INIT_JOYSTICK)) {
+    //    if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
+    //      throw std::runtime_error(SDL_GetError());
+    //    SDL_JoystickEventState(SDL_ENABLE);
+    //}
     //EventsManager::Add(this, Event::Type::JoyAxisMotion);
     //EventsManager::Add(this, Event::Type::JoyButtonDown);
     //EventsManager::Add(this, Event::Type::JoyButtonUp);

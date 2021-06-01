@@ -15,7 +15,7 @@
 
 Window::Impl::Impl(const std::string& name, const glm::ivec2& resolution, const Style style)
 {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
+    if (!SDL_WasInit(SDL_INIT_VIDEO) && SDL_Init(SDL_INIT_VIDEO) < 0) {
         throw std::runtime_error(SDL_GetError());
     }
     auto windowFlags { SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI };

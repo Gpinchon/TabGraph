@@ -18,6 +18,7 @@ union SDL_Event;
 
 class EventsManager::Impl {
 public:
+    Impl();
     inline Signal<const Event&>& On(Event::Type type) {
         return _onEvent.at(size_t(type));
     }

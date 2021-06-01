@@ -9,7 +9,7 @@
 #include <Assets/Asset.hpp>
 #include <Debug.hpp>
 #include <Event/EventsManager.hpp>
-#include <Event/DispatchQueue.hpp>
+#include <DispatchQueue.hpp>
 
 #include <filesystem>
 #include <map>
@@ -22,7 +22,6 @@ constexpr auto ParsingThreads = 4;
 
 static std::mutex s_parsingTaskMutex;
 static std::set<std::weak_ptr<Asset>, std::owner_less<>> s_parsingAssets;
-static DispatchQueue s_dispatchQueue(ParsingThreads);
 
 std::map<AssetsParser::MimeType, std::unique_ptr<AssetsParser>>& _getParsers()
 {
@@ -61,7 +60,7 @@ void AssetsParser::AddParsingTask(const ParsingTask& parsingTask)
     }
     else {
         auto weakAsset{ parsingTask.asset };
-        s_dispatchQueue.Dispatch([weakAsset] {
+        DispatchQueue::ApplicationDispatchQueue().Dispatch([weakAsset] {
             auto sharedAsset{ weakAsset.lock() };
             AssetsParser::Parse(sharedAsset);
             PushEvent(sharedAsset);

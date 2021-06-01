@@ -9,7 +9,14 @@
 #include <Driver/SDL2/Event.hpp>
 #include <Engine.hpp>
 
+#include <SDL.h>
 #include <SDL_events.h>
+
+EventsManager::Impl::Impl()
+{
+    if (!SDL_WasInit(SDL_INIT_EVENTS) && SDL_Init(SDL_INIT_EVENTS) < 0)
+        throw std::runtime_error(SDL_GetError());
+}
 
 void EventsManager::Impl::PollEvents()
 {
