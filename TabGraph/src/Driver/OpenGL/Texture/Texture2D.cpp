@@ -108,7 +108,8 @@ void Texture2D::Impl::_AllocateStorage() {
             0,
             OpenGL::GetEnum(GetPixelDescription().GetUnsizedFormat()),
             OpenGL::GetEnum(GetPixelDescription().GetType()),
-            nullptr);
+            nullptr
+        );
     else
         glTexStorage2D(
             OpenGL::GetEnum(GetType()),
