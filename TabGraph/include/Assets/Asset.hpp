@@ -12,11 +12,11 @@ public :
 	Asset(const Uri&);
 	bool GetLoaded();
 	void SetLoaded(bool);
-	/** @brief Loads the Image synchronously, must emit LoadedChanged(true) if loading was successful */
+	/** @brief Loads the Asset synchronously, must emit an Event of type Event::AssetLoaded on completion */
 	virtual void Load();
 	/**
 	 * @brief Loads the Asset asynchronously -> returns immediatly.
-	 * Emits LoadedChanged(true) if loading was successful.
+	 * Emit an Event of type Event::AssetLoaded on completion.
 	*/
 	virtual void LoadAsync();
 
