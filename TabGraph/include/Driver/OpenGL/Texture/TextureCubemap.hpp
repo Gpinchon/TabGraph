@@ -5,8 +5,8 @@
 * @Last Modified time: 2021-05-04 20:02:25
 */
 #pragma once
-#include "Driver/OpenGL/Texture/Texture.hpp"
-#include "Texture/TextureCubemap.hpp"
+#include <Driver/OpenGL/Texture/Texture.hpp>
+#include <Texture/TextureCubemap.hpp>
 
 class TextureCubemap::Impl : public Texture::Impl {
 public:
