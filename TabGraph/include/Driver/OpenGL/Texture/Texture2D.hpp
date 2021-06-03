@@ -27,6 +27,14 @@ public:
     virtual void GenerateMipmap() override;
 
     void SetSize(const glm::ivec2& size);
+    void SetCompressionQuality(float compression)
+    {
+        _compressionQuality = std::clamp(compression, 0.f, 1.f);
+    }
+    float GetCompressionQuality() const
+    {
+        return _compressionQuality;
+    }
     void SetCompressed(bool);
     inline void SetImage(std::shared_ptr<Asset> asset)
     {
@@ -48,7 +56,7 @@ public:
 
 private:
     void _AllocateStorage();
-    void _UploadImage(std::shared_ptr<Asset> imageAsset);
+    void _UploadImage();
     bool _compressed{ false };
     glm::ivec2 _size{ 0 };
     std::shared_ptr<Asset> _asset;
@@ -56,4 +64,5 @@ private:
     Signal<const Event&>::ScoppedSlot _imageCompressionSlot;
     DispatchQueue::TaskIdentifier _imageCompressionTaskID;
     std::vector<std::byte> _imageCompressionBuffer;
+    float _compressionQuality{ 0.25 };
 };

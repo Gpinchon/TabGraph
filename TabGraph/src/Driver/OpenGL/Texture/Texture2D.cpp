@@ -10,7 +10,12 @@
 #include <Assets/Asset.hpp>
 #include <Assets/Image.hpp>
 #include <Event/EventsManager.hpp>
+#include <DispatchQueue.hpp>
 
+#include <FasTC/CompressedImage.h>
+#include <FasTC/Image.h>
+#include <FasTC/TexComp.h>
+#include <FasTC/CompressionFormat.h>
 #include <GL/glew.h>
 
 Texture2D::Impl::Impl(const Impl& other)
@@ -49,7 +54,7 @@ void Texture2D::Impl::Load()
     }
     auto assetLoaded{ asset->GetLoaded() };
     if (assetLoaded) {
-        _UploadImage(asset);
+        _UploadImage();
         return;
     }
     //asset->Load();
@@ -59,7 +64,7 @@ void Texture2D::Impl::Load()
         assert(!_loaded);
         auto& assetEvent = event.Get<Event::Asset>();
         if (assetEvent.asset != GetImage()) return;
-        _UploadImage(assetEvent.asset);
+        _UploadImage();
         _imageLoadingSlot.Disconnect();
     });
 }
@@ -117,30 +122,23 @@ void Texture2D::Impl::_AllocateStorage() {
     Done();
 }
 
-#include <FasTC/CompressedImage.h>
-#include <FasTC/Image.h>
-#include <FasTC/TexComp.h>
-#include <FasTC/CompressionFormat.h>
-
-#include <DispatchQueue.hpp>
-
-inline void Texture2D::Impl::_UploadImage(std::shared_ptr<Asset> imageAsset) {
-    auto image{ imageAsset->GetComponent<Image>() };
+inline void Texture2D::Impl::_UploadImage() {
+    auto image{ GetImage()->GetComponent<Image>() };
     assert(image != nullptr);
     _pixelDescription = image->GetPixelDescription();
     SetSize(image->GetSize());
     if (GetCompressed() && !_imageCompressionSlot.Connected()) {
         _AllocateStorage();
-        _imageCompressionBuffer.resize(CompressedImage::GetCompressedSize(
-            image->GetSize().x, image->GetSize().y,
-            FasTC::ECompressionFormat::eCompressionFormat_DXT5));
         _imageCompressionTaskID = DispatchQueue::ApplicationDispatchQueue().Dispatch([this] {
             auto image{ GetImage()->GetComponent<Image>() };
+            _imageCompressionBuffer.resize(CompressedImage::GetCompressedSize(
+                image->GetSize().x, image->GetSize().y,
+                FasTC::ECompressionFormat::eCompressionFormat_DXT5));
             auto compressionSetting = SCompressionSettings();
             compressionSetting.format = FasTC::eCompressionFormat_DXT5;
             compressionSetting.iNumCompressions = 1;
             compressionSetting.iNumThreads = 1;
-            compressionSetting.iQuality = 50;
+            compressionSetting.iQuality = GetCompressionQuality() * 255;
             compressionSetting.logStream = nullptr;
             CompressImageData(
                 (unsigned char*)image->GetData().data(),

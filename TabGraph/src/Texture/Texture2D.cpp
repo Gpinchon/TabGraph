@@ -34,6 +34,17 @@ glm::ivec2 Texture2D::GetSize() const
     return static_cast<Texture2D::Impl*>(_impl.get())->GetSize();
 }
 
+void Texture2D::SetCompressionQuality(float compression)
+{
+    return static_cast<Texture2D::Impl*>(_impl.get())->SetCompressionQuality(compression);
+}
+
+float Texture2D::GetCompressionQuality() const
+{
+    return static_cast<Texture2D::Impl*>(_impl.get())->GetCompressionQuality();
+}
+
+
 void Texture2D::SetCompressed(bool compressed)
 {
     return static_cast<Texture2D::Impl*>(_impl.get())->SetCompressed(compressed);

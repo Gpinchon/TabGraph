@@ -27,6 +27,8 @@ public:
     Texture2D(std::shared_ptr<Asset> image);
     void SetSize(const glm::ivec2& size);
     glm::ivec2 GetSize() const;
+    void SetCompressionQuality(float compression);
+    float GetCompressionQuality() const;
     void SetCompressed(bool compressed);
     bool GetCompressed() const;
 
