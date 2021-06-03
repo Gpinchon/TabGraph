@@ -336,6 +336,7 @@ set(TABGRAPH_SHADER_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/Skybox.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forward.vert
+	${CMAKE_CURRENT_SOURCE_DIR}/shaders/forwardLit.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/hzb.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/metallicRoughness.frag
 	${CMAKE_CURRENT_SOURCE_DIR}/shaders/passthrough.frag
