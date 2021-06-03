@@ -386,6 +386,8 @@ target_include_directories(TabGraph PRIVATE
 target_include_directories(TabGraph PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/include"
 	"${ZLIB_INCLUDE_DIR}"
+	"${FASTCBASE_INCLUDES}"
+	"${FASTCCORE_INCLUDES}"
 	)
 
 target_include_directories(TabGraphPlugins PRIVATE
@@ -429,6 +431,8 @@ target_link_libraries(TabGraph PUBLIC glm::glm)
 target_link_libraries(TabGraph PUBLIC zlibstatic)
 target_link_libraries(TabGraph PUBLIC SDL2::Core)
 target_link_libraries(TabGraph PUBLIC SDL2::Image)
+target_link_libraries(TabGraph PUBLIC FasTCCore)
+target_link_libraries(TabGraph PUBLIC FasTCBase)
 #target_link_libraries(Tabgraph PUBLIC ImGui)
 
 export(TARGETS TabGraph
