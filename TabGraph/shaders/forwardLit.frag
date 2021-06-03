@@ -80,9 +80,7 @@ void ComputeColor() {
 	const vec3 specular = fresnel * sampleLod(ReflectionMap, R, alphaSqrt * 2).rgb;
 	const vec3 color = specular + diffuse + Emissive();
 #if Pass == ForwardTransparent
-	if (Opacity() == 1 || Opacity() <= 0.005)
-		discard;
-	SetOpacity(min(Opacity() + Luminance(Opacity() * specular), 1));
+	if (Opacity() == 1 || Opacity() <= 0.005) discard;
 	WritePixel(color * Opacity(), Opacity());
 	ComputeRefraction(N, V);
 	ComputeTransmission();
