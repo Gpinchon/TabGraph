@@ -144,12 +144,8 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
     floorTexture->GetTextureSampler()->SetMagFilter(TextureSampler::Filter::Nearest);
     floorTexture->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::Nearest);
     level->GetComponentInChildrenByName<Mesh>("FloorMesh")->GetGeometryMaterial(0)->SetTextureDiffuse(floorTexture);
-    std::filesystem::path folder;
-
-    folder = path.parent_path() / "env/hdr/";
-    std::cout << folder << std::endl;
     auto skybox = Component::Create<Skybox>("Skybox");
-    auto diffuseMap { Component::Create<Asset>(folder / "diffuse.hdr") };
+    auto diffuseMap { Component::Create<Asset>(path.parent_path() / "env.png") };
     skybox->SetTexture(Component::Create<TextureCubemap>(diffuseMap));
     level->SetSkybox(skybox);
 
