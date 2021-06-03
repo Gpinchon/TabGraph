@@ -12,7 +12,24 @@
 #include <glm/vec4.hpp>
 
 namespace Pixel {
-glm::vec4 LinearToSRGB(glm::vec4 color);
+glm::vec4 LinearToSRGB(const glm::vec4& color);
+/**
+ * @brief Performes bilinear filtering on the supplied colors
+ * @param tx : texture coordinates fract on x axis
+ * @param ty : texture coordinates fract on y axis
+ * @param c00 : color at pixel [x, y]
+ * @param c10 : color at pixel [x + 1, y]
+ * @param c01 : color at pixel [x, y + 1]
+ * @param c11 : color at pixel [x + 1, y + 1]
+ * @return 
+*/
+glm::vec4 BilinearFilter(
+    const float& tx,
+    const float& ty,
+    const glm::vec4& c00,
+    const glm::vec4& c10,
+    const glm::vec4& c01,
+    const glm::vec4& c11);
 
 enum class SizedFormat {
     Unknown = -1,
@@ -110,6 +127,10 @@ enum class SizedFormat {
     Depth24_Stencil8,
     Depth32F_Stencil8,
     Stencil8,
+    /// <summary>
+    /// Compressed pixel types
+    /// </summary>
+    S3TC_DXT5_RGBA,
     MaxValue
 };
 
@@ -139,6 +160,7 @@ enum class Type {
     Int32,
     Float16,
     Float32,
+    S3TC_DXT5,
     MaxValue
 };
 
