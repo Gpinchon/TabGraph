@@ -2,23 +2,21 @@
 * @Author: gpinchon
 * @Date:   2020-08-18 13:46:27
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-07 15:39:40
+* @Last Modified time: 2021-06-01 14:05:15
 */
 
-#include <Assets/AssetsParser.hpp>
 #include <Assets/Asset.hpp>
+#include <Assets/AssetsParser.hpp>
 #include <Debug.hpp>
-#include <Event/EventsManager.hpp>
 #include <DispatchQueue.hpp>
+#include <Event/EventsManager.hpp>
 
+#include <assert.h>
 #include <filesystem>
 #include <map>
 #include <memory>
-#include <string>
-#include <assert.h>
 #include <set>
-
-constexpr auto ParsingThreads = 4;
+#include <string>
 
 static std::mutex s_parsingTaskMutex;
 static std::set<std::weak_ptr<Asset>, std::owner_less<>> s_parsingAssets;
@@ -35,10 +33,11 @@ std::map<AssetsParser::FileExtension, AssetsParser::MimeType>& _getMimesExtensio
     return s_mimesExtensions;
 }
 
-inline void PushEvent(std::shared_ptr<Asset> asset) {
+inline void PushEvent(std::shared_ptr<Asset> asset)
+{
     Event event;
     event.type = Event::Type::AssetLoaded;
-    event.data = Event::Asset{
+    event.data = Event::Asset {
         asset->GetLoaded(),
         asset
     };
@@ -47,27 +46,27 @@ inline void PushEvent(std::shared_ptr<Asset> asset) {
 
 void AssetsParser::AddParsingTask(const ParsingTask& parsingTask)
 {
-    auto sharedAsset{ parsingTask.asset.lock() };
+    auto sharedAsset { parsingTask.asset.lock() };
     s_parsingTaskMutex.lock();
-    auto inserted{ s_parsingAssets.insert(sharedAsset).second };
+    auto inserted { s_parsingAssets.insert(sharedAsset).second };
     s_parsingTaskMutex.unlock();
-    if (!inserted) return;
+    if (!inserted)
+        return;
     if (sharedAsset->GetLoaded())
         PushEvent(sharedAsset);
     else if (parsingTask.type == ParsingTask::Type::Sync) {
         AssetsParser::Parse(sharedAsset);
         PushEvent(sharedAsset);
-    }
-    else {
-        auto weakAsset{ parsingTask.asset };
+    } else {
+        auto weakAsset { parsingTask.asset };
         DispatchQueue::ApplicationDispatchQueue().Dispatch([weakAsset] {
-            auto sharedAsset{ weakAsset.lock() };
+            auto sharedAsset { weakAsset.lock() };
             AssetsParser::Parse(sharedAsset);
             PushEvent(sharedAsset);
             s_parsingTaskMutex.lock();
             s_parsingAssets.erase(sharedAsset);
             s_parsingTaskMutex.unlock();
-            });
+        });
     }
 }
 
@@ -84,7 +83,7 @@ AssetsParser::MimeType AssetsParser::GetMimeFromExtension(const FileExtension& e
 
 AssetsParser& AssetsParser::Add(const MimeType& mimeType, ParsingFunction parsingFunction)
 {
-    auto parser{ new AssetsParser(mimeType, parsingFunction) };
+    auto parser { new AssetsParser(mimeType, parsingFunction) };
     _getParsers()[mimeType].reset(parser);
     return *parser;
 }
@@ -114,6 +113,6 @@ bool AssetsParser::Parse(std::shared_ptr<Asset> asset)
 
 AssetsParser::ParsingFunction AssetsParser::_get(const MimeType& mime)
 {
-    auto &parser = _getParsers()[mime];
+    auto& parser = _getParsers()[mime];
     return parser ? parser->_parsingFunction : nullptr;
 }
