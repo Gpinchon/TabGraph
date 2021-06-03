@@ -124,6 +124,8 @@ unsigned GetEnum(::Pixel::SizedFormat format)
         return GL_DEPTH32F_STENCIL8;
     case (::Pixel::SizedFormat::Stencil8):
         return GL_STENCIL_INDEX8;
+    case (::Pixel::SizedFormat::S3TC_DXT5_RGBA):
+        return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
     default:
         throw std::runtime_error("Unknown Pixel::SizedFormat");
     }
@@ -156,22 +158,6 @@ unsigned GetEnum(::Pixel::UnsizedFormat format)
         return GL_STENCIL;
     default:
         throw std::runtime_error("Unknown Pixel::UnsizedFormat");
-    }
-}
-
-unsigned GetCompressedFormat(::Pixel::UnsizedFormat format)
-{
-    switch (format) {
-    case (::Pixel::UnsizedFormat::R):
-        return GL_COMPRESSED_RED;
-    case (::Pixel::UnsizedFormat::RG):
-        return GL_COMPRESSED_RG;
-    case (::Pixel::UnsizedFormat::RGB):
-        return GL_COMPRESSED_RGB;
-    case (::Pixel::UnsizedFormat::RGBA):
-        return GL_COMPRESSED_RGBA;
-    default:
-        throw std::runtime_error("Specified Pixel::UnsizedFormat cannot be compressed");
     }
 }
 

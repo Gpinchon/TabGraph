@@ -138,7 +138,6 @@ Pixel::SizedFormat GetDepthSizedformat(Pixel::Type type, bool normalizedType)
 
 Pixel::SizedFormat GetDepthStencilSizedFormat(Pixel::Type type, bool normalizedType)
 {
-    assert(type != Pixel::Type::Unknown);
     switch (type) {
     case Pixel::Type::Uint32:
         return Pixel::SizedFormat::Depth24_Stencil8;
@@ -154,7 +153,6 @@ Pixel::SizedFormat GetDepthStencilSizedFormat(Pixel::Type type, bool normalizedT
 
 Pixel::SizedFormat GetStencilSizedFormat(Pixel::Type type, bool normalizedType)
 {
-    assert(type != Pixel::Type::Unknown);
     switch (type) {
     case Pixel::Type::Uint8:
         return Pixel::SizedFormat::Stencil8;
@@ -188,7 +186,7 @@ Pixel::SizedFormat GetStencilSizedFormat(Pixel::Type type, bool normalizedType)
 
 #include <glm/glm.hpp>
 
-glm::vec4 Pixel::LinearToSRGB(glm::vec4 color)
+glm::vec4 Pixel::LinearToSRGB(const glm::vec4& color)
 {
     const glm::vec3 linearRGB { color.r, color.g, color.b };
     glm::bvec3 cutoff = lessThan(linearRGB, glm::vec3(0.0031308));
@@ -198,9 +196,15 @@ glm::vec4 Pixel::LinearToSRGB(glm::vec4 color)
     return glm::vec4(mix(higher, lower, cutoff), color.a);
 }
 
+glm::vec4 Pixel::BilinearFilter(const float& tx, const float& ty, const glm::vec4& c00, const glm::vec4& c10, const glm::vec4& c01, const glm::vec4& c11)
+{
+    auto  a = c00 * (1 - tx) + c10 * tx;
+    auto  b = c01 * (1 - tx) + c11 * tx;
+    return a * (1 - ty) + b * ty;
+}
+
 Pixel::SizedFormat Pixel::GetSizedFormat(UnsizedFormat unsizedFormat, Type type, bool normalized)
 {
-    assert(unsizedFormat != Pixel::UnsizedFormat::Unknown);
     switch (unsizedFormat) {
     case UnsizedFormat::R:
         return GetRSizedformat(type, normalized);
@@ -223,7 +227,6 @@ Pixel::SizedFormat Pixel::GetSizedFormat(UnsizedFormat unsizedFormat, Type type,
 
 uint8_t Pixel::GetUnsizedFormatComponentsNbr(UnsizedFormat format)
 {
-    assert(format != Pixel::UnsizedFormat::Unknown);
     switch (format) {
     case UnsizedFormat::R:
     case UnsizedFormat::R_Integer:
@@ -247,7 +250,6 @@ uint8_t Pixel::GetUnsizedFormatComponentsNbr(UnsizedFormat format)
 
 uint8_t Pixel::GetTypeSize(Type type)
 {
-    assert(type != Pixel::Type::Unknown);
     switch (type) {
     case Type::Uint8:
     case Type::Int8:
@@ -260,6 +262,8 @@ uint8_t Pixel::GetTypeSize(Type type)
     case Type::Int32:
     case Type::Float32:
         return 4;
+    case Type::S3TC_DXT5:
+        return 2;
     default:
         throw std::runtime_error("Unknown Pixel::Type");
     }
@@ -534,6 +538,9 @@ Pixel::Description::Description(SizedFormat format)
         _unsizedFormat = UnsizedFormat::Stencil;
         _type = Type::Uint8;
         break;
+    case SizedFormat::S3TC_DXT5_RGBA:
+        _unsizedFormat = UnsizedFormat::RGBA;
+        _type = Type::S3TC_DXT5;
         break;
     }
     _sizedFormat = format;
@@ -627,6 +634,10 @@ Pixel::Color Pixel::Description::GetColorFromBytes(std::byte* bytes) const
 {
     auto getComponent = GetNormalized() ? &GetNormalizedColorComponent : &GetColorComponent;
     Color color { 0, 0, 0, 1 };
+    if (GetType() == Pixel::Type::S3TC_DXT5) {
+
+        return color;
+    }
     switch (GetComponents()) {
     case 1:
         color[0] = getComponent(GetType(), &bytes[GetTypeSize() * 0]);

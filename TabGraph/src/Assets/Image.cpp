@@ -13,12 +13,12 @@
 
 static size_t s_imageNbr = 0;
 
-Image::Image(const glm::ivec2 size, Pixel::Description pixelDescription, std::vector<std::byte> rawData)
+Image::Image(const glm::ivec2& size, Pixel::Description pixelDescription, const std::vector<std::byte>& rawData)
     : Component("Image_" + std::to_string(++s_imageNbr))
     , _data(rawData)
+    , _size(size)
 {
     SetPixelDescription(pixelDescription);
-    SetSize(size);
     auto rawDataSize{ size.x * size.y * GetPixelDescription().GetSize() };
     if (!rawData.empty())
         assert(rawData.size() == rawDataSize);
@@ -35,13 +35,22 @@ std::vector<std::byte>& Image::GetData()
     return _data;
 }
 
-glm::vec4 Image::GetColor(glm::ivec2 texCoord)
+#define CLAMPX(texX) glm::clamp(int(texX), 0, GetSize().x - 1)
+#define CLAMPY(texY) glm::clamp(int(texY), 0, GetSize().y - 1)
+
+glm::vec4 Image::GetColor(const glm::vec2& texCoord, Image::SamplingFilter filter)
 {
     assert(!GetData().empty() && "Image::GetColor : Unpacked Data is empty");
-    return GetPixelDescription().GetColorFromBytes(_GetPointer(texCoord));
+    if (filter == Image::SamplingFilter::Nearest)
+        return GetPixelDescription().GetColorFromBytes(_GetPointer(texCoord));
+    else {
+        return Pixel::BilinearFilter(glm::fract(texCoord.x), glm::fract(texCoord.y),
+            GetColor(glm::ivec2(texCoord.x, texCoord.y)), GetColor(glm::ivec2(CLAMPX(texCoord.x + 1), texCoord.y)),
+            GetColor(glm::ivec2(texCoord.x, CLAMPY(texCoord.y + 1))), GetColor(glm::ivec2(CLAMPX(texCoord.x + 1), CLAMPY(texCoord.y + 1))));
+    }
 }
 
-void Image::SetColor(glm::ivec2 texCoord, glm::vec4 color)
+void Image::SetColor(const glm::ivec2& texCoord, const glm::vec4& color)
 {
     assert(!GetData().empty() && "Image::SetColor : Unpacked Data is empty");
     GetPixelDescription().SetColorToBytes(_GetPointer(texCoord), color);
@@ -52,9 +61,25 @@ void Image::SetPixelDescription(Pixel::Description pixelFormat)
     _SetPixelDescription(pixelFormat);
 }
 
-void Image::SetSize(glm::ivec2 size)
+void Image::SetSize(const glm::ivec2& size, SamplingFilter filter)
 {
-    _SetSize(size);
+    if (size == GetSize()) return;
+    auto newImage = Image(size, GetPixelDescription()); //Create empty image
+    for (auto y = 0u; y < size.y; ++y) {
+        for (auto x = 0u; x < size.x; ++x) {
+            auto u = x / float(size.x);
+            auto v = y / float(size.y);
+            newImage.SetColor(glm::ivec2(x, y), GetColor(glm::vec2(u * GetSize().x, v * GetSize().y), filter));
+        }
+    }
+    _data = newImage._data;
+    _data.shrink_to_fit();
+    _size = newImage._size;
+}
+
+glm::ivec2 Image::GetSize() const
+{
+    return _size;
 }
 
 std::byte* Image::_GetPointer(glm::ivec2 texCoord)
