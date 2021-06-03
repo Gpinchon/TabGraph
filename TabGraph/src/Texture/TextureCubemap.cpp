@@ -127,15 +127,12 @@ void TextureCubemap::ExtractSide(std::shared_ptr<Image> fromImage, std::shared_p
             float ny = std::clamp((float)y / ((float)toImage->GetSize().y - 0.5f), 0.f, 1.f);
             auto xyz = CubeMapUVToXYZ((int)side, glm::vec2(nx, ny));
             auto uv = XYZToEquirectangular(xyz);
-            glm::ivec2 sampleTexCoord { uv * glm::vec2(fromImage->GetSize()) };
-            sampleTexCoord = glm::clamp(sampleTexCoord, glm::ivec2(0), fromImage->GetSize() - 1);
-            auto color { fromImage->GetColor(sampleTexCoord) };
-            //auto color{ HDRColor(fromImage, xyz.x, xyz.y, xyz.z) };
+            glm::vec2 sampleTexCoord { uv * glm::vec2(fromImage->GetSize()) };
+            sampleTexCoord = glm::clamp(sampleTexCoord, glm::vec2(0), glm::vec2(fromImage->GetSize() - 1));
+            auto color { fromImage->GetColor(sampleTexCoord, Image::SamplingFilter::Bilinear) };
             toImage->SetColor(glm::vec2(x, y), color);
-            //toImage->SetColor(glm::ivec2(x, y), fromImage->GetColor(glm::ivec2(x, y)));
         }
     }
-    std::cout << "." << std::flush;
 }
 
 glm::ivec2 TextureCubemap::GetSize() const
