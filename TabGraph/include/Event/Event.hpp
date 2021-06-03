@@ -172,8 +172,8 @@ struct Event {
      * @brief emitted when a task dispatched through a DispatchQueue gets completed.
     */
     struct TaskComplete {
-        uint64_t dispatchQueueID;
-        uint64_t taskID;
+        uint16_t dispatchQueueID;
+        uint32_t taskID;
     };
     Type type { Event::Type::Unknown };
     const std::chrono::system_clock::time_point timestamp { std::chrono::system_clock::now() };

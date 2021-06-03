@@ -15,13 +15,13 @@
 
 struct DispatchQueue {
     struct TaskIdentifier {
-        uint64_t dispatchQueueID;
-        uint64_t taskID;
+        uint16_t dispatchQueueID;
+        uint32_t taskID;
     };
     DispatchQueue(size_t threadsCount = 1)
         : _threads(threadsCount)
     {
-        static uint64_t s_ID{0};
+        static uint16_t s_ID{0};
         _ID = ++s_ID;
         for (auto& thread : _threads)
             thread = std::thread(&DispatchQueue::_DispatchThreadHandler, this);
@@ -43,18 +43,19 @@ struct DispatchQueue {
         return { _ID, _taskID };
     }
     /**
-     * @brief use this to dispatch an event, threadsCount is defined at compilation time
+     * @brief use this to dispatch an asynchronous task.
+     * Threads Number is defined through Config::Global().Set("DispatchQueueThreadsNbr", <value> (default : 16) ).
      * @return the application's DispatchQueue
     */
     static DispatchQueue& ApplicationDispatchQueue();
 
 private:
     void _DispatchThreadHandler(void);
-    uint64_t _ID{ 0 };
-    uint64_t _taskID { 0 };
+    uint16_t _ID{ 0 };
+    uint32_t _taskID { 0 };
     bool _running { true };
     std::vector<std::thread> _threads;
     std::mutex _lock;
     std::condition_variable _cv;
-    std::queue<std::pair<std::function<void(void)>, uint64_t>> _queue;
+    std::queue<std::pair<std::function<void(void)>, uint32_t>> _queue;
 };
