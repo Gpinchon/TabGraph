@@ -5,12 +5,13 @@
 * @Last Modified time: 2021-01-11 08:46:05
 */
 
-#include "Assets/Image.hpp" // for Image
-#include "Assets/Asset.hpp"
-#include "Assets/AssetsParser.hpp"
-#include "Buffer/BufferView.hpp"
-#include "Texture/PixelUtils.hpp"  // for SizedFormat, SizedFormat::Uint8_NormalizedRGB, SizedFormat::Uint8_NormalizedRGBA
-#include "Debug.hpp" // for debugLog
+#include <Assets/Image.hpp>
+#include <Assets/Asset.hpp>
+#include <Assets/AssetsParser.hpp>
+#include <Buffer/BufferView.hpp>
+#include <Config.hpp>
+#include <Texture/PixelUtils.hpp>
+#include <Debug.hpp>
 
 #include <memory> // for allocator, shared_ptr
 #include <SDL_image.h> // for IMG_Load
@@ -61,50 +62,6 @@ auto SDL2MimesParsers = {
     AssetsParser::Add("image/png", SDL2ImageParser)
 };
 
-#define SDL_LOCKIFMUST(s) (SDL_MUSTLOCK(s) ? SDL_LockSurface(s) : 0)
-#define SDL_UNLOCKIFMUST(s)       \
-    {                             \
-        if (SDL_MUSTLOCK(s))      \
-            SDL_UnlockSurface(s); \
-    }
-
-int invert_surface_vertical(SDL_Surface* surface)
-{
-    uint8_t* t;
-    uint8_t *a, *b;
-    uint8_t* last;
-    uint16_t pitch;
-
-    if (SDL_LOCKIFMUST(surface) < 0)
-        return -2;
-    if (surface->h < 2) {
-        SDL_UNLOCKIFMUST(surface);
-        return 0;
-    }
-    pitch = surface->pitch;
-    t = (uint8_t*)malloc(pitch);
-    if (t == NULL) {
-        SDL_UNLOCKIFMUST(surface);
-        return -2;
-    }
-    memcpy(t, surface->pixels, pitch);
-    a = (uint8_t*)surface->pixels;
-    last = a + pitch * (surface->h - 1);
-    b = last;
-    while (a < b) {
-        memcpy(a, b, pitch);
-        a += pitch;
-        memcpy(b, a, pitch);
-        b -= pitch;
-    }
-    memmove(b, b + pitch, last - b);
-    memcpy(last, t, pitch);
-    free(t);
-    SDL_UNLOCKIFMUST(surface);
-
-    return 0;
-}
-
 std::string hexToString(int hex)
 {
     std::ostringstream stream;
@@ -134,7 +91,7 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
     else {
         rwOps = SDL_RWFromFile(uri.DecodePath().u8string().c_str(), "rb");
     }
-        
+
     auto surface = IMG_Load_RW(rwOps, 1);
     assert(surface != nullptr);
     assert(surface->format != nullptr);
@@ -148,74 +105,24 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
     debugLog(hexToString(surface->format->Bmask));
     debugLog(hexToString(surface->format->Amask));
 
-    auto newSurface = SDL_ConvertSurfaceFormat(surface, surface->format->Amask ? SDL_PIXELFORMAT_RGBA32 : SDL_PIXELFORMAT_RGB24, 0);
-    assert(newSurface != nullptr);
+    if (SDL_PIXELFORMAT_RGBA32 != surface->format->format) {
+        auto newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+        assert(newSurface != nullptr);
+        SDL_FreeSurface(surface);
+        surface = newSurface;
+    }
+    const auto bufferSize{ surface->h * surface->pitch };
+    const auto pixelFormat = Pixel::SizedFormat::Uint8_NormalizedRGBA;
+    auto image = Component::Create<Image>(glm::ivec2(surface->w, surface->h), pixelFormat, std::vector((std::byte*)surface->pixels, (std::byte*)surface->pixels + bufferSize));
     SDL_FreeSurface(surface);
-    surface = newSurface;
-    //invert_surface_vertical(surface);
+    surface = nullptr;
 
-    debugLog("Image Format after conversion :");
-    debugLog(SDL_GetPixelFormatName(surface->format->format));
-    debugLog(int(surface->format->BitsPerPixel));
-    debugLog(int(surface->format->BytesPerPixel));
-    debugLog(hexToString(surface->format->Rmask));
-    debugLog(hexToString(surface->format->Gmask));
-    debugLog(hexToString(surface->format->Bmask));
-    debugLog(hexToString(surface->format->Amask));
-
-    auto pixelFormat = surface->format->Amask ? Pixel::SizedFormat::Uint8_NormalizedRGBA : Pixel::SizedFormat::Uint8_NormalizedRGB;
-    auto bufferSize{ surface->h * surface->pitch };
-    auto rawData{ std::vector<std::byte>((std::byte*)surface->pixels, (std::byte*)surface->pixels + bufferSize) };
-    auto size = glm::ivec2(surface->w, surface->h);
-    SDL_FreeSurface(surface);
-    auto image = std::shared_ptr<Image>(new Image(size, pixelFormat, rawData));
+    auto maxTexRes{ Config::Global().Get("MaxTexRes", -1) };
+    if (maxTexRes != -1) {
+        auto texRes{ glm::min(image->GetSize(), glm::ivec2(maxTexRes)) };
+        image->SetSize(texRes, Image::SamplingFilter::Bilinear);
+    }
     asset->SetComponent(image);
     asset->SetAssetType(Image::AssetType);
     asset->SetLoaded(true);
 }
-
-//std::map<std::filesystem::path, ImageParser*>* ImageParser::_parsers = nullptr; //std::map<std::string, ImageParser *>();
-//
-//ImageParser::ImageParser(const std::filesystem::path& format, ImageParsingFunction parsingFunction)
-//    : _format(format)
-//    , _parsingFunction(parsingFunction)
-//{
-//    debugLog(format);
-//}
-//
-//ImageParser* ImageParser::Add(const std::filesystem::path& format, ImageParsingFunction parsingFunction)
-//{
-//    auto parser = new ImageParser(format, parsingFunction);
-//    _getParsers()[format] = parser;
-//    return parser;
-//}
-//
-//std::map<std::filesystem::path, ImageParser*>& ImageParser::_getParsers()
-//{
-//    if (_parsers == nullptr)
-//        _parsers = new std::map<std::filesystem::path, ImageParser*>;
-//    return *_parsers;
-//}
-//
-//std::shared_ptr<Image> ImageParser::Parse(const std::filesystem::path& path)
-//{
-//    auto image = Component::Create<Image>(path);
-//    Parse(image);
-//    return image;
-//}
-//
-//void ImageParser::Parse(std::shared_ptr<Image> image)
-//{
-//    auto format = image->GetPath().extension();
-//    debugLog(image->GetPath());
-//    debugLog(format);
-//    auto parser = _get(format.string());
-//    debugLog(parser);
-//    return parser ? parser(image) : GenericImageParser(image);
-//}
-//
-//ImageParsingFunction ImageParser::_get(const std::filesystem::path& format)
-//{
-//    auto parser = _getParsers()[format];
-//    return parser ? parser->_parsingFunction : nullptr;
-//}
