@@ -7,10 +7,11 @@
 
 #include <DispatchQueue.hpp>
 #include <Event/EventsManager.hpp>
+#include <Config.hpp>
 
 DispatchQueue& DispatchQueue::ApplicationDispatchQueue()
 {
-    static DispatchQueue s_dispatchQueue(DISPATCHQUEUETHREADSNBR);
+    static DispatchQueue s_dispatchQueue(Config::Global().Get("DispatchQueueThreadsNbr", std::thread::hardware_concurrency()));
     return s_dispatchQueue;
 }
 

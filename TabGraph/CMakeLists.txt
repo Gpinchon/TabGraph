@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0074 NEW)
 
-set(DispatchQueueThreadsNbr "16" CACHE STRING
-  "Number of threads used for Application's DispatchQueue")
-add_compile_definitions(DISPATCHQUEUETHREADSNBR=${DispatchQueueThreadsNbr})
-
 #[[Rendering API]]
 set(RenderingAPI "OpenGL" CACHE STRING
   "Rendering API used at compile-time")
