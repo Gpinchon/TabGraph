@@ -47,7 +47,7 @@
 #include <sys/io.h>
 #endif // for access, R_OK
 
-void ParseOBJ(std::shared_ptr<Asset> asset);
+void ParseOBJ(std::shared_ptr<Asset>);
 
 auto OBJMimeExtension{
     AssetsParser::AddMimeExtension("model/obj", ".obj") //not standard but screw it.
@@ -398,19 +398,19 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
     fclose(fd);
 }
 
-void ParseOBJ(std::shared_ptr<Asset> asset)
+void ParseOBJ(std::shared_ptr<Asset> container)
 {
     ObjContainer p;
 
-    p.path = asset->GetUri().GetPath();
+    p.path = container->GetUri().GetPath();
     start_obj_parsing(p, p.path.string());
-    asset += p.container;
+    container += p.container;
     auto scene(Component::Create<Scene>(p.path.string()));
     auto node(Component::Create<Node>(p.path.string() + "_node"));
-    for (const auto& mesh : asset->GetComponents<Mesh>()) {
+    for (const auto& mesh : container->GetComponents<Mesh>()) {
         node->AddComponent(mesh);
     }
     scene->AddRootNode(node);
-    asset->AddComponent(scene);
-    asset->SetLoaded(true);
+    container->AddComponent(scene);
+    container->SetLoaded(true);
 }

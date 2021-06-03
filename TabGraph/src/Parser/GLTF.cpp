@@ -155,7 +155,7 @@ static inline auto ParseTextureSamplers(const rapidjson::Document& document)
     return samplerVector;
 }
 
-static inline auto ParseTextures(const rapidjson::Document& document, std::vector<std::shared_ptr<Asset>>& images)
+static inline auto ParseTextures(const rapidjson::Document& document, std::vector<std::shared_ptr<Asset>>& images, std::shared_ptr<Asset> container)
 {
     debugLog("Start parsing textures");
     std::vector<std::shared_ptr<Texture2D>> textureVector;
@@ -182,7 +182,8 @@ static inline auto ParseTextures(const rapidjson::Document& document, std::vecto
             } catch (std::exception& e) {
                 debugLog("Error parsing texture " + std::to_string(textureIndex) + ' ' + e.what());
             }
-            texture->SetCompressed(true);
+            texture->SetCompressed(container->parsingOptions.texture.compress);
+            texture->SetCompressionQuality(container->parsingOptions.texture.compressionQuality);
             textureVector.push_back(texture);
             textureIndex++;
         }
@@ -361,28 +362,15 @@ static inline auto ParseMaterials(const rapidjson::Document& document, std::vect
     return materialVector;
 }
 
-static inline auto ParseBuffers(const std::filesystem::path path, const rapidjson::Document& document)
+static inline auto ParseBuffers(const std::filesystem::path path, const rapidjson::Document& document, std::shared_ptr<Asset> container)
 {
     debugLog("Start parsing buffers");
     std::vector<std::shared_ptr<Asset>> bufferVector;
-    //try {
     for (const auto& bufferValue : document["buffers"].GetArray()) {
-        //auto buffer(Component::Create<BinaryData>(bufferValue["byteLength"].GetFloat()));
         auto asset { Component::Create<Asset>() };
-        //try {
+        asset->parsingOptions = container->parsingOptions;
         auto uri = CreateUri(path.parent_path(), bufferValue["uri"].GetString());
         asset->SetUri(uri);
-        /*auto bufferPath(std::filesystem::path(bufferValue["uri"].GetString()));
-                if (bufferPath.root_name() == "data")
-                    asset->SetUri(bufferPath.string());
-                else {
-                    if (!bufferPath.is_absolute())
-                        bufferPath = path.parent_path() / bufferPath;
-                    asset->SetUri(bufferPath);
-                }*/
-        //} catch (std::exception&) {
-        //    debugLog("BinaryData " + asset->GetName() + " has no uri property")
-        //}
         try {
             asset->SetName(bufferValue["name"].GetString());
         } catch (std::exception&) {
@@ -390,9 +378,6 @@ static inline auto ParseBuffers(const std::filesystem::path path, const rapidjso
         }
         bufferVector.push_back(asset);
     }
-    //} catch (std::exception&) {
-    //    debugLog("No buffers found")
-    // }
     debugLog("Done parsing buffers");
     return bufferVector;
 }
@@ -899,7 +884,7 @@ static inline auto ParseLights(const rapidjson::Document& document)
     return lightsVector;
 }
 
-static inline auto ParseImages(const std::filesystem::path path, const rapidjson::Document& document, std::vector<std::shared_ptr<BufferView>>& bufferViews)
+static inline auto ParseImages(const std::filesystem::path path, const rapidjson::Document& document, std::vector<std::shared_ptr<BufferView>>& bufferViews, std::shared_ptr<Asset> container)
 {
     std::vector<std::shared_ptr<Asset>> imagesVector;
     auto imagesItr(document.FindMember("images"));
@@ -910,6 +895,7 @@ static inline auto ParseImages(const std::filesystem::path path, const rapidjson
         if (imageUriItr == gltfImagee.MemberEnd()) {
             auto imageAsset { Component::Create<Asset>() };
             auto imageBufferViewItr(gltfImagee.FindMember("bufferView"));
+            imageAsset->parsingOptions = container->parsingOptions;
             if (imageBufferViewItr == gltfImagee.MemberEnd()) {
                 imageAsset->SetComponent(Component::Create<Image>(glm::ivec2(1), Pixel::SizedFormat::Uint8_NormalizedRGB));
                 imageAsset->SetLoaded(true);
@@ -924,7 +910,9 @@ static inline auto ParseImages(const std::filesystem::path path, const rapidjson
             continue;
         }
         auto uri = CreateUri(path.parent_path(), imageUriItr->value.GetString());
-        imagesVector.push_back(Component::Create<Asset>(uri));
+        auto imageAsset = Component::Create<Asset>(uri);
+        imageAsset->parsingOptions = container->parsingOptions;
+        imagesVector.push_back(imageAsset);
     }
     return imagesVector;
 }
@@ -944,11 +932,11 @@ void ParseGLTF(std::shared_ptr<Asset> container)
     }
     auto nodes { ParseNodes(document) };
     auto cameras { ParseCameras(document) };
-    auto buffers { ParseBuffers(path, document) };
+    auto buffers { ParseBuffers(path, document, container) };
     auto bufferViews { ParseBufferViews(document, buffers) };
     auto bufferAccessors { ParseBufferAccessors(document, bufferViews) };
-    auto images { ParseImages(path, document, bufferViews) };
-    auto textures { ParseTextures(document, images) };
+    auto images { ParseImages(path, document, bufferViews, container) };
+    auto textures { ParseTextures(document, images, container) };
     auto materials { ParseMaterials(document, textures) };
     auto meshes { ParseMeshes(document, materials, bufferAccessors) };
     auto skins { ParseSkins(document, nodes, bufferAccessors) };

@@ -22,7 +22,7 @@
 #include <string.h> // for strerror
 #include <vector> // for vector
 
-void ParseMTLLIB(const std::shared_ptr<Asset> asset);
+void ParseMTLLIB(const std::shared_ptr<Asset>);
 
 auto MTLLIBMimeExtension{
     AssetsParser::AddMimeExtension("model/mtllib", ".mtl") //not standard but screw it.
@@ -81,44 +81,46 @@ static inline void parse_color(std::vector<std::string>& split, std::shared_ptr<
 
 std::unordered_map<std::string, std::shared_ptr<Texture2D>> textureDatabase;
 
-auto GetOrCreateImage(std::filesystem::path path)
+auto GetOrCreateImage(std::filesystem::path path, std::shared_ptr<Asset> container)
 {
     auto absolutePath = std::filesystem::absolute(path).string();
     if (textureDatabase[absolutePath] != nullptr)
         return textureDatabase[absolutePath];
-    return textureDatabase[absolutePath] = Component::Create<Texture2D>(Component::Create<Asset>(absolutePath));//TextureParser::parse(path.string(), path.string()));
+    auto asset = Component::Create<Asset>(absolutePath);
+    asset->parsingOptions = container->parsingOptions;
+    return textureDatabase[absolutePath] = Component::Create<Texture2D>(asset);
 }
 
-static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string& textureType, std::filesystem::path path)
+static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string& textureType, std::filesystem::path path, std::shared_ptr<Asset> container)
 {
     try {
         if (textureType == "map_Kd") {
-            mtl->SetTextureDiffuse(GetOrCreateImage(path));
+            mtl->SetTextureDiffuse(GetOrCreateImage(path, container));
             /*if (mtl->TextureDiffuse()->values_per_pixel() == 4) {
                 mtl->SetOpacityMode(Material::OpacityMode::Blend);
             }*/
         } else if (textureType == "map_Ks") {
             auto extension = GetOrCreateSpecularGlossinessExtention(mtl);
-            extension->SetTextureSpecular(GetOrCreateImage(path));
+            extension->SetTextureSpecular(GetOrCreateImage(path, container));
         } else if (textureType == "map_Ke") {
             mtl->SetEmissive(glm::vec3(1));
-            mtl->SetTextureEmissive(GetOrCreateImage(path));
+            mtl->SetTextureEmissive(GetOrCreateImage(path, container));
         } else if (textureType == "map_Nh") {
-            mtl->SetTextureHeight(GetOrCreateImage(path));
+            mtl->SetTextureHeight(GetOrCreateImage(path, container));
         } else if (textureType == "map_No") {
-            mtl->SetTextureAO(GetOrCreateImage(path));
+            mtl->SetTextureAO(GetOrCreateImage(path, container));
         } else if (textureType == "map_Nr") {
             auto extension = GetOrCreateMetallicRoughnessExtention(mtl);
-            extension->SetTextureRoughness(GetOrCreateImage(path));
+            extension->SetTextureRoughness(GetOrCreateImage(path, container));
             if (extension->GetRoughness() == 0.f)
                 extension->SetRoughness(1);
         } else if (textureType == "map_Nm") {
             auto extension = GetOrCreateMetallicRoughnessExtention(mtl);
-            extension->SetTextureMetallic(GetOrCreateImage(path));
+            extension->SetTextureMetallic(GetOrCreateImage(path, container));
             if (extension->GetMetallic() == 0.f)
                 extension->SetMetallic(1);
         } else if (textureType == "map_bump" || textureType == "map_Bump") {
-            mtl->SetTextureNormal(GetOrCreateImage(path));
+            mtl->SetTextureNormal(GetOrCreateImage(path, container));
         }
     } catch (std::exception& e) {
         debugLog("Error while parsing texture : " << e.what());
@@ -156,7 +158,7 @@ static inline void parse_number(std::vector<std::string>& split, std::shared_ptr
     }
 }
 
-static inline std::shared_ptr<Material> parse_mtl(FILE* fd, std::string& name, const std::filesystem::path& basePath)
+static inline std::shared_ptr<Material> parse_mtl(FILE* fd, std::string& name, const std::filesystem::path& basePath, std::shared_ptr<Asset> container)
 {
     char line[4096];
     auto mtl = Component::Create<Material>(name);
@@ -171,7 +173,7 @@ static inline std::shared_ptr<Material> parse_mtl(FILE* fd, std::string& name, c
                 } else if (msplit[0][0] == 'N' || msplit[0][0] == 'T') {
                     parse_number(msplit, mtl);
                 } else if (msplit[0].find("map_") != std::string::npos) {
-                    parse_texture(mtl, msplit.at(0), basePath / msplit.at(1));
+                    parse_texture(mtl, msplit.at(0), basePath / msplit.at(1), container);
                 } else if (msplit[0] == "newmtl") {
                     fsetpos(fd, &pos);
                     break;
@@ -185,10 +187,10 @@ static inline std::shared_ptr<Material> parse_mtl(FILE* fd, std::string& name, c
     return mtl;
 }
 
-void ParseMTLLIB(std::shared_ptr<Asset> asset)
+void ParseMTLLIB(std::shared_ptr<Asset> container)
 {
     char line[4096];
-    auto uri{ asset->GetUri() };
+    auto uri{ container->GetUri() };
     //std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
 
     if (access(uri.GetPath().string().c_str(), R_OK) != 0) {
@@ -205,7 +207,7 @@ void ParseMTLLIB(std::shared_ptr<Asset> asset)
             auto split = strsplitwspace(line);
             if (split.size() > 1 && split[0][0] != '#') {
                 if (split[0] == "newmtl") {
-                    asset->AddComponent(parse_mtl(fd, split[1], basePath));
+                    container->AddComponent(parse_mtl(fd, split[1], basePath, container));
                 }
             }
         } catch (std::exception& e) {

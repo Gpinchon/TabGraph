@@ -22,7 +22,7 @@
 #include <stdlib.h> // for free, malloc, NULL
 #include <string>                 // for string
 
-void SDL2ImageParser(const std::shared_ptr<Asset>& asset);
+void SDL2ImageParser(const std::shared_ptr<Asset>&);
 
 auto SDL2MimesExtensions = {
     AssetsParser::AddMimeExtension("image/tga", ".tga"),
@@ -69,15 +69,15 @@ std::string hexToString(int hex)
     return stream.str();
 }
 
-void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
+void SDL2ImageParser(const std::shared_ptr<Asset>& container)
 {
-    auto uri{ asset->GetUri() };
+    auto uri{ container->GetUri() };
     SDL_RWops* rwOps{ nullptr };
     std::vector<std::byte> data;
     if (uri.GetScheme() == "data") {
         data = DataUri(uri).Decode();
         if (data.empty()) {
-            auto& bufferView{ asset->GetComponent<BufferView>() };
+            auto& bufferView{ container->GetComponent<BufferView>() };
             if (bufferView != nullptr) { //We're loading raw bytes from a BufferView
                 bufferView->Load();
                 auto dataPtr{ bufferView->Get(0, bufferView->GetByteLength()) };
@@ -116,13 +116,11 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& asset)
     auto image = Component::Create<Image>(glm::ivec2(surface->w, surface->h), pixelFormat, std::vector((std::byte*)surface->pixels, (std::byte*)surface->pixels + bufferSize));
     SDL_FreeSurface(surface);
     surface = nullptr;
-
-    auto maxTexRes{ Config::Global().Get("MaxTexRes", -1) };
-    if (maxTexRes != -1) {
-        auto texRes{ glm::min(image->GetSize(), glm::ivec2(maxTexRes)) };
+    if (container->parsingOptions.image.maximumResolution != -1) {
+        auto texRes{ glm::min(image->GetSize(), glm::ivec2(container->parsingOptions.image.maximumResolution)) };
         image->SetSize(texRes, Image::SamplingFilter::Bilinear);
     }
-    asset->SetComponent(image);
-    asset->SetAssetType(Image::AssetType);
-    asset->SetLoaded(true);
+    container->SetComponent(image);
+    container->SetAssetType(Image::AssetType);
+    container->SetLoaded(true);
 }
