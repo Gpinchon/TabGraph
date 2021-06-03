@@ -4,10 +4,10 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2021-02-23 19:25:55
 */
-#include "Shader/Global.hpp"
-//#if RENDERINGAPI == OpenGL
-#include "Driver/OpenGL/Shader/Global.hpp"
-//#endif
+#include <Shader/Global.hpp>
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Shader/Global.hpp>
+#endif
 
 namespace Shader {
 namespace Global {

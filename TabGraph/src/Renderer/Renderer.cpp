@@ -22,9 +22,9 @@
 #include <Texture/TextureCubemap.hpp>
 #include <Window.hpp> // for Window
 
-//#if RENDERINGAPI == OpenGL
+#if RENDERINGAPI == OpenGL
 #include <Driver/OpenGL/Renderer/Renderer.hpp>
-//#endif
+#endif
 
 #include <algorithm> // for max, remove_if
 #include <atomic> // for atomic

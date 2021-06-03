@@ -5,12 +5,12 @@
 * @Last Modified time: 2021-03-28 08:05:14
 */
 
-#include "Renderer/SceneRenderer.hpp"
-#include "Scene/Scene.hpp"
+#include <Renderer/SceneRenderer.hpp>
+#include <Scene/Scene.hpp>
 
-//#if RENDERINGAPI == OpenGL
-#include "Driver/OpenGL/Renderer/SceneRenderer.hpp"
-//#endif
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Renderer/SceneRenderer.hpp>
+#endif
 
 #include <glm/glm.hpp>
 

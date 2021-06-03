@@ -8,10 +8,9 @@
 #include <Texture/PixelUtils.hpp>
 #include <Buffer/BufferAccessor.hpp>
 
-//#if RENDERINGAPI == OpenGL
-#include <Driver/OpenGL/Buffer.hpp>
+#if RENDERINGAPI == OpenGL
 #include <Driver/OpenGL/Texture/TextureBuffer.hpp>
-//#endif
+#endif
 
 TextureBuffer::TextureBuffer(Pixel::SizedFormat internalFormat, std::shared_ptr<BufferAccessor> bufferAccessor)
     : Texture()

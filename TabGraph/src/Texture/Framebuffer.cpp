@@ -5,11 +5,11 @@
 * @Last Modified time: 2021-01-11 08:41:34
 */
 
-#include "Texture/Framebuffer.hpp"
+#include <Texture/Framebuffer.hpp>
 
-//#if RENDERINGAPI == OpenGL
-#include "Driver/OpenGL/Texture/Framebuffer.hpp"
-//#endif
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Texture/Framebuffer.hpp>
+#endif
 
 Framebuffer::Framebuffer(glm::ivec2 size)
     : _impl(new Framebuffer::Impl(*this))

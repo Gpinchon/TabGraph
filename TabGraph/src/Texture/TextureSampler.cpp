@@ -4,10 +4,10 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2021-05-01 23:56:53
 */
-#include "Texture/TextureSampler.hpp"
-//#if RENDERINGAPI == OpenGL
-#include "Driver/OpenGL/Texture/TextureSampler.hpp"
-//#endif
+#include <Texture/TextureSampler.hpp>
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Texture/TextureSampler.hpp>
+#endif
 
 #include <array>
 

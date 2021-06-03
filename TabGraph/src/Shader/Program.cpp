@@ -5,11 +5,11 @@
 * @Last Modified time: 2021-02-20 22:55:26
 */
 
-#include "Shader/Program.hpp"
-#include "Shader/Stage.hpp"
-//#if RENDERINGAPI == OpenGL
-#include "Driver/OpenGL/Shader/Program.hpp"
-//#endif
+#include <Shader/Program.hpp>
+#include <Shader/Stage.hpp>
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Shader/Program.hpp>
+#endif
 
 namespace Shader {
 static auto shaderProgramNbr = 0u;

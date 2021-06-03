@@ -2,9 +2,9 @@
 #include "Texture/PixelUtils.hpp"
 #include "Assets/Asset.hpp"
 
-//#if RENDERINGAPI == OpenGL
+#if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Texture/Texture2D.hpp"
-//#endif
+#endif
 
 Texture2D::Texture2D(const Texture2D& other)
     : Texture(other)

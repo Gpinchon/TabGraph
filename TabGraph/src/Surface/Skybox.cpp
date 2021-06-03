@@ -5,12 +5,12 @@
 * @Last Modified time: 2021-05-04 20:02:25
 */
 
-#include "Surface/Skybox.hpp"
-#include "Texture/TextureCubemap.hpp"
+#include <Surface/Skybox.hpp>
+#include <Texture/TextureCubemap.hpp>
 
-//#if RENDERINGAPI == OpenGL
-#include "Driver/OpenGL/Renderer/Surface/SkyboxRenderer.hpp"
-//#endif
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Renderer/Surface/SkyboxRenderer.hpp>
+#endif
 
 Skybox::Skybox(const std::string& name)
     : Surface(name)

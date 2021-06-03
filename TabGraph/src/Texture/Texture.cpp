@@ -5,12 +5,12 @@
 * @Last Modified time: 2021-05-11 13:41:54
 */
 
-#include "Texture/Texture.hpp"
-#include "Debug.hpp"
-#include "Texture/TextureSampler.hpp"
-//#if RENDERINGAPI == OpenGL
-#include "Driver/OpenGL/Texture/Texture.hpp"
-//#endif
+#include <Texture/Texture.hpp>
+#include <Debug.hpp>
+#include <Texture/TextureSampler.hpp>
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Texture/Texture.hpp>
+#endif
 
 #include <algorithm>
 #include <array>

@@ -5,13 +5,14 @@
 * @Last Modified time: 2021-03-22 23:18:00
 */
 
-#include "Renderer/Surface/SurfaceRenderer.hpp"
+#include <Renderer/Surface/SurfaceRenderer.hpp>
+#include <Surface/Geometry.hpp>
 
-//#if RENDERINGAPI == OpenGL
-#include "Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp"
-//#endif
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp>
+#endif
 
-#include "Surface/Geometry.hpp"
+
 
 namespace Renderer {
 void Render(std::shared_ptr<Geometry> geometry, bool doubleSided)
