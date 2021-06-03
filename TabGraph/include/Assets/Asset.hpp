@@ -1,10 +1,22 @@
 #pragma once
 #include <Component.hpp>
 #include <Assets/Uri.hpp>
+#include <Config.hpp>
 
 #include <atomic>
 
 class Asset : public Component {
+public:
+	///Parsing options for the various types of assets this could contain
+	struct {
+		struct {
+			int32_t maximumResolution{ Config::Global().Get("ImagesMaximumResolution", -1) };
+		} image;
+		struct {
+			bool compress{ bool(Config::Global().Get("TexturesCompressed", 1)) };
+			uint8_t compressionQuality{ uint8_t(Config::Global().Get("TexturesCompressionQuality", 0.25f) * 255) };
+		} texture;
+	} parsingOptions;
 	PROPERTY(std::string, AssetType, "");
 	PROPERTY(Uri, Uri, );
 public :
