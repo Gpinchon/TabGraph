@@ -36,7 +36,9 @@ Texture2D::Impl::Impl(std::shared_ptr<Asset> asset)
 
 void Texture2D::Impl::Load()
 {
-	if (GetLoaded() || _loadedSlot.Connected())
+	if (GetLoaded() ||
+        _imageLoadingSlot.Connected() ||
+        _imageCompressionSlot.Connected())
         return;
     auto asset{ GetImage() };
     if (asset == nullptr) {
@@ -53,12 +55,12 @@ void Texture2D::Impl::Load()
     //asset->Load();
     //_UploadImage(asset);
     asset->LoadAsync();
-    _loadedSlot = EventsManager::On(Event::Type::AssetLoaded).Connect([this](const Event& event) {
+    _imageLoadingSlot = EventsManager::On(Event::Type::AssetLoaded).Connect([this](const Event& event) {
         assert(!_loaded);
         auto& assetEvent = event.Get<Event::Asset>();
         if (assetEvent.asset != GetImage()) return;
         _UploadImage(assetEvent.asset);
-        _loadedSlot.Disconnect();
+        _imageLoadingSlot.Disconnect();
     });
 }
 
@@ -83,8 +85,7 @@ void Texture2D::Impl::SetSize(const glm::ivec2& size)
     if (GetSize() == size) return;
     _size = size;
     Unload();
-    if (GetAutoMipMap())
-        SetMipMapNbr(MIPMAPNBR(GetSize()));
+    if (GetAutoMipMap()) SetMipMapNbr(MIPMAPNBR(GetSize()));
 }
 
 void Texture2D::Impl::SetCompressed(bool compressed)
@@ -98,52 +99,100 @@ void Texture2D::Impl::SetCompressed(bool compressed)
 void Texture2D::Impl::_AllocateStorage() {
     _handle = OpenGL::Texture::Generate();
     Bind();
-    if (GetCompressed())
-        glTexImage2D(
+    if (GetCompressed()) {
+        glTexStorage2D(
             OpenGL::GetEnum(GetType()),
-            0,
-            OpenGL::GetCompressedFormat(GetPixelDescription().GetUnsizedFormat()),
-            GetSize().x,
-            GetSize().y,
-            0,
-            OpenGL::GetEnum(GetPixelDescription().GetUnsizedFormat()),
-            OpenGL::GetEnum(GetPixelDescription().GetType()),
-            nullptr
+            GetMipMapNbr(),
+            GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
+            GetSize().x, GetSize().y
         );
+    }
     else
         glTexStorage2D(
             OpenGL::GetEnum(GetType()),
             GetMipMapNbr(),
             OpenGL::GetEnum(GetPixelDescription().GetSizedFormat()),
-            GetSize().x,
-            GetSize().y
+            GetSize().x, GetSize().y
         );
     Done();
 }
+
+#include <FasTC/CompressedImage.h>
+#include <FasTC/Image.h>
+#include <FasTC/TexComp.h>
+#include <FasTC/CompressionFormat.h>
+
+#include <DispatchQueue.hpp>
 
 inline void Texture2D::Impl::_UploadImage(std::shared_ptr<Asset> imageAsset) {
     auto image{ imageAsset->GetComponent<Image>() };
     assert(image != nullptr);
     _pixelDescription = image->GetPixelDescription();
     SetSize(image->GetSize());
-    if (GetAutoMipMap())
-        _mipMapNbr = MIPMAPNBR(image->GetSize());
-    _AllocateStorage();
-    Bind();
-    glTexSubImage2D(
-        OpenGL::GetEnum(Texture::Type::Texture2D),
-        0,
-        0,
-        0,
-        image->GetSize().x,
-        image->GetSize().y,
-        OpenGL::GetEnum(image->GetPixelDescription().GetUnsizedFormat()),
-        OpenGL::GetEnum(image->GetPixelDescription().GetType()),
-        image->GetData().data()
-    );
-    Done();
-    if (GetAutoMipMap())
-        GenerateMipmap();
-    SetImage(nullptr);
-    SetLoaded(true);
+    if (GetCompressed() && !_imageCompressionSlot.Connected()) {
+        _AllocateStorage();
+        _imageCompressionBuffer.resize(CompressedImage::GetCompressedSize(
+            image->GetSize().x, image->GetSize().y,
+            FasTC::ECompressionFormat::eCompressionFormat_DXT5));
+        _imageCompressionTaskID = DispatchQueue::ApplicationDispatchQueue().Dispatch([this] {
+            auto image{ GetImage()->GetComponent<Image>() };
+            auto compressionSetting = SCompressionSettings();
+            compressionSetting.format = FasTC::eCompressionFormat_DXT5;
+            compressionSetting.iNumCompressions = 1;
+            compressionSetting.iNumThreads = 1;
+            compressionSetting.iQuality = 50;
+            compressionSetting.logStream = nullptr;
+            CompressImageData(
+                (unsigned char*)image->GetData().data(),
+                image->GetSize().x, image->GetSize().y,
+                (unsigned char*)_imageCompressionBuffer.data(),
+                _imageCompressionBuffer.size(),
+                compressionSetting
+            );
+        });
+        _imageCompressionSlot = EventsManager::On(Event::Type::TaskComplete).Connect([this](const Event& event) {
+            auto &taskEvent{ event.Get<Event::TaskComplete>() };
+            if (taskEvent.taskID != _imageCompressionTaskID.taskID ||
+                taskEvent.dispatchQueueID != _imageCompressionTaskID.dispatchQueueID)
+                return;
+            auto image{ GetImage()->GetComponent<Image>() };
+            Bind();
+            glCompressedTexSubImage2D(
+                OpenGL::GetEnum(Texture::Type::Texture2D),
+                0, 0, 0,
+                image->GetSize().x, image->GetSize().y,
+                GL_COMPRESSED_RGBA_S3TC_DXT5_EXT,
+                _imageCompressionBuffer.size(),
+                _imageCompressionBuffer.data()
+            );
+            Done();
+            _imageCompressionBuffer.clear();
+            _imageCompressionBuffer.shrink_to_fit();
+            if (GetAutoMipMap())
+                GenerateMipmap();
+            SetImage(nullptr);
+            SetLoaded(true);
+            _imageCompressionSlot.Disconnect();
+        });
+    }
+    else {
+        _AllocateStorage();
+        Bind();
+        glTexSubImage2D(
+            OpenGL::GetEnum(Texture::Type::Texture2D),
+            0,
+            0,
+            0,
+            image->GetSize().x,
+            image->GetSize().y,
+            OpenGL::GetEnum(image->GetPixelDescription().GetUnsizedFormat()),
+            OpenGL::GetEnum(image->GetPixelDescription().GetType()),
+            image->GetData().data()
+        );
+        Done();
+        if (GetAutoMipMap())
+            GenerateMipmap();
+        SetImage(nullptr);
+        SetLoaded(true);
+    }
 }

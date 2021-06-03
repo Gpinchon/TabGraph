@@ -8,6 +8,7 @@
 #include <Driver/OpenGL/Texture/Texture.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Event/Signal.hpp>
+#include <DispatchQueue.hpp>
 
 struct Event;
 
@@ -51,5 +52,8 @@ private:
     bool _compressed{ false };
     glm::ivec2 _size{ 0 };
     std::shared_ptr<Asset> _asset;
-    Signal<const Event&>::ScoppedSlot _loadedSlot;
+    Signal<const Event&>::ScoppedSlot _imageLoadingSlot;
+    Signal<const Event&>::ScoppedSlot _imageCompressionSlot;
+    DispatchQueue::TaskIdentifier _imageCompressionTaskID;
+    std::vector<std::byte> _imageCompressionBuffer;
 };
