@@ -29,7 +29,7 @@ public:
             Async
         };
         Type type{ Type::Sync };
-        std::weak_ptr<Asset> asset;
+        std::weak_ptr<Asset> asset{};
     };
     static void AddParsingTask(const ParsingTask&);
     /**

@@ -17,7 +17,7 @@
 #include <stdio.h> // for getc, fclose, fread, feof, fseek, FILE
 #include <string.h> // for memcmp, memcpy
 
-void ParseHDR(const std::shared_ptr<Asset>& asset);
+void ParseHDR(const std::shared_ptr<Asset>&);
 
 //Add this parser to AssetsParser !
 auto HDRMimeExtension{

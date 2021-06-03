@@ -12,7 +12,7 @@
 
 #include <fstream>
 
-void ParseBinaryData(const std::shared_ptr<Asset>& asset);
+void ParseBinaryData(const std::shared_ptr<Asset>&);
 
 auto bufferMime { AssetsParser::AddMimeExtension("application/octet-stream", ".bin") };
 auto bufferParser { AssetsParser::Add("application/octet-stream", ParseBinaryData) };

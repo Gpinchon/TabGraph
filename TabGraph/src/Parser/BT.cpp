@@ -16,7 +16,7 @@
 #include <stdio.h> // for fclose, fread, size_t
 #include <string> // for operator+, char_traits, to_string
 
-void BTParse(const std::shared_ptr<Asset>& imageAsset);
+void BTParse(const std::shared_ptr<Asset>&);
 
 auto BTMimeExtension {
     AssetsParser::AddMimeExtension("image/binary-terrain", ".bt")
