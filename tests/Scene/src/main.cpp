@@ -101,7 +101,8 @@ int main(int argc, char** argv)
             scene->SetCurrentCamera(fpsCamera);
             auto newEnv = Component::Create<Skybox>("Skybox");
             auto diffuseAsset { Component::Create<Asset>("file:" + (Engine::GetResourcePath() / "env/diffuse.jpg").string()) };
-            newEnv->SetTexture(Component::Create<TextureCubemap>(diffuseAsset)); //"EnvironmentCube", TextureParser::parse("Skybox", (Engine::ResourcePath() / "env/diffuse.hdr").string())));
+            diffuseAsset->parsingOptions.image.maximumResolution = 2048;
+            newEnv->SetTexture(Component::Create<TextureCubemap>(diffuseAsset));
             scene->SetSkybox(newEnv);
 
             auto hdrLight { Component::Create<HDRLight>(diffuseAsset) };
