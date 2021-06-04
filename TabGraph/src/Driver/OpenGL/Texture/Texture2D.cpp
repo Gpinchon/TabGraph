@@ -8,6 +8,7 @@
 #include <Driver/OpenGL/Texture/Texture2D.hpp>
 #include <Driver/OpenGL/Texture/PixelUtils.hpp>
 #include <Assets/Asset.hpp>
+#include <Assets/AssetsParser.hpp>
 #include <Assets/Image.hpp>
 #include <Event/EventsManager.hpp>
 #include <DispatchQueue.hpp>
@@ -57,9 +58,10 @@ void Texture2D::Impl::Load()
         _UploadImage();
         return;
     }
-    //asset->Load();
-    //_UploadImage(asset);
-    asset->LoadAsync();
+    AssetsParser::AddParsingTask({
+        AssetsParser::ParsingTask::Type::Async,
+        asset
+    });
     _imageLoadingSlot = EventsManager::On(Event::Type::AssetLoaded).Connect([this](const Event& event) {
         assert(!_loaded);
         auto& assetEvent = event.Get<Event::Asset>();

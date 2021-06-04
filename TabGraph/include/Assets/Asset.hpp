@@ -22,15 +22,14 @@ public:
 public :
 	Asset() = default;
 	Asset(const Uri&);
-	bool GetLoaded();
-	void SetLoaded(bool);
-	/** @brief Loads the Asset synchronously, must emit an Event of type Event::AssetLoaded on completion */
-	virtual void Load();
-	/**
-	 * @brief Loads the Asset asynchronously -> returns immediatly.
-	 * Emit an Event of type Event::AssetLoaded on completion.
-	*/
-	virtual void LoadAsync();
+	inline bool GetLoaded()
+	{
+		return _loaded.load();
+	}
+	inline void SetLoaded(bool loaded)
+	{
+		_loaded.store(loaded);
+	}
 
 private:
 	std::atomic<bool> _loaded{ false };

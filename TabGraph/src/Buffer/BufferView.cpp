@@ -5,6 +5,7 @@
 * @Last Modified time: 2021-05-19 00:12:55
 */
 #include <Assets/Asset.hpp>
+#include <Assets/AssetsParser.hpp>
 #include <Assets/BinaryData.hpp>
 #include <Buffer/BufferView.hpp>
 #include <Renderer/Renderer.hpp>
@@ -116,7 +117,10 @@ void BufferView::Load()
     std::byte* bufferData { nullptr };
     auto bufferAsset { GetComponent<Asset>() };
     if (bufferAsset != nullptr) {
-        bufferAsset->Load();
+        AssetsParser::AddParsingTask({
+            AssetsParser::ParsingTask::Type::Sync,
+            bufferAsset
+        });
         auto bufferAssetData = bufferAsset->GetComponent<BinaryData>();
         assert(bufferAssetData != nullptr);
         if (GetByteLength() == 0) //We do not know this BufferView's length yet

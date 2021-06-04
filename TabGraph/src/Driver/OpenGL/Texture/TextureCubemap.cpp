@@ -8,6 +8,7 @@
 #include <Driver/OpenGL/Texture/TextureCubemap.hpp>
 #include <Driver/OpenGL/Texture/PixelUtils.hpp>
 #include <Assets/Asset.hpp>
+#include <Assets/AssetsParser.hpp>
 #include <Assets/Image.hpp>
 
 #include <GL/glew.h>
@@ -37,7 +38,10 @@ void TextureCubemap::Impl::Load()
     if (GetLoaded())
         return;
     if (GetImage() != nullptr) {
-        GetImage()->Load();
+        AssetsParser::AddParsingTask({
+            AssetsParser::ParsingTask::Type::Sync,
+            GetImage()
+        });
         auto image { GetImage()->GetComponent<Image>() };
         assert(image != nullptr);
         SetSize(glm::ivec2(std::min(image->GetSize().x, image->GetSize().y)));

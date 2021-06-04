@@ -154,7 +154,10 @@ void HDRLightRenderer::_Update(HDRLight& light)
     if (!_dirty)
         return;
     auto asset { light.GetComponent<Asset>() };
-    asset->Load();
+    AssetsParser::AddParsingTask({
+        AssetsParser::ParsingTask::Type::Sync,
+        asset
+    });
     assert(asset->GetAssetType() == Image::AssetType);
     auto image { asset->GetComponent<Image>() };
     _SHDiffuse = s_SH.ProjectFunction(
