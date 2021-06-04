@@ -15,8 +15,8 @@
 
 struct DispatchQueue {
     struct TaskIdentifier {
-        uint16_t dispatchQueueID;
-        uint32_t taskID;
+        uint16_t dispatchQueueID{ 0 };
+        uint32_t taskID{ 0 };
     };
     DispatchQueue(size_t threadsCount = 1)
         : _threads(threadsCount)
