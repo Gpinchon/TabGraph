@@ -130,7 +130,7 @@ enum class SizedFormat {
     /// <summary>
     /// Compressed pixel types
     /// </summary>
-    S3TC_DXT5_RGBA,
+    DXT5_RGBA,
     MaxValue
 };
 
@@ -160,7 +160,7 @@ enum class Type {
     Int32,
     Float16,
     Float32,
-    S3TC_DXT5,
+    DXT5Block,
     MaxValue
 };
 

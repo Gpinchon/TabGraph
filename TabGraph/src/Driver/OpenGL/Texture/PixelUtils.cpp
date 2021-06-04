@@ -124,7 +124,7 @@ unsigned GetEnum(::Pixel::SizedFormat format)
         return GL_DEPTH32F_STENCIL8;
     case (::Pixel::SizedFormat::Stencil8):
         return GL_STENCIL_INDEX8;
-    case (::Pixel::SizedFormat::S3TC_DXT5_RGBA):
+    case (::Pixel::SizedFormat::DXT5_RGBA):
         return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
     default:
         throw std::runtime_error("Unknown Pixel::SizedFormat");

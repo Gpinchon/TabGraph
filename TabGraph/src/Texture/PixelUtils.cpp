@@ -115,6 +115,9 @@ inline Pixel::SizedFormat GetRGBASizedFormat(Pixel::Type type, bool normalizedTy
     case Pixel::Type::Float32:
         assert(!normalizedType && "float32 pixel type cannot be normalized");
         return Pixel::SizedFormat::Float32_RGBA;
+    case Pixel::Type::DXT5Block:
+        assert(normalizedType && "DXT5 pixel type must be normalized");
+        return Pixel::SizedFormat::DXT5_RGBA;
     default:
         throw std::runtime_error("Incorrect RGBA format");
     }
@@ -262,7 +265,7 @@ uint8_t Pixel::GetTypeSize(Type type)
     case Type::Int32:
     case Type::Float32:
         return 4;
-    case Type::S3TC_DXT5:
+    case Type::DXT5Block:
         return 2;
     default:
         throw std::runtime_error("Unknown Pixel::Type");
@@ -538,9 +541,9 @@ Pixel::Description::Description(SizedFormat format)
         _unsizedFormat = UnsizedFormat::Stencil;
         _type = Type::Uint8;
         break;
-    case SizedFormat::S3TC_DXT5_RGBA:
+    case SizedFormat::DXT5_RGBA:
         _unsizedFormat = UnsizedFormat::RGBA;
-        _type = Type::S3TC_DXT5;
+        _type = Type::DXT5Block;
         break;
     }
     _sizedFormat = format;
@@ -634,7 +637,7 @@ Pixel::Color Pixel::Description::GetColorFromBytes(std::byte* bytes) const
 {
     auto getComponent = GetNormalized() ? &GetNormalizedColorComponent : &GetColorComponent;
     Color color { 0, 0, 0, 1 };
-    if (GetType() == Pixel::Type::S3TC_DXT5) {
+    if (GetType() == Pixel::Type::DXT5Block) {
 
         return color;
     }
