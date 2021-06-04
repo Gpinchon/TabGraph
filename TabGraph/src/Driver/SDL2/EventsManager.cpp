@@ -21,9 +21,10 @@ EventsManager::Impl::Impl()
 void EventsManager::Impl::PollEvents()
 {
     SDL_Event SDLevent;
-    while (SDL_PollEvent(&SDLevent)) {
+    _lock.lock();
+    while (SDL_PollEvent(&SDLevent))
         _eventsQueue.push(SDL2::CreateEvent(&SDLevent));
-    }
+    _lock.unlock();
     while (!_eventsQueue.empty()) {
         _lock.lock();
         auto event{ std::move(_eventsQueue.front()) };
