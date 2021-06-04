@@ -589,7 +589,7 @@ bool Pixel::Description::GetNormalized() const
 
 #include <glm/detail/type_half.hpp>
 
-float GetNormalizedColorComponent(Pixel::Type type, std::byte* bytes)
+static inline float GetNormalizedColorComponent(Pixel::Type type, std::byte* bytes)
 {
     assert(type != Pixel::Type::Unknown);
     assert(type != Pixel::Type::Uint32 && "Uint32 textures cannot be normalized");
@@ -609,7 +609,7 @@ float GetNormalizedColorComponent(Pixel::Type type, std::byte* bytes)
     return 0;
 }
 
-float GetColorComponent(Pixel::Type type, std::byte* bytes)
+static inline float GetColorComponent(Pixel::Type type, std::byte* bytes)
 {
     assert(type != Pixel::Type::Unknown);
     switch (type) {
@@ -666,7 +666,7 @@ Pixel::Color Pixel::Description::GetColorFromBytes(std::byte* bytes) const
 
 #include <algorithm>
 
-void SetComponentNormalized(Pixel::Type type, std::byte* bytes, float component)
+static inline void SetComponentNormalized(Pixel::Type type, std::byte* bytes, float component)
 {
     assert(type != Pixel::Type::Unknown);
     assert(type != Pixel::Type::Uint32 && "Uint32 textures cannot be normalized");
@@ -689,7 +689,7 @@ void SetComponentNormalized(Pixel::Type type, std::byte* bytes, float component)
     }
 }
 
-void SetComponent(Pixel::Type type, std::byte* bytes, float component)
+static inline void SetComponent(Pixel::Type type, std::byte* bytes, float component)
 {
     assert(type != Pixel::Type::Unknown);
     switch (type) {
