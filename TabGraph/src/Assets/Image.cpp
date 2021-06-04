@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-01-11 08:40:24
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-11 17:25:19
+* @Last Modified time: 2021-06-04 12:20:42
 */
 
 #include "Assets/Image.hpp"
@@ -19,7 +19,7 @@ Image::Image(const glm::ivec2& size, Pixel::Description pixelDescription, const 
     , _size(size)
 {
     SetPixelDescription(pixelDescription);
-    auto rawDataSize{ size.x * size.y * GetPixelDescription().GetSize() };
+    auto rawDataSize { size.x * size.y * GetPixelDescription().GetSize() };
     if (!rawData.empty())
         assert(rawData.size() == rawDataSize);
     _data.resize(rawDataSize);
@@ -63,13 +63,19 @@ void Image::SetPixelDescription(Pixel::Description pixelFormat)
 
 void Image::SetSize(const glm::ivec2& size, SamplingFilter filter)
 {
-    if (size == GetSize()) return;
+    if (size == GetSize())
+        return;
     auto newImage = Image(size, GetPixelDescription()); //Create empty image
-    for (auto y = 0u; y < size.y; ++y) {
-        for (auto x = 0u; x < size.x; ++x) {
-            auto u = x / float(size.x);
-            auto v = y / float(size.y);
-            newImage.SetColor(glm::ivec2(x, y), GetColor(glm::vec2(u * GetSize().x, v * GetSize().y), filter));
+    for (auto y0 = 0, y1 = size.y / 2; y0 < size.y / 2 && y1 < size.y; ++y0, ++y1) {
+        for (auto x0 = 0, x1 = size.x / 2; x0 < size.x / 2 && x1 < size.x; ++x0, ++x1) {
+            auto u0 = x0 / float(size.x);
+            auto u1 = x1 / float(size.x);
+            auto v0 = y0 / float(size.y);
+            auto v1 = y1 / float(size.y);
+            newImage.SetColor(glm::ivec2(x0, y0), GetColor(glm::vec2(u0 * GetSize().x, v0 * GetSize().y), filter));
+            newImage.SetColor(glm::ivec2(x0, y1), GetColor(glm::vec2(u0 * GetSize().x, v1 * GetSize().y), filter));
+            newImage.SetColor(glm::ivec2(x1, y0), GetColor(glm::vec2(u1 * GetSize().x, v0 * GetSize().y), filter));
+            newImage.SetColor(glm::ivec2(x1, y1), GetColor(glm::vec2(u1 * GetSize().x, v1 * GetSize().y), filter));
         }
     }
     _data = newImage._data;
@@ -84,10 +90,9 @@ glm::ivec2 Image::GetSize() const
 
 std::byte* Image::_GetPointer(glm::ivec2 texCoord)
 {
-    size_t pitch{ static_cast<size_t>(GetSize().x) * GetPixelDescription().GetSize() };
-    size_t index{
-        texCoord.y * pitch +
-        texCoord.x * GetPixelDescription().GetSize()
+    size_t pitch { static_cast<size_t>(GetSize().x) * GetPixelDescription().GetSize() };
+    size_t index {
+        texCoord.y * pitch + texCoord.x * GetPixelDescription().GetSize()
     };
     assert(index < GetData().size() && "Image::_GetPointer : Unpacked Data index out of bound");
     return GetData().data() + index;
