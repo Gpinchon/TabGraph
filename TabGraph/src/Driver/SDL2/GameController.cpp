@@ -16,9 +16,10 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <glm/vec3.hpp>
+
 #include <SDL.h>
 #include <SDL_gamecontroller.h>
-#include <SDL_haptic.h>
 
 namespace SDL2 {
 namespace GameController {
@@ -86,10 +87,17 @@ namespace GameController {
     {
         return s_reverseButtonLUT.at(button);
     }
+    static inline auto GetPlayerIndex(SDL_JoystickID id) {
+        auto gameController = SDL_GameControllerFromInstanceID(id);
+        return SDL_GameControllerGetPlayerIndex(gameController);
+    }
+    static inline auto GetGameController(uint8_t playerIndex) {
+        return SDL_GameControllerFromPlayerIndex(playerIndex);
+    }
     Event::GameControllerAxis CreateEventData(const SDL_ControllerAxisEvent& event)
     {
         return {
-            event.which,
+            GetPlayerIndex(event.which),
             GetAxis(SDL_GameControllerAxis(event.axis)),
             event.value / float(std::numeric_limits<int16_t>::max())
         };
@@ -97,7 +105,7 @@ namespace GameController {
     Event::GameControllerButton CreateEventData(const SDL_ControllerButtonEvent& event)
     {
         return {
-            event.which,
+            GetPlayerIndex(event.which),
             GetButton(SDL_GameControllerButton(event.button)),
             event.state == SDL_PRESSED
         };
@@ -105,113 +113,25 @@ namespace GameController {
     Event::GameControllerDevice CreateEventData(const SDL_ControllerDeviceEvent& event)
     {
         return {
-            event.which
+            event.type == SDL_CONTROLLERDEVICEADDED ? event.which : GetPlayerIndex(event.which)
         };
     }
 };
 };
 
 namespace GameController {
-struct Gamepad {
-    Gamepad() = delete;
-    Gamepad(int32_t id);
-    ~Gamepad();
-    bool Is(int32_t device);
-    bool IsConnected();
-    void Open(int32_t device);
-    void Close();
-    void Rumble(float strength, int duration);
-    int32_t GetId();
-    float GetAxis(GameController::Axis);
-    bool GetButton(GameController::Button);
-    SDL_GameController* _gamepad { nullptr };
-    SDL_Haptic* _haptic { nullptr };
-    int32_t _instanceId { -1 };
-    bool _is_connected { false };
-    Signal<const Event::GameControllerDevice&> onConnection;
-    Signal<const Event::GameControllerDevice&> onDisconnection;
-    std::array<Signal<const Event::GameControllerAxis&>, size_t(GameController::Axis::MaxValue)> onAxis;
-    std::array<Signal<const Event::GameControllerButton&>, size_t(GameController::Button::MaxValue)> onButton;
-    std::array<Signal<const Event::GameControllerButton&>, size_t(GameController::Button::MaxValue)> onButtonUp;
-    std::array<Signal<const Event::GameControllerButton&>, size_t(GameController::Button::MaxValue)> onButtonDown;
-};
 
-Gamepad::Gamepad(int32_t device)
+template<class T, class Compare>
+constexpr const T& clamp(const T& v, const T& lo, const T& hi, Compare comp)
 {
-    Open(device);
+    assert(!comp(hi, lo));
+    return comp(v, lo) ? lo : comp(hi, v) ? hi : v;
 }
 
-Gamepad::~Gamepad()
+template<class T>
+constexpr const T& clamp(const T& v, const T& lo, const T& hi)
 {
-    Close();
-}
-
-bool Gamepad::Is(int32_t device)
-{
-    return GetId() == device;
-}
-
-bool Gamepad::IsConnected()
-{
-    return _is_connected;
-}
-
-void Gamepad::Open(int32_t device)
-{
-    if (_is_connected || !SDL_IsGameController(device)) {
-        return;
-    }
-    _gamepad = SDL_GameControllerOpen(device);
-    auto j = SDL_GameControllerGetJoystick(_gamepad);
-    _instanceId = SDL_JoystickInstanceID(j);
-    _is_connected = true;
-    if (SDL_JoystickIsHaptic(j)) {
-        _haptic = SDL_HapticOpenFromJoystick(j);
-        if (SDL_HapticRumbleSupported(_haptic)) {
-            SDL_HapticRumbleInit(_haptic);
-        }
-    }
-    std::cout << "Joystick ID " << _instanceId << std::endl;
-}
-
-void Gamepad::Close()
-{
-    if (!_is_connected)
-        return;
-    if (_haptic) {
-        SDL_HapticClose(_haptic);
-        _haptic = nullptr;
-    }
-    SDL_GameControllerClose(_gamepad);
-    _gamepad = nullptr;
-    _instanceId = -1;
-    _is_connected = false;
-}
-
-void Gamepad::Rumble(float strength, int duration)
-{
-    SDL_HapticRumblePlay(_haptic, strength, duration);
-}
-
-float Gamepad::GetAxis(GameController::Axis axis)
-{
-    auto value = SDL_GameControllerGetAxis(_gamepad, SDL2::GameController::GetAxis(axis)) / 32767.f;
-    if (value < 0 && value > -0.1) {
-        value = 0;
-    } else if (value > 0 && value < 0.1) {
-        value = 0;
-    }
-    return (value);
-}
-
-bool Gamepad::GetButton(GameController::Button button)
-{
-    return SDL_GameControllerGetButton(_gamepad, SDL2::GameController::GetButton(button));
-}
-
-SDL_JoystickID Gamepad::GetId()
-{
-    return _instanceId;
+    return clamp(v, lo, hi, std::less{});
 }
 
 InputDevice::InputDevice()
@@ -226,137 +146,147 @@ InputDevice::InputDevice()
     EventsManager::On(Event::Type::ControllerButtonUp).ConnectMember(this, &InputDevice::_ProcessEvent);
     EventsManager::On(Event::Type::ControllerDeviceAdded).ConnectMember(this, &InputDevice::_ProcessEvent);
     EventsManager::On(Event::Type::ControllerDeviceRemoved).ConnectMember(this, &InputDevice::_ProcessEvent);
-
-    //if (!SDL_WasInit(SDL_INIT_JOYSTICK)) {
-    //    if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
-    //      throw std::runtime_error(SDL_GetError());
-    //    SDL_JoystickEventState(SDL_ENABLE);
-    //}
-    //EventsManager::Add(this, Event::Type::JoyAxisMotion);
-    //EventsManager::Add(this, Event::Type::JoyButtonDown);
-    //EventsManager::Add(this, Event::Type::JoyButtonUp);
-    //EventsManager::Add(this, Event::Type::JoyDeviceAdded);
-    //EventsManager::Add(this, Event::Type::JoyDeviceRemoved);
 }
 
 InputDevice::~InputDevice()
 {
+    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
 
-Gamepad& InputDevice::GetController(int32_t device)
+void InputDevice::OpenController(int32_t index)
 {
-    if (_controllers.count(device) == 0) {
-        _controllers[device].reset(new Gamepad(device));
-    }
-    return *_controllers[device];
+    if (!SDL_IsGameController(index))
+        return;
+    SDL_GameControllerSetPlayerIndex(SDL_GameControllerOpen(index), index);
+    std::cout << "Game Controller Connected : " << index << std::endl;
 }
 
-void InputDevice::RemoveController(int32_t i)
+void InputDevice::CloseController(int32_t index)
 {
-    _controllers.erase(i);
+    SDL_GameControllerClose(SDL_GameControllerFromPlayerIndex(index));
+    std::cout << "Game Controller Closed : " << index << std::endl;
 }
 
 Signal<const Event::GameControllerAxis&>& InputDevice::OnAxis(uint8_t index, const GameController::Axis& axis)
 {
-    return GetController(index).onAxis.at(size_t(axis));
+    return _onAxis[index].at(size_t(axis));
 }
 
 Signal<const Event::GameControllerButton&>& InputDevice::OnButton(uint8_t index, const GameController::Button& button)
 {
-    return GetController(index).onButton.at(size_t(button));
+    return _onButton[index].at(size_t(button));
 }
 
 Signal<const Event::GameControllerButton&>& InputDevice::OnButtonUp(uint8_t index, const GameController::Button& button)
 {
-    return GetController(index).onButtonUp.at(size_t(button));
+    return _onButtonUp[index].at(size_t(button));
 }
 
 Signal<const Event::GameControllerButton&>& InputDevice::OnButtonDown(uint8_t index, const GameController::Button& button)
 {
-    return GetController(index).onButtonDown.at(size_t(button));
+    return _onButtonDown[index].at(size_t(button));
 }
 
 Signal<const Event::GameControllerDevice&>& InputDevice::OnConnection(uint8_t index)
 {
-    return GetController(index).onConnection;
+    return _onConnection[index];
 }
 
 Signal<const Event::GameControllerDevice&>& InputDevice::OnDisconnection(uint8_t index)
 {
-    return GetController(index).onDisconnection;
+    return _onDisconnection[index];
 }
 
-void InputDevice::Rumble(uint8_t index, float strength, int duration)
+bool InputDevice::Rumble(uint8_t index, float lowFrequency, float highFrequency, uint32_t duration)
 {
-    return GetController(index).Rumble(strength, duration);
+    lowFrequency = clamp(lowFrequency, 0.f, 1.f);
+    highFrequency = clamp(highFrequency, 0.f, 1.f);
+    constexpr auto norm = std::numeric_limits<uint16_t>::max();
+    return SDL_GameControllerRumble(SDL2::GameController::GetGameController(index), lowFrequency * norm, highFrequency * norm, duration) == 0;
+}
+
+bool InputDevice::RumbleTriggers(uint8_t index, float left_rumble, float right_rumble, uint32_t duration)
+{
+    left_rumble = clamp(left_rumble, 0.f, 1.f);
+    right_rumble = clamp(right_rumble, 0.f, 1.f);
+    constexpr auto norm = std::numeric_limits<uint16_t>::max();
+    return SDL_GameControllerRumbleTriggers(SDL2::GameController::GetGameController(index), left_rumble * norm, right_rumble * norm, duration) == 0;
+}
+
+bool InputDevice::SetLED(uint8_t index, const glm::vec3& color)
+{
+    auto r = clamp(color.r, 0.f, 1.f) * 255;
+    auto g = clamp(color.g, 0.f, 1.f) * 255;
+    auto b = clamp(color.b, 0.f, 1.f) * 255;
+    return SDL_GameControllerSetLED(SDL2::GameController::GetGameController(index), r, g, b) == 0;
 }
 
 float InputDevice::GetAxis(uint8_t index, GameController::Axis axis)
 {
-    return GetController(index).GetAxis(axis);
+    auto value = SDL_GameControllerGetAxis(SDL2::GameController::GetGameController(index), SDL2::GameController::GetAxis(axis)) / 32767.f;
+    if (value < 0 && value > -0.1) {
+        value = 0;
+    }
+    else if (value > 0 && value < 0.1) {
+        value = 0;
+    }
+    return (value);
 }
 
 bool InputDevice::GetButton(uint8_t index, GameController::Button button)
 {
-    return GetController(index).GetButton(button);
-}
-
-int InputDevice::_GetControllerIndex(int32_t device)
-{
-    for (auto& controller : _controllers) {
-        if (controller.second->Is(device))
-            return (controller.first);
-    }
-    return (-1);
+    return SDL_GameControllerGetButton(SDL2::GameController::GetGameController(index), SDL2::GameController::GetButton(button));
 }
 
 void InputDevice::_ProcessEvent(const Event& event)
 {
     switch (event.type) {
-    case Event::Type::JoyAxisMotion:
-        break;
-    case Event::Type::JoyBallMotion:
-        break;
-    case Event::Type::JoyHatMotion:
-        break;
-    case Event::Type::JoyButtonDown:
-        break;
-    case Event::Type::JoyButtonUp:
-        break;
-    case Event::Type::JoyDeviceAdded:
-        break;
-    case Event::Type::JoyDeviceRemoved:
-        break;
     case Event::Type::ControllerAxisMotion: {
         auto& axisEvent{ event.Get<Event::GameControllerAxis>() };
-        auto index{ _GetControllerIndex(axisEvent.id) };
-        GetController(index).onAxis.at(size_t(axisEvent.axis))(axisEvent);
+        auto index{ axisEvent.id };
+        auto signal = _onAxis.find(index);
+        if (signal != _onAxis.end())
+            signal->second.at(size_t(axisEvent.axis))(axisEvent);
         break;
     }
     case Event::Type::ControllerButtonDown: {
         auto& buttonEvent{ event.Get<Event::GameControllerButton>() };
-        auto index{ _GetControllerIndex(buttonEvent.id) };
-        GetController(index).onButton.at(size_t(buttonEvent.button))(buttonEvent);
-        GetController(index).onButtonDown.at(size_t(buttonEvent.button))(buttonEvent);
+        auto index{ buttonEvent.id };
+        auto signal = _onButton.find(index);
+        if (signal != _onButton.end())
+            signal->second.at(size_t(buttonEvent.button))(buttonEvent);
+        signal = _onButtonDown.find(index);
+        if (signal != _onButtonDown.end())
+            signal->second.at(size_t(buttonEvent.button))(buttonEvent);
         break;
     }
     case Event::Type::ControllerButtonUp: {
         auto& buttonEvent{ event.Get<Event::GameControllerButton>() };
-        auto index{ _GetControllerIndex(buttonEvent.id) };
-        GetController(index).onButton.at(size_t(buttonEvent.button))(buttonEvent);
-        GetController(index).onButtonUp.at(size_t(buttonEvent.button))(buttonEvent);
+        auto index{ buttonEvent.id };
+        auto signal = _onButton.find(index);
+        if (signal != _onButton.end())
+            signal->second.at(size_t(buttonEvent.button))(buttonEvent);
+        signal = _onButtonUp.find(index);
+        if (signal != _onButtonUp.end())
+            signal->second.at(size_t(buttonEvent.button))(buttonEvent);
         break;
     }
     case Event::Type::ControllerDeviceAdded: {
-        auto& buttonEvent{ event.Get<Event::GameControllerDevice>() };
-        auto index{ buttonEvent.id };
-        GetController(index).onConnection(buttonEvent);
+        auto& deviceAddedEvent{ event.Get<Event::GameControllerDevice>() };
+        auto index{ deviceAddedEvent.id };
+        OpenController(index);
+        auto signal = _onConnection.find(index);
+        if (signal != _onConnection.end())
+            signal->second(deviceAddedEvent);
         break;
     }
     case Event::Type::ControllerDeviceRemoved: {
-        auto& buttonEvent{ event.Get<Event::GameControllerDevice>() };
-        auto index{ _GetControllerIndex(buttonEvent.id) };
-        GetController(index).onDisconnection(buttonEvent);
+        auto& deviceRemovedEvent{ event.Get<Event::GameControllerDevice>() };
+        auto index{ deviceRemovedEvent.id };
+        CloseController(index);
+        auto signal = _onDisconnection.find(index);
+        if (signal != _onDisconnection.end())
+            signal->second(deviceRemovedEvent);
         break;
     }
     case Event::Type::ControllerDeviceRemapped:

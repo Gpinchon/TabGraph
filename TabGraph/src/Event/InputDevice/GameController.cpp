@@ -43,9 +43,17 @@ Signal<const Event::GameControllerDevice&>& OnDisconnection(uint8_t index)
 {
     return Get().OnDisconnection(index);
 }
-void Rumble(uint8_t index, float strength, int duration)
+bool Rumble(uint8_t index, float lowFrequency, float highFrequency, int duration)
 {
-    return Get().Rumble(index, strength, duration);
+    return Get().Rumble(index, lowFrequency, highFrequency, duration);
+}
+bool RumbleTriggers(uint8_t index, float left_rumble, float right_rumble, uint32_t duration)
+{
+    return Get().RumbleTriggers(index, left_rumble, right_rumble, duration);
+}
+bool SetLED(uint8_t index, const glm::vec3& color)
+{
+    return Get().SetLED(index, color);
 }
 float GetAxis(uint8_t index, GameController::Axis axis)
 {
