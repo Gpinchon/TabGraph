@@ -5,16 +5,13 @@
 * @Last Modified time: 2021-05-04 20:02:24
 */
 
-#include "Material/Material.hpp"
-#include "Assets/Asset.hpp"
-#include "Assets/Image.hpp"
-#include "Material/MaterialExtension.hpp"
-#include "Scene/Scene.hpp" // for Scene
-#include "Shader/Program.hpp" // for Shader::Program
-#include "Shader/Stage.hpp" // for Shader::Stage
-#include "Texture/Texture2D.hpp"
-#include "Texture/TextureCubemap.hpp"
-//#include "brdfLUT.hpp"
+#include <Material/Material.hpp>
+#include <Assets/Asset.hpp>
+#include <Material/MaterialExtension.hpp>
+#include <Scene/Scene.hpp>
+#include <Shader/Program.hpp>
+#include <Shader/Stage.hpp>
+#include <Texture/Texture2D.hpp>
 
 static inline auto GetSHExtension()
 {

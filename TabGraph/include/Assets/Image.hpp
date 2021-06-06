@@ -2,19 +2,18 @@
 * @Author: gpinchon
 * @Date:   2021-01-07 17:35:23
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-01-12 18:24:28
+* @Last Modified time: 2021-06-07 01:24:53
 */
 #pragma once
 
-#include "Texture/PixelUtils.hpp"
-#include "Component.hpp"
-#include "Event/Signal.hpp"
+#include <Component.hpp>
+#include <Event/Signal.hpp>
+#include <Texture/PixelUtils.hpp>
 
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <thread>
 #include <vector>
-constexpr auto constString = "constString";
 
 /**
  * @brief Describes an image file located at the path used in the constructor
@@ -29,6 +28,8 @@ public:
     READONLYPROPERTY(Pixel::Description, PixelDescription);
 
 public:
+    Pixel::Color Sample(const glm::ivec2 texCoord);
+    Pixel::Color Sample(const glm::vec2 uv, SamplingFilter = SamplingFilter::Nearest);
     static constexpr auto AssetType = "Image";
     /**
      * @brief Constructs a new Image instance
@@ -80,10 +81,11 @@ public:
 private:
     std::byte* _GetPointer(glm::ivec2 texCoord);
     std::vector<std::byte> _data;
-    glm::ivec2 _size{ 0 };
+    glm::ivec2 _size { 0 };
 
     // Hérité via AssetData
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return std::static_pointer_cast<Component>(shared_from_this());
     }
 };
