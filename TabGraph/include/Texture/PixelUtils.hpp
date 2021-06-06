@@ -6,10 +6,10 @@
 */
 #pragma once
 
-#include <cassert>
-#include <cstddef>
-#include <cstdint>
+#include <glm/fwd.hpp>
+#include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
+#include <vector>
 
 namespace Pixel {
 glm::vec4 LinearToSRGB(const glm::vec4& color);
@@ -178,42 +178,95 @@ struct Description {
     Description() = default;
     Description(UnsizedFormat format, Type type, bool normalized = false);
     Description(SizedFormat format);
-    SizedFormat GetSizedFormat() const;
-    UnsizedFormat GetUnsizedFormat() const;
+    inline SizedFormat GetSizedFormat() const
+    {
+        return _sizedFormat;
+    }
+    inline UnsizedFormat GetUnsizedFormat() const
+    {
+        return _unsizedFormat;
+    }
     /** @return the data type */
-    Type GetType() const;
+    inline Type GetType() const
+    {
+        return _type;
+    }
     /**
      * @brief 
      * @return the data type size in octets
     */
-    uint8_t GetTypeSize() const;
+    inline uint8_t GetTypeSize() const
+    {
+        return _typeSize;
+    }
     /**
      * @brief 
      * @return the number of components
     */
-    uint8_t GetComponents() const;
+    inline uint8_t GetComponents() const
+    {
+        return _components;
+    }
     /**
      * @brief 
      * @return the pixel size in octets
     */
-    uint8_t GetSize() const;
+    inline uint8_t GetSize() const
+    {
+        return _size;
+    }
     /**
      * @brief 
      * @return true if the pixel is to be normalized 
     */
-    bool GetNormalized() const;
+    inline bool GetNormalized() const
+    {
+        return _normalized;
+    }
     /**
      * @brief Converts raw bytes to float RGBA representation
      * @param bytes the raw bytes to be converted
      * @return the unpacked color
     */
-    Color GetColorFromBytes(std::byte* bytes) const;
+    Color GetColorFromBytes(const std::byte* bytes) const;
+    /**
+     * @brief Get color from image's raw bytes
+     * @param bytes : the image's raw bytes
+     * @param imageSize : image's size in pixels
+     * @param pixelCoordinates : the pixel to fetch
+     * @return the color of the pixel located at textureCoordinates
+    */
+    inline Color GetColorFromBytes(const std::vector<std::byte>& bytes, const glm::ivec2& imageSize, const glm::ivec2& pixelCoordinates) const
+    {
+        auto pixelIndex{ GetPixelIndex(imageSize, pixelCoordinates) };
+        auto pixelPtr{ &bytes.at(pixelIndex) };
+        assert((pixelIndex + GetSize()) <= bytes.size() && "The pixel is out of bound");
+        return GetColorFromBytes(pixelPtr);
+    }
     /**
      * @brief Writes color to the raw bytes
      * @param bytes the raw bytes to write to
      * @param color the color to write
     */
     void SetColorToBytes(std::byte* bytes, const Color& color) const;
+    /**
+     * @brief Computes the pixel index at pixelCoordinates of an image with specified imageSize
+     * @param imageSize : the size of the image in pixels
+     * @param pixelCoordinates : the pixel's coordinates to fetch the index for
+     * @return the pixel index, the DXT block index for DXT formats
+    */
+    inline size_t GetPixelIndex(const glm::ivec2& imageSize, const glm::ivec2& pixelCoordinates) const
+    {
+        auto unsizedPixelIndex = static_cast<size_t>(pixelCoordinates.y) * imageSize.x + pixelCoordinates.x;
+        if (GetType() == Pixel::Type::DXT5Block) {
+            //DXT5 compression format is composed of 4x4 pixels
+            auto blockNumX = imageSize.x / 4;
+            auto blockX = pixelCoordinates.x / 4;
+            auto blockY = pixelCoordinates.y / 4;
+            unsizedPixelIndex = static_cast<size_t>(blockY) * blockNumX + blockX;
+        }
+        return unsizedPixelIndex * GetSize();
+    }
     bool operator==(const Description& other) const
     {
         return _sizedFormat == other._sizedFormat
@@ -222,11 +275,11 @@ struct Description {
     }
     bool operator!=(const Description& other) const
     {
-        return !((*this) == other);
+        return !(*this == other);
     }
     bool operator!=(Description& other) const
     {
-        return !((*this) == other);
+        return !(*this == other);
     }
 
 private:

@@ -4,9 +4,10 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2021-05-29 16:56:46
 */
-#include "Texture/PixelUtils.hpp"
+#include <Texture/PixelUtils.hpp>
 
 #include <stdexcept>
+#include <glm/detail/type_half.hpp>
 
 inline Pixel::SizedFormat GetRSizedformat(Pixel::Type type, bool normalizedType)
 {
@@ -266,7 +267,7 @@ uint8_t Pixel::GetTypeSize(Type type)
     case Type::Float32:
         return 4;
     case Type::DXT5Block:
-        return 2;
+        return 16;
     default:
         throw std::runtime_error("Unknown Pixel::Type");
     }
@@ -552,44 +553,7 @@ Pixel::Description::Description(SizedFormat format)
     _size = _components * _typeSize;
 }
 
-Pixel::SizedFormat Pixel::Description::GetSizedFormat() const
-{
-    return _sizedFormat;
-}
-
-Pixel::UnsizedFormat Pixel::Description::GetUnsizedFormat() const
-{
-    return _unsizedFormat;
-}
-
-Pixel::Type Pixel::Description::GetType() const
-{
-    return _type;
-}
-
-uint8_t Pixel::Description::GetTypeSize() const
-{
-    return _typeSize;
-}
-
-uint8_t Pixel::Description::GetComponents() const
-{
-    return _components;
-}
-
-uint8_t Pixel::Description::GetSize() const
-{
-    return _size;
-}
-
-bool Pixel::Description::GetNormalized() const
-{
-    return _normalized;
-}
-
-#include <glm/detail/type_half.hpp>
-
-static inline float GetNormalizedColorComponent(Pixel::Type type, std::byte* bytes)
+static inline float GetNormalizedColorComponent(Pixel::Type type, const std::byte* bytes)
 {
     assert(type != Pixel::Type::Unknown);
     assert(type != Pixel::Type::Uint32 && "Uint32 textures cannot be normalized");
@@ -598,49 +562,49 @@ static inline float GetNormalizedColorComponent(Pixel::Type type, std::byte* byt
     assert(type != Pixel::Type::Float32 && "Float32 textures cannot be normalized");
     switch (type) {
     case Pixel::Type::Uint8:
-        return *reinterpret_cast<uint8_t*>(bytes) / float(UINT8_MAX);
+        return *reinterpret_cast<const uint8_t*>(bytes) / float(UINT8_MAX);
     case Pixel::Type::Int8:
-        return *reinterpret_cast<int8_t*>(bytes) / float(INT8_MAX);
+        return *reinterpret_cast<const int8_t*>(bytes) / float(INT8_MAX);
     case Pixel::Type::Uint16:
-        return *reinterpret_cast<uint16_t*>(bytes) / float(UINT16_MAX);
+        return *reinterpret_cast<const uint16_t*>(bytes) / float(UINT16_MAX);
     case Pixel::Type::Int16:
-        return *reinterpret_cast<int16_t*>(bytes) / float(INT16_MAX);
+        return *reinterpret_cast<const int16_t*>(bytes) / float(INT16_MAX);
+    default:
+        throw std::runtime_error("Cannot fetch color for this pixel type");
     }
     return 0;
 }
 
-static inline float GetColorComponent(Pixel::Type type, std::byte* bytes)
+static inline float GetColorComponent(Pixel::Type type, const std::byte* bytes)
 {
     assert(type != Pixel::Type::Unknown);
     switch (type) {
     case Pixel::Type::Uint8:
-        return *reinterpret_cast<uint8_t*>(bytes);
+        return *reinterpret_cast<const uint8_t*>(bytes);
     case Pixel::Type::Int8:
-        return *reinterpret_cast<int8_t*>(bytes);
+        return *reinterpret_cast<const int8_t*>(bytes);
     case Pixel::Type::Uint16:
-        return *reinterpret_cast<uint16_t*>(bytes);
+        return *reinterpret_cast<const uint16_t*>(bytes);
     case Pixel::Type::Int16:
-        return *reinterpret_cast<int16_t*>(bytes);
+        return *reinterpret_cast<const int16_t*>(bytes);
     case Pixel::Type::Uint32:
-        return *reinterpret_cast<uint32_t*>(bytes);
+        return *reinterpret_cast<const uint32_t*>(bytes);
     case Pixel::Type::Int32:
-        return *reinterpret_cast<int32_t*>(bytes);
+        return *reinterpret_cast<const int32_t*>(bytes);
     case Pixel::Type::Float16:
-        return glm::detail::toFloat32(*reinterpret_cast<glm::detail::hdata*>(bytes));
+        return glm::detail::toFloat32(*reinterpret_cast<const glm::detail::hdata*>(bytes));
     case Pixel::Type::Float32:
-        return *reinterpret_cast<float*>(bytes);
+        return *reinterpret_cast<const float*>(bytes);
+    default:
+        throw std::runtime_error("Cannot fetch color for this pixel type");
     }
     return 0;
 }
 
-Pixel::Color Pixel::Description::GetColorFromBytes(std::byte* bytes) const
+Pixel::Color Pixel::Description::GetColorFromBytes(const std::byte* bytes) const
 {
     auto getComponent = GetNormalized() ? &GetNormalizedColorComponent : &GetColorComponent;
     Color color { 0, 0, 0, 1 };
-    if (GetType() == Pixel::Type::DXT5Block) {
-
-        return color;
-    }
     switch (GetComponents()) {
     case 1:
         color[0] = getComponent(GetType(), &bytes[GetTypeSize() * 0]);
@@ -660,11 +624,11 @@ Pixel::Color Pixel::Description::GetColorFromBytes(std::byte* bytes) const
         color[2] = getComponent(GetType(), &bytes[GetTypeSize() * 2]);
         color[3] = getComponent(GetType(), &bytes[GetTypeSize() * 3]);
         break;
+    default:
+        throw std::runtime_error("Incorrect pixel type");
     }
     return color;
 }
-
-#include <algorithm>
 
 static inline void SetComponentNormalized(Pixel::Type type, std::byte* bytes, float component)
 {
@@ -675,17 +639,19 @@ static inline void SetComponentNormalized(Pixel::Type type, std::byte* bytes, fl
     assert(type != Pixel::Type::Float32 && "Float32 textures cannot be normalized");
     switch (type) {
     case Pixel::Type::Uint8:
-        *reinterpret_cast<uint8_t*>(bytes) = std::clamp(component, 0.f, 1.f) * float(UINT8_MAX);
+        *reinterpret_cast<uint8_t*>(bytes) = glm::clamp(component, 0.f, 1.f) * float(UINT8_MAX);
         break;
     case Pixel::Type::Int8:
-        *reinterpret_cast<int8_t*>(bytes) = std::clamp(component, -1.f, 1.f) * float(INT8_MAX);
+        *reinterpret_cast<int8_t*>(bytes) = glm::clamp(component, -1.f, 1.f) * float(INT8_MAX);
         break;
     case Pixel::Type::Uint16:
-        *reinterpret_cast<uint16_t*>(bytes) = std::clamp(component, 0.f, 1.f) * float(UINT16_MAX);
+        *reinterpret_cast<uint16_t*>(bytes) = glm::clamp(component, 0.f, 1.f) * float(UINT16_MAX);
         break;
     case Pixel::Type::Int16:
-        *reinterpret_cast<int16_t*>(bytes) = std::clamp(component, -1.f, 1.f) * float(INT16_MAX);
+        *reinterpret_cast<int16_t*>(bytes) = glm::clamp(component, -1.f, 1.f) * float(INT16_MAX);
         break;
+    default:
+        throw std::runtime_error("Cannot set color for this pixel type");
     }
 }
 
@@ -717,6 +683,8 @@ static inline void SetComponent(Pixel::Type type, std::byte* bytes, float compon
     case Pixel::Type::Float32:
         *reinterpret_cast<float*>(bytes) = component;
         break;
+    default:
+        throw std::runtime_error("Cannot set color for this pixel type");
     }
 }
 
