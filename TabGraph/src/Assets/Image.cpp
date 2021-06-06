@@ -90,10 +90,7 @@ glm::ivec2 Image::GetSize() const
 
 std::byte* Image::_GetPointer(glm::ivec2 texCoord)
 {
-    size_t pitch { static_cast<size_t>(GetSize().x) * GetPixelDescription().GetSize() };
-    size_t index {
-        texCoord.y * pitch + texCoord.x * GetPixelDescription().GetSize()
-    };
-    assert(index < GetData().size() && "Image::_GetPointer : Unpacked Data index out of bound");
+    auto index = GetPixelDescription().GetPixelIndex(GetSize(), texCoord);
+    assert((index + GetPixelDescription().GetSize()) <= GetData().size() && "Image::_GetPointer : Unpacked Data index out of bound");
     return GetData().data() + index;
 }
