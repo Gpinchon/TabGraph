@@ -4,12 +4,13 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2021-01-06 21:48:00
 */
-#include "Animation/Animation.hpp"
-#include "Buffer/BufferAccessor.hpp"
-#include "Debug.hpp"
-#include "Surface/Mesh.hpp"
-#include "Node.hpp"
-#include "Engine.hpp"
+#include <Animation/Animation.hpp>
+#include <Buffer/BufferAccessor.hpp>
+#include <Buffer/BufferView.hpp>
+#include <Debug.hpp>
+#include <Surface/Mesh.hpp>
+#include <Node.hpp>
+#include <Engine.hpp>
 
 #include <glm/common.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -65,10 +66,7 @@ void Animation::Reset()
 
 void Animation::Advance(float delta)
 {
-    if (!Playing()) {
-        throw std::runtime_error("How did we get here ?!");
-        return;
-    }
+    if (!Playing()) return;
     _currentTime += delta;
     bool animationPlayed(false);
     for (auto index = 0u; index < _channels.size(); ++index) {

@@ -18,7 +18,6 @@
 #include <filesystem>
 #include <iostream> // for operator<<, endl, basic_ostream
 #include <memory> // for shared_ptr, __shared_ptr_access
-#include <mutex> // for mutex
 #include <thread> // for sleep_for
 
 #ifdef _WIN32

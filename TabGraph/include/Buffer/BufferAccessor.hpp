@@ -6,8 +6,7 @@
 */
 #pragma once
 
-#include "Component.hpp"
-#include "Buffer/BufferView.hpp"
+#include <Component.hpp>
 
 #include <glm/glm.hpp>
 #include <memory>

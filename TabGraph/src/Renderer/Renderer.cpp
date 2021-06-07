@@ -30,7 +30,6 @@
 #include <atomic> // for atomic
 #include <glm/glm.hpp> // for glm::inverse, vec2_scale, vec3_scale
 #include <iostream> // for char_traits, endl, cout, operator<<, ost...
-#include <mutex> // for mutex
 #include <stdint.h> // for uint64_t, uint16_t
 #include <string> // for operator+, to_string, string
 #include <thread> // for thread
