@@ -16,6 +16,8 @@ class BufferView::ImplGPU {
     READONLYPROPERTY(bool, Loaded, false);
 
 public:
+    ImplGPU() = default;
+    ImplGPU(const ImplGPU&) = delete;
     using Handle = OpenGL::ObjectHandle;
     const Handle GetHandle() const;
     std::byte* GetMappingPtr();
@@ -24,10 +26,10 @@ public:
     void Set(const BufferView& buffer, std::byte* data, size_t index, size_t size);
     void Unmap(const BufferView& buffer);
     void FlushRange(const BufferView& buffer, size_t start, size_t end);
-    void Bind(const BufferView& buffer);
-    void Done(const BufferView& buffer);
     void Load(const BufferView& buffer, std::byte* data = nullptr);
     void Unload();
+    void Bind(Type type);
+    void Done(Type type);
     static void BindNone(Type type);
 
 private:
@@ -40,4 +42,8 @@ private:
 
 namespace OpenGL {
 BufferView::ImplGPU::Handle GetHandle(std::shared_ptr<BufferView> buffer);
+void Bind(std::shared_ptr<BufferView>, BufferView::Type);
+inline void Bind(std::shared_ptr<BufferView> buffer) {
+    return Bind(buffer, buffer->GetType());
+}
 };

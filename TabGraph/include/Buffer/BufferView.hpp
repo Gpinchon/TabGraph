@@ -93,6 +93,7 @@ public:
 
 public:
     BufferView();
+    BufferView(const BufferView&);
     /**
      * @brief creates a BufferView that will use buffer when loaded
      * when loading is done, buffer will be released with RemoveComponent
@@ -108,11 +109,8 @@ public:
     size_t GetMappingStart();
     void Unmap();
     void FlushRange(size_t start, size_t end);
-    void Bind(); 
-    void Done();
     void Load();
     void Unload();
-    static void BindNone(Type bufferType);
     void SetStorage(Storage storage);
 
 private:
@@ -121,4 +119,5 @@ private:
         return std::static_pointer_cast<Component>(Component::Create<BufferView>(*this));
     }
     std::vector<std::byte> _rawData{};
+    std::mutex _lock;
 };

@@ -50,7 +50,7 @@ std::byte* BufferView::ImplGPU::MapRange(const BufferView& buffer, MappingMode m
         //this is a remap
         Unmap(buffer);
     }
-    Bind(buffer);
+    Bind(buffer.GetType());
     if (invalidate)
         _mappingPointer = (std::byte*)glMapBufferRange(GLType(buffer.GetType()), start, end, GLMappingMode(mappingMode) | GL_MAP_INVALIDATE_RANGE_BIT);
     else
@@ -58,45 +58,21 @@ std::byte* BufferView::ImplGPU::MapRange(const BufferView& buffer, MappingMode m
     _SetMappingMode(mappingMode);
     _SetMappingStart(start);
     _SetMappingEnd(end);
-    Done(buffer);
+    Done(buffer.GetType());
     return _mappingPointer;
 }
 
 std::byte* BufferView::ImplGPU::Get(const BufferView& buffer, size_t index, size_t size)
 {
-
-    if (GetMappingMode() == MappingMode::WriteOnly)
-        MapRange(
-            buffer,
-            MappingMode::ReadWrite,
-            std::min(index, GetMappingStart()),
-            std::max(index + size, GetMappingEnd()));
-    else if (GetMappingStart() > index || GetMappingEnd() < index + size)
-        MapRange(
-            buffer,
-            MappingMode::ReadOnly,
-            index,
-            index + size
-        );
+    assert(GetMappingMode() != MappingMode::WriteOnly);
+    assert(GetMappingStart() <= index && GetMappingEnd() >= index + size);
     return _mappingPointer + (index - GetMappingStart());
 }
 
 void BufferView::ImplGPU::Set(const BufferView &buffer, std::byte* data, size_t index, size_t size)
 {
-    if (GetMappingMode() == MappingMode::ReadOnly)
-        MapRange(
-            buffer,
-            MappingMode::ReadWrite,
-            std::min(index, GetMappingStart()),
-            std::max(index + size, GetMappingEnd())
-        );
-    else if (GetMappingStart() > index || GetMappingEnd() < index + size)
-        MapRange(
-            buffer,
-            MappingMode::WriteOnly,
-            index,
-            index + size
-        );
+    assert(GetMappingMode() != MappingMode::ReadOnly);
+    assert(GetMappingStart() <= index && GetMappingEnd() >= index + size);
     std::memcpy(_mappingPointer + (index - GetMappingStart()), data, size);
     if (buffer.GetMode() == Mode::Persistent) {
         _flushStart = std::min(_flushStart, index);
@@ -106,46 +82,30 @@ void BufferView::ImplGPU::Set(const BufferView &buffer, std::byte* data, size_t 
 
 void BufferView::ImplGPU::Unmap(const BufferView& buffer)
 {
-    Bind(buffer);
+    Bind(buffer.GetType());
     glUnmapBuffer(GLType(buffer.GetType()));
     _SetMappingMode(MappingMode::None);
     _SetMappingStart(0);
     _SetMappingEnd(0);
-    Done(buffer);
+    Done(buffer.GetType());
 }
 
 void BufferView::ImplGPU::FlushRange(const BufferView& buffer, size_t start, size_t end)
 {
-    Bind(buffer);
+    Bind(buffer.GetType());
     glFlushMappedBufferRange(GLType(buffer.GetType()), start, end);
-    Done(buffer);
-}
-
-void BufferView::ImplGPU::Bind(const BufferView& buffer)
-{
-    glBindBuffer(GLType(buffer.GetType()), GetHandle());
-    if (_flushEnd > 0) {
-        glFlushMappedBufferRange(GLType(buffer.GetType()), _flushStart, _flushEnd);
-        _flushStart = 0;
-        _flushEnd = 0;
-    }
-}
-
-void BufferView::ImplGPU::Done(const BufferView& buffer)
-{
-    BindNone(buffer.GetType());
+    Done(buffer.GetType());
 }
 
 void BufferView::ImplGPU::Load(const BufferView& buffer, std::byte* data)
 {
-    if (GetLoaded())
-        return;
+    if (GetLoaded()) return;
     GLuint id;
     glCreateBuffers(1, &id);
     _SetHandle(id);
-    Bind(buffer);
+    Bind(buffer.GetType());
     glBufferStorage(GLType(buffer.GetType()), buffer.GetByteLength(), data, GLMode(buffer.GetMode()));
-    Done(buffer);
+    Done(buffer.GetType());
     if (buffer.GetMode() == Mode::Persistent)
         MapRange(buffer, buffer.GetPersistentMappingMode(), 0, buffer.GetByteLength());
     _SetLoaded(true);
@@ -157,6 +117,16 @@ void BufferView::ImplGPU::Unload()
     glDeleteBuffers(1, &handle);
     _SetHandle(0);
     _SetLoaded(false);
+}
+
+void BufferView::ImplGPU::Bind(Type type)
+{
+    glBindBuffer(GLType(type), GetHandle());
+}
+
+void BufferView::ImplGPU::Done(Type type)
+{
+    BindNone(type);
 }
 
 void BufferView::ImplGPU::BindNone(Type type)
@@ -172,4 +142,12 @@ void BufferView::ImplGPU::_SetHandle(uint32_t value)
 BufferView::ImplGPU::Handle OpenGL::GetHandle(std::shared_ptr<BufferView> buffer)
 {
     return buffer->GetImplGPU()->GetHandle();
+}
+
+void OpenGL::Bind(std::shared_ptr<BufferView> buffer, BufferView::Type type)
+{
+    if (buffer == nullptr)
+        BufferView::ImplGPU::BindNone(type);
+    else
+        buffer->GetImplGPU()->Bind(buffer->GetType());
 }

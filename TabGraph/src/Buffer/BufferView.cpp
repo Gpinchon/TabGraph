@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-19 00:12:55
+* @Last Modified time: 2021-06-07 15:25:43
 */
 #include <Assets/Asset.hpp>
 #include <Assets/AssetsParser.hpp>
@@ -28,6 +28,23 @@ BufferView::BufferView()
     SetStorage(GetStorage());
 }
 
+BufferView::BufferView(const BufferView& other)
+    : Component(other)
+    , _ImplGPU(other._ImplGPU)
+    , _Storage(other._Storage)
+    , _PersistentMappingMode(other._PersistentMappingMode)
+    , _MappingMode(other._MappingMode)
+    , _ByteLength(other._ByteLength)
+    , _ByteStride(other._ByteStride)
+    , _ByteOffset(other._ByteOffset)
+    , _Type(other._Type)
+    , _Mode(other._Mode)
+    , _Loaded(other._Loaded)
+    , _rawData(other._rawData)
+    //, _loadingMutex(other._loadingMutex)
+{
+}
+
 BufferView::BufferView(std::shared_ptr<Asset> buffer, Mode mode)
     : BufferView()
 {
@@ -44,6 +61,7 @@ BufferView::BufferView(size_t byteLength, Mode mode)
 
 std::byte* BufferView::Get(size_t index, size_t size)
 {
+    std::unique_lock<std::mutex> lock(_lock);
     if (GetStorage() == Storage::CPU)
         return _rawData.data() + index;
     else
@@ -52,6 +70,7 @@ std::byte* BufferView::Get(size_t index, size_t size)
 
 void BufferView::Set(std::byte* data, size_t index, size_t size)
 {
+    std::unique_lock<std::mutex> lock(_lock);
     if (GetStorage() == Storage::CPU)
         std::copy(data, data + size, _rawData.data() + index);
     else
@@ -78,13 +97,6 @@ void BufferView::FlushRange(size_t start, size_t end)
     GetImplGPU()->FlushRange(*this, start, end);
 }
 
-void BufferView::Bind()
-{
-    assert(GetType() != Type::Unknown);
-    assert(GetStorage() != Storage::CPU);
-    GetImplGPU()->Bind(*this);
-}
-
 size_t BufferView::GetMappingEnd()
 {
     assert(GetType() != Type::Unknown);
@@ -99,28 +111,16 @@ size_t BufferView::GetMappingStart()
     return GetImplGPU()->GetMappingStart();
 }
 
-void BufferView::BindNone(BufferView::Type type)
-{
-    assert(type != Type::Unknown);
-    BufferView::ImplGPU::BindNone(type);
-}
-
-void BufferView::Done()
-{
-    BindNone(GetType());
-}
-
 void BufferView::Load()
 {
+    std::unique_lock<std::mutex> lock(_lock);
     if (GetLoaded())
         return;
     std::byte* bufferData { nullptr };
     auto bufferAsset { GetComponent<Asset>() };
     if (bufferAsset != nullptr) {
-        AssetsParser::AddParsingTask({
-            AssetsParser::ParsingTask::Type::Sync,
-            bufferAsset
-        });
+        AssetsParser::AddParsingTask({ AssetsParser::ParsingTask::Type::Sync,
+            bufferAsset });
         auto bufferAssetData = bufferAsset->GetComponent<BinaryData>();
         assert(bufferAssetData != nullptr);
         if (GetByteLength() == 0) //We do not know this BufferView's length yet
@@ -141,6 +141,7 @@ void BufferView::Load()
 
 void BufferView::Unload()
 {
+    std::unique_lock<std::mutex> lock(_lock);
     if (GetStorage() == Storage::CPU) {
         _rawData.clear();
         _rawData.shrink_to_fit();
