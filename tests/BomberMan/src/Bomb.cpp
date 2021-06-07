@@ -9,6 +9,7 @@
 #include <Surface/SphereMesh.hpp>
 #include <Material/Material.hpp>
 #include <Assets/Asset.hpp>
+#include <Assets/AssetsParser.hpp>
 #include <Engine.hpp>
 #include <Animation/Animation.hpp>
 
@@ -37,7 +38,10 @@ Bomb::Bomb(const Bomb& bomb) : GameEntity(bomb)
 auto CreateBombAsset() {
     
     auto bombAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/bomb.gltf") };
-    bombAsset->Load();
+    AssetsParser::AddParsingTask({
+        AssetsParser::ParsingTask::Type::Sync,
+        bombAsset
+    });
     return bombAsset;
 }
 

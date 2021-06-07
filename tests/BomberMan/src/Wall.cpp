@@ -4,12 +4,13 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2020-08-17 14:00:45
 */
-#include "Material/Material.hpp"
-#include "Surface/CubeMesh.hpp"
-#include "Surface/Mesh.hpp"
-#include "Assets/Asset.hpp"
-#include "Engine.hpp"
-#include "Scene/Scene.hpp"
+#include <Material/Material.hpp>
+#include <Surface/CubeMesh.hpp>
+#include <Surface/Mesh.hpp>
+#include <Assets/Asset.hpp>
+#include <Assets/AssetsParser.hpp>
+#include <Engine.hpp>
+#include <Scene/Scene.hpp>
 
 #include "Wall.hpp"
 
@@ -21,12 +22,11 @@ Wall::Wall(Level& level)
 
 auto CreateWallAsset() {
     auto wallAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/wall.gltf") };
-    wallAsset->Load();
+    AssetsParser::AddParsingTask({
+        AssetsParser::ParsingTask::Type::Sync,
+        wallAsset
+    });
     return wallAsset->GetComponentsInChildren<Mesh>();
-    /*for (const auto& mesh : wallMeshes)
-        wall->AddComponent(mesh);
-    wall->SetScale(glm::vec3(0.45));
-    return wall;*/
 }
 
 std::shared_ptr<Wall> Wall::Create(Level& level)

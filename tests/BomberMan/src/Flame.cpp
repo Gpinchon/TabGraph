@@ -5,12 +5,13 @@
 * @Last Modified time: 2020-08-17 13:54:57
 */
 
-#include "Surface/Mesh.hpp"
-#include "Surface/SphereMesh.hpp"
-#include "Material/Material.hpp"
-#include "Assets/Asset.hpp"
-#include "Engine.hpp"
-#include "Animation/Animation.hpp"
+#include <Surface/Mesh.hpp>
+#include <Surface/SphereMesh.hpp>
+#include <Material/Material.hpp>
+#include <Assets/Asset.hpp>
+#include <Assets/AssetsParser.hpp>
+#include <Engine.hpp>
+#include <Animation/Animation.hpp>
 
 #include "Flame.hpp"
 #include "Game.hpp"
@@ -32,7 +33,10 @@ Flame::~Flame()
 auto CreateFlameAsset()
 {
     auto flameAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/fire.gltf") };
-    flameAsset->Load();
+    AssetsParser::AddParsingTask({
+        AssetsParser::ParsingTask::Type::Sync,
+        flameAsset
+    });
     auto meshes{ flameAsset->GetComponentsInChildren<Mesh>() };
     for (auto& mesh : meshes)
         mesh->Load();

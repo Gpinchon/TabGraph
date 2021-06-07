@@ -5,12 +5,13 @@
 * @Last Modified time: 2020-08-17 13:54:25
 */
 
-#include "Surface/Mesh.hpp"
-#include "Surface/SphereMesh.hpp"
-#include "Material/Material.hpp"
-#include "Assets/Asset.hpp"
-#include "Engine.hpp"
-#include "Animation/Animation.hpp"
+#include <Surface/Mesh.hpp>
+#include <Surface/SphereMesh.hpp>
+#include <Material/Material.hpp>
+#include <Assets/Asset.hpp>
+#include <Engine.hpp>
+#include <Animation/Animation.hpp>
+#include <Assets/AssetsParser.hpp>
 
 #include "CrispyWall.hpp"
 #include "Game.hpp"
@@ -25,7 +26,10 @@ CrispyWall::CrispyWall(Level& level)
 auto CreateCrispyWallAsset() {
     
     auto crispyWallAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/crispyWall.gltf") };
-    crispyWallAsset->Load();
+    AssetsParser::AddParsingTask({
+        AssetsParser::ParsingTask::Type::Sync,
+        crispyWallAsset
+    });
     auto crispyWallMeshes{ crispyWallAsset->GetComponentsInChildren<Mesh>() };
     for (const auto& mesh : crispyWallMeshes)
         mesh->Load();

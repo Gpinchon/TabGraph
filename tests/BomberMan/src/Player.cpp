@@ -8,6 +8,7 @@
 #include <Engine.hpp>
 #include <Animation/Animation.hpp>
 #include <Assets/Asset.hpp>
+#include <Assets/AssetsParser.hpp>
 #include <Camera/Camera.hpp>
 #include <Event/InputDevice/Keyboard.hpp>
 #include <Material/Material.hpp>
@@ -38,7 +39,10 @@ Player::Player(Level& level, const std::string& name, const glm::vec3& color)
 auto CreatePlayerAsset()
 {
     auto playerAsset = Component::Create<Asset>(Engine::GetResourcePath() / "models/bomberman.gltf");
-    playerAsset->Load();
+    AssetsParser::AddParsingTask({
+        AssetsParser::ParsingTask::Type::Sync,
+        playerAsset
+    });
     playerAsset->GetComponent<Scene>()->GetComponent<Node>()->SetScale(glm::vec3(0.01f));
     return playerAsset;
 }
