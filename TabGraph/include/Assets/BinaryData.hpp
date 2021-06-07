@@ -18,7 +18,6 @@ class BinaryData : public Component {
 public:
     static constexpr auto AssetType = "BinaryData";
     BinaryData() = delete;
-    //BinaryData(const std::filesystem::path& uri);
     BinaryData(size_t byteLength);
     BinaryData(const std::vector<std::byte>&);
     ~BinaryData();
@@ -51,13 +50,10 @@ public:
         assert(index < _data.size());
         return _data.data() + index;
     }
-    //virtual void Load() override;
-    //virtual void Unload() override;
 
 private:
     std::vector<std::byte> _data { 0 };
     size_t _byteLength{ 0 };
-
     // Hérité via Component
     virtual std::shared_ptr<Component> _Clone() override
     {
