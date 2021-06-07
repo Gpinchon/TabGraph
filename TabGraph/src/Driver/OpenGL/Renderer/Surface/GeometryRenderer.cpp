@@ -5,11 +5,11 @@
 * @Last Modified time: 2021-04-12 18:39:32
 */
 
-#include "Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp"
-#include "Buffer/BufferAccessor.hpp"
-#include "Driver/OpenGL/Buffer.hpp"
-#include "Driver/OpenGL/VertexArray.hpp"
-#include "Surface/Geometry.hpp"
+#include <Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp>
+#include <Buffer/BufferAccessor.hpp>
+#include <Driver/OpenGL/Buffer.hpp>
+#include <Driver/OpenGL/VertexArray.hpp>
+#include <Surface/Geometry.hpp>
 
 #include <GL/glew.h>
 
@@ -84,9 +84,9 @@ void GeometryRenderer::Render(bool doubleSided)
         auto compType { GLComponentType(_geometry.Indices()->GetComponentType()) };
         auto bufferView(_geometry.Indices()->GetBufferView());
         auto byteOffset(_geometry.Indices()->GetByteOffset());
-        bufferView->Bind();
+        OpenGL::Bind(bufferView);
         glDrawElements(drawingMode, _geometry.Indices()->GetCount(), compType, BUFFER_OFFSET(byteOffset));
-        bufferView->Done();
+        OpenGL::Bind(nullptr, bufferView->GetType());
     } else if (auto accessor(_geometry.Accessor(Geometry::AccessorKey::Position)); accessor != nullptr) {
         auto drawingMode { GLDrawingMode(_geometry.GetDrawingMode()) };
         glDrawArrays(drawingMode, 0, accessor->GetCount());
