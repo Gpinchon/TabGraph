@@ -30,9 +30,14 @@ public :
 	{
 		_loaded.store(loaded);
 	}
+	std::mutex& GetLock()
+	{
+		return _lock;
+	}
 
 private:
 	std::atomic<bool> _loaded{ false };
+	std::mutex _lock;
 	virtual std::shared_ptr<Component> _Clone() override
 	{
 		//You cannot not clone an asset

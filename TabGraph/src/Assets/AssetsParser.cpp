@@ -19,6 +19,7 @@
 #include <string>
 
 static std::mutex s_parsingTaskMutex;
+static std::condition_variable s_cv;
 static std::set<std::weak_ptr<Asset>, std::owner_less<>> s_parsingAssets;
 
 std::map<AssetsParser::MimeType, std::unique_ptr<AssetsParser>>& _getParsers()
@@ -33,7 +34,7 @@ std::map<AssetsParser::FileExtension, AssetsParser::MimeType>& _getMimesExtensio
     return s_mimesExtensions;
 }
 
-inline void PushEvent(std::shared_ptr<Asset> asset)
+inline void NotifyLoaded(std::shared_ptr<Asset> asset)
 {
     Event event;
     event.type = Event::Type::AssetLoaded;
@@ -42,30 +43,41 @@ inline void PushEvent(std::shared_ptr<Asset> asset)
         asset
     };
     EventsManager::PushEvent(event);
+    s_parsingTaskMutex.lock();
+    s_parsingAssets.erase(asset);
+    s_parsingTaskMutex.unlock();
+    s_cv.notify_all();
 }
 
 void AssetsParser::AddParsingTask(const ParsingTask& parsingTask)
 {
     auto sharedAsset { parsingTask.asset.lock() };
     s_parsingTaskMutex.lock();
-    auto inserted { s_parsingAssets.insert(sharedAsset).second };
-    s_parsingTaskMutex.unlock();
-    if (!inserted)
+    if (s_parsingAssets.count(sharedAsset) > 0) {
+        s_parsingTaskMutex.unlock();
+        if (parsingTask.type == ParsingTask::Type::Sync) {
+            std::unique_lock<std::mutex> lock(sharedAsset->GetLock());
+            s_cv.wait(lock, [parsingTask] {
+                return s_parsingAssets.count(parsingTask.asset) == 0;
+            });
+        }
         return;
+    }
+    s_parsingAssets.insert(sharedAsset);
+    s_parsingTaskMutex.unlock();
     if (sharedAsset->GetLoaded())
-        PushEvent(sharedAsset);
+        NotifyLoaded(sharedAsset);
     else if (parsingTask.type == ParsingTask::Type::Sync) {
+        std::unique_lock<std::mutex> lock(sharedAsset->GetLock());
         AssetsParser::Parse(sharedAsset);
-        PushEvent(sharedAsset);
+        NotifyLoaded(sharedAsset);
     } else {
         auto weakAsset { parsingTask.asset };
         DispatchQueue::ApplicationDispatchQueue().Dispatch([weakAsset] {
             auto sharedAsset { weakAsset.lock() };
+            std::unique_lock<std::mutex> lock(sharedAsset->GetLock());
             AssetsParser::Parse(sharedAsset);
-            PushEvent(sharedAsset);
-            s_parsingTaskMutex.lock();
-            s_parsingAssets.erase(sharedAsset);
-            s_parsingTaskMutex.unlock();
+            NotifyLoaded(sharedAsset);
         });
     }
 }
