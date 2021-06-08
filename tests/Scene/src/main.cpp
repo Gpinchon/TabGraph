@@ -206,8 +206,9 @@ int main(int argc, char** argv)
                 camera->SetPosition(camera->GetPosition() - float(delta * laxis.y * speed) * camera->Forward());
                 camera->SetPosition(camera->GetPosition() + float(delta * taxis * speed) * Common::Up());
             };
-            GameController::OnButton(0, GameController::Button::A).Connect([](const Event::GameControllerButton& event) {
+            GameController::OnButtonDown(0, GameController::Button::A).Connect([](const Event::GameControllerButton& event) {
                 std::cout << (event.state ? "Button pressed " : "Button released ") << int(event.button) << " on Controller " << event.id << std::endl;
+                GameController::Rumble(0, 0.5, 0.5, 500);
             });
             Keyboard::OnKey(SPEEDUPK).Connect(speedCB);
             Keyboard::OnKey(SPEEDDOWNK).Connect(speedCB);
@@ -216,7 +217,6 @@ int main(int argc, char** argv)
             Keyboard::OnKey(Keyboard::Key::Q).Connect(CallbackQuality);
             Keyboard::OnKey(Keyboard::Key::A).Connect(animationCB);
             Keyboard::OnKey(Keyboard::Key::C).Connect(changeCameraCB);
-            //Mouse::set_relative(SDL_TRUE);
             Mouse::OnMove().Connect(moveCB);
             Mouse::OnWheel().Connect(wheelCB);
             engine->OnFixedUpdate().Connect(refreshCB);
