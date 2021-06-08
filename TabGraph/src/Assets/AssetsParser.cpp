@@ -51,22 +51,19 @@ inline void NotifyLoaded(std::shared_ptr<Asset> asset)
 
 void AssetsParser::AddParsingTask(const ParsingTask& parsingTask)
 {
-    auto sharedAsset { parsingTask.asset.lock() };
-    s_parsingTaskMutex.lock();
-    if (s_parsingAssets.count(sharedAsset) > 0) {
-        s_parsingTaskMutex.unlock();
+    auto sharedAsset{ parsingTask.asset.lock() };
+    {
+        std::unique_lock<std::mutex> lock(s_parsingTaskMutex);
         if (parsingTask.type == ParsingTask::Type::Sync) {
-            std::unique_lock<std::mutex> lock(sharedAsset->GetLock());
             s_cv.wait(lock, [parsingTask] {
                 return s_parsingAssets.count(parsingTask.asset) == 0;
             });
         }
-        return;
+        else if (s_parsingAssets.count(sharedAsset) > 0)
+            return;
+        s_parsingAssets.insert(sharedAsset);
     }
-    s_parsingAssets.insert(sharedAsset);
-    s_parsingTaskMutex.unlock();
-    if (sharedAsset->GetLoaded())
-        NotifyLoaded(sharedAsset);
+    if (sharedAsset->GetLoaded()) NotifyLoaded(sharedAsset);
     else if (parsingTask.type == ParsingTask::Type::Sync) {
         std::unique_lock<std::mutex> lock(sharedAsset->GetLock());
         AssetsParser::Parse(sharedAsset);
