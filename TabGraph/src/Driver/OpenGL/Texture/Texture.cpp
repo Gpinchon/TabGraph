@@ -5,8 +5,8 @@
 * @Last Modified time: 2021-05-07 15:35:59
 */
 
-#include "Driver/OpenGL/Texture/Texture.hpp"
-#include "Texture/TextureSampler.hpp"
+#include <Driver/OpenGL/Texture/Texture.hpp>
+#include <Texture/TextureSampler.hpp>
 
 #include <GL/glew.h>
 
