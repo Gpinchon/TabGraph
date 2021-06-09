@@ -52,15 +52,17 @@ void PrintExtensions()
 
 namespace Renderer {
     static inline auto FrameBufferSampler() {
-        static std::shared_ptr< TextureSampler> sampler;
-        if (sampler == nullptr) {
-            sampler = std::make_shared<TextureSampler>();
-            sampler->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
-            sampler->SetWrapR(TextureSampler::Wrap::ClampToEdge);
-            sampler->SetWrapS(TextureSampler::Wrap::ClampToEdge);
-            sampler->SetWrapT(TextureSampler::Wrap::ClampToEdge);
+        static std::weak_ptr<TextureSampler> sampler;
+        auto samplerPtr{ sampler.lock() };
+        if (samplerPtr == nullptr) {
+            samplerPtr = std::make_shared<TextureSampler>();
+            samplerPtr->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
+            samplerPtr->SetWrapR(TextureSampler::Wrap::ClampToEdge);
+            samplerPtr->SetWrapS(TextureSampler::Wrap::ClampToEdge);
+            samplerPtr->SetWrapT(TextureSampler::Wrap::ClampToEdge);
+            sampler = samplerPtr;
         }
-        return sampler;
+        return samplerPtr;
     }
     static inline auto CreateDeferredRenderBuffer(const std::string& name, const glm::ivec2& size)
     {
