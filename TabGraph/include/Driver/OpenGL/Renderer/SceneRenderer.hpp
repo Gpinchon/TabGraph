@@ -44,5 +44,7 @@ private:
     std::map<std::weak_ptr<Node>, glm::mat4, std::owner_less<>> _nodeLastTransform;
     std::set<std::weak_ptr<Node>, std::owner_less<>> _nodesToKeep;
     LightProbeGroup _lightProbeGroup{ 1 };
+    float _fixedDelta{ 0 };
+    float _lightProbeDelta{ 0 };
 };
 };

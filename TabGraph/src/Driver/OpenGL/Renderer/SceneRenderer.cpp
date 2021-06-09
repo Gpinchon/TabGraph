@@ -28,40 +28,48 @@ SceneRenderer::SceneRenderer(Scene& scene)
 
 void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
 {
-    for (const auto& animation : _scene.GetComponents<Animation>()) {
-        if (animation->Playing())
-            animation->Advance(options.delta);
+    _lightProbeDelta += options.delta;
+    _fixedDelta += options.delta;
+    if (_fixedDelta > 0.015) {
+        _fixedDelta = 0;
+        _renderList.clear();
+        for (const auto& animation : _scene.GetComponents<Animation>()) {
+            if (animation->Playing())
+                animation->Advance(options.delta);
+        }
+        for (const auto& node : _scene.GetComponents<Node>())
+            _UpdateRenderList(node);
+        for (auto& transform : _nodeLastTransform) {
+            if (_nodesToKeep.count(transform.first) == 0)
+                _nodeLastTransform.erase(transform.first);
+        }
     }
-    for (const auto& node : _scene.GetComponents<Node>())
-        _UpdateRenderList(node);
-    for (auto& transform : _nodeLastTransform) {
-        if (_nodesToKeep.count(transform.first) == 0)
-            _nodeLastTransform.erase(transform.first);
+    if (_lightProbeDelta > 0.032) {
+        _lightProbeDelta = 0;
+        for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
+            for (auto& sh : lightProbe.GetDiffuseSH())
+                sh = glm::vec3(0);
+        }
+        bool first = true;
+        glDisable(GL_BLEND);
+        for (const auto& light : _scene.GetComponents<Light>()) {
+            for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
+                Renderer::UpdateLightProbe(light, options, lightProbe);
+            }
+            if (first) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_ONE, GL_ONE);
+                glBlendEquation(GL_FUNC_ADD);
+                first = false;
+            }
+        }
+        for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
+            lightProbe.GetReflectionBuffer()->GetColorBuffer(0)->GenerateMipmap();
+        }
     }
     for (const auto& meshItr : _renderList) {
         auto meshPtr { meshItr.first.lock() };
         Renderer::OnFrameBegin(meshPtr, options);
-    }
-    if (options.frameNumber % 5 == 0) return;
-    for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
-        for (auto& sh : lightProbe.GetDiffuseSH())
-            sh = glm::vec3(0);
-    }
-    bool first = true;
-    glDisable(GL_BLEND);
-    for (const auto& light : _scene.GetComponents<Light>()) {
-        for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
-            Renderer::UpdateLightProbe(light, options, lightProbe);
-        }
-        if (first) {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE, GL_ONE);
-            glBlendEquation(GL_FUNC_ADD);
-            first = false;
-        }
-    }
-    for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
-        lightProbe.GetReflectionBuffer()->GetColorBuffer(0)->GenerateMipmap();
     }
 }
 
@@ -81,7 +89,6 @@ void SceneRenderer::OnFrameEnd(const ::Renderer::Options& options)
         auto meshPtr { meshItr.first.lock() };
         Renderer::OnFrameEnd(meshPtr, options);
     }
-    _renderList.clear();
 }
 
 LightProbe& SceneRenderer::GetClosestLightProbe(const glm::vec3& position)
