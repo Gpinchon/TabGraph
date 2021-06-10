@@ -192,15 +192,15 @@ void ParseMTLLIB(std::shared_ptr<Asset> container)
     char line[4096];
     auto uri{ container->GetUri() };
     //std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
-
-    if (access(uri.GetPath().string().c_str(), R_OK) != 0) {
-        throw std::runtime_error(std::string("Can't access ") + uri.GetPath().string() + " : " + strerror(errno));
+    auto path{ uri.DecodePath() };
+    if (access(path.string().c_str(), R_OK) != 0) {
+        throw std::runtime_error(std::string("Can't access ") + path.string() + " : " + strerror(errno));
     }
     FILE* fd = nullptr;
-    if ((fd = fopen(uri.GetPath().string().c_str(), "rb")) == nullptr) {
-        throw std::runtime_error(std::string("Can't open ") + uri.GetPath().string() + " : " + strerror(errno));
+    if ((fd = fopen(path.string().c_str(), "rb")) == nullptr) {
+        throw std::runtime_error(std::string("Can't open ") + path.string() + " : " + strerror(errno));
     }
-    auto basePath = std::filesystem::absolute(uri.GetPath()).parent_path();
+    auto basePath = std::filesystem::absolute(path).parent_path();
     auto l = 1;
     while (fgets(line, 4096, fd) != nullptr) {
         try {
@@ -211,7 +211,7 @@ void ParseMTLLIB(std::shared_ptr<Asset> container)
                 }
             }
         } catch (std::exception& e) {
-            throw std::runtime_error("Error while parsing " + uri.GetPath().string() + " at line " + std::to_string(l) + " : " + e.what());
+            throw std::runtime_error("Error while parsing " + path.string() + " at line " + std::to_string(l) + " : " + e.what());
         }
         l++;
     }

@@ -60,10 +60,11 @@ void BTParse(const std::shared_ptr<Asset> &asset)
     Pixel::SizedFormat dataFormat;
     size_t readSize;
     auto uri{ asset->GetUri() };
-    auto fd = openFile(uri.GetPath().string());
+    auto path = uri.DecodePath();
+    auto fd = openFile(path.string());
     if ((readSize = fread(&header, 1, sizeof(BTHeader), fd) != sizeof(BTHeader))) {
         fclose(fd);
-        throw std::runtime_error(std::string("[ERROR] ") + uri.GetPath().string() + " : " + "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));
+        throw std::runtime_error(std::string("[ERROR] ") + path.string() + " : " + "Invalid file header, expected size " + std::to_string(sizeof(BTHeader)) + " got " + std::to_string(readSize));
     }
     if (header.dataSize == 2) {
         dataFormat = header.fPoint ? Pixel::SizedFormat::Float16_R : Pixel::SizedFormat::Int16_R;
@@ -71,13 +72,13 @@ void BTParse(const std::shared_ptr<Asset> &asset)
         dataFormat = header.fPoint ? Pixel::SizedFormat::Float32_R : Pixel::SizedFormat::Int32_R;
     } else {
         fclose(fd);
-        throw std::runtime_error(std::string("[ERROR] ") + uri.GetPath().string() + " : " + "Invalid data size " + std::to_string(header.dataSize));
+        throw std::runtime_error(std::string("[ERROR] ") + path.string() + " : " + "Invalid data size " + std::to_string(header.dataSize));
     }
     size_t totalSize = header.dataSize * header.rows * header.columns;
     auto data = std::vector<std::byte>(totalSize);
     if ((readSize = fread(data.data(), 1, totalSize, fd) != totalSize)) {
         fclose(fd);
-        throw std::runtime_error(std::string("[ERROR] ") + uri.GetPath().string() + " : " + "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
+        throw std::runtime_error(std::string("[ERROR] ") + path.string() + " : " + "Invalid map size, expected size " + std::to_string(totalSize) + " got " + std::to_string(readSize));
     }
     fclose(fd);
     glm::ivec2 size(header.rows, header.columns);

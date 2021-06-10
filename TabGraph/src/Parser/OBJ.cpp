@@ -402,7 +402,7 @@ void ParseOBJ(std::shared_ptr<Asset> container)
 {
     ObjContainer p;
 
-    p.path = container->GetUri().GetPath();
+    p.path = container->GetUri().DecodePath();
     start_obj_parsing(p, p.path.string());
     container += p.container;
     auto scene(Component::Create<Scene>(p.path.string()));

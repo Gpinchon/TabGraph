@@ -919,7 +919,7 @@ static inline auto ParseImages(const std::filesystem::path path, const rapidjson
 
 void ParseGLTF(std::shared_ptr<Asset> container)
 {
-    auto path = container->GetUri().GetPath();
+    auto path = container->GetUri().DecodePath();
     std::cout << path << std::endl;
     std::ifstream file(path);
     rapidjson::IStreamWrapper streamWrapper(file);

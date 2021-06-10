@@ -189,9 +189,9 @@ void ParseBMP(std::shared_ptr<Asset> asset)
     t_bmp_parser parser;
 
     try {
-        read_data(&parser, asset->GetUri().GetPath());
+        read_data(&parser, asset->GetUri().DecodePath());
     } catch (std::exception& e) {
-        throw std::runtime_error(std::string("Error parsing ") + asset->GetUri().GetPath().string() + " : " + e.what());
+        throw std::runtime_error(std::string("Error parsing ") + asset->GetUri().DecodePath().string() + " : " + e.what());
     }
     auto size{ glm::ivec2(parser.info.width, parser.info.height) };
     auto format{ GetBMPPixelFormat(parser.info.bpp) };

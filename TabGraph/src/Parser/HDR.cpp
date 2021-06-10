@@ -51,7 +51,7 @@ void ParseHDR(const std::shared_ptr<Asset>& asset)
     FILE* file;
     glm::ivec2 size;
 
-    file = fopen(uri.GetPath().string().c_str(), "rb");
+    file = fopen(uri.DecodePath().string().c_str(), "rb");
     if (!file)
         throw std::runtime_error("Invalid File");
     fread(str, 10, 1, file);
