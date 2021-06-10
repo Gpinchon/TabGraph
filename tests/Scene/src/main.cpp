@@ -89,7 +89,7 @@ int main(int argc, char** argv)
             std::cout << filePath << std::endl;
             auto fpsCamera = Component::Create<FPSCamera>("main_camera", 45);
             //fpsCamera->SetZfar(1000);
-            auto asset { Component::Create<Asset>("file:" + filePath.string()) };
+            auto asset { Component::Create<Asset>(filePath) };
             AssetsParser::AddParsingTask({
                 AssetsParser::ParsingTask::Type::Sync,
                 asset
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
             }
             scene->SetCurrentCamera(fpsCamera);
             auto newEnv = Component::Create<Skybox>("Skybox");
-            auto diffuseAsset { Component::Create<Asset>("file:" + (Engine::GetResourcePath() / "env/diffuse.jpg").string()) };
+            auto diffuseAsset { Component::Create<Asset>(Engine::GetResourcePath() / "env/diffuse.jpg") };
             diffuseAsset->parsingOptions.image.maximumResolution = 2048;
             newEnv->SetTexture(Component::Create<TextureCubemap>(diffuseAsset));
             scene->SetSkybox(newEnv);
