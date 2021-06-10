@@ -14,10 +14,11 @@
 #include <sstream> // for basic_istream
 #include <string> // for getline
 
-Uri::Uri(const std::string& uri)
+Uri::Uri(const std::string& rawUri)
 {
-    if (uri.length() == 0)
+    if (rawUri.length() == 0)
         return;
+    auto uri = Encode(rawUri);
     /*
      * ^\s*                         <---- 0 Start by trimming leading white spaces
      *      (                       <---- 1 Optional scheme
@@ -82,7 +83,8 @@ Uri::Uri(const std::string& uri)
 Uri::Uri(const std::filesystem::path& filePath)
 {
     SetScheme("file");
-    SetPath(filePath);
+    auto convertedPath = Encode(filePath.string());
+    SetPath(convertedPath);
 }
 
 void Uri::SetScheme(const std::string& str)
@@ -105,34 +107,65 @@ std::string Uri::GetAuthority() const
     return _authority;
 }
 
-void Uri::SetPath(const std::filesystem::path& str)
+void Uri::SetPath(const std::string& str)
 {
     _path = str;
 }
 
-std::filesystem::path Uri::GetPath() const
+std::string Uri::GetPath() const
 {
     return _path;
 }
 
 std::filesystem::path Uri::DecodePath() const
 {
-    std::string ret;
-    char ch;
-    int i, ii;
-    auto path{ GetPath().u8string() };
-    for (i = 0; i < path.length(); i++) {
-        if (int(path[i]) == 37) {
-            sscanf(path.substr(i + 1, 2).c_str(), "%x", &ii);
-            ch = static_cast<char>(ii);
-            ret += ch;
-            i = i + 2;
-        }
-        else {
-            ret += path[i];
-        }
+    return Decode(GetPath());
+}
+
+/**
+* Idea taken from https://gist.github.com/arthurafarias/56fec2cd49a32f374c02d1df2b6c350f
+* Fixed the regex though
+*/
+
+std::string Uri::Encode(const std::string& value)
+{
+    std::ostringstream oss;
+    std::regex r(R"([0-9A-Za-z-._~:/?#[\]@!$&'()*+,;=])");
+
+    for (const auto& c : value)
+    {
+        std::string s = { c };
+        if (std::regex_match(s, r))
+            oss << c;
+        else
+            oss << "%" << std::uppercase << std::hex << (0xff & c);
     }
-    return ret;
+    return oss.str();
+}
+
+std::string Uri::Decode(const std::string& encoded)
+{
+    std::string decoded = encoded;
+    std::smatch sm;
+    std::string haystack;
+
+    int dynamicLength = decoded.size() - 2;
+    if (decoded.size() < 3) return decoded;
+    for (int i = 0; i < dynamicLength; i++)
+    {
+
+        haystack = decoded.substr(i, 3);
+
+        if (std::regex_match(haystack, sm, std::regex("%[0-9A-F]{2}")))
+        {
+            haystack = haystack.replace(0, 1, "0x");
+            std::string rc = { (char)std::stoi(haystack, nullptr, 16) };
+            decoded = decoded.replace(decoded.begin() + i, decoded.begin() + i + 3, rc);
+        }
+        dynamicLength = decoded.size() - 2;
+
+    }
+    return decoded;
 }
 
 void Uri::SetQuery(const std::string& str)
@@ -162,7 +195,7 @@ Uri::operator std::string() const
         fullUri += GetScheme() + ":";
     if (!GetAuthority().empty())
         fullUri += "//" + GetAuthority();
-    fullUri += GetPath().string();
+    fullUri += GetPath();
     if (!GetQuery().empty())
         fullUri += "?" + GetQuery();
     if (!GetFragment().empty())
@@ -184,7 +217,7 @@ DataUri::DataUri(const Uri& uri)
      */
     //std::regex dataRegex { R"(^([-+\w]+/[-+\w.]+)??((?:;?[\w]+=[-\w]+)*)(;base64)??,(.*)$)", std::regex::ECMAScript };
     const auto searchEnd = std::sregex_iterator();
-    const auto &data{ uri.GetPath().string() };
+    const auto &data{ uri.GetPath() };
     auto offset = 0u;
     {
         std::regex mimeRegex{ R"(^([-+\w]+/[-+\w.]+))", std::regex::ECMAScript };

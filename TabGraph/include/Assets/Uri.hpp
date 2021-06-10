@@ -31,9 +31,11 @@ public:
     std::string GetScheme() const;
     void SetAuthority(const std::string& str);
     std::string GetAuthority() const;
-    void SetPath(const std::filesystem::path& str);
-    std::filesystem::path GetPath() const;
+    void SetPath(const std::string& str);
+    std::string GetPath() const;
     std::filesystem::path DecodePath() const;
+    static std::string Encode(const std::string& uri);
+    static std::string Decode(const std::string& uri);
     void SetQuery(const std::string& str);
     std::string GetQuery() const;
     void SetFragment(const std::string& str);
@@ -50,7 +52,7 @@ public:
 private:
     std::string _scheme{ "" };
     std::string _authority{ "" };
-    std::filesystem::path _path{ "" };
+    std::string _path{ "" };
     std::string _query{ "" };
     std::string _fragment{ "" };
 };
