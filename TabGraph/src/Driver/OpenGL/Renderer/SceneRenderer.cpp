@@ -52,6 +52,7 @@ void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
         }
         bool first = true;
         glDisable(GL_BLEND);
+        glDisable(GL_DEPTH_TEST);
         for (const auto& light : _scene.GetComponents<Light>()) {
             for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
                 Renderer::UpdateLightProbe(light, options, lightProbe);
