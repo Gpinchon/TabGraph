@@ -117,7 +117,7 @@ void HDRLightRenderer::UpdateLightProbe(const Renderer::Options& options, LightP
         .SetUniform("Light.Infinite", hdrLight.GetInfinite())
         .SetUniform("ProbePosition", lightProbe.GetAbsolutePosition())
         .SetTexture("ReflectionMap", hdrLight.GetReflection());
-    Renderer::Render(options.renderer->GetDisplayQuad());
+    Renderer::Render(options.renderer->GetDisplayQuad(), true);
     OpenGL::Framebuffer::Bind(nullptr);
 }
 

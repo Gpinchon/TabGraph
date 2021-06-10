@@ -130,7 +130,7 @@ void DirectionalLightRenderer::UpdateLightProbe(const Renderer::Options& options
         .SetUniform("Light.DiffuseFactor", dirLight.GetDiffuseFactor())
         .SetUniform("Light.Color", dirLight.GetColor())
         .SetUniform("Light.Direction", dirLight.GetDirection());
-    Renderer::Render(options.renderer->GetDisplayQuad());
+    Renderer::Render(options.renderer->GetDisplayQuad(), true);
     OpenGL::Framebuffer::Bind(nullptr);
 }
 
