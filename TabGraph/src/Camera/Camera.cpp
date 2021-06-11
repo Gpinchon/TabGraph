@@ -274,36 +274,52 @@ const glm::vec2 haltonSequence[256] = {
     glm::vec2(-0.996094, -0.0342935)
 };
 
+static inline auto ApplyTemporalJitter(glm::mat4 projMat) {
+    static uint8_t frameNbr{ 0 };
+    auto& halton{ haltonSequence[frameNbr] * 0.25f };
+    ++frameNbr;
+    projMat[2][0] += halton.x * 0.0001; // 1 / 1024.f
+    projMat[2][1] += halton.y * 0.0001;
+    return projMat;
+}
+
+Camera::Projection::Projection(PerspectiveInfinite data)
+    : type(Type::PerspectiveInfinite)
+    , _data(data)
+    , _matrixFunctor([](const Projection& proj) {
+        const auto& projData{ proj.Get<PerspectiveInfinite>() };
+        return ApplyTemporalJitter(glm::infinitePerspective(glm::radians(projData.fov), projData.aspectRatio, projData.znear));
+    })
+{
+}
+
+Camera::Projection::Projection(Perspective data)
+    : type(Type::Perspective)
+    , _data(data)
+    , _matrixFunctor([](const Projection& proj) {
+        const auto& projData{ proj.Get<Perspective>() };
+        return ApplyTemporalJitter(glm::perspective(glm::radians(projData.fov), projData.aspectRatio, projData.znear, projData.zfar));
+    })
+{
+}
+
+Camera::Projection::Projection(Orthographic data)
+    : type(Type::Orthographic)
+    , _data(data)
+    , _matrixFunctor([](const Projection& proj) {
+        const auto& projData{ proj.Get<Orthographic>() };
+        return ApplyTemporalJitter(glm::ortho(projData.xmag, projData.xmag, projData.ymag, projData.ymag, projData.znear, projData.zfar));
+    })
+{
+}
+
 Camera::Camera(const std::string& name, Camera::Projection proj)
     : Node(name)
+    , _projection(proj)
 {
-    SetProjectionType(proj);
 }
 
-glm::mat4 Camera::GetProjectionMatrix(const glm::ivec2& resolution)
-{
-    if (ProjectionType() == Camera::Projection::Perspective) {
-        if (Zfar() > 0)
-            _projectionMatrix = glm::perspective(glm::radians(Fov()), float(resolution.x) / float(resolution.y), Znear(), Zfar());
-        else
-            _projectionMatrix = glm::infinitePerspective(glm::radians(Fov()), float(resolution.x) / float(resolution.y), Znear());
-    } else
-        _projectionMatrix = glm::ortho(_frustum.x, _frustum.y, _frustum.z, _frustum.w, _znear, _zfar);
-    static uint8_t frameNbr{ 0 };
-    auto &halton{ haltonSequence[frameNbr] * 0.25f };
-    ++frameNbr;
-    _projectionMatrix[2][0] += halton.x / float(resolution.x);
-    _projectionMatrix[2][1] += halton.y / float(resolution.y);
-    return _projectionMatrix;
-}
-
-void Camera::SetProjectionMatrix(glm::mat4 projectionMatrix)
-{
-    _projectionMatrix = projectionMatrix;
-    _projectionMatrixNeedsUpdate = false;
-}
-
-std::array<glm::vec3, 8> Camera::ExtractFrustum(const glm::ivec2& resolution)
+std::array<glm::vec3, 8> Camera::ExtractFrustum()
 {
     static std::array<glm::vec3, 8> NDCCube{
         glm::vec3(-1.0f, -1.0f, 1.0f),
@@ -315,7 +331,7 @@ std::array<glm::vec3, 8> Camera::ExtractFrustum(const glm::ivec2& resolution)
         glm::vec3(1.0f, 1.0f, -1.0f),
         glm::vec3(1.0f, -1.0f, -1.0f)
     };
-    auto invVP = glm::inverse(GetProjectionMatrix(resolution) * GetViewMatrix());
+    auto invVP = glm::inverse(GetProjection() * GetViewMatrix());
     for (auto& v : NDCCube) {
         glm::vec4 normalizedCoord = invVP * glm::vec4(v, 1);
         v = glm::vec3(normalizedCoord) / normalizedCoord.w;
@@ -328,63 +344,12 @@ glm::mat4 Camera::GetViewMatrix()
     return glm::inverse(WorldTransformMatrix());
 }
 
-void Camera::SetViewMatrix(glm::mat4 viewMatrix)
+const Camera::Projection &Camera::GetProjection() const
 {
-    _viewMatrix = viewMatrix;
-    _viewMatrixNeedsUpdate = false;
+    return _projection;
 }
 
-glm::vec4 Camera::Frustum() const
+void Camera::SetProjection(const Camera::Projection& proj)
 {
-    return _frustum;
-}
-
-void Camera::SetFrustum(glm::vec4 frustum)
-{
-    _projectionMatrixNeedsUpdate |= frustum != _frustum;
-    _frustum = frustum;
-}
-
-float Camera::Fov() const
-{
-    return _fov;
-}
-
-void Camera::SetFov(float fov)
-{
-    _projectionMatrixNeedsUpdate |= fov != _fov;
-    _fov = fov;
-}
-
-float Camera::Znear() const
-{
-    return _znear;
-}
-
-void Camera::SetZnear(float znear)
-{
-    _projectionMatrixNeedsUpdate |= znear != _znear;
-    _znear = znear;
-}
-
-float Camera::Zfar() const
-{
-    return _zfar;
-}
-
-void Camera::SetZfar(float zfar)
-{
-    _projectionMatrixNeedsUpdate |= zfar != _zfar;
-    _zfar = zfar;
-}
-
-Camera::Projection Camera::ProjectionType() const
-{
-    return _projectionType;
-}
-
-void Camera::SetProjectionType(Camera::Projection projectionType)
-{
-    _projectionMatrixNeedsUpdate |= projectionType != _projectionType;
-    _projectionType = projectionType;
+    _projection = proj;
 }

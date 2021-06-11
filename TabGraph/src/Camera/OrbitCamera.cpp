@@ -11,13 +11,12 @@
 #include "Node.hpp"
 #include "Renderer/Renderer.hpp"
 
-OrbitCamera::OrbitCamera(const std::string& iname, float ifov, float phi, float theta, float radius, Camera::Projection proj)
+OrbitCamera::OrbitCamera(const std::string& iname, float phi, float theta, float radius, Camera::Projection proj)
     : Camera(iname, proj)
 {
     _phi = phi;
     _theta = theta;
     _radius = radius;
-    SetFov(ifov);
     _Update();
 }
 

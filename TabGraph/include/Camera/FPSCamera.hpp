@@ -8,11 +8,10 @@
 #pragma once
 
 #include "Camera/Camera.hpp"
-#include <glm/vec3.hpp>
 
 class FPSCamera : public Camera {
 public:
-    FPSCamera(const std::string& name, float fov, Camera::Projection proj = Projection::Perspective);
+    FPSCamera(const std::string& name, Camera::Projection proj = Projection::PerspectiveInfinite());
     virtual float Yaw() const;
     virtual void SetYaw(float);
     virtual float Pitch() const;

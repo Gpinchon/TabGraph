@@ -8,10 +8,9 @@
 #include "Camera/FPSCamera.hpp"
 #include <memory>
 
-FPSCamera::FPSCamera(const std::string& name, float fov, Camera::Projection proj)
+FPSCamera::FPSCamera(const std::string& name, Camera::Projection proj)
     : Camera(name, proj)
 {
-    SetFov(fov);
 }
 
 static inline auto GetRotationFromYPR(const float Yaw, const float Pitch, const float Roll)
@@ -36,7 +35,6 @@ void FPSCamera::SetYaw(float yaw)
 {
     _yaw = yaw;
     SetRotation(GetRotationFromYPR(Yaw(), Pitch(), Roll()));
-    //SetNeedsTranformUpdate(true);
 }
 
 float FPSCamera::Pitch() const
@@ -48,7 +46,6 @@ void FPSCamera::SetPitch(float pitch)
 {
     _pitch = pitch;
     SetRotation(GetRotationFromYPR(Yaw(), Pitch(), Roll()));
-    //SetNeedsTranformUpdate(true);
 }
 
 float FPSCamera::Roll() const
@@ -60,18 +57,4 @@ void FPSCamera::SetRoll(float roll)
 {
     _roll = roll;
     SetRotation(GetRotationFromYPR(Yaw(), Pitch(), Roll()));
-    //SetNeedsTranformUpdate(true);
 }
-
-/*glm::quat FPSCamera::Rotation() const
-{
-    auto radPitch(glm::radians(Pitch()));
-    auto radYaw(glm::radians(Yaw()));
-    auto radRoll(glm::radians(Roll()));
-    glm::quat quatRoll = glm::angleAxis(radRoll, Common::Forward());
-    glm::quat quatPitch = glm::angleAxis(radPitch, Common::Right());
-    glm::quat quatYaw =  glm::angleAxis(radYaw, Common::Up());
-    glm::quat rotation = quatYaw * quatPitch * quatRoll;
-
-    return glm::normalize(rotation);
-}*/

@@ -9,74 +9,89 @@
 
 #include "Common.hpp"
 #include "Node.hpp" // for Node
-#include <glm/glm.hpp>
+
+#include <glm/mat4x4.hpp>
 #include <memory> // for shared_ptr, weak_ptr
 #include <string> // for string
 #include <vector> // for vector
+#include <variant>
 
 /**
  * @brief The default "general purpose" camera
  */
 class Camera : public Node {
 public:
-    enum class Projection {
-        Invalid = -1,
-        Ortho,
-        Perspective
+    struct Projection {
+        enum class Type {
+            PerspectiveInfinite,
+            Perspective,
+            Orthographic,
+            MaxValue
+        };
+        Type type{ Type::PerspectiveInfinite };
+        struct PerspectiveInfinite {
+            float fov{ 45 };
+            float aspectRatio{ 16 / 9.f };
+            float znear{ 0.1 };
+        };
+        struct Perspective {
+            float fov{ 45 };
+            float aspectRatio{ 16 / 9.f };
+            float znear{ 0.1 };
+            float zfar{ 1000 };
+        };
+        struct Orthographic {
+            float xmag{ 50 };
+            float ymag{ 50 };
+            float znear{ 0.1 };
+            float zfar{ 1000 };
+        };
+        Projection() : Projection(PerspectiveInfinite()){}
+        Projection(PerspectiveInfinite data);
+        Projection(Perspective data);
+        Projection(Orthographic data);
+        template<typename T>
+        inline auto &Get() const {
+            return std::get<T>(_data);
+        }
+        inline auto GetMatrix() const {
+            return _matrixFunctor(*this);
+        }
+        operator glm::mat4() const {
+            return GetMatrix();
+        }
+        inline glm::mat4 operator*(const glm::mat4& other) const {
+            return GetMatrix() * other;
+        }
+        inline glm::mat4 operator*(const Projection& other) const {
+            return GetMatrix() * other.GetMatrix();
+        }
+
+    private:
+        std::variant<PerspectiveInfinite, Perspective, Orthographic> _data;
+        std::function<glm::mat4(const Projection&)> _matrixFunctor;
     };
-    Camera(const std::string& name, Camera::Projection proj = Projection::Perspective);
+    Camera(const std::string& name, Camera::Projection = Camera::Projection::PerspectiveInfinite());
+    ~Camera() = default;
+
     /**
-     * @brief alias for TransformMatrix
+     * @brief alias for inverse TransformMatrix
      * @return the camera's view matrix
      */
     glm::mat4 GetViewMatrix();
-    void SetViewMatrix(glm::mat4 viewMatrix);
-    virtual glm::mat4 GetProjectionMatrix(const glm::ivec2& resolution);
-    virtual void SetProjectionMatrix(glm::mat4 projectionMatrix);
-
     /**
      * @brief Computes the camera frustum's 8 corners
-     * @arg resolution : the resolution of the Window used to compute Projection Matrix
      * @return the camera frustum's 8 corners in world space
     */
-    virtual std::array<glm::vec3, 8> ExtractFrustum(const glm::ivec2& resolution);
+    std::array<glm::vec3, 8> ExtractFrustum();
 
-    //virtual void SetProjectionMatrix(glm::mat4);
-    virtual glm::vec4 Frustum() const;
-    virtual void SetFrustum(glm::vec4 frustum);
-    /** @return the vertical field of view in degrees */
-    virtual float Fov() const;
-    /** @arg fov : the vertical field of view in degrees */
-    virtual void SetFov(float fov);
-    /** @return the near clipping plane distance */
-    virtual float Znear() const;
-    /** @arg znear : the new near clipping plane distance */
-    virtual void SetZnear(float znear);
-    /** @return the far clipping plane distance */
-    virtual float Zfar() const;
-    /**
-     * @brief set this to 0 for infinite perspective projection
-     * @arg zfar : the new far clipping plane distance
-     */
-    virtual void SetZfar(float zfar);
-    virtual Camera::Projection ProjectionType() const;
-    virtual void SetProjectionType(Camera::Projection projectionType);
-    virtual ~Camera() = default;
+    const Camera::Projection &GetProjection() const;
+    void SetProjection(const Camera::Projection& projectionType);
 
 private:
     virtual std::shared_ptr<Component> _Clone() override
     {
         return Component::Create<Camera>(*this);
     }
-    Camera::Projection _projectionType { Projection::Perspective };
-    glm::mat4 _projectionMatrix { 0 };
-    glm::mat4 _viewMatrix{ 1 };
-    glm::vec4 _frustum { -50, 50, -50, 50 };
-    float _fov { 45 };
-    float _znear { 0.1 };
-    float _zfar { 0 };
-
-protected:
-    bool _projectionMatrixNeedsUpdate{ true };
-    bool _viewMatrixNeedsUpdate{ true };
+    Projection _projection;
 };

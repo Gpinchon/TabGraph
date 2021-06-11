@@ -11,7 +11,7 @@
 
 class OrbitCamera : public Camera {
 public:
-    OrbitCamera(const std::string&, float fov, float phi, float theta, float radius, Camera::Projection proj = Projection::Perspective);
+    OrbitCamera(const std::string&, float phi, float theta, float radius, Camera::Projection proj = Projection::PerspectiveInfinite());
     std::shared_ptr<Node> Target() const;
     void SetTarget(const std::shared_ptr<Node> target);
     float Phi() const;
