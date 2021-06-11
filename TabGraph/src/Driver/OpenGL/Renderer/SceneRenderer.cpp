@@ -9,8 +9,8 @@
 #include <Driver/OpenGL/Renderer/SceneRenderer.hpp>
 #include <Light/Light.hpp>
 #include <Light/LightProbe.hpp>
-#include <Surface/Mesh.hpp>
 #include <Node.hpp>
+#include <Surface/Surface.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Light/LightRenderer.hpp>
 #include <Renderer/Surface/SurfaceRenderer.hpp>
@@ -31,17 +31,22 @@ void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
     _lightProbeDelta += options.delta;
     _fixedDelta += options.delta;
     if (_fixedDelta > 0.015) {
-        _fixedDelta = 0;
         _renderList.clear();
+        auto fixedOptions = options;
+        fixedOptions.delta = _fixedDelta;
         for (const auto& animation : _scene.GetComponents<Animation>()) {
             if (animation->Playing())
-                animation->Advance(options.delta);
+                animation->Advance(_fixedDelta);
         }
         for (const auto& node : _scene.GetComponents<Node>())
             _UpdateRenderList(node);
         for (auto& transform : _nodeLastTransform) {
             if (_nodesToKeep.count(transform.first) == 0)
                 _nodeLastTransform.erase(transform.first);
+        }
+        for (const auto& surfaceItr : _renderList) {
+            auto surface{ surfaceItr.first.lock() };
+            Renderer::OnFrameBegin(surface, fixedOptions);
         }
     }
     if (_lightProbeDelta > 0.032) {
@@ -68,27 +73,26 @@ void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
             lightProbe.GetReflectionBuffer()->GetColorBuffer(0)->GenerateMipmap();
         }
     }
-    for (const auto& meshItr : _renderList) {
-        auto meshPtr { meshItr.first.lock() };
-        Renderer::OnFrameBegin(meshPtr, options);
-    }
 }
 
 void SceneRenderer::Render(const ::Renderer::Options& options, const glm::mat4& rootMatrix)
 {
-    for (const auto& meshItr : _renderList) {
-        auto meshPtr { meshItr.first.lock() };
-        for (const auto& meshState : meshItr.second) {
-            Renderer::Render(meshPtr, options, meshState.transform, meshState.prevTransform);
+    for (const auto& surfaceItr : _renderList) {
+        auto surface { surfaceItr.first.lock() };
+        for (const auto& surfaceState : surfaceItr.second) {
+            Renderer::Render(surface, options, surfaceState.transform, surfaceState.prevTransform);
         }
     }
 }
 
 void SceneRenderer::OnFrameEnd(const ::Renderer::Options& options)
 {
-    for (const auto& meshItr : _renderList) {
-        auto meshPtr { meshItr.first.lock() };
-        Renderer::OnFrameEnd(meshPtr, options);
+    if (_fixedDelta > 0.015) {
+        for (const auto& surfaceItr : _renderList) {
+            auto surface{ surfaceItr.first.lock() };
+            Renderer::OnFrameEnd(surface, options);
+        }
+        _fixedDelta = 0;
     }
 }
 
@@ -109,8 +113,8 @@ LightProbe& SceneRenderer::GetClosestLightProbe(const glm::vec3& position)
 void SceneRenderer::_UpdateRenderList(std::shared_ptr<Node> root)
 {
     _nodesToKeep.insert(root);
-    for (auto& mesh : root->GetComponents<Mesh>()) {
-        _renderList[mesh].push_back({ root->WorldTransformMatrix(),
+    for (auto& surface : root->GetComponents<Surface>()) {
+        _renderList[surface].push_back({ root->WorldTransformMatrix(),
             _nodeLastTransform[root],
             root });
         _nodeLastTransform[root] = root->WorldTransformMatrix();

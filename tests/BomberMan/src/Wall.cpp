@@ -35,7 +35,7 @@ std::shared_ptr<Wall> Wall::Create(Level& level)
     //auto wall{ std::static_pointer_cast<Wall>(wallAsset->Clone()) };
     auto wall(Component::Create<Wall>(level));
     for (const auto& mesh : wallMeshes)
-        wall->AddComponent(mesh);
+        wall->AddComponent<Surface>(mesh);
     wall->SetScale(glm::vec3(0.45));
     return wall;
 }
