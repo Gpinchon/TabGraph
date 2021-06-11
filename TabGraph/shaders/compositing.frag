@@ -49,8 +49,8 @@ void Composite()
 	vec4 accum = texture(in_TransparentColor, frag_UV, 0);
     float coverage = texture(in_TransparentAlphaCoverage, frag_UV, 0).r;
     //vec4 transparentColor = vec4(accum.rgb / clamp(accum.a, 6.1*1e-4, 6.55*1e5), r);
-    if (isinf(maxComponent(abs(accum))))
-		accum.rgb = vec3(accum.a);
+    //if (isinf(maxComponent(abs(accum))))
+	//	accum.rgb = vec3(accum.a);
 	vec3 transpColor = accum.rgb / max(accum.a, 0.00001);
 	vec3 opaqueColor = transmissionColor.rgb * sampleLod(in_OpaqueColor, refractUV, transmissionColor.a).rgb;
 
