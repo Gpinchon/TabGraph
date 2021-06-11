@@ -22,9 +22,6 @@
 
 class BoundingAABB;
 class RigidBody;
-class Animation;
-class Mesh;
-class Scene;
 
 namespace Renderer {
 enum class Pass;

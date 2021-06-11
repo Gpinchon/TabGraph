@@ -138,34 +138,11 @@ std::vector<std::string> strsplit(const std::string& s, char c)
 std::vector<std::string> strsplitwspace(std::string const& input)
 {
     std::istringstream buffer(input);
-    std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)),
-        std::istream_iterator<std::string>());
-    return ret;
+    return {
+        (std::istream_iterator<std::string>(buffer)),
+        std::istream_iterator<std::string>() };
 }
 
-/*std::vector<std::string> strsplitwspace(const std::string& s)
-{
-    size_t pos = 0;
-    size_t needle = 0;
-    std::vector<std::string> ret;
-    while (pos < s.length()) {
-        if (s[pos] != ' ' && s[pos] != '\t' && s[pos] != '\n') {
-            while (pos < s.length() && s[pos] != ' ' && s[pos] != '\t' && s[pos] != '\n') {
-                pos++;
-            }
-            ret.push_back(s.substr(needle, pos - needle));
-        }
-        while (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n') {
-            pos++;
-        }
-        needle = pos;
-    }
-    if (needle < s.length()) {
-        ret.push_back(s.substr(needle));
-    }
-    return (ret);
-}
-*/
 unsigned count_char(const std::string& str, char c)
 {
     return (std::count(str.begin(), str.end(), c));
@@ -187,14 +164,3 @@ FILE* openFile(const std::string& path, const std::string& mod)
     }
     return fd;
 }
-
-/*unsigned long long	hash(GLubyte *str)
-{
-	unsigned long long	hash;
-	int					c;
-
-	hash = 5381;
-	while ((c = *str++))
-		hash = ((hash << 5) + hash) + c;
-	return (hash);
-}*/
