@@ -111,7 +111,7 @@ bool AssetsParser::Parse(std::shared_ptr<Asset> asset)
     if (uriScheme == "data")
         mime = DataUri(asset->GetUri()).GetMime();
     else
-        mime = GetMimeFromExtension(AssetsParser::FileExtension(asset->GetUri().GetPath()).extension());
+        mime = GetMimeFromExtension(AssetsParser::FileExtension(asset->GetUri().DecodePath()).extension());
     auto parser = _get(mime);
     if (parser != nullptr) {
         parser(asset);
