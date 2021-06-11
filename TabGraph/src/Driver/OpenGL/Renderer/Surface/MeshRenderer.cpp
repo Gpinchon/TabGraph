@@ -55,9 +55,7 @@ void MeshRenderer::OnFrameBegin(const Renderer::Options& options)
     Load();
     _jointMatricesIndex = (_jointMatricesIndex + 1) % _jointMatrices.size();
     auto meshSkin { _mesh.GetComponent<MeshSkin>() };
-    if (meshSkin == nullptr)
-        return;
-    //auto invMatrix = glm::inverse(parentTransform);
+    if (meshSkin == nullptr) return;
     if (glIsSync(_drawSync.at(_jointMatricesIndex))) {
         while (glClientWaitSync(_drawSync.at(_jointMatricesIndex), 0, 1) == GL_TIMEOUT_EXPIRED) { }
         glDeleteSync(_drawSync.at(_jointMatricesIndex));
@@ -66,18 +64,12 @@ void MeshRenderer::OnFrameBegin(const Renderer::Options& options)
     const auto joints = meshSkin->Joints();
     auto jointMatricesAccessor { _jointMatrices.at(_jointMatricesIndex)->Accessor() };
     auto inverseBindMatrices { meshSkin->InverseBindMatrices() };
-    //jointMatricesAccessor->GetBufferView()->MapRange(
-    //    BufferView::MappingMode::WriteOnly,
-    //    jointMatricesAccessor->GetByteOffset(),
-    //    jointMatricesAccessor->GetCount() * jointMatricesAccessor->GetTypeOctetsSize()
-    //);
     for (auto index = 0u; index < joints.size(); ++index) {
         const auto jointMatrixIndex { index };
         const auto& joint(joints.at(index));
         auto jointMatrix = joint->WorldTransformMatrix() * inverseBindMatrices->Get<glm::mat4>(index);
         jointMatricesAccessor->Set(jointMatrix, jointMatrixIndex);
     }
-    //jointMatricesAccessor->GetBufferView()->Unmap();
 }
 
 void MeshRenderer::Render(
