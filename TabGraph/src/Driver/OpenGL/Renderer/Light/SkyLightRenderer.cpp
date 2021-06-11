@@ -127,7 +127,7 @@ void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::
         .SetUniform("Light.DiffuseFactor", light.GetDiffuseFactor())
         .SetUniform("Light.Max", light.GetMax())
         .SetUniform("Light.Min", light.GetMin())
-        .SetUniform("Light.Projection", (light.GetInfinite() ? DirectionalLightShadowProjectionMatrixInfinite(light, options) : DirectionalLightShadowProjectionMatrixFinite(light)) * DirectionalLightShadowViewMatrix(light))
+        .SetUniform("Light.Projection", (light.GetInfinite() ? DirectionalLightShadowProjectionInfinite(light, options) : DirectionalLightShadowProjectionFinite(light)) * DirectionalLightShadowViewMatrix(light))
         .SetUniform("Light.Infinite", light.GetInfinite())
         .SetTexture("SpecularLUT", _reflectionLUT)
         .SetTexture("DefaultBRDFLUT", options.renderer->GetDefaultBRDFLUT())

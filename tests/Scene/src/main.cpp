@@ -26,8 +26,6 @@
 #include <Material/Material.hpp>
 #include <Scene/Scene.hpp>
 #include <StackTracer.hpp>
-#include <Surface/CubeMesh.hpp>
-#include <Surface/Mesh.hpp>
 #include <Surface/Skybox.hpp>
 #include <Texture/TextureCubemap.hpp>
 #include <Tools/Tools.hpp>
@@ -87,7 +85,7 @@ int main(int argc, char** argv)
         }
         {
             std::cout << filePath << std::endl;
-            auto fpsCamera = Component::Create<FPSCamera>("main_camera", 45);
+            auto fpsCamera = Component::Create<FPSCamera>("main_camera");
             //fpsCamera->SetZfar(1000);
             auto asset { Component::Create<Asset>(filePath) };
             AssetsParser::AddParsingTask({
@@ -169,8 +167,35 @@ int main(int argc, char** argv)
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
                 auto scene { engine.lock()->GetCurrentScene() };
-                scene->CurrentCamera()->SetFov(scene->CurrentCamera()->Fov() - event.amount.y);
-                scene->CurrentCamera()->SetFov(glm::clamp(scene->CurrentCamera()->Fov(), 1.0f, 70.f));
+                auto proj = scene->CurrentCamera()->GetProjection();
+                if (proj.type == Camera::Projection::Type::PerspectiveInfinite) {
+                    auto perspectiveInfinite = proj.Get<Camera::Projection::PerspectiveInfinite>();
+                    perspectiveInfinite.fov -= event.amount.y;
+                    perspectiveInfinite.fov = glm::clamp(perspectiveInfinite.fov, 1.f, 70.f);
+                    scene->CurrentCamera()->SetProjection(perspectiveInfinite);
+                }
+                else if (proj.type == Camera::Projection::Type::Perspective) {
+                    auto perspective = proj.Get<Camera::Projection::Perspective>();
+                    perspective.fov -= event.amount.y;
+                    perspective.fov = glm::clamp(perspective.fov, 1.f, 70.f);
+                    scene->CurrentCamera()->SetProjection(perspective);
+                }
+            };
+            auto resizeCB = [engine = std::weak_ptr(engine)](const Event::Window& event) {
+                if (engine.lock()->GetCurrentScene() == nullptr)
+                    return;
+                auto scene{ engine.lock()->GetCurrentScene() };
+                auto proj = scene->CurrentCamera()->GetProjection();
+                if (proj.type == Camera::Projection::Type::PerspectiveInfinite) {
+                    auto perspectiveInfinite = proj.Get<Camera::Projection::PerspectiveInfinite>();
+                    perspectiveInfinite.aspectRatio = event.window->GetSize().x / float(event.window->GetSize().y);
+                    scene->CurrentCamera()->SetProjection(perspectiveInfinite);
+                }
+                else if (proj.type == Camera::Projection::Type::Perspective) {
+                    auto perspective = proj.Get<Camera::Projection::Perspective>();
+                    perspective.aspectRatio = event.window->GetSize().x / float(event.window->GetSize().y);
+                    scene->CurrentCamera()->SetProjection(perspective);
+                }
             };
             auto moveCB = [engine = std::weak_ptr(engine)](const Event::MouseMove& event) {
                 if (engine.lock()->GetCurrentScene() == nullptr)
@@ -219,6 +244,7 @@ int main(int argc, char** argv)
             Keyboard::OnKey(Keyboard::Key::C).Connect(changeCameraCB);
             Mouse::OnMove().Connect(moveCB);
             Mouse::OnWheel().Connect(wheelCB);
+            window->OnEvent(Event::Window::Type::SizeChanged).Connect(resizeCB);
             engine->OnFixedUpdate().Connect(refreshCB);
         }
         engine->Start();

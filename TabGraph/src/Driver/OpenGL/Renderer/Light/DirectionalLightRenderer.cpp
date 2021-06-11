@@ -22,6 +22,7 @@
 #include <Texture/TextureSampler.hpp>
 #include <Window.hpp>
 
+#include <glm/gtx/matrix_decompose.hpp>
 #include <GL/glew.h>
 #include <array>
 
@@ -159,8 +160,8 @@ void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, 
         .SetUniform("Light.Max", light.GetMax())
         .SetUniform("Light.Min", light.GetMin())
         .SetUniform("Light.Projection", (light.GetInfinite() ?
-            DirectionalLightShadowProjectionMatrixInfinite(light, options) :
-            DirectionalLightShadowProjectionMatrixFinite(light)) * DirectionalLightShadowViewMatrix(light))
+            DirectionalLightShadowProjectionInfinite(light, options).GetMatrix() :
+            DirectionalLightShadowProjectionFinite(light).GetMatrix()) * DirectionalLightShadowViewMatrix(light))
         .SetUniform("Light.Infinite", light.GetInfinite())
         .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * light.GetLocalScaleMatrix())
         .SetTexture("Texture.Geometry.CDiff", geometryBuffer->GetColorBuffer(0))
@@ -195,12 +196,24 @@ void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, co
     auto radius = glm::distance(light.WorldPosition(), light.GetMax());
     auto camPos = light.WorldPosition() - light.GetDirection() * radius;
     static std::shared_ptr<Camera> tempCamera(new Camera("dirLightCamera"));
-    tempCamera->SetProjectionMatrix(DirectionalLightShadowProjectionMatrixInfinite(light, options));
-    tempCamera->SetViewMatrix(DirectionalLightShadowViewMatrix(light));
+    const auto projection{ DirectionalLightShadowProjectionInfinite(light, options) };
+    const auto viewMatrix{ DirectionalLightShadowViewMatrix(light) };
+    {
+        glm::vec3 scale;
+        glm::quat rotation;
+        glm::vec3 translation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::decompose(viewMatrix, scale, rotation, translation, skew, perspective);
+        tempCamera->SetPosition(translation);
+        tempCamera->SetRotation(rotation);
+        tempCamera->SetScale(scale);
+        tempCamera->SetProjection(projection);
+    }
 
     Shader::Global::SetUniform("Camera.Position", camPos);
-    Shader::Global::SetUniform("Camera.Matrix.View", DirectionalLightShadowViewMatrix(light));
-    Shader::Global::SetUniform("Camera.Matrix.Projection", DirectionalLightShadowProjectionMatrixInfinite(light, options));
+    Shader::Global::SetUniform("Camera.Matrix.View", viewMatrix);
+    Shader::Global::SetUniform("Camera.Matrix.Projection", projection);
     OpenGL::Framebuffer::Bind(_shadowBuffer);
     options.renderer->SetViewPort(_shadowBuffer->GetSize());
     glDepthMask(GL_TRUE);
@@ -220,7 +233,7 @@ void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, co
     //options.scene->SetCurrentCamera(camera);
     Shader::Global::SetUniform("Camera.Position", options.camera->WorldPosition());
     Shader::Global::SetUniform("Camera.Matrix.View", options.camera->GetViewMatrix());
-    Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjectionMatrix(options.renderer->GetWindow()->GetSize()));
+    Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjection());
 }
 
 void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, const Renderer::Options& options)
@@ -228,12 +241,24 @@ void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, cons
     auto radius = glm::distance(light.WorldPosition(), light.GetMax());
     auto camPos = light.WorldPosition() - light.GetDirection() * radius;
     static std::shared_ptr<Camera> tempCamera(new Camera("dirLightCamera"));
-    tempCamera->SetProjectionMatrix(DirectionalLightShadowProjectionMatrixFinite(light));
-    tempCamera->SetViewMatrix(DirectionalLightShadowViewMatrix(light));
+    const auto projection{ DirectionalLightShadowProjectionFinite(light) };
+    const auto viewMatrix{ DirectionalLightShadowViewMatrix(light) };
+    {
+        glm::vec3 scale;
+        glm::quat rotation;
+        glm::vec3 translation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::decompose(viewMatrix, scale, rotation, translation, skew, perspective);
+        tempCamera->SetPosition(translation);
+        tempCamera->SetRotation(rotation);
+        tempCamera->SetScale(scale);
+        tempCamera->SetProjection(projection);
+    }
 
     Shader::Global::SetUniform("Camera.Position", camPos);
-    Shader::Global::SetUniform("Camera.Matrix.View", DirectionalLightShadowViewMatrix(light));
-    Shader::Global::SetUniform("Camera.Matrix.Projection", DirectionalLightShadowProjectionMatrixFinite(light));
+    Shader::Global::SetUniform("Camera.Matrix.View", viewMatrix);
+    Shader::Global::SetUniform("Camera.Matrix.Projection", projection);
     OpenGL::Framebuffer::Bind(_shadowBuffer);
     options.renderer->SetViewPort(_shadowBuffer->GetSize());
     glDepthMask(GL_TRUE);
@@ -253,7 +278,7 @@ void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, cons
     //options.scene->SetCurrentCamera(camera);
     Shader::Global::SetUniform("Camera.Position", options.camera->WorldPosition());
     Shader::Global::SetUniform("Camera.Matrix.View", options.camera->GetViewMatrix());
-    Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjectionMatrix(options.renderer->GetWindow()->GetSize()));
+    Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjection());
 }
 };
 
@@ -272,11 +297,11 @@ glm::mat4 DirectionalLightShadowViewMatrix(DirectionalLight& light)
     return glm::lookAt(camPos, light.WorldPosition(), GetUp(light.GetDirection()));
 }
 
-glm::mat4 DirectionalLightShadowProjectionMatrixInfinite(DirectionalLight& light, const Renderer::Options& options)
+Camera::Projection DirectionalLightShadowProjectionInfinite(DirectionalLight& light, const Renderer::Options& options)
 {
     auto viewMatrix = DirectionalLightShadowViewMatrix(light);
 
-    auto vertex = options.camera->ExtractFrustum(options.renderer->GetWindow()->GetSize());
+    auto vertex = options.camera->ExtractFrustum();
     glm::vec3 maxOrtho = viewMatrix * glm::vec4(vertex.at(0), 1);
     glm::vec3 minOrtho = viewMatrix * glm::vec4(vertex.at(0), 1);
     for (auto& v : vertex) {
@@ -291,10 +316,12 @@ glm::mat4 DirectionalLightShadowProjectionMatrixInfinite(DirectionalLight& light
     auto limits = glm::vec4(minOrtho.x, maxOrtho.x, minOrtho.y, maxOrtho.y);
     auto zfar = -maxOrtho.z;
     auto znear = -minOrtho.z;
-    return glm::ortho(limits.x, limits.y, limits.z, limits.w, znear, zfar);
+    return Camera::Projection::Orthographic{
+        maxOrtho.x - minOrtho.x, maxOrtho.y - minOrtho.y, znear, zfar
+    };
 }
 
-glm::mat4 DirectionalLightShadowProjectionMatrixFinite(DirectionalLight& light)
+Camera::Projection DirectionalLightShadowProjectionFinite(DirectionalLight& light)
 {
     auto viewMatrix = DirectionalLightShadowViewMatrix(light);
 
@@ -321,5 +348,7 @@ glm::mat4 DirectionalLightShadowProjectionMatrixFinite(DirectionalLight& light)
     auto limits = glm::vec4(minOrtho.x, maxOrtho.x, minOrtho.y, maxOrtho.y);
     auto zfar = -maxOrtho.z;
     auto znear = -minOrtho.z;
-    return glm::ortho(limits.x, limits.y, limits.z, limits.w, znear, zfar);
+    return Camera::Projection::Orthographic{
+        maxOrtho.x - minOrtho.x, maxOrtho.y - minOrtho.y, znear, zfar
+    };
 }

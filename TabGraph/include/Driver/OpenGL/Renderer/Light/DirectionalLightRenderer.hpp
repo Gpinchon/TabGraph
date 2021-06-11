@@ -6,7 +6,8 @@
 */
 #pragma once
 
-#include "Renderer/Light/LightRenderer.hpp"
+#include <Renderer/Light/LightRenderer.hpp>
+#include <Camera/Camera.hpp>
 
 #include <glm/glm.hpp>
 
@@ -36,5 +37,5 @@ protected:
 };
 
 glm::mat4 DirectionalLightShadowViewMatrix(DirectionalLight&);
-glm::mat4 DirectionalLightShadowProjectionMatrixInfinite(DirectionalLight&, const Renderer::Options&);
-glm::mat4 DirectionalLightShadowProjectionMatrixFinite(DirectionalLight&);
+Camera::Projection DirectionalLightShadowProjectionInfinite(DirectionalLight&, const Renderer::Options&);
+Camera::Projection DirectionalLightShadowProjectionFinite(DirectionalLight&);
