@@ -801,12 +801,15 @@ namespace Renderer {
         _finalRenderBuffer = _previousRenderBuffer;
         _previousRenderBuffer = temp;
         //Shader::Global::SetUniform("Resolution", glm::vec3(Window::GetSize(), Window::GetSize().x / float(Window::GetSize().y)));
+        //scene->CurrentCamera()->SetAspectRatio(GetWindow()->GetSize().x / float(GetWindow()->GetSize().y));
+        const glm::mat4 currentView{ scene->CurrentCamera()->GetViewMatrix() };
+        const glm::mat4 currentProj{ scene->CurrentCamera()->GetProjection() };
         Shader::Global::SetUniform("FrameNumber", _frameNbr);
         Shader::Global::SetUniform("Camera.Position", scene->CurrentCamera()->WorldPosition());
-        Shader::Global::SetUniform("Camera.Matrix.View", scene->CurrentCamera()->GetViewMatrix());
-        Shader::Global::SetUniform("Camera.Matrix.Projection", scene->CurrentCamera()->GetProjectionMatrix(GetWindow()->GetSize()));
-        Shader::Global::SetUniform("Camera.InvMatrix.View", glm::inverse(scene->CurrentCamera()->GetViewMatrix()));
-        Shader::Global::SetUniform("Camera.InvMatrix.Projection", glm::inverse(scene->CurrentCamera()->GetProjectionMatrix(GetWindow()->GetSize())));
+        Shader::Global::SetUniform("Camera.Matrix.View", currentView);
+        Shader::Global::SetUniform("Camera.Matrix.Projection", currentProj);
+        Shader::Global::SetUniform("Camera.InvMatrix.View", glm::inverse(currentView));
+        Shader::Global::SetUniform("Camera.InvMatrix.Projection", glm::inverse(currentProj));
         OnFrameBegin(scene, Options(
             Options::Pass::BeforeRender,
             Options::Mode::None,
@@ -825,10 +828,10 @@ namespace Renderer {
             _frameNbr, _deltaTime));
         _lastTicks = ticks;
         Shader::Global::SetUniform("PrevCamera.Position", scene->CurrentCamera()->WorldPosition());
-        Shader::Global::SetUniform("PrevCamera.Matrix.View", scene->CurrentCamera()->GetViewMatrix());
-        Shader::Global::SetUniform("PrevCamera.Matrix.Projection", scene->CurrentCamera()->GetProjectionMatrix(GetWindow()->GetSize()));
-        Shader::Global::SetUniform("PrevCamera.InvMatrix.View", glm::inverse(scene->CurrentCamera()->GetViewMatrix()));
-        Shader::Global::SetUniform("PrevCamera.InvMatrix.Projection", glm::inverse(scene->CurrentCamera()->GetProjectionMatrix(GetWindow()->GetSize())));
+        Shader::Global::SetUniform("PrevCamera.Matrix.View", currentView);
+        Shader::Global::SetUniform("PrevCamera.Matrix.Projection", currentProj);
+        Shader::Global::SetUniform("PrevCamera.InvMatrix.View", glm::inverse(currentView));
+        Shader::Global::SetUniform("PrevCamera.InvMatrix.Projection", glm::inverse(currentProj));
     }
 
     void FrameRenderer::Impl::SetViewPort(const glm::ivec2& min, const glm::ivec2& max)
