@@ -41,7 +41,7 @@ std::shared_ptr<CrispyWall> CrispyWall::Create(Level& level)
     auto wall = Component::Create<CrispyWall>(level);
     static auto crispyWallAsset{ CreateCrispyWallAsset() };
     for (auto mesh : crispyWallAsset)
-        wall->AddComponent(mesh);
+        wall->AddComponent<Surface>(mesh);
     return wall;
 }
 

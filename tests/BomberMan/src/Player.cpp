@@ -12,7 +12,6 @@
 #include <Camera/Camera.hpp>
 #include <Event/InputDevice/Keyboard.hpp>
 #include <Material/Material.hpp>
-#include <Surface/CapsuleMesh.hpp>
 #include <Surface/Mesh.hpp>
 #include <Scene/Scene.hpp>
 

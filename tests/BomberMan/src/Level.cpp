@@ -67,9 +67,9 @@ std::shared_ptr<Level> Level::Create(const std::string& name, const glm::ivec2& 
     light->SetHalfSize(glm::vec3(size.x / 2.f, 1.5, size.y / 2.f));
     light->SetPosition(glm::vec3(size.x / 2.f, 0, size.y / 2.f));
     light->SetInfinite(false);
-    auto camera = Component::Create<OrbitCamera>("MainCamera", 45.f, glm::pi<float>() / 2.f, 1, radius / 2.f);
+    auto camera = Component::Create<OrbitCamera>("MainCamera", glm::pi<float>() / 2.f, 1, radius / 2.f);
     camera->SetTarget(floorNode);
-    floorNode->SetComponent(floorMesh);
+    floorNode->SetComponent<Surface>(floorMesh);
     level->SetCurrentCamera(camera);
     level->Add(light);
     level->Add(floorNode);
@@ -143,7 +143,8 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
     auto floorTexture = Component::Create<Texture2D>(floorImageAsset);
     floorTexture->GetTextureSampler()->SetMagFilter(TextureSampler::Filter::Nearest);
     floorTexture->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::Nearest);
-    level->GetComponentInChildrenByName<Mesh>("FloorMesh")->GetGeometryMaterial(0)->SetTextureDiffuse(floorTexture);
+    auto floorMesh = std::static_pointer_cast<Mesh>(level->GetComponentInChildrenByName<Surface>("FloorMesh"));
+    floorMesh->GetGeometryMaterial(0)->SetTextureDiffuse(floorTexture);
     auto skybox = Component::Create<Skybox>("Skybox");
     auto diffuseMap { Component::Create<Asset>(path.parent_path() / "env.png") };
     skybox->SetTexture(Component::Create<TextureCubemap>(diffuseMap));

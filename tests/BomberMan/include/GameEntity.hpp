@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Node.hpp"
+#include <Node.hpp>
 
 class RigidBody;
 class Level;
+class Animation;
 
 class GameEntity : public Node {
 public:

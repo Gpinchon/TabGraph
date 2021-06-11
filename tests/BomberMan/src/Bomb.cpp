@@ -5,8 +5,7 @@
 * @Last Modified time: 2020-08-17 13:52:03
 */
 
-#include <Surface/Mesh.hpp>
-#include <Surface/SphereMesh.hpp>
+#include <Surface/Surface.hpp>
 #include <Material/Material.hpp>
 #include <Assets/Asset.hpp>
 #include <Assets/AssetsParser.hpp>
