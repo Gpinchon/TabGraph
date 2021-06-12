@@ -14,6 +14,23 @@ struct GameManager {
         : engine(Engine::Create(Renderer::FrameRenderer::Create(Window::Create("Bomberman", glm::ivec2(1280, 720)))))
     {
         engine->OnFixedUpdate().Connect(&Game::Update);
+        engine->GetFrameRenderer()->GetWindow()->OnEvent(Event::Window::Type::SizeChanged).Connect(
+            [engine = std::weak_ptr(engine)](const Event::Window& event) {
+            if (engine.lock()->GetCurrentScene() == nullptr)
+                return;
+            auto scene{ engine.lock()->GetCurrentScene() };
+            auto proj = scene->CurrentCamera()->GetProjection();
+            if (proj.type == Camera::Projection::Type::PerspectiveInfinite) {
+                auto perspectiveInfinite = proj.Get<Camera::Projection::PerspectiveInfinite>();
+                perspectiveInfinite.aspectRatio = event.window->GetSize().x / float(event.window->GetSize().y);
+                scene->CurrentCamera()->SetProjection(perspectiveInfinite);
+            }
+            else if (proj.type == Camera::Projection::Type::Perspective) {
+                auto perspective = proj.Get<Camera::Projection::Perspective>();
+                perspective.aspectRatio = event.window->GetSize().x / float(event.window->GetSize().y);
+                scene->CurrentCamera()->SetProjection(perspective);
+            }
+        });
     }
     std::shared_ptr<Level> currentLevel;
     std::shared_ptr<Engine> engine;
