@@ -85,7 +85,7 @@ void Engine::SetFrameRenderer(std::shared_ptr<Renderer::FrameRenderer> frameRend
     return _impl->SetFrameRenderer(frameRenderer);
 }
 
-inline std::shared_ptr<Renderer::FrameRenderer> Engine::GetFrameRenderer() const
+std::shared_ptr<Renderer::FrameRenderer> Engine::GetFrameRenderer() const
 {
     return _impl->GetFrameRenderer();
 }
