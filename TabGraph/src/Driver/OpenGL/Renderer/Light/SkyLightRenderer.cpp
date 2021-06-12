@@ -47,29 +47,31 @@ static inline auto DeferredSkyLightFragmentCode()
 
 auto SkyLightLUTShader()
 {
-    static std::shared_ptr<Shader::Program> shader;
-    if (shader == nullptr) {
-        auto LayeredCubemapRenderCode =
+    auto LayeredCubemapRenderCode =
 #include "LayeredCubemapRender.geom"
-            ;
-        auto deferredVertexCode =
+        ;
+    auto deferredVertexCode =
 #include "deferred.vert"
-            ;
-        auto skyLightFragCode =
+        ;
+    auto skyLightFragCode =
 #include "Lights/ProbeSkyLight.frag"
-            ;
-        shader = Component::Create<Shader::Program>("DirectionnalLUTShader");
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Geometry, { LayeredCubemapRenderCode, "LayeredCubemapRender();" }));
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertexCode, "FillVertexData();" }));
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { skyLightFragCode, "ComputeSkyLight();" }));
-    }
+        ;
+    auto shader = Component::Create<Shader::Program>("DirectionnalLUTShader");
+    shader->Attach(Shader::Stage(Shader::Stage::Type::Geometry, { LayeredCubemapRenderCode, "LayeredCubemapRender();" }));
+    shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertexCode, "FillVertexData();" }));
+    shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { skyLightFragCode, "ComputeSkyLight();" }));
     return shader;
 }
 
 static inline auto SkyLightGeometry()
 {
-    static auto geometry = CubeMesh::CreateGeometry("SkyLightGeometry", glm::vec3(1));
-    return geometry;
+    static std::weak_ptr<Geometry> s_geometry;
+    auto geometryPtr = s_geometry.lock();
+    if (geometryPtr == nullptr) {
+        geometryPtr = CubeMesh::CreateGeometry("SkyLightGeometry", glm::vec3(1));
+        s_geometry = geometryPtr;
+    }
+    return geometryPtr;
 }
 
 namespace Renderer {
@@ -82,11 +84,7 @@ SkyLightRenderer::SkyLightRenderer(SkyLight& light)
     _deferredShader->SetDefine("Pass", "DeferredLighting");
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DeferredSkyLightVertexCode()));
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DeferredSkyLightFragmentCode()));
-}
-
-void SkyLightRenderer::FlagDirty()
-{
-    _dirty = true;
+    _deferredGeometry = SkyLightGeometry();
 }
 
 void SkyLightRenderer::Render(const Renderer::Options& options)
@@ -137,7 +135,8 @@ void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::
         .SetTexture("Texture.Geometry.F0", geometryBuffer->GetColorBuffer(1))
         .SetTexture("Texture.Geometry.Normal", geometryBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", geometryBuffer->GetDepthBuffer());
-    Renderer::Render(SkyLightGeometry(), true);
+    glCullFace(GL_FRONT);
+    Renderer::Render(_deferredGeometry, true);
     _deferredShader->Done();
 }
 void SkyLightRenderer::_UpdateLUT(SkyLight& light, const Renderer::Options& options)

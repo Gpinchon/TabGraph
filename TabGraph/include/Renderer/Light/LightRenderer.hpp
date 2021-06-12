@@ -20,8 +20,10 @@ public:
     LightRenderer(Light&);
     virtual void Render(const Renderer::Options&) = 0;
     virtual void UpdateLightProbe(const Renderer::Options&, LightProbe&) = 0;
+    void FlagDirty();
 
 protected:
     Light& _light;
+    bool _dirty{ true };
 };
 };

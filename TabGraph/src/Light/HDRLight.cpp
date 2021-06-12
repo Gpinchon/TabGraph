@@ -44,7 +44,7 @@ glm::vec3 HDRLight::GetMax() const
 void HDRLight::SetHDRTexture(std::shared_ptr<Asset> hdrTexture)
 {
     if (hdrTexture != GetHDRTexture())
-        static_cast<Renderer::HDRLightRenderer&>(GetRenderer()).FlagDirty();
+        GetRenderer().FlagDirty();
     SetComponent(hdrTexture);
     _SetReflection(Component::Create<TextureCubemap>(hdrTexture));
     GetReflection()->SetAutoMipMap(true);

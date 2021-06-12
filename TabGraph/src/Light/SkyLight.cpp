@@ -178,7 +178,7 @@ glm::vec3 SkyLight::GetSunDirection() const
 void SkyLight::SetSunDirection(const glm::vec3& sunDir)
 {
     if (sunDir != GetSunDirection())
-        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
+        GetRenderer().FlagDirty();
     SetDirection(sunDir);
 }
 
@@ -190,7 +190,7 @@ float SkyLight::GetSunPower() const
 void SkyLight::SetSunPower(const float sunPower)
 {
     if (sunPower != _sunPower)
-        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
+        GetRenderer().FlagDirty();
     _sunPower = sunPower;
 }
 
@@ -202,7 +202,7 @@ float SkyLight::GetPlanetRadius() const
 void SkyLight::SetPlanetRadius(float planetRadius)
 {
     if (planetRadius != _planetRadius)
-        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
+        GetRenderer().FlagDirty();
     _planetRadius = planetRadius;
 }
 
@@ -214,7 +214,7 @@ float SkyLight::GetAtmosphereRadius() const
 void SkyLight::SetAtmosphereRadius(float atmosphereRadius)
 {
     if (atmosphereRadius != _atmosphereRadius)
-        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
+        GetRenderer().FlagDirty();
     _atmosphereRadius = atmosphereRadius;
 }
 
@@ -226,7 +226,7 @@ float SkyLight::GetHRayleigh() const
 void SkyLight::SetHRayleigh(float hRayleigh)
 {
     if (hRayleigh != _hRayleigh)
-        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
+        GetRenderer().FlagDirty();
     _hRayleigh = hRayleigh;
 }
 
@@ -238,7 +238,7 @@ float SkyLight::GetHMie() const
 void SkyLight::SetHMie(float hMie)
 {
     if (hMie != _hMie)
-        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
+        GetRenderer().FlagDirty();
     _hMie = hMie;
 }
 
@@ -250,7 +250,7 @@ glm::vec3 SkyLight::GetBetaRayleigh() const
 void SkyLight::SetBetaRayleigh(glm::vec3 betaRayleigh)
 {
     if (betaRayleigh != _betaRayleigh)
-        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
+        GetRenderer().FlagDirty();
     _betaRayleigh = betaRayleigh;
 }
 
@@ -262,7 +262,7 @@ glm::vec3 SkyLight::GetBetaMie() const
 void SkyLight::SetBetaMie(glm::vec3 betaMie)
 {
     if (betaMie != _betaMie)
-        static_cast<Renderer::SkyLightRenderer&>(GetRenderer()).FlagDirty();
+        GetRenderer().FlagDirty();
     _betaMie = betaMie;
 }
 

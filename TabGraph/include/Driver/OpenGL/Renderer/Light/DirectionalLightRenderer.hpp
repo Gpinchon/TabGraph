@@ -11,6 +11,7 @@
 
 #include <glm/glm.hpp>
 
+class Geometry;
 class Framebuffer;
 class DirectionalLight;
 namespace Shader {
@@ -33,6 +34,8 @@ protected:
     std::shared_ptr<Shader::Program> _deferredShader;
     std::shared_ptr<Shader::Program> _probeShader;
     std::shared_ptr<Framebuffer> _shadowBuffer;
+    std::shared_ptr<Geometry> _deferredGeometry;
+    std::vector<glm::vec3> _SHDiffuse;
 };
 };
 

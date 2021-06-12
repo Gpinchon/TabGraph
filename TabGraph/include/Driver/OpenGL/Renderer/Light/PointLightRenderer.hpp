@@ -10,6 +10,7 @@
 
 #include <glm/glm.hpp>
 
+class Geometry;
 class Framebuffer;
 class PointLight;
 namespace Shader {
@@ -28,9 +29,10 @@ protected:
     void _RenderShadow(PointLight&, const Renderer::Options&);
     void _RenderShadowInfinite(PointLight&, const Renderer::Options&);
     void _RenderShadowFinite(PointLight&, const Renderer::Options&);
-    std::shared_ptr<Shader::Program> _lightingShader;
+    std::shared_ptr<Shader::Program> _deferredShader;
     std::shared_ptr<Shader::Program> _probeShader;
     std::shared_ptr<Framebuffer> _shadowBuffer;
+    std::shared_ptr<Geometry> _deferredGeometry;
 };
 };
 

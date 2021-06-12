@@ -5,21 +5,29 @@
 * @Last Modified time: 2021-04-11 20:53:22
 */
 
-#include "Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp"
-#include "Light/PointLight.hpp"
-#include "Surface/SphereMesh.hpp"
-#include "Renderer/Surface/GeometryRenderer.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Shader/Program.hpp"
-#include "Shader/Stage.hpp"
-#include "Texture/Framebuffer.hpp"
-#include "Texture/Texture2D.hpp"
+#include <Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp>
+#include <Light/PointLight.hpp>
+#include <Surface/SphereMesh.hpp>
+#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Renderer/Renderer.hpp>
+#include <Shader/Program.hpp>
+#include <Shader/Stage.hpp>
+#include <Texture/Framebuffer.hpp>
+#include <Texture/Texture2D.hpp>
+
+#include <GL/glew.h>
 
 namespace Renderer {
+
 static inline auto PointLightGeometry()
 {
-    static auto geometry = SphereMesh::CreateGeometry("PointLightGeometry", 1, 1);
-    return geometry;
+    static std::weak_ptr<Geometry> s_geometry;
+    auto geometryPtr = s_geometry.lock();
+    if (geometryPtr == nullptr) {
+        geometryPtr = SphereMesh::CreateGeometry("PointLightGeometry", 1, 1);
+        s_geometry = geometryPtr;
+    }
+    return geometryPtr;
 }
 
 static inline auto PointLightVertexCode()
@@ -50,21 +58,18 @@ static inline auto PointLightFragmentCode()
 
 static inline auto PointLightShader()
 {
-    std::shared_ptr<Shader::Program> shader;
-    if (shader == nullptr) {
-
-        shader = Component::Create<Shader::Program>("PointLightShader");
-        shader->SetDefine("Pass", "DeferredLighting");
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, PointLightFragmentCode()));
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, PointLightVertexCode()));
-    }
+    auto shader = Component::Create<Shader::Program>("PointLightShader");
+    shader->SetDefine("Pass", "DeferredLighting");
+    shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, PointLightFragmentCode()));
+    shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, PointLightVertexCode()));
     return shader;
 }
 
 PointLightRenderer::PointLightRenderer(PointLight &light)
     : LightRenderer(light)
 {
-    _lightingShader = PointLightShader();
+    _deferredShader = PointLightShader();
+    _deferredGeometry = PointLightGeometry();
 }
 
 void PointLightRenderer::Render(const Renderer::Options& options)
@@ -82,7 +87,7 @@ void PointLightRenderer::UpdateLightProbe(const Renderer::Options&, LightProbe&)
 void PointLightRenderer::_RenderDeferredLighting(PointLight& light, const Renderer::Options& options)
 {
     auto geometryBuffer = options.renderer->DeferredGeometryBuffer();
-    _lightingShader->Use()
+    _deferredShader->Use()
         .SetUniform("Light.DiffuseFactor", light.GetDiffuseFactor())
         .SetUniform("Light.SpecularFactor", light.GetSpecularFactor())
         .SetUniform("Light.Power", light.GetPower())
@@ -93,8 +98,10 @@ void PointLightRenderer::_RenderDeferredLighting(PointLight& light, const Render
         .SetTexture("Texture.Geometry.F0", geometryBuffer->GetColorBuffer(1))
         .SetTexture("Texture.Geometry.Normal", geometryBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", geometryBuffer->GetDepthBuffer());
-    Renderer::Render(PointLightGeometry());
-    _lightingShader->Done();
+    glCullFace(GL_FRONT);
+    Renderer::Render(_deferredGeometry);
+    glCullFace(GL_BACK);
+    _deferredShader->Done();
 }
 
 void PointLightRenderer::_RenderShadow(PointLight&, const Renderer::Options&)

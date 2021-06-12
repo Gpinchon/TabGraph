@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Node.hpp" // for Node
+#include <Node.hpp> // for Node
 
 #include <glm/glm.hpp> // for glm::vec3
 #include <memory> // for shared_ptr, weak_ptr
@@ -23,18 +23,19 @@ namespace Renderer {
 class LightProbe;
 
 class Light : public Node {
-    PROPERTY(glm::vec3, Color, 1);
     PROPERTY(bool, CastShadow, false);
-    PROPERTY(float, SpecularFactor, 1);
-    PROPERTY(float, DiffuseFactor, 1);
+    READONLYPROPERTY(glm::vec3, Color, 1);
+    READONLYPROPERTY(float, SpecularFactor, 1);
+    READONLYPROPERTY(float, DiffuseFactor, 1);
 
 public:
     Light(const std::string& name, glm::vec3 color);
     Light();
-    /*virtual void render_shadow() = 0;
-    virtual void Draw() = 0;
-    virtual void DrawProbe(LightProbe& lightProbe) = 0;*/
+    void SetColor(const glm::vec3& color);
+    void SetSpecularFactor(float factor);
+    void SetDiffuseFactor(float factor);
     Renderer::LightRenderer& GetRenderer();
+
 protected:
     std::unique_ptr<Renderer::LightRenderer, Renderer::LightRendererDeleter> _renderer;
 };

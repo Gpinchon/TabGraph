@@ -5,8 +5,9 @@
 * @Last Modified time: 2021-01-11 08:46:24
 */
 
-#include "Light/Light.hpp"
-#include "Texture/Texture.hpp" // for Texture
+#include <Light/Light.hpp>
+#include <Texture/Texture.hpp>
+#include <Renderer/Light/LightRenderer.hpp>
 
 auto g_lightNbr = 0u;
 
@@ -14,6 +15,27 @@ Light::Light()
     : Node("Light_" + std::to_string(g_lightNbr))
 {
     ++g_lightNbr;
+}
+
+void Light::SetColor(const glm::vec3& color)
+{
+    if (GetColor() != color)
+        GetRenderer().FlagDirty();
+    _SetColor(color);
+}
+
+void Light::SetSpecularFactor(float factor)
+{
+    if (GetSpecularFactor() != factor)
+        GetRenderer().FlagDirty();
+    _SetSpecularFactor(factor);
+}
+
+void Light::SetDiffuseFactor(float factor)
+{
+    if (GetDiffuseFactor() != factor)
+        GetRenderer().FlagDirty();
+    _SetDiffuseFactor(factor);
 }
 
 Renderer::LightRenderer& Light::GetRenderer()

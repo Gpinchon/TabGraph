@@ -6,11 +6,12 @@
 */
 #pragma once
 
-#include "Renderer/Light/LightRenderer.hpp"
+#include <Renderer/Light/LightRenderer.hpp>
 
 #include <glm/glm.hpp>
 #include <vector>
 
+class Geometry;
 class HDRLight;
 namespace Shader {
 class Program;
@@ -20,7 +21,6 @@ namespace Renderer {
 class HDRLightRenderer : public LightRenderer {
 public:
     HDRLightRenderer(HDRLight&);
-    void FlagDirty();
     virtual void Render(const Renderer::Options&) override;
     virtual void UpdateLightProbe(const Renderer::Options&, LightProbe&) override;
 
@@ -30,6 +30,6 @@ protected:
     std::vector<glm::vec3> _SHDiffuse;
     std::shared_ptr<Shader::Program> _deferredShader;
     std::shared_ptr<Shader::Program> _probeShader;
-    bool _dirty{ true };
+    std::shared_ptr<Geometry> _deferredGeometry;
 };
 };

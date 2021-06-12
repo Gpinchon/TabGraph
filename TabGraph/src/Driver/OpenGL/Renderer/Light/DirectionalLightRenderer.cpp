@@ -28,8 +28,13 @@
 
 static inline auto DirectionnalLightGeometry()
 {
-    static auto geometry = CubeMesh::CreateGeometry("DirectionnalLightGeometry", glm::vec3(1));
-    return geometry;
+    static std::weak_ptr<Geometry> s_geometry;
+    auto geometryPtr = s_geometry.lock();
+    if (geometryPtr == nullptr) {
+        geometryPtr = CubeMesh::CreateGeometry("DirectionnalLightGeometry", glm::vec3(1));
+        s_geometry = geometryPtr;
+    }
+    return geometryPtr;
 }
 
 static inline auto DirectionnalLightVertexCode()
@@ -65,20 +70,18 @@ static inline auto DirectionnalLightFragmentCode()
 
 static inline auto DeferredDirectionnalLightShader()
 {
-    std::shared_ptr<Shader::Program> shader;
-    if (shader == nullptr) {
-        shader = Component::Create<Shader::Program>("DirectionnalLightShader");
-        shader->SetDefine("Pass", "DeferredLighting");
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DirectionnalLightVertexCode()));
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DirectionnalLightFragmentCode()));
-    }
+    auto shader = Component::Create<Shader::Program>("DirectionnalLightShader");
+    shader->SetDefine("Pass", "DeferredLighting");
+    shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DirectionnalLightVertexCode()));
+    shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DirectionnalLightFragmentCode()));
     return shader;
 }
 
 static inline auto ProbeDirectionnalLightShader()
 {
-    std::shared_ptr<Shader::Program> shader;
-    if (shader == nullptr) {
+    static std::weak_ptr<Shader::Program> s_shader;
+    auto shaderPtr = s_shader.lock();
+    if (shaderPtr == nullptr) {
         auto LayeredCubemapRenderCode =
 #include "LayeredCubemapRender.geom"
             ;
@@ -88,12 +91,13 @@ static inline auto ProbeDirectionnalLightShader()
         auto dirLightFragCode =
 #include "Lights/ProbeDirectionnalLight.frag"
             ;
-        shader = Component::Create<Shader::Program>("DirectionnalLUTShader");
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Geometry, { LayeredCubemapRenderCode, "LayeredCubemapRender();" }));
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertexCode, "FillVertexData();" }));
-        shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { dirLightFragCode, "Lighting();" }));
+        shaderPtr = Component::Create<Shader::Program>("DirectionnalLUTShader");
+        shaderPtr->Attach(Shader::Stage(Shader::Stage::Type::Geometry, { LayeredCubemapRenderCode, "LayeredCubemapRender();" }));
+        shaderPtr->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertexCode, "FillVertexData();" }));
+        shaderPtr->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { dirLightFragCode, "Lighting();" }));
+        s_shader = shaderPtr;
     }
-    return shader;
+    return shaderPtr;
 }
 
 namespace Renderer {
@@ -102,6 +106,7 @@ DirectionalLightRenderer::DirectionalLightRenderer(DirectionalLight& light)
 {
     _probeShader = ProbeDirectionnalLightShader();
     _deferredShader = DeferredDirectionnalLightShader();
+    _deferredGeometry = DirectionnalLightGeometry();
 }
 void DirectionalLightRenderer::Render(const Renderer::Options& options)
 {
@@ -114,15 +119,15 @@ void DirectionalLightRenderer::Render(const Renderer::Options& options)
 void DirectionalLightRenderer::UpdateLightProbe(const Renderer::Options& options, LightProbe& lightProbe)
 {
     auto &dirLight{ static_cast<DirectionalLight&>(_light) };
-    //TODO implement FlagDirty mechanism
-    static auto diffuseSH{
-        lightProbe.GetSphericalHarmonics().ProjectFunction(
+    if (_dirty) {
+        _SHDiffuse = lightProbe.GetSphericalHarmonics().ProjectFunction(
             [&](const SphericalHarmonics::Sample& sample) {
-                return dirLight.GetColor() * glm::dot(sample.vec, glm::normalize(dirLight.GetDirection()));
-            })
-    };
-    for (auto i = 0u; i < std::min(diffuseSH.size(), lightProbe.GetDiffuseSH().size()); ++i)
-        lightProbe.GetDiffuseSH().at(i) += diffuseSH.at(i);
+                return dirLight.GetDiffuseFactor() * dirLight.GetColor() * glm::dot(sample.vec, glm::normalize(dirLight.GetDirection()));
+            });
+        _dirty = false;
+    }
+    for (auto i = 0u; i < std::min(_SHDiffuse.size(), lightProbe.GetDiffuseSH().size()); ++i)
+        lightProbe.GetDiffuseSH().at(i) += _SHDiffuse.at(i);
     OpenGL::Framebuffer::Bind(lightProbe.GetReflectionBuffer());
     options.renderer->SetViewPort(lightProbe.GetReflectionBuffer()->GetSize());
     _probeShader->Use()
@@ -149,8 +154,6 @@ void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, 
     }
     else
         _deferredShader->RemoveDefine("SHADOW");
-    glDisable(GL_CULL_FACE);
-    
     _deferredShader->Use()
         .SetUniform("Light.DiffuseFactor", light.GetDiffuseFactor())
         .SetUniform("Light.SpecularFactor", light.GetSpecularFactor())
@@ -169,7 +172,7 @@ void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, 
         .SetTexture("Texture.Geometry.Normal", geometryBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", geometryBuffer->GetDepthBuffer());
     glCullFace(GL_FRONT);
-    Renderer::Render(DirectionnalLightGeometry(), false);
+    Renderer::Render(_deferredGeometry);
     glCullFace(GL_BACK);
     _deferredShader->Done();
 }

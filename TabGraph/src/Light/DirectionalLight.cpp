@@ -34,6 +34,8 @@ DirectionalLight::DirectionalLight(const std::string& name, glm::vec3 color, glm
 
 void DirectionalLight::SetDirection(const glm::vec3& direction)
 {
+    if (direction != GetDirection())
+        GetRenderer().FlagDirty();
     _SetDirection(normalize(direction));
 }
 
@@ -44,6 +46,8 @@ glm::vec3 DirectionalLight::GetHalfSize() const
 
 void DirectionalLight::SetHalfSize(const glm::vec3& halfSize)
 {
+    if (halfSize != GetHalfSize())
+        GetRenderer().FlagDirty();
     SetScale(halfSize * 2.f);
 }
 

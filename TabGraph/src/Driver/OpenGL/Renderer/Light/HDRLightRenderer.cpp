@@ -35,8 +35,13 @@ static inline glm::vec2 SampleSphericalMap(glm::vec3 xyz)
 
 static inline auto HDRLightGeometry()
 {
-    static auto geometry = CubeMesh::CreateGeometry("HDRLightGeometry", glm::vec3(1));
-    return geometry;
+    static std::weak_ptr<Geometry> s_geometry;
+    auto geometryPtr = s_geometry.lock();
+    if (geometryPtr == nullptr) {
+        geometryPtr = CubeMesh::CreateGeometry("HDRLightGeometry", glm::vec3(1));
+        s_geometry = geometryPtr;
+    }
+    return geometryPtr;
 }
 
 static inline auto DeferredHDRLightVertexCode()
@@ -88,10 +93,7 @@ HDRLightRenderer::HDRLightRenderer(HDRLight& light)
     _deferredShader->SetDefine("Pass", "DeferredLighting");
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DeferredHDRLightVertexCode()));
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DeferredHDRLightFragmentCode()));
-}
-void HDRLightRenderer::FlagDirty()
-{
-    _dirty = true;
+    _deferredGeometry = HDRLightGeometry();
 }
 
 void HDRLightRenderer::Render(const Renderer::Options& options)
@@ -145,7 +147,7 @@ void HDRLightRenderer::_RenderDeferredLighting(HDRLight& light, const Renderer::
         .SetTexture("Texture.Geometry.Normal", geometryBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", geometryBuffer->GetDepthBuffer());
     glCullFace(GL_FRONT);
-    Renderer::Render(HDRLightGeometry(), false);
+    Renderer::Render(_deferredGeometry, false);
     glCullFace(GL_BACK);
     _deferredShader->Done();
 }

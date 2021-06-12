@@ -23,4 +23,8 @@ LightRenderer::LightRenderer(Light& light)
     : _light(light)
 {
 }
+void LightRenderer::FlagDirty()
+{
+    _dirty = true;
+}
 };

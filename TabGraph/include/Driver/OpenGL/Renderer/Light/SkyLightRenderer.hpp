@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+class Geometry;
 class SkyLight;
 class TextureCubemap;
 class Framebuffer;
@@ -22,7 +23,6 @@ namespace Renderer {
 class SkyLightRenderer : public LightRenderer {
 public:
     SkyLightRenderer(SkyLight&);
-    void FlagDirty();
     virtual void Render(const Renderer::Options&) override;
     virtual void UpdateLightProbe(const Renderer::Options&, LightProbe&) override;
 
@@ -36,6 +36,6 @@ protected:
     std::shared_ptr<Shader::Program> _deferredShader;
     std::shared_ptr<Shader::Program> _probeShader;
     std::shared_ptr<Framebuffer> _diffuseLUTBuffer;
-    bool _dirty { true };
+    std::shared_ptr<Geometry> _deferredGeometry;
 };
 };
