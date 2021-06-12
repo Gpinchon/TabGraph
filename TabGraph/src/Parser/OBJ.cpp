@@ -382,7 +382,7 @@ void ParseOBJ(std::shared_ptr<Asset> container)
     auto scene(Component::Create<Scene>(p.path.string()));
     auto node(Component::Create<Node>(p.path.string() + "_node"));
     for (const auto& mesh : container->GetComponents<Mesh>()) {
-        node->AddComponent(mesh);
+        node->AddComponent<Surface>(mesh);
     }
     scene->AddRootNode(node);
     container->AddComponent(scene);
