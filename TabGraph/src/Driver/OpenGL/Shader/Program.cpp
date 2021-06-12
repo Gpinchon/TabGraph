@@ -103,7 +103,7 @@ std::array<GLenum, 6> GLStageLUT = {
 namespace Shader {
 Program::Impl::~Impl()
 {
-    glDeleteShader(GetHandle());
+    glDeleteProgram(GetHandle());
 }
 const Program::Handle& Program::Impl::GetHandle() const
 {
