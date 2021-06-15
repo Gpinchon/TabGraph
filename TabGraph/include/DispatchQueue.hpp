@@ -13,7 +13,8 @@
 #include <queue>
 #include <functional>
 
-struct DispatchQueue {
+class DispatchQueue {
+public:
     struct TaskIdentifier {
         uint16_t dispatchQueueID{ 0 };
         uint32_t taskID{ 0 };
