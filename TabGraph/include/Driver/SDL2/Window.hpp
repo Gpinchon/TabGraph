@@ -13,7 +13,8 @@
 
 struct SDL_Window;
 
-struct Window::Impl {
+class Window::Impl {
+public:
     using Handle = SDL_Window*;
     Impl(const std::string& name, const glm::ivec2& resolution, const Style style);
     Signal<Event::Window>& OnEvent(const Event::Window::Type type);

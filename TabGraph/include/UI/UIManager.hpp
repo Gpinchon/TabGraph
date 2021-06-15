@@ -8,7 +8,7 @@
 
 #include <glm/fwd.hpp>
 
-struct Window;
+class Window;
 
 namespace Renderer {
 class Context;

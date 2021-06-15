@@ -14,7 +14,8 @@
 #include <memory>
 #include <string>
 
-struct Window : Trackable {
+class Window : public Trackable {
+public:
     class Impl;
     enum class Style {
         None = 0x1, //Window has no decoration

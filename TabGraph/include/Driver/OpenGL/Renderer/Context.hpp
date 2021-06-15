@@ -9,10 +9,11 @@
 
 #include <memory>
 
-struct Window;
+class Window;
 
 namespace OpenGL {
-struct Context {
+class Context {
+public:
     using Handle = void*;
     Context(std::weak_ptr<Window> window, uint8_t versionMajor, uint8_t versionMinor);
     ~Context();

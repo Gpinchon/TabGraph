@@ -13,7 +13,7 @@
 #include <glm/glm.hpp> // for glm::vec2
 #include <memory> // for shared_ptr
 
-struct Window;
+class Window;
 class Texture;
 
 enum class BufferMask {

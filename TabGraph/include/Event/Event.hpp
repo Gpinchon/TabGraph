@@ -18,7 +18,7 @@
 #include <variant>
 #include <vector>
 
-struct Window;
+class Window;
 class Asset;
 
 struct Event {
@@ -194,7 +194,7 @@ struct Event {
         Event::TaskComplete>
         data;
     template <typename T>
-    const auto& Get() const
+    inline const auto& Get() const
     {
         return std::get<T>(data);
     }

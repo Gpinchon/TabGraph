@@ -21,7 +21,7 @@ class Framebuffer;
 class Texture2D;
 class Camera;
 class Scene;
-struct Window;
+class Window;
 
 /** @brief Renderer manages the graphical rendering and frame pacing */
 namespace Renderer {

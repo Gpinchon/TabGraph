@@ -13,7 +13,7 @@
 #include <vector>
 #include <glm/vec2.hpp>
 
-struct Window;
+class Window;
 class Texture;
 
 namespace OpenGL {
