@@ -20,17 +20,6 @@
 #include <memory> // for shared_ptr, __shared_ptr_access
 #include <thread> // for sleep_for
 
-#ifdef _WIN32
-#include <direct.h>
-#include <io.h> // for getcwd
-#else
-#include <sys/io.h> // for getcwd
-#endif
-
-#ifndef _getcwd
-#define _getcwd getcwd
-#endif //_getcwd
-
 #if MEDIALIBRARY == SDL2
 #include <Driver/SDL2/Engine.hpp>
 #endif //MEDIALIBRARY == SDL2
@@ -72,7 +61,7 @@ const std::filesystem::path Engine::GetProgramPath()
 
 const std::filesystem::path Engine::GetExecutionPath()
 {
-    return Impl::GetProgramPath();
+    return Impl::GetExecutionPath();
 }
 
 const std::filesystem::path Engine::GetResourcePath()
