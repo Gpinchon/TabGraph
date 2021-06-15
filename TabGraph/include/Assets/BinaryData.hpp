@@ -22,12 +22,17 @@ public:
     BinaryData(const std::vector<std::byte>&);
     ~BinaryData();
     /** The total byte length of the buffer. */
-    size_t GetByteLength() const;
-    /** Sets the buffer's byte length and RESIZE RAW DATA !!! */
-    void SetByteLength(size_t);
+    inline size_t GetByteLength() const
+    {
+        return _data.size();
+    }
+    inline void SetByteLength(size_t byteLength)
+    {
+        _data.resize(byteLength);
+    }
 
     template<typename T>
-    void PushBack(const T &data) {
+    inline void PushBack(const T &data) {
         SetByteLength(GetByteLength() + sizeof(T));
         Set(reinterpret_cast<const std::byte*>(&data), GetByteLength() - sizeof(T), sizeof(T));
     }
@@ -38,22 +43,24 @@ public:
      * @return 
     */
     template<typename T>
-    T& At(size_t index) {
+    inline T& At(size_t index) {
         return *Get(index * sizeof(T));
     }
+    template<typename T>
+    inline void Set(const T& data, size_t index) {
+        return Set(static_cast<std::byte*>(&data), index, sizeof(T));
+    }
 
-    void Set(const std::byte* data, size_t index, size_t size) {
+    inline void Set(const std::byte* data, size_t index, size_t size) {
         assert(index + size <= _data.size());
         std::memcpy(Get(index), data, size);
     }
-    std::byte* Get(size_t index) {
-        assert(index < _data.size());
-        return _data.data() + index;
+    inline std::byte* Get(size_t index) {
+        return &_data.at(index);
     }
 
 private:
     std::vector<std::byte> _data { 0 };
-    size_t _byteLength{ 0 };
     // Hérité via Component
     virtual std::shared_ptr<Component> _Clone() override
     {

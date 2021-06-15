@@ -8,27 +8,14 @@
 
 BinaryData::BinaryData(const std::vector<std::byte>& data)
     : _data(data)
-    , _byteLength(_data.size())
 {
 }
 
 BinaryData::BinaryData(size_t byteLength)
     : _data(byteLength)
-    , _byteLength(_data.size())
 {
 }
 
 BinaryData::~BinaryData()
 {
-}
-
-size_t BinaryData::GetByteLength() const
-{
-    return _byteLength;
-}
-
-void BinaryData::SetByteLength(size_t byteLength)
-{
-    _data.resize(byteLength);
-    _byteLength = byteLength;
 }
