@@ -25,6 +25,9 @@
 #include "Player.hpp"
 #include "Wall.hpp"
 
+#include <fstream>
+#include <sstream>
+
 Level::Level(const std::string& name, const glm::ivec2& size)
     : Scene(name)
     , _size(size)
@@ -55,31 +58,7 @@ Level::~Level()
 
 #include "Texture/Texture2D.hpp"
 
-std::shared_ptr<Level> Level::Create(const std::string& name, const glm::ivec2& size)
-{
-    auto level(Component::Create<Level>(name, size));
-    auto floorMesh = PlaneMesh::Create("FloorMesh", level->Size());
-    auto floorNode = Component::Create<Node>("FloorNode");
-    floorNode->SetPosition(glm::vec3(level->Size().x / 2.f, 0, level->Size().y / 2.f));
-    //auto light = DirectionnalLight::Create("MainLight", glm::vec3(1.f), glm::vec3(1.f), 1.f, true);
-    auto radius = size.x + size.y;
-    auto light = Component::Create<DirectionalLight>("MainLight", glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), true);
-    light->SetHalfSize(glm::vec3(size.x / 2.f, 1.5, size.y / 2.f));
-    light->SetPosition(glm::vec3(size.x / 2.f, 0, size.y / 2.f));
-    light->SetInfinite(false);
-    auto camera = Component::Create<OrbitCamera>("MainCamera", glm::pi<float>() / 2.f, 1, radius / 2.f);
-    camera->SetTarget(floorNode);
-    floorNode->SetComponent<Surface>(floorMesh);
-    level->SetCurrentCamera(camera);
-    level->Add(light);
-    level->Add(floorNode);
-    return level;
-}
-
-#include <fstream>
-#include <sstream>
-
-std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
+std::shared_ptr<Level> Level::Create(const std::filesystem::path& path)
 {
     std::ifstream file;
     file.open(path);
@@ -103,7 +82,22 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             maxLine = row.size();
     }
     auto size = glm::ivec2(map.size(), maxLine);
-    auto level = Create(path.string(), size);
+    auto level(Component::Create<Level>(path.string(), size));
+    auto floorMesh = PlaneMesh::Create("FloorMesh", level->Size());
+    auto floorNode = Component::Create<Node>("FloorNode");
+    floorNode->SetPosition(glm::vec3(level->Size().x / 2.f, 0, level->Size().y / 2.f));
+    //auto light = DirectionnalLight::Create("MainLight", glm::vec3(1.f), glm::vec3(1.f), 1.f, true);
+    auto radius = size.x + size.y;
+    auto light = Component::Create<DirectionalLight>("MainLight", glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), true);
+    light->SetHalfSize(glm::vec3(size.x / 2.f, 1.5, size.y / 2.f));
+    light->SetPosition(glm::vec3(size.x / 2.f, 0, size.y / 2.f));
+    light->SetInfinite(false);
+    auto camera = Component::Create<OrbitCamera>("MainCamera", glm::pi<float>() / 2.f, 1, radius / 2.f);
+    camera->SetTarget(floorNode);
+    floorNode->AddSurface(floorMesh);
+    level->SetCurrentCamera(camera);
+    level->Add(light);
+    level->Add(floorNode);
     //auto textureData = std::vector<glm::u8vec4>(size_t(size.x) * size.y);
     auto floorImage = Component::Create<Image>(size, Pixel::SizedFormat::Uint8_NormalizedRGBA);
     for (auto y = 0; y < size.y; ++y) {
@@ -111,7 +105,7 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             auto index = x + y * size.x;
             auto color1 = glm::vec4(0.133333, 0.270588, 0.000000, 1);
             auto color0 = glm::vec4(0.192156, 0.388235, 0.000000, 1);
-            auto color { index % 2 ? color1 : color0 };
+            auto color{ index % 2 ? color1 : color0 };
             floorImage->SetColor(glm::ivec2(x, y), color);
         }
     }
@@ -122,7 +116,7 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             case 1: {
                 auto wall = Wall::Create(*level.get());
                 level->SetGameEntityPosition(glm::ivec2(x, y), wall);
-                auto color { glm::vec4(0.274509, 0.050980, 0.050980, 1) };
+                auto color{ glm::vec4(0.274509, 0.050980, 0.050980, 1) };
                 floorImage->SetColor(glm::ivec2(x, y), color);
                 break;
             }
@@ -137,29 +131,26 @@ std::shared_ptr<Level> Level::Parse(const std::filesystem::path path)
             }
         }
     }
-    auto floorImageAsset { Component::Create<Asset>() };
+    auto floorImageAsset{ Component::Create<Asset>() };
     floorImageAsset->AddComponent(floorImage);
     floorImageAsset->SetLoaded(true);
     auto floorTexture = Component::Create<Texture2D>(floorImageAsset);
     floorTexture->GetTextureSampler()->SetMagFilter(TextureSampler::Filter::Nearest);
     floorTexture->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::Nearest);
-    auto floorMesh = std::static_pointer_cast<Mesh>(level->GetComponentInChildrenByName<Surface>("FloorMesh"));
     floorMesh->GetGeometryMaterial(0)->SetTextureDiffuse(floorTexture);
     auto skybox = Component::Create<Skybox>("Skybox");
-    auto diffuseMap { Component::Create<Asset>(path.parent_path() / "env.png") };
+    auto diffuseMap{ Component::Create<Asset>(path.parent_path() / "env.png") };
     skybox->SetTexture(Component::Create<TextureCubemap>(diffuseMap));
     level->SetSkybox(skybox);
 
-    auto lightHDR { Component::Create<HDRLight>(diffuseMap) };
+    auto lightHDR{ Component::Create<HDRLight>(diffuseMap) };
     level->Add(lightHDR);
-
     for (auto i = 0u; i < Game::PlayerNumber(); ++i) {
         auto player{ Player::Create(*level.get(), glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f)) };
         player->SetPosition(level->SpawnPoint());
         level->Add(player);
         level->_players.push_back(player);
     }
-
     return level;
 }
 

@@ -4,8 +4,9 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2021-02-01 20:47:00
 */
-#include "Assets/Uri.hpp"
-#include "Tools/Base.hpp"
+#include <Assets/Uri.hpp>
+#include <Tools/Base.hpp>
+
 #include <array> // for array
 #include <codecvt>
 #include <ctype.h> // for isalnum
@@ -14,6 +15,7 @@
 #include <sstream> // for basic_istream
 #include <string> // for getline
 
+namespace TabGraph::Assets {
 Uri::Uri(const std::string& rawUri)
 {
     if (rawUri.length() == 0)
@@ -325,9 +327,9 @@ DataUri::operator std::string()
 std::vector<std::byte> DataUri::Decode() const
 {
     if (GetBase64())
-        return Base64::Decode(GetData());
+        return Tools::Base64::Decode(GetData());
     else
-        return Base32::Decode(GetData());
+        return Tools::Base32::Decode(GetData());
 }
 
 std::ostream& operator<<(std::ostream& os, const Uri& uri)
@@ -335,3 +337,4 @@ std::ostream& operator<<(std::ostream& os, const Uri& uri)
     os << std::string(uri);
     return os;
 }
+};

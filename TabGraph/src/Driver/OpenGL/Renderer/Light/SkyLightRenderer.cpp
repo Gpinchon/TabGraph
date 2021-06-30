@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-04-11 16:24:38
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-24 18:52:52
+* @Last Modified time: 2021-06-19 10:02:54
 */
 
 #include <Camera/Camera.hpp>
@@ -10,6 +10,7 @@
 #include <Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp>
 #include <Driver/OpenGL/Texture/Framebuffer.hpp>
 #include <Light/SkyLight.hpp>
+#include <Renderer/FrameRenderer.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Surface/GeometryRenderer.hpp>
 #include <Shader/Program.hpp>

@@ -18,6 +18,7 @@
 #include <Buffer/BufferView.hpp>
 #include <Engine.hpp>
 #include <Material/Material.hpp>
+#include <Node.hpp>
 #include <Parser/InternalTools.hpp>
 #include <Physics/BoundingAABB.hpp>
 #include <Physics/BoundingElement.hpp>
@@ -25,6 +26,7 @@
 #include <Surface/Geometry.hpp>
 #include <Surface/Mesh.hpp>
 #include <Tools/Tools.hpp>
+#include <Object.hpp>
 
 #include <algorithm>
 #include <errno.h>
@@ -100,7 +102,7 @@ static int get_vi(const std::vector<glm::vec3>& v, const std::string& str)
 
 static auto parse_indice(ObjContainer& p, const std::vector<std::string>& split)
 {
-    std::array<std::array<int, 3>, 3> vindex;
+    std::array<std::array<int, 3>, 3> vindex{};
     for (auto i = 0; i < 3; i++) {
         vindex.at(i).at(0) = -1;
         vindex.at(i).at(1) = -1;
@@ -192,9 +194,9 @@ static void push_values(ObjContainer& p, glm::vec3* v, glm::vec3* vn, glm::vec2*
 
 void parse_v(ObjContainer& p, const std::vector<std::string>& split, std::vector<glm::vec2> in_vt)
 {
-    glm::vec3 v[3];
-    glm::vec3 vn[3];
-    glm::vec2 vt[3];
+    glm::vec3 v[3]{};
+    glm::vec3 vn[3]{};
+    glm::vec2 vt[3]{};
     short i;
 
     auto vindex { parse_indice(p, split) };
@@ -233,7 +235,7 @@ void parse_vg(ObjContainer& p, const std::string& name = "")
 
 void correct_vt(glm::vec2* vt)
 {
-    glm::vec3 v[3];
+    glm::vec3 v[3]{};
     glm::vec3 texnormal { 0, 0, 0 };
 
     v[0] = glm::vec3(vt[0], 0.f);
@@ -379,12 +381,11 @@ void ParseOBJ(std::shared_ptr<Asset> container)
     p.path = container->GetUri().DecodePath();
     start_obj_parsing(p, p.path.string());
     container += p.container;
-    auto scene(Component::Create<Scene>(p.path.string()));
+    auto scene(std::make_shared<Scene>(p.path.string()));
     auto node(Component::Create<Node>(p.path.string() + "_node"));
     for (const auto& mesh : container->GetComponents<Mesh>()) {
-        node->AddComponent<Surface>(mesh);
+        scene->GetRootNode()->AddSurface(mesh);
     }
-    scene->AddRootNode(node);
-    container->AddComponent(scene);
+    container->scenes.push_back(scene);
     container->SetLoaded(true);
 }

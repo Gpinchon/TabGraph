@@ -18,9 +18,18 @@
 #include <variant>
 #include <vector>
 
+////////////////////////////////////////////////////////////////////////////////
+//Forward declarations
+////////////////////////////////////////////////////////////////////////////////
 class Window;
+namespace TabGraph::Assets {
 class Asset;
+}
 
+////////////////////////////////////////////////////////////////////////////////
+//Class declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Events {
 struct Event {
     enum class Type {
         Unknown = -1,
@@ -166,7 +175,7 @@ struct Event {
     };
     struct Asset {
         bool loaded { false };
-        std::shared_ptr<::Asset> asset;
+        std::shared_ptr<Assets::Asset> asset;
     };
     /**
      * @brief emitted when a task dispatched through a DispatchQueue gets completed.
@@ -199,3 +208,4 @@ struct Event {
         return std::get<T>(data);
     }
 };
+}

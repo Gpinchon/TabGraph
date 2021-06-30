@@ -22,7 +22,7 @@ int main(int /*argc*/, char const** /*argv*/)
     Config::Global().Parse(Engine::GetResourcePath() / "config.ini");
     Game::Init();
     Game::AddPlayer();
-    auto level = Level::Parse(Engine::GetResourcePath() / "maps/test.map");
+    auto level = Level::Create(Engine::GetResourcePath() / "maps/test.map");
     Game::SetCurrentLevel(level);
     Game::Start();
     return 0;

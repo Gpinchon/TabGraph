@@ -6,19 +6,23 @@
 */
 #pragma once
 
-#include <Component.hpp>
-#include <Event/Signal.hpp>
+#include <Core/Inherit.hpp>
+#include <Core/Object.hpp>
 #include <Texture/PixelUtils.hpp>
+#include <Property.hpp>
 
-#include <filesystem>
-#include <glm/glm.hpp>
-#include <thread>
+#include <glm/vec4.hpp>
+#include <glm/vec2.hpp>
 #include <vector>
 
+////////////////////////////////////////////////////////////////////////////////
+//Class declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Assets {
 /**
  * @brief Describes an image file located at the path used in the constructor
 */
-class Image : public Component {
+class Image : public Core::Inherit<Core::Object, Image> {
 public:
     enum class SamplingFilter {
         Nearest,
@@ -28,8 +32,6 @@ public:
     READONLYPROPERTY(Pixel::Description, PixelDescription);
 
 public:
-    Pixel::Color Sample(const glm::ivec2 texCoord);
-    Pixel::Color Sample(const glm::vec2 uv, SamplingFilter = SamplingFilter::Nearest);
     static constexpr auto AssetType = "Image";
     /**
      * @brief Constructs a new Image instance
@@ -54,7 +56,7 @@ public:
      * @param filter the filtering to be used for sampling, default is nearest
      * @return the unpacked color
     */
-    glm::vec4 GetColor(const glm::vec2& texCoord, SamplingFilter filter = SamplingFilter::Nearest);
+    Pixel::Color GetColor(const glm::vec2& texCoord, SamplingFilter filter = SamplingFilter::Nearest);
     /**
      * @brief Sets the pixel corresponding to tesCoord to the specified color
      * @param texCoord the texture coordinates to be set
@@ -72,20 +74,14 @@ public:
      * @param filter : the filter to be used for resizing
     */
     void SetSize(const glm::ivec2& size, SamplingFilter filter = SamplingFilter::Nearest);
-    /**
-     * @brief This image's size
-     * @return the image's size
-    */
-    glm::ivec2 GetSize() const;
+    /** @return the image's size */
+    glm::ivec2 GetPixelSize() const {
+        return _size;
+    }
 
 private:
     std::byte* _GetPointer(glm::ivec2 texCoord);
     std::vector<std::byte> _data;
     glm::ivec2 _size { 0 };
-
-    // Hérité via AssetData
-    virtual std::shared_ptr<Component> _Clone() override
-    {
-        return std::static_pointer_cast<Component>(shared_from_this());
-    }
 };
+}

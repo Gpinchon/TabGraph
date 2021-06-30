@@ -2,16 +2,17 @@
 * @Author: gpinchon
 * @Date:   2021-04-11 20:53:00
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-04-11 20:53:22
+* @Last Modified time: 2021-06-19 10:02:37
 */
 
 #include <Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp>
 #include <Light/PointLight.hpp>
-#include <Surface/SphereMesh.hpp>
-#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Renderer/FrameRenderer.hpp>
 #include <Renderer/Renderer.hpp>
+#include <Renderer/Surface/GeometryRenderer.hpp>
 #include <Shader/Program.hpp>
 #include <Shader/Stage.hpp>
+#include <Surface/SphereMesh.hpp>
 #include <Texture/Framebuffer.hpp>
 #include <Texture/Texture2D.hpp>
 
@@ -38,7 +39,7 @@ static inline auto PointLightVertexCode()
     auto lightVertexCode =
 #include "Lights/TransformGeometry.vert"
         ;
-    Shader::Stage::Code shaderCode = Shader::Stage::Code{ lightVertexCode, "TransformGeometry();" };
+    Shader::Stage::Code shaderCode = Shader::Stage::Code { lightVertexCode, "TransformGeometry();" };
     return shaderCode;
 }
 
@@ -50,9 +51,7 @@ static inline auto PointLightFragmentCode()
     auto lightFragmentShader =
 #include "Lights/DeferredPointLight.frag"
         ;
-    Shader::Stage::Code shaderCode =
-        Shader::Stage::Code{ deferred_frag_code, "FillFragmentData();" } +
-        Shader::Stage::Code{ lightFragmentShader, "Lighting();" };
+    Shader::Stage::Code shaderCode = Shader::Stage::Code { deferred_frag_code, "FillFragmentData();" } + Shader::Stage::Code { lightFragmentShader, "Lighting();" };
     return shaderCode;
 }
 
@@ -65,7 +64,7 @@ static inline auto PointLightShader()
     return shader;
 }
 
-PointLightRenderer::PointLightRenderer(PointLight &light)
+PointLightRenderer::PointLightRenderer(PointLight& light)
     : LightRenderer(light)
 {
     _deferredShader = PointLightShader();

@@ -520,7 +520,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
         if (node.HasMember("name"))
             newNode->SetName(node["name"].GetString());
         if (node.HasMember("matrix")) {
-            glm::mat4 matrix;
+            glm::mat4 matrix{};
             for (unsigned i(0); i < node["matrix"].GetArray().Size() && i < glm::uint(matrix.length() * 4); i++)
                 matrix[i / 4][i % 4] = node["matrix"].GetArray()[i].GetFloat();
             glm::vec3 scale;
@@ -535,7 +535,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
         }
         if (node.HasMember("translation")) {
             const auto& position(node["translation"].GetArray());
-            glm::vec3 positionVec3;
+            glm::vec3 positionVec3{};
             positionVec3[0] = position[0].GetFloat();
             positionVec3[1] = position[1].GetFloat();
             positionVec3[2] = position[2].GetFloat();
@@ -543,7 +543,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
         }
         if (node.HasMember("rotation")) {
             const auto& rotation(node["rotation"].GetArray());
-            glm::quat rotationQuat;
+            glm::quat rotationQuat{};
             rotationQuat[0] = rotation[0].GetFloat();
             rotationQuat[1] = rotation[1].GetFloat();
             rotationQuat[2] = rotation[2].GetFloat();
@@ -552,7 +552,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
         }
         if (node.HasMember("scale")) {
             const auto& scale(node["scale"].GetArray());
-            glm::vec3 scaleVec3;
+            glm::vec3 scaleVec3{};
             scaleVec3[0] = scale[0].GetFloat();
             scaleVec3[1] = scale[1].GetFloat();
             scaleVec3[2] = scale[2].GetFloat();
@@ -660,17 +660,17 @@ static inline auto SetParenting(const rapidjson::Document& document,
         auto node(nodes.at(nodeIndex));
         if (gltfNode.HasMember("mesh")) {
             auto mesh(meshes.at(gltfNode["mesh"].GetInt()));
-            node->SetComponent<Surface>(mesh);
+            node->AddSurface(mesh);
             if (gltfNode.HasMember("skin"))
                 mesh->SetComponent(meshSkins.at(gltfNode["skin"].GetInt()));
         }
         if (gltfNode.HasMember("camera")) {
-            auto camera = cameras.at(gltfNode["camera"].GetInt());
+            auto &camera = cameras.at(gltfNode["camera"].GetInt());
             node->AddChild(camera);
         }
         if (gltfNode.HasMember("children")) {
             for (const auto& child : gltfNode["children"].GetArray()) {
-                auto childNode = nodes.at(child.GetInt());
+                auto &childNode = nodes.at(child.GetInt());
                 node->AddChild(nodes.at(child.GetInt()));
                 std::cout << "Node parenting " << node->GetName() << " -> " << nodes.at(child.GetInt())->GetName() << std::endl;
             }
@@ -689,9 +689,9 @@ static inline auto ParseScenes(
     int sceneIndex = 0;
     for (const auto& scene : scenes) {
         std::cout << "found scene" << std::endl;
-        auto newScene(Component::Create<Scene>(std::to_string(sceneIndex)));
+        auto newScene(std::make_shared<Scene>(std::to_string(sceneIndex)));
         for (const auto& node : scene["nodes"].GetArray()) {
-            newScene->AddRootNode(nodes.at(node.GetInt()));
+            newScene->GetRootNode()->AddChild(nodes.at(node.GetInt()));
             std::cout << nodes.at(node.GetInt())->GetName() << std::endl;
         }
         for (const auto& animation : animations) {
@@ -818,7 +818,7 @@ void ParseGLTF(std::shared_ptr<Asset> container)
     for (const auto& animation : animations)
         container->AddComponent(animation);
     for (const auto& scene : scenes)
-        container->AddComponent(scene);
+        container->scenes.push_back(scene);
     SetParenting(document, nodes, meshes, skins, cameras);
     container->SetLoaded(true);
 }

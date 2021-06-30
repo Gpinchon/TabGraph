@@ -2,17 +2,18 @@
 * @Author: gpinchon
 * @Date:   2021-04-11 14:44:44
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-04 20:02:25
+* @Last Modified time: 2021-06-19 10:02:30
 */
 
-#include <Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp>
 #include <Assets/Asset.hpp>
 #include <Assets/AssetsParser.hpp>
 #include <Assets/Image.hpp>
 #include <Camera/Camera.hpp>
+#include <Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp>
 #include <Driver/OpenGL/Texture/Framebuffer.hpp>
 #include <Light/HDRLight.hpp>
 #include <Light/LightProbe.hpp>
+#include <Renderer/FrameRenderer.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Surface/GeometryRenderer.hpp>
 #include <Shader/Program.hpp>
@@ -157,10 +158,8 @@ void HDRLightRenderer::_Update(HDRLight& light)
     if (!_dirty)
         return;
     auto asset { light.GetComponent<Asset>() };
-    AssetsParser::AddParsingTask({
-        AssetsParser::ParsingTask::Type::Sync,
-        asset
-    });
+    AssetsParser::AddParsingTask({ AssetsParser::ParsingTask::Type::Sync,
+        asset });
     assert(asset->GetAssetType() == Image::AssetType);
     auto image { asset->GetComponent<Image>() };
     _SHDiffuse = s_SH.ProjectFunction(
@@ -172,7 +171,7 @@ void HDRLightRenderer::_Update(HDRLight& light)
                 uv.y * image->GetSize().y
             };
             texCoord = glm::clamp(texCoord, glm::ivec2(0), image->GetSize() - 1);
-            glm::vec3 color{ Pixel::LinearToSRGB(image->GetColor(texCoord)) };
+            glm::vec3 color { Pixel::LinearToSRGB(image->GetColor(texCoord)) };
             return glm::clamp(color, glm::vec3(0), glm::vec3(1));
         });
     light.RemoveComponent(asset);

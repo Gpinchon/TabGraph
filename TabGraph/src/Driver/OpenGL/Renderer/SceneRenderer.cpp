@@ -13,7 +13,7 @@
 #include <Surface/Surface.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Light/LightRenderer.hpp>
-#include <Renderer/Surface/SurfaceRenderer.hpp>
+#include <Renderer/Surface/ShapeRenderer.hpp>
 #include <Scene/Scene.hpp>
 #include <Texture/Framebuffer.hpp>
 #include <Texture/Texture2D.hpp>
@@ -34,18 +34,17 @@ void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
         _renderList.clear();
         auto fixedOptions = options;
         fixedOptions.delta = _fixedDelta;
-        for (const auto& animation : _scene.GetComponents<Animation>()) {
+        for (const auto& animation : _scene.GetAnimations()) {
             if (animation->Playing())
                 animation->Advance(_fixedDelta);
         }
-        for (const auto& node : _scene.GetComponents<Node>())
-            _UpdateRenderList(node);
+        _UpdateRenderList(_scene.GetRootNode());
         for (auto& transform : _nodeLastTransform) {
             if (_nodesToKeep.count(transform.first) == 0)
                 _nodeLastTransform.erase(transform.first);
         }
-        for (const auto& surfaceItr : _renderList) {
-            auto surface{ surfaceItr.first.lock() };
+        for (const auto& surfaceState : _renderList) {
+            auto surface{ surfaceState.surface.lock() };
             Renderer::OnFrameBegin(surface, fixedOptions);
         }
     }
@@ -58,7 +57,7 @@ void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
         bool first = true;
         glDisable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
-        for (const auto& light : _scene.GetComponents<Light>()) {
+        for (const auto& light : _scene.GetRootNode()->GetComponents<Light>()) {
             for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
                 Renderer::UpdateLightProbe(light, options, lightProbe);
             }
@@ -77,11 +76,9 @@ void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
 
 void SceneRenderer::Render(const ::Renderer::Options& options, const glm::mat4& rootMatrix)
 {
-    for (const auto& surfaceItr : _renderList) {
-        auto surface { surfaceItr.first.lock() };
-        for (const auto& surfaceState : surfaceItr.second) {
-            Renderer::Render(surface, options, surfaceState.transform, surfaceState.prevTransform);
-        }
+    for (const auto& surfaceState : _renderList) {
+        auto surface { surfaceState.surface.lock() };
+        Renderer::Render(surface, options, surfaceState.transform, surfaceState.prevTransform);
     }
 }
 
@@ -89,7 +86,7 @@ void SceneRenderer::OnFrameEnd(const ::Renderer::Options& options)
 {
     if (_fixedDelta > 0.015) {
         for (const auto& surfaceItr : _renderList) {
-            auto surface{ surfaceItr.first.lock() };
+            auto surface{ surfaceItr.surface.lock() };
             Renderer::OnFrameEnd(surface, options);
         }
         _fixedDelta = 0;
@@ -113,10 +110,14 @@ LightProbe& SceneRenderer::GetClosestLightProbe(const glm::vec3& position)
 void SceneRenderer::_UpdateRenderList(std::shared_ptr<Node> root)
 {
     _nodesToKeep.insert(root);
-    for (auto& surface : root->GetComponents<Surface>()) {
-        _renderList[surface].push_back({ root->WorldTransformMatrix(),
+    //for (auto i = 0; i < root->GetSurfaceNbr(); ++i) {
+    //    auto surface{ root->GetSurface(i) };
+    for (const auto &surface : root->GetSurfaces()) {
+        _renderList.push_back({
+            root->WorldTransformMatrix(),
             _nodeLastTransform[root],
-            root });
+            surface
+        });
         _nodeLastTransform[root] = root->WorldTransformMatrix();
     }
     for (auto& node : root->GetChildren()) {

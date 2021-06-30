@@ -18,6 +18,7 @@
 #include <set>
 #include <string>
 
+namespace TabGraph::Assets {
 static std::mutex s_parsingTaskMutex;
 static std::condition_variable s_cv;
 static std::set<std::weak_ptr<Asset>, std::owner_less<>> s_parsingAssets;
@@ -36,9 +37,9 @@ std::map<AssetsParser::FileExtension, AssetsParser::MimeType>& _getMimesExtensio
 
 inline void NotifyLoaded(std::shared_ptr<Asset> asset)
 {
-    Event event;
-    event.type = Event::Type::AssetLoaded;
-    event.data = Event::Asset {
+    Events::Event event;
+    event.type = Events::Event::Type::AssetLoaded;
+    event.data = Events::Event::Asset{
         asset->GetLoaded(),
         asset
     };
@@ -57,7 +58,7 @@ void AssetsParser::AddParsingTask(const ParsingTask& parsingTask)
         if (parsingTask.type == ParsingTask::Type::Sync) {
             s_cv.wait(lock, [parsingTask] {
                 return s_parsingAssets.count(parsingTask.asset) == 0;
-            });
+                });
         }
         else if (s_parsingAssets.count(sharedAsset) > 0)
             return;
@@ -68,14 +69,15 @@ void AssetsParser::AddParsingTask(const ParsingTask& parsingTask)
         std::unique_lock<std::mutex> lock(sharedAsset->GetLock());
         AssetsParser::Parse(sharedAsset);
         NotifyLoaded(sharedAsset);
-    } else {
-        auto weakAsset { parsingTask.asset };
+    }
+    else {
+        auto weakAsset{ parsingTask.asset };
         DispatchQueue::ApplicationDispatchQueue().Dispatch([weakAsset] {
-            auto sharedAsset { weakAsset.lock() };
+            auto sharedAsset{ weakAsset.lock() };
             std::unique_lock<std::mutex> lock(sharedAsset->GetLock());
             AssetsParser::Parse(sharedAsset);
             NotifyLoaded(sharedAsset);
-        });
+            });
     }
 }
 
@@ -92,7 +94,7 @@ AssetsParser::MimeType AssetsParser::GetMimeFromExtension(const FileExtension& e
 
 AssetsParser& AssetsParser::Add(const MimeType& mimeType, ParsingFunction parsingFunction)
 {
-    auto parser { new AssetsParser(mimeType, parsingFunction) };
+    auto parser{ new AssetsParser(mimeType, parsingFunction) };
     _getParsers()[mimeType].reset(parser);
     return *parser;
 }
@@ -124,4 +126,5 @@ AssetsParser::ParsingFunction AssetsParser::_get(const MimeType& mime)
 {
     auto& parser = _getParsers()[mime];
     return parser ? parser->_parsingFunction : nullptr;
+}
 }

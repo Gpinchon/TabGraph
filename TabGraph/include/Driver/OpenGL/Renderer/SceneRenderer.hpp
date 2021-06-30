@@ -6,8 +6,8 @@
 */
 #pragma once
 
-#include "Renderer/SceneRenderer.hpp"
-#include "Light/LightProbe.hpp"
+#include <Renderer/SceneRenderer.hpp>
+#include <Light/LightProbe.hpp>
 
 #include <glm/mat4x4.hpp>
 #include <array>
@@ -16,12 +16,16 @@
 #include <map>
 #include <set>
 
-class Surface;
+namespace TabGraph {
+class Shape;
+namespace Nodes {
 class Node;
-class LightProbe;
 class Scene;
+};
+class LightProbe;
+};
 
-namespace Renderer {
+namespace TabGraph::Renderer {
 struct Options;
 class SceneRenderer {
 public:
@@ -34,13 +38,12 @@ public:
 
 private:
     Scene& _scene;
-    struct SurfaceState {
+    struct ShapeState {
         glm::mat4 transform;
-        glm::mat4 prevTransform;
-        std::shared_ptr<Node> node;
+        std::weak_ptr<Shape> surface;
     };
     void _UpdateRenderList(std::shared_ptr<Node> root);
-    std::map<std::weak_ptr<Surface>, std::vector<SurfaceState>, std::owner_less<>> _renderList;
+    std::vector<ShapeState> _renderList;
     std::map<std::weak_ptr<Node>, glm::mat4, std::owner_less<>> _nodeLastTransform;
     std::set<std::weak_ptr<Node>, std::owner_less<>> _nodesToKeep;
     LightProbeGroup _lightProbeGroup{ 1 };

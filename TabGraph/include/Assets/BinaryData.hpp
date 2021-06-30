@@ -6,21 +6,29 @@
 */
 #pragma once
 
-#include "Component.hpp"
+#include <Core/Inherit.hpp>
+#include <Core/Object.hpp>
 
 #include <filesystem>
 #include <memory>
 #include <vector>
 #include <iterator>
+#include <cassert>
 
+namespace TabGraph::Assets {
 /** A buffer points to binary geometry, animation, or skins. */
-class BinaryData : public Component {
+class BinaryData : public Core::Inherit<Core::Object, BinaryData> {
 public:
     static constexpr auto AssetType = "BinaryData";
     BinaryData() = delete;
-    BinaryData(size_t byteLength);
-    BinaryData(const std::vector<std::byte>&);
-    ~BinaryData();
+    BinaryData(size_t byteLength)
+        : _data(byteLength)
+    {
+    }
+    BinaryData(const std::vector<std::byte>& data)
+        : _data(data)
+    {
+    }
     /** The total byte length of the buffer. */
     inline size_t GetByteLength() const
     {
@@ -61,9 +69,5 @@ public:
 
 private:
     std::vector<std::byte> _data { 0 };
-    // Hérité via Component
-    virtual std::shared_ptr<Component> _Clone() override
-    {
-        return std::static_pointer_cast<Component>(shared_from_this());
-    }
 };
+}

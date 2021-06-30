@@ -60,10 +60,11 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Shader/Program.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Context.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Renderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/FrameRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/SceneRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Surface/MeshRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Surface/SkyboxRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Shapes/GeometryRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Shapes/MeshRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Shapes/SkyboxRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp
@@ -95,10 +96,11 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Shader/Program.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Context.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Renderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/FrameRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/SceneRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/GeometryRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/MeshRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Surface/SkyboxRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Shapes/GeometryRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Shapes/MeshRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Shapes/SkyboxRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/HDRLightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Renderer/Light/SkyLightRenderer.cpp
@@ -125,10 +127,10 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 endif (RenderingAPI STREQUAL "OpenGL")
 
 set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationChannel.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/Animation.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationInterpolator.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Animation/AnimationSampler.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Animation.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Channel.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Interpolator.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Sampler.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/AssetsParser.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Asset.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/BinaryData.hpp
@@ -137,13 +139,14 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/brdfLUT.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferAccessor.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferView.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/Camera.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/FPSCamera.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Camera/OrbitCamera.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/Camera.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/FPS.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/Orbit.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Common.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Component.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/ComputeObject.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Config.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Core/Inherit.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Core/Object.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DispatchQueue.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
@@ -168,16 +171,18 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/MaterialExtension.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/MetallicRoughness.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/SpecularGlossiness.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Surface/CapsuleMesh.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Surface/CubeMesh.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Surface/Geometry.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Surface/Mesh.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Surface/MeshSkin.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Surface/PlaneMesh.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Surface/Skybox.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Surface/SphereMesh.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Node.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Object.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Node.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Renderable.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Scene.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Geometry.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Mesh.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/MeshSkin.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Generators/CapsuleMesh.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Generators/CubeMesh.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Generators/PlaneMesh.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Generators/SphereMesh.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Skybox.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Shape.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/BoundingAABB.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/BoundingBox.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/BoundingElement.hpp
@@ -195,11 +200,15 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Property.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Quadtree.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Renderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/FrameRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/SceneRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Surface/GeometryRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Surface/SurfaceRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Shapes/GeometryRenderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Shapes/ShapeRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Light/LightRenderer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Scene/Scene.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Visitors/Visitor.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Visitors/NodeVisitor.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Visitors/SearchVisitor.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Visitors/CullVisitor.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Global.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Program.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shader/Stage.hpp
@@ -229,20 +238,16 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 )
 
 set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationChannel.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/Animation.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationInterpolator.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Animation/AnimationSampler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Animations/Animation.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Asset.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/AssetsParser.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/BinaryData.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Image.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Uri.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferAccessor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferView.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/Camera.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/FPSCamera.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Camera/OrbitCamera.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/Camera.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/FPS.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/Orbit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
@@ -263,17 +268,15 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MaterialExtension.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MetallicRoughness.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/SpecularGlossiness.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Surface/CapsuleMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Surface/CubeMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Surface/Geometry.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Surface/Mesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Surface/MeshSkin.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Surface/PlaneMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Surface/Skybox.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Surface/SphereMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Surface/Surface.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Node.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Object.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Geometry.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Shape.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Skybox.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Mesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/MeshSkin.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Generators/CapsuleMesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Generators/CubeMesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Generators/PlaneMesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Generators/SphereMesh.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingAABB.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingBox.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingElement.cpp
@@ -287,12 +290,19 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/RigidBody.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/SimplexSolver.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Quadtree.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Renderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/FrameRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SceneRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Surface/GeometryRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Surface/SurfaceRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Shapes/GeometryRenderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Shapes/ShapeRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/LightRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/Scene.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Object.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Nodes/Node.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Nodes/Renderable.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Nodes/Scene.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Visitors/CullVisitor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Visitors/NodeVisitor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Visitors/SearchVisitor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Global.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Program.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shader/Stage.cpp

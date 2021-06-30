@@ -8,6 +8,7 @@
 #include <Driver/SDL2/Engine.hpp>
 #include <Event/EventsManager.hpp>
 #include <Renderer/Renderer.hpp>
+#include <Renderer/FrameRenderer.hpp>
 
 #include <SDL_filesystem.h>
 #include <SDL_timer.h>

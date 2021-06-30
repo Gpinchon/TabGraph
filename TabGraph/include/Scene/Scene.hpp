@@ -6,9 +6,8 @@
 */
 #pragma once
 
-#include "Common.hpp"
-#include "Component.hpp"
-#include "Node.hpp"
+#include <Common.hpp>
+#include <Object.hpp>
 
 #include <glm/vec3.hpp>
 #include <memory>
@@ -23,6 +22,9 @@ class Animation;
 class BoundingAABB;
 class RigidBody;
 class Skybox;
+class PhysicsEngine;
+class Node;
+
 namespace Renderer {
 class SceneRenderer;
 struct SceneRendererDeleter
@@ -34,34 +36,45 @@ struct SceneRendererDeleter
 /**
  * @brief scene container
  */
-class Scene : public Component {
+class Scene : public Object {
 public:
     Renderer::SceneRenderer& GetRenderer();
     Scene(const std::string& name);
     Scene(const Scene& other);
-    std::shared_ptr<Camera> CurrentCamera() const;
-    void SetCurrentCamera(std::shared_ptr<Camera>);
     ~Scene() = default;
-    void AddRootNode(std::shared_ptr<Node>);
     void Remove(std::shared_ptr<Node>);
-    void Add(std::shared_ptr<Node>);
     void Add(std::shared_ptr<Animation>);
     void Add(std::shared_ptr<RigidBody>);
     std::shared_ptr<BoundingAABB> GetLimits() const;
-    std::shared_ptr<Skybox> GetSkybox() const;
-    void SetSkybox(const std::shared_ptr<Skybox>& env);
-    glm::vec3 Up() const;
-    void SetUp(glm::vec3);
-    Signal<std::shared_ptr<Skybox>> SkyboxChanged;
+    inline auto GetRootNode() const {
+        return _rootNode;
+    }
+    inline auto& GetAnimations() const {
+        return _animations;
+    }
+    inline auto GetCamera() const {
+        return _camera.lock();
+    }
+    inline auto GetSkybox() const {
+        return _skybox.lock();
+    }
+    void SetCamera(std::shared_ptr<Camera> camera);
+    void SetSkybox(std::shared_ptr<Skybox> skybox);
+
+    inline glm::vec3 Up() const {
+        return _up;
+    }
+    inline void SetUp(const glm::vec3& up) {
+        _up = up;
+    }
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override
-    {
-        return Component::Create<Scene>(*this);
-    }
+    std::shared_ptr<Node> _rootNode;
+    std::shared_ptr<PhysicsEngine> _physicsEngine;
     glm::vec3 _up { Common::Up() };
     std::shared_ptr<BoundingAABB> _aabb { nullptr };
-    int64_t _currentCamera { -1 };
-    int64_t _skyboxIndex { -1 };
     std::unique_ptr<Renderer::SceneRenderer, Renderer::SceneRendererDeleter> _renderer;
+    std::weak_ptr<Camera> _camera;
+    std::weak_ptr<Skybox> _skybox;
+    std::set<std::shared_ptr<Animation>> _animations;
 };

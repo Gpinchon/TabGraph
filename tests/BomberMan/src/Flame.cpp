@@ -48,7 +48,7 @@ std::shared_ptr<Flame> Flame::Create(Level& level, const glm::ivec2& position)
     auto flame = Component::Create<Flame>(level);
     static auto flameAsset = CreateFlameAsset();
     for (const auto& mesh : flameAsset)
-        flame->AddComponent<Surface>(mesh);
+        flame->AddSurface(mesh);
     flame->SetScale(glm::vec3(0.5));
     level.SetGameEntityPosition(position, flame);
     return flame;

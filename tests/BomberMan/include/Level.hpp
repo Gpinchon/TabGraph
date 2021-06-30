@@ -17,8 +17,7 @@ class Level : public Scene {
 public:
     Level(const std::string& name, const glm::ivec2& size);
     ~Level();
-    static std::shared_ptr<Level> Parse(const std::filesystem::path path);
-    static std::shared_ptr<Level> Create(const std::string& name, const glm::ivec2& size);
+    static std::shared_ptr<Level> Create(const std::filesystem::path& path);
     glm::ivec2 Size() const;
     void SetGameEntity(glm::ivec2 position, std::shared_ptr<GameEntity> entity);
     void SetGameEntityPosition(glm::ivec2 position, std::shared_ptr<GameEntity> entity);

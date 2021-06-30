@@ -10,6 +10,7 @@
 #include <map>
 #include <filesystem>
 
+namespace TabGraph::Assets {
 /**
  * @brief Parses Uri to make it more understandable to humans
  * This ignores spaces on purpose so make sure to convert them to %20
@@ -89,3 +90,4 @@ private:
     std::map<std::string, std::string> _parameters {};
     std::string _data {};
 };
+}

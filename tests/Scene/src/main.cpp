@@ -24,6 +24,7 @@
 #include <Light/PointLight.hpp>
 #include <Light/SkyLight.hpp>
 #include <Material/Material.hpp>
+#include <Renderer/FrameRenderer.hpp>
 #include <Scene/Scene.hpp>
 #include <StackTracer.hpp>
 #include <Surface/Skybox.hpp>
@@ -66,10 +67,48 @@ void CallbackQuality(const Event::Keyboard& event)
 std::shared_ptr<Light> s_light;
 std::vector<std::shared_ptr<Camera>> s_cameras;
 
+#include <SceneGraph/Nodes/Scene.hpp>
+#include <SceneGraph/Nodes/Node.hpp>
+#include <SceneGraph/Visitors/SearchVisitor.hpp>
+
+void SceneGraphTest() {
+    //build a test scene
+    auto scene{ std::make_shared<SceneGraph::Nodes::Scene>() };
+    auto node0{ std::make_shared<SceneGraph::Nodes::Node>("node0") };
+    for (int i = 0; i < 5; ++i) {
+        auto testNode{ std::make_shared<SceneGraph::Nodes::Node>("node1") };
+        testNode->SetParent(node0);
+        for (int j = 0; j < 2; ++j) {
+            auto testNode1{ std::make_shared<SceneGraph::Nodes::Node>("node1") };
+            testNode1->SetParent(testNode);
+        }
+    }
+    scene->Add(node0);
+
+    //test search visitor
+    {
+        SceneGraph::Visitors::SearchVisitor search(std::string("node1"), SceneGraph::Visitors::NodeVisitor::Mode::VisitChildren);
+        scene->Accept(search);
+        std::cout << "Search by name : \n";
+        for (const auto& obj : search.GetResult())
+            std::cout << obj << " : " << obj->GetName() << "\n";
+    }
+
+    //test search by type
+    {
+        SceneGraph::Visitors::SearchVisitor search(typeid(SceneGraph::Nodes::Node), SceneGraph::Visitors::NodeVisitor::Mode::VisitChildren);
+        scene->Accept(search);
+        std::cout << "Search by type : \n";
+        for (const auto& obj : search.GetResult())
+            std::cout << obj << " : " << obj->GetName() << "\n";
+    }
+}
+
 int main(int argc, char** argv)
 {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    if (argc <= 1)
+    SceneGraphTest();
+    /*if (argc <= 1)
         return -42;
     {
         StackTracer::set_signal_handler(SIGABRT);
@@ -95,11 +134,11 @@ int main(int argc, char** argv)
             auto assetCameras = asset->GetComponents<Camera>();
             s_cameras.push_back(fpsCamera);
             s_cameras.insert(s_cameras.end(), assetCameras.begin(), assetCameras.end());
-            auto scene = std::static_pointer_cast<Scene>(asset->GetComponent<Scene>());
+            auto scene = asset->scenes.at(0);
             if (scene == nullptr) {
                 return -43;
             }
-            scene->SetCurrentCamera(fpsCamera);
+            scene->SetCamera(fpsCamera);
             auto newEnv = Component::Create<Skybox>("Skybox");
             auto diffuseAsset { Component::Create<Asset>(Engine::GetResourcePath() / "env/diffuse.jpg") };
             diffuseAsset->parsingOptions.image.maximumResolution = 2048;
@@ -146,15 +185,15 @@ int main(int argc, char** argv)
                 s_currentCamera++;
                 if (s_currentCamera >= s_cameras.size())
                     s_currentCamera = 0;
-                engine.lock()->GetCurrentScene()->SetCurrentCamera(s_cameras.at(s_currentCamera));
-                s_light->SetParent(engine.lock()->GetCurrentScene()->CurrentCamera());
+                engine.lock()->GetCurrentScene()->SetCamera(s_cameras.at(s_currentCamera));
+                s_light->SetParent(engine.lock()->GetCurrentScene()->GetCamera());
             };
             auto animationCB = [engine = std::weak_ptr(engine)](const Event::Keyboard& event) {
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
-                if (!event.state || event.repeat || engine.lock()->GetCurrentScene()->GetComponents<Animation>().empty())
+                if (!event.state || event.repeat || engine.lock()->GetCurrentScene()->GetAnimations().empty())
                     return;
-                static auto animations = engine.lock()->GetCurrentScene()->GetComponents<Animation>();
+                static auto animations = engine.lock()->GetCurrentScene()->GetAnimations();
                 static auto currentAnimation(animations.begin());
                 (*currentAnimation)->Stop();
                 currentAnimation++;
@@ -167,24 +206,24 @@ int main(int argc, char** argv)
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
                 auto scene { engine.lock()->GetCurrentScene() };
-                auto proj = scene->CurrentCamera()->GetProjection();
+                auto proj = scene->GetCamera()->GetProjection();
                 if (proj.type == Camera::Projection::Type::PerspectiveInfinite) {
                     auto perspectiveInfinite = proj.Get<Camera::Projection::PerspectiveInfinite>();
                     perspectiveInfinite.fov -= event.amount.y;
                     perspectiveInfinite.fov = glm::clamp(perspectiveInfinite.fov, 1.f, 70.f);
-                    scene->CurrentCamera()->SetProjection(perspectiveInfinite);
+                    scene->GetCamera()->SetProjection(perspectiveInfinite);
                 }
                 else if (proj.type == Camera::Projection::Type::Perspective) {
                     auto perspective = proj.Get<Camera::Projection::Perspective>();
                     perspective.fov -= event.amount.y;
                     perspective.fov = glm::clamp(perspective.fov, 1.f, 70.f);
-                    scene->CurrentCamera()->SetProjection(perspective);
+                    scene->GetCamera()->SetProjection(perspective);
                 }
             };
             auto moveCB = [engine = std::weak_ptr(engine)](const Event::MouseMove& event) {
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
-                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine.lock()->GetCurrentScene()->CurrentCamera());
+                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine.lock()->GetCurrentScene()->GetCamera());
                 if (camera == nullptr)
                     return;
                 static glm::vec3 cameraRotation {};
@@ -201,7 +240,7 @@ int main(int argc, char** argv)
             auto refreshCB = [engine = std::weak_ptr(engine)](float delta) {
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
-                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine.lock()->GetCurrentScene()->CurrentCamera());
+                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine.lock()->GetCurrentScene()->GetCamera());
                 if (camera == nullptr)
                     return;
                 glm::vec2 laxis = glm::vec2(0, 0);
@@ -234,21 +273,21 @@ int main(int argc, char** argv)
                     if (engine.lock()->GetCurrentScene() == nullptr)
                         return;
                     auto scene{ engine.lock()->GetCurrentScene() };
-                    auto proj = scene->CurrentCamera()->GetProjection();
+                    auto proj = scene->GetCamera()->GetProjection();
                     if (proj.type == Camera::Projection::Type::PerspectiveInfinite) {
                         auto perspectiveInfinite = proj.Get<Camera::Projection::PerspectiveInfinite>();
                         perspectiveInfinite.aspectRatio = event.window->GetSize().x / float(event.window->GetSize().y);
-                        scene->CurrentCamera()->SetProjection(perspectiveInfinite);
+                        scene->GetCamera()->SetProjection(perspectiveInfinite);
                     }
                     else if (proj.type == Camera::Projection::Type::Perspective) {
                         auto perspective = proj.Get<Camera::Projection::Perspective>();
                         perspective.aspectRatio = event.window->GetSize().x / float(event.window->GetSize().y);
-                        scene->CurrentCamera()->SetProjection(perspective);
+                        scene->GetCamera()->SetProjection(perspective);
                 }
             });
         }
         engine->Start();
-    }
+    }*/
     _CrtDumpMemoryLeaks();
     return 0;
 }

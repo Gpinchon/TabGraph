@@ -56,7 +56,10 @@ std::shared_ptr<Player> Player::Create(Level& level, const glm::vec3& color)
     for (auto& animation : playerAssetClone->GetComponents<Animation>())
         player->AddAnimation(animation);
     player->PlayAnimation("idle", true);
-    player->GetComponentInChildrenByName<Material>("White")->SetDiffuse(color);
+    for (auto i = 0; i < player->GetSurfaceNbr(); ++i) {
+        player->GetSurface(i)->GetComponentInChildrenByName<Material>("White")->SetDiffuse(color);
+    }
+    
     return player;
 }
 

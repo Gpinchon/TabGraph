@@ -8,16 +8,15 @@
 #include <Assets/Image.hpp>
 
 #include <glm/glm.hpp>
-#include <thread>
-#include <unordered_map>
 
-static size_t s_imageNbr = 0;
-
+namespace TabGraph::Assets {
 Image::Image(const glm::ivec2& size, Pixel::Description pixelDescription, const std::vector<std::byte>& rawData)
-    : Component("Image_" + std::to_string(++s_imageNbr))
+    : Inherit()
     , _data(rawData)
     , _size(size)
 {
+    static size_t s_imageNbr = 0;
+    SetName("Image_" + std::to_string(++s_imageNbr));
     SetPixelDescription(pixelDescription);
     auto rawDataSize { size.x * size.y * GetPixelDescription().GetSize() };
     if (!rawData.empty())
@@ -35,10 +34,10 @@ std::vector<std::byte>& Image::GetData()
     return _data;
 }
 
-#define CLAMPX(texX) glm::clamp(int(texX), 0, GetSize().x - 1)
-#define CLAMPY(texY) glm::clamp(int(texY), 0, GetSize().y - 1)
+#define CLAMPX(texX) glm::clamp(int(texX), 0, GetPixelSize().x - 1)
+#define CLAMPY(texY) glm::clamp(int(texY), 0, GetPixelSize().y - 1)
 
-glm::vec4 Image::GetColor(const glm::vec2& texCoord, Image::SamplingFilter filter)
+Pixel::Color Image::GetColor(const glm::vec2& texCoord, Image::SamplingFilter filter)
 {
     assert(!GetData().empty() && "Image::GetColor : Unpacked Data is empty");
     if (filter == Image::SamplingFilter::Nearest)
@@ -63,7 +62,7 @@ void Image::SetPixelDescription(Pixel::Description pixelFormat)
 
 void Image::SetSize(const glm::ivec2& size, SamplingFilter filter)
 {
-    if (size == GetSize())
+    if (size == GetPixelSize())
         return;
     auto newImage = Image(size, GetPixelDescription()); //Create empty image
     for (auto y0 = 0, y1 = size.y / 2; y0 < size.y / 2 && y1 < size.y; ++y0, ++y1) {
@@ -72,10 +71,10 @@ void Image::SetSize(const glm::ivec2& size, SamplingFilter filter)
             auto u1 = x1 / float(size.x);
             auto v0 = y0 / float(size.y);
             auto v1 = y1 / float(size.y);
-            newImage.SetColor(glm::ivec2(x0, y0), GetColor(glm::vec2(u0 * GetSize().x, v0 * GetSize().y), filter));
-            newImage.SetColor(glm::ivec2(x0, y1), GetColor(glm::vec2(u0 * GetSize().x, v1 * GetSize().y), filter));
-            newImage.SetColor(glm::ivec2(x1, y0), GetColor(glm::vec2(u1 * GetSize().x, v0 * GetSize().y), filter));
-            newImage.SetColor(glm::ivec2(x1, y1), GetColor(glm::vec2(u1 * GetSize().x, v1 * GetSize().y), filter));
+            newImage.SetColor(glm::ivec2(x0, y0), GetColor(glm::vec2(u0 * GetPixelSize().x, v0 * GetPixelSize().y), filter));
+            newImage.SetColor(glm::ivec2(x0, y1), GetColor(glm::vec2(u0 * GetPixelSize().x, v1 * GetPixelSize().y), filter));
+            newImage.SetColor(glm::ivec2(x1, y0), GetColor(glm::vec2(u1 * GetPixelSize().x, v0 * GetPixelSize().y), filter));
+            newImage.SetColor(glm::ivec2(x1, y1), GetColor(glm::vec2(u1 * GetPixelSize().x, v1 * GetPixelSize().y), filter));
         }
     }
     _data = newImage._data;
@@ -83,14 +82,10 @@ void Image::SetSize(const glm::ivec2& size, SamplingFilter filter)
     _size = newImage._size;
 }
 
-glm::ivec2 Image::GetSize() const
-{
-    return _size;
-}
-
 std::byte* Image::_GetPointer(glm::ivec2 texCoord)
 {
-    auto index = GetPixelDescription().GetPixelIndex(GetSize(), texCoord);
+    auto index = GetPixelDescription().GetPixelIndex(GetPixelSize(), texCoord);
     assert((index + GetPixelDescription().GetSize()) <= GetData().size() && "Image::_GetPointer : Unpacked Data index out of bound");
     return GetData().data() + index;
+}
 }
