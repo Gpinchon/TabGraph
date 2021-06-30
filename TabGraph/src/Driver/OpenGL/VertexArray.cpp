@@ -7,14 +7,14 @@
 
 #include "Driver/OpenGL/VertexArray.hpp"
 #include "Driver/OpenGL/Buffer.hpp"
-#include "Buffer/BufferAccessor.hpp"
+#include "Buffer/Accessor.hpp"
 
 #include <GL/glew.h>
 #include <array>
 
-static inline auto GLComponentType(BufferAccessor::ComponentType type)
+static inline auto GLComponentType(TabGraph::Buffer::Accessor::ComponentType type)
 {
-    static std::array<GLenum, (size_t)BufferAccessor::ComponentType::MaxValue> s_compTypeLUT = {
+    static std::array<GLenum, (size_t)TabGraph::Buffer::Accessor::ComponentType::MaxValue> s_compTypeLUT = {
         GL_BYTE, //Int8
         GL_UNSIGNED_BYTE, //Uint8
         GL_SHORT, //Int16
@@ -46,7 +46,7 @@ VertexArray& VertexArray::Bind()
 	return *this;
 }
 
-VertexArray& VertexArray::BindAccessor(std::shared_ptr<BufferAccessor> accessor, int index)
+VertexArray& VertexArray::BindAccessor(std::shared_ptr<TabGraph::Buffer::Accessor> accessor, int index)
 {
     if (accessor == nullptr) {
         glDisableVertexAttribArray(index);

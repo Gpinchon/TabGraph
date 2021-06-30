@@ -11,8 +11,8 @@
 #include "Assets/AssetsParser.hpp"
 #include "Assets/BinaryData.hpp"
 #include "Assets/Image.hpp"
-#include "Buffer/BufferAccessor.hpp"
-#include "Buffer/BufferView.hpp"
+#include "Buffer/Accessor.hpp"
+#include "Buffer/View.hpp"
 #include "Camera/Camera.hpp"
 #include "Debug.hpp"
 #include "Material/Material.hpp"
@@ -319,25 +319,25 @@ static inline auto ParseBuffers(const std::filesystem::path path, const rapidjso
     return bufferVector;
 }
 
-static inline BufferView::Type GetBufferViewType(unsigned type)
+static inline Buffer::View::Type GetBufferViewType(unsigned type)
 {
     switch (type) {
     case 34962:
-        return BufferView::Type::Array;
+        return Buffer::View::Type::Array;
     case 34963:
-        return BufferView::Type::ElementArray;
+        return Buffer::View::Type::ElementArray;
     default:
-        return BufferView::Type::Unknown;
+        return Buffer::View::Type::Unknown;
     }
 }
 
 static inline auto ParseBufferViews(const rapidjson::Document& document, std::vector<std::shared_ptr<Asset>> buffers)
 {
     debugLog("Start parsing bufferViews");
-    std::vector<std::shared_ptr<BufferView>> bufferViewVector;
+    std::vector<std::shared_ptr<Buffer::View>> bufferViewVector;
     if (!document.HasMember("bufferViews")) return bufferViewVector;
     for (const auto& bufferViewValue : document["bufferViews"].GetArray()) {
-        auto bufferView(Component::Create<BufferView>(
+        auto bufferView(Component::Create<Buffer::View>(
             bufferViewValue["byteLength"].GetInt(),
             buffers.at(bufferViewValue["buffer"].GetInt())));
         if (bufferViewValue.HasMember("name"))
@@ -354,58 +354,58 @@ static inline auto ParseBufferViews(const rapidjson::Document& document, std::ve
     return bufferViewVector;
 }
 
-static inline BufferAccessor::ComponentType GetBufferAccessorComponentType(unsigned type)
+static inline Buffer::Accessor::ComponentType GetBufferAccessorComponentType(unsigned type)
 {
     switch (type) {
     case 5120: //GL_BYTE:
-        return BufferAccessor::ComponentType::Int8;
+        return Buffer::Accessor::ComponentType::Int8;
     case 5121: //GL_UNSIGNED_BYTE:
-        return BufferAccessor::ComponentType::Uint8;
+        return Buffer::Accessor::ComponentType::Uint8;
     case 5122: //GL_SHORT:
-        return BufferAccessor::ComponentType::Int16;
+        return Buffer::Accessor::ComponentType::Int16;
     case 5123: //GL_UNSIGNED_SHORT:
-        return BufferAccessor::ComponentType::Uint16;
+        return Buffer::Accessor::ComponentType::Uint16;
     case 5125: //GL_UNSIGNED_INT:
-        return BufferAccessor::ComponentType::Uint32;
+        return Buffer::Accessor::ComponentType::Uint32;
     case 5126: //GL_FLOAT:
-        return BufferAccessor::ComponentType::Float32;
+        return Buffer::Accessor::ComponentType::Float32;
     default:
-        return BufferAccessor::ComponentType::Unknown;
+        return Buffer::Accessor::ComponentType::Unknown;
     }
 }
 
-static inline BufferAccessor::Type GetBufferAccessorType(const std::string& type)
+static inline Buffer::Accessor::Type GetBufferAccessorType(const std::string& type)
 {
     if (type == "SCALAR")
-        return BufferAccessor::Type::Scalar;
+        return Buffer::Accessor::Type::Scalar;
     else if (type == "VEC2")
-        return BufferAccessor::Type::Vec2;
+        return Buffer::Accessor::Type::Vec2;
     else if (type == "VEC3")
-        return BufferAccessor::Type::Vec3;
+        return Buffer::Accessor::Type::Vec3;
     else if (type == "VEC4")
-        return BufferAccessor::Type::Vec4;
+        return Buffer::Accessor::Type::Vec4;
     else if (type == "MAT2")
-        return BufferAccessor::Type::Mat2;
+        return Buffer::Accessor::Type::Mat2;
     else if (type == "MAT3")
-        return BufferAccessor::Type::Mat3;
+        return Buffer::Accessor::Type::Mat3;
     else if (type == "MAT4")
-        return BufferAccessor::Type::Mat4;
-    return BufferAccessor::Type::Unknown;
+        return Buffer::Accessor::Type::Mat4;
+    return Buffer::Accessor::Type::Unknown;
 }
 
-static inline auto ParseBufferAccessors(const rapidjson::Document& document, std::vector<std::shared_ptr<BufferView>>& bufferViews)
+static inline auto ParseBufferAccessors(const rapidjson::Document& document, std::vector<std::shared_ptr<Buffer::View>>& bufferViews)
 {
     debugLog("Start parsing bufferAccessors");
-    std::vector<std::shared_ptr<BufferAccessor>> bufferAccessorVector;
+    std::vector<std::shared_ptr<Buffer::Accessor>> bufferAccessorVector;
     if (!document.HasMember("accessors"))
         return bufferAccessorVector;
     auto bufferAccessorIndex(0);
     for (const auto& bufferAccessorValue : document["accessors"].GetArray()) {
-        auto bufferAccessor(Component::Create<BufferAccessor>(
+        auto bufferAccessor(Component::Create<Buffer::Accessor>(
             GetBufferAccessorComponentType(bufferAccessorValue["componentType"].GetInt()),
             GetBufferAccessorType(bufferAccessorValue["type"].GetString()),
             bufferAccessorValue["count"].GetInt()));
-        bufferAccessor->SetName("BufferAccessor " + std::to_string(bufferAccessorIndex));
+        bufferAccessor->SetName("Buffer::Accessor " + std::to_string(bufferAccessorIndex));
         if (bufferAccessorValue.HasMember("name"))
             bufferAccessor->SetName(bufferAccessorValue["name"].GetString());
         if (bufferAccessorValue.HasMember("bufferView"))
@@ -448,7 +448,7 @@ static inline Geometry::DrawingMode GetGeometryDrawingMode(unsigned mode)
     }
 }
 
-static inline auto ParseMeshes(const rapidjson::Document& document, const std::vector<std::shared_ptr<Material>>& materials, const std::vector<std::shared_ptr<BufferAccessor>>& bufferAccessors)
+static inline auto ParseMeshes(const rapidjson::Document& document, const std::vector<std::shared_ptr<Material>>& materials, const std::vector<std::shared_ptr<Buffer::Accessor>>& bufferAccessors)
 {
     debugLog("Start parsing meshes");
     std::vector<std::shared_ptr<Mesh>> meshVector;
@@ -484,14 +484,14 @@ static inline auto ParseMeshes(const rapidjson::Document& document, const std::v
                         }
                         else {
                             geometry->SetAccessor(accessorKey, accessor);
-                            accessor->GetBufferView()->SetType(BufferView::Type::Array);
+                            accessor->GetBufferView()->SetType(Buffer::View::Type::Array);
                         }
                     }
                 }
                 if (primitive.HasMember("indices")) {
                     auto accessor(bufferAccessors.at(primitive["indices"].GetInt()));
                     geometry->SetIndices(accessor);
-                    accessor->GetBufferView()->SetType(BufferView::Type::ElementArray);
+                    accessor->GetBufferView()->SetType(Buffer::View::Type::ElementArray);
                 }
                 if (primitive.HasMember("mode"))
                     geometry->SetDrawingMode(GetGeometryDrawingMode(primitive["mode"].GetInt()));
@@ -564,7 +564,7 @@ static inline auto ParseNodes(const rapidjson::Document& document)
     return nodeVector;
 }
 
-static inline auto ParseAnimations(const rapidjson::Document& document, const std::vector<std::shared_ptr<Node>>& nodes, const std::vector<std::shared_ptr<BufferAccessor>>& bufferAccessors)
+static inline auto ParseAnimations(const rapidjson::Document& document, const std::vector<std::shared_ptr<Node>>& nodes, const std::vector<std::shared_ptr<Buffer::Accessor>>& bufferAccessors)
 {
     std::vector<std::shared_ptr<Animation>> animations;
     if (!document.HasMember("animations"))
@@ -576,8 +576,8 @@ static inline auto ParseAnimations(const rapidjson::Document& document, const st
         for (const auto& sampler : animation["samplers"].GetArray()) {
             auto samplerInput(bufferAccessors.at(sampler["input"].GetInt()));
             auto samplerOutput(bufferAccessors.at(sampler["output"].GetInt()));
-            samplerInput->GetBufferView()->SetStorage(BufferView::Storage::CPU);
-            samplerOutput->GetBufferView()->SetStorage(BufferView::Storage::CPU);
+            samplerInput->GetBufferView()->SetStorage(Buffer::View::Storage::CPU);
+            samplerOutput->GetBufferView()->SetStorage(Buffer::View::Storage::CPU);
             auto newSampler(AnimationSampler(samplerInput, samplerOutput));
             if (sampler.HasMember("interpolation")) {
                 std::string interpolation(sampler["interpolation"].GetString());
@@ -615,7 +615,7 @@ static inline auto ParseAnimations(const rapidjson::Document& document, const st
     return animations;
 }
 
-static inline auto ParseSkins(const rapidjson::Document& document, const std::vector<std::shared_ptr<Node>>& nodes, const std::vector<std::shared_ptr<BufferAccessor>>& bufferAccessors)
+static inline auto ParseSkins(const rapidjson::Document& document, const std::vector<std::shared_ptr<Node>>& nodes, const std::vector<std::shared_ptr<Buffer::Accessor>>& bufferAccessors)
 {
     debugLog("Start parsing Skins");
     std::vector<std::shared_ptr<MeshSkin>> skins;
@@ -627,7 +627,7 @@ static inline auto ParseSkins(const rapidjson::Document& document, const std::ve
             newSkin->SetName(skin["name"].GetString());
         if (skin.HasMember("inverseBindMatrices")) {
             auto accessor{ bufferAccessors.at(skin["inverseBindMatrices"].GetInt()) };
-            accessor->GetBufferView()->SetStorage(BufferView::Storage::CPU);
+            accessor->GetBufferView()->SetStorage(Buffer::View::Storage::CPU);
             newSkin->SetInverseBindMatrices(accessor);
         }
         /*try {
@@ -737,7 +737,7 @@ static inline auto ParseLights(const rapidjson::Document& document)
     return lightsVector;
 }
 
-static inline auto ParseImages(const std::filesystem::path path, const rapidjson::Document& document, std::vector<std::shared_ptr<BufferView>>& bufferViews, std::shared_ptr<Asset> container)
+static inline auto ParseImages(const std::filesystem::path path, const rapidjson::Document& document, std::vector<std::shared_ptr<Buffer::View>>& bufferViews, std::shared_ptr<Asset> container)
 {
     std::vector<std::shared_ptr<Asset>> imagesVector;
     auto imagesItr(document.FindMember("images"));
@@ -756,7 +756,7 @@ static inline auto ParseImages(const std::filesystem::path path, const rapidjson
                 imageAsset->SetUri(std::string("data:") + gltfImagee["mimeType"].GetString() + ",");
                 auto bufferViewIndex { imageBufferViewItr->value.GetInt() };
                 imageAsset->AddComponent(bufferViews.at(bufferViewIndex));
-                bufferViews.at(bufferViewIndex)->SetStorage(BufferView::Storage::CPU);
+                bufferViews.at(bufferViewIndex)->SetStorage(Buffer::View::Storage::CPU);
             }
             //TODO : learn how to use bufferView and mimeType
             imagesVector.push_back(imageAsset);

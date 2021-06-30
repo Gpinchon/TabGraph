@@ -44,18 +44,18 @@ std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size,
             }
         }
     }
-    //auto vertexBufferView{ Component::Create<BufferView>(vertexBuffer) };
-    //auto indiceBufferView{ Component::Create<BufferView>(vertexBuffer) };
+    //auto vertexBufferView{ Component::Create<Buffer::View>(vertexBuffer) };
+    //auto indiceBufferView{ Component::Create<Buffer::View>(vertexBuffer) };
     //vertexBufferView->SetByteStride(sizeof(glm::vec3) + sizeof(glm::vec3) + sizeof(glm::vec2));
 
-    //auto vertexAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32 , BufferAccessor::DataType::Vec3, vertexBufferView) };
-    //auto normalAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32 , BufferAccessor::DataType::Vec3, vertexBufferView) };
-    //auto texcoordAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32 , BufferAccessor::DataType::Vec2, vertexBufferView) };
+    //auto vertexAccessor{ Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32 , Buffer::Accessor::DataType::Vec3, vertexBufferView) };
+    //auto normalAccessor{ Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32 , Buffer::Accessor::DataType::Vec3, vertexBufferView) };
+    //auto texcoordAccessor{ Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32 , Buffer::Accessor::DataType::Vec2, vertexBufferView) };
     //normalAccessor->SetByteOffset(sizeof(glm::vec3));
     //normalAccessor->SetNormalized(true);
     //texcoordAccessor->SetByteOffset(sizeof(glm::vec3) + sizeof(glm::vec3));
 
-    //auto indiceAccessor{ Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Uint32 , BufferAccessor::DataType::Scalar, indiceBufferView) };
+    //auto indiceAccessor{ Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Uint32 , Buffer::Accessor::DataType::Scalar, indiceBufferView) };
 
     //auto vg = Component::Create<Geometry>(m->GetName() + "_Geometry");
     //vg->SetAccessor(Geometry::AccessorKey::Position, vertexAccessor);//BufferHelper::CreateAccessor(planeVertices, GL_ARRAY_BUFFER));

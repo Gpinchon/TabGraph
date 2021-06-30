@@ -6,10 +6,10 @@
 */
 #pragma once
 
-#include "Buffer/BufferView.hpp"
+#include "Buffer/View.hpp"
 #include "Driver/OpenGL/ObjectHandle.hpp"
 
-class BufferView::ImplGPU {
+class Buffer::View::ImplGPU {
     READONLYPROPERTY(MappingMode, MappingMode, MappingMode::None);
     READONLYPROPERTY(size_t, MappingStart, 0);
     READONLYPROPERTY(size_t, MappingEnd, 0);
@@ -21,12 +21,12 @@ public:
     using Handle = OpenGL::ObjectHandle;
     const Handle GetHandle() const;
     std::byte* GetMappingPtr();
-    std::byte* MapRange(const BufferView& buffer, MappingMode mappingMode, size_t start, size_t end, bool invalidate = false);
-    std::byte* Get(const BufferView& buffer, size_t index, size_t size);
-    void Set(const BufferView& buffer, std::byte* data, size_t index, size_t size);
-    void Unmap(const BufferView& buffer);
-    void FlushRange(const BufferView& buffer, size_t start, size_t end);
-    void Load(const BufferView& buffer, std::byte* data = nullptr);
+    std::byte* MapRange(const Buffer::View& buffer, MappingMode mappingMode, size_t start, size_t end, bool invalidate = false);
+    std::byte* Get(const Buffer::View& buffer, size_t index, size_t size);
+    void Set(const Buffer::View& buffer, std::byte* data, size_t index, size_t size);
+    void Unmap(const Buffer::View& buffer);
+    void FlushRange(const Buffer::View& buffer, size_t start, size_t end);
+    void Load(const Buffer::View& buffer, std::byte* data = nullptr);
     void Unload();
     void Bind(Type type);
     void Done(Type type);
@@ -41,9 +41,9 @@ private:
 };
 
 namespace OpenGL {
-BufferView::ImplGPU::Handle GetHandle(std::shared_ptr<BufferView> buffer);
-void Bind(std::shared_ptr<BufferView>, BufferView::Type);
-inline void Bind(std::shared_ptr<BufferView> buffer) {
+Buffer::View::ImplGPU::Handle GetHandle(std::shared_ptr<Buffer::View> buffer);
+void Bind(std::shared_ptr<Buffer::View>, Buffer::View::Type);
+inline void Bind(std::shared_ptr<Buffer::View> buffer) {
     return Bind(buffer, buffer->GetType());
 }
 };

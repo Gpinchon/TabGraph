@@ -27,7 +27,7 @@ void BoundingMesh::SetMesh(const std::shared_ptr<Mesh>& geometry)
     SetComponent(geometry);
 }
 
-#include "Buffer/BufferAccessor.hpp"
+#include "Buffer/Accessor.hpp"
 
 std::set<glm::vec3, compareVec> BoundingMesh::GetSATAxis(const glm::mat4& transform) const
 {

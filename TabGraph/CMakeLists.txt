@@ -137,8 +137,8 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Image.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Uri.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/brdfLUT.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferAccessor.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/BufferView.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/Accessor.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/View.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/Camera.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/FPS.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/Orbit.hpp
@@ -243,8 +243,8 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/AssetsParser.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Image.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Uri.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferAccessor.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/BufferView.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/Accessor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/View.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/Camera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/FPS.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/Orbit.cpp

@@ -23,8 +23,8 @@
 namespace TabGraph::Shapes {
 class Geometry;
 }
-namespace TabGraph::Memory {
-class BufferAccessor;
+namespace TabGraph::Buffer {
+class Accessor;
 }
 namespace TabGraph::Materials {
 class Material;
@@ -47,11 +47,11 @@ public:
     std::shared_ptr<Materials::Material> GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const;
     void SetGeometryMaterial(std::shared_ptr<Geometry> geometry, std::shared_ptr<Materials::Material> material);
 
-    std::shared_ptr<Memory::BufferAccessor> GetWeights() const {
+    std::shared_ptr<Buffer::Accessor> GetWeights() const {
         return _weights;
     }
 
-    void SetWeights(std::shared_ptr<Memory::BufferAccessor> weights) {
+    void SetWeights(std::shared_ptr<Buffer::Accessor> weights) {
         _weights = weights;
     }
 
@@ -72,7 +72,7 @@ public:
 
 private:
     std::map<std::shared_ptr<Geometry>, std::shared_ptr<Materials::Material>> _geometries;
-    std::shared_ptr<Memory::BufferAccessor> _weights;
+    std::shared_ptr<Buffer::Accessor> _weights;
     bool _loaded{ false };
     glm::mat4 _geometryTransform{ 1 };
 };

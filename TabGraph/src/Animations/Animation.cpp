@@ -5,8 +5,8 @@
 * @Last Modified time: 2021-06-30 19:51:36
 */
 #include <Animations/Animation.hpp>
-#include <Buffer/BufferAccessor.hpp>
-#include <Buffer/BufferView.hpp>
+#include <Buffer/Accessor.hpp>
+#include <Buffer/View.hpp>
 #include <Debug.hpp>
 #include <Nodes/Node.hpp>
 #include <Shapes/Mesh/Mesh.hpp>

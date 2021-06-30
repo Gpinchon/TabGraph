@@ -5,7 +5,7 @@
 //Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Memory {
-class BufferAccessor;
+class Buffer::Accessor;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -20,8 +20,8 @@ struct Sampler
 		Step,
 		CubicSpline
 	};
-	std::shared_ptr<Memory::BufferAccessor> timings{ nullptr };
-	std::shared_ptr<Memory::BufferAccessor> keyFrames{ nullptr };
+	std::shared_ptr<Buffer::Accessor> timings{ nullptr };
+	std::shared_ptr<Buffer::Accessor> keyFrames{ nullptr };
 	Interpolation interpolation{ Interpolation::Linear };
 };
 }

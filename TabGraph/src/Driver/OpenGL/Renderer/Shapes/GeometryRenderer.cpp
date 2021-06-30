@@ -6,7 +6,7 @@
 */
 
 #include <Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp>
-#include <Buffer/BufferAccessor.hpp>
+#include <Buffer/Accessor.hpp>
 #include <Driver/OpenGL/Buffer.hpp>
 #include <Driver/OpenGL/VertexArray.hpp>
 #include <Surface/Geometry.hpp>
@@ -30,9 +30,9 @@ auto GLDrawingMode(Geometry::DrawingMode drawingMode)
     return s_drawingModeLUT.at(int(drawingMode));
 }
 
-static inline auto GLComponentType(BufferAccessor::ComponentType type)
+static inline auto GLComponentType(Buffer::Accessor::ComponentType type)
 {
-    static std::array<GLenum, (size_t)BufferAccessor::ComponentType::MaxValue> s_compTypeLUT = {
+    static std::array<GLenum, (size_t)Buffer::Accessor::ComponentType::MaxValue> s_compTypeLUT = {
         GL_BYTE, //Int8
         GL_UNSIGNED_BYTE, //Uint8
         GL_SHORT, //Int16

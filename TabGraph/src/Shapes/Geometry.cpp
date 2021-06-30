@@ -8,8 +8,8 @@
 #include <Surface/Geometry.hpp>
 #include <Assets/Asset.hpp>
 #include <Assets/BinaryData.hpp>
-#include <Buffer/BufferAccessor.hpp>
-#include <Buffer/BufferView.hpp>
+#include <Buffer/Accessor.hpp>
+#include <Buffer/View.hpp>
 #include <Camera/Camera.hpp>
 #include <Debug.hpp>
 #include <Physics/BoundingAABB.hpp>
@@ -56,7 +56,7 @@ Geometry::Geometry(
     const std::vector<glm::vec3>& normals,
     const std::vector<glm::vec2>& texCoords,
     const std::vector<uint32_t> indices,
-    BufferView::Mode mode)
+    Buffer::View::Mode mode)
     : Geometry()
 {
     assert(vertices.size() == normals.size());
@@ -88,13 +88,13 @@ Geometry::Geometry(
     auto vertexBufferAsset { Component::Create<Asset>() };
     vertexBufferAsset->SetComponent(vertexBuffer);
     vertexBufferAsset->SetLoaded(true);
-    auto vertexBufferView { Component::Create<BufferView>(vertexBufferAsset, mode) };
-    vertexBufferView->SetType(BufferView::Type::Array);
+    auto vertexBufferView { Component::Create<Buffer::View>(vertexBufferAsset, mode) };
+    vertexBufferView->SetType(Buffer::View::Type::Array);
     vertexBufferView->SetByteLength(verticeByteSize + normalsByteSize + texcoordByteSize);
 
-    auto vertexAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Vec3, vertexBufferView) };
-    auto normalAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Vec3, vertexBufferView) };
-    auto texcoordAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Vec2, vertexBufferView) };
+    auto vertexAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, vertexBufferView) };
+    auto normalAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, vertexBufferView) };
+    auto texcoordAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec2, vertexBufferView) };
 
     vertexAccessor->SetByteOffset(0);
     vertexAccessor->SetCount(vertices.size());
@@ -109,11 +109,11 @@ Geometry::Geometry(
 
     if (indices.empty())
         return;
-    auto indiceBufferView { Component::Create<BufferView>(vertexBufferAsset, mode) };
-    indiceBufferView->SetType(BufferView::Type::ElementArray);
+    auto indiceBufferView { Component::Create<Buffer::View>(vertexBufferAsset, mode) };
+    indiceBufferView->SetType(Buffer::View::Type::ElementArray);
     indiceBufferView->SetByteLength(indiceByteSize);
     indiceBufferView->SetByteOffset(verticeByteSize + normalsByteSize + texcoordByteSize);
-    auto indiceAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Uint32, BufferAccessor::Type::Scalar, indiceBufferView) };
+    auto indiceAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Uint32, Buffer::Accessor::Type::Scalar, indiceBufferView) };
     SetIndices(indiceAccessor);
 }
 
@@ -121,7 +121,7 @@ Geometry::Geometry(
     const std::vector<glm::vec3>& vertices,
     const std::vector<glm::vec3>& normals,
     const std::vector<glm::vec2>& texCoords,
-    BufferView::Mode mode)
+    Buffer::View::Mode mode)
     : Geometry(
         vertices,
         normals,
@@ -156,23 +156,23 @@ Geometry::AccessorKey Geometry::GetAccessorKey(const std::string& key)
     return Geometry::AccessorKey::Invalid;
 }
 
-std::shared_ptr<BufferAccessor> Geometry::Accessor(const Geometry::AccessorKey key) const
+std::shared_ptr<Buffer::Accessor> Geometry::Accessor(const Geometry::AccessorKey key) const
 {
     return _accessors.at(size_t(key));
 }
 
-void Geometry::SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<BufferAccessor> accessor)
+void Geometry::SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<Buffer::Accessor> accessor)
 {
     if (key != Geometry::AccessorKey::Invalid)
         _accessors.at(size_t(key)) = accessor;
 }
 
-std::shared_ptr<BufferAccessor> Geometry::Indices() const
+std::shared_ptr<Buffer::Accessor> Geometry::Indices() const
 {
     return _indices;
 }
 
-void Geometry::SetIndices(std::shared_ptr<BufferAccessor> indices)
+void Geometry::SetIndices(std::shared_ptr<Buffer::Accessor> indices)
 {
     _indices = indices;
 }

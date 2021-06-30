@@ -8,7 +8,7 @@
 
 #include <memory>
 
-class BufferAccessor;
+class TabGraph::Buffer::Accessor;
 
 class VertexArray {
 public:
@@ -16,7 +16,7 @@ public:
     ~VertexArray();
     uint32_t GetHandle();
     VertexArray& Bind();
-    VertexArray& BindAccessor(std::shared_ptr<BufferAccessor> accessor, int index);
+    VertexArray& BindAccessor(std::shared_ptr<TabGraph::Buffer::Accessor> accessor, int index);
     void Done();
     static void BindNone();
 

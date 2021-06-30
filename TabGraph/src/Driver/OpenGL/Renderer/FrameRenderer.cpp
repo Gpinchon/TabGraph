@@ -184,7 +184,7 @@ FrameRenderer::Impl::Impl(std::weak_ptr<Window> window, FrameRenderer& renderer)
     _defaultBRDF->SetName("BrdfLUT");
     _defaultBRDF->GetTextureSampler()->SetWrapS(TextureSampler::Wrap::ClampToEdge);
     _defaultBRDF->GetTextureSampler()->SetWrapT(TextureSampler::Wrap::ClampToEdge);
-    auto accessor(Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Int8, BufferAccessor::Type::Vec2, 3));
+    auto accessor(Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Int8, Buffer::Accessor::Type::Vec2, 3));
     _displayQuad = Component::Create<Geometry>("GetDisplayQuad");
     _displayQuad->SetDrawingMode(Geometry::DrawingMode::Triangles);
     _displayQuad->SetAccessor(Geometry::AccessorKey::Position, accessor);

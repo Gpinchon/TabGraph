@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "Buffer/BufferAccessor.hpp"
-#include "Buffer/BufferView.hpp"
+#include "Buffer/Accessor.hpp"
+#include "Buffer/View.hpp"
 #include "Surface/Surface.hpp"
 
 #include <array>
@@ -19,7 +19,7 @@
 #include <vector> // for vector
 
 class Material; // lines 20-20
-class BufferAccessor;
+class Buffer::Accessor;
 class BoundingAABB;
 
 namespace Renderer {
@@ -34,11 +34,11 @@ public:
         Tangent,
         MaxChannels
     };
-    std::shared_ptr<BufferAccessor> Get(const GeometryMorthTarget::Channel channel) const;
-    void Set(const GeometryMorthTarget::Channel channel, const std::shared_ptr<BufferAccessor> morphChannel);
+    std::shared_ptr<Buffer::Accessor> Get(const GeometryMorthTarget::Channel channel) const;
+    void Set(const GeometryMorthTarget::Channel channel, const std::shared_ptr<Buffer::Accessor> morphChannel);
 
 private:
-    std::array<std::shared_ptr<BufferAccessor>, GeometryMorthTarget::MaxChannels> _morphChannels;
+    std::array<std::shared_ptr<Buffer::Accessor>, GeometryMorthTarget::MaxChannels> _morphChannels;
 };
 
 class Geometry : public Surface {
@@ -77,8 +77,8 @@ public:
 public:
     Geometry();
     Geometry(const std::string& name);
-    Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t> indices, BufferView::Mode = BufferView::Mode::Immutable);
-    Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, BufferView::Mode = BufferView::Mode::Immutable);
+    Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t> indices, Buffer::View::Mode = Buffer::View::Mode::Immutable);
+    Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, Buffer::View::Mode = Buffer::View::Mode::Immutable);
     Geometry(const Geometry& other);
     ~Geometry();
 
@@ -90,11 +90,11 @@ public:
     template <typename T>
     T GetVertex(const Geometry::AccessorKey key, const size_t index) const;
     /** @return : The accessor corresponding to the key */
-    std::shared_ptr<BufferAccessor> Accessor(const Geometry::AccessorKey key) const;
+    std::shared_ptr<Buffer::Accessor> Accessor(const Geometry::AccessorKey key) const;
     /** Sets the accessor corresponding to the key */
-    void SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<BufferAccessor>);
-    std::shared_ptr<BufferAccessor> Indices() const;
-    void SetIndices(std::shared_ptr<BufferAccessor>);
+    void SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<Buffer::Accessor>);
+    std::shared_ptr<Buffer::Accessor> Indices() const;
+    void SetIndices(std::shared_ptr<Buffer::Accessor>);
 
     std::shared_ptr<BoundingAABB> GetBounds() const;
 
@@ -108,8 +108,8 @@ private:
     }
     glm::vec3 _centroid { 0 };
     std::shared_ptr<BoundingAABB> _bounds;
-    std::array<std::shared_ptr<BufferAccessor>, size_t(Geometry::AccessorKey::MaxAccessorKey)> _accessors;
-    std::shared_ptr<BufferAccessor> _indices { nullptr };
+    std::array<std::shared_ptr<Buffer::Accessor>, size_t(Geometry::AccessorKey::MaxAccessorKey)> _accessors;
+    std::shared_ptr<Buffer::Accessor> _indices { nullptr };
     std::vector<GeometryMorthTarget> _morphTargets;
 
     // Hérité via Surface

@@ -1,5 +1,5 @@
 #include "Surface/MeshSkin.hpp"
-#include "Buffer/BufferAccessor.hpp"
+#include "Buffer/Accessor.hpp"
 #include "Node.hpp"
 
 #include <algorithm>
@@ -28,12 +28,12 @@ void MeshSkin::RemoveJoint(std::shared_ptr<Node> joint)
     //RemoveComponent(joint);
 }
 
-std::shared_ptr<BufferAccessor> MeshSkin::InverseBindMatrices() const
+std::shared_ptr<Buffer::Accessor> MeshSkin::InverseBindMatrices() const
 {
     return _inverseBindMatrices;
 }
 
-void MeshSkin::SetInverseBindMatrices(std::shared_ptr<BufferAccessor> inverseBindMatrices)
+void MeshSkin::SetInverseBindMatrices(std::shared_ptr<Buffer::Accessor> inverseBindMatrices)
 {
     _inverseBindMatrices = inverseBindMatrices;
 }

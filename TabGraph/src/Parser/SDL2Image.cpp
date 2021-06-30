@@ -8,7 +8,7 @@
 #include <Assets/Image.hpp>
 #include <Assets/Asset.hpp>
 #include <Assets/AssetsParser.hpp>
-#include <Buffer/BufferView.hpp>
+#include <Buffer/View.hpp>
 #include <Config.hpp>
 #include <Texture/PixelUtils.hpp>
 #include <Debug.hpp>
@@ -77,8 +77,8 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& container)
     if (uri.GetScheme() == "data") {
         data = DataUri(uri).Decode();
         if (data.empty()) {
-            auto& bufferView{ container->GetComponent<BufferView>() };
-            if (bufferView != nullptr) { //We're loading raw bytes from a BufferView
+            auto& bufferView{ container->GetComponent<Buffer::View>() };
+            if (bufferView != nullptr) { //We're loading raw bytes from a Buffer::View
                 bufferView->Load();
                 auto dataPtr{ bufferView->Get(0, bufferView->GetByteLength()) };
                 data = std::vector<std::byte>(

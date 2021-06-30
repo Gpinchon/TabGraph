@@ -3,13 +3,13 @@
 #include "Component.hpp"
 
 class Node;
-class BufferAccessor;
+class Buffer::Accessor;
 
 class MeshSkin : public Component {
 public:
     MeshSkin();
-    std::shared_ptr<BufferAccessor> InverseBindMatrices() const;
-    void SetInverseBindMatrices(std::shared_ptr<BufferAccessor> inverseBindMatrices);
+    std::shared_ptr<Buffer::Accessor> InverseBindMatrices() const;
+    void SetInverseBindMatrices(std::shared_ptr<Buffer::Accessor> inverseBindMatrices);
     const std::vector<std::shared_ptr<Node>> Joints() const;
     void AddJoint(std::shared_ptr<Node> joint);
     void RemoveJoint(std::shared_ptr<Node> joint);
@@ -25,5 +25,5 @@ private:
     }
     //std::weak_ptr<Node> _skeleton;
     std::vector<std::shared_ptr<Node>> _joints;
-    std::shared_ptr<BufferAccessor> _inverseBindMatrices;
+    std::shared_ptr<Buffer::Accessor> _inverseBindMatrices;
 };

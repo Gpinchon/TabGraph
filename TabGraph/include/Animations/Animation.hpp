@@ -10,11 +10,13 @@
 #include <Animations/Sampler.hpp>
 #include <Core/Inherit.hpp>
 #include <Core/Object.hpp>
-#include <Event/Signal.hpp>
 #include <Property.hpp>
 
 #include <chrono>
 
+////////////////////////////////////////////////////////////////////////////////
+//Class declaration
+////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Animations {
 class Animation : public Core::Inherit<Core::Object, Animation> {
 public:

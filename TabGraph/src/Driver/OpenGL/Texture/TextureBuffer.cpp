@@ -8,11 +8,11 @@
 #include "Driver/OpenGL/Texture/TextureBuffer.hpp"
 #include "Driver/OpenGL/Texture/PixelUtils.hpp"
 #include "Driver/OpenGL/Buffer.hpp"
-#include "Buffer/BufferAccessor.hpp"
+#include "Buffer/Accessor.hpp"
 
 #include <GL/glew.h>
 
-TextureBuffer::Impl::Impl(Pixel::SizedFormat internalFormat, std::shared_ptr<BufferAccessor> bufferAccessor)
+TextureBuffer::Impl::Impl(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::Accessor> bufferAccessor)
 	: Texture::Impl(Texture::Type::TextureBuffer, internalFormat)
     , _bufferAccessor(bufferAccessor)
 {
@@ -59,7 +59,7 @@ void TextureBuffer::Impl::GenerateMipmap()
 {
 }
 
-void TextureBuffer::Impl::SetBufferAccessor(std::shared_ptr<BufferAccessor> bufferAccessor)
+void TextureBuffer::Impl::SetBufferAccessor(std::shared_ptr<Buffer::Accessor> bufferAccessor)
 {
     if (bufferAccessor == _bufferAccessor)
         return;
@@ -67,7 +67,7 @@ void TextureBuffer::Impl::SetBufferAccessor(std::shared_ptr<BufferAccessor> buff
     Unload();
 }
 
-std::shared_ptr<BufferAccessor> TextureBuffer::Impl::GetBufferAccessor() const
+std::shared_ptr<Buffer::Accessor> TextureBuffer::Impl::GetBufferAccessor() const
 {
     return _bufferAccessor;
 }

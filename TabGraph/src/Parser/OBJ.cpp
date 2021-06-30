@@ -14,8 +14,8 @@
 #include <Assets/Asset.hpp>
 #include <Assets/AssetsParser.hpp>
 #include <Assets/BinaryData.hpp>
-#include <Buffer/BufferAccessor.hpp>
-#include <Buffer/BufferView.hpp>
+#include <Buffer/Accessor.hpp>
+#include <Buffer/View.hpp>
 #include <Engine.hpp>
 #include <Material/Material.hpp>
 #include <Node.hpp>
@@ -59,7 +59,7 @@ auto OBJMimesParsers {
 struct ObjContainer {
     std::shared_ptr<Asset> container { Component::Create<Asset>() };
     std::shared_ptr<Geometry> currentGeometry { nullptr };
-    std::shared_ptr<BufferView> currentBufferView { nullptr };
+    std::shared_ptr<Buffer::View> currentBufferView { nullptr };
     std::shared_ptr<Asset> currentBuffer { nullptr };
     std::shared_ptr<BinaryData> binaryData { nullptr };
     std::vector<glm::vec3> v;
@@ -157,25 +157,25 @@ static void push_values(ObjContainer& p, glm::vec3* v, glm::vec3* vn, glm::vec2*
         p.currentBuffer->SetLoaded(true);
     }
     if (p.currentBufferView == nullptr) {
-        p.currentBufferView = Component::Create<BufferView>(p.currentBuffer, BufferView::Mode::Immutable);
-        p.currentBufferView->SetType(BufferView::Type::Array);
+        p.currentBufferView = Component::Create<Buffer::View>(p.currentBuffer, Buffer::View::Mode::Immutable);
+        p.currentBufferView->SetType(Buffer::View::Type::Array);
         p.currentBufferView->SetByteStride(VERTEXBYTESIZE);
     }
     if (p.currentGeometry->Accessor(Geometry::AccessorKey::Position) == nullptr) {
-        auto positionAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Vec3, p.currentBufferView) };
+        auto positionAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, p.currentBufferView) };
         positionAccessor->SetCount(0);
         positionAccessor->SetByteOffset(p.currentBufferView->GetByteLength());
         p.currentGeometry->SetAccessor(Geometry::AccessorKey::Position, positionAccessor);
     }
     if (p.currentGeometry->Accessor(Geometry::AccessorKey::Normal) == nullptr) {
-        auto normalAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Vec3, p.currentBufferView) };
+        auto normalAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, p.currentBufferView) };
         normalAccessor->SetCount(0);
         normalAccessor->SetByteOffset(p.currentBufferView->GetByteLength() + sizeof(glm::vec3));
         normalAccessor->SetNormalized(true);
         p.currentGeometry->SetAccessor(Geometry::AccessorKey::Normal, normalAccessor);
     }
     if (p.currentGeometry->Accessor(Geometry::AccessorKey::TexCoord_0) == nullptr) {
-        auto texcoordAccessor { Component::Create<BufferAccessor>(BufferAccessor::ComponentType::Float32, BufferAccessor::Type::Vec2, p.currentBufferView) };
+        auto texcoordAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec2, p.currentBufferView) };
         texcoordAccessor->SetCount(0);
         texcoordAccessor->SetByteOffset(p.currentBufferView->GetByteLength() + sizeof(glm::vec3) + sizeof(glm::vec3));
         p.currentGeometry->SetAccessor(Geometry::AccessorKey::TexCoord_0, texcoordAccessor);

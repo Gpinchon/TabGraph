@@ -38,13 +38,13 @@ void MeshRenderer::Load()
         for (auto i = 0; i < _jointMatrices.size(); ++i) {
             if (_jointMatrices.at(i) != nullptr)
                 continue;
-            auto bufferAccessor = Component::Create<BufferAccessor>(
-                BufferAccessor::ComponentType::Float32,
-                BufferAccessor::Type::Mat4,
+            auto bufferAccessor = Component::Create<Buffer::Accessor>(
+                Buffer::Accessor::ComponentType::Float32,
+                Buffer::Accessor::Type::Mat4,
                 _mesh.GetComponent<MeshSkin>()->Joints().size());
-            bufferAccessor->GetBufferView()->SetType(BufferView::Type::TextureBuffer);
-            bufferAccessor->GetBufferView()->SetMode(BufferView::Mode::Persistent);
-            bufferAccessor->GetBufferView()->SetPersistentMappingMode(BufferView::MappingMode::WriteOnly);
+            bufferAccessor->GetBufferView()->SetType(Buffer::View::Type::TextureBuffer);
+            bufferAccessor->GetBufferView()->SetMode(Buffer::View::Mode::Persistent);
+            bufferAccessor->GetBufferView()->SetPersistentMappingMode(Buffer::View::MappingMode::WriteOnly);
             _jointMatrices.at(i) = Component::Create<TextureBuffer>(Pixel::SizedFormat::Float32_RGBA, bufferAccessor);
             _jointMatrices.at(i)->Load();
         }
