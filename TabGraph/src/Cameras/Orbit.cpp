@@ -5,18 +5,16 @@
 * @Last Modified time: 2021-06-19 10:01:35
 */
 
-#include <Camera/OrbitCamera.hpp>
-#include <Engine.hpp>
+#include <Cameras/Orbit.hpp>
 #include <Nodes/Node.hpp>
-#include <Tools/Tools.hpp>
 
 namespace TabGraph::Cameras {
 Orbit::Orbit(const std::string& iname, float phi, float theta, float radius, Camera::Projection proj)
     : Inherit(iname, proj)
 {
-    _phi = phi;
-    _theta = theta;
-    _radius = radius;
+    _Phi = phi;
+    _Theta = theta;
+    _Radius = radius;
     _Update();
 }
 
@@ -31,46 +29,31 @@ void Orbit::_Update()
     if (Target() != nullptr)
         targetPosition = Target()->GetWorldPosition();
     //TODO Add SetWorldPosition to Node
-    SetLocalPosition(targetPosition + Radius() * glm::vec3(sin(Phi()) * cos(Theta()), sin(Phi()) * sin(Theta()), cos(Phi())));
+    SetLocalPosition(targetPosition + GetRadius() * glm::vec3(sin(GetPhi()) * cos(GetTheta()), sin(GetPhi()) * sin(GetTheta()), cos(GetPhi())));
     LookAt(targetPosition);
-}
-
-float Orbit::Phi() const
-{
-    return _phi;
 }
 
 void Orbit::SetPhi(float phi)
 {
-    if (phi == _phi)
+    if (phi == GetPhi())
         return;
-    _phi = phi;
+    _SetPhi(phi);
     _Update();
-}
-
-float Orbit::Theta() const
-{
-    return _theta;
 }
 
 void Orbit::SetTheta(float theta)
 {
-    if (theta == _theta)
+    if (theta == GetTheta())
         return;
-    _theta = theta;
+    _SetTheta(theta);
     _Update();
-}
-
-float Orbit::Radius() const
-{
-    return _radius;
 }
 
 void Orbit::SetRadius(float radius)
 {
-    if (radius == _radius)
+    if (radius == GetRadius())
         return;
-    _radius = radius;
+    _SetRadius(radius);
     _Update();
 }
 

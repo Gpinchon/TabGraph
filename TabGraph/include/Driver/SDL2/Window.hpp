@@ -6,18 +6,29 @@
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Window.hpp>
 
 #include <glm/vec2.hpp>
 #include <array>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward Declarations
+////////////////////////////////////////////////////////////////////////////////
+struct SDL_WindowEvent;
 struct SDL_Window;
 
+////////////////////////////////////////////////////////////////////////////////
+// Class Definition
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Core {
 class Window::Impl {
 public:
     using Handle = SDL_Window*;
     Impl(const std::string& name, const glm::ivec2& resolution, const Style style);
-    Signal<Event::Window>& OnEvent(const Event::Window::Type type);
+    Events::Signal<Events::Event::Window>& OnEvent(const Events::Event::Window::Type type);
     Handle GetHandle() const;
     uint32_t GetId() const;
     glm::ivec2 GetSize() const;
@@ -27,13 +38,12 @@ public:
 
 private:
     Handle _handle { nullptr };
-    std::array<Signal<Event::Window>, size_t(Event::Window::Type::MaxValue)> _onEvent;
+    std::array<Events::Signal<Events::Event::Window>, size_t(Events::Event::Window::Type::MaxValue)> _onEvent;
 };
-
-struct SDL_WindowEvent;
+}
 
 namespace SDL2 {
 namespace Window {
-    Event::Window CreateEventData(const SDL_WindowEvent& event);
+    TabGraph::Events::Event::Window CreateEventData(const SDL_WindowEvent& event);
 };
 };

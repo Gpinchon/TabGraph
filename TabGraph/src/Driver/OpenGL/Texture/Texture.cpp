@@ -6,52 +6,54 @@
 */
 
 #include <Driver/OpenGL/Texture/Texture.hpp>
-#include <Texture/TextureSampler.hpp>
+#include <Texture/Sampler.hpp>
 
 #include <GL/glew.h>
+#include <stdexcept>
 
-unsigned OpenGL::GetEnum(::Texture::Type type)
+unsigned OpenGL::GetEnum(TabGraph::Textures::Texture::Type type)
 {
     switch (type) {
-    case ::Texture::Type::Texture1D:
+    case TabGraph::Textures::Texture::Type::Texture1D:
         return GL_TEXTURE_1D;
-    case ::Texture::Type::Texture1DArray:
+    case TabGraph::Textures::Texture::Type::Texture1DArray:
         return GL_TEXTURE_1D_ARRAY;
-    case ::Texture::Type::Texture2D:
+    case TabGraph::Textures::Texture::Type::Texture2D:
         return GL_TEXTURE_2D;
-    case ::Texture::Type::Texture2DArray:
+    case TabGraph::Textures::Texture::Type::Texture2DArray:
         return GL_TEXTURE_2D_ARRAY;
-    case ::Texture::Type::Texture2DMultisample:
+    case TabGraph::Textures::Texture::Type::Texture2DMultisample:
         return GL_TEXTURE_2D_MULTISAMPLE;
-    case ::Texture::Type::Texture2DMultisampleArray:
+    case TabGraph::Textures::Texture::Type::Texture2DMultisampleArray:
         return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
-    case ::Texture::Type::Texture3D:
+    case TabGraph::Textures::Texture::Type::Texture3D:
         return GL_TEXTURE_3D;
-    case ::Texture::Type::TextureBuffer:
+    case TabGraph::Textures::Texture::Type::TextureBuffer:
         return GL_TEXTURE_BUFFER;
-    case ::Texture::Type::TextureCubemap:
+    case TabGraph::Textures::Texture::Type::TextureCubemap:
         return GL_TEXTURE_CUBE_MAP;
-    case ::Texture::Type::TextureCubemapArray:
+    case TabGraph::Textures::Texture::Type::TextureCubemapArray:
         return GL_TEXTURE_CUBE_MAP_ARRAY;
-    case ::Texture::Type::TextureRectangle:
+    case TabGraph::Textures::Texture::Type::TextureRectangle:
         return GL_TEXTURE_RECTANGLE;
     default:
         throw std::runtime_error("Unknown Texture::Type");
     }
 }
 
-::Texture::Impl::Handle OpenGL::Texture::Generate()
+TabGraph::Textures::Texture::Impl::Handle OpenGL::Texture::Generate()
 {
     unsigned handle;
     glGenTextures(1, &handle);
     return handle;
 }
 
-void OpenGL::Texture::Delete(::Texture::Impl::Handle handle)
+void OpenGL::Texture::Delete(TabGraph::Textures::Texture::Impl::Handle handle)
 {
     glDeleteTextures(1, &handle);
 }
 
+namespace TabGraph::Textures {
 Texture::Impl::Impl(const Impl& other)
     : _type(other._type)
     , _textureSampler(other._textureSampler)
@@ -63,14 +65,14 @@ Texture::Impl::Impl(const Impl& other)
 
 Texture::Impl::Impl(Texture::Type type)
     : _type(type)
-    , _textureSampler(std::make_shared<TextureSampler>())
+    , _textureSampler(std::make_shared<Textures::Sampler>())
 {
 }
 
 Texture::Impl::Impl(Texture::Type type, const Pixel::Description& description)
     : _type(type)
     , _pixelDescription(description)
-    , _textureSampler(std::make_shared<TextureSampler>())
+    , _textureSampler(std::make_shared<Textures::Sampler>())
 {
 }
 
@@ -95,4 +97,5 @@ void Texture::Impl::SetPixelDescription(const Pixel::Description& pixelDesc)
         return;
     _pixelDescription = pixelDesc;
     Unload();
+}
 }

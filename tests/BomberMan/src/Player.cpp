@@ -2,18 +2,18 @@
 * @Author: gpinchon
 * @Date:   2020-08-08 22:47:18
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2020-08-17 14:00:36
+* @Last Modified time: 2021-07-01 22:12:51
 */
 
-#include <Engine.hpp>
 #include <Animation/Animation.hpp>
 #include <Assets/Asset.hpp>
 #include <Assets/AssetsParser.hpp>
 #include <Camera/Camera.hpp>
-#include <Event/InputDevice/Keyboard.hpp>
+#include <Engine.hpp>
+#include <Events/InputDevice/Keyboard.hpp>
 #include <Material/Material.hpp>
-#include <Surface/Mesh.hpp>
 #include <Scene/Scene.hpp>
+#include <Surface/Mesh.hpp>
 
 #include "Bomb.hpp"
 #include "Game.hpp"
@@ -38,10 +38,8 @@ Player::Player(Level& level, const std::string& name, const glm::vec3& color)
 auto CreatePlayerAsset()
 {
     auto playerAsset = Component::Create<Asset>(Engine::GetResourcePath() / "models/bomberman.gltf");
-    AssetsParser::AddParsingTask({
-        AssetsParser::ParsingTask::Type::Sync,
-        playerAsset
-    });
+    AssetsParser::AddParsingTask({ AssetsParser::ParsingTask::Type::Sync,
+        playerAsset });
     playerAsset->GetComponent<Scene>()->GetComponent<Node>()->SetScale(glm::vec3(0.01f));
     return playerAsset;
 }
@@ -59,7 +57,7 @@ std::shared_ptr<Player> Player::Create(Level& level, const glm::vec3& color)
     for (auto i = 0; i < player->GetSurfaceNbr(); ++i) {
         player->GetSurface(i)->GetComponentInChildrenByName<Material>("White")->SetDiffuse(color);
     }
-    
+
     return player;
 }
 
@@ -97,8 +95,8 @@ struct Contact {
 
 auto AABBvsCircle(Contact& c, const glm::vec2& sphereCenter, float sphereRadius, const glm::vec2& boxPos, const glm::vec2& boxSize)
 {
-    auto &C = sphereCenter;
-    auto &B = boxPos;
+    auto& C = sphereCenter;
+    auto& B = boxPos;
     auto BC = C - B; //D
     auto P = B + glm::clamp(BC, -boxSize, boxSize);
     auto CP = P - C;
@@ -142,7 +140,7 @@ void Player::Update(float delta)
 {
     if (_animations.at("death").lock()->Playing())
         return;
-    glm::vec2 input{};
+    glm::vec2 input {};
     input.x = Keyboard::GetKeyState(UPK) - Keyboard::GetKeyState(DOWNK);
     input.y = Keyboard::GetKeyState(RIGHTK) - Keyboard::GetKeyState(LEFTK);
     auto inputLength = length(input);
@@ -155,9 +153,9 @@ void Player::Update(float delta)
         auto forward = normalize(Position() - projPlayerPosition);
         auto right = normalize(glm::vec2(cameraT->Right().x, cameraT->Right().z));
         Move(input * (forward + right), delta);
-    }
-    else PlayAnimation("idle", true);
-    bool collides{ false };
+    } else
+        PlayAnimation("idle", true);
+    bool collides { false };
     do {
         collides = false;
         auto maxX = glm::clamp(int(Position().x + 1), 0, _level.Size().x - 1);

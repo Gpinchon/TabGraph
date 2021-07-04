@@ -2,25 +2,42 @@
 * @Author: gpinchon
 * @Date:   2021-05-02 00:29:18
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-02 20:41:39
+* @Last Modified time: 2021-07-01 22:12:52
 */
 #pragma once
-#include <Driver/OpenGL/Texture/Texture.hpp>
-#include <Texture/Texture2D.hpp>
-#include <Event/Signal.hpp>
+
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <DispatchQueue.hpp>
+#include <Driver/OpenGL/Texture/Texture.hpp>
+#include <Events/Signal.hpp>
+#include <Texture/Texture2D.hpp>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Assets {
+class Asset;
+}
+namespace Evants {
 struct Event;
-
-namespace Pixel {
+}
+namespace Textures::Pixel {
 struct Description;
 }
+}
 
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Textures {
 class Texture2D::Impl : public Texture::Impl {
 public:
     Impl(const Impl& other);
     Impl(const glm::ivec2& size, const Pixel::Description& pixelDesc);
-    Impl(std::shared_ptr<Asset>);
+    Impl(std::shared_ptr<Assets::Asset>);
     ~Impl();
     virtual void Load() override;
     virtual void Unload() override;
@@ -36,7 +53,7 @@ public:
         return _compressionQuality;
     }
     void SetCompressed(bool);
-    inline void SetImage(std::shared_ptr<Asset> asset)
+    inline void SetImage(std::shared_ptr<Assets::Asset> asset)
     {
         _asset = asset;
     }
@@ -49,7 +66,7 @@ public:
     {
         return _compressed;
     }
-    inline std::shared_ptr<Asset> GetImage() const
+    inline std::shared_ptr<Assets::Asset> GetImage() const
     {
         return _asset;
     }
@@ -57,12 +74,13 @@ public:
 private:
     void _AllocateStorage();
     void _UploadImage();
-    bool _compressed{ false };
-    glm::ivec2 _size{ 0 };
-    std::shared_ptr<Asset> _asset;
-    Signal<const Event&>::ScoppedSlot _imageLoadingSlot;
-    Signal<const Event&>::ScoppedSlot _imageCompressionSlot;
+    bool _compressed { false };
+    glm::ivec2 _size { 0 };
+    std::shared_ptr<Assets::Asset> _asset;
+    Events::Signal<const Events::Event&>::ScoppedSlot _imageLoadingSlot;
+    Events::Signal<const Events::Event&>::ScoppedSlot _imageCompressionSlot;
     DispatchQueue::TaskIdentifier _imageCompressionTaskID;
     std::vector<std::byte> _imageCompressionBuffer;
-    float _compressionQuality{ 0.25 };
+    float _compressionQuality { 0.25 };
 };
+}

@@ -2,21 +2,27 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-30 19:10:53
+* @Last Modified time: 2021-07-01 22:30:45
 */
 
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Common.hpp>
-#include <Nodes/Node.hpp> // for Node
 #include <Core/Inherit.hpp>
+#include <Nodes/Node.hpp>
 
-#include <glm/mat4x4.hpp>
-#include <string> // for string
-#include <variant>
-#include <functional>
 #include <array>
+#include <functional>
+#include <glm/mat4x4.hpp>
+#include <string>
+#include <variant>
 
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Cameras {
 /**
 * @brief The default "general purpose" camera

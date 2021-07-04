@@ -28,23 +28,17 @@ public:
     }
 
     //Overriden functions
-    /**
-     * @return sizeof(SubClass)
-    */
-    inline size_t GetSize() const override
+    /** @return sizeof(SubClass) */
+    inline size_t GetByteSize() const override
     {
         return sizeof(SubClass);
     }
-    /**
-     * @return the type_info of SubClass
-    */
+    /** @return the type_info of SubClass */
     inline const std::type_info& GetTypeInfo() const override
     {
         return typeid(SubClass);
     }
-    /**
-     * @return the name of the type_info of SubClass
-    */
+    /** @return the name of the type_info of SubClass */
     inline std::string GetClassName() const override
     {
         return typeid(SubClass).name();

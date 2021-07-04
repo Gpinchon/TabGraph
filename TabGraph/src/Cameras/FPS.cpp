@@ -5,8 +5,7 @@
 * @Last Modified time: 2021-01-11 08:46:31
 */
 
-#include <Camera/FPSCamera.hpp>
-#include <memory>
+#include <Cameras/FPS.hpp>
 
 namespace TabGraph::Cameras {
 FPS::FPS(const std::string& name, Camera::Projection proj)

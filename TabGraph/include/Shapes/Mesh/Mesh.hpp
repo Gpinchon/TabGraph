@@ -2,36 +2,41 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-12 14:14:44
+* @Last Modified time: 2021-07-01 22:30:45
 */
 
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Core/Inherit.hpp>
 #include <Shapes/Shape.hpp>
 
-#include <glm/ext/matrix_float4x4.hpp> // for mat4
+#include <glm/ext/matrix_float4x4.hpp>
 #include <map>
-#include <memory> // for shared_ptr, weak_ptr
-#include <stdint.h> // for int64_t, uint32_t
-#include <string> // for string
+#include <memory>
+#include <stdint.h>
+#include <string>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Forward declarations
+// Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
-namespace TabGraph::Shapes {
+namespace TabGraph {
+namespace Shapes {
 class Geometry;
 }
-namespace TabGraph::Buffer {
+namespace Buffer {
 class Accessor;
 }
-namespace TabGraph::Materials {
+namespace Materials {
 class Material;
+}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Shapes {
 class Mesh : public TabGraph::Core::Inherit<Shape, Mesh> {
@@ -47,33 +52,39 @@ public:
     std::shared_ptr<Materials::Material> GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const;
     void SetGeometryMaterial(std::shared_ptr<Geometry> geometry, std::shared_ptr<Materials::Material> material);
 
-    std::shared_ptr<Buffer::Accessor> GetWeights() const {
+    std::shared_ptr<Buffer::Accessor> GetWeights() const
+    {
         return _weights;
     }
 
-    void SetWeights(std::shared_ptr<Buffer::Accessor> weights) {
+    void SetWeights(std::shared_ptr<Buffer::Accessor> weights)
+    {
         _weights = weights;
     }
 
-    const auto& GetGeometries() const {
+    const auto& GetGeometries() const
+    {
         return _geometries;
     }
 
     virtual void Load();
-    inline bool GetLoaded() {
+    inline bool GetLoaded()
+    {
         return _loaded;
     }
-    inline auto& GetGeometryTransform() const {
+    inline auto& GetGeometryTransform() const
+    {
         return _geometryTransform;
     }
-    inline void SetGeometryTransform(const glm::mat4& transform) {
+    inline void SetGeometryTransform(const glm::mat4& transform)
+    {
         _geometryTransform = transform;
     }
 
 private:
     std::map<std::shared_ptr<Geometry>, std::shared_ptr<Materials::Material>> _geometries;
     std::shared_ptr<Buffer::Accessor> _weights;
-    bool _loaded{ false };
-    glm::mat4 _geometryTransform{ 1 };
+    bool _loaded { false };
+    glm::mat4 _geometryTransform { 1 };
 };
 }

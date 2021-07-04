@@ -6,12 +6,12 @@
 */
 #pragma once
 
-#include "Property.hpp"
+#include <Core/Property.hpp>
 
 #include <map>
 #include <string>
 
-namespace Shader {
+namespace TabGraph::Shader {
 class Stage {
 public:
     /**

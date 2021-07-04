@@ -2,26 +2,31 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-30 19:53:18
+* @Last Modified time: 2021-07-01 22:30:41
 */
 #pragma once
+
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Animations/Channel.hpp>
 #include <Animations/Interpolator.hpp>
 #include <Animations/Sampler.hpp>
 #include <Core/Inherit.hpp>
 #include <Core/Object.hpp>
-#include <Property.hpp>
+#include <Core/Property.hpp>
 
-#include <chrono>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Animations {
 class Animation : public Core::Inherit<Core::Object, Animation> {
 public:
     READONLYPROPERTY(bool, Playing, false);
     PROPERTY(bool, Repeat, false);
+
 public:
     Animation();
 
@@ -52,13 +57,6 @@ public:
     void Reset();
 
 private:
-    /*virtual void _Replace(const std::shared_ptr<Component> oldComponent, const std::shared_ptr<Component> newComponent)
-    {
-        for (auto& channel : GetChannels()) {
-            if (channel.Target() == oldComponent)
-                channel.SetTarget(std::static_pointer_cast<Node>(newComponent));
-        }
-    };*/
     std::vector<std::pair<Channel, Interpolator>> _channels;
     std::vector<Sampler> _samplers;
     float _currentTime { 0 };

@@ -9,100 +9,98 @@
 #include <Driver/OpenGL/Shader/Global.hpp>
 #endif
 
-namespace Shader {
-namespace Global {
-    void Global::SetTexture(const std::string& name, const std::shared_ptr<Texture> value)
-    {
-        Impl::SetTexture(name, value);
-    }
-
-    void Global::SetUniform(const std::string& name, const float value)
-    {
-        Impl::SetUniform(name, value);
-    }
-
-    void Global::SetUniform(const std::string& name, const float* value, const uint16_t count, const uint16_t index)
-    {
-        Impl::SetUniform(name, value, count, index);
-    }
-
-    void Global::SetUniform(const std::string& name, const int32_t value)
-    {
-        Impl::SetUniform(name, value);
-    }
-
-    void Global::SetUniform(const std::string& name, const int32_t* value, const uint16_t count, const uint16_t index)
-    {
-        Impl::SetUniform(name, value, count, index);
-    }
-
-    void Global::SetUniform(const std::string& name, const uint32_t value)
-    {
-        Impl::SetUniform(name, value);
-    }
-
-    void Global::SetUniform(const std::string& name, const uint32_t* value, const uint16_t count, const uint16_t index)
-    {
-        Impl::SetUniform(name, value, count, index);
-    }
-
-    void SetUniform(const std::string& name, const glm::vec2& value)
-    {
-        Impl::SetUniform(name, value);
-    }
-
-    void SetUniform(const std::string& name, const glm::vec2* value, const uint16_t count, const uint16_t index)
-    {
-        Impl::SetUniform(name, value, count, index);
-    }
-
-    void SetUniform(const std::string& name, const glm::vec3& value)
-    {
-        Impl::SetUniform(name, value);
-    }
-
-    void SetUniform(const std::string& name, const glm::vec3* value, const uint16_t count, const uint16_t index)
-    {
-        Impl::SetUniform(name, value, count, index);
-    }
-
-    void SetUniform(const std::string& name, const glm::vec4& value)
-    {
-        Impl::SetUniform(name, value);
-    }
-
-    void SetUniform(const std::string& name, const glm::vec4* value, const uint16_t count, const uint16_t index)
-    {
-        Impl::SetUniform(name, value, count, index);
-    }
-
-    void SetUniform(const std::string& name, const glm::mat4& value)
-    {
-        Impl::SetUniform(name, value);
-    }
-
-    void SetUniform(const std::string& name, const glm::mat4* value, const uint16_t count, const uint16_t index)
-    {
-        Impl::SetUniform(name, value, count, index);
-    }
-
-    void SetUniform(const std::string& name, const glm::mat3& value)
-    {
-        Impl::SetUniform(name, value);
-    }
-
-    void SetUniform(const std::string& name, const glm::mat3* value, const uint16_t count, const uint16_t index)
-    {
-        Impl::SetUniform(name, value, count, index);
-    }
-
-    void Global::SetDefine(const std::string& name, const std::string& value)
-    {
-        Impl::SetDefine(name, value);
-    }
-    void Global::RemoveDefine(const std::string& name)
-    {
-        Impl::RemoveDefine(name);
-    }
+namespace TabGraph::Shader::Global {
+void Global::SetTexture(const std::string& name, const std::shared_ptr<Textures::Texture> value)
+{
+    Impl::SetTexture(name, value);
 }
-};
+
+void Global::SetUniform(const std::string& name, const float value)
+{
+    Impl::SetUniform(name, value);
+}
+
+void Global::SetUniform(const std::string& name, const float* value, const uint16_t count, const uint16_t index)
+{
+    Impl::SetUniform(name, value, count, index);
+}
+
+void Global::SetUniform(const std::string& name, const int32_t value)
+{
+    Impl::SetUniform(name, value);
+}
+
+void Global::SetUniform(const std::string& name, const int32_t* value, const uint16_t count, const uint16_t index)
+{
+    Impl::SetUniform(name, value, count, index);
+}
+
+void Global::SetUniform(const std::string& name, const uint32_t value)
+{
+    Impl::SetUniform(name, value);
+}
+
+void Global::SetUniform(const std::string& name, const uint32_t* value, const uint16_t count, const uint16_t index)
+{
+    Impl::SetUniform(name, value, count, index);
+}
+
+void SetUniform(const std::string& name, const glm::vec2& value)
+{
+    Impl::SetUniform(name, value);
+}
+
+void SetUniform(const std::string& name, const glm::vec2* value, const uint16_t count, const uint16_t index)
+{
+    Impl::SetUniform(name, value, count, index);
+}
+
+void SetUniform(const std::string& name, const glm::vec3& value)
+{
+    Impl::SetUniform(name, value);
+}
+
+void SetUniform(const std::string& name, const glm::vec3* value, const uint16_t count, const uint16_t index)
+{
+    Impl::SetUniform(name, value, count, index);
+}
+
+void SetUniform(const std::string& name, const glm::vec4& value)
+{
+    Impl::SetUniform(name, value);
+}
+
+void SetUniform(const std::string& name, const glm::vec4* value, const uint16_t count, const uint16_t index)
+{
+    Impl::SetUniform(name, value, count, index);
+}
+
+void SetUniform(const std::string& name, const glm::mat4& value)
+{
+    Impl::SetUniform(name, value);
+}
+
+void SetUniform(const std::string& name, const glm::mat4* value, const uint16_t count, const uint16_t index)
+{
+    Impl::SetUniform(name, value, count, index);
+}
+
+void SetUniform(const std::string& name, const glm::mat3& value)
+{
+    Impl::SetUniform(name, value);
+}
+
+void SetUniform(const std::string& name, const glm::mat3* value, const uint16_t count, const uint16_t index)
+{
+    Impl::SetUniform(name, value, count, index);
+}
+
+void Global::SetDefine(const std::string& name, const std::string& value)
+{
+    Impl::SetDefine(name, value);
+}
+void Global::RemoveDefine(const std::string& name)
+{
+    Impl::RemoveDefine(name);
+}
+}

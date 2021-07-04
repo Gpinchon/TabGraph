@@ -2,14 +2,21 @@
 * @Author: gpinchon
 * @Date:   2021-02-01 13:53:30
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-02-01 18:26:33
+* @Last Modified time: 2021-07-01 22:30:42
 */
 #pragma once
-#include <string>  // for string, basic_string, string
-#include <array>
-#include <map>
-#include <filesystem>
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <array>
+#include <filesystem>
+#include <map>
+#include <string>
+
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Assets {
 /**
  * @brief Parses Uri to make it more understandable to humans
@@ -43,19 +50,21 @@ public:
     std::string GetFragment() const;
     operator std::string() const;
     friend std::ostream& operator<<(std::ostream& os, const Uri& uri);
-    inline bool operator==(const Uri& other) const {
+    inline bool operator==(const Uri& other) const
+    {
         return operator std::string() == other.operator std::string();
     }
-    inline bool operator!=(const Uri& other) const {
+    inline bool operator!=(const Uri& other) const
+    {
         return !operator==(other);
     };
 
 private:
-    std::string _scheme{ "" };
-    std::string _authority{ "" };
-    std::string _path{ "" };
-    std::string _query{ "" };
-    std::string _fragment{ "" };
+    std::string _scheme { "" };
+    std::string _authority { "" };
+    std::string _path { "" };
+    std::string _query { "" };
+    std::string _fragment { "" };
 };
 
 /**
@@ -76,7 +85,7 @@ public:
     void SetBase64(bool base64);
     bool GetBase64() const;
     void SetData(const std::string& mime);
-    const std::string &GetData() const;
+    const std::string& GetData() const;
     operator std::string();
     /**
      * @brief Decodes the data uri to native std::byte

@@ -5,7 +5,7 @@
 * @Last Modified time: 2021-06-19 15:04:37
 */
 
-#include <SceneGraph/Nodes/Scene.hpp>
+#include <Nodes/Scene.hpp>
 
 namespace TabGraph::Nodes {
 Scene::Scene() : Inherit() {

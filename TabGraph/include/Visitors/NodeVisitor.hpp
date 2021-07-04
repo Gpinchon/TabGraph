@@ -21,9 +21,15 @@ public:
         _Visit(node);
         _Traverse(node);
     };
+    virtual void operator()(Nodes::Group& node) final
+    {
+        _Visit(node);
+        _Traverse(node);
+    };
 
 private:
     virtual void _Visit(Nodes::Node& node) = 0;
     void _Traverse(Nodes::Node& node);
+    void _Traverse(Nodes::Group& group);
 };
 };

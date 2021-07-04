@@ -15,7 +15,7 @@
 #endif//MEDIALIBRARY == SDL2
 
 namespace OpenGL {
-Context::Context(std::weak_ptr<Window> window, uint8_t versionMajor, uint8_t versionMinor)
+Context::Context(std::weak_ptr<TabGraph::Core::Window> window, uint8_t versionMajor, uint8_t versionMinor)
     : _window(window)
 {
 #if MEDIALIBRARY == SDL2

@@ -7,15 +7,28 @@
 
 #pragma once
 
-#include "Component.hpp" // for Component
-#include "Texture/PixelUtils.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Core/Inherit.hpp>
+#include <Core/Object.hpp>
+#include <Texture/PixelUtils.hpp>
 
 #include <map>
 #include <memory>
 
-struct TextureSampler;
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Textures {
+struct Sampler;
+}
 
-class Texture : public Component {
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Textures {
+class Texture : public Core::Inherit<Core::Object, Texture> {
 public:
     class Impl;
     enum class Type {
@@ -43,13 +56,13 @@ public:
 
     Texture::Type GetType() const;
     Pixel::Description GetPixelDescription() const;
-    std::shared_ptr<TextureSampler> GetTextureSampler() const;
+    std::shared_ptr<Sampler> GetTextureSampler() const;
     bool GetLoaded() const;
     bool GetAutoMipMap() const;
     uint8_t GetMipMapNbr() const;
 
     void SetAutoMipMap(bool autoMipmap);
-    void SetTextureSampler(std::shared_ptr<TextureSampler> textureSampler);
+    void SetTextureSampler(std::shared_ptr<Sampler> textureSampler);
     void SetMipMapNbr(uint8_t mipNbr);
     
 
@@ -58,3 +71,4 @@ public:
 protected:
     std::unique_ptr<Impl> _impl;
 };
+}

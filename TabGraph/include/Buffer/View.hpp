@@ -2,25 +2,28 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-30 22:53:40
+* @Last Modified time: 2021-07-01 22:30:43
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Core/Inherit.hpp>
 #include <Core/Object.hpp>
-#include <Property.hpp>
+#include <Core/Property.hpp>
 
 #include <memory>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Forward declarations
+// Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Assets {
 class Asset;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Buffer {
 /** A view into a buffer generally representing a subset of the buffer. */
@@ -28,36 +31,22 @@ class View : public Core::Inherit<Core::Object, Buffer::View> {
 public:
     class ImplGPU;
     enum class Storage {
-        /**
-             * @brief GPU only buffer, accessible through mapping functions
-            */
+        /** @brief GPU only buffer, accessible through mapping functions */
         GPU,
-        /**
-             * @brief CPU only buffer, won't be loaded to GPU
-            */
+        /** @brief CPU only buffer, won't be loaded to GPU */
         CPU
     };
     enum class Type {
         Unknown = -1,
-        /**
-             * @brief for geometry Vertex buffer
-            */
+        /** @brief for geometry Vertex buffer */
         Array,
-        /**
-             * @brief for geometry Index buffer
-            */
+        /** @brief for geometry Index buffer */
         ElementArray,
-        /**
-             * @brief used to write results of glReadPixels
-            */
+        /** @brief used to write results of glReadPixels */
         PixelPack,
-        /**
-             * @brief used to store texture raw data
-            */
+        /** @brief used to store texture raw data */
         PixelUnpack,
-        /**
-             * @brief used to store texture buffer data
-            */
+        /** @brief used to store texture buffer data */
         TextureBuffer,
         MaxValue
     };

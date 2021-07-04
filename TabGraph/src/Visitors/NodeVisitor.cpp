@@ -7,6 +7,7 @@
 
 #include <Visitors/NodeVisitor.hpp>
 #include <Nodes/Node.hpp>
+#include <Nodes/Group.hpp>
 
 namespace TabGraph::Visitors {
 void NodeVisitor::_Traverse(Nodes::Node& node)
@@ -18,11 +19,15 @@ void NodeVisitor::_Traverse(Nodes::Node& node)
 	case Mode::VisitParents:
 		node.GetParent()->Accept(*this);
 		break;
-	case Mode::VisitChildren:
-		for (auto &child : node.GetChildren()) child->Accept(*this);
-		break;
 	default:
 		break;
 	}
+}
+
+void NodeVisitor::_Traverse(Nodes::Group& group)
+{
+	if (mode == Mode::VisitChildren)
+		for (auto& child : group.GetChildren()) child->Accept(*this);
+	else _Traverse(static_cast<Nodes::Node&>(group));
 }
 }

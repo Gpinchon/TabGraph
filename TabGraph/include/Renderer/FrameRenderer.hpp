@@ -6,17 +6,38 @@
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <memory>
 
 #include <glm/vec2.hpp>
 
-class Window;
+////////////////////////////////////////////////////////////////////////////////
+// Forward Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Shapes {
 class Geometry;
-class Texture2D;
+}
+namespace Nodes {
 class Scene;
-class Framebuffer;
-
+}
+namespace Textures {
+class Texture2D;
+}
 namespace Renderer {
+class Framebuffer;
+}
+namespace Core {
+class Window;
+}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Renderer {
 /**
  * @brief see https://www.khronos.org/opengl/wiki/Swap_Interval
 */
@@ -31,10 +52,10 @@ public:
     void SetViewPort(const glm::ivec2& min, const glm::ivec2& max);
     void SetViewPort(const glm::ivec2& size);
     uint32_t GetFrameNumber() const;
-    const std::shared_ptr<Window> GetWindow() const;
-    const std::shared_ptr<Geometry> GetDisplayQuad() const;
-    const std::shared_ptr<Texture2D> GetDefaultBRDFLUT() const;
-    void RenderFrame(std::shared_ptr<Scene> scene);
+    const std::shared_ptr<Core::Window> GetWindow() const;
+    const std::shared_ptr<Shapes::Geometry> GetDisplayQuad() const;
+    const std::shared_ptr<Textures::Texture2D> GetDefaultBRDFLUT() const;
+    void RenderFrame(std::shared_ptr<Nodes::Scene> scene);
     /**
         * @brief Sets the swap interval of this FrameRenderer
         * @param swapInterval : see https://www.khronos.org/opengl/wiki/Swap_Interval

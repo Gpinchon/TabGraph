@@ -36,20 +36,20 @@ set(CMAKE_DEBUG_TARGET_PROPERTIES INTERFACE_INCLUDE_DIRECTORIES)
 if (MediaLibrary STREQUAL "SDL2")
 set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Engine.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/EventsManager.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Event.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/GameController.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Keyboard.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Mouse.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Events/Event.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Events/Manager.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/InputDevices/GameController.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/InputDevices/Keyboard.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/InputDevices/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/SDL2/Window.hpp
 )
 set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Engine.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Event.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/EventsManager.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/GameController.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Keyboard.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Mouse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Events/Event.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Events/Manager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/InputDevices/GameController.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/InputDevices/Keyboard.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/InputDevices/Mouse.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/SDL2/Window.cpp
 )
 endif (MediaLibrary STREQUAL "SDL2")
@@ -82,10 +82,10 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureCubemap.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureCubemapArray.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureRectangle.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/TextureSampler.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Sampler.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Texture/Framebuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Buffer.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/ComputeObject.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Compute/Object.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/Debug.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/ObjectHandle.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Driver/OpenGL/VertexArray.hpp
@@ -118,10 +118,10 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureCubemap.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureCubemapArray.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureRectangle.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/TextureSampler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Sampler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Texture/Framebuffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Buffer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/ComputeObject.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/Compute/Object.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Driver/OpenGL/VertexArray.cpp
 )
 endif (RenderingAPI STREQUAL "OpenGL")
@@ -131,7 +131,7 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Channel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Interpolator.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Sampler.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/AssetsParser.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Parser.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Asset.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/BinaryData.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Image.hpp
@@ -143,23 +143,24 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/FPS.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/Orbit.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Common.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/ComputeObject.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Compute/Object.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Config.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Core/Inherit.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Core/Object.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Core/Property.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DispatchQueue.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/GameController.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Keyboard.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/InputDevice/Mouse.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Signal.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Event.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/EventsManager.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/GameController.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Keyboard.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Event/Mouse.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/InputDevice/GameController.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/InputDevice/Keyboard.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/InputDevice/Mouse.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Signal.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Event.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Manager.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/GameController.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Keyboard.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Mouse.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Light.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/LightProbe.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/DirectionalLight.hpp
@@ -167,11 +168,12 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/PointLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/SkyLight.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/SpotLight.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/Material.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/MaterialExtension.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/Standard.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/Extension.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/MetallicRoughness.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Material/SpecularGlossiness.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Node.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Group.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Renderable.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Scene.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Geometry.hpp
@@ -197,9 +199,9 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/Ray.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/RigidBody.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/SimplexSolver.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Property.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Quadtree.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Renderer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Framebuffer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/FrameRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/SceneRenderer.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Renderer/Shapes/GeometryRenderer.hpp
@@ -229,8 +231,7 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureCubemap.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureCubemapArray.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureRectangle.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/TextureSampler.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Framebuffer.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Texture/Sampler.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/Base.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Tools/Tools.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/UI/UIManager.hpp
@@ -240,7 +241,7 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Animations/Animation.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Asset.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/AssetsParser.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Parser.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Image.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Assets/Uri.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Buffer/Accessor.cpp
@@ -249,14 +250,14 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/FPS.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/Orbit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/ComputeObject.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Compute/Object.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DispatchQueue.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/EventsManager.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/GameController.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/Keyboard.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Event/Inputdevice/Mouse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Manager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Inputdevice/GameController.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Inputdevice/Keyboard.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Inputdevice/Mouse.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/LightProbe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionalLight.cpp
@@ -264,8 +265,7 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/PointLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SkyLight.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/SpotLight.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/Material.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MaterialExtension.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/Standard.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MetallicRoughness.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/SpecularGlossiness.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Geometry.cpp
@@ -290,12 +290,12 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/RigidBody.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/SimplexSolver.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Quadtree.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Framebuffer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/FrameRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/SceneRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Shapes/GeometryRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Shapes/ShapeRenderer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/Light/LightRenderer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Scene/Scene.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Object.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Nodes/Node.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Nodes/Renderable.cpp
@@ -321,8 +321,7 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureCubemap.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureCubemapArray.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureRectangle.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/TextureSampler.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Framebuffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Texture/Sampler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools/Base.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Tools/Tools.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/UI/UIManager.cpp

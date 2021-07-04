@@ -2,21 +2,24 @@
 * @Author: gpinchon
 * @Date:   2021-01-07 17:35:23
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-07 01:24:53
+* @Last Modified time: 2021-07-01 22:30:42
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Core/Inherit.hpp>
 #include <Core/Object.hpp>
+#include <Core/Property.hpp>
 #include <Texture/PixelUtils.hpp>
-#include <Property.hpp>
 
-#include <glm/vec4.hpp>
 #include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Assets {
 /**
@@ -75,7 +78,8 @@ public:
     */
     void SetSize(const glm::ivec2& size, SamplingFilter filter = SamplingFilter::Nearest);
     /** @return the image's size */
-    glm::ivec2 GetPixelSize() const {
+    glm::ivec2 GetSize() const
+    {
         return _size;
     }
 

@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-06-27 17:52:38
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-29 23:08:44
+* @Last Modified time: 2021-07-01 22:30:44
 */
 
 #pragma once
@@ -10,17 +10,17 @@
 #include <Nodes/Node.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Forward declarations
+// Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Shapes {
 class Shape;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Nodes {
-class Renderable : Core::Inherit<Node, Renderable> {
+class Renderable : public Core::Inherit<Node, Renderable> {
 public:
     inline void Add(std::shared_ptr<Shapes::Shape> shape)
     {

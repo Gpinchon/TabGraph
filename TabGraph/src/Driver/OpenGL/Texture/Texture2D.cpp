@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2021-05-02 20:50:11
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-07 01:30:06
+* @Last Modified time: 2021-07-01 22:12:48
 */
 
 #include <Assets/Asset.hpp>
@@ -11,7 +11,7 @@
 #include <DispatchQueue.hpp>
 #include <Driver/OpenGL/Texture/PixelUtils.hpp>
 #include <Driver/OpenGL/Texture/Texture2D.hpp>
-#include <Event/EventsManager.hpp>
+#include <Events/Manager.hpp>
 
 #include <FasTC/CompressedImage.h>
 #include <FasTC/CompressionFormat.h>
@@ -19,6 +19,7 @@
 #include <FasTC/TexComp.h>
 #include <GL/glew.h>
 
+namespace TabGraph::Textures {
 Texture2D::Impl::Impl(const Impl& other)
     : Texture::Impl(other)
     , _compressed(other._compressed)
@@ -34,7 +35,7 @@ Texture2D::Impl::Impl(const glm::ivec2& size, const Pixel::Description& pixelDes
 {
 }
 
-Texture2D::Impl::Impl(std::shared_ptr<Asset> asset)
+Texture2D::Impl::Impl(std::shared_ptr<Assets::Asset> asset)
     : Texture::Impl(Texture::Type::Texture2D)
     , _asset(asset)
 {
@@ -56,11 +57,11 @@ void Texture2D::Impl::Load()
         _UploadImage();
         return;
     }
-    AssetsParser::AddParsingTask({ AssetsParser::ParsingTask::Type::Async,
+    Assets::Parser::AddParsingTask({ Assets::Parser::ParsingTask::Type::Async,
         asset });
-    _imageLoadingSlot = EventsManager::On(Event::Type::AssetLoaded).Connect([this](const Event& event) {
+    _imageLoadingSlot = Events::Manager::On(Events::Event::Type::AssetLoaded).Connect([this](const Events::Event& event) {
         assert(!_loaded);
-        auto& assetEvent = event.Get<Event::Asset>();
+        auto& assetEvent = event.Get<Events::Event::Asset>();
         if (assetEvent.asset != GetImage())
             return;
         _UploadImage();
@@ -183,4 +184,5 @@ inline void Texture2D::Impl::_UploadImage()
         SetImage(nullptr);
         SetLoaded(true);
     }
+}
 }

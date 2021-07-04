@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2020-08-09 19:54:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-26 18:33:52
+* @Last Modified time: 2021-07-01 22:12:51
 */
 #define USE_HIGH_PERFORMANCE_GPU
 #include <DLLExport.hpp>
@@ -14,11 +14,11 @@
 #include <Camera/FPSCamera.hpp>
 #include <Config.hpp>
 #include <Engine.hpp>
-#include <Event/EventsManager.hpp>
-#include <Event/GameController.hpp>
-#include <Event/InputDevice/GameController.hpp>
-#include <Event/InputDevice/Keyboard.hpp>
-#include <Event/InputDevice/Mouse.hpp>
+#include <Events/EventsManager.hpp>
+#include <Events/GameController.hpp>
+#include <Events/InputDevice/GameController.hpp>
+#include <Events/InputDevice/Keyboard.hpp>
+#include <Events/InputDevice/Mouse.hpp>
 #include <Light/DirectionalLight.hpp>
 #include <Light/HDRLight.hpp>
 #include <Light/PointLight.hpp>
@@ -67,19 +67,20 @@ void CallbackQuality(const Event::Keyboard& event)
 std::shared_ptr<Light> s_light;
 std::vector<std::shared_ptr<Camera>> s_cameras;
 
-#include <SceneGraph/Nodes/Scene.hpp>
 #include <SceneGraph/Nodes/Node.hpp>
+#include <SceneGraph/Nodes/Scene.hpp>
 #include <SceneGraph/Visitors/SearchVisitor.hpp>
 
-void SceneGraphTest() {
+void SceneGraphTest()
+{
     //build a test scene
-    auto scene{ std::make_shared<SceneGraph::Nodes::Scene>() };
-    auto node0{ std::make_shared<SceneGraph::Nodes::Node>("node0") };
+    auto scene { std::make_shared<SceneGraph::Nodes::Scene>() };
+    auto node0 { std::make_shared<SceneGraph::Nodes::Node>("node0") };
     for (int i = 0; i < 5; ++i) {
-        auto testNode{ std::make_shared<SceneGraph::Nodes::Node>("node1") };
+        auto testNode { std::make_shared<SceneGraph::Nodes::Node>("node1") };
         testNode->SetParent(node0);
         for (int j = 0; j < 2; ++j) {
-            auto testNode1{ std::make_shared<SceneGraph::Nodes::Node>("node1") };
+            auto testNode1 { std::make_shared<SceneGraph::Nodes::Node>("node1") };
             testNode1->SetParent(testNode);
         }
     }

@@ -6,6 +6,7 @@
 */
 
 #include <Nodes/Node.hpp>
+#include <Nodes/Group.hpp>
 
 #include <glm/gtx/transform.hpp>
 
@@ -15,6 +16,21 @@ Node::Node()
 {
     static auto s_nodeNbr { 0u };
     SetName("Node_" + std::to_string(++s_nodeNbr));
+}
+Node::Node(const Node& other)
+    : Node()
+{
+    _position = other._position;
+    _rotation = other._rotation;
+    _scale = other._scale;
+    _positionChanged = true;
+    _rotationChanged = true;
+    _scaleChanged = true;
+}
+glm::mat4 Node::GetLocalTransformMatrix() {
+    if (_positionChanged || _rotationChanged || _scaleChanged)
+        _localTransformMatrix = GetLocalTranslationMatrix() * GetLocalRotationMatrix() * GetLocalScaleMatrix();
+    return _localTransformMatrix;
 }
 glm::mat4 Node::GetLocalTranslationMatrix()
 {
@@ -39,5 +55,46 @@ glm::mat4 Node::GetLocalScaleMatrix()
         _scaleChanged = false;
     }
     return _localScaleMatrix;
+}
+
+glm::mat4 Node::GetWorldTransformMatrix()
+{
+    return (GetParent() ? GetParent()->GetWorldTransformMatrix() : glm::mat4(1.f)) * GetLocalTransformMatrix();
+}
+
+glm::mat4 Node::GetWorldTranslationMatrix()
+{
+    return (GetParent() ? GetParent()->GetWorldTransformMatrix() : glm::mat4(1.f)) * GetLocalTranslationMatrix();
+}
+
+glm::mat4 Node::GetWorldRotationMatrix()
+{
+    return (GetParent() ? GetParent()->GetWorldTransformMatrix() : glm::mat4(1.f)) * GetLocalRotationMatrix();
+}
+
+glm::mat4 Node::GetWorldScaleMatrix()
+{
+    return (GetParent() ? GetParent()->GetWorldTransformMatrix() : glm::mat4(1.f)) * GetLocalScaleMatrix();
+}
+
+void Node::SetParent(std::shared_ptr<Group> parent)
+{
+    if (GetParent() != nullptr)
+        GetParent()->_RemoveChild(shared_from_this());
+    _parent = parent;
+    if (parent != nullptr)
+        parent->_AddChild(shared_from_this());
+}
+glm::vec3 Node::GetWorldPosition() const
+{
+    return (GetParent() ? GetParent()->GetWorldTransformMatrix() : glm::mat4(1.f)) * glm::vec4(GetLocalPosition(), 1);
+}
+inline glm::quat Node::GetWorldRotation() const
+{
+    return (GetParent() ? GetParent()->GetWorldTransformMatrix() : glm::mat4(1.f)) * glm::mat4_cast(GetLocalRotation());
+}
+inline glm::vec3 Node::GetWorldScale() const
+{
+    return (GetParent() ? GetParent()->GetWorldTransformMatrix() : glm::mat4(1.f)) * glm::vec4(GetLocalScale(), 1);
 }
 }

@@ -6,7 +6,7 @@
 #include <typeindex>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Core {
 class Object {
@@ -39,43 +39,34 @@ public:
         _name = name;
     }
 
-    /**
-     * @brief see Inherit
-    */
-    inline virtual size_t GetSize() const
+    /** @return sizeof(Object) */
+    inline virtual size_t GetByteSize() const
     {
         return sizeof(Object);
     }
-    /**
-     * @brief see Inherit
-    */
+    /** @return typeid(Object) */
     inline virtual const std::type_info& GetTypeInfo() const
     {
         return typeid(Object);
     }
-    /**
-     * @brief see Inherit
-    */
+    /** @return typeid(Object).name() */
     inline virtual std::string GetClassName() const
     {
         return typeid(Object).name();
     }
-    /**
-     * @brief see Inherit
-    */
+    /**  @return typeIndex == typeid(Object) */
     inline virtual bool IsOfType(const std::type_index& typeIndex) const
     {
         return typeIndex == typeid(Object);
     }
-    /**
-     * @brief see Inherit
-    */
+    /**  @return typeIndex == typeid(Object) */
     inline virtual bool IsCompatible(const std::type_index& typeIndex) const
     {
-        return IsOfType(typeIndex);
+        return typeIndex == typeid(Object);
     }
     /**
-     * @brief see Inherit
+     * @brief calls operator()
+     * @param visitor : a Visitor to visit Object
     */
     inline virtual void Accept(Visitors::Visitor& visitor)
     {

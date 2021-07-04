@@ -1,20 +1,26 @@
 /*
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
-* @Last Modified by:   Gpinchon
-* @Last Modified time: 2020-08-27 17:00:49
+* @Last Modified by:   gpinchon
+* @Last Modified time: 2021-07-01 22:30:42
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Core/Inherit.hpp>
 #include <Core/Object.hpp>
 
+#include <cassert>
 #include <filesystem>
+#include <iterator>
 #include <memory>
 #include <vector>
-#include <iterator>
-#include <cassert>
 
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Assets {
 /** A buffer points to binary geometry, animation, or skins. */
 class BinaryData : public Core::Inherit<Core::Object, BinaryData> {
@@ -39,8 +45,9 @@ public:
         _data.resize(byteLength);
     }
 
-    template<typename T>
-    inline void PushBack(const T &data) {
+    template <typename T>
+    inline void PushBack(const T& data)
+    {
         SetByteLength(GetByteLength() + sizeof(T));
         Set(reinterpret_cast<const std::byte*>(&data), GetByteLength() - sizeof(T), sizeof(T));
     }
@@ -50,20 +57,24 @@ public:
      * @param index the index to fetch, will be multiplied by sizeof T
      * @return 
     */
-    template<typename T>
-    inline T& At(size_t index) {
+    template <typename T>
+    inline T& At(size_t index)
+    {
         return *Get(index * sizeof(T));
     }
-    template<typename T>
-    inline void Set(const T& data, size_t index) {
+    template <typename T>
+    inline void Set(const T& data, size_t index)
+    {
         return Set(static_cast<std::byte*>(&data), index, sizeof(T));
     }
 
-    inline void Set(const std::byte* data, size_t index, size_t size) {
+    inline void Set(const std::byte* data, size_t index, size_t size)
+    {
         assert(index + size <= _data.size());
         std::memcpy(Get(index), data, size);
     }
-    inline std::byte* Get(size_t index) {
+    inline std::byte* Get(size_t index)
+    {
         return &_data.at(index);
     }
 

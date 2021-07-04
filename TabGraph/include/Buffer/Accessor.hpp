@@ -2,34 +2,37 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-30 22:53:29
+* @Last Modified time: 2021-07-01 22:30:43
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Core/Inherit.hpp>
 #include <Core/Object.hpp>
-#include <Property.hpp>
+#include <Core/Property.hpp>
 
 #include <glm/glm.hpp>
 #include <memory>
 #include <variant>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Forward declarations
+// Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Memory {
 class Buffer::View;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Buffer {
 /**
-    * A typed view into a bufferView
-    * A bufferView contains raw binary data.
-    * An accessor provides a typed view into a bufferView or a subset of a bufferView.
-    */
+* A typed view into a bufferView
+* A bufferView contains raw binary data.
+* An accessor provides a typed view into a bufferView or a subset of a bufferView.
+*/
 class Accessor : public Core::Inherit<Core::Object, Buffer::Accessor> {
 public:
     enum class Type : uint8_t {

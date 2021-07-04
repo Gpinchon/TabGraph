@@ -1,27 +1,29 @@
 #pragma once
+
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <memory>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Forward declarations
+// Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Memory {
 class Buffer::Accessor;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Animations {
-struct Sampler
-{
-	enum class Interpolation
-	{
-		Linear,
-		Step,
-		CubicSpline
-	};
-	std::shared_ptr<Buffer::Accessor> timings{ nullptr };
-	std::shared_ptr<Buffer::Accessor> keyFrames{ nullptr };
-	Interpolation interpolation{ Interpolation::Linear };
+struct Sampler {
+    enum class Interpolation {
+        Linear,
+        Step,
+        CubicSpline
+    };
+    std::shared_ptr<Buffer::Accessor> timings { nullptr };
+    std::shared_ptr<Buffer::Accessor> keyFrames { nullptr };
+    Interpolation interpolation { Interpolation::Linear };
 };
 }

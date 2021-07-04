@@ -7,22 +7,33 @@
 
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <memory>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Core {
 class Window;
+}
 
+////////////////////////////////////////////////////////////////////////////////
+// Class Definition
+////////////////////////////////////////////////////////////////////////////////
 namespace OpenGL {
 class Context {
 public:
     using Handle = void*;
-    Context(std::weak_ptr<Window> window, uint8_t versionMajor, uint8_t versionMinor);
+    Context(std::weak_ptr<TabGraph::Core::Window> window, uint8_t versionMajor, uint8_t versionMinor);
     ~Context();
     void MakeCurrent();
     inline void SetWindow(std::weak_ptr<Window> window)
     {
         _window = window;
     }
-    inline std::shared_ptr<Window> GetWindow() const
+    inline std::shared_ptr<TabGraph::Core::Window> GetWindow() const
     {
         return _window.lock();
     }
@@ -33,6 +44,6 @@ public:
 
 private:
     Handle _handle { 0 };
-    std::weak_ptr<Window> _window;
+    std::weak_ptr<TabGraph::Core::Window> _window;
 };
-};
+}

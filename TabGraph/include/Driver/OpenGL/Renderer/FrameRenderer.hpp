@@ -2,32 +2,48 @@
 * @Author: gpinchon
 * @Date:   2021-06-19 09:51:36
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-19 09:55:41
+* @Last Modified time: 2021-07-01 22:12:52
 */
 #pragma once
 
-#include <Component.hpp>
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Driver/OpenGL/Renderer/Context.hpp>
-#include <Event/Signal.hpp>
+#include <Events/Signal.hpp>
 #include <Renderer/FrameRenderer.hpp>
 
 #include <glm/fwd.hpp>
 #include <memory>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Textures {
 class Texture2D;
+}
+namespace Renderer {
 class Framebuffer;
+}
+namespace Shapes {
 class Geometry;
+}
 namespace Shader {
 class Program;
-};
+}
+}
 
-namespace Renderer {
-struct FrameRenderer::Impl : public Component {
+////////////////////////////////////////////////////////////////////////////////
+// Class Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Renderer {
+struct FrameRenderer::Impl {
     Impl(std::weak_ptr<Window> window, FrameRenderer& renderer);
     const OpenGL::Context& GetContext() const;
     const uint32_t GetFrameNumber() const;
     const std::shared_ptr<Geometry> GetDisplayQuad() const;
-    const std::shared_ptr<Texture2D> GetDefaultBRDFLUT() const;
+    const std::shared_ptr<Textures::Texture2D> GetDefaultBRDFLUT() const;
     const std::shared_ptr<Window> GetWindow() const;
     void RenderFrame(std::shared_ptr<Scene> scene);
 
@@ -44,10 +60,6 @@ struct FrameRenderer::Impl : public Component {
     std::shared_ptr<Framebuffer> PreviousRenderBuffer();
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override
-    {
-        return Component::Create<FrameRenderer::Impl>(*this);
-    }
     OpenGL::Context _context;
     std::shared_ptr<Framebuffer> _deferredLightingBuffer;
     std::shared_ptr<Framebuffer> _deferredRenderBuffer;

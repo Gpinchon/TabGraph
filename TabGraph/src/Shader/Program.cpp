@@ -11,18 +11,17 @@
 #include <Driver/OpenGL/Shader/Program.hpp>
 #endif
 
-namespace Shader {
+namespace TabGraph::Shader {
 static auto shaderProgramNbr = 0u;
-Program::Program() : Component("Shader_" + std::to_string(++shaderProgramNbr))
+Program::Program() : Inherit("Shader_" + std::to_string(++shaderProgramNbr))
 {
-    _impl.reset(new Shader::Program::Impl);
+    _impl.reset(new Impl);
 }
 
-Program::Program(const Program& other) : Component(other)
+Program::Program(const Program& other) : Inherit(other)
 {
     shaderProgramNbr++;
     _impl = other._impl;
-    //_SetImpl(std::make_shared<Program::Impl>(_impl));
 }
 
 Program::Program(const std::string& name) : Program()
@@ -57,7 +56,7 @@ Program& Program::Use()
     return *this;
 }
 
-Program& Program::SetTexture(const std::string& name, const std::shared_ptr<Texture> value)
+Program& Program::SetTexture(const std::string& name, const std::shared_ptr<Textures::Texture> value)
 {
     _impl->SetTexture(name, value);
     return *this;
@@ -169,11 +168,6 @@ Program& Program::RemoveDefine(const std::string& name)
 {
     _impl->RemoveDefine(name);
     return *this;
-}
-
-void Program::Done()
-{
-    UseNone();
 }
 
 bool Program::GetCompiled() const

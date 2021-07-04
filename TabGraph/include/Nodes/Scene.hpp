@@ -2,13 +2,14 @@
 * @Author: gpinchon
 * @Date:   2021-06-19 15:05:33
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-26 23:02:01
+* @Last Modified time: 2021-07-01 22:30:44
 */
 
-#include <SceneGraph/Nodes/Node.hpp>
+#include <Nodes/Renderable.hpp>
+#include <Core/Inherit.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Forward declarations
+// Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph {
 namespace Surfaces {
@@ -20,13 +21,14 @@ namespace Nodes {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Nodes {
-class Scene : public Core::Inherit<Node, Scene> {
+class Scene : public Core::Inherit<Renderable, Scene> {
 public:
     Scene();
-    Scene(const std::string& name) : Scene()
+    Scene(const std::string& name)
+        : Scene()
     {
         SetName(name);
     }

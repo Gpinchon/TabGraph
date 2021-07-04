@@ -5,14 +5,10 @@
 * @Last Modified time: 2021-06-30 19:13:57
 */
 
-#include <Camera/Camera.hpp>
-#include <Common.hpp>
+#include <Cameras/Camera.hpp>
 
-#include <array>
-#include <glm/ext.hpp>
+#include <glm/vec2.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
-#include <math.h>
 
 //Halton sequence scaled to [-1:1]
 const glm::vec2 haltonSequence[256] = {

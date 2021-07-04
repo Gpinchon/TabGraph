@@ -2,7 +2,7 @@
 
 #include "GameEntity.hpp"
 
-#include <Event/Event.hpp>
+#include <Events/Event.hpp>
 
 class Player : public GameEntity {
 public:
@@ -16,9 +16,10 @@ public:
     virtual void Die() override;
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return std::shared_ptr<Player>(new Player(*this));
     }
     float _speed { 4.f };
-    uint8_t _lives{ 3 };
+    uint8_t _lives { 3 };
 };

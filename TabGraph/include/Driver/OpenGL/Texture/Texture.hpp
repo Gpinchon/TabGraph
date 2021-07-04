@@ -6,12 +6,13 @@
 */
 #pragma once
 
-#include "Driver/OpenGL/ObjectHandle.hpp"
-#include "Texture/Texture.hpp"
+#include <Texture/Texture.hpp>
+#include <Driver/OpenGL/ObjectHandle.hpp>
 
+namespace TabGraph::Textures {
 class Texture::Impl {
 public:
-    using Handle = OpenGL::ObjectHandle;
+    using Handle = ::OpenGL::ObjectHandle;
     Impl(const Impl& other);;
     Impl(Texture::Type);
     Impl(Texture::Type, const Pixel::Description&);
@@ -27,7 +28,7 @@ public:
     {
         return _type;
     }
-    inline std::shared_ptr<TextureSampler> GetTextureSampler() const
+    inline std::shared_ptr<Textures::Sampler> GetTextureSampler() const
     {
         return _textureSampler;
     }
@@ -44,7 +45,7 @@ public:
         return _pixelDescription;
     }
 
-    inline void SetTextureSampler(std::shared_ptr<TextureSampler> textureSampler)
+    inline void SetTextureSampler(std::shared_ptr<Textures::Sampler> textureSampler)
     {
         _textureSampler = textureSampler;
     }
@@ -90,16 +91,17 @@ protected:
     Handle _handle { 0 };
     bool _loaded { false };
     Texture::Type _type { Texture::Type::Unknown };
-    std::shared_ptr<TextureSampler> _textureSampler { nullptr };
+    std::shared_ptr<Textures::Sampler> _textureSampler { nullptr };
     uint8_t _mipMapNbr { 1 };
     bool _autoMipMap { true };
     Pixel::Description _pixelDescription;
 };
+}
 
 namespace OpenGL {
-unsigned GetEnum(::Texture::Type);
-namespace Texture {
-    ::Texture::Impl::Handle Generate();
-    void Delete(::Texture::Impl::Handle);
-};
+    unsigned GetEnum(TabGraph::Textures::Texture::Type);
+    namespace Texture {
+        TabGraph::Textures::Texture::Impl::Handle Generate();
+        void Delete(TabGraph::Textures::Texture::Impl::Handle);
+    };
 };

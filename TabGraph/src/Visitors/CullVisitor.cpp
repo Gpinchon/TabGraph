@@ -6,17 +6,17 @@
 */
 
 #include <Visitors/CullVisitor.hpp>
-#include <Nodes/GeoNode.hpp>
+#include <Nodes/Renderable.hpp>
 
 namespace TabGraph::Visitors {
-	void CullVisitor::operator()(Nodes::Renderable& geoNode)
-	{
-		for (const auto& surface : geoNode.GetSurfaces()) {
-			Renderer::ShapeState state;
-			state.surface = surface;
-			state.transform = geoNode.GetWorldTransformMatrix();
-			_result.push_back(state);
-		}
+void CullVisitor::operator()(Nodes::Renderable& geoNode)
+{
+	for (const auto& surface : geoNode.GetShapes()) {
+		Renderer::ShapeState state;
+		state.surface = surface;
+		state.transform = geoNode.GetWorldTransformMatrix();
+		_result.push_back(state);
 	}
+}
 }
 

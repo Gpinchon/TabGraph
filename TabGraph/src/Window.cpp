@@ -2,10 +2,10 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:13:28
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-22 19:39:41
+* @Last Modified time: 2021-07-01 22:12:47
 */
 
-#include <Event/EventsManager.hpp> // for Events
+#include <Events/EventsManager.hpp> // for Events
 #include <Window.hpp>
 
 #if MEDIALIBRARY == SDL2
@@ -52,7 +52,7 @@ void Window::_ProcessEvent(const Event& event)
     if (windowEvent.type == Event::Window::Type::FocusGained)
         s_currentWindow = windowEvent.window->GetId();
     else if (windowEvent.type == Event::Window::Type::FocusLost
-          && s_currentWindow == windowEvent.window->GetId())
+        && s_currentWindow == windowEvent.window->GetId())
         s_currentWindow = 0;
     _impl->OnEvent(windowEvent.type)(windowEvent);
     if (windowEvent.type == Event::Window::Type::Close) {

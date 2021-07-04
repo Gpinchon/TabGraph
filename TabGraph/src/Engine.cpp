@@ -2,15 +2,15 @@
 * @Author: gpinchon
 * @Date:   2021-01-08 17:02:47
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-24 13:44:38
+* @Last Modified time: 2021-07-01 22:12:47
 */
 
 #include <Config.hpp> // for Config
 #include <Engine.hpp>
-#include <Event/EventsManager.hpp> // for Events
-#include <Node.hpp> // for Node
+#include <Events/Manager.hpp> // for Events
+#include <Nodes/Node.hpp> // for Node
 #include <Renderer/Renderer.hpp> // for AddPostTreatment, RequestRedraw
-#include <Scene/Scene.hpp>
+#include <Nodes/Scene.hpp>
 #include <Window.hpp> // for Window
 
 #include <atomic> // for atomic
@@ -24,6 +24,7 @@
 #include <Driver/SDL2/Engine.hpp>
 #endif //MEDIALIBRARY == SDL2
 
+namespace TabGraph::Core {
 std::shared_ptr<Engine> Engine::Create(std::shared_ptr<Renderer::FrameRenderer> frameRenderer)
 {
     std::shared_ptr<Engine> engine(new Engine(frameRenderer));
@@ -35,11 +36,11 @@ Engine::Engine(std::shared_ptr<Renderer::FrameRenderer> frameRenderer)
 {
 }
 
-void Engine::SetCurrentScene(std::shared_ptr<Scene> scene)
+void Engine::SetCurrentScene(std::shared_ptr<Nodes::Scene> scene)
 {
     return _impl->SetCurrentScene(scene);
 }
-std::shared_ptr<Scene> Engine::GetCurrentScene() const
+std::shared_ptr<Nodes::Scene> Engine::GetCurrentScene() const
 {
     return _impl->GetCurrentScene();
 }
@@ -79,12 +80,14 @@ std::shared_ptr<Renderer::FrameRenderer> Engine::GetFrameRenderer() const
     return _impl->GetFrameRenderer();
 }
 
-Signal<float>& Engine::OnFixedUpdate()
+Events::Signal<float>& Engine::OnFixedUpdate()
 {
     return _impl->OnFixedUpdate();
 }
 
-Signal<float>& Engine::OnUpdate()
+Events::Signal<float>& Engine::OnUpdate()
 {
     return _impl->OnUpdate();
+}
+
 }

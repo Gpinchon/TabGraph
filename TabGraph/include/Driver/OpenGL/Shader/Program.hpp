@@ -6,30 +6,41 @@
 */
 #pragma once
 
-#include "Shader/Program.hpp"
-#include "Shader/Stage.hpp"
-#include "Driver/OpenGL/ObjectHandle.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Shader/Program.hpp>
+#include <Shader/Stage.hpp>
+#include <Driver/OpenGL/ObjectHandle.hpp>
 
 #include <array>
 #include <glm/fwd.hpp>
+#include <memory>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Textures {
 class Texture;
+}
 
-namespace Shader {
-struct Program::Handle : public OpenGL::ObjectHandle {
-    Handle(uint32_t v) : OpenGL::ObjectHandle(v) {};
-};
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Shader {
 class Program::Impl {
+public:
+    using Handle = OpenGL::ObjectHandle;
     READONLYPROPERTY(bool, Compiled, false);
     PROPERTY(std::string, GLSLVersion, "440");
 
 public:
     ~Impl();
-    const Program::Handle& GetHandle() const;
+    const Handle& GetHandle() const;
     void Attach(const Stage& stage);
     Stage& GetStage(Stage::Type);
     void Compile();
-    void SetTexture(const std::string& name, const std::shared_ptr<Texture> value);
+    void SetTexture(const std::string& name, const std::shared_ptr<Textures::Texture> value);
     void SetUniform(const std::string& name, const float value);
     void SetUniform(const std::string& name, const float* value, const uint16_t count, const uint16_t index);
     void SetUniform(const std::string& name, const int32_t value);

@@ -2,17 +2,17 @@
 * @Author: gpinchon
 * @Date:   2021-06-29 22:46:04
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-06-29 23:09:50
+* @Last Modified time: 2021-07-01 22:30:44
 */
 #pragma once
 
-#include <Core/Object.hpp>
 #include <Core/Inherit.hpp>
+#include <Core/Object.hpp>
 
 #include <memory>
 
 ////////////////////////////////////////////////////////////////////////////////
-//Forward declarations
+// Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace Renderer {
 class ShapeRenderer;
@@ -22,7 +22,7 @@ struct ShapeRendererDeleter {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-//Class declaration
+// Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Shapes {
 class Shape : public Core::Inherit<Core::Object, Shape> {

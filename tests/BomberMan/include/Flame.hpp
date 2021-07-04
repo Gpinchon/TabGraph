@@ -2,13 +2,13 @@
 
 #include "GameEntity.hpp"
 
-#include <Event/Signal.hpp>
+#include <Events/Signal.hpp>
 
 #include <chrono>
 
 class Flame : public GameEntity {
 public:
-    Flame(Level &);
+    Flame(Level&);
     ~Flame();
     static std::shared_ptr<Flame> Create(Level& level, const glm::ivec2& position);
     std::chrono::time_point<std::chrono::high_resolution_clock> SpawnTime() const;
@@ -17,7 +17,8 @@ public:
     virtual void Update(float delta) override;
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
+    virtual std::shared_ptr<Component> _Clone() override
+    {
         return Component::Create<Flame>(*this);
     }
     std::chrono::duration<double> _timer { 0.5 }; //defaults to seconds
