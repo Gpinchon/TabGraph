@@ -48,7 +48,7 @@ enum class SwapInterval {
 };
 class FrameRenderer : std::enable_shared_from_this<FrameRenderer> {
 public:
-    static std::shared_ptr<FrameRenderer> Create(std::weak_ptr<Window> window);
+    static std::shared_ptr<FrameRenderer> Create(std::weak_ptr<Core::Window> window);
     void SetViewPort(const glm::ivec2& min, const glm::ivec2& max);
     void SetViewPort(const glm::ivec2& size);
     uint32_t GetFrameNumber() const;

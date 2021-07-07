@@ -9,12 +9,13 @@
 #include <Texture/Texture.hpp>
 #include <Renderer/Light/LightRenderer.hpp>
 
-auto g_lightNbr = 0u;
-
+namespace TabGraph::Lights {
 Light::Light()
-    : Node("Light_" + std::to_string(g_lightNbr))
+    : Inherit()
 {
-    ++g_lightNbr;
+    size_t s_lightNbr = 0u;
+    SetName("Light_" + std::to_string(++s_lightNbr));
+    ++s_lightNbr;
 }
 
 void Light::SetColor(const glm::vec3& color)
@@ -48,8 +49,9 @@ Light::Light(const std::string& name, glm::vec3 color)
 {
     SetColor(color);
 }
+}
 
-void Renderer::LightRendererDeleter::operator()(Renderer::LightRenderer* ptr)
+void TabGraph::Renderer::LightRendererDeleter::operator()(Renderer::LightRenderer* ptr)
 {
     delete ptr;
 }

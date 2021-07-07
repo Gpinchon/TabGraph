@@ -5,9 +5,16 @@
 * @Last Modified time: 2021-05-04 20:08:59
 */
 
-#include "Texture/TextureBuffer.hpp"
-#include "Driver/OpenGL/Texture/Texture.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Texture/TextureBuffer.hpp>
+#include <Driver/OpenGL/Texture/Texture.hpp>
 
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Textures {
 class TextureBuffer::Impl : public Texture::Impl {
 public:
     Impl(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::Accessor> bufferAccessor);
@@ -23,3 +30,4 @@ public:
 private:
     std::shared_ptr<Buffer::Accessor> _bufferAccessor;
 };
+}

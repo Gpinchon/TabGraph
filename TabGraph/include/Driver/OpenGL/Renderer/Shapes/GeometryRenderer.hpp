@@ -7,26 +7,39 @@
 
 #pragma once
 
-#include "Renderer/Surface/ShapeRenderer.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include "Renderer/Shapes/ShapeRenderer.hpp"
 
 #include <memory>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Shapes {
 class Geometry;
+}
+namespace OpenGL {
 class VertexArray;
+}
 
-namespace Renderer {
+////////////////////////////////////////////////////////////////////////////////
+// Class Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Renderer {
 class GeometryRenderer : public ShapeRenderer {
 public:
-    GeometryRenderer(Geometry& geometry);
+    GeometryRenderer(Shapes::Geometry& geometry);
     GeometryRenderer(const GeometryRenderer&) = delete;
     ~GeometryRenderer();
-    void OnFrameBegin(const Renderer::Options& options);
+    void OnFrameBegin(const Options& options);
     void Render(bool doubleSided = false);
-    virtual void Render(const::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) override;
-    void OnFrameEnd(const Renderer::Options& options);
+    virtual void Render(const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) override;
+    void OnFrameEnd(const Options& options);
 
 private:
-    Geometry& _geometry;
-    std::unique_ptr<VertexArray> _vao;
+    Shapes::Geometry& _geometry;
+    std::unique_ptr<OpenGL::VertexArray> _vao;
 };
 }

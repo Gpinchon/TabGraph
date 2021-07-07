@@ -29,7 +29,7 @@ public:
     Context(std::weak_ptr<TabGraph::Core::Window> window, uint8_t versionMajor, uint8_t versionMinor);
     ~Context();
     void MakeCurrent();
-    inline void SetWindow(std::weak_ptr<Window> window)
+    inline void SetWindow(std::weak_ptr<TabGraph::Core::Window> window)
     {
         _window = window;
     }

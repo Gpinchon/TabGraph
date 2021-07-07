@@ -7,13 +7,26 @@
 
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Events/Event.hpp>
 #include <Events/Keyboard.hpp>
 #include <Events/Signal.hpp>
 
 #include <array>
 
-namespace Keyboard {
+////////////////////////////////////////////////////////////////////////////////
+// Forward declaration
+////////////////////////////////////////////////////////////////////////////////
+struct SDL_KeyboardEvent;
+struct SDL_TextEditingEvent;
+struct SDL_TextInputEvent;
+
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Events::Keyboard {
 struct InputDevice : Trackable {
     InputDevice();
     bool GetKeyState(Keyboard::Key);
@@ -41,14 +54,8 @@ private:
 };
 };
 
-struct SDL_KeyboardEvent;
-struct SDL_TextEditingEvent;
-struct SDL_TextInputEvent;
-
-namespace SDL2 {
-namespace Keyboard {
-    Event::Keyboard CreateEventData(const SDL_KeyboardEvent& event);
-    Event::TextEdit CreateEventData(const SDL_TextEditingEvent& event);
-    Event::TextInput CreateEventData(const SDL_TextInputEvent& event);
-};
+namespace SDL2::Keyboard {
+TabGraph::Events::Event::Keyboard CreateEventData(const SDL_KeyboardEvent& event);
+TabGraph::Events::Event::TextEdit CreateEventData(const SDL_TextEditingEvent& event);
+TabGraph::Events::Event::TextInput CreateEventData(const SDL_TextInputEvent& event);
 };

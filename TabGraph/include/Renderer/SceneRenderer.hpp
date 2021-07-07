@@ -6,16 +6,25 @@
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <glm/fwd.hpp>
 #include <memory>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Nodes {
 class Scene;
-class LightProbe;
+}
+}
 
-namespace Renderer {
+namespace TabGraph::Renderer {
 struct Options;
-void OnFrameBegin(std::shared_ptr<Scene> scene, const Options& options);
-void Render(std::shared_ptr<Scene> scene, const Options& options);
-void Render(std::shared_ptr<Scene> scene, const Options& options, const glm::mat4& rootMatrix);
-void OnFrameEnd(std::shared_ptr<Scene> scene, const Options& options);
+void OnFrameBegin(std::shared_ptr<Nodes::Scene> scene, const Options& options);
+void Render(std::shared_ptr<Nodes::Scene> scene, const Options& options);
+void Render(std::shared_ptr<Nodes::Scene> scene, const Options& options, const glm::mat4& rootMatrix);
+void OnFrameEnd(std::shared_ptr<Nodes::Scene> scene, const Options& options);
 };

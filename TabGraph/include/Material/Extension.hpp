@@ -54,7 +54,7 @@ public:
     inline auto& GetCode() const {
         return _code;
     }
-    inline auto& GetColor(const std::string& name) const {
+    inline auto GetColor(const std::string& name) const {
         auto value{ _colors.find(name) };
         return value == _colors.end() ? glm::vec3(0) : value->second;
     }
@@ -62,11 +62,11 @@ public:
         auto& value{ _values.find(name) };
         return value == _values.end() ? float(0) : value->second;
     }
-    inline auto& GetDefine(const std::string& name) const {
+    inline auto GetDefine(const std::string& name) const {
         auto value{ _defines.find(name) };
         return value == _defines.end() ? "" : value->second;
     }
-    inline auto& GetTexture(const std::string& name) const {
+    inline auto GetTexture(const std::string& name) const {
         auto value{ _textures.find(name) };
         return value == _textures.end() ? nullptr : value->second;
     }

@@ -5,9 +5,9 @@
 * @Last Modified time: 2021-04-13 22:35:42
 */
 
-#include "Shader/Stage.hpp"
+#include <Shader/Stage.hpp>
 
-namespace Shader {
+namespace TabGraph::Shader {
 Stage::Stage(Stage::Type type, const Code& code)
 {
     SetType(type);

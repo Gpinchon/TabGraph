@@ -10,20 +10,20 @@
 
 #include <memory>
 
-namespace SceneGraph {
+namespace TabGraph::Shapes {
 class Shape;
 }
 
-namespace Renderer {
+namespace TabGraph::Renderer {
 struct Options;
 struct ShapeRenderer {
     virtual void OnFrameBegin(const Options& options) = 0;
     virtual void Render(const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) = 0;
     virtual void OnFrameEnd(const Options& options) = 0;
 };
-void OnFrameBegin(std::shared_ptr<SceneGraph::Shape> surface, const Options& options);
-void Render(std::shared_ptr<SceneGraph::Shape> surface, const Options& options);
-void Render(std::shared_ptr<SceneGraph::Shape> surface, const Options& options, const glm::mat4& parentTransform);
-void Render(std::shared_ptr<SceneGraph::Shape> surface, const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform);
-void OnFrameEnd(std::shared_ptr<SceneGraph::Shape> surface, const Options& options);
+void OnFrameBegin(std::shared_ptr<Shapes::Shape> surface, const Options& options);
+void Render(std::shared_ptr<Shapes::Shape> surface, const Options& options);
+void Render(std::shared_ptr<Shapes::Shape> surface, const Options& options, const glm::mat4& parentTransform);
+void Render(std::shared_ptr<Shapes::Shape> surface, const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform);
+void OnFrameEnd(std::shared_ptr<Shapes::Shape> surface, const Options& options);
 };

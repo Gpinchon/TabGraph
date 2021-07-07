@@ -8,7 +8,6 @@
 #include <Material/Standard.hpp>
 #include <Material/Extension.hpp>
 #include <Assets/Asset.hpp>
-#include <Scene/Scene.hpp>
 #include <Shader/Program.hpp>
 #include <Shader/Stage.hpp>
 #include <Texture/Texture2D.hpp>
@@ -160,106 +159,6 @@ void Standard::Bind(const Renderer::Options::Pass& pass)
     GetShader(pass)->Done();
 }
 
-std::shared_ptr<Shader::Program> Standard::GetShader(const Renderer::Options::Pass& pass)
-{
-    return _shaders.at(int(pass));
-}
-
-void Standard::SetShader(const Renderer::Options::Pass& pass, std::shared_ptr<Shader::Program> shader)
-{
-    _shaders.at(int(pass)) = shader;
-}
-
-glm::vec3 Standard::GetDiffuse(void)
-{
-    return GetColor("StandardDiffuse");
-}
-
-glm::vec3 Standard::GetEmissive(void)
-{
-    return GetColor("StandardEmissive");
-}
-
-float Standard::GetOpacityCutoff(void)
-{
-    return GetValue("StandardOpacityCutoff");
-}
-
-float Standard::GetOpacity(void)
-{
-    return GetValue("StandardOpacity");
-}
-
-float Standard::GetParallax(void)
-{
-    return GetValue("StandardParallax");
-}
-
-float Standard::GetIor(void)
-{
-    return GetValue("StandardIor");
-}
-
-std::shared_ptr<Textures::Texture2D> Standard::GetTextureDiffuse(void) const
-{
-    return GetTexture("StandardTextureDiffuse");
-}
-
-std::shared_ptr<Textures::Texture2D> Standard::GetTextureEmissive(void) const
-{
-    return GetTexture("StandardTextureEmissive");
-}
-
-std::shared_ptr<Textures::Texture2D> Standard::GetTextureNormal(void) const
-{
-    return GetTexture("StandardTextureNormal");
-}
-
-std::shared_ptr<Textures::Texture2D> Standard::GetTextureHeight(void) const
-{
-    return GetTexture("StandardTextureHeight");
-}
-
-std::shared_ptr<Textures::Texture2D> Standard::GetTextureAO(void) const
-{
-    return GetTexture("StandardTextureAO");
-}
-
-std::shared_ptr<Textures::Texture2D> Standard::GetTextureBRDFLUT(void) const
-{
-    return GetTexture("StandardTextureBRDFLUT");
-}
-
-void Standard::SetOpacityCutoff(float value)
-{
-    SetValue("StandardOpacityCutoff", value);
-}
-
-void Standard::SetDiffuse(glm::vec3 value)
-{
-    SetColor("StandardDiffuse", value);
-}
-
-void Standard::SetEmissive(glm::vec3 value)
-{
-    SetColor("StandardEmissive", value);
-}
-
-void Standard::SetOpacity(float value)
-{
-    SetValue("StandardOpacity", value);
-}
-
-void Standard::SetParallax(float value)
-{
-    SetValue("StandardParallax", value);
-}
-
-void Standard::SetIor(float value)
-{
-    SetValue("StandardIor", value);
-}
-
 void Standard::SetTextureDiffuse(std::shared_ptr<Textures::Texture2D> value)
 {
     SetTexture("StandardTextureDiffuse", value);
@@ -310,8 +209,7 @@ void Standard::SetTextureAO(std::shared_ptr<Textures::Texture2D> value)
     }
 }
 
-void Standard::SetTextureBRDFLUT(std::shared_ptr<Textures::Texture2D> value)
-{
+void Standard::SetTextureBRDFLUT(std::shared_ptr<Textures::Texture2D> value) {
     SetTexture("StandardTextureBRDFLUT", value);
 }
 }

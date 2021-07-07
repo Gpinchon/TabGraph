@@ -9,12 +9,18 @@
 #include <Nodes/Renderable.hpp>
 
 namespace TabGraph::Visitors {
-void CullVisitor::operator()(Nodes::Renderable& geoNode)
+void CullVisitor::_Visit(Nodes::Node& node)
 {
-	for (const auto& surface : geoNode.GetShapes()) {
+}
+void CullVisitor::_Visit(Nodes::Group& node)
+{
+}
+void CullVisitor::_Visit(Nodes::Renderable& node)
+{
+	for (const auto& surface : node.GetShapes()) {
 		Renderer::ShapeState state;
 		state.surface = surface;
-		state.transform = geoNode.GetWorldTransformMatrix();
+		state.transform = node.GetWorldTransformMatrix(); //TODO : Store Node's parent matrix during traversal
 		_result.push_back(state);
 	}
 }

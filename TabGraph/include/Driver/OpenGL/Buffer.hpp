@@ -6,10 +6,17 @@
 */
 #pragma once
 
-#include "Buffer/View.hpp"
-#include "Driver/OpenGL/ObjectHandle.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Buffer/View.hpp>
+#include <Driver/OpenGL/ObjectHandle.hpp>
 
-class Buffer::View::ImplGPU {
+////////////////////////////////////////////////////////////////////////////////
+// Class Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Buffer {
+class View::ImplGPU {
     READONLYPROPERTY(MappingMode, MappingMode, MappingMode::None);
     READONLYPROPERTY(size_t, MappingStart, 0);
     READONLYPROPERTY(size_t, MappingEnd, 0);
@@ -40,10 +47,12 @@ private:
     Handle _handle { 0 };
 };
 
+}
+
 namespace OpenGL {
-Buffer::View::ImplGPU::Handle GetHandle(std::shared_ptr<Buffer::View> buffer);
-void Bind(std::shared_ptr<Buffer::View>, Buffer::View::Type);
-inline void Bind(std::shared_ptr<Buffer::View> buffer) {
+TabGraph::Buffer::View::ImplGPU::Handle GetHandle(std::shared_ptr<TabGraph::Buffer::View> buffer);
+void Bind(std::shared_ptr<TabGraph::Buffer::View>, TabGraph::Buffer::View::Type);
+inline void Bind(std::shared_ptr<TabGraph::Buffer::View> buffer) {
     return Bind(buffer, buffer->GetType());
 }
 };

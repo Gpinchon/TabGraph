@@ -7,7 +7,7 @@
 
 #pragma once
 
-namespace Mouse {
+namespace TabGraph::Events::Mouse {
 enum class WheelDirection {
     Unknown = -1,
     Natural, Flipped,

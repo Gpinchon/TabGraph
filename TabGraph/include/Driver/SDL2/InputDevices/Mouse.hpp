@@ -6,6 +6,9 @@
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Events/Event.hpp>
 #include <Events/Mouse.hpp>
 #include <Events/Signal.hpp>
@@ -13,7 +16,14 @@
 #include <array>
 #include <stdexcept>
 
-namespace Mouse {
+struct SDL_MouseButtonEvent;
+struct SDL_MouseWheelEvent;
+struct SDL_MouseMotionEvent;
+
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Events::Mouse {
 struct InputDevice : Trackable {
     InputDevice();
     ///@return true if mouse is in relative motion mode
@@ -61,14 +71,8 @@ private:
 };
 };
 
-struct SDL_MouseButtonEvent;
-struct SDL_MouseWheelEvent;
-struct SDL_MouseMotionEvent;
-
-namespace SDL2 {
-namespace Mouse {
-    Event::MouseButton CreateEventData(const SDL_MouseButtonEvent& event);
-    Event::MouseWheel CreateEventData(const SDL_MouseWheelEvent& event);
-    Event::MouseMove CreateEventData(const SDL_MouseMotionEvent& event);
-}
+namespace SDL2::Mouse {
+TabGraph::Events::Event::MouseButton CreateEventData(const SDL_MouseButtonEvent& event);
+TabGraph::Events::Event::MouseWheel CreateEventData(const SDL_MouseWheelEvent& event);
+TabGraph::Events::Event::MouseMove CreateEventData(const SDL_MouseMotionEvent& event);
 }

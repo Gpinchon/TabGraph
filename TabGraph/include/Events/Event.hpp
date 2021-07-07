@@ -128,10 +128,10 @@ struct Event {
         glm::ivec2 relative { 0 };
     };
     struct MouseButton : Mouse {
-        ::Mouse::Button button { ::Mouse::Button::Unknown };
+        Events::Mouse::Button button { Events::Mouse::Button::Unknown };
     };
     struct MouseWheel : Mouse {
-        ::Mouse::WheelDirection direction; //the scrolling direction (Natural or Flipped)
+        Events::Mouse::WheelDirection direction; //the scrolling direction (Natural or Flipped)
         glm::ivec2 amount { 0 }; //the scrolling amount in x/y direction
     };
     struct GameController {

@@ -5,7 +5,7 @@
 * @Last Modified time: 2021-06-07 15:25:43
 */
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Assets/BinaryData.hpp>
 #include <Buffer/View.hpp>
 #include <Renderer/Renderer.hpp>
@@ -14,22 +14,23 @@
 #include <Driver/OpenGL/Buffer.hpp>
 #endif
 
+namespace TabGraph::Buffer {
 size_t s_bufferViewNbr = 0;
 
-Buffer::View::Buffer::View(size_t byteLength, std::shared_ptr<Asset> buffer, Mode mode)
-    : Buffer::View(byteLength, mode)
+View::View(size_t byteLength, std::shared_ptr<Assets::Asset> buffer, Mode mode)
+    : View(byteLength, mode)
 {
-    SetComponent(buffer);
+    SetAsset(buffer);
 }
 
-Buffer::View::Buffer::View()
-    : Component("BufferView_" + std::to_string(++s_bufferViewNbr))
+View::View()
+    : Inherit("BufferView_" + std::to_string(++s_bufferViewNbr))
 {
     SetStorage(GetStorage());
 }
 
-Buffer::View::Buffer::View(const Buffer::View& other)
-    : Component(other)
+View::View(const View& other)
+    : Inherit(other)
     , _ImplGPU(other._ImplGPU)
     , _Storage(other._Storage)
     , _PersistentMappingMode(other._PersistentMappingMode)
@@ -45,21 +46,21 @@ Buffer::View::Buffer::View(const Buffer::View& other)
 {
 }
 
-Buffer::View::Buffer::View(std::shared_ptr<Asset> buffer, Mode mode)
-    : Buffer::View()
+View::View(std::shared_ptr<Assets::Asset> buffer, Mode mode)
+    : View()
 {
-    SetComponent(buffer);
+    SetAsset(buffer);
     SetMode(mode);
 }
 
-Buffer::View::Buffer::View(size_t byteLength, Mode mode)
-    : Buffer::View()
+View::View(size_t byteLength, Mode mode)
+    : View()
 {
     SetByteLength(byteLength);
     SetMode(mode);
 }
 
-std::byte* Buffer::View::Get(size_t index, size_t size)
+std::byte* View::Get(size_t index, size_t size)
 {
     std::unique_lock<std::mutex> lock(_lock);
     if (GetStorage() == Storage::CPU)
@@ -68,7 +69,7 @@ std::byte* Buffer::View::Get(size_t index, size_t size)
         return GetImplGPU()->Get(*this, index, size);
 }
 
-void Buffer::View::Set(std::byte* data, size_t index, size_t size)
+void View::Set(std::byte* data, size_t index, size_t size)
 {
     std::unique_lock<std::mutex> lock(_lock);
     if (GetStorage() == Storage::CPU)
@@ -77,53 +78,53 @@ void Buffer::View::Set(std::byte* data, size_t index, size_t size)
         GetImplGPU()->Set(*this, data, index, size);
 }
 
-std::byte* Buffer::View::MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate)
+std::byte* View::MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate)
 {
     assert(mappingMode != MappingMode::None);
     assert(GetStorage() != Storage::CPU);
     return GetImplGPU()->MapRange(*this, mappingMode, start, end, invalidate);
 }
 
-void Buffer::View::Unmap()
+void View::Unmap()
 {
     assert(GetStorage() != Storage::CPU);
     GetImplGPU()->Unmap(*this);
 }
 
-void Buffer::View::FlushRange(size_t start, size_t end)
+void View::FlushRange(size_t start, size_t end)
 {
     assert(GetType() != Type::Unknown);
     assert(GetStorage() != Storage::CPU);
     GetImplGPU()->FlushRange(*this, start, end);
 }
 
-size_t Buffer::View::GetMappingEnd()
+size_t View::GetMappingEnd()
 {
     assert(GetType() != Type::Unknown);
     assert(GetStorage() != Storage::CPU);
     return GetImplGPU()->GetMappingEnd();
 }
 
-size_t Buffer::View::GetMappingStart()
+size_t View::GetMappingStart()
 {
     assert(GetType() != Type::Unknown);
     assert(GetStorage() != Storage::CPU);
     return GetImplGPU()->GetMappingStart();
 }
 
-void Buffer::View::Load()
+void View::Load()
 {
     std::unique_lock<std::mutex> lock(_lock);
     if (GetLoaded())
         return;
     std::byte* bufferData { nullptr };
-    auto bufferAsset { GetComponent<Asset>() };
+    auto bufferAsset { GetAsset() };
     if (bufferAsset != nullptr) {
-        AssetsParser::AddParsingTask({ AssetsParser::ParsingTask::Type::Sync,
+        Assets::Parser::AddParsingTask({ Assets::Parser::ParsingTask::Type::Sync,
             bufferAsset });
-        auto bufferAssetData = bufferAsset->GetComponent<BinaryData>();
+        auto &bufferAssetData = bufferAsset->binaryDatas.at(0);
         assert(bufferAssetData != nullptr);
-        if (GetByteLength() == 0) //We do not know this Buffer::View's length yet
+        if (GetByteLength() == 0) //We do not know this View's length yet
             SetByteLength(bufferAssetData->GetByteLength());
         bufferData = bufferAssetData->Get(GetByteOffset());
     }
@@ -135,11 +136,11 @@ void Buffer::View::Load()
     } else
         GetImplGPU()->Load(*this, bufferData);
     if (bufferAsset != nullptr)
-        RemoveComponent<Asset>(bufferAsset);
+        SetAsset(nullptr);
     _SetLoaded(true);
 }
 
-void Buffer::View::Unload()
+void View::Unload()
 {
     std::unique_lock<std::mutex> lock(_lock);
     if (GetStorage() == Storage::CPU) {
@@ -150,11 +151,11 @@ void Buffer::View::Unload()
     _SetLoaded(false);
 }
 
-void Buffer::View::SetStorage(Storage storage)
+void View::SetStorage(Storage storage)
 {
     if (storage == Storage::GPU) {
         if (GetImplGPU() == nullptr)
-            _SetImplGPU(std::make_shared<Buffer::View::ImplGPU>());
+            _SetImplGPU(std::make_shared<View::ImplGPU>());
         if (GetLoaded()) {
             GetImplGPU()->Load(*this, _rawData.data());
             _rawData.clear();
@@ -171,4 +172,5 @@ void Buffer::View::SetStorage(Storage storage)
         }
     }
     _SetStorage(storage);
+}
 }

@@ -7,9 +7,18 @@
 
 #include <Nodes/Scene.hpp>
 
+#if RENDERINGAPI == OpenGL
+#include <Driver/OpenGL/Renderer/SceneRenderer.hpp>
+#endif
+
 namespace TabGraph::Nodes {
-Scene::Scene() : Inherit() {
+Scene::Scene()
+	: Inherit()
+	, _renderer(Renderer::SceneRenderer(*this))
+{
 	static auto s_sceneNbr{ 0u };
 	SetName("Scene_" + std::to_string(++s_sceneNbr));
+}
+Scene::~Scene() {
 }
 };

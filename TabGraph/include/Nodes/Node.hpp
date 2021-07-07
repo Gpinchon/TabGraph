@@ -138,4 +138,4 @@ private:
     glm::mat4 _localScaleMatrix {};
     std::weak_ptr<Group> _parent;
 };
-};
+}

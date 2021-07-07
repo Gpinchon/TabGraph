@@ -6,21 +6,36 @@
 */
 #pragma once
 
-#include "Renderer/Shapes/ShapeRenderer.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Renderer/Shapes/ShapeRenderer.hpp>
 
 #include <GL/glew.h>
 #include <array>
 #include <glm/glm.hpp>
 #include <memory>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Textures {
 class TextureBuffer;
+}
+namespace Shapes {
 class Mesh;
+}
+}
 
-namespace Renderer {
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Renderer {
 struct Options;
 class MeshRenderer : public ShapeRenderer {
 public:
-    MeshRenderer(Mesh&);
+    MeshRenderer(Shapes::Mesh&);
     MeshRenderer(const MeshRenderer&) = delete;
     void Load();
     virtual void OnFrameBegin(const Renderer::Options& options) override;
@@ -29,10 +44,10 @@ public:
 
 private:
     std::array<GLsync, 2> _drawSync { nullptr };
-    std::array<std::shared_ptr<TextureBuffer>, 2> _jointMatrices { nullptr };
+    std::array<std::shared_ptr<Textures::TextureBuffer>, 2> _jointMatrices { nullptr };
     glm::mat4 _prevTransformMatrix { 1 };
     int _jointMatricesIndex { 0 };
     bool _loaded { false };
-    Mesh& _mesh;
+    Shapes::Mesh& _mesh;
 };
-};
+}

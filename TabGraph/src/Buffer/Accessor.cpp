@@ -8,6 +8,7 @@
 #include "Buffer/View.hpp"
 #include <algorithm>
 
+namespace TabGraph::Buffer {
 size_t bufferAccessorNbr = 0;
 
 uint8_t GetComponentTypeOctetsSize(const Buffer::Accessor::ComponentType type)
@@ -27,19 +28,19 @@ uint8_t GetComponentTypeOctetsSize(const Buffer::Accessor::ComponentType type)
     }
 }
 
-Buffer::Accessor::Buffer::Accessor(const ComponentType componentType, const Type type, const size_t count)
+Accessor::Accessor(const ComponentType componentType, const Type type, const size_t count)
 {
     SetType(type);
     SetComponentType(componentType);
     SetCount(count);
     _SetComponentOctetsSize(GetComponentTypeOctetsSize(componentType));
     _SetTypeOctetsSize(GetComponentOctetsSize() * (int)type);
-    auto bufferView{ Component::Create<Buffer::View>(count * GetTypeOctetsSize()) };
+    auto bufferView{ std::make_shared<Buffer::View>(count * GetTypeOctetsSize()) };
     bufferView->SetType(Buffer::View::Type::Array);
     SetBufferView(bufferView);
 }
 
-Buffer::Accessor::Buffer::Accessor(const ComponentType componentType, const Type type, std::shared_ptr<Buffer::View> bufferView)
+Accessor::Accessor(const ComponentType componentType, const Type type, std::shared_ptr<Buffer::View> bufferView)
 {
     SetType(type);
     SetComponentType(componentType);
@@ -48,15 +49,4 @@ Buffer::Accessor::Buffer::Accessor(const ComponentType componentType, const Type
     SetCount(bufferView->GetByteLength() / GetTypeOctetsSize());
     SetBufferView(bufferView);
 }
-
-std::shared_ptr<Buffer::View> Buffer::Accessor::GetBufferView() const
-{
-    return _bufferView;
-    //return GetComponent<Buffer::View>();
-}
-
-void Buffer::Accessor::SetBufferView(std::shared_ptr<Buffer::View> bufferView)
-{
-    _bufferView = bufferView;
-    //SetComponent(bufferView);
 }

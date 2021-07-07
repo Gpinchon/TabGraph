@@ -6,25 +6,27 @@
 */
 
 #include <Config.hpp>
-#include <Driver/OpenGL/Renderer/Surface/MeshRenderer.hpp>
+#include <Driver/OpenGL/Renderer/Shapes/MeshRenderer.hpp>
 #include <Driver/OpenGL/Renderer/SceneRenderer.hpp>
 #include <Light/LightProbe.hpp>
-#include <Material/Material.hpp>
+#include <Material/Standard.hpp>
 #include <Renderer/FrameRenderer.hpp>
+#include <Renderer/Framebuffer.hpp>
 #include <Renderer/Renderer.hpp>
-#include <Renderer/Surface/GeometryRenderer.hpp>
-#include <Scene/Scene.hpp>
+#include <Renderer/Shapes/GeometryRenderer.hpp>
+#include <Nodes/Scene.hpp>
 #include <Shader/Program.hpp>
-#include <Surface/Geometry.hpp>
-#include <Surface/Mesh.hpp>
-#include <Surface/MeshSkin.hpp>
-#include <Texture/Framebuffer.hpp>
+#include <Shapes/Geometry.hpp>
+#include <Shapes/Mesh/Mesh.hpp>
+#include <Shapes/Mesh/MeshSkin.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/TextureBuffer.hpp>
-#include <Node.hpp>
+#include <Nodes/Node.hpp>
+#include <Debug.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 
-namespace Renderer {
-MeshRenderer::MeshRenderer(Mesh& mesh)
+namespace TabGraph::Renderer {
+MeshRenderer::MeshRenderer(Shapes::Mesh& mesh)
     : _mesh(mesh)
 {
 }
@@ -33,19 +35,19 @@ void MeshRenderer::Load()
 {
     if (_loaded)
         return;
-    if (_mesh.HasComponentOfType<MeshSkin>()) {
+    if (_mesh.GetSkin()) {
         debugLog(_mesh.GetName() + " : Create Skin");
         for (auto i = 0; i < _jointMatrices.size(); ++i) {
             if (_jointMatrices.at(i) != nullptr)
                 continue;
-            auto bufferAccessor = Component::Create<Buffer::Accessor>(
+            auto bufferAccessor = std::make_shared<Buffer::Accessor>(
                 Buffer::Accessor::ComponentType::Float32,
                 Buffer::Accessor::Type::Mat4,
-                _mesh.GetComponent<MeshSkin>()->Joints().size());
+                _mesh.GetSkin()->Joints().size());
             bufferAccessor->GetBufferView()->SetType(Buffer::View::Type::TextureBuffer);
             bufferAccessor->GetBufferView()->SetMode(Buffer::View::Mode::Persistent);
             bufferAccessor->GetBufferView()->SetPersistentMappingMode(Buffer::View::MappingMode::WriteOnly);
-            _jointMatrices.at(i) = Component::Create<TextureBuffer>(Pixel::SizedFormat::Float32_RGBA, bufferAccessor);
+            _jointMatrices.at(i) = std::make_shared<Textures::TextureBuffer>(Pixel::SizedFormat::Float32_RGBA, bufferAccessor);
             _jointMatrices.at(i)->Load();
         }
     }
@@ -57,7 +59,7 @@ void MeshRenderer::OnFrameBegin(const Renderer::Options& options)
     _mesh.Load();
     Load();
     _jointMatricesIndex = (_jointMatricesIndex + 1) % _jointMatrices.size();
-    auto meshSkin { _mesh.GetComponent<MeshSkin>() };
+    auto meshSkin { _mesh.GetSkin() };
     if (meshSkin == nullptr)
         return;
     if (glIsSync(_drawSync.at(_jointMatricesIndex))) {
@@ -66,18 +68,18 @@ void MeshRenderer::OnFrameBegin(const Renderer::Options& options)
         _drawSync.at(_jointMatricesIndex) = nullptr;
     }
     const auto joints = meshSkin->Joints();
-    auto jointMatricesAccessor { _jointMatrices.at(_jointMatricesIndex)->Accessor() };
+    auto jointMatricesAccessor { _jointMatrices.at(_jointMatricesIndex)->GetBufferAccessor() };
     auto inverseBindMatrices { meshSkin->InverseBindMatrices() };
     for (auto index = 0u; index < joints.size(); ++index) {
         const auto jointMatrixIndex { index };
         const auto& joint(joints.at(index));
-        auto jointMatrix = joint->WorldTransformMatrix() * inverseBindMatrices->Get<glm::mat4>(index);
+        auto jointMatrix = joint->GetWorldTransformMatrix() * inverseBindMatrices->Get<glm::mat4>(index);
         jointMatricesAccessor->Set(jointMatrix, jointMatrixIndex);
     }
 }
 
 void MeshRenderer::Render(
-    const ::Renderer::Options& options,
+    const Options& options,
     const glm::mat4& parentTransform,
     const glm::mat4& parentLastTransform)
 {
@@ -90,22 +92,23 @@ void MeshRenderer::Render(
     auto normal_matrix = glm::inverseTranspose(glm::mat3(transformMatrix));
 
     std::shared_ptr<Shader::Program> last_shader;
-    auto skinned { _mesh.HasComponentOfType<MeshSkin>() };
+    auto skinned { _mesh.GetSkin() != nullptr };
     auto jointsIndex = _jointMatricesIndex;
     auto prevJointsIndex = (_jointMatricesIndex - 1) % _jointMatrices.size();
     auto fastTransparency { Config::Global().Get("FastTransparency", 1) };
-    for (const auto& vg : _mesh.GetGeometries()) {
+    for (const auto& vgIt : _mesh.GetGeometries()) {
+        const auto vg{ vgIt.first };
+        const auto& material { vgIt.second };
         if (nullptr == vg)
             continue;
-        const auto& material { _mesh.GetGeometryMaterial(vg) };
         if (nullptr == material) {
-            errorLog("Error : Invalid Material Index while rendering Mesh");
+            errorLog("Error : Geometry " + vg->GetName() + " has no Material");
             continue;
         }
         const auto isTransparent(material->GetOpacityMode() == Material::OpacityMode::Blend);
-        if (options.mode == ::Renderer::Options::Mode::Opaque && isTransparent)
+        if (options.mode == Renderer::Options::Mode::Opaque && isTransparent)
             continue;
-        else if (options.mode == ::Renderer::Options::Mode::Transparent && !isTransparent)
+        else if (options.mode == Renderer::Options::Mode::Transparent && !isTransparent)
             continue;
         std::shared_ptr<Shader::Program> shader { material->GetShader(options.pass) };
         if (nullptr == shader)
@@ -150,7 +153,7 @@ void MeshRenderer::Render(
 
 void MeshRenderer::OnFrameEnd(const Renderer::Options& options)
 {
-    auto skinned { _mesh.HasComponentOfType<MeshSkin>() };
+    auto skinned { _mesh.GetSkin() != nullptr };
     auto jointsIndex = _jointMatricesIndex;
     auto prevJointsIndex = (_jointMatricesIndex - 1) % _jointMatrices.size();
     _prevTransformMatrix = _mesh.GetGeometryTransform();

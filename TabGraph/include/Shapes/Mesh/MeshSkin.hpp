@@ -1,29 +1,56 @@
 #pragma once
 
-#include "Component.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Core/Object.hpp>
+#include <Core/Inherit.hpp>
+#include <Shapes/Mesh/Mesh.hpp>
 
+#include <vector>
+
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Nodes {
 class Node;
-class Buffer::Accessor;
+}
+namespace Buffer {
+class Accessor;
+}
+}
 
-class MeshSkin : public Component {
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Shapes {
+class Mesh::Skin : public Core::Inherit<Core::Object, Mesh::Skin> {
 public:
-    MeshSkin();
-    std::shared_ptr<Buffer::Accessor> InverseBindMatrices() const;
-    void SetInverseBindMatrices(std::shared_ptr<Buffer::Accessor> inverseBindMatrices);
-    const std::vector<std::shared_ptr<Node>> Joints() const;
-    void AddJoint(std::shared_ptr<Node> joint);
-    void RemoveJoint(std::shared_ptr<Node> joint);
+    Skin();
+    std::shared_ptr<Buffer::Accessor> InverseBindMatrices() const
+    {
+        return _inverseBindMatrices;
+    }
+    void SetInverseBindMatrices(std::shared_ptr<Buffer::Accessor> inverseBindMatrices)
+    {
+        _inverseBindMatrices = inverseBindMatrices;
+    }
+    auto& Joints() const
+    {
+        return _joints;
+    }
+    void AddJoint(std::shared_ptr<Nodes::Node> joint)
+    {
+        _joints.push_back(joint);
+    }
+    void RemoveJoint(std::shared_ptr<Nodes::Node> joint)
+    {
+        std::remove(_joints.begin(), _joints.end(), joint);
+    }
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override {
-        return Component::Create<MeshSkin>(*this);
-    }
-    virtual void _Replace(const std::shared_ptr<Component> oldComponent, const std::shared_ptr<Component> newComponent) override {
-        auto nodePtr = std::dynamic_pointer_cast<Node>(oldComponent);
-        if (nodePtr != nullptr)
-            std::replace(_joints.begin(), _joints.end(), nodePtr, std::static_pointer_cast<Node>(newComponent));
-    }
-    //std::weak_ptr<Node> _skeleton;
-    std::vector<std::shared_ptr<Node>> _joints;
+    std::vector<std::shared_ptr<Nodes::Node>> _joints;
     std::shared_ptr<Buffer::Accessor> _inverseBindMatrices;
 };
+}

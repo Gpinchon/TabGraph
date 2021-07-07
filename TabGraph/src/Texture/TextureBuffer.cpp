@@ -12,25 +12,17 @@
 #include <Driver/OpenGL/Texture/TextureBuffer.hpp>
 #endif
 
+namespace TabGraph::Textures {
 TextureBuffer::TextureBuffer(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::Accessor> bufferAccessor)
-    : Texture()
+    : Inherit()
 {
-    SetAccessor(bufferAccessor);
+    SetBufferAccessor(bufferAccessor);
     _impl.reset(new TextureBuffer::Impl(internalFormat, bufferAccessor));
 }
 
 TextureBuffer::TextureBuffer(TextureBuffer& other)
-    : Texture(other)
+    : Inherit(other)
 {
     _impl.reset(new TextureBuffer::Impl(static_cast<const TextureBuffer::Impl&>(*other._impl.get())));
 }
-
-std::shared_ptr<Buffer::Accessor> TextureBuffer::Accessor() const
-{
-    return GetComponent<Buffer::Accessor>();
-}
-
-void TextureBuffer::SetAccessor(std::shared_ptr<Buffer::Accessor> bufferAccessor)
-{
-    SetComponent<Buffer::Accessor>(bufferAccessor);
 }

@@ -6,7 +6,7 @@
 */
 
 #include <Renderer/SceneRenderer.hpp>
-#include <Scene/Scene.hpp>
+#include <Nodes/Scene.hpp>
 
 #if RENDERINGAPI == OpenGL
 #include <Driver/OpenGL/Renderer/SceneRenderer.hpp>
@@ -14,23 +14,23 @@
 
 #include <glm/glm.hpp>
 
-namespace Renderer {
-void OnFrameBegin(std::shared_ptr<Scene> scene, const Options& options)
+namespace TabGraph::Renderer {
+void OnFrameBegin(std::shared_ptr<Nodes::Scene> scene, const Options& options)
 {
     scene->GetRenderer().OnFrameBegin(options);
 }
 
-void Render(std::shared_ptr<Scene> scene, const Options& options)
+void Render(std::shared_ptr<Nodes::Scene> scene, const Options& options)
 {
     scene->GetRenderer().Render(options, glm::mat4(1));
 }
 
-void Render(std::shared_ptr<Scene> scene, const Options& options, const glm::mat4& rootMatrix)
+void Render(std::shared_ptr<Nodes::Scene> scene, const Options& options, const glm::mat4& rootMatrix)
 {
     scene->GetRenderer().Render(options, rootMatrix);
 }
 
-void OnFrameEnd(std::shared_ptr<Scene> scene, const Options& options)
+void OnFrameEnd(std::shared_ptr<Nodes::Scene> scene, const Options& options)
 {
     scene->GetRenderer().OnFrameEnd(options);
 }

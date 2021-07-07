@@ -14,12 +14,15 @@
 #include <Core/Property.hpp>
 
 #include <memory>
+#include <mutex>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Assets {
 class Asset;
+class BinaryData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -88,6 +91,7 @@ public:
     PROPERTY(size_t, ByteOffset, 0);
     PROPERTY(Type, Type, Type::Unknown);
     PROPERTY(Mode, Mode, Mode::Default);
+    PROPERTY(std::shared_ptr<Assets::Asset>, Asset, nullptr);
     READONLYPROPERTY(bool, Loaded, false);
 
 public:

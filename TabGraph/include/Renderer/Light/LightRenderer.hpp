@@ -6,24 +6,40 @@
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <memory>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Lights {
 class Light;
-class LightProbe;
-
+class Probe;
+}
 namespace Renderer {
 struct Options;
-void Render(std::shared_ptr<Light>, const Renderer::Options&);
-void UpdateLightProbe(std::shared_ptr<Light>, const Renderer::Options&, LightProbe&);
+}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Renderer {
+void Render(std::shared_ptr<TabGraph::Lights::Light>, const Renderer::Options&);
+void UpdateLightProbe(std::shared_ptr<TabGraph::Lights::Light>, const Renderer::Options&, TabGraph::Lights::Probe&);
 class LightRenderer {
 public:
-    LightRenderer(Light&);
+    LightRenderer(TabGraph::Lights::Light&);
     virtual void Render(const Renderer::Options&) = 0;
-    virtual void UpdateLightProbe(const Renderer::Options&, LightProbe&) = 0;
+    virtual void UpdateLightProbe(const Renderer::Options&, Lights::Probe&) = 0;
     void FlagDirty();
 
 protected:
-    Light& _light;
+    TabGraph::Lights::Light& _light;
     bool _dirty{ true };
 };
 };

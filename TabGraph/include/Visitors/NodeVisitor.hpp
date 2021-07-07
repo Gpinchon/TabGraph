@@ -1,7 +1,13 @@
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Visitors/Visitor.hpp>
 
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Visitors {
 class NodeVisitor : public Visitor {
 public:
@@ -21,15 +27,23 @@ public:
         _Visit(node);
         _Traverse(node);
     };
+    virtual void operator()(Nodes::Renderable& node) final
+    {
+        _Visit(reinterpret_cast<Nodes::Node&>(node));
+        _Traverse(node);
+    };
     virtual void operator()(Nodes::Group& node) final
     {
-        _Visit(node);
+        _Visit(reinterpret_cast<Nodes::Node&>(node));
         _Traverse(node);
     };
 
 private:
     virtual void _Visit(Nodes::Node& node) = 0;
+    virtual void _Visit(Nodes::Group& node) = 0;
+    virtual void _Visit(Nodes::Renderable& node) = 0;
     void _Traverse(Nodes::Node& node);
     void _Traverse(Nodes::Group& group);
+    void _Traverse(Nodes::Renderable& group);
 };
 };

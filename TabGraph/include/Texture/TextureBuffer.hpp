@@ -1,24 +1,32 @@
 #pragma once
 
-#include "Texture/Texture.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Texture/Texture.hpp>
+#include <Core/Inherit.hpp>
+#include <Core/Property.hpp>
+
 #include <memory>
 
-class Buffer::Accessor;
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Buffer {
+class Accessor;
+}
 
-class TextureBuffer : public Texture
+////////////////////////////////////////////////////////////////////////////////
+// Class Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Textures {
+class TextureBuffer : public Core::Inherit<Texture, TextureBuffer>
 {
 	class Impl;
 	friend Impl;
+	PROPERTY(std::shared_ptr<Buffer::Accessor>, BufferAccessor, nullptr);
 public:
 	TextureBuffer(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::Accessor> bufferAccessor);
 	TextureBuffer(TextureBuffer& other);
-	std::shared_ptr<Buffer::Accessor> Accessor() const;
-	void SetAccessor(std::shared_ptr<Buffer::Accessor> bufferAccessor);
-
-private:
-	virtual std::shared_ptr<Component> _Clone() override {
-		auto textureBuffer = Component::Create<TextureBuffer>(*this);
-		return textureBuffer;
-	}
-	//std::shared_ptr<Buffer::Accessor> _accessor { nullptr };
 };
+}

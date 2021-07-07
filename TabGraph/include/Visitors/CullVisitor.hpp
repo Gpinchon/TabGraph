@@ -33,11 +33,14 @@ public:
     {
         return _result;
     }
-    virtual void operator()(Nodes::Renderable&) override;
     
-
 private:
     const Renderer::Options _options;
     std::vector<Renderer::ShapeState> _result;
+
+    // Hérité via NodeVisitor
+    virtual void _Visit(Nodes::Node& node) override;
+    virtual void _Visit(Nodes::Group& node) override;
+    virtual void _Visit(Nodes::Renderable& node) override;
 };
 };

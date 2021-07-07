@@ -5,46 +5,44 @@
 * @Last Modified time: 2021-05-12 16:30:16
 */
 
-#include <Surface/Geometry.hpp>
+#include <Shapes/Geometry.hpp>
 #include <Assets/Asset.hpp>
 #include <Assets/BinaryData.hpp>
 #include <Buffer/Accessor.hpp>
 #include <Buffer/View.hpp>
-#include <Camera/Camera.hpp>
+#include <Cameras/Camera.hpp>
 #include <Debug.hpp>
 #include <Physics/BoundingAABB.hpp>
 #include <Tools/Tools.hpp>
 
 #if RENDERINGAPI == OpenGL
-#include <Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp>
+#include <Driver/OpenGL/Renderer/Shapes/GeometryRenderer.hpp>
 #endif
 
 #include <algorithm>
 
-static size_t geometryNbr(0);
-
+namespace TabGraph::Shapes {
+static size_t s_geometryNbr(0);
 Geometry::Geometry(const std::string& name)
-    : Surface(name)
-    , _bounds(Component::Create<BoundingAABB>(glm::vec3(0), glm::vec3(0)))
+    : Inherit(name)
 {
     _renderer.reset(new Renderer::GeometryRenderer(*this));
-    geometryNbr++;
+    ++s_geometryNbr;
 }
 
 Geometry::Geometry()
-    : Geometry("Geometry_" + std::to_string(geometryNbr))
+    : Geometry("Geometry_" + std::to_string(s_geometryNbr))
 {
 }
 
 Geometry::Geometry(const Geometry& other)
-    : Surface(other)
+    : Inherit(other)
 {
     _renderer.reset(new Renderer::GeometryRenderer(*this));
-    _centroid = other._centroid;
-    _bounds = std::static_pointer_cast<BoundingAABB>(other._bounds->Clone());
     _accessors = other._accessors;
     _indices = other._indices;
     _morphTargets = other._morphTargets;
+    ++s_geometryNbr;
 }
 
 Geometry::~Geometry()
@@ -62,7 +60,7 @@ Geometry::Geometry(
     assert(vertices.size() == normals.size());
     assert(normals.size() == texCoords.size());
     auto vertexBuffer {
-        Component::Create<BinaryData>(
+        std::make_shared<Assets::BinaryData>(
             vertices.size() * sizeof(glm::vec3) + normals.size() * sizeof(glm::vec3) + texCoords.size() * sizeof(glm::vec2) + indices.size() * sizeof(uint32_t))
     };
     auto verticeByteSize { vertices.size() * sizeof(glm::vec3) };
@@ -85,16 +83,16 @@ Geometry::Geometry(
         (std::byte*)indices.data(),
         verticeByteSize + normalsByteSize + texcoordByteSize,
         indiceByteSize);
-    auto vertexBufferAsset { Component::Create<Asset>() };
-    vertexBufferAsset->SetComponent(vertexBuffer);
+    auto vertexBufferAsset { std::make_shared<Assets::Asset>() };
+    vertexBufferAsset->binaryDatas.push_back(vertexBuffer);
     vertexBufferAsset->SetLoaded(true);
-    auto vertexBufferView { Component::Create<Buffer::View>(vertexBufferAsset, mode) };
+    auto vertexBufferView { std::make_shared<Buffer::View>(vertexBufferAsset, mode) };
     vertexBufferView->SetType(Buffer::View::Type::Array);
     vertexBufferView->SetByteLength(verticeByteSize + normalsByteSize + texcoordByteSize);
 
-    auto vertexAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, vertexBufferView) };
-    auto normalAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, vertexBufferView) };
-    auto texcoordAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec2, vertexBufferView) };
+    auto vertexAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, vertexBufferView) };
+    auto normalAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, vertexBufferView) };
+    auto texcoordAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec2, vertexBufferView) };
 
     vertexAccessor->SetByteOffset(0);
     vertexAccessor->SetCount(vertices.size());
@@ -109,11 +107,11 @@ Geometry::Geometry(
 
     if (indices.empty())
         return;
-    auto indiceBufferView { Component::Create<Buffer::View>(vertexBufferAsset, mode) };
+    auto indiceBufferView { std::make_shared<Buffer::View>(vertexBufferAsset, mode) };
     indiceBufferView->SetType(Buffer::View::Type::ElementArray);
     indiceBufferView->SetByteLength(indiceByteSize);
     indiceBufferView->SetByteOffset(verticeByteSize + normalsByteSize + texcoordByteSize);
-    auto indiceAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Uint32, Buffer::Accessor::Type::Scalar, indiceBufferView) };
+    auto indiceAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Uint32, Buffer::Accessor::Type::Scalar, indiceBufferView) };
     SetIndices(indiceAccessor);
 }
 
@@ -175,11 +173,6 @@ std::shared_ptr<Buffer::Accessor> Geometry::Indices() const
 void Geometry::SetIndices(std::shared_ptr<Buffer::Accessor> indices)
 {
     _indices = indices;
-}
-
-std::shared_ptr<BoundingAABB> Geometry::GetBounds() const
-{
-    return _bounds;
 }
 
 size_t Geometry::EdgeCount() const
@@ -350,15 +343,4 @@ size_t Geometry::VertexCount() const
 {
     return Indices() ? Indices()->GetCount() : Accessor(AccessorKey::Position)->GetCount();
 }
-
-/*void Geometry::center(glm::vec3 &center)
-{
-    for (auto &vec : v)
-    {
-        vec = vec - center;
-    }
-    boundingElement->min = boundingElement->min - center;
-    boundingElement->max = boundingElement->max - center;
-    boundingElement->center = boundingElement->center - center;
-    SetPosition(boundingElement->center - center);
-}*/
+}

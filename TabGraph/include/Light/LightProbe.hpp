@@ -7,26 +7,41 @@
 
 #pragma once
 
-#include "Object.hpp"
-#include "SphericalHarmonics.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Core/Object.hpp>
+#include <Core/Inherit.hpp>
+#include <Core/Property.hpp>
+#include <SphericalHarmonics.hpp>
 
 #include <glm/glm.hpp>
 #include <vector>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
 namespace Renderer {
-    struct FrameRenderer;
+struct FrameRenderer;
+class Framebuffer;
+}
+namespace Lights {
+class ProbeGroup;
+}
 }
 
-class Framebuffer;
-class LightProbeGroup;
-
-class LightProbe : public Object {
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Lights {
+class Probe : public Core::Inherit<Core::Object, Probe> {
     PROPERTY(bool, Infinite, 0);
-    PROPERTY(std::shared_ptr<Framebuffer>, ReflectionBuffer, nullptr);
+    PROPERTY(std::shared_ptr<Renderer::Framebuffer>, ReflectionBuffer, nullptr);
     PROPERTY(glm::vec3, Position, 0);
 
 public:
-    LightProbe(LightProbeGroup& lightProbeGroup);
+    Probe(ProbeGroup& lightProbeGroup);
 
     std::vector<glm::vec3>& GetDiffuseSH() {
         return _diffuseSH;
@@ -36,24 +51,28 @@ public:
     glm::vec3 GetAbsolutePosition() const;
 
 private:
-    const LightProbeGroup& _lightProbeGroup;
+    const ProbeGroup& _lightProbeGroup;
     std::vector<glm::vec3> _diffuseSH{ 16 };
 };
 
-class LightProbeGroup : public Object {
-    friend LightProbe;
+class ProbeGroup : public Core::Inherit<Core::Object, ProbeGroup> {
+    friend Probe;
     PROPERTY(glm::vec3, Position, 0);
     READONLYPROPERTY(glm::ivec2, Resolution, 128);
 
 public:
-    LightProbeGroup(size_t probesNbr, glm::ivec2 resolution = glm::ivec2(128))
+    ProbeGroup(size_t probesNbr, glm::ivec2 resolution = glm::ivec2(128))
         : _lightProbes(probesNbr, *this)
     {
         _SetResolution(resolution);
     }
-    std::vector<LightProbe> &GetLightProbes();
+    auto& GetLightProbes()
+    {
+        return _lightProbes;
+    }
 
 private:
-    std::vector<LightProbe> _lightProbes;
+    std::vector<Probe> _lightProbes;
     SphericalHarmonics _sphericalHarmonics{ 50 };
 };
+}

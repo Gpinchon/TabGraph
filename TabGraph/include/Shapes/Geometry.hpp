@@ -7,25 +7,37 @@
 
 #pragma once
 
-#include "Buffer/Accessor.hpp"
-#include "Buffer/View.hpp"
-#include "Surface/Surface.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Buffer/Accessor.hpp>
+#include <Buffer/View.hpp>
+#include <Shapes/Shape.hpp>
+#include <Core/Inherit.hpp>
 
 #include <array>
-#include <glm/glm.hpp> // for glm::vec2, s_vec2, s_vec3, glm::vec3
+#include <glm/glm.hpp>
 #include <map>
-#include <memory> // for shared_ptr, weak_ptr
-#include <string> // for string
-#include <vector> // for vector
+#include <memory>
+#include <string>
+#include <vector>
 
-class Material; // lines 20-20
-class Buffer::Accessor;
-class BoundingAABB;
-
+////////////////////////////////////////////////////////////////////////////////
+// Forward Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Buffer {
+class Accessor;
+}
 namespace Renderer {
 class GeometryRenderer;
-};
+}
+}
 
+////////////////////////////////////////////////////////////////////////////////
+// Class Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Shapes {
 class GeometryMorthTarget {
 public:
     enum Channel {
@@ -34,14 +46,18 @@ public:
         Tangent,
         MaxChannels
     };
-    std::shared_ptr<Buffer::Accessor> Get(const GeometryMorthTarget::Channel channel) const;
-    void Set(const GeometryMorthTarget::Channel channel, const std::shared_ptr<Buffer::Accessor> morphChannel);
+    inline auto Get(const GeometryMorthTarget::Channel channel) const {
+        return _morphChannels.at(size_t(channel));
+    }
+    inline void Set(const GeometryMorthTarget::Channel channel, const std::shared_ptr<Buffer::Accessor> morphChannel) {
+        _morphChannels.at(size_t(channel)) = morphChannel;
+    }
 
 private:
     std::array<std::shared_ptr<Buffer::Accessor>, GeometryMorthTarget::MaxChannels> _morphChannels;
 };
 
-class Geometry : public Surface {
+class Geometry : public Core::Inherit<Shape, Geometry> {
 public:
     enum class AccessorKey {
         Invalid = -1,
@@ -72,7 +88,8 @@ public:
     };
     /** @brief Drawing mode for this geometry, default : GL_TRIANGLES */
     PROPERTY(DrawingMode, DrawingMode, DrawingMode::Triangles);
-    PROPERTY(bool, Loaded, false);
+    PROPERTY(glm::vec3, Centroid, 0);
+    READONLYPROPERTY(bool, Loaded, false);
 
 public:
     Geometry();
@@ -83,7 +100,6 @@ public:
     ~Geometry();
 
     static Geometry::AccessorKey GetAccessorKey(const std::string& key);
-    glm::vec3 Centroid() const;
     size_t EdgeCount() const;
     glm::ivec2 GetEdge(const size_t index) const;
     size_t VertexCount() const;
@@ -96,27 +112,13 @@ public:
     std::shared_ptr<Buffer::Accessor> Indices() const;
     void SetIndices(std::shared_ptr<Buffer::Accessor>);
 
-    std::shared_ptr<BoundingAABB> GetBounds() const;
-
     GeometryMorthTarget& GetMorphTarget(size_t index);
     void SetMorphTarget(const GeometryMorthTarget& morphTarget);
 
 private:
-    virtual std::shared_ptr<Component> _Clone() override
-    {
-        return Component::Create<Geometry>(*this);
-    }
-    glm::vec3 _centroid { 0 };
-    std::shared_ptr<BoundingAABB> _bounds;
     std::array<std::shared_ptr<Buffer::Accessor>, size_t(Geometry::AccessorKey::MaxAccessorKey)> _accessors;
     std::shared_ptr<Buffer::Accessor> _indices { nullptr };
     std::vector<GeometryMorthTarget> _morphTargets;
-
-    // Hérité via Surface
-    virtual Type GetType() const override
-    {
-        return Type::Geometry;
-    }
 };
 
 template <typename T>
@@ -128,4 +130,5 @@ inline T Geometry::GetVertex(const Geometry::AccessorKey key, const size_t index
         return Accessor(key)->Get<T>(indice);
     } else
         return Accessor(key)->Get<T>(index);
+}
 }

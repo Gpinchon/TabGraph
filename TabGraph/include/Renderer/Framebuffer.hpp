@@ -10,11 +10,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Includes
 ////////////////////////////////////////////////////////////////////////////////
-#include "Texture/PixelUtils.hpp"
-#include "Texture/TextureSampler.hpp"
+#include <Texture/PixelUtils.hpp>
+#include <Texture/Sampler.hpp>
 
-#include <glm/glm.hpp> // for glm::vec2
-#include <memory> // for shared_ptr
+#include <glm/glm.hpp>
+#include <memory>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
@@ -30,23 +30,24 @@ class Window;
 ////////////////////////////////////////////////////////////////////////////////
 // Class declarations
 ////////////////////////////////////////////////////////////////////////////////
-
+namespace TabGraph::Renderer {
 enum class BufferMask {
     ColorBits = 0x1,
     DepthBits = 0x2,
     StencilBits = 0x4
 };
-
-static inline auto operator|(BufferMask a, BufferMask b)
+}
+static inline auto operator|(TabGraph::Renderer::BufferMask a, TabGraph::Renderer::BufferMask b)
 {
-    return static_cast<BufferMask>(static_cast<int>(a) | static_cast<int>(b));
+    return static_cast<TabGraph::Renderer::BufferMask>(static_cast<int>(a) | static_cast<int>(b));
 }
 
-static inline auto operator&(BufferMask a, BufferMask b)
+static inline auto operator&(TabGraph::Renderer::BufferMask a, TabGraph::Renderer::BufferMask b)
 {
-    return static_cast<BufferMask>(static_cast<int>(a) & static_cast<int>(b));
+    return static_cast<TabGraph::Renderer::BufferMask>(static_cast<int>(a) & static_cast<int>(b));
 }
 
+namespace TabGraph::Renderer {
 class Framebuffer {
 public:
     class Impl;
@@ -59,34 +60,34 @@ public:
     ~Framebuffer();
 
     /** @return the specified color attachement */
-    std::shared_ptr<Texture> GetColorBuffer(unsigned color_attachement);
+    std::shared_ptr<Textures::Texture> GetColorBuffer(unsigned color_attachement);
     /** @return the depth buffer */
-    std::shared_ptr<Texture> GetDepthBuffer();
+    std::shared_ptr<Textures::Texture> GetDepthBuffer();
     /** @return the stencil buffer */
-    std::shared_ptr<Texture> GetStencilBuffer();
+    std::shared_ptr<Textures::Texture> GetStencilBuffer();
     /** @brief Adds a color attachement at the end of the attachements list and returns index */
-    void AddColorBuffer(std::shared_ptr<Texture> buffer, unsigned mipLevel = 0);
+    void AddColorBuffer(std::shared_ptr<Textures::Texture> buffer, unsigned mipLevel = 0);
     /** @brief Sets the Texture to the specified index */
-    void SetColorBuffer(std::shared_ptr<Texture> buffer, unsigned color_attachement = 0, unsigned mipLevel = 0);
+    void SetColorBuffer(std::shared_ptr<Textures::Texture> buffer, unsigned color_attachement = 0, unsigned mipLevel = 0);
     /**
      * @brief Sets the stencil buffer
      * @param buffer : the buffer to be used as stencil buffer
      * @param mipLevel : the mip level to write to
     */
-    void SetStencilBuffer(std::shared_ptr<Texture> buffer, unsigned mipLevel = 0);
+    void SetStencilBuffer(std::shared_ptr<Textures::Texture> buffer, unsigned mipLevel = 0);
     /** @brief Set the depth buffer */
-    void SetDepthBuffer(std::shared_ptr<Texture> buffer, unsigned mipLevel = 0);
+    void SetDepthBuffer(std::shared_ptr<Textures::Texture> buffer, unsigned mipLevel = 0);
     void BlitTo(std::shared_ptr<Framebuffer> to,
         glm::ivec2 src0, glm::ivec2 src1,
         glm::ivec2 dst0, glm::ivec2 dst1,
         BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
-        TextureSampler::Filter filter = TextureSampler::Filter::Nearest);
+        Textures::Sampler::Filter filter = Textures::Sampler::Filter::Nearest);
     void BlitTo(std::shared_ptr<Framebuffer> to,
         BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
-        TextureSampler::Filter filter = TextureSampler::Filter::Nearest);
+        Textures::Sampler::Filter filter = Textures::Sampler::Filter::Nearest);
     void BlitTo(std::shared_ptr<Window> to,
         BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
-        TextureSampler::Filter filter = TextureSampler::Filter::Nearest);
+        Textures::Sampler::Filter filter = Textures::Sampler::Filter::Nearest);
     glm::ivec2 GetSize() const;
     void SetSize(const glm::ivec2& new_size);
 
@@ -95,3 +96,4 @@ public:
 private:
     std::unique_ptr<Impl> _impl;
 };
+}

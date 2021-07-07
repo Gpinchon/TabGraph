@@ -1,7 +1,10 @@
 #include "Driver/OpenGL/Buffer.hpp"
 
+#include <cassert>
 #include <array>
 #include <GL/glew.h>
+
+using namespace TabGraph;
 
 static inline auto GLMappingMode(Buffer::View::MappingMode mode) {
     static const std::array<GLbitfield, (int)Buffer::View::MappingMode::MaxValue> MappingModeLUT = {

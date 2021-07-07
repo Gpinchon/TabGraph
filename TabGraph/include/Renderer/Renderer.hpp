@@ -7,15 +7,32 @@
 
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <glm/mat4x4.hpp>
 #include <memory>
 
-class Surface;
-class Camera;
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Nodes {
 class Scene;
+}
+namespace Cameras {
+class Camera;
+}
+namespace Shapes {
+class Shape;
+}
+}
 
-/** @brief Renderer manages the graphical rendering and frame pacing */
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Renderer {
+/** @brief Handles the full rendering of a frame to the Window */
 class FrameRenderer;
 struct Options {
     enum class Pass {
@@ -37,7 +54,7 @@ struct Options {
         MaxValue
     };
     Options(Options::Pass pass, Options::Mode mode,
-        std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene, std::shared_ptr<FrameRenderer> renderer,
+        std::shared_ptr<Cameras::Camera> camera, std::shared_ptr<Nodes::Scene> scene, std::shared_ptr<FrameRenderer> renderer,
         uint32_t frameNbr, float delta)
         : pass(pass)
         , mode(mode)
@@ -48,15 +65,14 @@ struct Options {
         , delta(delta) {};
     Pass pass;
     Mode mode;
-    std::shared_ptr<Camera> camera;
-    std::shared_ptr<Scene> scene;
+    std::shared_ptr<Cameras::Camera> camera;
+    std::shared_ptr<Nodes::Scene> scene;
     std::shared_ptr<FrameRenderer> renderer;
     uint32_t frameNumber;
     float delta;
 };
 struct ShapeState {
     glm::mat4 transform;
-    glm::mat4 prevTransform;
-    std::weak_ptr<Surface> surface;
+    std::weak_ptr<Shapes::Shape> surface;
 };
 };

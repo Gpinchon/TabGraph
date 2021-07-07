@@ -5,31 +5,28 @@
 * @Last Modified time: 2021-05-04 20:02:23
 */
 
-#include "Light/LightProbe.hpp"
-#include "Texture/Framebuffer.hpp"
-#include "Texture/TextureCubemap.hpp"
-#include "Texture/TextureSampler.hpp"
+#include <Light/LightProbe.hpp>
+#include <Renderer/Framebuffer.hpp>
+#include <Texture/TextureCubemap.hpp>
+#include <Texture/Sampler.hpp>
 
-LightProbe::LightProbe(LightProbeGroup& lightProbeGroup)
+namespace TabGraph::Lights {
+Probe::Probe(ProbeGroup& lightProbeGroup)
     : _lightProbeGroup(lightProbeGroup)
 {
-    SetReflectionBuffer(std::make_shared<Framebuffer>(lightProbeGroup.GetResolution()));
-    auto cubemap { Component::Create<TextureCubemap>(lightProbeGroup.GetResolution(), Pixel::SizedFormat::Float16_RGB) };
-    cubemap->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
+    SetReflectionBuffer(std::make_shared<Renderer::Framebuffer>(lightProbeGroup.GetResolution()));
+    auto cubemap {std::make_shared<Textures::TextureCubemap>(lightProbeGroup.GetResolution(), Pixel::SizedFormat::Float16_RGB) };
+    cubemap->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
     GetReflectionBuffer()->AddColorBuffer(cubemap);
 }
 
-const SphericalHarmonics& LightProbe::GetSphericalHarmonics() const
+const SphericalHarmonics& Probe::GetSphericalHarmonics() const
 {
     return _lightProbeGroup._sphericalHarmonics;
 }
 
-glm::vec3 LightProbe::GetAbsolutePosition() const
+glm::vec3 Probe::GetAbsolutePosition() const
 {
     return _lightProbeGroup.GetPosition() + GetPosition();
 }
-
-std::vector<LightProbe>& LightProbeGroup::GetLightProbes()
-{
-    return _lightProbes;
 }

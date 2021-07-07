@@ -10,8 +10,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Includes
 ////////////////////////////////////////////////////////////////////////////////
-#include <Core/Inherit.hpp>
 #include <Shapes/Shape.hpp>
+#include <Core/Inherit.hpp>
+#include <Core/Property.hpp>
 
 #include <glm/ext/matrix_float4x4.hpp>
 #include <map>
@@ -30,8 +31,8 @@ class Geometry;
 namespace Buffer {
 class Accessor;
 }
-namespace Materials {
-class Material;
+namespace Material {
+class Standard;
 }
 }
 
@@ -41,16 +42,19 @@ class Material;
 namespace TabGraph::Shapes {
 class Mesh : public TabGraph::Core::Inherit<Shape, Mesh> {
 public:
+    class Skin;
+    PROPERTY(std::shared_ptr<Skin>, Skin, nullptr);
+public:
+    
     Mesh();
     Mesh(const std::string& name);
     Mesh(const Mesh& other);
     ~Mesh();
 
     /** Adds the Geometry to Geometrys list */
-    void AddGeometry(std::shared_ptr<Geometry> geometry, std::shared_ptr<Materials::Material> material);
-    std::shared_ptr<Materials::Material> GetGeometryMaterial(uint32_t geometryIndex) const;
-    std::shared_ptr<Materials::Material> GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const;
-    void SetGeometryMaterial(std::shared_ptr<Geometry> geometry, std::shared_ptr<Materials::Material> material);
+    void AddGeometry(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material::Standard> material);
+    std::shared_ptr<Material::Standard> GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const;
+    void SetGeometryMaterial(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material::Standard> material);
 
     std::shared_ptr<Buffer::Accessor> GetWeights() const
     {
@@ -82,7 +86,7 @@ public:
     }
 
 private:
-    std::map<std::shared_ptr<Geometry>, std::shared_ptr<Materials::Material>> _geometries;
+    std::map<std::shared_ptr<Geometry>, std::shared_ptr<Material::Standard>> _geometries;
     std::shared_ptr<Buffer::Accessor> _weights;
     bool _loaded { false };
     glm::mat4 _geometryTransform { 1 };

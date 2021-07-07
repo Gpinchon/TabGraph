@@ -20,8 +20,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
-namespace TabGraph::Memory {
-class Buffer::View;
+namespace TabGraph::Buffer {
+class View;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,6 +55,7 @@ public:
         Float32,
         MaxValue
     };
+    PROPERTY(std::shared_ptr<Buffer::View>, BufferView, nullptr);
     /**
          * @brief Is the data to be normalized by OpenGL ?
         */
@@ -92,9 +93,6 @@ public:
     Accessor() = delete;
     Accessor(const ComponentType componentType, const Type type, const size_t count);
     Accessor(const ComponentType componentType, const Type type, std::shared_ptr<Buffer::View> bufferView);
-    /** The Buffer::View. */
-    std::shared_ptr<Buffer::View> GetBufferView() const;
-    void SetBufferView(std::shared_ptr<Buffer::View>);
     /** @return : the maximum value for this Accessor */
     template <typename T>
     T GetMax() const;
@@ -118,7 +116,6 @@ private:
     typedef std::variant<unsigned, int, double, glm::vec2, glm::vec3, glm::vec4, glm::mat2, glm::mat3, glm::mat4> boundsVar;
     boundsVar _max {};
     boundsVar _min {};
-    std::shared_ptr<Buffer::View> _bufferView;
 };
 
 template <typename T>

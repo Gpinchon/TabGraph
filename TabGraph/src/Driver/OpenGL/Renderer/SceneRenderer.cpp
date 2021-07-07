@@ -5,23 +5,25 @@
 * @Last Modified time: 2021-04-12 18:39:43
 */
 
-#include <Animation/Animation.hpp>
 #include <Driver/OpenGL/Renderer/SceneRenderer.hpp>
+#include <Animations/Animation.hpp>
 #include <Light/Light.hpp>
 #include <Light/LightProbe.hpp>
-#include <Node.hpp>
-#include <Surface/Surface.hpp>
+#include <Shapes/Shape.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Light/LightRenderer.hpp>
-#include <Renderer/Surface/ShapeRenderer.hpp>
-#include <Scene/Scene.hpp>
-#include <Texture/Framebuffer.hpp>
+#include <Renderer/Shape/ShapeRenderer.hpp>
+#include <Nodes/Node.hpp>
+#include <Nodes/Scene.hpp>
+#include <Renderer/Framebuffer.hpp>
 #include <Texture/Texture2D.hpp>
+
+#include <Visitors/CullVisitor.hpp>
 
 #include <GL/glew.h>
 
-namespace Renderer {
-SceneRenderer::SceneRenderer(Scene& scene)
+namespace TabGraph::Renderer {
+SceneRenderer::SceneRenderer(Nodes::Scene& scene)
     : _scene(scene)
 {
 }
@@ -35,13 +37,17 @@ void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
         auto fixedOptions = options;
         fixedOptions.delta = _fixedDelta;
         for (const auto& animation : _scene.GetAnimations()) {
-            if (animation->Playing())
+            if (animation->GetPlaying())
                 animation->Advance(_fixedDelta);
         }
-        _UpdateRenderList(_scene.GetRootNode());
-        for (auto& transform : _nodeLastTransform) {
-            if (_nodesToKeep.count(transform.first) == 0)
-                _nodeLastTransform.erase(transform.first);
+        Visitors::CullVisitor cullVisitor(options, Visitors::NodeVisitor::Mode::VisitChildren);
+        cullVisitor(_scene);
+        for (auto& shapeState : cullVisitor.GetResult())
+            _renderList.push_back(shapeState);
+        //_UpdateRenderList(_scene.GetRootNode());
+        for (auto& transform : _shapeLastTransform) {
+            if (_shapesToKeep.count(transform.first) == 0)
+                _shapeLastTransform.erase(transform.first);
         }
         for (const auto& surfaceState : _renderList) {
             auto surface{ surfaceState.surface.lock() };
@@ -57,7 +63,7 @@ void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
         bool first = true;
         glDisable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
-        for (const auto& light : _scene.GetRootNode()->GetComponents<Light>()) {
+        for (const auto& light : _scene.GetLights()) {
             for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
                 Renderer::UpdateLightProbe(light, options, lightProbe);
             }
@@ -74,15 +80,15 @@ void SceneRenderer::OnFrameBegin(const Renderer::Options& options)
     }
 }
 
-void SceneRenderer::Render(const ::Renderer::Options& options, const glm::mat4& rootMatrix)
+void SceneRenderer::Render(const Renderer::Options& options, const glm::mat4& rootMatrix)
 {
     for (const auto& surfaceState : _renderList) {
         auto surface { surfaceState.surface.lock() };
-        Renderer::Render(surface, options, surfaceState.transform, surfaceState.prevTransform);
+        Renderer::Render(surface, options, surfaceState.transform, _shapeLastTransform.at(surfaceState.surface));
     }
 }
 
-void SceneRenderer::OnFrameEnd(const ::Renderer::Options& options)
+void SceneRenderer::OnFrameEnd(const Renderer::Options& options)
 {
     if (_fixedDelta > 0.015) {
         for (const auto& surfaceItr : _renderList) {
@@ -93,9 +99,9 @@ void SceneRenderer::OnFrameEnd(const ::Renderer::Options& options)
     }
 }
 
-LightProbe& SceneRenderer::GetClosestLightProbe(const glm::vec3& position)
+TabGraph::Lights::Probe& SceneRenderer::GetClosestLightProbe(const glm::vec3& position)
 {
-    LightProbe* closestLightProbe = nullptr;
+    TabGraph::Lights::Probe* closestLightProbe = nullptr;
     float shortestDistance = std::numeric_limits<float>::max();
     for (auto& lightProbe : _lightProbeGroup.GetLightProbes()) {
         auto distance { glm::distance(position, lightProbe.GetAbsolutePosition()) };
@@ -106,22 +112,4 @@ LightProbe& SceneRenderer::GetClosestLightProbe(const glm::vec3& position)
     }
     return *closestLightProbe;
 }
-
-void SceneRenderer::_UpdateRenderList(std::shared_ptr<Node> root)
-{
-    _nodesToKeep.insert(root);
-    //for (auto i = 0; i < root->GetSurfaceNbr(); ++i) {
-    //    auto surface{ root->GetSurface(i) };
-    for (const auto &surface : root->GetSurfaces()) {
-        _renderList.push_back({
-            root->WorldTransformMatrix(),
-            _nodeLastTransform[root],
-            surface
-        });
-        _nodeLastTransform[root] = root->WorldTransformMatrix();
-    }
-    for (auto& node : root->GetChildren()) {
-        _UpdateRenderList(node);
-    }
 }
-};

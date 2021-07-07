@@ -6,8 +6,8 @@
 */
 
 #include <Shapes/Mesh/Mesh.hpp>
-#include <Material/Material.hpp>
-#include <Surface/Geometry.hpp>
+#include <Material/Standard.hpp>
+#include <Shapes/Geometry.hpp>
 
 #if RENDERINGAPI == OpenGL
 #include <Driver/OpenGL/Renderer/Shapes/MeshRenderer.hpp>
@@ -16,6 +16,7 @@
 #include <memory> // for shared_ptr
 #include <stddef.h> // for size_t
 
+namespace TabGraph::Shapes {
 size_t meshNbr(0);
 
 Mesh::Mesh()
@@ -32,7 +33,7 @@ Mesh::Mesh(const std::string& name)
 }
 
 Mesh::Mesh(const Mesh& other)
-    : Surface(other)
+    : Inherit(other)
     , _geometries(other._geometries)
 {
     _renderer.reset(new Renderer::MeshRenderer(*this));
@@ -44,24 +45,18 @@ Mesh::~Mesh()
 {
 }
 
-void Mesh::AddGeometry(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material)
+void Mesh::AddGeometry(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material::Standard> material)
 {
     return SetGeometryMaterial(geometry, material);
 }
 
-std::shared_ptr<Material> Mesh::GetGeometryMaterial(uint32_t geometryIndex) const
-{
-    auto itr { _geometries.find(geometryIndex) };
-    return itr == _geometries.end() ? nullptr : GetComponent<Material>(itr->second);
-}
-
-std::shared_ptr<Material> Mesh::GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const
+std::shared_ptr<Material::Standard> Mesh::GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const
 {
     auto itr { _geometries.find(geometry) };
-    return itr == _geometries.end() ? nullptr : GetComponent<Material>(itr->second);
+    return itr == _geometries.end() ? itr->second : nullptr;
 }
 
-void Mesh::SetGeometryMaterial(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material> material)
+void Mesh::SetGeometryMaterial(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material::Standard> material)
 {
     _geometries[geometry] = material;
 }
@@ -70,5 +65,7 @@ void Mesh::Load()
 {
     if (GetLoaded())
         return;
-    _SetLoaded(true);
+    _loaded = true;
+}
+
 }
