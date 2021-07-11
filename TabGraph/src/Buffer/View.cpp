@@ -60,6 +60,31 @@ View::View(size_t byteLength, Mode mode)
     SetMode(mode);
 }
 
+std::byte* View::begin()
+{
+    if (GetStorage() == Storage::CPU)
+        return &*_rawData.begin();
+    else
+        return GetImplGPU()->begin();
+}
+
+std::byte* View::end()
+{
+    if (GetStorage() == Storage::CPU)
+        return &*_rawData.end();
+    else
+        return GetImplGPU()->end();
+}
+
+std::byte& View::at(size_t index) {
+    std::unique_lock<std::mutex> lock(_lock);
+    if (GetStorage() == Storage::CPU)
+        return _rawData.at(index);
+    else
+        return GetImplGPU()->at(*this, index);
+}
+
+/*
 std::byte* View::Get(size_t index, size_t size)
 {
     std::unique_lock<std::mutex> lock(_lock);
@@ -77,7 +102,7 @@ void View::Set(std::byte* data, size_t index, size_t size)
     else
         GetImplGPU()->Set(*this, data, index, size);
 }
-
+*/
 std::byte* View::MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate)
 {
     assert(mappingMode != MappingMode::None);

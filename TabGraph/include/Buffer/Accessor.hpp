@@ -12,17 +12,19 @@
 #include <Core/Inherit.hpp>
 #include <Core/Object.hpp>
 #include <Core/Property.hpp>
+#include <Buffer/Iterator.hpp>
+#include <Buffer/View.hpp>
 
 #include <glm/glm.hpp>
 #include <memory>
-#include <variant>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
-namespace TabGraph::Buffer {
-class View;
-};
+//namespace TabGraph::Buffer {
+//class View;
+//};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class declaration
@@ -33,133 +35,86 @@ namespace TabGraph::Buffer {
 * A bufferView contains raw binary data.
 * An accessor provides a typed view into a bufferView or a subset of a bufferView.
 */
-class Accessor : public Core::Inherit<Core::Object, Buffer::Accessor> {
+template<typename T>
+class Accessor : public Core::Inherit<Core::Object, Buffer::Accessor<T>> {
 public:
-    enum class Type : uint8_t {
-        Unknown = 0,
-        Scalar = 1,
-        Vec2 = 2,
-        Vec3 = 3,
-        Vec4 = 4,
-        Mat2 = 4,
-        Mat3 = 9,
-        Mat4 = 16
-    };
-    enum class ComponentType {
-        Unknown = -1,
-        Int8,
-        Uint8,
-        Int16,
-        Uint16,
-        Uint32,
-        Float32,
-        MaxValue
-    };
     PROPERTY(std::shared_ptr<Buffer::View>, BufferView, nullptr);
     /**
-         * @brief Is the data to be normalized by OpenGL ?
-        */
+    * @brief Is the data to be normalized by OpenGL ?
+    */
     PROPERTY(bool, Normalized, false);
     /**
-         * @brief Byte offset inside the Buffer::View
-        */
+    * @brief Byte offset inside the Buffer::View
+    */
     PROPERTY(size_t, ByteOffset, 0);
     /**
-         * @brief Number of data chunks
-        */
-    PROPERTY(size_t, Count, 0);
-    /**
-         * @brief The data type a data chunk
-         * (Scalar, Vec2, Vec3...)
-        */
-    PROPERTY(Type, Type, Type::Unknown);
-    /**
-         * @brief Total size of a data chunk in octet
-         * (Vec3 of Float32 == 3 * 4)
-        */
-    READONLYPROPERTY(uint8_t, TypeOctetsSize, 0);
-    /**
-         * @brief The component type of a chunk
-         * (Int8, Uint8, Float32...)
-        */
-    PROPERTY(ComponentType, ComponentType, ComponentType::Unknown);
-    /**
-         * @brief The size of the component type in octets
-         * (Int8 == 1, Float32 == 4)
-        */
-    READONLYPROPERTY(uint8_t, ComponentOctetsSize, 0);
+    * @brief Number of data chunks
+    */
+    PROPERTY(size_t, Size, 0);
+    PROPERTY(T, Min, 0);
+    PROPERTY(T, Max, 0);
 
 public:
-    Accessor() = delete;
-    Accessor(const ComponentType componentType, const Type type, const size_t count);
-    Accessor(const ComponentType componentType, const Type type, std::shared_ptr<Buffer::View> bufferView);
-    /** @return : the maximum value for this Accessor */
-    template <typename T>
-    T GetMax() const;
-    /** @arg max : the new maximum value for this accessor */
-    template <typename T>
-    void SetMax(const T max);
-    /** @return : the minimum value for this Accessor */
-    template <typename T>
-    T GetMin() const;
-    /** @arg min : the new minimum value for this accessor */
-    template <typename T>
-    void SetMin(const T min);
-
-    template <typename T>
-    void Set(const T val, size_t index);
-
-    template <typename T>
-    T Get(size_t index);
-
+    Accessor(std::shared_ptr<Buffer::View> bufferView)
+        : Inherit()
+    {
+        SetSize(bufferView->GetByteSize() / sizeof(T));
+        SetBufferView(bufferView);
+    }
+    Accessor(std::shared_ptr<Buffer::View> bufferView, size_t size, size_t byteOffset = 0)
+        : Accessor(bufferView)
+    {
+        SetSize(size);
+        SetByteOffset(byteOffset);
+        SetBufferView(bufferView);
+    }
+    /**
+     * @brief Use this constructor to allocate a new Buffer::View
+     * @param count : the number of data chunks
+    */
+    Accessor(const size_t size)
+        : Accessor(std::make_shared<Buffer::View>(size * sizeof(T)))
+    {
+        GetBufferView()->SetType(Buffer::View::Type::Array);
+    }
+    auto GetTypeSize() const {
+        return sizeof(T);
+    }
+    Iterator<T> begin() {
+        const auto& bufferView{ GetBufferView() };
+        bufferView->Load();
+        return Iterator<T>(&bufferView->at(GetByteOffset()), bufferView->GetByteStride());
+    }
+    const Iterator<T> begin() const {
+        const auto& bufferView{ GetBufferView() };
+        bufferView->Load();
+        return Iterator<T>(&bufferView->at(GetByteOffset()), bufferView->GetByteStride());
+    }
+    Iterator<T> end() {
+        const auto& bufferView{ GetBufferView() };
+        bufferView->Load();
+        return begin() + GetSize();
+    }
+    const Iterator<T> end() const {
+        const auto& bufferView{ GetBufferView() };
+        bufferView->Load();
+        return begin() + GetSize();
+    }
+    T& at(size_t index) {
+        assert(index < GetSize());
+        return *(begin() + index);
+    }
+    const T& at(size_t index) const {
+        assert(index < GetSize());
+        return *(begin() + index);
+    }
+    operator std::vector<T>() const {
+        std::vector<T> vector;
+        for (const auto& val : *this)
+            vector.push_back(val);
+        return vector;
+    }
 private:
-    typedef std::variant<unsigned, int, double, glm::vec2, glm::vec3, glm::vec4, glm::mat2, glm::mat3, glm::mat4> boundsVar;
-    boundsVar _max {};
-    boundsVar _min {};
+    Accessor();
 };
-
-template <typename T>
-inline T Accessor::GetMax() const
-{
-    return std::get<T>(_max);
 }
-
-template <typename T>
-inline void Accessor::SetMax(const T max)
-{
-    _max = max;
-}
-
-template <typename T>
-inline T Accessor::GetMin() const
-{
-    return std::get<T>(_min);
-}
-
-template <typename T>
-inline void Accessor::SetMin(const T min)
-{
-    _min = min;
-}
-
-template <typename T>
-inline void Accessor::Set(const T val, size_t index)
-{
-    assert(sizeof(T) == GetTypeOctetsSize());
-    auto bufferView { GetBufferView() };
-    auto byteStride { bufferView->GetByteStride() ? bufferView->GetByteStride() : GetTypeOctetsSize() };
-    bufferView->Load();
-    bufferView->Set((std::byte*)&val, GetByteOffset() + (index * byteStride), sizeof(T));
-}
-
-template <typename T>
-inline T Accessor::Get(size_t index)
-{
-    assert(sizeof(T) == GetTypeOctetsSize());
-    auto bufferView { GetBufferView() };
-    auto byteStride { bufferView->GetByteStride() ? bufferView->GetByteStride() : GetTypeOctetsSize() };
-    bufferView->Load();
-    return *reinterpret_cast<T*>(bufferView->Get(GetByteOffset() + (index * byteStride), sizeof(T)));
-}
-
-};

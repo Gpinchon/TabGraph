@@ -105,8 +105,11 @@ public:
     View(std::shared_ptr<Assets::Asset> buffer, Mode = Mode::Default);
     View(size_t byteLength, std::shared_ptr<Assets::Asset> buffer, Mode = Mode::Default);
     View(size_t byteLength, Mode = Mode::Default);
-    std::byte* Get(size_t index, size_t size);
-    void Set(std::byte* data, size_t index, size_t size);
+    std::byte* begin();
+    std::byte* end();
+    std::byte& at(size_t index);
+
+
     std::byte* MapRange(MappingMode mappingMode, size_t start, size_t end, bool invalidate = false);
     size_t GetMappingEnd();
     size_t GetMappingStart();
