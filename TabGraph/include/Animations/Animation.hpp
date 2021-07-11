@@ -10,13 +10,12 @@
 // Includes
 ////////////////////////////////////////////////////////////////////////////////
 #include <Animations/Channel.hpp>
-#include <Animations/Interpolator.hpp>
-#include <Animations/Sampler.hpp>
 #include <Core/Inherit.hpp>
 #include <Core/Object.hpp>
 #include <Core/Property.hpp>
 
-#include <vector>
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class declaration
@@ -24,29 +23,25 @@
 namespace TabGraph::Animations {
 class Animation : public Core::Inherit<Core::Object, Animation> {
 public:
+    enum class LoopMode {
+        Swing, Repeat
+    };
     READONLYPROPERTY(bool, Playing, false);
-    PROPERTY(bool, Repeat, false);
+    PROPERTY(bool, Loop, false);
+    PROPERTY(LoopMode, LoopMode, LoopMode::Swing);
+    PROPERTY(float, Speed, 1);
 
 public:
     Animation();
-
-    inline auto& GetChannels()
-    {
-        return _channels;
+    auto& GetChannelPosition() {
+        return _positions;
     }
-    inline auto& GetSamplers()
-    {
-        return _samplers;
+    auto& GetChannelScale() {
+        return _scales;
     }
-    inline void AddChannel(const Channel& channel, const Interpolator& interpolator = {})
-    {
-        _channels.push_back({ channel, interpolator });
+    auto& GetChannelRotation() {
+        return _rotations;
     }
-    inline void AddSampler(const Sampler& sampler)
-    {
-        _samplers.push_back(sampler);
-    }
-
     /** @brief Start playing the animation */
     void Play();
     /** @brief Advance the animation */
@@ -57,8 +52,9 @@ public:
     void Reset();
 
 private:
-    std::vector<std::pair<Channel, Interpolator>> _channels;
-    std::vector<Sampler> _samplers;
+    Channel<glm::vec3> _positions;
+    Channel<glm::vec3> _scales;
+    Channel<glm::quat> _rotations;
     float _currentTime { 0 };
 };
 

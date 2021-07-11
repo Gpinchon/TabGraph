@@ -5,6 +5,7 @@
 * @Last Modified time: 2021-06-30 19:51:36
 */
 #include <Animations/Animation.hpp>
+#include <Animations/Interpolator.hpp>
 #include <Buffer/Accessor.hpp>
 #include <Buffer/View.hpp>
 #include <Debug.hpp>
@@ -27,88 +28,54 @@ Animation::Animation()
 void Animation::Reset()
 {
     _currentTime = 0;
-    for (auto & channelPair : _channels) {
-        auto& interpolator{ channelPair.second };
-        interpolator.prevTime = 0;
-        interpolator.nextKey = 0;
-        interpolator.prevKey = 0;
+    _scales.previousKey = 0;
+    _positions.previousKey = 0;
+    _rotations.previousKey = 0;
+}
+
+template<typename T>
+auto InterpolateChannel(Channel<T>& channel, float t, bool& animationPlayed)
+{
+    auto& minKey{ *channel.keyFrames.begin() };
+    auto& maxKey{ *channel.keyFrames.end() };
+    t = std::clamp(t, minKey.time, maxKey.time);
+    size_t nextKey = 0;
+    //TODO use range based iterations
+    Channel<T>::KeyFrame nextKeyFrame;
+    Channel<T>::KeyFrame prevKeyFrame;
+    for (auto i = channel.previousKey; i < channel.keyFrames.size(); ++i) {
+        auto& keyFrame(channel.keyFrames.at(i));
+        if (keyFrame.time > t) {
+            nextKey = std::clamp(size_t(i), size_t(0), channel.keyFrames.size() - 1);
+            channel.previousKey = std::clamp(size_t(nextKey - 1), size_t(0), size_t(nextKey));
+            nextKeyFrame = keyFrame;
+            break;
+        }
+        prevKeyFrame = keyFrame;
     }
+    auto keyDelta(nextKeyFrame.time - prevKeyFrame.time);
+    auto interpolationValue(0.f);
+    if (keyDelta != 0)
+        interpolationValue = (t - prevKeyFrame.time) / keyDelta;
+    animationPlayed |= t < maxKey.time;
+    return Interpolator::Interpolate(channel, channel.previousKey, nextKey, keyDelta, interpolationValue);
 }
 
 void Animation::Advance(float delta)
 {
     if (!GetPlaying()) return;
-    _currentTime += delta;
+    _currentTime += delta * GetSpeed();
     bool animationPlayed(false);
-    for (auto& channelPair : _channels) {
-        auto& channel{ channelPair.first };
-        auto& interpolator{ channelPair.second };
-        auto sampler(_samplers.at(channel.samplerIndex));
-        auto t = _currentTime;
-        auto maxT = sampler.timings->Get<float>(sampler.timings->GetCount() - 1);
-        auto minT = sampler.timings->Get<float>(0);
-        t = std::clamp(t, minT, maxT);
-        interpolator.prevTime = t;
-        interpolator.nextKey = 0;
-        for (auto i = interpolator.prevKey; i < sampler.timings->GetCount(); ++i) {
-            float timing(sampler.timings->Get<float>(i));
-            if (timing > t) {
-                interpolator.nextKey = std::clamp(size_t(i), size_t(0), sampler.timings->GetCount() - 1);
-                break;
-            }
-        }
-        interpolator.prevKey = std::clamp(size_t(interpolator.nextKey - 1), size_t(0), size_t(interpolator.nextKey));
-        auto prevTime(sampler.timings->Get<float>(interpolator.prevKey));
-        auto nextTime(sampler.timings->Get<float>(interpolator.nextKey));
-        auto keyDelta(nextTime - prevTime);
-        auto interpolationValue(0.f);
-        if (keyDelta != 0)
-            interpolationValue = (t - prevTime) / keyDelta;
-        switch (channel.path) {
-        case Channel::Path::Translation: {
-            glm::vec3 current = interpolator.Interpolate<glm::vec3>(sampler, keyDelta, interpolationValue);
-            channel.target->SetLocalPosition(current);
-            break;
-        }
-        case Channel::Path::Rotation: {
-            glm::quat current = interpolator.Interpolate<glm::quat>(sampler, keyDelta, interpolationValue);
-            channel.target->SetLocalRotation(glm::normalize(current));
-            break;
-        }
-        case Channel::Path::Scale: {
-            glm::vec3 current(interpolator.Interpolate<glm::vec3>(sampler, keyDelta, interpolationValue));
-            channel.target->SetLocalScale(current);
-            break;
-        }
-        case Channel::Path::Weights: {
-            /*auto mesh(std::dynamic_pointer_cast<Mesh>(channel.Target()));
-                    if (mesh == nullptr) {
-                        debugLog(channel.Target()->Name() + " is not a Mesh");
-                        break;
-                    }
-                    auto weights(mesh->Weights());
-                    if (sampler.Interpolation() == Sampler::CubicSpline)
-                    {
-                    }
-                    else
-                    {
-                        for (auto i = 0u; i < weights->Count(); ++i) {
-                            float prev(BufferHelper::Get<float>(sampler.KeyFrames(), interpolator.prevKey + i));
-                            float next(BufferHelper::Get<float>(sampler.KeyFrames(), nextKey + i));
-                            auto current = InterpolateKeyFrame(prev, next, interpolationValue, sampler.Interpolation());
-                            BufferHelper::Set(weights, i, current);
-                        }
-                    }*/
-            break;
-        }
-        case Channel::Path::None:
-            break;
-        }
-        animationPlayed |= t < maxT;
-    }
+    _scales.target->SetLocalScale(InterpolateChannel(_scales, _currentTime, animationPlayed));
+    _positions.target->SetLocalPosition(InterpolateChannel(_positions, _currentTime, animationPlayed));
+    _rotations.target->SetLocalRotation(InterpolateChannel(_rotations, _currentTime, animationPlayed));
     if (!animationPlayed) {
-        if (GetRepeat())
-            Reset();
+        if (GetLoop()) {
+            if (GetLoopMode() == LoopMode::Repeat)
+                Reset();
+            else
+                SetSpeed(-GetSpeed());
+        }
         else
             Stop();
     }
