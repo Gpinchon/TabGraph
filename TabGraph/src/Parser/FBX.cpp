@@ -5,7 +5,7 @@
 * @Last Modified time: 2020-08-20 16:52:34
 */
 
-#include "Assets/AssetsParser.hpp"
+#include "Assets/Parser.hpp"
 #include "Material/Material.hpp"
 #include "Surface/Geometry.hpp"
 #include "Surface/Mesh.hpp"
@@ -19,7 +19,7 @@
 #include <memory>
 
 //Add this parser to SceneParser !
-//auto __fbxParser = AssetsParser::Add(".fbx", FBX::Parse);
+//auto __fbxParser = Assets::Parser::Add(".fbx", FBX::Parse);
 
 //static inline auto getMaterials(std::shared_ptr<FBX::Node> layerElementMaterial)
 //{
@@ -148,7 +148,7 @@
 //
 //std::shared_ptr<AssetsContainer> ParseGeometries(FBX::Document* document)
 //{
-//    std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
+//    std::shared_ptr<AssetsContainer> container = std::make_shared<AssetsContainer>();
 //    //std::map<int64_t, std::vector<std::shared_ptr<Geometry>>> groupMap;
 //    for (const auto& objects : document->SubNodes("Objects")) {
 //        for (const auto& geometryNode : objects->SubNodes("Geometry")) {
@@ -173,7 +173,7 @@
 //            std::vector<int32_t> polygonIndex;
 //            std::vector<int32_t> polygonIndexNormal;
 //            std::shared_ptr<Geometry> geometry;
-//            //auto Geometry(Component::Create<Geometry>(""));
+//            //auto Geometry(std::make_shared<Geometry>(""));
 //            //Geometry->SetId(geometryId);
 //            //groupMap[geometryId].push_back(Geometry);
 //            //auto bufferV = BufferHelper::CreateAccessor(vertices);
@@ -185,7 +185,7 @@
 //                if (!materialIndices.empty()) {
 //                    uint32_t materialIndex(materials.at(materialIndices.at(i)));
 //                    if (geometry == nullptr) {
-//                        geometry = Component::Create<Geometry>("");
+//                        geometry = std::make_shared<Geometry>("");
 //                        geometry->SetId(geometryId);
 //                        geometry->SetMaterialIndex(materialIndex);
 //                        geometry->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor<glm::vec3>(0));
@@ -195,7 +195,7 @@
 //                    } else if (materialIndex != geometry->MaterialIndex()) {
 //                        std::cout << "Material Indices : Last " << geometry->MaterialIndex() << " New " << materialIndex << std::endl;
 //                        std::cout << "Material index changed, create new Geometry" << std::endl;
-//                        geometry = Component::Create<Geometry>("");
+//                        geometry = std::make_shared<Geometry>("");
 //                        geometry->SetId(geometryId);
 //                        geometry->SetMaterialIndex(materialIndex);
 //                        geometry->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor<glm::vec3>(0));
@@ -207,7 +207,7 @@
 //
 //                if (index < 0) {
 //                    if (geometry == nullptr) {
-//                        geometry = Component::Create<Geometry>("");
+//                        geometry = std::make_shared<Geometry>("");
 //                        geometry->SetId(geometryId);
 //                        container->AddComponent(geometry);
 //                    }
@@ -240,8 +240,8 @@
 //    std::shared_ptr<AssetsContainer> container;
 //    for (const auto& objects : document->SubNodes("Objects")) {
 //        for (const auto& model : objects->SubNodes("Model")) {
-//            auto node = Component::Create<Node>(model->Property(1));
-//            auto mesh = Component::Create<Mesh>();
+//            auto node = std::make_shared<Node>(model->Property(1));
+//            auto mesh = std::make_shared<Mesh>();
 //            node->SetId(model->Property(0));
 //            node->SetComponent(mesh);
 //            mesh->SetId(model->Property(0));
@@ -260,7 +260,7 @@
 //        for (const auto& fbxMaterial : objects->SubNodes("Material")) {
 //            int64_t id(fbxMaterial->Property(0));
 //            std::string name(fbxMaterial->Property(1));
-//            auto material(Component::Create<Material>(name));
+//            auto material(std::make_shared<Material>(name));
 //            container->AddComponent(material);
 //            material->SetId(id);
 //            auto P70(fbxMaterial->SubNode("Properties70"));
@@ -307,10 +307,10 @@
 //
 //std::shared_ptr<AssetsContainer> FBX::Parse(const std::filesystem::path path)
 //{
-//    std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
+//    std::shared_ptr<AssetsContainer> container = std::make_shared<AssetsContainer>();
 //    auto document(FBX::Document::Parse(path));
 //    document->Print();
-//    auto scene(Component::Create<Scene>(path.string()));
+//    auto scene(std::make_shared<Scene>(path.string()));
 //    *container += ParseNodes(document);
 //    *container += ParseMaterials(document);
 //    *container += ParseGeometries(document);
@@ -350,7 +350,7 @@
 //                }
 //                if (propertyName == "GeometricTranslation") {
 //                    if (mesh->GetComponent<Transform>() == nullptr)
-//                        mesh->SetComponent(Component::Create<Transform>());
+//                        mesh->SetComponent(std::make_shared<Transform>());
 //                    mesh->GetComponent<Transform>()->SetPosition(glm::vec3(
 //                        double(property->Property(4)),
 //                        double(property->Property(5)),
@@ -358,7 +358,7 @@
 //                    std::cout << mesh->GetComponent<Transform>()->GetPosition().x << " " << mesh->GetComponent<Transform>()->GetPosition().y << " " << mesh->GetComponent<Transform>()->GetPosition().z << std::endl;
 //                } else if (propertyName == "GeometricRotation") {
 //                    if (mesh->GetComponent<Transform>() == nullptr)
-//                        mesh->SetComponent(Component::Create<Transform>());
+//                        mesh->SetComponent(std::make_shared<Transform>());
 //                    mesh->GetComponent<Transform>()->SetRotation(glm::vec3(
 //                        double(property->Property(4)),
 //                        double(property->Property(5)),
@@ -366,7 +366,7 @@
 //                    std::cout << mesh->GetComponent<Transform>()->GetRotation().x << " " << mesh->GetComponent<Transform>()->GetRotation().y << " " << mesh->GetComponent<Transform>()->GetRotation().z << std::endl;
 //                } else if (propertyName == "GeometricScaling") {
 //                    if (mesh->GetComponent<Transform>() == nullptr)
-//                        mesh->SetComponent(Component::Create<Transform>());
+//                        mesh->SetComponent(std::make_shared<Transform>());
 //                    mesh->GetComponent<Transform>()->SetScale(glm::vec3(
 //                        double(property->Property(4)),
 //                        double(property->Property(5)),

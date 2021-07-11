@@ -113,6 +113,6 @@ private:
     class Impl;
     friend Impl;
     std::unique_ptr<Impl> _impl;
-    FrameRenderer(std::weak_ptr<Window> window);
+    FrameRenderer(std::weak_ptr<Core::Window> window);
 };
 }

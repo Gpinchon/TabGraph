@@ -8,7 +8,7 @@
 #include "Texture/Texture2D.hpp" // for Texture2D
 #include "Assets/Asset.hpp"
 #include "Assets/Image.hpp"
-#include "Assets/AssetsParser.hpp" // for TextureParser
+#include "Assets/Parser.hpp" // for TextureParser
 #include "Parser/InternalTools.hpp" // for BTHeader, openFile
 #include <glm/glm.hpp> // for glm::vec2
 #include <memory> // for allocator, shared_ptr
@@ -16,14 +16,16 @@
 #include <stdio.h> // for fclose, fread, size_t
 #include <string> // for operator+, char_traits, to_string
 
-void BTParse(const std::shared_ptr<Asset>&);
+using namespace TabGraph;
+
+void BTParse(const std::shared_ptr<Assets::Asset>&);
 
 auto BTMimeExtension {
-    AssetsParser::AddMimeExtension("image/binary-terrain", ".bt")
+    Assets::Parser::AddMimeExtension("image/binary-terrain", ".bt")
 };
 
 auto BTMimesParsers {
-    AssetsParser::Add("image/binary-terrain", BTParse)
+    Assets::Parser::Add("image/binary-terrain", BTParse)
 };
 
 #pragma pack(1)
@@ -54,7 +56,7 @@ struct BTHeader {
 };
 #pragma pack()
 
-void BTParse(const std::shared_ptr<Asset> &asset)
+void BTParse(const std::shared_ptr<Assets::Asset> &asset)
 {
     BTHeader header;
     Pixel::SizedFormat dataFormat;
@@ -82,7 +84,7 @@ void BTParse(const std::shared_ptr<Asset> &asset)
     }
     fclose(fd);
     glm::ivec2 size(header.rows, header.columns);
-    asset->SetAssetType(Image::AssetType);
-    asset->SetComponent(Component::Create<Image>(size, dataFormat, data));
+    asset->SetAssetType(Assets::Image::AssetType);
+    asset->assets.push_back(std::make_shared<Assets::Image>(size, dataFormat, data));
     asset->SetLoaded(true);
 }

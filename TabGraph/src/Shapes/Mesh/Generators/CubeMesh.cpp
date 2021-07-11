@@ -114,8 +114,8 @@ std::shared_ptr<Geometry> CubeMesh::CreateGeometry(const std::string& name, glm:
     for (auto& v : thisCubeVertices) {
         v *= size;
     }
-    auto vg{ Component::Create<Geometry>(thisCubeVertices, cubeNormals, cubeTexCoords, cubeIndices) };
-    /*auto vg = Component::Create<Geometry>(name);
+    auto vg{ std::make_shared<Geometry>(thisCubeVertices, cubeNormals, cubeTexCoords, cubeIndices) };
+    /*auto vg = std::make_shared<Geometry>(name);
     vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(thisCubeVertices, GL_ARRAY_BUFFER));
     vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(cubeNormals, GL_ARRAY_BUFFER, true));
     vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(cubeTexCoords, GL_ARRAY_BUFFER));
@@ -125,10 +125,10 @@ std::shared_ptr<Geometry> CubeMesh::CreateGeometry(const std::string& name, glm:
 
 std::shared_ptr<Mesh> CubeMesh::Create(const std::string& name, glm::vec3 size)
 {
-    auto m = Component::Create<Mesh>(name);
+    auto m = std::make_shared<Mesh>(name);
     m->AddGeometry(
         CubeMesh::CreateGeometry(name + "Geometry", size),
-        Component::Create<Material>(name + "Material")
+        std::make_shared<Material>(name + "Material")
     );
     return (m);
 }

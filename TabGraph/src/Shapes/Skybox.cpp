@@ -5,26 +5,27 @@
 * @Last Modified time: 2021-05-04 20:02:25
 */
 
-#include <Surface/Skybox.hpp>
+#include <Shapes/Skybox.hpp>
 #include <Texture/TextureCubemap.hpp>
 
 #if RENDERINGAPI == OpenGL
-#include <Driver/OpenGL/Renderer/Surface/SkyboxRenderer.hpp>
+#include <Driver/OpenGL/Renderer/Shapes/SkyboxRenderer.hpp>
 #endif
 
+namespace TabGraph::Shapes {
 Skybox::Skybox(const std::string& name)
-    : Surface(name)
+    : Inherit(name)
 {
     _renderer.reset(new Renderer::SkyboxRenderer(*this));
 }
 
-Skybox::Skybox(const std::string& name, std::shared_ptr<TextureCubemap> color)
+Skybox::Skybox(const std::string& name, std::shared_ptr<Textures::TextureCubemap> color)
     : Skybox(name)
 {
     SetTexture(color);
 }
 
-Skybox::Skybox(const Skybox& other) : Surface(other)
+Skybox::Skybox(const Skybox& other) : Inherit(other)
 {
     _renderer.reset(new Renderer::SkyboxRenderer(*this));
     SetTexture(other.GetTexture());
@@ -39,4 +40,4 @@ void Skybox::Unload()
 {
     GetTexture()->Unload();
 }
-
+}

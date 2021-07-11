@@ -126,7 +126,7 @@ public:
 
 private:
     /*virtual std::shared_ptr<Component> _Clone() override {
-        return Component::Create<BoundingElement>(*this);
+        return std::make_shared<BoundingElement>(*this);
     }*/
     BoundingElement::Type _type { BoundingElement::Type::Invalid };
     //std::array<std::shared_ptr<Callback<Intersection(const BoundingElement &)>>, MaxType> _intersectionCallback;

@@ -5,7 +5,7 @@
 * @Last Modified time: 2021-05-18 18:26:25
 */
 
-#include <Camera/Camera.hpp>
+#include <Cameras/Camera.hpp>
 #include <Light/SkyLight.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Surface/GeometryRenderer.hpp>

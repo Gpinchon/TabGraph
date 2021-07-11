@@ -9,7 +9,7 @@
 #include <Surface/SphereMesh.hpp>
 #include <Material/Material.hpp>
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Engine.hpp>
 #include <Animation/Animation.hpp>
 
@@ -32,9 +32,9 @@ Flame::~Flame()
 
 auto CreateFlameAsset()
 {
-    auto flameAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/fire.gltf") };
-    AssetsParser::AddParsingTask({
-        AssetsParser::ParsingTask::Type::Sync,
+    auto flameAsset{ std::make_shared<Assets::Asset>(Engine::GetResourcePath() / "models/fire.gltf") };
+    Assets::Parser::AddParsingTask({
+        Assets::Parser::ParsingTask::Type::Sync,
         flameAsset
     });
     auto meshes{ flameAsset->GetComponentsInChildren<Mesh>() };
@@ -45,7 +45,7 @@ auto CreateFlameAsset()
 
 std::shared_ptr<Flame> Flame::Create(Level& level, const glm::ivec2& position)
 {
-    auto flame = Component::Create<Flame>(level);
+    auto flame = std::make_shared<Flame>(level);
     static auto flameAsset = CreateFlameAsset();
     for (const auto& mesh : flameAsset)
         flame->AddSurface(mesh);

@@ -8,7 +8,7 @@
 #include <Surface/CubeMesh.hpp>
 #include <Surface/Mesh.hpp>
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Engine.hpp>
 #include <Scene/Scene.hpp>
 
@@ -21,9 +21,9 @@ Wall::Wall(Level& level)
 }
 
 auto CreateWallAsset() {
-    auto wallAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/wall.gltf") };
-    AssetsParser::AddParsingTask({
-        AssetsParser::ParsingTask::Type::Sync,
+    auto wallAsset{ std::make_shared<Assets::Asset>(Engine::GetResourcePath() / "models/wall.gltf") };
+    Assets::Parser::AddParsingTask({
+        Assets::Parser::ParsingTask::Type::Sync,
         wallAsset
     });
     return wallAsset->GetComponentsInChildren<Mesh>();
@@ -33,7 +33,7 @@ std::shared_ptr<Wall> Wall::Create(Level& level)
 {
     static auto wallMeshes(CreateWallAsset());
     //auto wall{ std::static_pointer_cast<Wall>(wallAsset->Clone()) };
-    auto wall(Component::Create<Wall>(level));
+    auto wall(std::make_shared<Wall>(level));
     for (const auto& mesh : wallMeshes)
         wall->AddSurface(mesh);
     wall->SetScale(glm::vec3(0.45));

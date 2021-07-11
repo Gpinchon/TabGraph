@@ -8,13 +8,17 @@
 #include <Assets/Asset.hpp>
 #include <Light/HDRLight.hpp>
 #include <Texture/TextureCubemap.hpp>
-#include <Texture/TextureSampler.hpp>
+#include <Texture/Sampler.hpp>
+#include <Tools/Tools.hpp>
 
 #if RENDERINGAPI == OpenGL
 #include <Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp>
 #endif
 
-HDRLight::HDRLight(std::shared_ptr<Asset> hdrTexture)
+#include <glm/common.hpp>
+
+namespace TabGraph::Lights {
+HDRLight::HDRLight(std::shared_ptr<Assets::Asset> hdrTexture)
     : Light()
 {
     _renderer.reset(new Renderer::HDRLightRenderer(*this));
@@ -23,37 +27,38 @@ HDRLight::HDRLight(std::shared_ptr<Asset> hdrTexture)
 
 glm::vec3 HDRLight::GetHalfSize() const
 {
-    return GetScale() / 2.f;
+    return GetLocalScale() / 2.f;
 }
 
 void HDRLight::SetHalfSize(const glm::vec3& halfSize)
 {
-    SetScale(halfSize * 2.f);
+    SetLocalScale(halfSize * 2.f);
 }
 
 glm::vec3 HDRLight::GetMin() const
 {
-    return WorldPosition() - GetHalfSize();
+    return GetWorldPosition() - GetHalfSize();
 }
 
 glm::vec3 HDRLight::GetMax() const
 {
-    return WorldPosition() + GetHalfSize();
+    return GetWorldPosition() + GetHalfSize();
 }
 
-void HDRLight::SetHDRTexture(std::shared_ptr<Asset> hdrTexture)
+void HDRLight::SetHDRTexture(std::shared_ptr<Assets::Asset> hdrTexture)
 {
     if (hdrTexture != GetHDRTexture())
         GetRenderer().FlagDirty();
-    SetComponent(hdrTexture);
-    _SetReflection(Component::Create<TextureCubemap>(hdrTexture));
+    _HDRTexture = hdrTexture;
+    if (_HDRTexture == nullptr) return;
+    _SetReflection(std::make_shared<Textures::TextureCubemap>(hdrTexture));
     GetReflection()->SetAutoMipMap(true);
-    GetReflection()->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
+    GetReflection()->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
 }
 
-std::shared_ptr<Asset> HDRLight::GetHDRTexture()
+std::shared_ptr<Assets::Asset> HDRLight::GetHDRTexture()
 {
-    return GetComponent<Asset>();
+    return _HDRTexture;
 }
 
 glm::vec2 ToImageCoords(double phi, double theta, int width, int height)
@@ -77,4 +82,5 @@ glm::vec2 ToImageCoords(double phi, double theta, int width, int height)
     // -0.5 because we're returning floating point coordinates and so don't need
     // to center the pixel.
     return glm::vec2(width * phi / (2.0 * M_PI), height * theta / M_PI);
+}
 }

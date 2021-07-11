@@ -5,19 +5,27 @@
 * @Last Modified time: 2021-05-04 20:02:25
 */
 #pragma once
+
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Driver/OpenGL/Texture/Texture.hpp>
 #include <Texture/TextureCubemap.hpp>
 
+////////////////////////////////////////////////////////////////////////////////
+// Class Declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Textures {
 class TextureCubemap::Impl : public Texture::Impl {
 public:
     Impl(const Impl& other);
     Impl(const glm::ivec2& size, const Pixel::SizedFormat& format);
-    Impl(std::shared_ptr<Asset> image);
+    Impl(std::shared_ptr<Assets::Asset> image);
     ~Impl();
 
-    void SetImage(std::shared_ptr<Asset> image);
+    void SetImage(std::shared_ptr<Assets::Asset> image);
     void SetSize(const glm::ivec2 size);
-    std::shared_ptr<Asset> GetImage() const;
+    std::shared_ptr<Assets::Asset> GetImage() const;
     glm::ivec2 GetSize() const;
 
     virtual void Load() override;
@@ -26,7 +34,8 @@ public:
 
 private:
     void _AllocateStorage();
-    void _UploadImage(std::shared_ptr<Asset> imageAsset);
+    void _UploadImage(std::shared_ptr<Assets::Asset> imageAsset);
     glm::ivec2 _size{ 0 };
-    std::shared_ptr<Asset> _asset;
+    std::shared_ptr<Assets::Asset> _asset;
 };
+}

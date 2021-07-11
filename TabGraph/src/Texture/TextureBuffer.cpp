@@ -13,7 +13,7 @@
 #endif
 
 namespace TabGraph::Textures {
-TextureBuffer::TextureBuffer(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::Accessor> bufferAccessor)
+TextureBuffer::TextureBuffer(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::View> bufferAccessor)
     : Inherit()
 {
     SetBufferAccessor(bufferAccessor);

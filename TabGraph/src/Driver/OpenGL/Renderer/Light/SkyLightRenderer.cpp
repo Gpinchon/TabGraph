@@ -5,7 +5,7 @@
 * @Last Modified time: 2021-06-19 10:02:54
 */
 
-#include <Camera/Camera.hpp>
+#include <Cameras/Camera.hpp>
 #include <Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp>
 #include <Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp>
 #include <Driver/OpenGL/Texture/Framebuffer.hpp>
@@ -18,7 +18,7 @@
 #include <Surface/CubeMesh.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/TextureCubemap.hpp>
-#include <Texture/TextureSampler.hpp>
+#include <Texture/Sampler.hpp>
 
 #include <GL/glew.h>
 
@@ -57,7 +57,7 @@ auto SkyLightLUTShader()
     auto skyLightFragCode =
 #include "Lights/ProbeSkyLight.frag"
         ;
-    auto shader = Component::Create<Shader::Program>("DirectionnalLUTShader");
+    auto shader = std::make_shared<Shader::Program>("DirectionnalLUTShader");
     shader->Attach(Shader::Stage(Shader::Stage::Type::Geometry, { LayeredCubemapRenderCode, "LayeredCubemapRender();" }));
     shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertexCode, "FillVertexData();" }));
     shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { skyLightFragCode, "ComputeSkyLight();" }));
@@ -80,7 +80,7 @@ static SphericalHarmonics s_SH { 50 };
 SkyLightRenderer::SkyLightRenderer(SkyLight& light)
     : LightRenderer(light)
     , _diffuseLUTBuffer(std::make_shared<Framebuffer>(glm::ivec2(256)))
-    , _deferredShader(Component::Create<Shader::Program>("SkyLightShader"))
+    , _deferredShader(std::make_shared<Shader::Program>("SkyLightShader"))
 {
     _deferredShader->SetDefine("Pass", "DeferredLighting");
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DeferredSkyLightVertexCode()));
@@ -149,7 +149,7 @@ void SkyLightRenderer::_UpdateLUT(SkyLight& light, const Renderer::Options& opti
             return min(light.GetIncidentLight(sample.vec), 1.f);
         });
     if (_reflectionLUT == nullptr) {
-        _reflectionLUT = Component::Create<TextureCubemap>(glm::ivec2(256), Pixel::SizedFormat::Float16_RGB);
+        _reflectionLUT = std::make_shared<TextureCubemap>(glm::ivec2(256), Pixel::SizedFormat::Float16_RGB);
     }
     static auto s_diffuseLUTBuffer = std::make_shared<Framebuffer>(glm::ivec2(256));
     s_diffuseLUTBuffer->SetColorBuffer(_reflectionLUT, 0);
@@ -161,7 +161,7 @@ void SkyLightRenderer::_UpdateLUT(SkyLight& light, const Renderer::Options& opti
     OpenGL::Framebuffer::Bind(nullptr);
     s_diffuseLUTBuffer->SetColorBuffer(nullptr, 0);
     _reflectionLUT->GenerateMipmap();
-    _reflectionLUT->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::LinearMipmapLinear);
+    _reflectionLUT->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
     _dirty = false;
 }
 };

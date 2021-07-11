@@ -159,7 +159,7 @@ std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, fl
         sphereIndices.push_back(tri[2]);
     }
     /*auto verticesBuffer{
-        Component::Create<Buffer>(
+        std::make_shared<Buffer>(
         sphereVertices.size() * sizeof(glm::vec3) +
         sphereNormals.size() * sizeof(glm::vec3) +
         sphereTexCoords.size() * sizeof(glm::vec2)
@@ -178,21 +178,21 @@ std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, fl
         sphereVertices.size() * sizeof(glm::vec3) + sphereNormals.size() * sizeof(glm::vec3),
         sphereTexCoords.size() * sizeof(glm::vec2));
 
-    auto vg = Component::Create<Geometry>(name);
+    auto vg = std::make_shared<Geometry>(name);
     vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(sphereVertices, GL_ARRAY_BUFFER));
     vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(sphereNormals, GL_ARRAY_BUFFER, true));
     vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(sphereTexCoords, GL_ARRAY_BUFFER));
     vg->SetIndices(BufferHelper::CreateAccessor(sphereIndices, GL_ELEMENT_ARRAY_BUFFER));*/
-    auto vg = Component::Create<Geometry>(sphereVertices, sphereNormals, sphereTexCoords, sphereIndices);
+    auto vg = std::make_shared<Geometry>(sphereVertices, sphereNormals, sphereTexCoords, sphereIndices);
     return vg;
 }
 
 std::shared_ptr<Mesh> SphereMesh::Create(const std::string& name, float radius, unsigned subdivision)
 {
-    auto m = Component::Create<Mesh>(name);
+    auto m = std::make_shared<Mesh>(name);
     m->AddGeometry(
         SphereMesh::CreateGeometry(name + "Geometry", radius, subdivision),
-        Component::Create<Material>(name + "Material")
+        std::make_shared<Material>(name + "Material")
     );
     return (m);
 }

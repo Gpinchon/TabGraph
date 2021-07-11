@@ -40,14 +40,11 @@ void MeshRenderer::Load()
         for (auto i = 0; i < _jointMatrices.size(); ++i) {
             if (_jointMatrices.at(i) != nullptr)
                 continue;
-            auto bufferAccessor = std::make_shared<Buffer::Accessor>(
-                Buffer::Accessor::ComponentType::Float32,
-                Buffer::Accessor::Type::Mat4,
-                _mesh.GetSkin()->Joints().size());
-            bufferAccessor->GetBufferView()->SetType(Buffer::View::Type::TextureBuffer);
-            bufferAccessor->GetBufferView()->SetMode(Buffer::View::Mode::Persistent);
-            bufferAccessor->GetBufferView()->SetPersistentMappingMode(Buffer::View::MappingMode::WriteOnly);
-            _jointMatrices.at(i) = std::make_shared<Textures::TextureBuffer>(Pixel::SizedFormat::Float32_RGBA, bufferAccessor);
+            auto bufferAccessor = Buffer::Accessor<glm::mat4>(_mesh.GetSkin()->Joints().size());
+            bufferAccessor.GetBufferView()->SetType(Buffer::View::Type::TextureBuffer);
+            bufferAccessor.GetBufferView()->SetMode(Buffer::View::Mode::Persistent);
+            bufferAccessor.GetBufferView()->SetPersistentMappingMode(Buffer::View::MappingMode::WriteOnly);
+            _jointMatrices.at(i) = std::make_shared<Textures::TextureBuffer>(Pixel::SizedFormat::Float32_RGBA, bufferAccessor.GetBufferView());
             _jointMatrices.at(i)->Load();
         }
     }
@@ -67,14 +64,13 @@ void MeshRenderer::OnFrameBegin(const Renderer::Options& options)
         glDeleteSync(_drawSync.at(_jointMatricesIndex));
         _drawSync.at(_jointMatricesIndex) = nullptr;
     }
-    const auto joints = meshSkin->Joints();
-    auto jointMatricesAccessor { _jointMatrices.at(_jointMatricesIndex)->GetBufferAccessor() };
-    auto inverseBindMatrices { meshSkin->InverseBindMatrices() };
+    const auto &joints = meshSkin->Joints();
+    Buffer::Accessor<glm::mat4> jointMatricesAccessor(_jointMatrices.at(_jointMatricesIndex)->GetBuffer(), joints.size());
+    auto& inverseBindMatrices { meshSkin->GetInverseBindMatrices() };
     for (auto index = 0u; index < joints.size(); ++index) {
         const auto jointMatrixIndex { index };
-        const auto& joint(joints.at(index));
-        auto jointMatrix = joint->GetWorldTransformMatrix() * inverseBindMatrices->Get<glm::mat4>(index);
-        jointMatricesAccessor->Set(jointMatrix, jointMatrixIndex);
+        auto jointMatrix = joints.at(index)->GetWorldTransformMatrix() * inverseBindMatrices.at(index);
+        jointMatricesAccessor.at(jointMatrixIndex) = jointMatrix;
     }
 }
 

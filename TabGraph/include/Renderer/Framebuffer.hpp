@@ -23,7 +23,9 @@ namespace TabGraph {
 namespace Textures {
 class Texture;
 }
+namespace Core {
 class Window;
+}
 }
 
 
@@ -85,7 +87,7 @@ public:
     void BlitTo(std::shared_ptr<Framebuffer> to,
         BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
         Textures::Sampler::Filter filter = Textures::Sampler::Filter::Nearest);
-    void BlitTo(std::shared_ptr<Window> to,
+    void BlitTo(std::shared_ptr<Core::Window> to,
         BufferMask mask = BufferMask::ColorBits | BufferMask::DepthBits | BufferMask::StencilBits,
         Textures::Sampler::Filter filter = Textures::Sampler::Filter::Nearest);
     glm::ivec2 GetSize() const;

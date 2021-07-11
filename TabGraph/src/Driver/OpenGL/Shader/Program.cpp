@@ -7,7 +7,7 @@
 #include "Driver/OpenGL/Shader/Program.hpp"
 #include "Driver/OpenGL/Shader/Global.hpp"
 #include "Driver/OpenGL/Texture/Texture.hpp"
-#include "Driver/OpenGL/Texture/TextureSampler.hpp"
+#include "Driver/OpenGL/Texture/Sampler.hpp"
 #include "Driver/OpenGL/Texture/Framebuffer.hpp"
 #include "Shader/Stage.hpp"
 
@@ -198,7 +198,7 @@ void Program::Impl::Compile()
     _SetCompiled(true);
 }
 
-void Program::Impl::SetTexture(const std::string& name, const std::shared_ptr<Texture> value)
+void Program::Impl::SetTexture(const std::string& name, const std::shared_ptr<Textures::Texture> value)
 {
     auto loc { _uniformLocs.find(name) };
     if (loc != _uniformLocs.end()) {

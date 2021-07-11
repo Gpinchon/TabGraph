@@ -18,7 +18,7 @@ Texture2D::Texture2D(const glm::ivec2& size, const Pixel::Description& pixelDesc
     _impl.reset(new Texture2D::Impl(size, pixelDesc));
 }
 
-Texture2D::Texture2D(std::shared_ptr<Asset> image)
+Texture2D::Texture2D(std::shared_ptr<Assets::Asset> image)
     : Texture()
 {
     _impl.reset(new Texture2D::Impl(image));

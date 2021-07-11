@@ -19,7 +19,7 @@ public:
 private:
     virtual std::shared_ptr<Component> _Clone() override
     {
-        return Component::Create<Flame>(*this);
+        return std::make_shared<Flame>(*this);
     }
     std::chrono::duration<double> _timer { 0.5 }; //defaults to seconds
     const std::chrono::time_point<std::chrono::high_resolution_clock> _spawnTime;

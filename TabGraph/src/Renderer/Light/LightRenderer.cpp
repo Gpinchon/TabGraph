@@ -5,21 +5,21 @@
 * @Last Modified time: 2021-04-12 21:59:40
 */
 
-#include "Renderer/Light/LightRenderer.hpp"
-#include "Light/Light.hpp"
+#include <Renderer/Light/LightRenderer.hpp>
+#include <Light/Light.hpp>
 
-namespace Renderer {
-void Render(std::shared_ptr<Light> light, const Renderer::Options& options)
+namespace TabGraph::Renderer {
+void Render(std::shared_ptr<TabGraph::Lights::Light> light, const Renderer::Options& options)
 {
     light->GetRenderer().Render(options);
 }
 
-void UpdateLightProbe(std::shared_ptr<Light> light, const Renderer::Options& options, LightProbe& lightProbe)
+void UpdateLightProbe(std::shared_ptr<TabGraph::Lights::Light> light, const Renderer::Options& options, TabGraph::Lights::Probe& lightProbe)
 {
     light->GetRenderer().UpdateLightProbe(options, lightProbe);
 }
 
-LightRenderer::LightRenderer(Light& light)
+LightRenderer::LightRenderer(TabGraph::Lights::Light& light)
     : _light(light)
 {
 }

@@ -9,7 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Includes
 ////////////////////////////////////////////////////////////////////////////////
-#include <DispatchQueue.hpp>
+#include <Events/DispatchQueue.hpp>
 #include <Driver/OpenGL/Texture/Texture.hpp>
 #include <Events/Signal.hpp>
 #include <Texture/Texture2D.hpp>
@@ -21,7 +21,7 @@ namespace TabGraph {
 namespace Assets {
 class Asset;
 }
-namespace Evants {
+namespace Events {
 struct Event;
 }
 namespace Textures::Pixel {
@@ -79,7 +79,7 @@ private:
     std::shared_ptr<Assets::Asset> _asset;
     Events::Signal<const Events::Event&>::ScoppedSlot _imageLoadingSlot;
     Events::Signal<const Events::Event&>::ScoppedSlot _imageCompressionSlot;
-    DispatchQueue::TaskIdentifier _imageCompressionTaskID;
+    Events::DispatchQueue::TaskIdentifier _imageCompressionTaskID;
     std::vector<std::byte> _imageCompressionBuffer;
     float _compressionQuality { 0.25 };
 };

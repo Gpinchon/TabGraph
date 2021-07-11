@@ -12,6 +12,8 @@
 #include <Buffer/View.hpp>
 #include <Driver/OpenGL/ObjectHandle.hpp>
 
+#include <cassert>
+
 ////////////////////////////////////////////////////////////////////////////////
 // Class Declarations
 ////////////////////////////////////////////////////////////////////////////////
@@ -25,12 +27,23 @@ class View::ImplGPU {
 public:
     ImplGPU() = default;
     ImplGPU(const ImplGPU&) = delete;
+    auto begin()
+    {
+        return _mappingPointer;
+    }
+    auto end()
+    {
+        return _mappingPointer + _MappingEnd;
+    }
+    auto& at(const Buffer::View& buffer, size_t index)
+    {
+        assert(GetMappingStart() <= index && GetMappingEnd() >= index);
+        return *(begin() + (index - GetMappingStart()));
+    }
     using Handle = OpenGL::ObjectHandle;
     const Handle GetHandle() const;
     std::byte* GetMappingPtr();
     std::byte* MapRange(const Buffer::View& buffer, MappingMode mappingMode, size_t start, size_t end, bool invalidate = false);
-    std::byte* Get(const Buffer::View& buffer, size_t index, size_t size);
-    void Set(const Buffer::View& buffer, std::byte* data, size_t index, size_t size);
     void Unmap(const Buffer::View& buffer);
     void FlushRange(const Buffer::View& buffer, size_t start, size_t end);
     void Load(const Buffer::View& buffer, std::byte* data = nullptr);

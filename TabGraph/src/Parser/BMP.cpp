@@ -64,7 +64,9 @@ struct t_bmp_parser {
     unsigned size_read{ 0 };
 };
 
-static void prepare_header(t_bmp_header* header, t_bmp_info* info, std::shared_ptr<Image> t)
+using namespace TabGraph;
+
+static void prepare_header(t_bmp_header* header, t_bmp_info* info, std::shared_ptr<Assets::Image> t)
 {
     header->type[0] = std::byte(0x42);
     header->type[1] = std::byte(0x4D);
@@ -78,7 +80,7 @@ static void prepare_header(t_bmp_header* header, t_bmp_info* info, std::shared_p
     info->vertical_resolution = 0x0ec4;
 }
 
-void SaveBMP(std::shared_ptr<Image> image, const std::string& imagepath)
+void SaveBMP(std::shared_ptr<Assets::Image> image, const std::string& imagepath)
 {
     t_bmp_header header;
     t_bmp_info info;
@@ -114,11 +116,9 @@ void SaveBMP(std::shared_ptr<Image> image, const std::string& imagepath)
 static void convert_bmp(t_bmp_parser* parser)
 {
     std::vector<std::byte> pixel_temp{ parser->data.size() };
-    std::byte rgba[4];
-    int i[3];
+    std::byte rgba[4]{ std::byte(0), std::byte(0), std::byte(0), std::byte(0) };
+    int i[3]{ 0, -1, 0 };
 
-    i[0] = 0;
-    i[1] = -1;
     while (++i[1] < parser->info.width) {
         i[2] = -1;
         while (++i[2] < parser->info.height) {
@@ -184,7 +184,7 @@ Pixel::SizedFormat GetBMPPixelFormat(uint16_t bpp) {
     }
 }
 
-void ParseBMP(std::shared_ptr<Asset> asset)
+void ParseBMP(std::shared_ptr<Assets::Asset> asset)
 {
     t_bmp_parser parser;
 
@@ -195,7 +195,7 @@ void ParseBMP(std::shared_ptr<Asset> asset)
     }
     auto size{ glm::ivec2(parser.info.width, parser.info.height) };
     auto format{ GetBMPPixelFormat(parser.info.bpp) };
-    auto image{ Component::Create<Image>(size, format, parser.data) };
-    asset->SetComponent(image);
+    auto image{ std::make_shared<Assets::Image>(size, format, parser.data) };
+    asset->assets.push_back(image);
     asset->SetLoaded(true);
 }

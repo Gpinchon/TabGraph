@@ -8,17 +8,18 @@
 #include <Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp>
 #include <Light/PointLight.hpp>
 #include <Renderer/FrameRenderer.hpp>
+#include <Renderer/Framebuffer.hpp>
 #include <Renderer/Renderer.hpp>
-#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Renderer/Shapes/GeometryRenderer.hpp>
 #include <Shader/Program.hpp>
 #include <Shader/Stage.hpp>
-#include <Surface/SphereMesh.hpp>
-#include <Texture/Framebuffer.hpp>
+#include <Shapes/Mesh/Generators/SphereMesh.hpp>
 #include <Texture/Texture2D.hpp>
 
+#include <glm/gtx/transform.hpp>
 #include <GL/glew.h>
 
-namespace Renderer {
+namespace TabGraph::Renderer {
 
 static inline auto PointLightGeometry()
 {
@@ -57,14 +58,14 @@ static inline auto PointLightFragmentCode()
 
 static inline auto PointLightShader()
 {
-    auto shader = Component::Create<Shader::Program>("PointLightShader");
+    auto shader = std::make_shared<Shader::Program>("PointLightShader");
     shader->SetDefine("Pass", "DeferredLighting");
     shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, PointLightFragmentCode()));
     shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, PointLightVertexCode()));
     return shader;
 }
 
-PointLightRenderer::PointLightRenderer(PointLight& light)
+PointLightRenderer::PointLightRenderer(TabGraph::Lights::PointLight& light)
     : LightRenderer(light)
 {
     _deferredShader = PointLightShader();
@@ -74,16 +75,16 @@ PointLightRenderer::PointLightRenderer(PointLight& light)
 void PointLightRenderer::Render(const Renderer::Options& options)
 {
     if (options.pass == Renderer::Options::Pass::DeferredLighting)
-        _RenderDeferredLighting(static_cast<PointLight&>(_light), options);
+        _RenderDeferredLighting(static_cast<TabGraph::Lights::PointLight&>(_light), options);
     else if (options.pass == Renderer::Options::Pass::ShadowDepth)
-        _RenderShadow(static_cast<PointLight&>(_light), options);
+        _RenderShadow(static_cast<TabGraph::Lights::PointLight&>(_light), options);
 }
 
-void PointLightRenderer::UpdateLightProbe(const Renderer::Options&, LightProbe&)
+void PointLightRenderer::UpdateLightProbe(const Renderer::Options&, TabGraph::Lights::Probe&)
 {
 }
 
-void PointLightRenderer::_RenderDeferredLighting(PointLight& light, const Renderer::Options& options)
+void PointLightRenderer::_RenderDeferredLighting(TabGraph::Lights::PointLight& light, const Renderer::Options& options)
 {
     auto geometryBuffer = options.renderer->DeferredGeometryBuffer();
     _deferredShader->Use()
@@ -92,8 +93,8 @@ void PointLightRenderer::_RenderDeferredLighting(PointLight& light, const Render
         .SetUniform("Light.Power", light.GetPower())
         .SetUniform("Light.Radius", light.GetRadius())
         .SetUniform("Light.Color", light.GetColor())
-        .SetUniform("Light.Position", light.WorldPosition())
-        .SetUniform("GeometryMatrix", light.WorldTranslationMatrix() * glm::scale(glm::vec3(light.GetRadius())))
+        .SetUniform("Light.Position", light.GetWorldPosition())
+        .SetUniform("GeometryMatrix", light.GetWorldTranslationMatrix() * glm::scale(glm::vec3(light.GetRadius())))
         .SetTexture("Texture.Geometry.F0", geometryBuffer->GetColorBuffer(1))
         .SetTexture("Texture.Geometry.Normal", geometryBuffer->GetColorBuffer(2))
         .SetTexture("Texture.Geometry.Depth", geometryBuffer->GetDepthBuffer());
@@ -103,7 +104,7 @@ void PointLightRenderer::_RenderDeferredLighting(PointLight& light, const Render
     _deferredShader->Done();
 }
 
-void PointLightRenderer::_RenderShadow(PointLight&, const Renderer::Options&)
+void PointLightRenderer::_RenderShadow(TabGraph::Lights::PointLight&, const Renderer::Options&)
 {
 }
 }

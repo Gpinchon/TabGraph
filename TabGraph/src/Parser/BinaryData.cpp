@@ -5,26 +5,28 @@
 * @Last Modified time: 2021-02-03 17:50:55
 */
 
-#include "Assets/Asset.hpp"
-#include "Assets/AssetsParser.hpp"
-#include "Assets/BinaryData.hpp"
-#include "Assets/Uri.hpp"
+#include <Assets/Asset.hpp>
+#include <Assets/Parser.hpp>
+#include <Assets/BinaryData.hpp>
+#include <Assets/Uri.hpp>
 
 #include <fstream>
 
-void ParseBinaryData(const std::shared_ptr<Asset>&);
+using namespace TabGraph;
 
-auto bufferMime { AssetsParser::AddMimeExtension("application/octet-stream", ".bin") };
-auto bufferParser { AssetsParser::Add("application/octet-stream", ParseBinaryData) };
+void ParseBinaryData(const std::shared_ptr<Assets::Asset>&);
 
-void ParseBinaryData(const std::shared_ptr<Asset>& asset)
+auto bufferMime { Assets::Parser::AddMimeExtension("application/octet-stream", ".bin") };
+auto bufferParser { Assets::Parser::Add("application/octet-stream", ParseBinaryData) };
+
+void ParseBinaryData(const std::shared_ptr<Assets::Asset>& asset)
 {
-    std::shared_ptr<BinaryData> binaryData;
+    std::shared_ptr<Assets::BinaryData> binaryData;
     {
         auto uri { asset->GetUri() };
         std::vector<std::byte> data;
         if (uri.GetScheme() == "data") {
-            data = DataUri(uri).Decode();
+            data = Assets::DataUri(uri).Decode();
         } else {
             auto path{ uri.DecodePath() };
             auto size{ std::filesystem::file_size(path) };
@@ -32,9 +34,9 @@ void ParseBinaryData(const std::shared_ptr<Asset>& asset)
             std::ifstream file(path, std::ios::binary);
             file.read(reinterpret_cast<char*>(data.data()), data.size());
         }
-        binaryData = Component::Create<BinaryData>(data);
+        binaryData = std::make_shared<Assets::BinaryData>(data);
     }
-    asset->SetComponent(binaryData);
-    asset->SetAssetType(BinaryData::AssetType);
+    asset->assets.push_back(binaryData);
+    asset->SetAssetType(Assets::BinaryData::AssetType);
     asset->SetLoaded(true);
 }

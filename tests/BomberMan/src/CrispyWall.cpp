@@ -11,7 +11,7 @@
 #include <Assets/Asset.hpp>
 #include <Engine.hpp>
 #include <Animation/Animation.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 
 #include "CrispyWall.hpp"
 #include "Game.hpp"
@@ -25,9 +25,9 @@ CrispyWall::CrispyWall(Level& level)
 
 auto CreateCrispyWallAsset() {
     
-    auto crispyWallAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/crispyWall.gltf") };
-    AssetsParser::AddParsingTask({
-        AssetsParser::ParsingTask::Type::Sync,
+    auto crispyWallAsset{ std::make_shared<Assets::Asset>(Engine::GetResourcePath() / "models/crispyWall.gltf") };
+    Assets::Parser::AddParsingTask({
+        Assets::Parser::ParsingTask::Type::Sync,
         crispyWallAsset
     });
     auto crispyWallMeshes{ crispyWallAsset->GetComponentsInChildren<Mesh>() };
@@ -38,7 +38,7 @@ auto CreateCrispyWallAsset() {
 
 std::shared_ptr<CrispyWall> CrispyWall::Create(Level& level)
 {
-    auto wall = Component::Create<CrispyWall>(level);
+    auto wall = std::make_shared<CrispyWall>(level);
     static auto crispyWallAsset{ CreateCrispyWallAsset() };
     for (auto mesh : crispyWallAsset)
         wall->AddSurface(mesh);

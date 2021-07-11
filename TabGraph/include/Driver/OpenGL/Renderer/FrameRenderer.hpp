@@ -39,13 +39,13 @@ class Program;
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Renderer {
 struct FrameRenderer::Impl {
-    Impl(std::weak_ptr<Window> window, FrameRenderer& renderer);
+    Impl(std::weak_ptr<Core::Window> window, FrameRenderer& renderer);
     const OpenGL::Context& GetContext() const;
     const uint32_t GetFrameNumber() const;
-    const std::shared_ptr<Geometry> GetDisplayQuad() const;
+    const std::shared_ptr<Shapes::Geometry> GetDisplayQuad() const;
     const std::shared_ptr<Textures::Texture2D> GetDefaultBRDFLUT() const;
-    const std::shared_ptr<Window> GetWindow() const;
-    void RenderFrame(std::shared_ptr<Scene> scene);
+    const std::shared_ptr<Core::Window> GetWindow() const;
+    void RenderFrame(std::shared_ptr<Nodes::Scene> scene);
 
     void SetViewPort(const glm::ivec2& min, const glm::ivec2& max);
     void SetViewPort(const glm::ivec2& size);
@@ -68,10 +68,10 @@ private:
     std::shared_ptr<Framebuffer> _finalRenderBuffer;
     std::shared_ptr<Framebuffer> _previousRenderBuffer;
 
-    void _RenderFrame(std::shared_ptr<Scene> scene);
-    void _OpaquePass(std::shared_ptr<Scene> scene);
-    void _LightPass(std::shared_ptr<Scene> scene);
-    void _TransparentPass(std::shared_ptr<Scene> scene);
+    void _RenderFrame(std::shared_ptr<Nodes::Scene> scene);
+    void _OpaquePass(std::shared_ptr<Nodes::Scene> scene);
+    void _LightPass(std::shared_ptr<Nodes::Scene> scene);
+    void _TransparentPass(std::shared_ptr<Nodes::Scene> scene);
     void _HZBPass();
     void _SSRPass();
     void _SSAOPass();
@@ -93,10 +93,10 @@ private:
 
     std::shared_ptr<Shader::Program> _deferredMaterialShader;
 
-    std::shared_ptr<Texture2D> _defaultBRDF;
-    std::shared_ptr<Geometry> _displayQuad;
+    std::shared_ptr<Textures::Texture2D> _defaultBRDF;
+    std::shared_ptr<Shapes::Geometry> _displayQuad;
 
-    std::weak_ptr<Window> _window;
+    std::weak_ptr<Core::Window> _window;
 
     uint32_t _frameNbr { 0 };
     FrameRenderer& _frameRenderer;

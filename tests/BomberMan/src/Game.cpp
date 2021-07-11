@@ -1,4 +1,4 @@
-#include <Camera/Camera.hpp>
+#include <Cameras/Camera.hpp>
 #include <Engine.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Window.hpp>

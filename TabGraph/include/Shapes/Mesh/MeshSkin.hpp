@@ -6,8 +6,10 @@
 #include <Core/Object.hpp>
 #include <Core/Inherit.hpp>
 #include <Shapes/Mesh/Mesh.hpp>
+#include <Buffer/Accessor.hpp>
 
 #include <vector>
+#include <glm/mat4x4.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
@@ -15,9 +17,6 @@
 namespace TabGraph {
 namespace Nodes {
 class Node;
-}
-namespace Buffer {
-class Accessor;
 }
 }
 
@@ -28,11 +27,11 @@ namespace TabGraph::Shapes {
 class Mesh::Skin : public Core::Inherit<Core::Object, Mesh::Skin> {
 public:
     Skin();
-    std::shared_ptr<Buffer::Accessor> InverseBindMatrices() const
+    auto& GetInverseBindMatrices() const
     {
         return _inverseBindMatrices;
     }
-    void SetInverseBindMatrices(std::shared_ptr<Buffer::Accessor> inverseBindMatrices)
+    void SetInverseBindMatrices(const Buffer::Accessor<glm::mat4>& inverseBindMatrices)
     {
         _inverseBindMatrices = inverseBindMatrices;
     }
@@ -51,6 +50,6 @@ public:
 
 private:
     std::vector<std::shared_ptr<Nodes::Node>> _joints;
-    std::shared_ptr<Buffer::Accessor> _inverseBindMatrices;
+    Buffer::Accessor<glm::mat4> _inverseBindMatrices;
 };
 }

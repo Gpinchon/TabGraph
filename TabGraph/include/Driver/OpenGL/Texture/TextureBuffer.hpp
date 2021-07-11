@@ -12,22 +12,32 @@
 #include <Driver/OpenGL/Texture/Texture.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
+// Forward Declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Buffer {
+class View;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Class declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Textures {
 class TextureBuffer::Impl : public Texture::Impl {
 public:
-    Impl(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::Accessor> bufferAccessor);
+    Impl(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::View> bufferAccessor);
     Impl(const Impl& other);
     ~Impl();
     virtual void Load() override;
     virtual void Unload() override;
     virtual void GenerateMipmap() override;
 
-    void SetBufferAccessor(std::shared_ptr<Buffer::Accessor> bufferAccessor);
-    std::shared_ptr<Buffer::Accessor> GetBufferAccessor() const;
+    void SetBufferView(std::shared_ptr<Buffer::View> bufferAccessor);
+    auto GetBufferView() const
+    {
+        return _buffer;
+    }
 
 private:
-    std::shared_ptr<Buffer::Accessor> _bufferAccessor;
+    std::shared_ptr<Buffer::View> _buffer;
 };
 }

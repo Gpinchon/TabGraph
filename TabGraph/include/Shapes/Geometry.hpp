@@ -2,7 +2,7 @@
 * @Author: gpinchon
 * @Date:   2019-02-22 16:19:03
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-05-12 14:34:34
+* @Last Modified time: 2021-07-10 01:17:40
 */
 
 #pragma once
@@ -12,8 +12,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <Buffer/Accessor.hpp>
 #include <Buffer/View.hpp>
-#include <Shapes/Shape.hpp>
 #include <Core/Inherit.hpp>
+#include <Shapes/Shape.hpp>
 
 #include <array>
 #include <glm/glm.hpp>
@@ -26,11 +26,8 @@
 // Forward Declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph {
-namespace Buffer {
-class Accessor;
-}
 namespace Renderer {
-class GeometryRenderer;
+    class GeometryRenderer;
 }
 }
 
@@ -38,7 +35,7 @@ class GeometryRenderer;
 // Class Declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Shapes {
-class GeometryMorthTarget {
+/*class GeometryMorthTarget {
 public:
     enum Channel {
         Normal,
@@ -55,23 +52,10 @@ public:
 
 private:
     std::array<std::shared_ptr<Buffer::Accessor>, GeometryMorthTarget::MaxChannels> _morphChannels;
-};
+};*/
 
 class Geometry : public Core::Inherit<Shape, Geometry> {
 public:
-    enum class AccessorKey {
-        Invalid = -1,
-        Position,
-        Normal,
-        Tangent,
-        TexCoord_0,
-        TexCoord_1,
-        TexCoord_2,
-        Color_0,
-        Joints_0,
-        Weights_0,
-        MaxAccessorKey
-    };
     enum class DrawingMode {
         Unknown = -1,
         Points,
@@ -89,6 +73,7 @@ public:
     /** @brief Drawing mode for this geometry, default : GL_TRIANGLES */
     PROPERTY(DrawingMode, DrawingMode, DrawingMode::Triangles);
     PROPERTY(glm::vec3, Centroid, 0);
+
     READONLYPROPERTY(bool, Loaded, false);
 
 public:
@@ -98,37 +83,74 @@ public:
     Geometry(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals, const std::vector<glm::vec2>& texCoords, Buffer::View::Mode = Buffer::View::Mode::Immutable);
     Geometry(const Geometry& other);
     ~Geometry();
-
-    static Geometry::AccessorKey GetAccessorKey(const std::string& key);
     size_t EdgeCount() const;
     glm::ivec2 GetEdge(const size_t index) const;
     size_t VertexCount() const;
-    template <typename T>
-    T GetVertex(const Geometry::AccessorKey key, const size_t index) const;
-    /** @return : The accessor corresponding to the key */
-    std::shared_ptr<Buffer::Accessor> Accessor(const Geometry::AccessorKey key) const;
-    /** Sets the accessor corresponding to the key */
-    void SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<Buffer::Accessor>);
-    std::shared_ptr<Buffer::Accessor> Indices() const;
-    void SetIndices(std::shared_ptr<Buffer::Accessor>);
 
-    GeometryMorthTarget& GetMorphTarget(size_t index);
-    void SetMorphTarget(const GeometryMorthTarget& morphTarget);
+    void SetIndices(const Buffer::Accessor<unsigned>& accessor)
+    {
+        _Indices = accessor;
+    }
+    auto& GetIndices() const
+    {
+        return _Indices;
+    }
+    void SetJoints(const Buffer::Accessor<unsigned>& accessor)
+    {
+        _Joints = accessor;
+    }
+    auto& GetJoints() const
+    {
+        return _Joints;
+    }
+    void SetPositions(const Buffer::Accessor<glm::vec3>& accessor)
+    {
+        _Positions = accessor;
+    }
+    auto& GetPositions() const
+    {
+        return _Positions;
+    }
+    void SetNormals(const Buffer::Accessor<glm::vec3>& accessor)
+    {
+        _Normals = accessor;
+    }
+    auto& GetNormals() const
+    {
+        return _Normals;
+    }
+    void SetTexCoord0(const Buffer::Accessor<glm::vec2>& accessor)
+    {
+        _TexCoord0 = accessor;
+    }
+    auto& GetTexCoord0() const
+    {
+        return _TexCoord0;
+    }
+    void SetTexCoord1(const Buffer::Accessor<glm::vec2>& accessor)
+    {
+        _TexCoord1 = accessor;
+    }
+    auto& GetTexCoord1() const
+    {
+        return _TexCoord1;
+    }
+    void SetTexCoord2(const Buffer::Accessor<glm::vec2>& accessor)
+    {
+        _TexCoord2 = accessor;
+    }
+    auto& GetTexCoord2() const
+    {
+        return _TexCoord2;
+    }
 
 private:
-    std::array<std::shared_ptr<Buffer::Accessor>, size_t(Geometry::AccessorKey::MaxAccessorKey)> _accessors;
-    std::shared_ptr<Buffer::Accessor> _indices { nullptr };
-    std::vector<GeometryMorthTarget> _morphTargets;
+    Buffer::Accessor<unsigned> _Indices;
+    Buffer::Accessor<unsigned> _Joints;
+    Buffer::Accessor<glm::vec3> _Positions;
+    Buffer::Accessor<glm::vec3> _Normals;
+    Buffer::Accessor<glm::vec2> _TexCoord0;
+    Buffer::Accessor<glm::vec2> _TexCoord1;
+    Buffer::Accessor<glm::vec2> _TexCoord2;
 };
-
-template <typename T>
-inline T Geometry::GetVertex(const Geometry::AccessorKey key, const size_t index) const
-{
-    assert(index < VertexCount());
-    if (Indices() != nullptr) {
-        auto indice(Indices()->Get<unsigned>(index));
-        return Accessor(key)->Get<T>(indice);
-    } else
-        return Accessor(key)->Get<T>(index);
-}
 }

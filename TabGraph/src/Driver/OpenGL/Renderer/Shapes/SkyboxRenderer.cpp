@@ -5,14 +5,17 @@
 * @Last Modified time: 2021-06-19 10:03:25
 */
 
-#include <Driver/OpenGL/Renderer/Surface/SkyboxRenderer.hpp>
+#include <Driver/OpenGL/Renderer/Shapes/SkyboxRenderer.hpp>
 #include <Renderer/FrameRenderer.hpp>
 #include <Renderer/Renderer.hpp>
-#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Renderer/Shapes/GeometryRenderer.hpp>
 #include <Shader/Program.hpp>
-#include <Surface/Skybox.hpp>
+#include <Shapes/Skybox.hpp>
 #include <Texture/TextureCubemap.hpp>
+#include <Shader/Program.hpp>
+#include <Shader/Stage.hpp>
 
+namespace TabGraph::Renderer {
 static inline auto EnvShader()
 {
     auto deferredVertCode =
@@ -21,37 +24,37 @@ static inline auto EnvShader()
     auto skyboxFragCode =
 #include "Skybox.frag"
         ;
-    std::shared_ptr<Shader::Program> shader = Component::Create<Shader::Program>("EnvShader");
+    auto shader = std::make_shared<Shader::Program>("EnvShader");
     shader->SetDefine("Pass", "DeferredLighting");
     shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertCode, "FillVertexData();" }));
     shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { skyboxFragCode, "OutputEnv();" }));
     return shader;
 }
 
-namespace Renderer {
-SkyboxRenderer::SkyboxRenderer(Skybox& skybox)
-    : _skybox(skybox)
+SkyboxRenderer::SkyboxRenderer(Shapes::Skybox& skybox)
+    : Inherit()
+    , _skybox(skybox)
 {
     _shader = EnvShader();
 }
 
-void SkyboxRenderer::Render(const Renderer::Options& options)
+void SkyboxRenderer::Render(const Options& options)
 {
     _shader->Use().SetTexture("Skybox", _skybox.GetTexture());
     Renderer::Render(options.renderer->GetDisplayQuad(), true);
     _shader->Done();
 }
 
-void SkyboxRenderer::OnFrameBegin(const Renderer::Options&)
+void SkyboxRenderer::OnFrameBegin(const Options&)
 {
 }
 
-void SkyboxRenderer::Render(const ::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform)
+void SkyboxRenderer::Render(const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform)
 {
     Render(options);
 }
 
-void SkyboxRenderer::OnFrameEnd(const Renderer::Options&)
+void SkyboxRenderer::OnFrameEnd(const Options&)
 {
 }
 };

@@ -7,7 +7,7 @@
 
 #include <Driver/OpenGL/Texture/Framebuffer.hpp>
 #include <Driver/OpenGL/Texture/Texture.hpp>
-#include <Driver/OpenGL/Texture/TextureSampler.hpp>
+#include <Driver/OpenGL/Texture/Sampler.hpp>
 #include <Shader/Global.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/TextureCubemap.hpp>
@@ -16,15 +16,16 @@
 #include <stdexcept>
 #include <GL/glew.h>
 
-auto ResizeAttachement(std::shared_ptr<Texture> attachement, glm::ivec2 res)
+namespace TabGraph::Renderer {
+auto ResizeAttachement(std::shared_ptr<Textures::Texture> attachement, glm::ivec2 res)
 {
     switch (attachement->GetType())
     {
-    case (Texture::Type::Texture2D):
-        std::static_pointer_cast<Texture2D>(attachement)->SetSize(res);
+    case (Textures::Texture::Type::Texture2D):
+        std::static_pointer_cast<Textures::Texture2D>(attachement)->SetSize(res);
         break;
-    case (Texture::Type::TextureCubemap):
-        std::static_pointer_cast<TextureCubemap>(attachement)->SetSize(res);
+    case (Textures::Texture::Type::TextureCubemap):
+        std::static_pointer_cast<Textures::TextureCubemap>(attachement)->SetSize(res);
         break;
     }
 }
@@ -56,7 +57,7 @@ void Framebuffer::Impl::SetSize(const glm::ivec2 size)
         return;
     }
     _size = size;
-    for (auto attachement : _colorBuffers) {
+    for (auto& attachement : _colorBuffers) {
         if (attachement.first != nullptr)
             ResizeAttachement(attachement.first, size);
     }
@@ -67,22 +68,22 @@ void Framebuffer::Impl::SetSize(const glm::ivec2 size)
     _attachementsChanged = true;
 }
 
-std::shared_ptr<Texture> Framebuffer::Impl::GetColorBuffer(unsigned index)
+std::shared_ptr<Textures::Texture> Framebuffer::Impl::GetColorBuffer(unsigned index)
 {
     return _colorBuffers.at(index).first;
 }
 
-std::shared_ptr<Texture> Framebuffer::Impl::GetDepthBuffer()
+std::shared_ptr<Textures::Texture> Framebuffer::Impl::GetDepthBuffer()
 {
     return _depthBuffer.first;
 }
 
-std::shared_ptr<Texture> Framebuffer::Impl::GetStencilBuffer()
+std::shared_ptr<Textures::Texture> Framebuffer::Impl::GetStencilBuffer()
 {
     return _stencilBuffer.first;
 }
 
-void Framebuffer::Impl::AddColorBuffer(std::shared_ptr<Texture> buffer, unsigned mipLevel)
+void Framebuffer::Impl::AddColorBuffer(std::shared_ptr<Textures::Texture> buffer, unsigned mipLevel)
 {
     SetColorBuffer(buffer, _colorBuffers.size());
 }
@@ -108,7 +109,7 @@ void Framebuffer::Impl::_SetupAttachements()
     if (!_attachementsChanged)
         return;
     std::vector<GLenum> color_attachements;
-    for (auto attachement : _colorBuffers) {
+    for (auto& attachement : _colorBuffers) {
         if (attachement.first != nullptr)
             attachement.first->Load();
     }
@@ -142,7 +143,7 @@ void Framebuffer::Impl::_SetupAttachements()
     _attachementsChanged = false;
 }
 
-void Framebuffer::Impl::SetColorBuffer(std::shared_ptr<Texture> buffer, unsigned index, unsigned mipLevel)
+void Framebuffer::Impl::SetColorBuffer(std::shared_ptr<Textures::Texture> buffer, unsigned index, unsigned mipLevel)
 {
     //_colorBuffers.push_back(std::pair(attachement, mipLevel));
     if (_colorBuffers.size() <= index)
@@ -157,21 +158,21 @@ void Framebuffer::Impl::SetColorBuffer(std::shared_ptr<Texture> buffer, unsigned
     }
 }
 
-void Framebuffer::Impl::SetStencilBuffer(std::shared_ptr<Texture> buffer, unsigned mipLevel)
+void Framebuffer::Impl::SetStencilBuffer(std::shared_ptr<Textures::Texture> buffer, unsigned mipLevel)
 {
     _attachementsChanged |= buffer != _stencilBuffer.first;
     _attachementsChanged |= mipLevel != _stencilBuffer.second;
     _stencilBuffer = std::make_pair(buffer, mipLevel);
 }
 
-void Framebuffer::Impl::SetDepthBuffer(std::shared_ptr<Texture> buffer, unsigned mipLevel)
+void Framebuffer::Impl::SetDepthBuffer(std::shared_ptr<Textures::Texture> buffer, unsigned mipLevel)
 {
     _attachementsChanged |= buffer != _depthBuffer.first;
     _attachementsChanged |= mipLevel != _depthBuffer.second;
     _depthBuffer = std::make_pair(buffer, mipLevel);
 }
 
-void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::ivec2 src1, glm::ivec2 dst0, glm::ivec2 dst1, BufferMask mask, TextureSampler::Filter filter)
+void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0, glm::ivec2 src1, glm::ivec2 dst0, glm::ivec2 dst1, BufferMask mask, Textures::Sampler::Filter filter)
 {
     assert(to != nullptr);
     _SetupAttachements();
@@ -192,12 +193,12 @@ void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, glm::ivec2 src0,
     Done(OpenGL::Framebuffer::BindUsage::Read);
 }
 
-void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, BufferMask mask, TextureSampler::Filter filter)
+void Framebuffer::Impl::BlitTo(std::shared_ptr<Framebuffer> to, BufferMask mask, Textures::Sampler::Filter filter)
 {
     BlitTo(to, glm::ivec2(0), GetSize(), glm::ivec2(0), to->GetSize(), mask, filter);
 }
 
-void Framebuffer::Impl::BlitTo(std::shared_ptr<Window> to, BufferMask mask, TextureSampler::Filter filter)
+void Framebuffer::Impl::BlitTo(std::shared_ptr<Core::Window> to, BufferMask mask, Textures::Sampler::Filter filter)
 {
     assert(to != nullptr);
     glm::vec2 src0{ 0 };
@@ -221,6 +222,7 @@ void Framebuffer::Impl::BlitTo(std::shared_ptr<Window> to, BufferMask mask, Text
         OpenGL::GetEnum(filter));
     Done(OpenGL::Framebuffer::BindUsage::Read);
 }
+}
 
 unsigned OpenGL::GetEnum(Framebuffer::BindUsage usage)
 {
@@ -237,22 +239,22 @@ unsigned OpenGL::GetEnum(Framebuffer::BindUsage usage)
     }
 }
 
-unsigned OpenGL::GetBitfield(BufferMask mask)
+unsigned OpenGL::GetBitfield(TabGraph::Renderer::BufferMask mask)
 {
     GLbitfield bitfield = 0;
-    if ((mask & BufferMask::ColorBits) == BufferMask::ColorBits)
+    if ((mask & TabGraph::Renderer::BufferMask::ColorBits) == TabGraph::Renderer::BufferMask::ColorBits)
         bitfield |= GL_COLOR_BUFFER_BIT;
-    if ((mask & BufferMask::DepthBits) == BufferMask::DepthBits)
+    if ((mask & TabGraph::Renderer::BufferMask::DepthBits) == TabGraph::Renderer::BufferMask::DepthBits)
         bitfield |= GL_COLOR_BUFFER_BIT;
-    if ((mask & BufferMask::StencilBits) == BufferMask::StencilBits)
+    if ((mask & TabGraph::Renderer::BufferMask::StencilBits) == TabGraph::Renderer::BufferMask::StencilBits)
         bitfield |= GL_COLOR_BUFFER_BIT;
     return bitfield;
 }
 
-void OpenGL::Framebuffer::Bind(std::shared_ptr<::Framebuffer> fb, Framebuffer::BindUsage usage)
+void OpenGL::Framebuffer::Bind(std::shared_ptr<TabGraph::Renderer::Framebuffer> fb, Framebuffer::BindUsage usage)
 {
     if (fb == nullptr)
-        ::Framebuffer::Impl::BindDefault(usage);
+        TabGraph::Renderer::Framebuffer::Impl::BindDefault(usage);
     else
         fb->GetImpl().Bind(usage);
 }

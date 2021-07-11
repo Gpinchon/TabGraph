@@ -17,7 +17,7 @@ public:
 
 private:
     virtual std::shared_ptr<Component> _Clone() override {
-        return Component::Create<BoundingSphere>(*this);
+        return std::make_shared<BoundingSphere>(*this);
     }
     glm::vec3 _center { 0 };
     float _radius { 0 };

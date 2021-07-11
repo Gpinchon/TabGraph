@@ -13,7 +13,7 @@
 
 std::shared_ptr<PhysicsEngine> PhysicsEngine::Create()
 {
-    return Component::Create<PhysicsEngine>();
+    return std::make_shared<PhysicsEngine>();
 }
 
 void PhysicsEngine::_FixedUpdateCPU(float step)

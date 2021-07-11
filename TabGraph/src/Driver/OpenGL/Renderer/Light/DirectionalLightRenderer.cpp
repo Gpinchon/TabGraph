@@ -5,7 +5,7 @@
 * @Last Modified time: 2021-06-19 10:02:08
 */
 
-#include <Camera/Camera.hpp>
+#include <Cameras/Camera.hpp>
 #include <Config.hpp>
 #include <Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp>
 #include <Driver/OpenGL/Texture/Framebuffer.hpp>
@@ -20,7 +20,7 @@
 #include <SphericalHarmonics.hpp>
 #include <Surface/CubeMesh.hpp>
 #include <Texture/Texture2D.hpp>
-#include <Texture/TextureSampler.hpp>
+#include <Texture/Sampler.hpp>
 #include <Window.hpp>
 
 #include <GL/glew.h>
@@ -67,7 +67,7 @@ static inline auto DirectionnalLightFragmentCode()
 
 static inline auto DeferredDirectionnalLightShader()
 {
-    auto shader = Component::Create<Shader::Program>("DirectionnalLightShader");
+    auto shader = std::make_shared<Shader::Program>("DirectionnalLightShader");
     shader->SetDefine("Pass", "DeferredLighting");
     shader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DirectionnalLightVertexCode()));
     shader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DirectionnalLightFragmentCode()));
@@ -88,7 +88,7 @@ static inline auto ProbeDirectionnalLightShader()
         auto dirLightFragCode =
 #include "Lights/ProbeDirectionnalLight.frag"
             ;
-        shaderPtr = Component::Create<Shader::Program>("DirectionnalLUTShader");
+        shaderPtr = std::make_shared<Shader::Program>("DirectionnalLUTShader");
         shaderPtr->Attach(Shader::Stage(Shader::Stage::Type::Geometry, { LayeredCubemapRenderCode, "LayeredCubemapRender();" }));
         shaderPtr->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertexCode, "FillVertexData();" }));
         shaderPtr->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { dirLightFragCode, "Lighting();" }));
@@ -176,9 +176,9 @@ void DirectionalLightRenderer::_RenderShadow(DirectionalLight& light, const Rend
     if (light.GetCastShadow()) {
         auto shadowRes { glm::ivec2(light.GetShadowResolution()) };
         if (_shadowBuffer == nullptr) {
-            auto shadowBuffer { Component::Create<Texture2D>(shadowRes, Pixel::SizedFormat::Depth24) };
-            shadowBuffer->GetTextureSampler()->SetCompareMode(TextureSampler::CompareMode::CompareRefToTexture);
-            shadowBuffer->GetTextureSampler()->SetCompareFunc(TextureSampler::CompareFunc::LessEqual);
+            auto shadowBuffer { std::make_shared<Textures::Texture2D>(shadowRes, Pixel::SizedFormat::Depth24) };
+            shadowBuffer->GetTextureSampler()->SetCompareMode(Textures::Sampler::CompareMode::CompareRefToTexture);
+            shadowBuffer->GetTextureSampler()->SetCompareFunc(Textures::Sampler::CompareFunc::LessEqual);
             shadowBuffer->SetMipMapNbr(1);
             _shadowBuffer = std::make_shared<Framebuffer>(shadowRes);
             _shadowBuffer->SetDepthBuffer(shadowBuffer);

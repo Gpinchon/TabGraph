@@ -6,38 +6,47 @@
 */
 #pragma once
 
-#include "Light/Light.hpp"
-#include "SphericalHarmonics.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Light/Light.hpp>
+#include <SphericalHarmonics.hpp>
+#include <Core/Inherit.hpp>
+#include <Core/Property.hpp>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
 namespace Shader {
 class Program;
 }
-
+namespace Textures {
 class TextureCubemap;
+}
+namespace Assets {
 class Asset;
+}
+}
 
-class HDRLight : public Light {
-    READONLYPROPERTY(std::shared_ptr<TextureCubemap>, Reflection, nullptr);
-    //READONLYPROPERTY(std::vector<glm::vec3>, DiffuseSH, 0);
-    //READONLYPROPERTY(bool, NeedsUpdate, true);
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Lights {
+class HDRLight : public Core::Inherit<Light, HDRLight> {
+    READONLYPROPERTY(std::shared_ptr<Textures::TextureCubemap>, Reflection, nullptr);
     PROPERTY(bool, Infinite, true);
 
 public:
-    HDRLight(std::shared_ptr<Asset> hdrTexture);
+    HDRLight(std::shared_ptr<Assets::Asset> hdrTexture);
     glm::vec3 GetHalfSize() const;
     void SetHalfSize(const glm::vec3& halfSize);
     glm::vec3 GetMin() const;
     glm::vec3 GetMax() const;
-    void SetHDRTexture(std::shared_ptr<Asset> hdrTexture);
-    std::shared_ptr<Asset> GetHDRTexture();
-
-    //virtual void render_shadow() override;
-    //virtual void Draw() override;
-    //virtual void DrawProbe(LightProbe& lightProbe) override;
-
+    void SetHDRTexture(std::shared_ptr<Assets::Asset> hdrTexture);
+    std::shared_ptr<Assets::Asset> GetHDRTexture();
 private:
-    //void _Update();
-    //std::vector<glm::vec3> _SHDiffuse;
-    //std::shared_ptr<Shader::Program> _deferredShader;
-    //std::shared_ptr<Shader::Program> _probeShader;
+    std::shared_ptr<Assets::Asset> _HDRTexture;
 };
+
+}

@@ -13,17 +13,6 @@
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
-// Forward declarations
-////////////////////////////////////////////////////////////////////////////////
-namespace TabGraph::Nodes {
-class Scene;
-}
-namespace TabGraph::Assets {
-class BinaryData;
-class Image;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Assets {
@@ -58,10 +47,16 @@ public:
     {
         return _lock;
     }
-
-    std::vector<std::shared_ptr<Nodes::Scene>> scenes;
-    std::vector<std::shared_ptr<BinaryData>> binaryDatas;
-    std::vector<std::shared_ptr<Image>> images;
+    template<typename T>
+    inline auto Get() {
+        std::vector<std::shared_ptr<T>> objects;
+        for (const auto& object : assets) {
+            if (object->IsCompatible(typeid(T)))
+                objects.push_back(std::static_pointer_cast<T>(object));
+        }
+        return objects;
+    }
+    std::vector<std::shared_ptr<Core::Object>> assets;
 
 private:
     std::atomic<bool> _loaded { false };

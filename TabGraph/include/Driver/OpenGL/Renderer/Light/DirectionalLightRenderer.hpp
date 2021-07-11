@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Renderer/Light/LightRenderer.hpp>
-#include <Camera/Camera.hpp>
+#include <Cameras/Camera.hpp>
 
 #include <glm/glm.hpp>
 
@@ -18,13 +18,13 @@ namespace Shader {
 class Program;
 }
 
-namespace Renderer {
+namespace TabGraph::Renderer {
 struct Options;
 class DirectionalLightRenderer : public LightRenderer {
 public:
     DirectionalLightRenderer(DirectionalLight&);
     virtual void Render(const Renderer::Options&) override;
-    virtual void UpdateLightProbe(const Renderer::Options& options, LightProbe&) override;
+    virtual void UpdateLightProbe(const Renderer::Options& options, TabGraph::Lights::Probe&) override;
 
 protected:
     void _RenderDeferredLighting(DirectionalLight&, const Renderer::Options&);
@@ -40,5 +40,5 @@ protected:
 };
 
 glm::mat4 DirectionalLightShadowViewMatrix(DirectionalLight&);
-Camera::Projection DirectionalLightShadowProjectionInfinite(DirectionalLight&, const Renderer::Options&);
-Camera::Projection DirectionalLightShadowProjectionFinite(DirectionalLight&);
+TabGraph::Cameras::Projection DirectionalLightShadowProjectionInfinite(DirectionalLight&, const TabGraph::Renderer::Options&);
+TabGraph::Cameras::Projection DirectionalLightShadowProjectionFinite(DirectionalLight&);

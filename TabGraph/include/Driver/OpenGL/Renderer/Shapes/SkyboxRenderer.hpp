@@ -6,36 +6,45 @@
 */
 #pragma once
 
-#include "Renderer/Shapes/ShapeRenderer.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Renderer/Shapes/ShapeRenderer.hpp>
+#include <Core/Inherit.hpp>
 
 #include <GL/glew.h>
 #include <array>
 #include <glm/glm.hpp>
 #include <memory>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Shapes {
 class Skybox;
-class TextureBuffer;
+}
 namespace Shader {
 class Program;
-};
+}
+}
 
-namespace Renderer {
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Renderer {
 struct Options;
-class SkyboxRenderer : public ShapeRenderer {
+class SkyboxRenderer : public Core::Inherit<ShapeRenderer, SkyboxRenderer> {
 public:
-    SkyboxRenderer(Skybox&);
+    SkyboxRenderer(Shapes::Skybox&);
     SkyboxRenderer(SkyboxRenderer&) = delete;
     void Render(const Options& options);
-    virtual void OnFrameBegin(const Renderer::Options& options) override;
-    virtual void Render(const::Renderer::Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) override;
-    virtual void OnFrameEnd(const Renderer::Options& options) override;
+    virtual void OnFrameBegin(const Options& options) override;
+    virtual void Render(const Options& options, const glm::mat4& parentTransform, const glm::mat4& parentLastTransform) override;
+    virtual void OnFrameEnd(const Options& options) override;
 
 private:
     std::shared_ptr<Shader::Program> _shader;
-    std::array<GLsync, 2> _drawSync{ nullptr };
-    std::array<std::shared_ptr<TextureBuffer>, 2> _jointMatrices{ nullptr };
-    glm::mat4 _prevTransformMatrix{ 1 };
-    int _jointMatricesIndex{ 0 };
-    Skybox& _skybox;    
+    Shapes::Skybox& _skybox;
 };
 };

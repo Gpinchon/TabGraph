@@ -8,7 +8,7 @@
 #include <Surface/Surface.hpp>
 #include <Material/Material.hpp>
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Engine.hpp>
 #include <Animation/Animation.hpp>
 
@@ -36,9 +36,9 @@ Bomb::Bomb(const Bomb& bomb) : GameEntity(bomb)
 
 auto CreateBombAsset() {
     
-    auto bombAsset{ Component::Create<Asset>(Engine::GetResourcePath() / "models/bomb.gltf") };
-    AssetsParser::AddParsingTask({
-        AssetsParser::ParsingTask::Type::Sync,
+    auto bombAsset{ std::make_shared<Assets::Asset>(Engine::GetResourcePath() / "models/bomb.gltf") };
+    Assets::Parser::AddParsingTask({
+        Assets::Parser::ParsingTask::Type::Sync,
         bombAsset
     });
     return bombAsset;
@@ -48,7 +48,7 @@ std::shared_ptr<Bomb> Bomb::Create(Level& level, const glm::ivec2& position)
 {
     static auto bombAsset = CreateBombAsset();
     auto bombAssetClone{ bombAsset->GetComponent<Scene>()->Clone() };
-    auto bomb = Component::Create<Bomb>(level);
+    auto bomb = std::make_shared<Bomb>(level);
     auto bombNode = bombAssetClone->GetComponentByName<Node>("Bomb");
     bomb->AddChild(bombNode);
     for (auto& animation : bombAssetClone->GetComponents<Animation>())

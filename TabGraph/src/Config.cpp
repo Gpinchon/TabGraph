@@ -5,8 +5,9 @@
 * @Last Modified time: 2021-01-11 08:41:51
 */
 
-#include "Config.hpp"
-#include "Debug.hpp" // for debugLog
+#include <Config.hpp>
+#include <Debug.hpp>
+
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -15,7 +16,8 @@
 #include <stdio.h> // for sscanf, fgets, fopen
 #include <vector>
 
-void Config::File::Parse(const std::filesystem::path path)
+namespace TabGraph::Config {
+void File::Parse(const std::filesystem::path path)
 {
     std::ifstream configFile(path);
     for (std::string line; std::getline(configFile, line);) {
@@ -44,7 +46,7 @@ void Config::File::Parse(const std::filesystem::path path)
     }
 }
 
-void Config::File::Save(const std::filesystem::path path)
+void File::Save(const std::filesystem::path path)
 {
     std::ofstream configFile;
     configFile.open(path);
@@ -68,8 +70,10 @@ void Config::File::Save(const std::filesystem::path path)
     }
 }
 
-Config::File& Config::Global()
+File& Config::Global()
 {
     static Config::File instance;
     return instance;
+}
+
 }

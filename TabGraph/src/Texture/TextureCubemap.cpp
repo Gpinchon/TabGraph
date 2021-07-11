@@ -23,20 +23,21 @@
 #include <stdexcept>
 #include <thread>
 
+namespace TabGraph::Textures {
 TextureCubemap::TextureCubemap(const TextureCubemap& other)
-    : Texture(other)
+    : Inherit(other)
 {
     _impl.reset(new TextureCubemap::Impl(static_cast<const TextureCubemap::Impl&>(*other._impl.get())));
 }
 
 TextureCubemap::TextureCubemap(glm::ivec2 size, Pixel::SizedFormat format)
-    : Texture()
+    : Inherit()
 {
     _impl.reset(new TextureCubemap::Impl(size, format));
 }
 
-TextureCubemap::TextureCubemap(std::shared_ptr<Asset> image)
-    : Texture()
+TextureCubemap::TextureCubemap(std::shared_ptr<Assets::Asset> image)
+    : Inherit()
 {
     _impl.reset(new TextureCubemap::Impl(image));
 }
@@ -66,7 +67,7 @@ glm::vec3 outImgToXYZ(float u, float v, int faceIdx)
     return (xyz);
 }
 
-auto HDRColor(std::shared_ptr<Image> hdr_image,
+auto HDRColor(std::shared_ptr<Assets::Image> hdr_image,
     float dx, float dy, float dz)
 {
     // assume angle map projection
@@ -119,7 +120,7 @@ glm::vec2 XYZToEquirectangular(glm::vec3 xyz)
     return uv;
 }
 
-void TextureCubemap::ExtractSide(std::shared_ptr<Image> fromImage, std::shared_ptr<Image> toImage, Side side)
+void TextureCubemap::ExtractSide(std::shared_ptr<Assets::Image> fromImage, std::shared_ptr<Assets::Image> toImage, Side side)
 {
     for (auto x = 0; x < toImage->GetSize().x; ++x) {
         for (auto y = 0; y < toImage->GetSize().y; ++y) {
@@ -129,7 +130,7 @@ void TextureCubemap::ExtractSide(std::shared_ptr<Image> fromImage, std::shared_p
             auto uv = XYZToEquirectangular(xyz);
             glm::vec2 sampleTexCoord { uv * glm::vec2(fromImage->GetSize()) };
             sampleTexCoord = glm::clamp(sampleTexCoord, glm::vec2(0), glm::vec2(fromImage->GetSize() - 1));
-            auto color { fromImage->GetColor(sampleTexCoord, Image::SamplingFilter::Bilinear) };
+            auto color { fromImage->GetColor(sampleTexCoord, Assets::Image::SamplingFilter::Bilinear) };
             toImage->SetColor(glm::vec2(x, y), color);
         }
     }
@@ -143,4 +144,6 @@ glm::ivec2 TextureCubemap::GetSize() const
 void TextureCubemap::SetSize(glm::ivec2 size)
 {
     return static_cast<TextureCubemap::Impl*>(_impl.get())->SetSize(size);
+}
+
 }

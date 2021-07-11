@@ -130,7 +130,6 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Animation.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Channel.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Interpolator.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Animations/Sampler.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Parser.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Asset.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/BinaryData.hpp
@@ -138,6 +137,7 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Assets/Uri.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/brdfLUT.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/Accessor.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/Iterator.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Buffer/View.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/Camera.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/FPS.hpp
@@ -149,18 +149,18 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Core/Object.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Core/Property.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/DispatchQueue.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/InputDevice/GameController.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/InputDevice/Keyboard.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/InputDevice/Mouse.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Signal.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/DispatchQueue.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Event.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Manager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/GameController.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Keyboard.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Manager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Mouse.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/Signal.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/Light.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/LightProbe.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Light/DirectionalLight.hpp
@@ -252,12 +252,12 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Compute/Object.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/DispatchQueue.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Manager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/DispatchQueue.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Inputdevice/GameController.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Inputdevice/Keyboard.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Inputdevice/Mouse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Manager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/Light.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/LightProbe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Light/DirectionalLight.cpp

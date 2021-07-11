@@ -35,7 +35,7 @@ class LightRenderer {
 public:
     LightRenderer(TabGraph::Lights::Light&);
     virtual void Render(const Renderer::Options&) = 0;
-    virtual void UpdateLightProbe(const Renderer::Options&, Lights::Probe&) = 0;
+    virtual void UpdateLightProbe(const Renderer::Options&, TabGraph::Lights::Probe&) = 0;
     void FlagDirty();
 
 protected:

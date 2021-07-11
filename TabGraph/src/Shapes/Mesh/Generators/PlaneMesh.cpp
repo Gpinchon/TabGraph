@@ -13,7 +13,7 @@
 
 std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size, unsigned subdivision)
 {
-    auto m = Component::Create<Mesh>(name);
+    auto m = std::make_shared<Mesh>(name);
     glm::vec3 maxV = glm::vec3(size.x / 2.f, 0.f, size.y / 2.f);
     glm::vec3 minV = -maxV;
     glm::vec3 vn(0, 1, 0);
@@ -21,8 +21,8 @@ std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size,
     std::vector<glm::vec3> normals;
     std::vector<glm::vec2> texCoord;
     std::vector<unsigned> indices;
-    //auto vertexBuffer{ Component::Create<Buffer>(0) };
-    //auto indiceBuffer{ Component::Create<Buffer>(0) };
+    //auto vertexBuffer{ std::make_shared<Buffer>(0) };
+    //auto indiceBuffer{ std::make_shared<Buffer>(0) };
     for (auto x = 0u; x <= subdivision; ++x) {
         for (auto y = 0u; y <= subdivision; ++y) {
             auto uv = glm::vec2(x / float(subdivision), y / float(subdivision));
@@ -44,27 +44,27 @@ std::shared_ptr<Mesh> PlaneMesh::Create(const std::string& name, glm::vec2 size,
             }
         }
     }
-    //auto vertexBufferView{ Component::Create<Buffer::View>(vertexBuffer) };
-    //auto indiceBufferView{ Component::Create<Buffer::View>(vertexBuffer) };
+    //auto vertexBufferView{ std::make_shared<Buffer::View>(vertexBuffer) };
+    //auto indiceBufferView{ std::make_shared<Buffer::View>(vertexBuffer) };
     //vertexBufferView->SetByteStride(sizeof(glm::vec3) + sizeof(glm::vec3) + sizeof(glm::vec2));
 
-    //auto vertexAccessor{ Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32 , Buffer::Accessor::DataType::Vec3, vertexBufferView) };
-    //auto normalAccessor{ Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32 , Buffer::Accessor::DataType::Vec3, vertexBufferView) };
-    //auto texcoordAccessor{ Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32 , Buffer::Accessor::DataType::Vec2, vertexBufferView) };
+    //auto vertexAccessor{ std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32 , Buffer::Accessor::DataType::Vec3, vertexBufferView) };
+    //auto normalAccessor{ std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32 , Buffer::Accessor::DataType::Vec3, vertexBufferView) };
+    //auto texcoordAccessor{ std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32 , Buffer::Accessor::DataType::Vec2, vertexBufferView) };
     //normalAccessor->SetByteOffset(sizeof(glm::vec3));
     //normalAccessor->SetNormalized(true);
     //texcoordAccessor->SetByteOffset(sizeof(glm::vec3) + sizeof(glm::vec3));
 
-    //auto indiceAccessor{ Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Uint32 , Buffer::Accessor::DataType::Scalar, indiceBufferView) };
+    //auto indiceAccessor{ std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Uint32 , Buffer::Accessor::DataType::Scalar, indiceBufferView) };
 
-    //auto vg = Component::Create<Geometry>(m->GetName() + "_Geometry");
+    //auto vg = std::make_shared<Geometry>(m->GetName() + "_Geometry");
     //vg->SetAccessor(Geometry::AccessorKey::Position, vertexAccessor);//BufferHelper::CreateAccessor(planeVertices, GL_ARRAY_BUFFER));
     //vg->SetAccessor(Geometry::AccessorKey::Normal, normalAccessor);
     //vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, texcoordAccessor);
     //vg->SetIndices(indiceAccessor);
     m->AddGeometry(
-        Component::Create<Geometry>(vertices, normals, texCoord, indices),
-        Component::Create<Material>(m->GetName() + "_material")
+        std::make_shared<Geometry>(vertices, normals, texCoord, indices),
+        std::make_shared<Material>(m->GetName() + "_material")
     );
     return (m);
 }

@@ -65,24 +65,6 @@ std::byte* Buffer::View::ImplGPU::MapRange(const Buffer::View& buffer, MappingMo
     return _mappingPointer;
 }
 
-std::byte* Buffer::View::ImplGPU::Get(const Buffer::View& buffer, size_t index, size_t size)
-{
-    assert(GetMappingMode() != MappingMode::WriteOnly);
-    assert(GetMappingStart() <= index && GetMappingEnd() >= index + size);
-    return _mappingPointer + (index - GetMappingStart());
-}
-
-void Buffer::View::ImplGPU::Set(const Buffer::View &buffer, std::byte* data, size_t index, size_t size)
-{
-    assert(GetMappingMode() != MappingMode::ReadOnly);
-    assert(GetMappingStart() <= index && GetMappingEnd() >= index + size);
-    std::memcpy(_mappingPointer + (index - GetMappingStart()), data, size);
-    if (buffer.GetMode() == Mode::Persistent) {
-        _flushStart = std::min(_flushStart, index);
-        _flushEnd = std::max(_flushEnd, index + size);
-    }
-}
-
 void Buffer::View::ImplGPU::Unmap(const Buffer::View& buffer)
 {
     Bind(buffer.GetType());

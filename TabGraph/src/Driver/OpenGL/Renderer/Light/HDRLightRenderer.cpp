@@ -6,25 +6,28 @@
 */
 
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Assets/Image.hpp>
-#include <Camera/Camera.hpp>
+#include <Cameras/Camera.hpp>
 #include <Driver/OpenGL/Renderer/Light/HDRLightRenderer.hpp>
 #include <Driver/OpenGL/Texture/Framebuffer.hpp>
 #include <Light/HDRLight.hpp>
 #include <Light/LightProbe.hpp>
 #include <Renderer/FrameRenderer.hpp>
 #include <Renderer/Renderer.hpp>
-#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Renderer/Shapes/GeometryRenderer.hpp>
 #include <Shader/Program.hpp>
 #include <Shader/Stage.hpp>
 #include <SphericalHarmonics.hpp>
-#include <Surface/CubeMesh.hpp>
+#include <Shapes/MeshGenerators/CubeMesh.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/TextureCubemap.hpp>
+#include <Nodes/Group.hpp>
 
 #include <GL/glew.h>
+#include <glm/gtx/transform.hpp>
 
+namespace TabGraph::Renderer {
 const glm::vec2 invAtan = glm::vec2(0.1591, 0.3183);
 static inline glm::vec2 SampleSphericalMap(glm::vec3 xyz)
 {
@@ -72,9 +75,8 @@ static inline auto DeferredHDRLightFragmentCode()
     return shaderCode;
 }
 
-namespace Renderer {
 static SphericalHarmonics s_SH { 50 };
-HDRLightRenderer::HDRLightRenderer(HDRLight& light)
+HDRLightRenderer::HDRLightRenderer(TabGraph::Lights::HDRLight& light)
     : LightRenderer(light)
 {
     auto LayeredCubemapRenderCode =
@@ -86,11 +88,11 @@ HDRLightRenderer::HDRLightRenderer(HDRLight& light)
     auto dirLightFragCode =
 #include "Lights/ProbeHDRLight.frag"
         ;
-    _probeShader = Component::Create<Shader::Program>("ProbeHDRLightShader");
+    _probeShader = std::make_shared<Shader::Program>("ProbeHDRLightShader");
     _probeShader->Attach(Shader::Stage(Shader::Stage::Type::Geometry, { LayeredCubemapRenderCode, "LayeredCubemapRender();" }));
     _probeShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, { deferredVertexCode, "FillVertexData();" }));
     _probeShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { dirLightFragCode, "Lighting();" }));
-    _deferredShader = Component::Create<Shader::Program>("DeferredHDRLightShader");
+    _deferredShader = std::make_shared<Shader::Program>("DeferredHDRLightShader");
     _deferredShader->SetDefine("Pass", "DeferredLighting");
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Vertex, DeferredHDRLightVertexCode()));
     _deferredShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, DeferredHDRLightFragmentCode()));
@@ -100,13 +102,13 @@ HDRLightRenderer::HDRLightRenderer(HDRLight& light)
 void HDRLightRenderer::Render(const Renderer::Options& options)
 {
     if (options.pass == Renderer::Options::Pass::DeferredLighting) {
-        _RenderDeferredLighting(static_cast<HDRLight&>(_light), options);
+        _RenderDeferredLighting(static_cast<TabGraph::Lights::HDRLight&>(_light), options);
     }
 }
 
-void HDRLightRenderer::UpdateLightProbe(const Renderer::Options& options, LightProbe& lightProbe)
+void HDRLightRenderer::UpdateLightProbe(const Renderer::Options& options, TabGraph::Lights::Probe& lightProbe)
 {
-    auto& hdrLight { static_cast<HDRLight&>(_light) };
+    auto& hdrLight { static_cast<TabGraph::Lights::HDRLight&>(_light) };
     _Update(hdrLight);
     for (auto i = 0u; i < std::min(_SHDiffuse.size(), lightProbe.GetDiffuseSH().size()); ++i)
         lightProbe.GetDiffuseSH().at(i) += _SHDiffuse.at(i);
@@ -124,15 +126,15 @@ void HDRLightRenderer::UpdateLightProbe(const Renderer::Options& options, LightP
     OpenGL::Framebuffer::Bind(nullptr);
 }
 
-void HDRLightRenderer::_RenderDeferredLighting(HDRLight& light, const Renderer::Options& options)
+void HDRLightRenderer::_RenderDeferredLighting(TabGraph::Lights::HDRLight& light, const Renderer::Options& options)
 {
     _Update(light);
     auto geometryBuffer = options.renderer->DeferredGeometryBuffer();
     glm::vec3 geometryPosition;
     if (light.GetInfinite())
-        geometryPosition = options.camera->WorldPosition();
+        geometryPosition = options.camera->GetWorldPosition();
     else
-        geometryPosition = light.GetParent() ? light.GetParent()->WorldPosition() + light.GetPosition() : light.GetPosition();
+        geometryPosition = light.GetWorldPosition();//light.GetParent() ? light.GetParent()->GetWorldPosition() + light.GetLocalPosition() : light.GetLocalPosition();
     _deferredShader->Use()
         .SetUniform("Light.DiffuseFactor", light.GetDiffuseFactor())
         .SetUniform("Light.SpecularFactor", light.GetSpecularFactor())
@@ -153,15 +155,15 @@ void HDRLightRenderer::_RenderDeferredLighting(HDRLight& light, const Renderer::
     _deferredShader->Done();
 }
 
-void HDRLightRenderer::_Update(HDRLight& light)
+void HDRLightRenderer::_Update(TabGraph::Lights::HDRLight& light)
 {
     if (!_dirty)
         return;
-    auto asset { light.GetComponent<Asset>() };
-    AssetsParser::AddParsingTask({ AssetsParser::ParsingTask::Type::Sync,
-        asset });
-    assert(asset->GetAssetType() == Image::AssetType);
-    auto image { asset->GetComponent<Image>() };
+    auto asset { light.GetHDRTexture() };
+    Assets::Parser::AddParsingTask({ Assets::Parser::ParsingTask::Type::Sync, asset });
+    auto images = asset->Get<Assets::Image>();
+    assert(!images.empty());
+    auto image { images.at(0) };
     _SHDiffuse = s_SH.ProjectFunction(
         [&](const SphericalHarmonics::Sample& sample) {
             auto dir { -sample.vec };
@@ -174,7 +176,7 @@ void HDRLightRenderer::_Update(HDRLight& light)
             glm::vec3 color { Pixel::LinearToSRGB(image->GetColor(texCoord)) };
             return glm::clamp(color, glm::vec3(0), glm::vec3(1));
         });
-    light.RemoveComponent(asset);
+    light.SetHDRTexture(nullptr);
     _dirty = false;
 }
-};
+}

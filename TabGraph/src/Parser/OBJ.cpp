@@ -12,7 +12,7 @@
 */
 
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Assets/BinaryData.hpp>
 #include <Buffer/Accessor.hpp>
 #include <Buffer/View.hpp>
@@ -47,20 +47,20 @@
 #include <sys/io.h>
 #endif // for access, R_OK
 
-void ParseOBJ(std::shared_ptr<Asset>);
+void ParseOBJ(std::shared_ptr<Assets::Asset>);
 
 auto OBJMimeExtension {
-    AssetsParser::AddMimeExtension("model/obj", ".obj") //not standard but screw it.
+    Assets::Parser::AddMimeExtension("model/obj", ".obj") //not standard but screw it.
 };
 
 auto OBJMimesParsers {
-    AssetsParser::Add("model/obj", ParseOBJ)
+    Assets::Parser::Add("model/obj", ParseOBJ)
 };
 struct ObjContainer {
-    std::shared_ptr<Asset> container { Component::Create<Asset>() };
+    std::shared_ptr<Assets::Asset> container { std::make_shared<Assets::Asset>() };
     std::shared_ptr<Geometry> currentGeometry { nullptr };
     std::shared_ptr<Buffer::View> currentBufferView { nullptr };
-    std::shared_ptr<Asset> currentBuffer { nullptr };
+    std::shared_ptr<Assets::Asset> currentBuffer { nullptr };
     std::shared_ptr<BinaryData> binaryData { nullptr };
     std::vector<glm::vec3> v;
     std::vector<glm::vec3> vn;
@@ -151,31 +151,31 @@ static void parse_vn(ObjContainer& p, std::array<std::array<int, 3>, 3> vindex, 
 static void push_values(ObjContainer& p, glm::vec3* v, glm::vec3* vn, glm::vec2* vt)
 {
     if (p.currentBuffer == nullptr) {
-        p.binaryData = Component::Create<BinaryData>(0);
-        p.currentBuffer = Component::Create<Asset>();
+        p.binaryData = std::make_shared<BinaryData>(0);
+        p.currentBuffer = std::make_shared<Assets::Asset>();
         p.currentBuffer->SetComponent(p.binaryData);
         p.currentBuffer->SetLoaded(true);
     }
     if (p.currentBufferView == nullptr) {
-        p.currentBufferView = Component::Create<Buffer::View>(p.currentBuffer, Buffer::View::Mode::Immutable);
+        p.currentBufferView = std::make_shared<Buffer::View>(p.currentBuffer, Buffer::View::Mode::Immutable);
         p.currentBufferView->SetType(Buffer::View::Type::Array);
         p.currentBufferView->SetByteStride(VERTEXBYTESIZE);
     }
     if (p.currentGeometry->Accessor(Geometry::AccessorKey::Position) == nullptr) {
-        auto positionAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, p.currentBufferView) };
+        auto positionAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, p.currentBufferView) };
         positionAccessor->SetCount(0);
         positionAccessor->SetByteOffset(p.currentBufferView->GetByteLength());
         p.currentGeometry->SetAccessor(Geometry::AccessorKey::Position, positionAccessor);
     }
     if (p.currentGeometry->Accessor(Geometry::AccessorKey::Normal) == nullptr) {
-        auto normalAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, p.currentBufferView) };
+        auto normalAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, p.currentBufferView) };
         normalAccessor->SetCount(0);
         normalAccessor->SetByteOffset(p.currentBufferView->GetByteLength() + sizeof(glm::vec3));
         normalAccessor->SetNormalized(true);
         p.currentGeometry->SetAccessor(Geometry::AccessorKey::Normal, normalAccessor);
     }
     if (p.currentGeometry->Accessor(Geometry::AccessorKey::TexCoord_0) == nullptr) {
-        auto texcoordAccessor { Component::Create<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec2, p.currentBufferView) };
+        auto texcoordAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec2, p.currentBufferView) };
         texcoordAccessor->SetCount(0);
         texcoordAccessor->SetByteOffset(p.currentBufferView->GetByteLength() + sizeof(glm::vec3) + sizeof(glm::vec3));
         p.currentGeometry->SetAccessor(Geometry::AccessorKey::TexCoord_0, texcoordAccessor);
@@ -226,9 +226,9 @@ void parse_vg(ObjContainer& p, const std::string& name = "")
     childNbr++;
 
     if (name == "") {
-        p.currentGeometry = Component::Create<Geometry>(p.container->GetComponent<Mesh>()->GetName() + "_Geometry_" + std::to_string(childNbr));
+        p.currentGeometry = std::make_shared<Geometry>(p.container->GetComponent<Mesh>()->GetName() + "_Geometry_" + std::to_string(childNbr));
     } else {
-        p.currentGeometry = Component::Create<Geometry>(name);
+        p.currentGeometry = std::make_shared<Geometry>(name);
     }
     p.container->GetComponent<Mesh>()->AddGeometry(p.currentGeometry, nullptr);
 }
@@ -348,8 +348,8 @@ static void parse_line(ObjContainer& p, const char* line)
             p.currentGeometry,
             p.container->GetComponentByName<Material>(split.at(1)));
     } else if (split[0] == "mtllib") {
-        auto mtllibAsset { Component::Create<Asset>((p.path.parent_path() / split[1]).string()) };
-        AssetsParser::Parse(mtllibAsset);
+        auto mtllibAsset { std::make_shared<Assets::Asset>((p.path.parent_path() / split[1]).string()) };
+        Assets::Parser::Parse(mtllibAsset);
         p.container += mtllibAsset;
     }
 }
@@ -365,7 +365,7 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
     if (fd == nullptr) {
         throw std::runtime_error(std::string("Can't open ") + path + " : " + strerror(errno));
     }
-    p.container->AddComponent(Component::Create<Mesh>(path));
+    p.container->AddComponent(std::make_shared<Mesh>(path));
     auto l = 1;
     while (fgets(line, 4096, fd) != nullptr) {
         parse_line(p, line);
@@ -374,7 +374,7 @@ static void start_obj_parsing(ObjContainer& p, const std::string& path)
     fclose(fd);
 }
 
-void ParseOBJ(std::shared_ptr<Asset> container)
+void ParseOBJ(std::shared_ptr<Assets::Asset> container)
 {
     ObjContainer p;
 
@@ -382,7 +382,7 @@ void ParseOBJ(std::shared_ptr<Asset> container)
     start_obj_parsing(p, p.path.string());
     container += p.container;
     auto scene(std::make_shared<Scene>(p.path.string()));
-    auto node(Component::Create<Node>(p.path.string() + "_node"));
+    auto node(std::make_shared<Node>(p.path.string() + "_node"));
     for (const auto& mesh : container->GetComponents<Mesh>()) {
         scene->GetRootNode()->AddSurface(mesh);
     }

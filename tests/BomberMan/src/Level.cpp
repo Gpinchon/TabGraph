@@ -17,7 +17,7 @@
 #include "Surface/Skybox.hpp"
 #include "Texture/Texture2D.hpp"
 #include "Texture/TextureCubemap.hpp"
-#include "Texture/TextureSampler.hpp"
+#include "Texture/Sampler.hpp"
 
 #include "CrispyWall.hpp"
 #include "Game.hpp"
@@ -82,24 +82,24 @@ std::shared_ptr<Level> Level::Create(const std::filesystem::path& path)
             maxLine = row.size();
     }
     auto size = glm::ivec2(map.size(), maxLine);
-    auto level(Component::Create<Level>(path.string(), size));
+    auto level(std::make_shared<Level>(path.string(), size));
     auto floorMesh = PlaneMesh::Create("FloorMesh", level->Size());
-    auto floorNode = Component::Create<Node>("FloorNode");
+    auto floorNode = std::make_shared<Node>("FloorNode");
     floorNode->SetPosition(glm::vec3(level->Size().x / 2.f, 0, level->Size().y / 2.f));
     //auto light = DirectionnalLight::Create("MainLight", glm::vec3(1.f), glm::vec3(1.f), 1.f, true);
     auto radius = size.x + size.y;
-    auto light = Component::Create<DirectionalLight>("MainLight", glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), true);
+    auto light = std::make_shared<DirectionalLight>("MainLight", glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), true);
     light->SetHalfSize(glm::vec3(size.x / 2.f, 1.5, size.y / 2.f));
     light->SetPosition(glm::vec3(size.x / 2.f, 0, size.y / 2.f));
     light->SetInfinite(false);
-    auto camera = Component::Create<OrbitCamera>("MainCamera", glm::pi<float>() / 2.f, 1, radius / 2.f);
+    auto camera = std::make_shared<OrbitCamera>("MainCamera", glm::pi<float>() / 2.f, 1, radius / 2.f);
     camera->SetTarget(floorNode);
     floorNode->AddSurface(floorMesh);
     level->SetCurrentCamera(camera);
     level->Add(light);
     level->Add(floorNode);
     //auto textureData = std::vector<glm::u8vec4>(size_t(size.x) * size.y);
-    auto floorImage = Component::Create<Image>(size, Pixel::SizedFormat::Uint8_NormalizedRGBA);
+    auto floorImage = std::make_shared<Assets::Image>(size, Pixel::SizedFormat::Uint8_NormalizedRGBA);
     for (auto y = 0; y < size.y; ++y) {
         for (auto x = 0; x < size.x; ++x) {
             auto index = x + y * size.x;
@@ -131,19 +131,19 @@ std::shared_ptr<Level> Level::Create(const std::filesystem::path& path)
             }
         }
     }
-    auto floorImageAsset{ Component::Create<Asset>() };
+    auto floorImageAsset{ std::make_shared<Assets::Asset>() };
     floorImageAsset->AddComponent(floorImage);
     floorImageAsset->SetLoaded(true);
-    auto floorTexture = Component::Create<Texture2D>(floorImageAsset);
-    floorTexture->GetTextureSampler()->SetMagFilter(TextureSampler::Filter::Nearest);
-    floorTexture->GetTextureSampler()->SetMinFilter(TextureSampler::Filter::Nearest);
+    auto floorTexture = std::make_shared<Textures::Texture2D>(floorImageAsset);
+    floorTexture->GetTextureSampler()->SetMagFilter(Textures::Sampler::Filter::Nearest);
+    floorTexture->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::Nearest);
     floorMesh->GetGeometryMaterial(0)->SetTextureDiffuse(floorTexture);
-    auto skybox = Component::Create<Skybox>("Skybox");
-    auto diffuseMap{ Component::Create<Asset>(path.parent_path() / "env.png") };
-    skybox->SetTexture(Component::Create<TextureCubemap>(diffuseMap));
+    auto skybox = std::make_shared<Skybox>("Skybox");
+    auto diffuseMap{ std::make_shared<Assets::Asset>(path.parent_path() / "env.png") };
+    skybox->SetTexture(std::make_shared<TextureCubemap>(diffuseMap));
     level->SetSkybox(skybox);
 
-    auto lightHDR{ Component::Create<HDRLight>(diffuseMap) };
+    auto lightHDR{ std::make_shared<HDRLight>(diffuseMap) };
     level->Add(lightHDR);
     for (auto i = 0u; i < Game::PlayerNumber(); ++i) {
         auto player{ Player::Create(*level.get(), glm::vec3(rand() % 255 / 255.f, rand() % 255 / 255.f, rand() % 255 / 255.f)) };

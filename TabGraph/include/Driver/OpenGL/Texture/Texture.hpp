@@ -6,13 +6,22 @@
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Texture/Texture.hpp>
+#include <Texture/PixelUtils.hpp>
 #include <Driver/OpenGL/ObjectHandle.hpp>
+#include <Core/Property.hpp>
 
+////////////////////////////////////////////////////////////////////////////////
+// Class declaration
+////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Textures {
 class Texture::Impl {
+    READONLYPROPERTY(TabGraph::Pixel::Description, PixelDescription, );
 public:
-    using Handle = ::OpenGL::ObjectHandle;
+    using Handle = OpenGL::ObjectHandle;
     Impl(const Impl& other);;
     Impl(Texture::Type);
     Impl(Texture::Type, const Pixel::Description&);
@@ -39,10 +48,6 @@ public:
     inline bool GetAutoMipMap() const
     {
         return _autoMipMap;
-    }
-    inline Pixel::Description GetPixelDescription() const
-    {
-        return _pixelDescription;
     }
 
     inline void SetTextureSampler(std::shared_ptr<Textures::Sampler> textureSampler)
@@ -94,7 +99,6 @@ protected:
     std::shared_ptr<Textures::Sampler> _textureSampler { nullptr };
     uint8_t _mipMapNbr { 1 };
     bool _autoMipMap { true };
-    Pixel::Description _pixelDescription;
 };
 }
 

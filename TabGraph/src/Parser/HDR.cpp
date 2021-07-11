@@ -8,7 +8,7 @@
 //#include "Parser/HDR.hpp"
 #include "Assets/Image.hpp" // for Image
 #include "Assets/Asset.hpp" // for Asset
-#include "Assets/AssetsParser.hpp" // for TextureParser
+#include "Assets/Parser.hpp" // for TextureParser
 
 #include <glm/glm.hpp> // for s_vec2, glm::vec2
 #include <iostream> // for operator<<, flush, basic_ostream, cout
@@ -17,15 +17,17 @@
 #include <stdio.h> // for getc, fclose, fread, feof, fseek, FILE
 #include <string.h> // for memcmp, memcpy
 
-void ParseHDR(const std::shared_ptr<Asset>&);
+using namespace TabGraph;
 
-//Add this parser to AssetsParser !
+void ParseHDR(const std::shared_ptr<Assets::Asset>&);
+
+//Add this parser to Assets::Parser !
 auto HDRMimeExtension{
-    AssetsParser::AddMimeExtension("image/vnd.radiance", ".hdr")
+    Assets::Parser::AddMimeExtension("image/vnd.radiance", ".hdr")
 };
 
 auto HDRMimesParsers{
-    AssetsParser::Add("image/vnd.radiance", ParseHDR)
+    Assets::Parser::Add("image/vnd.radiance", ParseHDR)
 };
 
 //this is not std::byte because we need arithmetic operators
@@ -42,14 +44,14 @@ static void workOnRGBE(RGBE* scan, int len, float* cols);
 static bool decrunch(RGBE* scanline, int len, FILE* file);
 static bool oldDecrunch(RGBE* scanline, int len, FILE* file);
 
-void ParseHDR(const std::shared_ptr<Asset>& asset)
+void ParseHDR(const std::shared_ptr<Assets::Asset>& asset)
 {
     auto uri{ asset->GetUri() };
     std::cout << "Parsing " << asset->GetUri();
     int i;
     char str[200];
     FILE* file;
-    glm::ivec2 size;
+    glm::ivec2 size{ 0 };
 
     file = fopen(uri.DecodePath().string().c_str(), "rb");
     if (!file)
@@ -106,9 +108,9 @@ void ParseHDR(const std::shared_ptr<Asset>& asset)
 
     delete[] scanline;
     fclose(file);
-    auto image{ Component::Create<Image>(size, Pixel::SizedFormat::Float32_RGB, data) };
-    asset->SetComponent(image);
-    asset->SetAssetType(Image::AssetType);
+    auto image{ std::make_shared<Assets::Image>(size, Pixel::SizedFormat::Float32_RGB, data) };
+    asset->assets.push_back(image);
+    asset->SetAssetType(Assets::Image::AssetType);
     std::cout << " Done." << std::endl;
     asset->SetLoaded(true);
 }

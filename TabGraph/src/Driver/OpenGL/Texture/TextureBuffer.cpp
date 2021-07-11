@@ -12,15 +12,16 @@
 
 #include <GL/glew.h>
 
-TextureBuffer::Impl::Impl(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::Accessor> bufferAccessor)
+namespace TabGraph::Textures {
+TextureBuffer::Impl::Impl(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::View> bufferAccessor)
 	: Texture::Impl(Texture::Type::TextureBuffer, internalFormat)
-    , _bufferAccessor(bufferAccessor)
+    , _buffer(bufferAccessor)
 {
 }
 
 TextureBuffer::Impl::Impl(const Impl& other)
     : Texture::Impl(other)
-    , _bufferAccessor(other._bufferAccessor)
+    , _buffer(other._buffer)
 {
     _type = Texture::Type::TextureBuffer;
 }
@@ -33,15 +34,12 @@ void TextureBuffer::Impl::Load()
 {
 	if (GetLoaded())
 		return;
-    //auto &texture{ static_cast<TextureBuffer&>(_texture) };
-    auto bufferView{ GetBufferAccessor()->GetBufferView() };
-    bufferView->Load();
     _handle = OpenGL::Texture::Generate();
     Bind();
     glTexBuffer(
         OpenGL::GetEnum(Texture::Type::TextureBuffer),
         OpenGL::GetEnum(GetPixelDescription().GetSizedFormat()),
-        OpenGL::GetHandle(bufferView)
+        OpenGL::GetHandle(GetBufferView())
     );
     Done();
     SetLoaded(true);
@@ -59,15 +57,12 @@ void TextureBuffer::Impl::GenerateMipmap()
 {
 }
 
-void TextureBuffer::Impl::SetBufferAccessor(std::shared_ptr<Buffer::Accessor> bufferAccessor)
+void TextureBuffer::Impl::SetBufferView(std::shared_ptr<Buffer::View> bufferAccessor)
 {
-    if (bufferAccessor == _bufferAccessor)
+    if (bufferAccessor == GetBufferView())
         return;
-    _bufferAccessor = bufferAccessor;
+    _buffer = bufferAccessor;
     Unload();
 }
 
-std::shared_ptr<Buffer::Accessor> TextureBuffer::Impl::GetBufferAccessor() const
-{
-    return _bufferAccessor;
 }

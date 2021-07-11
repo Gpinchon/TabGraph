@@ -16,12 +16,12 @@ class Texture2D;
 
 class Terrain : public Mesh {
 public:
-    static std::shared_ptr<Terrain> Create(const std::string& name, glm::ivec2 resolution, glm::vec3 scale, std::shared_ptr<Texture2D> = nullptr);
+    static std::shared_ptr<Terrain> Create(const std::string& name, glm::ivec2 resolution, glm::vec3 scale, std::shared_ptr<Textures::Texture2D> = nullptr);
     static std::shared_ptr<Terrain> Create(const std::string& name, glm::ivec2 resolution, const std::string& path);
 
 private:
     Terrain(const std::string& name);
-    std::shared_ptr<Texture2D> _terrainData { nullptr };
+    std::shared_ptr<Textures::Texture2D> _terrainData { nullptr };
     glm::ivec2 _terrainResolution { 0, 0 };
     glm::vec3 _terrainSize { 0, 0, 0 };
 };

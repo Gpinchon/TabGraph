@@ -9,7 +9,7 @@
 
 #include <Animation/Animation.hpp>
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Assets/Image.hpp>
 #include <Camera/FPSCamera.hpp>
 #include <Config.hpp>
@@ -125,11 +125,11 @@ int main(int argc, char** argv)
         }
         {
             std::cout << filePath << std::endl;
-            auto fpsCamera = Component::Create<FPSCamera>("main_camera");
+            auto fpsCamera = std::make_shared<FPSCamera>("main_camera");
             //fpsCamera->SetZfar(1000);
-            auto asset { Component::Create<Asset>(filePath) };
-            AssetsParser::AddParsingTask({
-                AssetsParser::ParsingTask::Type::Sync,
+            auto asset { std::make_shared<Assets::Asset>(filePath) };
+            Assets::Parser::AddParsingTask({
+                Assets::Parser::ParsingTask::Type::Sync,
                 asset
             });
             auto assetCameras = asset->GetComponents<Camera>();
@@ -140,20 +140,20 @@ int main(int argc, char** argv)
                 return -43;
             }
             scene->SetCamera(fpsCamera);
-            auto newEnv = Component::Create<Skybox>("Skybox");
-            auto diffuseAsset { Component::Create<Asset>(Engine::GetResourcePath() / "env/diffuse.jpg") };
+            auto newEnv = std::make_shared<Skybox>("Skybox");
+            auto diffuseAsset { std::make_shared<Assets::Asset>(Engine::GetResourcePath() / "env/diffuse.jpg") };
             diffuseAsset->parsingOptions.image.maximumResolution = 2048;
-            newEnv->SetTexture(Component::Create<TextureCubemap>(diffuseAsset));
+            newEnv->SetTexture(std::make_shared<TextureCubemap>(diffuseAsset));
             scene->SetSkybox(newEnv);
 
-            auto hdrLight { Component::Create<HDRLight>(diffuseAsset) };
-            //auto skyLight{ Component::Create<SkyLight>() };
+            auto hdrLight { std::make_shared<HDRLight>(diffuseAsset) };
+            //auto skyLight{ std::make_shared<SkyLight>() };
             //skyLight->SetSunDirection(glm::vec3(1, 1, 1));
             //skyLight->SetSpecularPower(0);
-            //auto dirLight =  Component::Create<DirectionnalLight>("MainLight", glm::vec3(0.025), -skyLight->GetSunDirection(), false);
+            //auto dirLight =  std::make_shared<DirectionnalLight>("MainLight", glm::vec3(0.025), -skyLight->GetSunDirection(), false);
             //dirLight->SetHalfSize(glm::vec3(50));
-            auto dirLight = Component::Create<DirectionalLight>("MainLight", glm::vec3(0.5), glm::vec3(1, 1, 1), false);
-            auto pointLight = Component::Create<PointLight>("PointLight", glm::vec3(1, 1, 1));
+            auto dirLight = std::make_shared<DirectionalLight>("MainLight", glm::vec3(0.5), glm::vec3(1, 1, 1), false);
+            auto pointLight = std::make_shared<PointLight>("PointLight", glm::vec3(1, 1, 1));
             //pointLight->SetPosition(glm::vec3(0, 0.1, 0));
             pointLight->SetPower(2);
             pointLight->SetParent(fpsCamera);

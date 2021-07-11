@@ -7,59 +7,62 @@
 
 #include <Assets/Image.hpp>
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Buffer/View.hpp>
 #include <Config.hpp>
 #include <Texture/PixelUtils.hpp>
 #include <Debug.hpp>
 
-#include <memory> // for allocator, shared_ptr
-#include <SDL_image.h> // for IMG_Load
-#include <SDL_pixels.h> // for SDL_PixelFormat, SDL_PIXELFORMAT...
-#include <SDL_rwops.h>             // for SDL_RWops
-#include <SDL_surface.h> // for SDL_Surface, SDL_UnlockSurface
+#include <memory>
+#include <SDL_image.h>
+#include <SDL_pixels.h>
+#include <SDL_rwops.h>
+#include <SDL_surface.h>
 #include <sstream>
-#include <stdlib.h> // for free, malloc, NULL
-#include <string>                 // for string
+#include <stdlib.h>
+#include <string>
+#include <glm/common.hpp>
+
+using namespace TabGraph::Assets;
 
 void SDL2ImageParser(const std::shared_ptr<Asset>&);
 
 auto SDL2MimesExtensions = {
-    AssetsParser::AddMimeExtension("image/tga", ".tga"),
-    AssetsParser::AddMimeExtension("image/bmp", ".bmp"),
-    AssetsParser::AddMimeExtension("image/x-portable-anymap", ".pnm"),
-    AssetsParser::AddMimeExtension("image/x-portable-graymap", ".pgm"),
-    AssetsParser::AddMimeExtension("image/x-portable-pixmap", ".ppm"),
-    AssetsParser::AddMimeExtension("image/x-xpixmap", ".xpm"),
-    AssetsParser::AddMimeExtension("image/xcf", ".xcf"),
-    AssetsParser::AddMimeExtension("image/x-pcx", ".pcx"),
-    AssetsParser::AddMimeExtension("image/gif", ".gif"),
-    AssetsParser::AddMimeExtension("image/jpeg", ".jpg"),
-    AssetsParser::AddMimeExtension("image/jpeg", ".jpeg"),
-    AssetsParser::AddMimeExtension("image/tiff", ".tif"),
-    AssetsParser::AddMimeExtension("image/tiff", ".tiff"),
-    AssetsParser::AddMimeExtension("image/x-ilbm", ".lbm"),
-    AssetsParser::AddMimeExtension("image/x-ilbm", ".iff"),
-    AssetsParser::AddMimeExtension("image/png", ".png")
+    Parser::AddMimeExtension("image/tga", ".tga"),
+    Parser::AddMimeExtension("image/bmp", ".bmp"),
+    Parser::AddMimeExtension("image/x-portable-anymap", ".pnm"),
+    Parser::AddMimeExtension("image/x-portable-graymap", ".pgm"),
+    Parser::AddMimeExtension("image/x-portable-pixmap", ".ppm"),
+    Parser::AddMimeExtension("image/x-xpixmap", ".xpm"),
+    Parser::AddMimeExtension("image/xcf", ".xcf"),
+    Parser::AddMimeExtension("image/x-pcx", ".pcx"),
+    Parser::AddMimeExtension("image/gif", ".gif"),
+    Parser::AddMimeExtension("image/jpeg", ".jpg"),
+    Parser::AddMimeExtension("image/jpeg", ".jpeg"),
+    Parser::AddMimeExtension("image/tiff", ".tif"),
+    Parser::AddMimeExtension("image/tiff", ".tiff"),
+    Parser::AddMimeExtension("image/x-ilbm", ".lbm"),
+    Parser::AddMimeExtension("image/x-ilbm", ".iff"),
+    Parser::AddMimeExtension("image/png", ".png")
 };
 
 auto SDL2MimesParsers = {
-    AssetsParser::Add("image/tga", SDL2ImageParser),
-    AssetsParser::Add("image/bmp", SDL2ImageParser),
-    AssetsParser::Add("image/x-portable-anymap", SDL2ImageParser),
-    AssetsParser::Add("image/x-portable-graymap", SDL2ImageParser),
-    AssetsParser::Add("image/x-portable-pixmap", SDL2ImageParser),
-    AssetsParser::Add("image/x-xpixmap", SDL2ImageParser),
-    AssetsParser::Add("image/xcf", SDL2ImageParser),
-    AssetsParser::Add("image/x-pcx", SDL2ImageParser),
-    AssetsParser::Add("image/gif", SDL2ImageParser),
-    AssetsParser::Add("image/jpeg", SDL2ImageParser),
-    AssetsParser::Add("image/jpeg", SDL2ImageParser),
-    AssetsParser::Add("image/tiff", SDL2ImageParser),
-    AssetsParser::Add("image/tiff", SDL2ImageParser),
-    AssetsParser::Add("image/x-ilbm", SDL2ImageParser),
-    AssetsParser::Add("image/x-ilbm", SDL2ImageParser),
-    AssetsParser::Add("image/png", SDL2ImageParser)
+    Parser::Add("image/tga", SDL2ImageParser),
+    Parser::Add("image/bmp", SDL2ImageParser),
+    Parser::Add("image/x-portable-anymap", SDL2ImageParser),
+    Parser::Add("image/x-portable-graymap", SDL2ImageParser),
+    Parser::Add("image/x-portable-pixmap", SDL2ImageParser),
+    Parser::Add("image/x-xpixmap", SDL2ImageParser),
+    Parser::Add("image/xcf", SDL2ImageParser),
+    Parser::Add("image/x-pcx", SDL2ImageParser),
+    Parser::Add("image/gif", SDL2ImageParser),
+    Parser::Add("image/jpeg", SDL2ImageParser),
+    Parser::Add("image/jpeg", SDL2ImageParser),
+    Parser::Add("image/tiff", SDL2ImageParser),
+    Parser::Add("image/tiff", SDL2ImageParser),
+    Parser::Add("image/x-ilbm", SDL2ImageParser),
+    Parser::Add("image/x-ilbm", SDL2ImageParser),
+    Parser::Add("image/png", SDL2ImageParser)
 };
 
 std::string hexToString(int hex)
@@ -76,14 +79,12 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& container)
     std::vector<std::byte> data;
     if (uri.GetScheme() == "data") {
         data = DataUri(uri).Decode();
-        if (data.empty()) {
-            auto& bufferView{ container->GetComponent<Buffer::View>() };
+        auto buffers = container->Get<TabGraph::Buffer::View>();
+        if (data.empty() && !buffers.empty()) {
+            auto& bufferView{ buffers.at(0) };
             if (bufferView != nullptr) { //We're loading raw bytes from a Buffer::View
                 bufferView->Load();
-                auto dataPtr{ bufferView->Get(0, bufferView->GetByteLength()) };
-                data = std::vector<std::byte>(
-                    dataPtr, dataPtr + bufferView->GetByteLength()
-                    );
+                data = std::vector<std::byte>(bufferView->begin(), bufferView->end());
             }
         }
         rwOps = SDL_RWFromMem(data.data(), data.size());
@@ -112,15 +113,15 @@ void SDL2ImageParser(const std::shared_ptr<Asset>& container)
         surface = newSurface;
     }
     const auto bufferSize{ surface->h * surface->pitch };
-    const auto pixelFormat = Pixel::SizedFormat::Uint8_NormalizedRGBA;
-    auto image = Component::Create<Image>(glm::ivec2(surface->w, surface->h), pixelFormat, std::vector((std::byte*)surface->pixels, (std::byte*)surface->pixels + bufferSize));
+    const auto pixelFormat = TabGraph::Pixel::SizedFormat::Uint8_NormalizedRGBA;
+    auto image = std::make_shared<Image>(glm::ivec2(surface->w, surface->h), pixelFormat, std::vector((std::byte*)surface->pixels, (std::byte*)surface->pixels + bufferSize));
     SDL_FreeSurface(surface);
     surface = nullptr;
     if (container->parsingOptions.image.maximumResolution != -1) {
         auto texRes{ glm::min(image->GetSize(), glm::ivec2(container->parsingOptions.image.maximumResolution)) };
         image->SetSize(texRes, Image::SamplingFilter::Bilinear);
     }
-    container->SetComponent(image);
+    container->assets.push_back(image);
     container->SetAssetType(Image::AssetType);
     container->SetLoaded(true);
 }

@@ -6,9 +6,9 @@
 */
 
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Assets/Image.hpp>
-#include <DispatchQueue.hpp>
+#include <Events/DispatchQueue.hpp>
 #include <Driver/OpenGL/Texture/PixelUtils.hpp>
 #include <Driver/OpenGL/Texture/Texture2D.hpp>
 #include <Events/Manager.hpp>
@@ -117,7 +117,7 @@ void Texture2D::Impl::_AllocateStorage()
 
 inline void Texture2D::Impl::_UploadImage()
 {
-    auto image { GetImage()->GetComponent<Image>() };
+    auto image { GetImage()->GetComponent<Assets::Image>() };
     assert(image != nullptr);
 
     SetSize(image->GetSize());
@@ -125,7 +125,7 @@ inline void Texture2D::Impl::_UploadImage()
         _pixelDescription = Pixel::SizedFormat::DXT5_RGBA;
         _AllocateStorage();
         _imageCompressionTaskID = DispatchQueue::ApplicationDispatchQueue().Dispatch([this] {
-            auto image { GetImage()->GetComponent<Image>() };
+            auto image { GetImage()->GetComponent<Assets::Image>() };
             _imageCompressionBuffer.resize(CompressedImage::GetCompressedSize(
                 image->GetSize().x, image->GetSize().y,
                 FasTC::ECompressionFormat::eCompressionFormat_DXT5));
@@ -146,7 +146,7 @@ inline void Texture2D::Impl::_UploadImage()
             auto& taskEvent { event.Get<Event::TaskComplete>() };
             if (taskEvent.taskID != _imageCompressionTaskID.taskID || taskEvent.dispatchQueueID != _imageCompressionTaskID.dispatchQueueID)
                 return;
-            auto image { GetImage()->GetComponent<Image>() };
+            auto image { GetImage()->GetComponent<Assets::Image>() };
             Bind();
             glCompressedTexSubImage2D(
                 OpenGL::GetEnum(Texture::Type::Texture2D),

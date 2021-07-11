@@ -11,7 +11,7 @@
 #include <glm/vec4.hpp>
 #include <vector>
 
-namespace Pixel {
+namespace TabGraph::Pixel {
 glm::vec4 LinearToSRGB(const glm::vec4& color);
 /**
  * @brief Performes bilinear filtering on the supplied colors

@@ -71,8 +71,8 @@ std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, f
             }
         }
     }
-    auto vg{ Component::Create<Geometry>(vertices, normals, texCoords, indices) };
-    /*auto vg = Component::Create<Geometry>(name);
+    auto vg{ std::make_shared<Geometry>(vertices, normals, texCoords, indices) };
+    /*auto vg = std::make_shared<Geometry>(name);
     vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(vertices, GL_ARRAY_BUFFER));
     vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(normals, GL_ARRAY_BUFFER, true));
     vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(texCoords, GL_ARRAY_BUFFER));
@@ -82,10 +82,10 @@ std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, f
 
 std::shared_ptr<Mesh> CapsuleMesh::Create(const std::string& name, float heigth, float radius, int sectorCount, int heightSubdivision)
 {
-    auto m = Component::Create<Mesh>(name);
+    auto m = std::make_shared<Mesh>(name);
     m->AddGeometry(
         CapsuleMesh::CreateGeometry(name + "Geometry", heigth, radius, sectorCount, heightSubdivision),
-        Component::Create<Material>(name + "Material")
+        std::make_shared<Material>(name + "Material")
     );
     return m;
 }

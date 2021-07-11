@@ -281,7 +281,7 @@ static inline auto ApplyTemporalJitter(glm::mat4 projMat)
 }
 
 namespace TabGraph::Cameras {
-Camera::Projection::Projection(PerspectiveInfinite data)
+Projection::Projection(PerspectiveInfinite data)
     : type(Type::PerspectiveInfinite)
     , _data(data)
     , _matrixFunctor([](const Projection& proj) {
@@ -291,7 +291,7 @@ Camera::Projection::Projection(PerspectiveInfinite data)
 {
 }
 
-Camera::Projection::Projection(Perspective data)
+Projection::Projection(Perspective data)
     : type(Type::Perspective)
     , _data(data)
     , _matrixFunctor([](const Projection& proj) {
@@ -301,7 +301,7 @@ Camera::Projection::Projection(Perspective data)
 {
 }
 
-Camera::Projection::Projection(Orthographic data)
+Projection::Projection(Orthographic data)
     : type(Type::Orthographic)
     , _data(data)
     , _matrixFunctor([](const Projection& proj) {
@@ -311,7 +311,7 @@ Camera::Projection::Projection(Orthographic data)
 {
 }
 
-Camera::Camera(const std::string& name, Camera::Projection proj)
+Camera::Camera(const std::string& name, Projection proj)
     : Inherit(name)
     , _projection(proj)
 {
@@ -340,16 +340,6 @@ std::array<glm::vec3, 8> Camera::ExtractFrustum()
 glm::mat4 Camera::GetViewMatrix()
 {
     return glm::inverse(GetWorldTransformMatrix());
-}
-
-const Camera::Projection& Camera::GetProjection() const
-{
-    return _projection;
-}
-
-void Camera::SetProjection(const Camera::Projection& proj)
-{
-    _projection = proj;
 }
 
 }

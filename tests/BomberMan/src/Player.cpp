@@ -7,8 +7,8 @@
 
 #include <Animation/Animation.hpp>
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
-#include <Camera/Camera.hpp>
+#include <Assets/Parser.hpp>
+#include <Cameras/Camera.hpp>
 #include <Engine.hpp>
 #include <Events/InputDevice/Keyboard.hpp>
 #include <Material/Material.hpp>
@@ -37,8 +37,8 @@ Player::Player(Level& level, const std::string& name, const glm::vec3& color)
 
 auto CreatePlayerAsset()
 {
-    auto playerAsset = Component::Create<Asset>(Engine::GetResourcePath() / "models/bomberman.gltf");
-    AssetsParser::AddParsingTask({ AssetsParser::ParsingTask::Type::Sync,
+    auto playerAsset = std::make_shared<Assets::Asset>(Engine::GetResourcePath() / "models/bomberman.gltf");
+    Assets::Parser::AddParsingTask({ Assets::Parser::ParsingTask::Type::Sync,
         playerAsset });
     playerAsset->GetComponent<Scene>()->GetComponent<Node>()->SetScale(glm::vec3(0.01f));
     return playerAsset;
@@ -46,7 +46,7 @@ auto CreatePlayerAsset()
 
 std::shared_ptr<Player> Player::Create(Level& level, const glm::vec3& color)
 {
-    auto player = Component::Create<Player>(level, "Player1", glm::vec3(1));
+    auto player = std::make_shared<Player>(level, "Player1", glm::vec3(1));
     static auto playerAsset = CreatePlayerAsset();
     auto playerAssetClone = playerAsset->GetComponent<Scene>()->Clone();
     auto playerNode = playerAssetClone->GetComponent<Node>();

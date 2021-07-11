@@ -8,11 +8,12 @@
 #include <Driver/OpenGL/Texture/TextureCubemap.hpp>
 #include <Driver/OpenGL/Texture/PixelUtils.hpp>
 #include <Assets/Asset.hpp>
-#include <Assets/AssetsParser.hpp>
+#include <Assets/Parser.hpp>
 #include <Assets/Image.hpp>
 
 #include <GL/glew.h>
 
+namespace TabGraph::Textures {
 TextureCubemap::Impl::Impl(const Impl& other)
     : Texture::Impl(other)
     , _size(other._size)
@@ -21,7 +22,7 @@ TextureCubemap::Impl::Impl(const Impl& other)
     _type = Texture::Type::TextureCubemap;
 }
 
-TextureCubemap::Impl::Impl(std::shared_ptr<Asset> image)
+TextureCubemap::Impl::Impl(std::shared_ptr<Assets::Asset> image)
     : Texture::Impl(Texture::Type::TextureCubemap)
     , _asset(image)
 {
@@ -38,19 +39,19 @@ void TextureCubemap::Impl::Load()
     if (GetLoaded())
         return;
     if (GetImage() != nullptr) {
-        AssetsParser::AddParsingTask({
-            AssetsParser::ParsingTask::Type::Sync,
+        Assets::Parser::AddParsingTask({
+            Assets::Parser::ParsingTask::Type::Sync,
             GetImage()
         });
-        auto image { GetImage()->GetComponent<Image>() };
-        assert(image != nullptr);
+        assert(!GetImage()->images.empty());
+        auto image { GetImage()->images.at(0) };
         SetSize(glm::ivec2(std::min(image->GetSize().x, image->GetSize().y)));
         SetPixelDescription(image->GetPixelDescription());
         _AllocateStorage();
-        std::array<std::shared_ptr<Image>, 6> sides;
+        std::array<std::shared_ptr<Assets::Image>, 6> sides;
         std::array<std::thread, 6> loadingThreads;
         for (auto sideIndex = 0; sideIndex < 6; ++sideIndex) {
-            sides.at(sideIndex) = Component::Create<Image>(GetSize(), GetPixelDescription());
+            sides.at(sideIndex) = std::make_shared<Assets::Image>(GetSize(), GetPixelDescription());
             loadingThreads.at(sideIndex) = std::thread(ExtractSide, image, sides.at(sideIndex), (TextureCubemap::Side)sideIndex);
         }
         for (auto sideIndex = 0; sideIndex < 6; ++sideIndex) {
@@ -77,7 +78,7 @@ void TextureCubemap::Impl::Load()
     SetLoaded(true);
 }
 
-void TextureCubemap::Impl::SetImage(std::shared_ptr<Asset> image)
+void TextureCubemap::Impl::SetImage(std::shared_ptr<Assets::Asset> image)
 {
     if (image == GetImage()) return;
     _asset = image;
@@ -92,7 +93,7 @@ void TextureCubemap::Impl::SetSize(const glm::ivec2 size)
     if (GetAutoMipMap()) SetMipMapNbr(MIPMAPNBR(GetSize()));
 }
 
-std::shared_ptr<Asset> TextureCubemap::Impl::GetImage() const
+std::shared_ptr<Assets::Asset> TextureCubemap::Impl::GetImage() const
 {
     return _asset;
 }
@@ -129,4 +130,5 @@ void TextureCubemap::Impl::_AllocateStorage()
         GetSize().x, GetSize().y
     );
     Done();
+}
 }

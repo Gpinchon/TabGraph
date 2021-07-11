@@ -31,7 +31,7 @@ public:
 private:
     virtual std::shared_ptr<Component> _Clone() override
     {
-        return Component::Create<BoundingAABB>(*this);
+        return std::make_shared<BoundingAABB>(*this);
     }
     glm::vec3 _min { 0 };
     glm::vec3 _max { 0 };

@@ -59,7 +59,7 @@ Texture::Impl::Impl(const Impl& other)
     , _textureSampler(other._textureSampler)
     , _mipMapNbr(other._mipMapNbr)
     , _autoMipMap(other._autoMipMap)
-    , _pixelDescription(other._pixelDescription)
+    , _PixelDescription(other._PixelDescription)
 {
 }
 
@@ -71,7 +71,7 @@ Texture::Impl::Impl(Texture::Type type)
 
 Texture::Impl::Impl(Texture::Type type, const Pixel::Description& description)
     : _type(type)
-    , _pixelDescription(description)
+    , _PixelDescription(description)
     , _textureSampler(std::make_shared<Textures::Sampler>())
 {
 }
@@ -95,7 +95,7 @@ void Texture::Impl::SetPixelDescription(const Pixel::Description& pixelDesc)
 {
     if (pixelDesc == GetPixelDescription())
         return;
-    _pixelDescription = pixelDesc;
+    _SetPixelDescription(pixelDesc);
     Unload();
 }
 }

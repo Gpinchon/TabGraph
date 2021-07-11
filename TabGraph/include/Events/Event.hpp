@@ -7,6 +7,9 @@
 
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Events/GameController.hpp>
 #include <Events/Keyboard.hpp>
 #include <Events/Mouse.hpp>
@@ -21,9 +24,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
-class Window;
-namespace TabGraph::Assets {
+namespace TabGraph{
+namespace Assets {
 class Asset;
+}
+namespace Core {
+class Window;
+}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -104,7 +111,7 @@ struct Event {
     struct Empty {
     };
     struct Keyboard {
-        std::shared_ptr<::Window> window { nullptr };
+        std::shared_ptr<Core::Window> window { nullptr };
         Events::Keyboard::Key key { Events::Keyboard::Key::Unknown };
         bool state { false }; //true if key down, false if key up
         bool repeat { false }; //true if repeat event
@@ -113,7 +120,7 @@ struct Event {
         bool shift { false }; //true if shift is pressed
     };
     struct TextInput {
-        std::shared_ptr<::Window> window { nullptr };
+        std::shared_ptr<Core::Window> window { nullptr };
         std::string text;
     };
     struct TextEdit : TextInput {
@@ -121,7 +128,7 @@ struct Event {
         size_t length { 0 };
     };
     struct Mouse {
-        std::shared_ptr<::Window> window { nullptr };
+        std::shared_ptr<Core::Window> window { nullptr };
         glm::ivec2 position { 0 }; //the Mouse position in pixels
     };
     struct MouseMove : Mouse {
@@ -167,7 +174,7 @@ struct Event {
             MaxValue
         };
         Type type { Type::Unknown };
-        std::shared_ptr<::Window> window { nullptr };
+        std::shared_ptr<Core::Window> window { nullptr };
     };
     struct User {
         uint32_t type;

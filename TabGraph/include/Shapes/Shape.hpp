@@ -30,6 +30,11 @@ struct ShapeRendererDeleter {
 namespace TabGraph::Shapes {
 class Shape : public Core::Inherit<Core::Object, Shape> {
 public:
+    Shape(const std::string& name) : Inherit(name) {}
+    Shape(const Shape& other)
+        : Inherit(other)
+        , _renderer(nullptr)
+    {}
     ~Shape();
     Renderer::ShapeRenderer& GetRenderer()
     {

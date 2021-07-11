@@ -81,7 +81,7 @@ public:
 
 private:
     virtual std::shared_ptr<Component> _Clone() override {
-        return Component::Create<RigidBody>(*this);
+        return std::make_shared<RigidBody>(*this);
     }
     glm::vec3 _totalForce { 0 };
     glm::vec3 _totalTorque { 0 };

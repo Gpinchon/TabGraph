@@ -4,9 +4,11 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2021-02-17 22:30:32
 */
-#include "Tools/Base.hpp"
+#include <Tools/Base.hpp>
 #include <cmath>
 #include <cassert>
+
+using namespace TabGraph::Tools;
 
 std::string Base64::Encode(const std::vector<std::byte>& data)
 {

@@ -10,9 +10,9 @@
 #include <Driver/OpenGL/Renderer/FrameRenderer.hpp>
 #endif
 
-namespace Renderer {
+namespace TabGraph::Renderer {
 
-std::shared_ptr<FrameRenderer> FrameRenderer::Create(std::weak_ptr<Window> window)
+std::shared_ptr<FrameRenderer> FrameRenderer::Create(std::weak_ptr<Core::Window> window)
 {
     std::shared_ptr<FrameRenderer> renderer(new FrameRenderer(window));
     return renderer;
@@ -28,7 +28,7 @@ void FrameRenderer::SetViewPort(const glm::ivec2& size)
     return SetViewPort(glm::ivec2(0), size);
 }
 
-FrameRenderer::FrameRenderer(std::weak_ptr<Window> window)
+FrameRenderer::FrameRenderer(std::weak_ptr<Core::Window> window)
     : _impl(new FrameRenderer::Impl(window, *this))
 {
 }
@@ -38,17 +38,17 @@ uint32_t FrameRenderer::GetFrameNumber() const
     return _impl->GetFrameNumber();
 }
 
-const std::shared_ptr<Window> FrameRenderer::GetWindow() const
+const std::shared_ptr<Core::Window> FrameRenderer::GetWindow() const
 {
     return _impl->GetWindow();
 }
 
-const std::shared_ptr<Geometry> FrameRenderer::GetDisplayQuad() const
+const std::shared_ptr<Shapes::Geometry> FrameRenderer::GetDisplayQuad() const
 {
     return _impl->GetDisplayQuad();
 }
 
-const std::shared_ptr<Texture2D> FrameRenderer::GetDefaultBRDFLUT() const
+const std::shared_ptr<Textures::Texture2D> FrameRenderer::GetDefaultBRDFLUT() const
 {
     return _impl->GetDefaultBRDFLUT();
 }
@@ -83,7 +83,7 @@ std::shared_ptr<Framebuffer> FrameRenderer::PreviousRenderBuffer()
     return _impl->PreviousRenderBuffer();
 }
 
-void Renderer::FrameRenderer::RenderFrame(std::shared_ptr<Scene> scene)
+void Renderer::FrameRenderer::RenderFrame(std::shared_ptr<Nodes::Scene> scene)
 {
     _impl->RenderFrame(scene);
 }

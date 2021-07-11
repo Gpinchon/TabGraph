@@ -8,7 +8,7 @@
 #include <Assets/Asset.hpp>
 #include <Assets/Parser.hpp>
 #include <Debug.hpp>
-#include <DispatchQueue.hpp>
+#include <Events/DispatchQueue.hpp>
 #include <Events/Manager.hpp>
 
 #include <assert.h>
@@ -21,7 +21,7 @@
 namespace TabGraph::Assets {
 static std::mutex s_parsingTaskMutex;
 static std::condition_variable s_cv;
-static std::set<std::weak_ptr<Asset>, std::owner_less<>> s_parsingAssets;
+static std::set<std::weak_ptr<Assets::Asset>, std::owner_less<>> s_parsingAssets;
 
 std::map<Parser::MimeType, std::unique_ptr<Parser>>& _getParsers()
 {
@@ -35,7 +35,7 @@ std::map<Parser::FileExtension, Parser::MimeType>& _getMimesExtensions()
     return s_mimesExtensions;
 }
 
-inline void NotifyLoaded(std::shared_ptr<Asset> asset)
+inline void NotifyLoaded(std::shared_ptr<Assets::Asset> asset)
 {
     Events::Event event;
     event.type = Events::Event::Type::AssetLoaded;
@@ -71,7 +71,7 @@ void Parser::AddParsingTask(const ParsingTask& parsingTask)
         NotifyLoaded(sharedAsset);
     } else {
         auto weakAsset { parsingTask.asset };
-        DispatchQueue::ApplicationDispatchQueue().Dispatch([weakAsset] {
+        Events::DispatchQueue::ApplicationDispatchQueue().Dispatch([weakAsset] {
             auto sharedAsset { weakAsset.lock() };
             std::unique_lock<std::mutex> lock(sharedAsset->GetLock());
             Parser::Parse(sharedAsset);
@@ -104,7 +104,7 @@ Parser::MimeExtensionPair Parser::AddMimeExtension(const MimeType& mime, const F
     return MimeExtensionPair(mime, extension);
 }
 
-bool Parser::Parse(std::shared_ptr<Asset> asset)
+bool Parser::Parse(std::shared_ptr<Assets::Asset> asset)
 {
     assert(asset != nullptr);
     auto uriScheme = asset->GetUri().GetScheme();

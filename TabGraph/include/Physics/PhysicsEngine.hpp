@@ -43,7 +43,7 @@ public:
 
 private:
     virtual std::shared_ptr<Component> _Clone() override {
-        return Component::Create<PhysicsEngine>(*this);
+        return std::make_shared<PhysicsEngine>(*this);
     }
     //TODO Fixe PhysicsEngine
     virtual void _FixedUpdateCPU(float /*delta*/);

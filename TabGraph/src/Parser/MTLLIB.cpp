@@ -6,7 +6,7 @@
 */
 
 #include "Assets/Asset.hpp"
-#include "Assets/AssetsParser.hpp"
+#include "Assets/Parser.hpp"
 #include "Assets/Image.hpp" // for ImageParser
 #include "Debug.hpp"
 #include "Material/Material.hpp" // for Material
@@ -22,14 +22,14 @@
 #include <string.h> // for strerror
 #include <vector> // for vector
 
-void ParseMTLLIB(const std::shared_ptr<Asset>);
+void ParseMTLLIB(const std::shared_ptr<Assets::Asset>);
 
 auto MTLLIBMimeExtension{
-    AssetsParser::AddMimeExtension("model/mtllib", ".mtl") //not standard but screw it.
+    Assets::Parser::AddMimeExtension("model/mtllib", ".mtl") //not standard but screw it.
 };
 
 auto MTLLIBMimesParsers{
-    AssetsParser::Add("model/mtllib", ParseMTLLIB)
+    Assets::Parser::Add("model/mtllib", ParseMTLLIB)
 };
 
 #ifdef _WIN32
@@ -45,7 +45,7 @@ std::shared_ptr<MetallicRoughness> GetOrCreateMetallicRoughnessExtention(std::sh
 {
     auto extension = std::static_pointer_cast<MetallicRoughness>(mtl->GetExtension("MetallicRoughness"));
     if (extension == nullptr) {
-        extension = Component::Create<MetallicRoughness>();
+        extension = std::make_shared<MetallicRoughness>();
         extension->SetMetallic(0.f);
         extension->SetRoughness(0.f);
         mtl->AddExtension(extension);
@@ -57,7 +57,7 @@ std::shared_ptr<SpecularGlossiness> GetOrCreateSpecularGlossinessExtention(std::
 {
     auto extension = std::static_pointer_cast<SpecularGlossiness>(mtl->GetExtension("SpecularGlossiness"));
     if (extension == nullptr) {
-        extension = Component::Create<SpecularGlossiness>();
+        extension = std::make_shared<SpecularGlossiness>();
         extension->SetSpecular(glm::vec3(0));
         mtl->AddExtension(extension);
     }
@@ -79,19 +79,19 @@ static inline void parse_color(std::vector<std::string>& split, std::shared_ptr<
 
 #include "Texture/Texture2D.hpp"
 
-std::unordered_map<std::string, std::shared_ptr<Texture2D>> textureDatabase;
+std::unordered_map<std::string, std::shared_ptr<Textures::Texture2D>> textureDatabase;
 
-auto GetOrCreateImage(std::filesystem::path path, std::shared_ptr<Asset> container)
+auto GetOrCreateImage(std::filesystem::path path, std::shared_ptr<Assets::Asset> container)
 {
     auto absolutePath = std::filesystem::absolute(path).string();
     if (textureDatabase[absolutePath] != nullptr)
         return textureDatabase[absolutePath];
-    auto asset = Component::Create<Asset>(absolutePath);
+    auto asset = std::make_shared<Assets::Asset>(absolutePath);
     asset->parsingOptions = container->parsingOptions;
-    return textureDatabase[absolutePath] = Component::Create<Texture2D>(asset);
+    return textureDatabase[absolutePath] = std::make_shared<Textures::Texture2D>(asset);
 }
 
-static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string& textureType, std::filesystem::path path, std::shared_ptr<Asset> container)
+static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string& textureType, std::filesystem::path path, std::shared_ptr<Assets::Asset> container)
 {
     try {
         if (textureType == "map_Kd") {
@@ -158,10 +158,10 @@ static inline void parse_number(std::vector<std::string>& split, std::shared_ptr
     }
 }
 
-static inline std::shared_ptr<Material> parse_mtl(FILE* fd, std::string& name, const std::filesystem::path& basePath, std::shared_ptr<Asset> container)
+static inline std::shared_ptr<Material> parse_mtl(FILE* fd, std::string& name, const std::filesystem::path& basePath, std::shared_ptr<Assets::Asset> container)
 {
     char line[4096];
-    auto mtl = Component::Create<Material>(name);
+    auto mtl = std::make_shared<Material>(name);
     fpos_t pos = 0;
     fgetpos(fd, &pos);
     while (fgets(line, 4096, fd) != nullptr) {
@@ -187,11 +187,11 @@ static inline std::shared_ptr<Material> parse_mtl(FILE* fd, std::string& name, c
     return mtl;
 }
 
-void ParseMTLLIB(std::shared_ptr<Asset> container)
+void ParseMTLLIB(std::shared_ptr<Assets::Asset> container)
 {
     char line[4096];
     auto uri{ container->GetUri() };
-    //std::shared_ptr<AssetsContainer> container = Component::Create<AssetsContainer>();
+    //std::shared_ptr<AssetsContainer> container = std::make_shared<AssetsContainer>();
     auto path{ uri.DecodePath() };
     if (access(path.string().c_str(), R_OK) != 0) {
         throw std::runtime_error(std::string("Can't access ") + path.string() + " : " + strerror(errno));

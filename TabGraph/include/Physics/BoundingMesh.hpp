@@ -19,6 +19,6 @@ public:
 
 private:
     virtual std::shared_ptr<Component> _Clone() override {
-        return Component::Create<BoundingMesh>(*this);
+        return std::make_shared<BoundingMesh>(*this);
     }
 };
