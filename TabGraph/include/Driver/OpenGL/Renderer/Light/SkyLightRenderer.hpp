@@ -6,33 +6,52 @@
 */
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Renderer/Light/LightRenderer.hpp>
 
 #include <glm/glm.hpp>
 #include <vector>
 
-class Geometry;
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph {
+namespace Lights {
 class SkyLight;
+}
+namespace Shapes {
+class Geometry;
+}
+namespace Textures {
 class TextureCubemap;
+}
+namespace Renderer {
 class Framebuffer;
+}
 namespace Shader {
 class Program;
-};
+}
+}
 
-namespace Renderer {
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Renderer {
 class SkyLightRenderer : public LightRenderer {
 public:
-    SkyLightRenderer(SkyLight&);
+    SkyLightRenderer(TabGraph::Lights::SkyLight&);
     virtual void Render(const Renderer::Options&) override;
-    virtual void UpdateLightProbe(const Renderer::Options&, LightProbe&) override;
+    virtual void UpdateLightProbe(const Renderer::Options&, TabGraph::Lights::Probe&) override;
 
 protected:
-    void _RenderDeferredLighting(SkyLight&, const Renderer::Options&);
-    void _RenderShadow(SkyLight&, const Renderer::Options&);
-    void _UpdateLUT(SkyLight&, const Renderer::Options&);
+    void _RenderDeferredLighting(TabGraph::Lights::SkyLight&, const Renderer::Options&);
+    void _RenderShadow(TabGraph::Lights::SkyLight&, const Renderer::Options&);
+    void _UpdateLUT(TabGraph::Lights::SkyLight&, const Renderer::Options&);
     std::shared_ptr<Framebuffer> _shadowBuffer;
     std::vector<glm::vec3> _SHDiffuse;
-    std::shared_ptr<TextureCubemap> _reflectionLUT;
+    std::shared_ptr<Textures::TextureCubemap> _reflectionLUT;
     std::shared_ptr<Shader::Program> _deferredShader;
     std::shared_ptr<Shader::Program> _probeShader;
     std::shared_ptr<Framebuffer> _diffuseLUTBuffer;

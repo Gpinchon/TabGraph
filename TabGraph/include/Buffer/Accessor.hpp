@@ -2,29 +2,22 @@
 * @Author: gpinchon
 * @Date:   2020-06-18 13:31:08
 * @Last Modified by:   gpinchon
-* @Last Modified time: 2021-07-01 22:30:43
+* @Last Modified time: 2021-07-21 21:49:52
 */
 #pragma once
 
 ////////////////////////////////////////////////////////////////////////////////
 // Includes
 ////////////////////////////////////////////////////////////////////////////////
+#include <Buffer/Iterator.hpp>
+#include <Buffer/View.hpp>
 #include <Core/Inherit.hpp>
 #include <Core/Object.hpp>
 #include <Core/Property.hpp>
-#include <Buffer/Iterator.hpp>
-#include <Buffer/View.hpp>
 
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
-
-////////////////////////////////////////////////////////////////////////////////
-// Forward declarations
-////////////////////////////////////////////////////////////////////////////////
-//namespace TabGraph::Buffer {
-//class View;
-//};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class declaration
@@ -35,7 +28,7 @@ namespace TabGraph::Buffer {
 * A bufferView contains raw binary data.
 * An accessor provides a typed view into a bufferView or a subset of a bufferView.
 */
-template<typename T>
+template <typename T>
 class Accessor : public Core::Inherit<Core::Object, Buffer::Accessor<T>> {
 public:
     PROPERTY(std::shared_ptr<Buffer::View>, BufferView, nullptr);
@@ -77,43 +70,52 @@ public:
     {
         GetBufferView()->SetType(Buffer::View::Type::Array);
     }
-    auto GetTypeSize() const {
+    auto GetTypeSize() const
+    {
         return sizeof(T);
     }
-    Iterator<T> begin() {
-        const auto& bufferView{ GetBufferView() };
+    Iterator<T> begin()
+    {
+        const auto& bufferView { GetBufferView() };
         bufferView->Load();
         return Iterator<T>(&bufferView->at(GetByteOffset()), bufferView->GetByteStride());
     }
-    const Iterator<T> begin() const {
-        const auto& bufferView{ GetBufferView() };
+    const Iterator<T> begin() const
+    {
+        const auto& bufferView { GetBufferView() };
         bufferView->Load();
         return Iterator<T>(&bufferView->at(GetByteOffset()), bufferView->GetByteStride());
     }
-    Iterator<T> end() {
-        const auto& bufferView{ GetBufferView() };
+    Iterator<T> end()
+    {
+        const auto& bufferView { GetBufferView() };
         bufferView->Load();
         return begin() + GetSize();
     }
-    const Iterator<T> end() const {
-        const auto& bufferView{ GetBufferView() };
+    const Iterator<T> end() const
+    {
+        const auto& bufferView { GetBufferView() };
         bufferView->Load();
         return begin() + GetSize();
     }
-    T& at(size_t index) {
+    T& at(size_t index)
+    {
         assert(index < GetSize());
         return *(begin() + index);
     }
-    const T& at(size_t index) const {
+    const T& at(size_t index) const
+    {
         assert(index < GetSize());
         return *(begin() + index);
     }
-    operator std::vector<T>() const {
+    operator std::vector<T>() const
+    {
         std::vector<T> vector;
         for (const auto& val : *this)
             vector.push_back(val);
         return vector;
     }
+
 private:
     Accessor();
 };

@@ -5,11 +5,16 @@
 * @Last Modified time: 2021-05-04 20:02:25
 */
 
-#include "Light/DirectionalLight.hpp"
-#include "SphericalHarmonics.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Light/DirectionalLight.hpp>
+#include <SphericalHarmonics.hpp>
 
-class TextureCubemap;
-
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Lights {
 class SkyLight : public DirectionalLight {
 public:
     SkyLight();
@@ -59,3 +64,4 @@ private:
     glm::vec3 _betaRayleigh { 5.5e-6, 13.0e-6, 22.4e-6 };
     glm::vec3 _betaMie { 21e-6 };
 };
+}

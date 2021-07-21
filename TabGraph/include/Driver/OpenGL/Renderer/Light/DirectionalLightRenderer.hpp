@@ -11,34 +11,44 @@
 
 #include <glm/glm.hpp>
 
-class Geometry;
-class Framebuffer;
+namespace TabGraph {
+namespace Lights {
 class DirectionalLight;
+}
+namespace Shapes {
+class Geometry;
+}
+namespace Textures {
+class TextureCubemap;
+}
+namespace Renderer {
+class Framebuffer;
+}
 namespace Shader {
 class Program;
+}
 }
 
 namespace TabGraph::Renderer {
 struct Options;
 class DirectionalLightRenderer : public LightRenderer {
 public:
-    DirectionalLightRenderer(DirectionalLight&);
+    DirectionalLightRenderer(TabGraph::Lights::DirectionalLight&);
     virtual void Render(const Renderer::Options&) override;
     virtual void UpdateLightProbe(const Renderer::Options& options, TabGraph::Lights::Probe&) override;
 
 protected:
-    void _RenderDeferredLighting(DirectionalLight&, const Renderer::Options&);
-    void _RenderShadow(DirectionalLight&, const Renderer::Options&);
-    void _RenderShadowInfinite(DirectionalLight&, const Renderer::Options&);
-    void _RenderShadowFinite(DirectionalLight&, const Renderer::Options&);
+    void _RenderDeferredLighting(TabGraph::Lights::DirectionalLight&, const Renderer::Options&);
+    void _RenderShadow(TabGraph::Lights::DirectionalLight&, const Renderer::Options&);
+    void _RenderShadowInfinite(TabGraph::Lights::DirectionalLight&, const Renderer::Options&);
+    void _RenderShadowFinite(TabGraph::Lights::DirectionalLight&, const Renderer::Options&);
     std::shared_ptr<Shader::Program> _deferredShader;
     std::shared_ptr<Shader::Program> _probeShader;
     std::shared_ptr<Framebuffer> _shadowBuffer;
-    std::shared_ptr<Geometry> _deferredGeometry;
+    std::shared_ptr<Shapes::Geometry> _deferredGeometry;
     std::vector<glm::vec3> _SHDiffuse;
 };
+glm::mat4 DirectionalLightShadowViewMatrix(TabGraph::Lights::DirectionalLight&);
+TabGraph::Cameras::Projection DirectionalLightShadowProjectionInfinite(TabGraph::Lights::DirectionalLight&, const TabGraph::Renderer::Options&);
+TabGraph::Cameras::Projection DirectionalLightShadowProjectionFinite(TabGraph::Lights::DirectionalLight&);
 };
-
-glm::mat4 DirectionalLightShadowViewMatrix(DirectionalLight&);
-TabGraph::Cameras::Projection DirectionalLightShadowProjectionInfinite(DirectionalLight&, const TabGraph::Renderer::Options&);
-TabGraph::Cameras::Projection DirectionalLightShadowProjectionFinite(DirectionalLight&);

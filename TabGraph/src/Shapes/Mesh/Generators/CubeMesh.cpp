@@ -5,10 +5,10 @@
 * @Last Modified time: 2021-01-11 08:46:21
 */
 
-#include "Surface/CubeMesh.hpp"
-#include "Material/Material.hpp" // for Material
-#include "Surface/Geometry.hpp" // for CVEC4, Geometry
-#include "Surface/Mesh.hpp" // for Mesh
+#include <Shapes/MeshGenerators/CubeMesh.hpp>
+#include <Material/Standard.hpp>
+#include <Shapes/Geometry.hpp>
+#include <Shapes/Mesh/Mesh.hpp>
 #include <vector> // for vector
 
 std::shared_ptr<Geometry> CubeMesh::CreateGeometry(const std::string& name, glm::vec3 size)
@@ -128,7 +128,7 @@ std::shared_ptr<Mesh> CubeMesh::Create(const std::string& name, glm::vec3 size)
     auto m = std::make_shared<Mesh>(name);
     m->AddGeometry(
         CubeMesh::CreateGeometry(name + "Geometry", size),
-        std::make_shared<Material>(name + "Material")
+        std::make_shared<Material::Standard>(name + "Material")
     );
     return (m);
 }

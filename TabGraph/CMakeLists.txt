@@ -142,6 +142,7 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/Camera.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/FPS.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/Orbit.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Cameras/Projection.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Common.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Compute/Object.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Config.hpp
@@ -249,6 +250,7 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/Camera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/FPS.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/Orbit.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Cameras/Projection.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Compute/Object.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp

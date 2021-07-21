@@ -6,8 +6,9 @@
 */
 #pragma once
 
-#include "Light/Light.hpp"
+#include <Light/Light.hpp>
 
+namespace TabGraph::Lights {
 class DirectionalLight : public Light {
     PROPERTY(int, ShadowResolution, 1024);
     PROPERTY(float, ShadowBlurRadius, 5.f / 256.f);
@@ -23,3 +24,5 @@ public:
     glm::vec3 GetMin() const;
     glm::vec3 GetMax() const;
 };
+}
+

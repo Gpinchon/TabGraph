@@ -6,21 +6,23 @@
 */
 
 #include <Cameras/Camera.hpp>
-#include <Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp>
+//#include <Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp>
 #include <Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp>
 #include <Driver/OpenGL/Texture/Framebuffer.hpp>
 #include <Light/SkyLight.hpp>
 #include <Renderer/FrameRenderer.hpp>
 #include <Renderer/Renderer.hpp>
-#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Renderer/Shapes/GeometryRenderer.hpp>
 #include <Shader/Program.hpp>
 #include <SphericalHarmonics.hpp>
-#include <Surface/CubeMesh.hpp>
+#include <Shapes/MeshGenerators/CubeMesh.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/TextureCubemap.hpp>
 #include <Texture/Sampler.hpp>
 
 #include <GL/glew.h>
+
+using namespace TabGraph;
 
 static inline auto DeferredSkyLightVertexCode()
 {
@@ -75,9 +77,9 @@ static inline auto SkyLightGeometry()
     return geometryPtr;
 }
 
-namespace Renderer {
+namespace TabGraph::Renderer {
 static SphericalHarmonics s_SH { 50 };
-SkyLightRenderer::SkyLightRenderer(SkyLight& light)
+SkyLightRenderer::SkyLightRenderer(TabGraph::Lights::SkyLight& light)
     : LightRenderer(light)
     , _diffuseLUTBuffer(std::make_shared<Framebuffer>(glm::ivec2(256)))
     , _deferredShader(std::make_shared<Shader::Program>("SkyLightShader"))
@@ -91,18 +93,18 @@ SkyLightRenderer::SkyLightRenderer(SkyLight& light)
 void SkyLightRenderer::Render(const Renderer::Options& options)
 {
     if (options.pass == Renderer::Options::Pass::DeferredLighting)
-        _RenderDeferredLighting(static_cast<SkyLight&>(_light), options);
+        _RenderDeferredLighting(static_cast<TabGraph::Lights::SkyLight&>(_light), options);
     else if (options.pass == Renderer::Options::Pass::ShadowDepth)
-        _RenderDeferredLighting(static_cast<SkyLight&>(_light), options);
+        _RenderDeferredLighting(static_cast<TabGraph::Lights::SkyLight&>(_light), options);
 }
 
-void SkyLightRenderer::UpdateLightProbe(const Renderer::Options& options, LightProbe& lightProbe)
+void SkyLightRenderer::UpdateLightProbe(const Renderer::Options& options, TabGraph::Lights::Probe& lightProbe)
 {
-    _UpdateLUT(static_cast<SkyLight&>(_light), options);
+    _UpdateLUT(static_cast<TabGraph::Lights::SkyLight&>(_light), options);
     //TODO really implement this
 }
 
-void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::Options& options)
+void SkyLightRenderer::_RenderDeferredLighting(TabGraph::Lights::SkyLight& light, const Renderer::Options& options)
 {
     if (_dirty) {
         _UpdateLUT(light, options);
@@ -113,9 +115,9 @@ void SkyLightRenderer::_RenderDeferredLighting(SkyLight& light, const Renderer::
     auto geometryBuffer = options.renderer->DeferredGeometryBuffer();
     glm::vec3 geometryPosition;
     if (light.GetInfinite())
-        geometryPosition = options.camera->WorldPosition();
+        geometryPosition = options.camera->GetWorldPosition();
     else
-        geometryPosition = light.GetParent() ? light.GetParent()->WorldPosition() + light.GetPosition() : light.GetPosition();
+        geometryPosition = light.GetParent() ? light.GetParent()->GetWorldPosition() + light.GetPosition() : light.GetPosition();
     if (light.GetCastShadow())
         _deferredShader->SetDefine("SHADOW");
     else

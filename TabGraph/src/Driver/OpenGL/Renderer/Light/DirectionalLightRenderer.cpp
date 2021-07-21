@@ -11,25 +11,29 @@
 #include <Driver/OpenGL/Texture/Framebuffer.hpp>
 #include <Light/DirectionalLight.hpp>
 #include <Light/LightProbe.hpp>
+#include <Nodes/Group.hpp>
 #include <Renderer/FrameRenderer.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/SceneRenderer.hpp>
-#include <Renderer/Surface/GeometryRenderer.hpp>
+#include <Renderer/Shapes/GeometryRenderer.hpp>
 #include <Shader/Global.hpp>
 #include <Shader/Program.hpp>
 #include <SphericalHarmonics.hpp>
-#include <Surface/CubeMesh.hpp>
+#include <Shapes/MeshGenerators/CubeMesh.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/Sampler.hpp>
 #include <Window.hpp>
 
 #include <GL/glew.h>
 #include <array>
+#include <glm/gtx/transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+
+using namespace TabGraph;
 
 static inline auto DirectionnalLightGeometry()
 {
-    static std::weak_ptr<Geometry> s_geometry;
+    static std::weak_ptr<Shapes::Geometry> s_geometry;
     auto geometryPtr = s_geometry.lock();
     if (geometryPtr == nullptr) {
         geometryPtr = CubeMesh::CreateGeometry("DirectionnalLightGeometry", glm::vec3(1));
@@ -97,8 +101,8 @@ static inline auto ProbeDirectionnalLightShader()
     return shaderPtr;
 }
 
-namespace Renderer {
-DirectionalLightRenderer::DirectionalLightRenderer(DirectionalLight& light)
+namespace TabGraph::Renderer {
+DirectionalLightRenderer::DirectionalLightRenderer(TabGraph::Lights::DirectionalLight& light)
     : LightRenderer(light)
 {
     _probeShader = ProbeDirectionnalLightShader();
@@ -108,14 +112,14 @@ DirectionalLightRenderer::DirectionalLightRenderer(DirectionalLight& light)
 void DirectionalLightRenderer::Render(const Renderer::Options& options)
 {
     if (options.pass == Renderer::Options::Pass::ShadowDepth)
-        _RenderShadow(static_cast<DirectionalLight&>(_light), options);
+        _RenderShadow(static_cast<TabGraph::Lights::DirectionalLight&>(_light), options);
     else if (options.pass == Renderer::Options::Pass::DeferredLighting)
-        _RenderDeferredLighting(static_cast<DirectionalLight&>(_light), options);
+        _RenderDeferredLighting(static_cast<TabGraph::Lights::DirectionalLight&>(_light), options);
 }
 
-void DirectionalLightRenderer::UpdateLightProbe(const Renderer::Options& options, LightProbe& lightProbe)
+void DirectionalLightRenderer::UpdateLightProbe(const Renderer::Options& options, TabGraph::Lights::Probe& lightProbe)
 {
-    auto& dirLight { static_cast<DirectionalLight&>(_light) };
+    auto& dirLight { static_cast<TabGraph::Lights::DirectionalLight&>(_light) };
     if (_dirty) {
         _SHDiffuse = lightProbe.GetSphericalHarmonics().ProjectFunction(
             [&](const SphericalHarmonics::Sample& sample) {
@@ -137,14 +141,14 @@ void DirectionalLightRenderer::UpdateLightProbe(const Renderer::Options& options
     OpenGL::Framebuffer::Bind(nullptr);
 }
 
-void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, const Renderer::Options& options)
+void DirectionalLightRenderer::_RenderDeferredLighting(TabGraph::Lights::DirectionalLight& light, const Renderer::Options& options)
 {
     auto geometryBuffer = options.renderer->DeferredGeometryBuffer();
     glm::vec3 geometryPosition;
     if (light.GetInfinite())
-        geometryPosition = options.camera->WorldPosition();
+        geometryPosition = options.camera->GetWorldPosition();
     else
-        geometryPosition = light.GetParent() ? light.GetParent()->WorldPosition() + light.GetPosition() : light.GetPosition();
+        geometryPosition = light.GetParent() ? light.GetParent()->GetWorldPosition() + light.GetLocalPosition() : light.GetLocalPosition();
     if (light.GetCastShadow()) {
         _deferredShader->SetDefine("SHADOWBLURRADIUS", std::to_string(light.GetShadowBlurRadius()));
         _deferredShader->SetDefine("SHADOW");
@@ -171,7 +175,7 @@ void DirectionalLightRenderer::_RenderDeferredLighting(DirectionalLight& light, 
     _deferredShader->Done();
 }
 
-void DirectionalLightRenderer::_RenderShadow(DirectionalLight& light, const Renderer::Options& options)
+void DirectionalLightRenderer::_RenderShadow(TabGraph::Lights::DirectionalLight& light, const Renderer::Options& options)
 {
     if (light.GetCastShadow()) {
         auto shadowRes { glm::ivec2(light.GetShadowResolution()) };
@@ -188,11 +192,11 @@ void DirectionalLightRenderer::_RenderShadow(DirectionalLight& light, const Rend
     }
 }
 
-void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, const Renderer::Options& options)
+void DirectionalLightRenderer::_RenderShadowInfinite(TabGraph::Lights::DirectionalLight& light, const Renderer::Options& options)
 {
-    auto radius = glm::distance(light.WorldPosition(), light.GetMax());
-    auto camPos = light.WorldPosition() - light.GetDirection() * radius;
-    static std::shared_ptr<Camera> tempCamera(new Camera("dirLightCamera"));
+    auto radius = glm::distance(light.GetWorldPosition(), light.GetMax());
+    auto camPos = light.GetWorldPosition() - light.GetDirection() * radius;
+    static auto tempCamera(std::make_shared<Cameras::Camera>("dirLightCamera"));
     const auto projection { DirectionalLightShadowProjectionInfinite(light, options) };
     const auto viewMatrix { DirectionalLightShadowViewMatrix(light) };
     {
@@ -202,9 +206,9 @@ void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, co
         glm::vec3 skew;
         glm::vec4 perspective;
         glm::decompose(viewMatrix, scale, rotation, translation, skew, perspective);
-        tempCamera->SetPosition(translation);
-        tempCamera->SetRotation(rotation);
-        tempCamera->SetScale(scale);
+        tempCamera->SetLocalPosition(translation);
+        tempCamera->SetLocalRotation(rotation);
+        tempCamera->SetLocalScale(scale);
         tempCamera->SetProjection(projection);
     }
 
@@ -220,16 +224,16 @@ void DirectionalLightRenderer::_RenderShadowInfinite(DirectionalLight& light, co
     Renderer::Render(options.scene, { Renderer::Options::Pass::ShadowDepth, Renderer::Options::Mode::All, tempCamera, options.scene, options.renderer, options.frameNumber, options.delta });
     OpenGL::Framebuffer::Bind(nullptr);
     //options.scene->SetCurrentCamera(camera);
-    Shader::Global::SetUniform("Camera.Position", options.camera->WorldPosition());
+    Shader::Global::SetUniform("Camera.Position", options.camera->GetWorldPosition());
     Shader::Global::SetUniform("Camera.Matrix.View", options.camera->GetViewMatrix());
     Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjection());
 }
 
-void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, const Renderer::Options& options)
+void DirectionalLightRenderer::_RenderShadowFinite(TabGraph::Lights::DirectionalLight& light, const Renderer::Options& options)
 {
-    auto radius = glm::distance(light.WorldPosition(), light.GetMax());
-    auto camPos = light.WorldPosition() - light.GetDirection() * radius;
-    static std::shared_ptr<Camera> tempCamera(new Camera("dirLightCamera"));
+    auto radius = glm::distance(light.GetWorldPosition(), light.GetMax());
+    auto camPos = light.GetWorldPosition() - light.GetDirection() * radius;
+    static auto tempCamera(std::make_shared<Cameras::Camera>("dirLightCamera"));
     const auto projection { DirectionalLightShadowProjectionFinite(light) };
     const auto viewMatrix { DirectionalLightShadowViewMatrix(light) };
     {
@@ -239,9 +243,9 @@ void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, cons
         glm::vec3 skew;
         glm::vec4 perspective;
         glm::decompose(viewMatrix, scale, rotation, translation, skew, perspective);
-        tempCamera->SetPosition(translation);
-        tempCamera->SetRotation(rotation);
-        tempCamera->SetScale(scale);
+        tempCamera->SetLocalPosition(translation);
+        tempCamera->SetLocalRotation(rotation);
+        tempCamera->SetLocalScale(scale);
         tempCamera->SetProjection(projection);
     }
 
@@ -257,11 +261,10 @@ void DirectionalLightRenderer::_RenderShadowFinite(DirectionalLight& light, cons
     Renderer::Render(options.scene, { Renderer::Options::Pass::ShadowDepth, Renderer::Options::Mode::All, tempCamera, options.scene, options.renderer, options.frameNumber, options.delta });
     OpenGL::Framebuffer::Bind(nullptr);
     //options.scene->SetCurrentCamera(camera);
-    Shader::Global::SetUniform("Camera.Position", options.camera->WorldPosition());
+    Shader::Global::SetUniform("Camera.Position", options.camera->GetWorldPosition());
     Shader::Global::SetUniform("Camera.Matrix.View", options.camera->GetViewMatrix());
     Shader::Global::SetUniform("Camera.Matrix.Projection", options.camera->GetProjection());
 }
-};
 
 static inline auto GetUp(const glm::vec3& direction)
 {
@@ -271,14 +274,14 @@ static inline auto GetUp(const glm::vec3& direction)
     return up;
 }
 
-glm::mat4 DirectionalLightShadowViewMatrix(DirectionalLight& light)
+glm::mat4 DirectionalLightShadowViewMatrix(TabGraph::Lights::DirectionalLight& light)
 {
-    auto radius = glm::distance(light.WorldPosition(), light.GetMax());
-    auto camPos = light.WorldPosition() - light.GetDirection() * radius;
-    return glm::lookAt(camPos, light.WorldPosition(), GetUp(light.GetDirection()));
+    auto radius = glm::distance(light.GetWorldPosition(), light.GetMax());
+    auto camPos = light.GetWorldPosition() - light.GetDirection() * radius;
+    return glm::lookAt(camPos, light.GetWorldPosition(), GetUp(light.GetDirection()));
 }
 
-Camera::Projection DirectionalLightShadowProjectionInfinite(DirectionalLight& light, const Renderer::Options& options)
+Cameras::Projection DirectionalLightShadowProjectionInfinite(TabGraph::Lights::DirectionalLight& light, const Renderer::Options& options)
 {
     auto viewMatrix = DirectionalLightShadowViewMatrix(light);
 
@@ -297,12 +300,14 @@ Camera::Projection DirectionalLightShadowProjectionInfinite(DirectionalLight& li
     auto limits = glm::vec4(minOrtho.x, maxOrtho.x, minOrtho.y, maxOrtho.y);
     auto zfar = -maxOrtho.z;
     auto znear = -minOrtho.z;
-    return Camera::Projection::Orthographic {
+    Cameras::Projection proj = Cameras::Projection::Orthographic{
         maxOrtho.x - minOrtho.x, maxOrtho.y - minOrtho.y, znear, zfar
     };
+    proj.SetTemporalJitterIntensity(0);
+    return proj;
 }
 
-Camera::Projection DirectionalLightShadowProjectionFinite(DirectionalLight& light)
+Cameras::Projection DirectionalLightShadowProjectionFinite(TabGraph::Lights::DirectionalLight& light)
 {
     auto viewMatrix = DirectionalLightShadowViewMatrix(light);
 
@@ -329,7 +334,10 @@ Camera::Projection DirectionalLightShadowProjectionFinite(DirectionalLight& ligh
     auto limits = glm::vec4(minOrtho.x, maxOrtho.x, minOrtho.y, maxOrtho.y);
     auto zfar = -maxOrtho.z;
     auto znear = -minOrtho.z;
-    return Camera::Projection::Orthographic {
+    Cameras::Projection proj = Cameras::Projection::Orthographic {
         maxOrtho.x - minOrtho.x, maxOrtho.y - minOrtho.y, znear, zfar
     };
+    proj.SetTemporalJitterIntensity(0);
+    return proj;
+}
 }

@@ -11,10 +11,13 @@
 #include <memory> // for shared_ptr
 #include <string> // for string
 
+namespace TabGraph::Shapes {
 class Mesh;
 class Geometry;
+}
 
-namespace CubeMesh {
-std::shared_ptr<Mesh> Create(const std::string& name, glm::vec3 size);
-std::shared_ptr<Geometry> CreateGeometry(const std::string& name, glm::vec3 size);
+
+namespace TabGraph::MeshGenerator::Cube{
+std::shared_ptr<Shapes::Mesh> Create(const std::string& name, glm::vec3 size);
+std::shared_ptr<Shapes::Geometry> CreateGeometry(const std::string& name, glm::vec3 size);
 };

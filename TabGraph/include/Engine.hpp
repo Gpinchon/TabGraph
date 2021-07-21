@@ -44,7 +44,9 @@ public:
     void Start(void);
     /** @brief Tells the Engine to stop the loop */
     void Stop(void);
+    /** @brief Called 60 times per seconds at best */
     Events::Signal<float>& OnFixedUpdate();
+    /** @brief Called on every loop */
     Events::Signal<float>& OnUpdate();
 
     /** @return See https://wiki.libsdl.org/SDL_GetBasePath */
