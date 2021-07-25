@@ -55,6 +55,6 @@ protected:
     std::shared_ptr<Shader::Program> _deferredShader;
     std::shared_ptr<Shader::Program> _probeShader;
     std::shared_ptr<Framebuffer> _diffuseLUTBuffer;
-    std::shared_ptr<Geometry> _deferredGeometry;
+    std::shared_ptr<Shapes::Geometry> _deferredGeometry;
 };
 };

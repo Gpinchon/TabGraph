@@ -11,6 +11,7 @@
 // Includes
 ////////////////////////////////////////////////////////////////////////////////
 #include <Cameras/Camera.hpp>
+#include <Cameras/Projection.hpp>
 #include <Core/Inherit.hpp>
 #include <Core/Property.hpp>
 
@@ -24,7 +25,7 @@ class FPS : public Core::Inherit<Camera, FPS> {
     READONLYPROPERTY(float, Roll, 0);
 
 public:
-    FPS(const std::string& name, Camera::Projection proj = Projection::PerspectiveInfinite());
+    FPS(const std::string& name, Projection proj = Projection::PerspectiveInfinite());
     void SetYaw(float);
     void SetPitch(float);
     void SetRoll(float);

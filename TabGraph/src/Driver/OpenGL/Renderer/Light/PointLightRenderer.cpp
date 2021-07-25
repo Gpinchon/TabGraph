@@ -13,7 +13,7 @@
 #include <Renderer/Shapes/GeometryRenderer.hpp>
 #include <Shader/Program.hpp>
 #include <Shader/Stage.hpp>
-#include <Shapes/Mesh/Generators/SphereMesh.hpp>
+#include <Shapes/Generators/Sphere.hpp>
 #include <Texture/Texture2D.hpp>
 
 #include <glm/gtx/transform.hpp>
@@ -23,10 +23,10 @@ namespace TabGraph::Renderer {
 
 static inline auto PointLightGeometry()
 {
-    static std::weak_ptr<Geometry> s_geometry;
+    static std::weak_ptr<Shapes::Geometry> s_geometry;
     auto geometryPtr = s_geometry.lock();
     if (geometryPtr == nullptr) {
-        geometryPtr = SphereMesh::CreateGeometry("PointLightGeometry", 1, 1);
+        geometryPtr = Shapes::Generators::Sphere::CreateGeometry("PointLightGeometry", 1, 1);
         s_geometry = geometryPtr;
     }
     return geometryPtr;

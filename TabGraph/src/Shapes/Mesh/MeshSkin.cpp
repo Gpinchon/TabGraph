@@ -2,7 +2,6 @@
 
 #include <algorithm>
 
-
 namespace TabGraph::Shapes {
 Mesh::Skin::Skin()
     : Inherit()

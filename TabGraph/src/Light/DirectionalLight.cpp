@@ -13,6 +13,7 @@
 
 #include <glm/glm.hpp>
 
+namespace TabGraph::Lights {
 DirectionalLight::DirectionalLight()
     : Light()
 {
@@ -41,22 +42,23 @@ void DirectionalLight::SetDirection(const glm::vec3& direction)
 
 glm::vec3 DirectionalLight::GetHalfSize() const
 {
-    return GetScale() / 2.f;
+    return GetLocalScale() / 2.f;
 }
 
 void DirectionalLight::SetHalfSize(const glm::vec3& halfSize)
 {
     if (halfSize != GetHalfSize())
         GetRenderer().FlagDirty();
-    SetScale(halfSize * 2.f);
+    SetLocalScale(halfSize * 2.f);
 }
 
 glm::vec3 DirectionalLight::GetMin() const
 {
-    return WorldPosition() - GetHalfSize();
+    return GetWorldPosition() - GetHalfSize();
 }
 
 glm::vec3 DirectionalLight::GetMax() const
 {
-    return WorldPosition() + GetHalfSize();
+    return GetWorldPosition() + GetHalfSize();
+}
 }

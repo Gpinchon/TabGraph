@@ -147,7 +147,7 @@ void View::Load()
     if (bufferAsset != nullptr) {
         Assets::Parser::AddParsingTask({ Assets::Parser::ParsingTask::Type::Sync,
             bufferAsset });
-        auto &bufferAssetData = bufferAsset->binaryDatas.at(0);
+        auto bufferAssetData = bufferAsset->Get<Assets::BinaryData>().at(0);
         assert(bufferAssetData != nullptr);
         if (GetByteLength() == 0) //We do not know this View's length yet
             SetByteLength(bufferAssetData->GetByteLength());

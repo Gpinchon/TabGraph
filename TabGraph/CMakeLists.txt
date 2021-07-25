@@ -177,13 +177,13 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Group.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Renderable.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Nodes/Scene.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Generators/Capsule.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Generators/Cube.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Generators/Plane.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Generators/Sphere.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Geometry.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Mesh.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/MeshSkin.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Generators/CapsuleMesh.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Generators/CubeMesh.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Generators/PlaneMesh.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Mesh/Generators/SphereMesh.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Skybox.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Shapes/Shape.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Physics/BoundingAABB.hpp
@@ -270,15 +270,15 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/Standard.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/MetallicRoughness.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Material/SpecularGlossiness.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Generators/Capsule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Generators/Cube.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Generators/Plane.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Generators/Sphere.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Geometry.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Shape.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Skybox.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Mesh.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/MeshSkin.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Generators/CapsuleMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Generators/CubeMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Generators/PlaneMesh.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Mesh/Generators/SphereMesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Shape.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Shapes/Skybox.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingAABB.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingBox.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/BoundingElement.cpp

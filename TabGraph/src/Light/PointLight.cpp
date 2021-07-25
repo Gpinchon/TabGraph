@@ -9,12 +9,12 @@
 #if RENDERINGAPI == OpenGL
 #include <Driver/OpenGL/Renderer/Light/PointLightRenderer.hpp>
 #endif
-
+namespace TabGraph::Lights {
 PointLight::PointLight(const std::string& name, glm::vec3 color, bool cast_shadow)
-    : Light()
+    : Inherit(name)
 {
     _renderer.reset(new Renderer::PointLightRenderer(*this));
-    SetName(name);
     SetColor(color);
     SetCastShadow(cast_shadow);
+}
 }

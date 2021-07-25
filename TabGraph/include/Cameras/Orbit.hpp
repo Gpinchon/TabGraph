@@ -11,6 +11,7 @@
 // Includes
 ////////////////////////////////////////////////////////////////////////////////
 #include <Cameras/Camera.hpp>
+#include <Cameras/Projection.hpp>
 #include <Core/Inherit.hpp>
 #include <Core/Property.hpp>
 
@@ -25,7 +26,7 @@ public:
     READONLYPROPERTY(float, Radius, 0.f);
 
 public:
-    Orbit(const std::string&, float phi, float theta, float radius, Camera::Projection proj = Projection::PerspectiveInfinite());
+    Orbit(const std::string&, float phi, float theta, float radius, Projection proj = Projection::PerspectiveInfinite());
     std::shared_ptr<Node> Target() const;
     void SetTarget(const std::shared_ptr<Node> target);
     void SetPhi(float);

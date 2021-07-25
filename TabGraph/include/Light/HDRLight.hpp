@@ -25,7 +25,7 @@ namespace Textures {
 class TextureCubemap;
 }
 namespace Assets {
-class Asset;
+    class Asset;
 }
 }
 
@@ -34,19 +34,29 @@ class Asset;
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Lights {
 class HDRLight : public Core::Inherit<Light, HDRLight> {
-    READONLYPROPERTY(std::shared_ptr<Textures::TextureCubemap>, Reflection, nullptr);
+    READONLYPROPERTY(std::shared_ptr<Assets::Asset>, HDRImage, nullptr);
+    READONLYPROPERTY(std::shared_ptr<Textures::TextureCubemap>, HDRTexture, nullptr);
     PROPERTY(bool, Infinite, true);
 
 public:
-    HDRLight(std::shared_ptr<Assets::Asset> hdrTexture);
-    glm::vec3 GetHalfSize() const;
-    void SetHalfSize(const glm::vec3& halfSize);
-    glm::vec3 GetMin() const;
-    glm::vec3 GetMax() const;
-    void SetHDRTexture(std::shared_ptr<Assets::Asset> hdrTexture);
-    std::shared_ptr<Assets::Asset> GetHDRTexture();
-private:
-    std::shared_ptr<Assets::Asset> _HDRTexture;
+    HDRLight(const std::string& name, std::shared_ptr<Assets::Asset> image);
+    inline glm::vec3 GetHalfSize() const
+    {
+        return GetLocalScale() / 2.f;
+    }
+    inline void SetHalfSize(const glm::vec3& halfSize)
+    {
+        SetLocalScale(halfSize * 2.f);
+    }
+    inline glm::vec3 GetMin() const
+    {
+        return GetWorldPosition() - GetHalfSize();
+    }
+    inline glm::vec3 GetMax() const
+    {
+        return GetWorldPosition() + GetHalfSize();
+    }
+    void SetHDRImage(std::shared_ptr<Assets::Asset> image);
 };
 
 }

@@ -48,6 +48,7 @@ public:
     PROPERTY(T, Max, 0);
 
 public:
+    Accessor();
     Accessor(std::shared_ptr<Buffer::View> bufferView)
         : Inherit()
     {
@@ -115,8 +116,5 @@ public:
             vector.push_back(val);
         return vector;
     }
-
-private:
-    Accessor();
 };
 }

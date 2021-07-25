@@ -6,21 +6,24 @@
 */
 
 #include <Cameras/Camera.hpp>
-//#include <Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp>
 #include <Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp>
+#include <Driver/OpenGL/Renderer/Light/DirectionalLightRenderer.hpp>
 #include <Driver/OpenGL/Texture/Framebuffer.hpp>
 #include <Light/SkyLight.hpp>
+#include <Nodes/Group.hpp>
 #include <Renderer/FrameRenderer.hpp>
 #include <Renderer/Renderer.hpp>
 #include <Renderer/Shapes/GeometryRenderer.hpp>
 #include <Shader/Program.hpp>
 #include <SphericalHarmonics.hpp>
-#include <Shapes/MeshGenerators/CubeMesh.hpp>
+#include <Shapes/Geometry.hpp>
+#include <Shapes/Generators/Cube.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/TextureCubemap.hpp>
 #include <Texture/Sampler.hpp>
 
 #include <GL/glew.h>
+#include <glm/gtx/transform.hpp>
 
 using namespace TabGraph;
 
@@ -68,10 +71,10 @@ auto SkyLightLUTShader()
 
 static inline auto SkyLightGeometry()
 {
-    static std::weak_ptr<Geometry> s_geometry;
+    static std::weak_ptr<Shapes::Geometry> s_geometry;
     auto geometryPtr = s_geometry.lock();
     if (geometryPtr == nullptr) {
-        geometryPtr = CubeMesh::CreateGeometry("SkyLightGeometry", glm::vec3(1));
+        geometryPtr = Shapes::Generators::Cube::CreateGeometry("SkyLightGeometry", glm::vec3(1));
         s_geometry = geometryPtr;
     }
     return geometryPtr;
@@ -117,7 +120,7 @@ void SkyLightRenderer::_RenderDeferredLighting(TabGraph::Lights::SkyLight& light
     if (light.GetInfinite())
         geometryPosition = options.camera->GetWorldPosition();
     else
-        geometryPosition = light.GetParent() ? light.GetParent()->GetWorldPosition() + light.GetPosition() : light.GetPosition();
+        geometryPosition = light.GetParent() ? light.GetParent()->GetWorldPosition() + light.GetLocalPosition() : light.GetWorldPosition();
     if (light.GetCastShadow())
         _deferredShader->SetDefine("SHADOW");
     else
@@ -142,7 +145,7 @@ void SkyLightRenderer::_RenderDeferredLighting(TabGraph::Lights::SkyLight& light
     Renderer::Render(_deferredGeometry, true);
     _deferredShader->Done();
 }
-void SkyLightRenderer::_UpdateLUT(SkyLight& light, const Renderer::Options& options)
+void SkyLightRenderer::_UpdateLUT(TabGraph::Lights::SkyLight& light, const Renderer::Options& options)
 {
     if (!_dirty)
         return;
@@ -151,7 +154,7 @@ void SkyLightRenderer::_UpdateLUT(SkyLight& light, const Renderer::Options& opti
             return min(light.GetIncidentLight(sample.vec), 1.f);
         });
     if (_reflectionLUT == nullptr) {
-        _reflectionLUT = std::make_shared<TextureCubemap>(glm::ivec2(256), Pixel::SizedFormat::Float16_RGB);
+        _reflectionLUT = std::make_shared<Textures::TextureCubemap>(glm::ivec2(256), Pixel::SizedFormat::Float16_RGB);
     }
     static auto s_diffuseLUTBuffer = std::make_shared<Framebuffer>(glm::ivec2(256));
     s_diffuseLUTBuffer->SetColorBuffer(_reflectionLUT, 0);

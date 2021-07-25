@@ -5,13 +5,16 @@
 * @Last Modified time: 2021-01-11 08:46:21
 */
 
-#include <Shapes/MeshGenerators/CubeMesh.hpp>
+#include <Shapes/Generators/Cube.hpp>
 #include <Material/Standard.hpp>
 #include <Shapes/Geometry.hpp>
 #include <Shapes/Mesh/Mesh.hpp>
-#include <vector> // for vector
 
-std::shared_ptr<Geometry> CubeMesh::CreateGeometry(const std::string& name, glm::vec3 size)
+#include <glm/vec3.hpp>
+#include <vector>
+
+namespace TabGraph::Shapes::Generators::Cube {
+std::shared_ptr<Geometry> CreateGeometry(const std::string& name, const glm::vec3& size)
 {
     static std::vector<glm::vec3> cubeVertices {
         { -0.50f, -0.50f, 0.50f }, // back
@@ -115,20 +118,16 @@ std::shared_ptr<Geometry> CubeMesh::CreateGeometry(const std::string& name, glm:
         v *= size;
     }
     auto vg{ std::make_shared<Geometry>(thisCubeVertices, cubeNormals, cubeTexCoords, cubeIndices) };
-    /*auto vg = std::make_shared<Geometry>(name);
-    vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(thisCubeVertices, GL_ARRAY_BUFFER));
-    vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(cubeNormals, GL_ARRAY_BUFFER, true));
-    vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(cubeTexCoords, GL_ARRAY_BUFFER));
-    vg->SetIndices(BufferHelper::CreateAccessor(cubeIndices, GL_ELEMENT_ARRAY_BUFFER));*/
     return vg;
 }
 
-std::shared_ptr<Mesh> CubeMesh::Create(const std::string& name, glm::vec3 size)
+std::shared_ptr<Shapes::Mesh> CreateMesh(const std::string& name, const glm::vec3& size)
 {
     auto m = std::make_shared<Mesh>(name);
     m->AddGeometry(
-        CubeMesh::CreateGeometry(name + "Geometry", size),
+        CreateGeometry(name + "Geometry", size),
         std::make_shared<Material::Standard>(name + "Material")
     );
     return (m);
+}
 }

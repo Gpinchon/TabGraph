@@ -4,12 +4,14 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2020-08-09 19:51:52
 */
-#include "Surface/CapsuleMesh.hpp"
-#include "Material/Material.hpp"
-#include "Surface/Geometry.hpp"
-#include "Surface/Mesh.hpp"
+#include <Shapes/Generators/Capsule.hpp>
+#include <Shapes/Geometry.hpp>
+#include <Shapes/Mesh/Mesh.hpp>
+#include <Material/Standard.hpp>
+
 #include <glm/gtc/constants.hpp>
 
+namespace TabGraph::Shapes::Generators::Capsule {
 std::vector<glm::vec3> getUnitCircleVertices(int sectorCount)
 {
     float sectorStep = 2 * glm::pi<float>() / float(sectorCount);
@@ -23,7 +25,7 @@ std::vector<glm::vec3> getUnitCircleVertices(int sectorCount)
     return unitCircleVertices;
 }
 
-std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, float height, float radius, int sectorCount, int stackCount)
+std::shared_ptr<Geometry> CreateGeometry(const std::string& name, float height, float radius, int sectorCount, int stackCount)
 {
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
@@ -72,20 +74,16 @@ std::shared_ptr<Geometry> CapsuleMesh::CreateGeometry(const std::string& name, f
         }
     }
     auto vg{ std::make_shared<Geometry>(vertices, normals, texCoords, indices) };
-    /*auto vg = std::make_shared<Geometry>(name);
-    vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(vertices, GL_ARRAY_BUFFER));
-    vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(normals, GL_ARRAY_BUFFER, true));
-    vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(texCoords, GL_ARRAY_BUFFER));
-    vg->SetIndices(BufferHelper::CreateAccessor(indices, GL_ELEMENT_ARRAY_BUFFER));*/
     return vg;
 }
 
-std::shared_ptr<Mesh> CapsuleMesh::Create(const std::string& name, float heigth, float radius, int sectorCount, int heightSubdivision)
+std::shared_ptr<Mesh> CreateMesh(const std::string& name, float heigth, float radius, int sectorCount, int heightSubdivision)
 {
     auto m = std::make_shared<Mesh>(name);
     m->AddGeometry(
-        CapsuleMesh::CreateGeometry(name + "Geometry", heigth, radius, sectorCount, heightSubdivision),
-        std::make_shared<Material>(name + "Material")
+        CreateGeometry(name + "Geometry", heigth, radius, sectorCount, heightSubdivision),
+        std::make_shared<Material::Standard>(name + "Material")
     );
     return m;
+}
 }

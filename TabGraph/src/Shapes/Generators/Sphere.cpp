@@ -5,16 +5,18 @@
 * @Last Modified time: 2020-08-09 11:38:44
 */
 
-#include "Surface/SphereMesh.hpp"
-#include "Material/Material.hpp"
-#include "Surface/Geometry.hpp"
-#include "Surface/Mesh.hpp"
+#include <Shapes/Generators/Sphere.hpp>
+#include <Shapes/Geometry.hpp>
+#include <Shapes/Mesh/Mesh.hpp>
+#include <Material/Standard.hpp>
+
 #include <map>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
+namespace TabGraph::Shapes::Generators::Sphere {
 std::map<int64_t, unsigned> middlePointIndexCache;
 
 glm::vec2 FindUV(const glm::vec3& normal)
@@ -83,7 +85,7 @@ unsigned getMiddlePoint(unsigned p1, unsigned p2, std::vector<glm::vec3>& positi
     return i;
 }
 
-std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, float radius, unsigned subdivision)
+std::shared_ptr<Geometry> CreateGeometry(const std::string& name, float radius, unsigned subdivision)
 {
     const float t = (1.0 + std::sqrt(5.0)) / 2.0;
 
@@ -158,41 +160,17 @@ std::shared_ptr<Geometry> SphereMesh::CreateGeometry(const std::string& name, fl
         sphereIndices.push_back(tri[1]);
         sphereIndices.push_back(tri[2]);
     }
-    /*auto verticesBuffer{
-        std::make_shared<Buffer>(
-        sphereVertices.size() * sizeof(glm::vec3) +
-        sphereNormals.size() * sizeof(glm::vec3) +
-        sphereTexCoords.size() * sizeof(glm::vec2)
-        )
-    };*/
-    
-    /*verticesBuffer->Set(
-        (std::byte*)sphereVertices.data(),
-        0,
-        sphereVertices.size() * sizeof(glm::vec3));
-    verticesBuffer->Set(
-        (std::byte*)sphereNormals.data(),
-        sphereVertices.size() * sizeof(glm::vec3),
-        sphereNormals.size() * sizeof(glm::vec3));
-    verticesBuffer->Set((std::byte*)sphereTexCoords.data(),
-        sphereVertices.size() * sizeof(glm::vec3) + sphereNormals.size() * sizeof(glm::vec3),
-        sphereTexCoords.size() * sizeof(glm::vec2));
-
-    auto vg = std::make_shared<Geometry>(name);
-    vg->SetAccessor(Geometry::AccessorKey::Position, BufferHelper::CreateAccessor(sphereVertices, GL_ARRAY_BUFFER));
-    vg->SetAccessor(Geometry::AccessorKey::Normal, BufferHelper::CreateAccessor(sphereNormals, GL_ARRAY_BUFFER, true));
-    vg->SetAccessor(Geometry::AccessorKey::TexCoord_0, BufferHelper::CreateAccessor(sphereTexCoords, GL_ARRAY_BUFFER));
-    vg->SetIndices(BufferHelper::CreateAccessor(sphereIndices, GL_ELEMENT_ARRAY_BUFFER));*/
     auto vg = std::make_shared<Geometry>(sphereVertices, sphereNormals, sphereTexCoords, sphereIndices);
     return vg;
 }
 
-std::shared_ptr<Mesh> SphereMesh::Create(const std::string& name, float radius, unsigned subdivision)
+std::shared_ptr<Mesh> CreateMesh(const std::string& name, float radius, unsigned subdivision)
 {
     auto m = std::make_shared<Mesh>(name);
     m->AddGeometry(
-        SphereMesh::CreateGeometry(name + "Geometry", radius, subdivision),
-        std::make_shared<Material>(name + "Material")
+        CreateGeometry(name + "Geometry", radius, subdivision),
+        std::make_shared<Material::Standard>(name + "Material")
     );
     return (m);
+}
 }

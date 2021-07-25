@@ -18,47 +18,22 @@
 #include <glm/common.hpp>
 
 namespace TabGraph::Lights {
-HDRLight::HDRLight(std::shared_ptr<Assets::Asset> hdrTexture)
-    : Light()
+HDRLight::HDRLight(const std::string& name, std::shared_ptr<Assets::Asset> image)
+    : Inherit(name)
 {
     _renderer.reset(new Renderer::HDRLightRenderer(*this));
-    SetHDRTexture(hdrTexture);
+    SetHDRImage(image);
 }
 
-glm::vec3 HDRLight::GetHalfSize() const
+void HDRLight::SetHDRImage(std::shared_ptr<Assets::Asset> image)
 {
-    return GetLocalScale() / 2.f;
-}
-
-void HDRLight::SetHalfSize(const glm::vec3& halfSize)
-{
-    SetLocalScale(halfSize * 2.f);
-}
-
-glm::vec3 HDRLight::GetMin() const
-{
-    return GetWorldPosition() - GetHalfSize();
-}
-
-glm::vec3 HDRLight::GetMax() const
-{
-    return GetWorldPosition() + GetHalfSize();
-}
-
-void HDRLight::SetHDRTexture(std::shared_ptr<Assets::Asset> hdrTexture)
-{
-    if (hdrTexture != GetHDRTexture())
+    if (image != GetHDRTexture())
         GetRenderer().FlagDirty();
-    _HDRTexture = hdrTexture;
-    if (_HDRTexture == nullptr) return;
-    _SetReflection(std::make_shared<Textures::TextureCubemap>(hdrTexture));
-    GetReflection()->SetAutoMipMap(true);
-    GetReflection()->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
-}
-
-std::shared_ptr<Assets::Asset> HDRLight::GetHDRTexture()
-{
-    return _HDRTexture;
+    _SetHDRImage(image);
+    if (GetHDRTexture() == nullptr) return;
+    _SetHDRTexture(std::make_shared<Textures::TextureCubemap>(image));
+    GetHDRTexture()->SetAutoMipMap(true);
+    GetHDRTexture()->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
 }
 
 glm::vec2 ToImageCoords(double phi, double theta, int width, int height)

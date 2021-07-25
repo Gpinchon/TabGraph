@@ -19,7 +19,8 @@
 #include <Shader/Program.hpp>
 #include <Shader/Stage.hpp>
 #include <SphericalHarmonics.hpp>
-#include <Shapes/MeshGenerators/CubeMesh.hpp>
+#include <Shapes/Generators/Cube.hpp>
+#include <Shapes/Geometry.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/TextureCubemap.hpp>
 #include <Nodes/Group.hpp>
@@ -39,10 +40,10 @@ static inline glm::vec2 SampleSphericalMap(glm::vec3 xyz)
 
 static inline auto HDRLightGeometry()
 {
-    static std::weak_ptr<Geometry> s_geometry;
+    static std::weak_ptr<Shapes::Geometry> s_geometry;
     auto geometryPtr = s_geometry.lock();
     if (geometryPtr == nullptr) {
-        geometryPtr = CubeMesh::CreateGeometry("HDRLightGeometry", glm::vec3(1));
+        geometryPtr = Shapes::Generators::Cube::CreateGeometry("HDRLightGeometry", glm::vec3(1));
         s_geometry = geometryPtr;
     }
     return geometryPtr;
@@ -121,7 +122,7 @@ void HDRLightRenderer::UpdateLightProbe(const Renderer::Options& options, TabGra
         .SetUniform("Light.Max", hdrLight.GetMax())
         .SetUniform("Light.Infinite", hdrLight.GetInfinite())
         .SetUniform("ProbePosition", lightProbe.GetAbsolutePosition())
-        .SetTexture("ReflectionMap", hdrLight.GetReflection());
+        .SetTexture("ReflectionMap", hdrLight.GetHDRTexture());
     Renderer::Render(options.renderer->GetDisplayQuad(), true);
     OpenGL::Framebuffer::Bind(nullptr);
 }
@@ -141,7 +142,7 @@ void HDRLightRenderer::_RenderDeferredLighting(TabGraph::Lights::HDRLight& light
         .SetUniform("Light.Max", light.GetMax())
         .SetUniform("Light.Min", light.GetMin())
         .SetUniform("Light.Infinite", light.GetInfinite())
-        .SetTexture("ReflectionMap", light.GetReflection())
+        .SetTexture("ReflectionMap", light.GetHDRTexture())
         .SetTexture("DefaultBRDFLUT", options.renderer->GetDefaultBRDFLUT())
         .SetUniform("SH[0]", _SHDiffuse.data(), _SHDiffuse.size())
         .SetUniform("GeometryMatrix", glm::translate(geometryPosition) * light.GetLocalScaleMatrix())
@@ -159,7 +160,7 @@ void HDRLightRenderer::_Update(TabGraph::Lights::HDRLight& light)
 {
     if (!_dirty)
         return;
-    auto asset { light.GetHDRTexture() };
+    auto asset { light.GetHDRImage() };
     Assets::Parser::AddParsingTask({ Assets::Parser::ParsingTask::Type::Sync, asset });
     auto images = asset->Get<Assets::Image>();
     assert(!images.empty());
@@ -176,7 +177,7 @@ void HDRLightRenderer::_Update(TabGraph::Lights::HDRLight& light)
             glm::vec3 color { Pixel::LinearToSRGB(image->GetColor(texCoord)) };
             return glm::clamp(color, glm::vec3(0), glm::vec3(1));
         });
-    light.SetHDRTexture(nullptr);
+    light.SetHDRImage(nullptr);
     _dirty = false;
 }
 }

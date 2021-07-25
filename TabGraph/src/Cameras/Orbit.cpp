@@ -9,7 +9,7 @@
 #include <Nodes/Node.hpp>
 
 namespace TabGraph::Cameras {
-Orbit::Orbit(const std::string& iname, float phi, float theta, float radius, Camera::Projection proj)
+Orbit::Orbit(const std::string& iname, float phi, float theta, float radius, Projection proj)
     : Inherit(iname, proj)
 {
     _Phi = phi;

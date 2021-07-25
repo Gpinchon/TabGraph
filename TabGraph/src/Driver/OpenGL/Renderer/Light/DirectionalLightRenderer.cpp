@@ -19,7 +19,7 @@
 #include <Shader/Global.hpp>
 #include <Shader/Program.hpp>
 #include <SphericalHarmonics.hpp>
-#include <Shapes/MeshGenerators/CubeMesh.hpp>
+#include <Shapes/Generators/Cube.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/Sampler.hpp>
 #include <Window.hpp>
@@ -36,7 +36,7 @@ static inline auto DirectionnalLightGeometry()
     static std::weak_ptr<Shapes::Geometry> s_geometry;
     auto geometryPtr = s_geometry.lock();
     if (geometryPtr == nullptr) {
-        geometryPtr = CubeMesh::CreateGeometry("DirectionnalLightGeometry", glm::vec3(1));
+        geometryPtr = Shapes::Generators::Cube::CreateGeometry("DirectionnalLightGeometry", glm::vec3(1));
         s_geometry = geometryPtr;
     }
     return geometryPtr;

@@ -8,7 +8,7 @@
 #include <Cameras/FPS.hpp>
 
 namespace TabGraph::Cameras {
-FPS::FPS(const std::string& name, Camera::Projection proj)
+FPS::FPS(const std::string& name, Projection proj)
     : Inherit(name, proj)
 {
 }
