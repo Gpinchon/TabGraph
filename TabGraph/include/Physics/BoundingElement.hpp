@@ -6,14 +6,24 @@
 */
 
 #pragma once
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Physics/Intersection.hpp>
+#include <Tools/Tools.hpp>
+#include <Debug.hpp>
+#include <Core/Inherit.hpp>
+#include <Core/Object.hpp>
 
-#include "Component.hpp"
-#include "Intersection.hpp"
-//#include "Callback.hpp"
-#include "Tools/Tools.hpp"
+#include <set>
 #include <glm/glm.hpp>
 #include <limits>
+#include <vector>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Physics {
 class Ray;
 class BoundingAABB;
 class BoundingSphere;
@@ -22,10 +32,11 @@ class BoundingMesh;
 class BoundingBox;
 template <typename Signature>
 class Callback;
+}
 
-#include "Debug.hpp"
-#include <set>
-
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
 struct compareVec {
     bool operator()(const glm::vec3& lhs, const glm::vec3& rhs) const
     {
@@ -38,8 +49,8 @@ struct compareVec {
         return false;
     }
 };
-
-class BoundingElement : public Component {
+namespace TabGraph::Physics {
+class BoundingElement : public Core::Inherit<Core::Object, BoundingElement> {
 public:
     enum class Type {
         Invalid = -1,
@@ -112,23 +123,12 @@ public:
     virtual Intersection IntersectRay(const Ray& ray) const;
     virtual std::set<glm::vec3, compareVec> GetSATAxis(const glm::mat4& transform = glm::mat4(1.f)) const = 0;
     virtual ProjectionInterval Project(const glm::vec3& normal, const glm::mat4& transform = glm::mat4(1.f)) const = 0;
-    //virtual glm::vec3 GetSupportPoint(const glm::vec3& axis, const glm::mat4& transform = glm::mat4(1.f)) const = 0;
-    //virtual void GetMinMaxVertexOnAxis(const glm::vec3& axis, glm::vec3& min, glm::vec3& max, const glm::mat4& transform = glm::mat4(1.f)) const = 0;
-    //virtual glm::vec3 GetLocalSupportPoint(glm::vec3 axis) const = 0;
     virtual std::vector<glm::vec3> Clip(glm::vec3 axis, const glm::mat4& transform = glm::mat4(1.f)) const = 0;
-    //virtual CollisionEdge GetBestEdge(glm::vec3 axis, const glm::mat4 &transform = glm::mat4(1.f)) = 0;
     Intersection IntersectError(const std::shared_ptr<BoundingElement>& other) const;
-    /*template <typename T, typename U,
-    		  typename = IsBaseOf<BoundingElement, T>,
-    		  typename = IsBaseOf<BoundingElement, U>>
-	static Intersection Intersect(const T &a, const U &b);*/
-    //void SetIntersectionCallback(BoundingElement::Type type, Intersection (*function)(const BoundingElement &));
 
 private:
-    /*virtual std::shared_ptr<Component> _Clone() override {
-        return std::make_shared<BoundingElement>(*this);
-    }*/
     BoundingElement::Type _type { BoundingElement::Type::Invalid };
-    //std::array<std::shared_ptr<Callback<Intersection(const BoundingElement &)>>, MaxType> _intersectionCallback;
     BoundingElement() = delete;
 };
+}
+

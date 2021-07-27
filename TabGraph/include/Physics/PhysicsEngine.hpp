@@ -6,8 +6,7 @@
 */
 #pragma once
 
-#include "Component.hpp"
-#include "Physics/Collision.hpp"
+#include <Physics/Collision.hpp>
 
 #include <memory>
 #include <vector>
