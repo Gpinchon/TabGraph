@@ -12,7 +12,7 @@
 #include <glm/fwd.hpp>
 
 #ifndef M_PI
-#define M_PI 3.14159265359f
+constexpr auto M_PI = 3.14159265358979323846;
 #endif // M_PI
 
 #define CYCLE(nbr, min, max) (nbr >= max ? min : nbr <= min ? max : nbr)
