@@ -151,6 +151,13 @@ set(TABGRAPH_HEADER_FILES ${TABGRAPH_HEADER_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Core/Property.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Debug.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/DLLExport.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/ECS/Common.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/ECS/ComponentArray.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/ECS/ComponentManager.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/ECS/EntityManager.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/ECS/Manager.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/ECS/System.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/ECS/SystemManager.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/InputDevice/GameController.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/include/Events/InputDevice/Keyboard.hpp
@@ -254,6 +261,7 @@ set(TABGRAPH_SOURCE_FILES ${TABGRAPH_SOURCE_FILES}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Common.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Compute/Object.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ECS/Manager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Engine.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/DispatchQueue.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Inputdevice/GameController.cpp
