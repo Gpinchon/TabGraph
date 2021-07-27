@@ -7,7 +7,7 @@ public:                            \
     {                              \
         return _##var;             \
     }                              \
-    void Set##var(type val)        \
+    void Set##var(const type& val) \
     {                              \
         _##var = val;              \
     }                              \
@@ -23,7 +23,7 @@ public:                             \
     }                               \
                                     \
 protected:                          \
-    void _Set##var(type val)        \
+    void _Set##var(const type& val) \
     {                               \
         _##var = val;               \
     }                               \
@@ -36,7 +36,7 @@ private:                                \
     {                                   \
         return _##var;                  \
     }                                   \
-    void _Set##var(type val)            \
+    void _Set##var(const type& val)     \
     {                                   \
         _##var = val;                   \
     }                                   \
