@@ -43,8 +43,17 @@ class Light : public Core::Inherit<Nodes::Node, Light> {
     READONLYPROPERTY(float, DiffuseFactor, 1);
 
 public:
-    Light(const std::string& name, glm::vec3 color);
     Light();
+    Light(const std::string& name) : Light()
+    {
+        SetName(name);
+    }
+    Light(const std::string& name, glm::vec3 color)
+        : Light(name)
+    {
+        SetColor(color);
+    }
+
     void SetColor(const glm::vec3& color);
     void SetSpecularFactor(float factor);
     void SetDiffuseFactor(float factor);
