@@ -44,11 +44,6 @@ Renderer::LightRenderer& Light::GetRenderer()
     return *_renderer;
 }
 
-Light::Light(const std::string& name, glm::vec3 color)
-    : Light()
-{
-    SetColor(color);
-}
 }
 
 void TabGraph::Renderer::LightRendererDeleter::operator()(Renderer::LightRenderer* ptr)

@@ -27,7 +27,7 @@ HDRLight::HDRLight(const std::string& name, std::shared_ptr<Assets::Asset> image
 
 void HDRLight::SetHDRImage(std::shared_ptr<Assets::Asset> image)
 {
-    if (image != GetHDRTexture())
+    if (image != GetHDRImage())
         GetRenderer().FlagDirty();
     _SetHDRImage(image);
     if (GetHDRTexture() == nullptr) return;

@@ -8,12 +8,12 @@
 #include <Cameras/Camera.hpp>
 #include <Light/SkyLight.hpp>
 #include <Renderer/Renderer.hpp>
-#include <Renderer/Surface/GeometryRenderer.hpp>
-#include <Scene/Scene.hpp>
+#include <Renderer/Shapes/GeometryRenderer.hpp>
+#include <Nodes/Scene.hpp>
 #include <Shader/Program.hpp>
 #include <SphericalHarmonics.hpp>
-#include <Surface/CubeMesh.hpp>
-#include <Surface/Geometry.hpp>
+#include <Shapes/Generators/Cube.hpp>
+#include <Shapes/Geometry.hpp>
 #include <Texture/Texture2D.hpp>
 #include <Texture/TextureCubemap.hpp>
 
@@ -21,8 +21,14 @@
 #include <Driver/OpenGL/Renderer/Light/SkyLightRenderer.hpp>
 #endif
 
-#define num_samples 16
-#define num_samples_light 8
+#include <glm/vec3.hpp>
+
+#ifndef M_PI
+constexpr auto M_PI = 3.14159265358979323846;
+#endif // M_PI
+
+constexpr auto num_samples = 16;
+constexpr auto num_samples_light = 8;
 
 /// \private
 struct ray_t {
@@ -66,10 +72,10 @@ float henyey_greenstein_phase_func(float mu)
         ((4. * M_PI) * pow(1. + g * g - 2. * g * mu, 1.5));
 }
 
-bool get_sun_light(const ray_t& ray, float& optical_depthR, float& optical_depthM, const SkyLight& sky)
+bool get_sun_light(const ray_t& ray, float& optical_depthR, float& optical_depthM, const TabGraph::Lights::SkyLight& sky)
 {
     float t0, t1;
-    const sphere_t atmosphere = sphere_t {
+    const sphere_t atmosphere = sphere_t{
         glm::vec3(0, 0, 0), sky.GetAtmosphereRadius()
     };
     isect_sphere(ray, atmosphere, t0, t1);
@@ -92,15 +98,15 @@ bool get_sun_light(const ray_t& ray, float& optical_depthR, float& optical_depth
     return true;
 }
 
-static inline glm::vec3 GetIncidentLight(ray_t ray, const SkyLight& sky)
+static inline glm::vec3 GetIncidentLight(ray_t ray, const TabGraph::Lights::SkyLight& sky)
 {
-    const sphere_t atmosphere = sphere_t {
+    const sphere_t atmosphere = sphere_t{
         glm::vec3(0, 0, 0), sky.GetAtmosphereRadius()
     };
     // "pierce" the atmosphere with the viewing ray
     float t0, t1;
     if (!isect_sphere(
-            ray, atmosphere, t0, t1)) {
+        ray, atmosphere, t0, t1)) {
         return glm::vec3(0);
     }
 
@@ -139,7 +145,7 @@ static inline glm::vec3 GetIncidentLight(ray_t ray, const SkyLight& sky)
         optical_depthM += hm;
 
         // gather the sunlight
-        ray_t light_ray {
+        ray_t light_ray{
             s,
             sky.GetSunDirection()
         };
@@ -165,8 +171,9 @@ static inline glm::vec3 GetIncidentLight(ray_t ray, const SkyLight& sky)
     return sky.GetSunPower() * (sumR * phaseR * sky.GetBetaRayleigh() + sumM * phaseM * sky.GetBetaMie());
 }
 
+namespace TabGraph::Lights {
 SkyLight::SkyLight()
-    : DirectionalLight()
+    : Inherit()
 {
 }
 
@@ -182,93 +189,60 @@ void SkyLight::SetSunDirection(const glm::vec3& sunDir)
     SetDirection(sunDir);
 }
 
-float SkyLight::GetSunPower() const
-{
-    return _sunPower;
-}
-
 void SkyLight::SetSunPower(const float sunPower)
 {
-    if (sunPower != _sunPower)
+    if (sunPower != GetSunPower())
         GetRenderer().FlagDirty();
-    _sunPower = sunPower;
-}
-
-float SkyLight::GetPlanetRadius() const
-{
-    return _planetRadius;
+    _SetSunPower(sunPower);
 }
 
 void SkyLight::SetPlanetRadius(float planetRadius)
 {
-    if (planetRadius != _planetRadius)
+    if (planetRadius != GetPlanetRadius())
         GetRenderer().FlagDirty();
-    _planetRadius = planetRadius;
-}
-
-float SkyLight::GetAtmosphereRadius() const
-{
-    return _atmosphereRadius;
+    _SetPlanetRadius(planetRadius);
 }
 
 void SkyLight::SetAtmosphereRadius(float atmosphereRadius)
 {
-    if (atmosphereRadius != _atmosphereRadius)
+    if (atmosphereRadius != GetAtmosphereRadius())
         GetRenderer().FlagDirty();
-    _atmosphereRadius = atmosphereRadius;
-}
-
-float SkyLight::GetHRayleigh() const
-{
-    return _hRayleigh;
+    _SetAtmosphereRadius(atmosphereRadius);
 }
 
 void SkyLight::SetHRayleigh(float hRayleigh)
 {
-    if (hRayleigh != _hRayleigh)
+    if (hRayleigh != GetHRayleigh())
         GetRenderer().FlagDirty();
-    _hRayleigh = hRayleigh;
-}
-
-float SkyLight::GetHMie() const
-{
-    return _hMie;
+    _SetHRayleigh(hRayleigh);
 }
 
 void SkyLight::SetHMie(float hMie)
 {
-    if (hMie != _hMie)
+    if (hMie != GetHMie())
         GetRenderer().FlagDirty();
-    _hMie = hMie;
-}
-
-glm::vec3 SkyLight::GetBetaRayleigh() const
-{
-    return _betaRayleigh;
+    _SetHMie(hMie);
 }
 
 void SkyLight::SetBetaRayleigh(glm::vec3 betaRayleigh)
 {
-    if (betaRayleigh != _betaRayleigh)
+    if (betaRayleigh != GetBetaRayleigh())
         GetRenderer().FlagDirty();
-    _betaRayleigh = betaRayleigh;
-}
-
-glm::vec3 SkyLight::GetBetaMie() const
-{
-    return _betaMie;
+    _SetBetaRayleigh(betaRayleigh);
 }
 
 void SkyLight::SetBetaMie(glm::vec3 betaMie)
 {
-    if (betaMie != _betaMie)
+    if (betaMie != GetBetaMie())
         GetRenderer().FlagDirty();
-    _betaMie = betaMie;
+    _SetBetaMie(betaMie);
 }
 
 glm::vec3 SkyLight::GetIncidentLight(glm::vec3 direction) const
 {
-    return ::GetIncidentLight({ glm::vec3(0, GetPlanetRadius() + 1, 0),
-                                  direction },
-        *this);
+    return ::GetIncidentLight({
+        glm::vec3(0, GetPlanetRadius() + 1, 0), direction },
+        *this
+    );
+}
 }
