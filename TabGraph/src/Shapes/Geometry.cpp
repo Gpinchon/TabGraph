@@ -39,9 +39,13 @@ Geometry::Geometry(const Geometry& other)
     : Inherit(other)
 {
     _renderer.reset(new Renderer::GeometryRenderer(*this));
-    _accessors = other._accessors;
-    _indices = other._indices;
-    _morphTargets = other._morphTargets;
+    _Indices = other._Indices;
+    _Joints = other._Joints;
+    _Positions = other._Positions;
+    _Normals = other._Normals;
+    _TexCoord0 = other._TexCoord0;
+    _TexCoord1 = other._TexCoord1;
+    _TexCoord2 = other._TexCoord2;
     ++s_geometryNbr;
 }
 
@@ -84,26 +88,26 @@ Geometry::Geometry(
         verticeByteSize + normalsByteSize + texcoordByteSize,
         indiceByteSize);
     auto vertexBufferAsset { std::make_shared<Assets::Asset>() };
-    vertexBufferAsset->binaryDatas.push_back(vertexBuffer);
+    vertexBufferAsset->Get<Assets::BinaryData>().push_back(vertexBuffer);
     vertexBufferAsset->SetLoaded(true);
     auto vertexBufferView { std::make_shared<Buffer::View>(vertexBufferAsset, mode) };
     vertexBufferView->SetType(Buffer::View::Type::Array);
     vertexBufferView->SetByteLength(verticeByteSize + normalsByteSize + texcoordByteSize);
 
-    auto vertexAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, vertexBufferView) };
-    auto normalAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec3, vertexBufferView) };
-    auto texcoordAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Float32, Buffer::Accessor::Type::Vec2, vertexBufferView) };
+    auto vertexAccessor { Buffer::Accessor<glm::vec3>(vertexBufferView) };
+    auto normalAccessor { Buffer::Accessor<glm::vec3>(vertexBufferView) };
+    auto texcoordAccessor { Buffer::Accessor<glm::vec2>(vertexBufferView) };
 
-    vertexAccessor->SetByteOffset(0);
-    vertexAccessor->SetCount(vertices.size());
-    normalAccessor->SetByteOffset(verticeByteSize);
-    normalAccessor->SetCount(normals.size());
-    texcoordAccessor->SetByteOffset(verticeByteSize + normalsByteSize);
-    texcoordAccessor->SetCount(texCoords.size());
-    normalAccessor->SetNormalized(true);
-    SetAccessor(Geometry::AccessorKey::Position, vertexAccessor);
-    SetAccessor(Geometry::AccessorKey::Normal, normalAccessor);
-    SetAccessor(Geometry::AccessorKey::TexCoord_0, texcoordAccessor);
+    vertexAccessor.SetByteOffset(0);
+    vertexAccessor.SetSize(vertices.size());
+    normalAccessor.SetByteOffset(verticeByteSize);
+    normalAccessor.SetSize(normals.size());
+    texcoordAccessor.SetByteOffset(verticeByteSize + normalsByteSize);
+    texcoordAccessor.SetSize(texCoords.size());
+    normalAccessor.SetNormalized(true);
+    SetPositions(vertexAccessor);
+    SetNormals(normalAccessor);
+    SetTexCoord0(texcoordAccessor);
 
     if (indices.empty())
         return;
@@ -111,7 +115,7 @@ Geometry::Geometry(
     indiceBufferView->SetType(Buffer::View::Type::ElementArray);
     indiceBufferView->SetByteLength(indiceByteSize);
     indiceBufferView->SetByteOffset(verticeByteSize + normalsByteSize + texcoordByteSize);
-    auto indiceAccessor { std::make_shared<Buffer::Accessor>(Buffer::Accessor::ComponentType::Uint32, Buffer::Accessor::Type::Scalar, indiceBufferView) };
+    auto indiceAccessor { Buffer::Accessor<unsigned>(indiceBufferView) };
     SetIndices(indiceAccessor);
 }
 
@@ -127,52 +131,6 @@ Geometry::Geometry(
         {}, //empty indices
         mode)
 {
-}
-
-Geometry::AccessorKey Geometry::GetAccessorKey(const std::string& key)
-{
-    std::string lowerKey(key);
-    std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), ::tolower);
-    if (lowerKey == "position")
-        return Geometry::AccessorKey::Position;
-    else if (lowerKey == "normal")
-        return Geometry::AccessorKey::Normal;
-    else if (lowerKey == "tangent")
-        return Geometry::AccessorKey::Tangent;
-    else if (lowerKey == "texcoord_0")
-        return Geometry::AccessorKey::TexCoord_0;
-    else if (lowerKey == "texcoord_1")
-        return Geometry::AccessorKey::TexCoord_1;
-    else if (lowerKey == "texcoord_2")
-        return Geometry::AccessorKey::TexCoord_2;
-    else if (lowerKey == "color_0")
-        return Geometry::AccessorKey::Color_0;
-    else if (lowerKey == "joints_0")
-        return Geometry::AccessorKey::Joints_0;
-    else if (lowerKey == "weights_0")
-        return Geometry::AccessorKey::Weights_0;
-    return Geometry::AccessorKey::Invalid;
-}
-
-std::shared_ptr<Buffer::Accessor> Geometry::Accessor(const Geometry::AccessorKey key) const
-{
-    return _accessors.at(size_t(key));
-}
-
-void Geometry::SetAccessor(const Geometry::AccessorKey key, std::shared_ptr<Buffer::Accessor> accessor)
-{
-    if (key != Geometry::AccessorKey::Invalid)
-        _accessors.at(size_t(key)) = accessor;
-}
-
-std::shared_ptr<Buffer::Accessor> Geometry::Indices() const
-{
-    return _indices;
-}
-
-void Geometry::SetIndices(std::shared_ptr<Buffer::Accessor> indices)
-{
-    _indices = indices;
 }
 
 size_t Geometry::EdgeCount() const
@@ -304,9 +262,9 @@ glm::ivec2 Geometry::GetEdge(const size_t index) const
         auto zeroIndex = index == 0;
         auto oddIndex = index % 2;
         auto oddFace = face % 2;
-        auto A = face + 2 * !oddIndex + !oddFace * oddIndex;
-        auto B = face + 2 * oddIndex + oddFace * !oddIndex;
-        A *= !zeroIndex;
+        auto A = face + static_cast<unsigned long long>(2) * ~oddIndex + ~oddFace * oddIndex;
+        auto B = face + 2 * oddIndex + oddFace * ~oddIndex;
+        A *= ~zeroIndex;
         B += zeroIndex;
         return glm::ivec2(A, B);
     }
@@ -329,9 +287,9 @@ glm::ivec2 Geometry::GetEdge(const size_t index) const
         int iIs3 = iMod3 == 0;
         int face = (index - 1) / 3;
         int zeroIndex = index == 0;
-        int A = face * 2 + (iMod3) + ((index + 2) % 3);
-        int B = face * 2 + 3 * !iIs3 - iMod3 + 1 * !iIs3;
-        A *= !zeroIndex;
+        int A = static_cast<unsigned long long>(face) * 2 + (iMod3) + ((index + 2) % 3);
+        int B = face * 2 + 3 * ~iIs3 - iMod3 + 1 * ~iIs3;
+        A *= ~zeroIndex; //perform bitwise not
         B += zeroIndex;
         return glm::ivec2(A, B);
     }
@@ -341,6 +299,6 @@ glm::ivec2 Geometry::GetEdge(const size_t index) const
 
 size_t Geometry::VertexCount() const
 {
-    return Indices() ? Indices()->GetCount() : Accessor(AccessorKey::Position)->GetCount();
+    return GetIndices().GetSize() > 0 ? GetIndices().GetSize() : GetPositions().GetSize();
 }
 }
