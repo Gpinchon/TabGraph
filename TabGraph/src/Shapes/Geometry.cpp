@@ -94,16 +94,22 @@ Geometry::Geometry(
     vertexBufferView->SetType(Buffer::View::Type::Array);
     vertexBufferView->SetByteLength(verticeByteSize + normalsByteSize + texcoordByteSize);
 
-    auto vertexAccessor { Buffer::Accessor<glm::vec3>(vertexBufferView) };
-    auto normalAccessor { Buffer::Accessor<glm::vec3>(vertexBufferView) };
-    auto texcoordAccessor { Buffer::Accessor<glm::vec2>(vertexBufferView) };
+    Buffer::Accessor vertexAccessor {
+        vertexBufferView,
+        0, vertices.size(),
+        Buffer::Accessor::ComponentType::Float32, 3
+    };
+    Buffer::Accessor normalAccessor {
+        vertexBufferView,
+        verticeByteSize, normals.size(),
+        Buffer::Accessor::ComponentType::Float32, 3
+    };
+    Buffer::Accessor texcoordAccessor {
+        vertexBufferView,
+        verticeByteSize + normalsByteSize, texCoords.size(),
+        Buffer::Accessor::ComponentType::Float32, 2
+    };
 
-    vertexAccessor.SetByteOffset(0);
-    vertexAccessor.SetSize(vertices.size());
-    normalAccessor.SetByteOffset(verticeByteSize);
-    normalAccessor.SetSize(normals.size());
-    texcoordAccessor.SetByteOffset(verticeByteSize + normalsByteSize);
-    texcoordAccessor.SetSize(texCoords.size());
     normalAccessor.SetNormalized(true);
     SetPositions(vertexAccessor);
     SetNormals(normalAccessor);
@@ -115,7 +121,11 @@ Geometry::Geometry(
     indiceBufferView->SetType(Buffer::View::Type::ElementArray);
     indiceBufferView->SetByteLength(indiceByteSize);
     indiceBufferView->SetByteOffset(verticeByteSize + normalsByteSize + texcoordByteSize);
-    auto indiceAccessor { Buffer::Accessor<unsigned>(indiceBufferView) };
+    Buffer::Accessor indiceAccessor {
+        indiceBufferView,
+        0, indices.size(),
+        Buffer::Accessor::ComponentType::Uint32, 1
+    };
     SetIndices(indiceAccessor);
 }
 

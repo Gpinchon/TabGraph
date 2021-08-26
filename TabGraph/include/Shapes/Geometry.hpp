@@ -87,7 +87,7 @@ public:
     glm::ivec2 GetEdge(const size_t index) const;
     size_t VertexCount() const;
 
-    void SetIndices(const Buffer::Accessor<unsigned>& accessor)
+    void SetIndices(const Buffer::Accessor& accessor)
     {
         _Indices = accessor;
     }
@@ -95,7 +95,7 @@ public:
     {
         return _Indices;
     }
-    void SetJoints(const Buffer::Accessor<unsigned>& accessor)
+    void SetJoints(const Buffer::Accessor& accessor)
     {
         _Joints = accessor;
     }
@@ -103,7 +103,7 @@ public:
     {
         return _Joints;
     }
-    void SetPositions(const Buffer::Accessor<glm::vec3>& accessor)
+    void SetPositions(const Buffer::Accessor& accessor)
     {
         _Positions = accessor;
     }
@@ -111,7 +111,7 @@ public:
     {
         return _Positions;
     }
-    void SetNormals(const Buffer::Accessor<glm::vec3>& accessor)
+    void SetNormals(const Buffer::Accessor& accessor)
     {
         _Normals = accessor;
     }
@@ -119,7 +119,7 @@ public:
     {
         return _Normals;
     }
-    void SetTexCoord0(const Buffer::Accessor<glm::vec2>& accessor)
+    void SetTexCoord0(const Buffer::Accessor& accessor)
     {
         _TexCoord0 = accessor;
     }
@@ -127,7 +127,7 @@ public:
     {
         return _TexCoord0;
     }
-    void SetTexCoord1(const Buffer::Accessor<glm::vec2>& accessor)
+    void SetTexCoord1(const Buffer::Accessor& accessor)
     {
         _TexCoord1 = accessor;
     }
@@ -135,7 +135,7 @@ public:
     {
         return _TexCoord1;
     }
-    void SetTexCoord2(const Buffer::Accessor<glm::vec2>& accessor)
+    void SetTexCoord2(const Buffer::Accessor& accessor)
     {
         _TexCoord2 = accessor;
     }
@@ -145,12 +145,12 @@ public:
     }
 
 private:
-    Buffer::Accessor<unsigned> _Indices;
-    Buffer::Accessor<unsigned> _Joints;
-    Buffer::Accessor<glm::vec3> _Positions;
-    Buffer::Accessor<glm::vec3> _Normals;
-    Buffer::Accessor<glm::vec2> _TexCoord0;
-    Buffer::Accessor<glm::vec2> _TexCoord1;
-    Buffer::Accessor<glm::vec2> _TexCoord2;
+    Buffer::Accessor _Indices;
+    Buffer::Accessor _Joints;
+    Buffer::Accessor _Positions;
+    Buffer::Accessor _Normals;
+    Buffer::Accessor _TexCoord0;
+    Buffer::Accessor _TexCoord1;
+    Buffer::Accessor _TexCoord2;
 };
 }

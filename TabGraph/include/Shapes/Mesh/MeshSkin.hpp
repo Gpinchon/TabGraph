@@ -29,7 +29,7 @@ public:
     {
         return _inverseBindMatrices;
     }
-    void SetInverseBindMatrices(const Buffer::Accessor<glm::mat4>& inverseBindMatrices)
+    void SetInverseBindMatrices(const Buffer::TypedAccessor<glm::mat4>& inverseBindMatrices)
     {
         _inverseBindMatrices = inverseBindMatrices;
     }
@@ -48,6 +48,6 @@ public:
 
 private:
     std::vector<std::shared_ptr<Nodes::Node>> _joints;
-    Buffer::Accessor<glm::mat4> _inverseBindMatrices;
+    Buffer::TypedAccessor<glm::mat4> _inverseBindMatrices;
 };
 }
