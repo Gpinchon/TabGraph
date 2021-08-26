@@ -767,6 +767,7 @@ void FrameRenderer::Impl::RenderFrame(std::shared_ptr<Nodes::Scene> scene)
     //scene->GetCamera()->SetAspectRatio(GetWindow()->GetSize().x / float(GetWindow()->GetSize().y));
     const glm::mat4 currentView { scene->GetCamera()->GetViewMatrix() };
     const glm::mat4 currentProj { scene->GetCamera()->GetProjection() };
+    Cameras::Projection::SetTemporalJitterIndex(_frameNbr);
     Shader::Global::SetUniform("FrameNumber", _frameNbr);
     Shader::Global::SetUniform("Camera.Position", scene->GetCamera()->GetWorldPosition());
     Shader::Global::SetUniform("Camera.Matrix.View", currentView);

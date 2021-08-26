@@ -1,4 +1,4 @@
-#include "Driver/OpenGL/Buffer.hpp"
+#include <Driver/OpenGL/Buffer.hpp>
 
 #include <cassert>
 #include <array>

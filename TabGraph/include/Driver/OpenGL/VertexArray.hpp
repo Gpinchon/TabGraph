@@ -11,18 +11,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <Buffer/Accessor.hpp>
 #include <Buffer/View.hpp>
+#include <Driver/OpenGL/Buffer.hpp>
 #include <Driver/OpenGL/ObjectHandle.hpp>
 
 #include <memory>
 #include <GL/glew.h>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 ////////////////////////////////////////////////////////////////////////////////
-//namespace TabGraph::Buffer {
-//template<typename T>
-//class Accessor;
-//}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class Declarations
@@ -39,7 +39,8 @@ public:
     }
     VertexArray& Bind();
     template<typename T>
-    VertexArray& BindAccessor(const TabGraph::Buffer::Accessor<T>& accessor, int index);
+    VertexArray& BindAccessor(const TabGraph::Buffer::TypedAccessor<T>& accessor, int index);
+    VertexArray& BindAccessor(const TabGraph::Buffer::Accessor& accessor, int index);
     void Done();
     static void BindNone();
 
@@ -99,7 +100,7 @@ static inline auto GetOpenGLType<glm::vec4>() {
 }
 
 template<typename T>
-VertexArray& VertexArray::BindAccessor(const TabGraph::Buffer::Accessor<T>& accessor, int index)
+VertexArray& VertexArray::BindAccessor(const TabGraph::Buffer::TypedAccessor<T>& accessor, int index)
 {
     auto bufferView(accessor.GetBufferView());
     if (bufferView == nullptr) {
@@ -120,6 +121,54 @@ VertexArray& VertexArray::BindAccessor(const TabGraph::Buffer::Accessor<T>& acce
         OpenGL::GetHandle(bufferView),
         accessor.GetByteOffset(),
         bufferView->GetByteStride() ? bufferView->GetByteStride() : sizeof(T));
+    return *this;
+}
+
+inline static auto GetOpenGLType(const TabGraph::Buffer::Accessor::ComponentType& componentType) {
+    switch (componentType)
+    {
+    case TabGraph::Buffer::Accessor::ComponentType::Int8:
+        return GL_BYTE;
+    case TabGraph::Buffer::Accessor::ComponentType::Uint8:
+        return GL_UNSIGNED_BYTE;
+    case TabGraph::Buffer::Accessor::ComponentType::Int16:
+        return GL_SHORT;
+    case TabGraph::Buffer::Accessor::ComponentType::Uint16:
+        return GL_UNSIGNED_SHORT;
+    case TabGraph::Buffer::Accessor::ComponentType::Float16:
+        return GL_HALF_FLOAT;
+    case TabGraph::Buffer::Accessor::ComponentType::Int32:
+        return GL_INT;
+    case TabGraph::Buffer::Accessor::ComponentType::Uint32:
+        return GL_UNSIGNED_INT;
+    case TabGraph::Buffer::Accessor::ComponentType::Float32:
+        return GL_FLOAT;
+    default:
+        break;
+    }
+}
+
+VertexArray& OpenGL::VertexArray::BindAccessor(const TabGraph::Buffer::Accessor& accessor, int index)
+{
+    auto bufferView(accessor.GetBufferView());
+    if (bufferView == nullptr) {
+        glDisableVertexAttribArray(index);
+        return *this;
+    }
+    auto byteOffset(accessor.GetByteOffset());
+    bufferView->Load();
+    glEnableVertexAttribArray(index);
+    glVertexAttribFormat(
+        index,
+        accessor.GetComponentNbr(),
+        GetOpenGLType(accessor.GetComponentType()),
+        accessor.GetNormalized(),
+        0);
+    glBindVertexBuffer(
+        index,
+        OpenGL::GetHandle(bufferView),
+        accessor.GetByteOffset(),
+        bufferView->GetByteStride() ? bufferView->GetByteStride() : accessor.GetComponentTypeSize());
     return *this;
 }
 }

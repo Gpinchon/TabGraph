@@ -40,7 +40,7 @@ void MeshRenderer::Load()
         for (auto i = 0; i < _jointMatrices.size(); ++i) {
             if (_jointMatrices.at(i) != nullptr)
                 continue;
-            auto bufferAccessor = Buffer::Accessor<glm::mat4>(_mesh.GetSkin()->Joints().size());
+            auto bufferAccessor = Buffer::TypedAccessor<glm::mat4>(_mesh.GetSkin()->Joints().size());
             bufferAccessor.GetBufferView()->SetType(Buffer::View::Type::TextureBuffer);
             bufferAccessor.GetBufferView()->SetMode(Buffer::View::Mode::Persistent);
             bufferAccessor.GetBufferView()->SetPersistentMappingMode(Buffer::View::MappingMode::WriteOnly);
@@ -65,7 +65,7 @@ void MeshRenderer::OnFrameBegin(const Renderer::Options& options)
         _drawSync.at(_jointMatricesIndex) = nullptr;
     }
     const auto &joints = meshSkin->Joints();
-    Buffer::Accessor<glm::mat4> jointMatricesAccessor(_jointMatrices.at(_jointMatricesIndex)->GetBuffer(), joints.size());
+    Buffer::TypedAccessor<glm::mat4> jointMatricesAccessor(_jointMatrices.at(_jointMatricesIndex)->GetBuffer(), 0, joints.size());
     auto& inverseBindMatrices { meshSkin->GetInverseBindMatrices() };
     for (auto index = 0u; index < joints.size(); ++index) {
         const auto jointMatrixIndex { index };
