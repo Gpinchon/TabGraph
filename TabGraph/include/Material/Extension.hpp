@@ -29,7 +29,7 @@ class Texture;
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
-namespace TabGraph::Material {
+namespace TabGraph::Material::Extensions {
 class Extension : public Core::Inherit<Core::Object, Extension> {
 public:
     /** @return the shader's Fragment stage extension code */
@@ -87,7 +87,6 @@ public:
     inline auto& GetTextures() const {
         return _textures;
     }
-    virtual void Bind();
 
 protected:
     Extension(const std::string& name) : Inherit(name) {}

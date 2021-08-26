@@ -42,7 +42,7 @@ enum class OpacityMode {
     Blend,
     MaxValue
 };
-class Standard : public Core::Inherit<Extension, Standard> {
+class Standard : public Core::Inherit<Extensions::Extension, Standard> {
 public:
     PROPERTY(bool, DoubleSided, false);
     PROPERTY(OpacityMode, OpacityMode, OpacityMode::Opaque);
