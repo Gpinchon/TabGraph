@@ -69,10 +69,10 @@ public:
     inline auto GetLights() const {
         return _lights;
     }
-    inline auto AddAnimations(std::shared_ptr<Animations::Animation> animation) {
+    inline auto Add(std::shared_ptr<Animations::Animation> animation) {
         _animations.push_back(animation);
     }
-    inline auto AddLight(std::shared_ptr<Lights::Light> light) {
+    inline auto Add(std::shared_ptr<Lights::Light> light) {
         _lights.push_back(light);
     }
 

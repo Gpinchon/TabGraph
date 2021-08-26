@@ -14,6 +14,7 @@
 
 #include <set>
 #include <memory>
+#include <string>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class declaration
@@ -24,6 +25,10 @@ namespace TabGraph::Nodes {
 */
 class Group : public Core::Inherit<Nodes::Node, Group> {
 public:
+    Group() = default;
+    Group(const std::string& name)
+        : Inherit(name)
+    {}
     Group(const Group& other)
         : Inherit(other)
     {
