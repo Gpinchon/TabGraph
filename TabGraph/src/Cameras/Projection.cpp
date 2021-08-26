@@ -269,12 +269,16 @@ const glm::vec2 haltonSequence[256] = {
     glm::vec2(-0.996094, -0.0342935)
 };
 
+static uint8_t s_temporalJitterIndex{ 0 };
+
+void Projection::SetTemporalJitterIndex(uint8_t index)
+{
+    s_temporalJitterIndex = index;
+}
+
 void Projection::_ApplyTemporalJitter(glm::mat4& projMat, float intensity)
 {
-    //TODO get the current frame number
-    static uint8_t frameNbr { 0 };
-    auto& halton { haltonSequence[frameNbr] * 0.25f };
-    ++frameNbr;
+    auto& halton { haltonSequence[s_temporalJitterIndex] * 0.25f };
     projMat[2][0] += halton.x * intensity;
     projMat[2][1] += halton.y * intensity;
 }

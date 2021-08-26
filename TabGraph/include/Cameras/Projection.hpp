@@ -6,6 +6,8 @@
 */
 #pragma once
 
+#include <Core/Property.hpp>
+
 #include <variant>
 #include <functional>
 
@@ -13,6 +15,7 @@
 
 namespace TabGraph::Cameras {
 class Projection {
+    PROPERTY(float, TemporalJitterIntensity, 1 / 1024.f);
 public:
     enum class Type {
         PerspectiveInfinite,
@@ -66,19 +69,11 @@ public:
     {
         return GetMatrix() * other.GetMatrix();
     }
-    inline void SetTemporalJitterIntensity(float intensity)
-    {
-        _temporalJitterIntensity = intensity;
-    }
-    inline float GetTemporalJitterIntensity() const
-    {
-        return _temporalJitterIntensity;
-    }
+    static void SetTemporalJitterIndex(uint8_t index);
 
 private:
     std::variant<PerspectiveInfinite, Perspective, Orthographic> _data;
     std::function<glm::mat4(const Projection&)> _matrixFunctor;
-    float _temporalJitterIntensity { 1 / 1024.f };
     static void _ApplyTemporalJitter(glm::mat4& matrix, float intensity);
 };
 

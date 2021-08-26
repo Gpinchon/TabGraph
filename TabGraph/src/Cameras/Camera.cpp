@@ -9,10 +9,20 @@
 
 namespace TabGraph::Cameras {
 
-Camera::Camera(const std::string& name, Projection proj)
-    : Inherit(name)
-    , _projection(proj)
+Camera::Camera(Projection projection)
+    : Inherit()
 {
+    static auto s_CameraNbr = 0u;
+    SetName("Camera" + std::to_string(s_CameraNbr));
+    SetProjection(projection);
+    ++s_CameraNbr;
+}
+
+Camera::Camera(const std::string& name, Projection projection)
+    : Camera(projection)
+{
+    SetName(name);
+    SetProjection(projection);
 }
 
 std::array<glm::vec3, 8> Camera::ExtractFrustum()

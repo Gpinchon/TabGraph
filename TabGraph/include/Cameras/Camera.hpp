@@ -17,7 +17,7 @@
 
 #include <array>
 #include <functional>
-#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 #include <string>
 #include <variant>
 
@@ -30,6 +30,7 @@ namespace TabGraph::Cameras {
 */
 class Camera : public Core::Inherit<Nodes::Node, Camera> {
 public:
+    Camera(Projection = Projection::PerspectiveInfinite());
     Camera(const std::string& name, Projection = Projection::PerspectiveInfinite());
     ~Camera() = default;
 
