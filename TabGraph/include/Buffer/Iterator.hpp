@@ -48,9 +48,10 @@ public:
         --(tmp);
         return tmp;
     }
-
-    friend bool operator==(const Iterator& left, const Iterator& right) { return left._ptr == right._ptr; }
-    friend bool operator!=(const Iterator& left, const Iterator& right) { return !(left._ptr == right._ptr); }
+    bool operator==(const Iterator& right) { return _ptr == right._ptr; }
+    bool operator!=(const Iterator& right) { return !(*this == right); }
+    //friend bool operator==(const Iterator& left, const Iterator& right) { return left._ptr == right._ptr; }
+    //friend bool operator!=(const Iterator& left, const Iterator& right) { return !(left._ptr == right._ptr); }
     friend Iterator operator+(const Iterator& left, size_t right) { return Iterator(left._ptr + (left._byteStride * right), left._byteStride); }
     friend Iterator operator-(const Iterator& left, size_t right) { return Iterator(left._ptr - (left._byteStride * right), left._byteStride); }
 
