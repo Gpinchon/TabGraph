@@ -55,7 +55,7 @@ private:
     std::map<int32_t, std::array<Signal<const Event::GameControllerButton&>, (size_t)GameController::Button::MaxValue>> _onButtonDown;
 };
 }
-namespace SDL2::GameController {
+namespace TabGraph::SDL2::GameController {
 TabGraph::Events::Event::GameControllerAxis CreateEventData(const SDL_ControllerAxisEvent& event);
 TabGraph::Events::Event::GameControllerButton CreateEventData(const SDL_ControllerButtonEvent& event);
 TabGraph::Events::Event::GameControllerDevice CreateEventData(const SDL_ControllerDeviceEvent& event);

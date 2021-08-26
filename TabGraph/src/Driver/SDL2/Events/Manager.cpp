@@ -5,20 +5,21 @@
 * @Last Modified time: 2021-05-20 12:13:52
 */
 
-#include <Driver/SDL2/EventsManager.hpp>
-#include <Driver/SDL2/Event.hpp>
+#include <Driver/SDL2/Events/Manager.hpp>
+#include <Driver/SDL2/Events/Event.hpp>
 #include <Engine.hpp>
 
 #include <SDL.h>
 #include <SDL_events.h>
 
-EventsManager::Impl::Impl()
+namespace TabGraph::Events {
+Manager::Impl::Impl()
 {
     if (!SDL_WasInit(SDL_INIT_EVENTS) && SDL_Init(SDL_INIT_EVENTS) < 0)
         throw std::runtime_error(SDL_GetError());
 }
 
-void EventsManager::Impl::PollEvents()
+void Manager::Impl::PollEvents()
 {
     SDL_Event SDLevent;
     _lock.lock();
@@ -32,4 +33,5 @@ void EventsManager::Impl::PollEvents()
         _lock.unlock();
         On(event.type)(event);
     }
+}
 }

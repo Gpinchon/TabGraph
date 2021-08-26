@@ -54,8 +54,8 @@ private:
 };
 };
 
-namespace SDL2::Keyboard {
-TabGraph::Events::Event::Keyboard CreateEventData(const SDL_KeyboardEvent& event);
-TabGraph::Events::Event::TextEdit CreateEventData(const SDL_TextEditingEvent& event);
-TabGraph::Events::Event::TextInput CreateEventData(const SDL_TextInputEvent& event);
+namespace TabGraph::SDL2::Keyboard {
+Events::Event::Keyboard CreateEventData(const SDL_KeyboardEvent& event);
+Events::Event::TextEdit CreateEventData(const SDL_TextEditingEvent& event);
+Events::Event::TextInput CreateEventData(const SDL_TextInputEvent& event);
 };

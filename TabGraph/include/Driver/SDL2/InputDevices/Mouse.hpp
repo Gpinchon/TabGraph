@@ -71,7 +71,7 @@ private:
 };
 };
 
-namespace SDL2::Mouse {
+namespace TabGraph::SDL2::Mouse {
 TabGraph::Events::Event::MouseButton CreateEventData(const SDL_MouseButtonEvent& event);
 TabGraph::Events::Event::MouseWheel CreateEventData(const SDL_MouseWheelEvent& event);
 TabGraph::Events::Event::MouseMove CreateEventData(const SDL_MouseMotionEvent& event);

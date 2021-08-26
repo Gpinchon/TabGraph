@@ -13,7 +13,7 @@
 
 #include <SDL_events.h>
 
-namespace SDL2 {
+namespace TabGraph::SDL2 {
 const static std::map<SDL_EventType, TabGraph::Events::Event::Type> s_eventTypeLUT {
     { SDL_FIRSTEVENT,TabGraph::Events::Event::Type::Unknown },
     { SDL_QUIT,TabGraph::Events::Event::Type::Quit },

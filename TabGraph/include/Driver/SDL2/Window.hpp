@@ -42,8 +42,6 @@ private:
 };
 }
 
-namespace SDL2 {
-namespace Window {
+namespace TabGraph::SDL2::Window {
     TabGraph::Events::Event::Window CreateEventData(const SDL_WindowEvent& event);
-};
-};
+}
