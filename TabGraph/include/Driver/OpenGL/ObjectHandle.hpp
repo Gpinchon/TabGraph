@@ -7,34 +7,5 @@
 #pragma once
 
 namespace OpenGL {
-class ObjectHandle {
-public:
-    ObjectHandle(unsigned v)
-        : _v(v)
-    {
-    }
-    unsigned* operator &()
-    {
-        return &_v;
-    }
-    operator unsigned& ()
-    {
-        return _v;
-    }
-    operator const unsigned& () const
-    {
-        return _v;
-    }
-    bool operator!=(const ObjectHandle& other)
-    {
-        return _v != other._v;
-    }
-    auto operator=(unsigned v)
-    {
-        return _v = v;
-    }
-
-private:
-    unsigned _v{ 0 };
-};
+using ObjectHandle = unsigned;
 };
