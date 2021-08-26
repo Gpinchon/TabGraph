@@ -1,12 +1,13 @@
-#include "Physics/BoundingElement.hpp"
-#include "Physics/BoundingSphere.hpp"
-#include "Physics/BoundingAABB.hpp"
-#include "Physics/BoundingPlane.hpp"
-#include "Physics/BoundingMesh.hpp"
-#include "Physics/BoundingBox.hpp"
-#include "Debug.hpp"
+#include <Physics/BoundingElement.hpp>
+#include <Physics/BoundingSphere.hpp>
+#include <Physics/BoundingAABB.hpp>
+#include <Physics/BoundingPlane.hpp>
+#include <Physics/BoundingMesh.hpp>
+#include <Physics/BoundingBox.hpp>
+#include <Debug.hpp>
 #include <functional>
 
+namespace TabGraph::Physics{
 BoundingElement::BoundingElement(BoundingElement::Type type) : _type(type)
 {
 	//auto errorCallback(Callback<Intersection(const BoundingElement &)>::Create(&BoundingElement::IntersectError, this, std::placeholders::_1));
@@ -103,4 +104,5 @@ void BoundingElement::Transform(const glm::vec3 &, const glm::quat &, const glm:
 BoundingElement::Type BoundingElement::GetType() const
 {
 	return _type;
+}
 }

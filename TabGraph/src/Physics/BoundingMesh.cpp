@@ -5,50 +5,38 @@
 * @Last Modified time: 2020-08-17 13:53:16
 */
 
-#include "Physics/BoundingMesh.hpp"
-#include "Surface/Geometry.hpp"
-#include "Surface/Mesh.hpp"
+#include <Physics/BoundingMesh.hpp>
+#include <Buffer/Accessor.hpp>
+#include <Shapes/Geometry.hpp>
+#include <Shapes/Mesh/Mesh.hpp>
 
 #include <glm/gtc/matrix_inverse.hpp>
 
-BoundingMesh::BoundingMesh(const std::shared_ptr<Mesh>& geometry)
-    : BoundingElement(BoundingElement::Type::Geometry)
+namespace TabGraph::Physics {
+BoundingMesh::BoundingMesh(const std::shared_ptr<Shapes::Mesh>& geometry)
+    : Inherit(BoundingElement::Type::Geometry)
 {
     SetMesh(geometry);
 }
-
-std::shared_ptr<Mesh> BoundingMesh::GetMesh() const
-{
-    return GetComponent<Mesh>();
-}
-
-void BoundingMesh::SetMesh(const std::shared_ptr<Mesh>& geometry)
-{
-    SetComponent(geometry);
-}
-
-#include "Buffer/Accessor.hpp"
 
 std::set<glm::vec3, compareVec> BoundingMesh::GetSATAxis(const glm::mat4& transform) const
 {
     auto normalMatrix(glm::inverseTranspose(transform));
     auto mesh = GetMesh();
     std::set<glm::vec3, compareVec> axis;
-    for (const auto& geometry : mesh->GetGeometries()) {
-        auto indices(geometry->Indices());
-        if (indices != nullptr) {
+    for (const auto& pair : mesh->GetGeometries()) {
+        auto geometry(pair.first);
+        if (!geometry->GetIndices().empty()) {
             //GOOD NEWS EVERYONE ! We've got indices !
-            for (auto i = 0u; i < indices->GetCount(); ++i) {
-                auto index(indices->Get<unsigned>(i));//BufferHelper::Get<unsigned>(indices, i));
-                auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Normal, index));
+            for (const auto& index : static_cast<Buffer::TypedAccessor<unsigned>>(geometry->GetIndices())) {
+                auto &v(geometry->GetNormals().at<glm::vec3>(index));
                 glm::vec3 transformedNormal(normalMatrix * glm::vec4(v, 1.f));
                 axis.insert(transformedNormal);
             }
             continue;
         }
-        for (auto index = 0u; index < geometry->VertexCount(); ++index) {
-            auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Normal, index));
-            glm::vec3 transformedNormal(normalMatrix * glm::vec4(v, 1.f));
+        for (const auto& v : static_cast<Buffer::TypedAccessor<glm::vec3>>(geometry->GetNormals())) {
+            glm::vec3 transformedNormal(normalMatrix * glm::vec4(v, 0.f));
             axis.insert(transformedNormal);
         }
     }
@@ -67,24 +55,9 @@ BoundingElement::ProjectionInterval BoundingMesh::Project(const glm::vec3& axis,
     auto maxDot = std::numeric_limits<float>::lowest();
     glm::vec3 maxV(std::numeric_limits<float>::infinity());
     glm::vec3 minV(std::numeric_limits<float>::infinity());
-    for (const auto& geometry : mesh->GetGeometries()) {
-        /*auto indices(geometry->Indices());
-        if (indices != nullptr) {
-            //GOOD NEWS EVERYONE ! We've got indices !
-            for (auto i = 0u; i < indices->Count(); ++i) {
-                auto index(BufferHelper::Get<unsigned>(indices, i));
-                auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, index));
-                glm::vec3 transformedVertex(transform * glm::vec4(v, 1.f));
-                auto dotProd(glm::dot(transformedVertex, axis));
-                if (dotProd < interval.start)
-                    interval.start = dotProd;
-                if (dotProd > interval.end)
-                    interval.end = dotProd;
-            }
-            continue;
-        }*/
-        for (auto index = 0u; index < geometry->VertexCount(); ++index) {
-            auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, index));
+    for (const auto& pair : mesh->GetGeometries()) {
+        auto geometry{pair.first};
+        for (const auto& v : static_cast<Buffer::TypedAccessor<glm::vec3>>(geometry->GetPositions())) {
             glm::vec3 transformedVertex(transform * glm::vec4(v, 1.f));
             auto dotProd(glm::dot(transformedVertex, vec));
             if (dotProd < minDot) {
@@ -117,45 +90,6 @@ glm::mat3 BoundingMesh::LocalInertiaTensor(const float& mass) const
         0, 0, m * (w2 + h2)
     };
 }
-/*
-glm::vec3 BoundingMesh::GetSupportPoint(const glm::vec3& axis, const glm::mat4& transform) const
-{
-    auto vec = axis;
-    if (length(vec) < 0.0001) {
-        vec = glm::vec3(1, 0, 0);
-    } else
-        vec = normalize(vec);
-    auto mesh = GetMesh();
-    glm::vec3 support(0.f);
-    float maxDot(std::numeric_limits<float>::lowest());
-    for (const auto& geometry : mesh->Geometrys()) {
-        auto indices(geometry->Indices());
-        if (indices != nullptr) {
-            //GOOD NEWS EVERYONE ! We've got indices !
-            for (auto i = 0u; i < indices->Count(); ++i) {
-                auto index(BufferHelper::Get<unsigned>(indices, i));
-                auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, index));
-                v = transform * glm::vec4(v, 1.f);
-                auto dotProd(glm::dot(vec, v));
-                if (dotProd > maxDot) {
-                    maxDot = dotProd;
-                    support = v;
-                }
-            }
-            continue;
-        }
-        for (auto index = 0u; index < geometry->VertexCount(); ++index) {
-            auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, index));
-            v = transform * glm::vec4(v, 1.f);
-            auto dotProd(glm::dot(vec, v));
-            if (dotProd > maxDot) {
-                maxDot = dotProd;
-                support = v;
-            }
-        }
-    }
-    return support;
-}*/
 
 static inline auto IsInFront(glm::vec3 axis, glm::vec3 point)
 {
@@ -175,13 +109,12 @@ std::vector<glm::vec3> BoundingMesh::Clip(glm::vec3 axis, const glm::mat4& trans
 {
     auto mesh = GetMesh();
     std::vector<glm::vec3> output;
-    for (const auto& geometry : mesh->GetGeometries()) {
-        auto indices(geometry->Indices());
-        if (indices != nullptr) {
-            auto startingPoint(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, indices->GetCount() - 1));
-            for (auto i = 0u; i < indices->GetCount(); ++i) {
-                auto index(indices->Get<unsigned>(i));//BufferHelper::Get<unsigned>(indices, i));
-                auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, index));
+    for (const auto& pair : mesh->GetGeometries()) {
+        auto geometry{ pair.first };
+        if (!geometry->GetIndices().empty()) {
+            auto startingPoint(geometry->GetPositions().at<glm::vec3>(geometry->GetIndices().GetSize() - 1));
+            for (const auto& index : static_cast<Buffer::TypedAccessor<unsigned>>(geometry->GetIndices())) {
+                auto v(geometry->GetPositions().at<glm::vec3>(index));
                 glm::vec3 endPoint(transform * glm::vec4(v, 1.f));
                 if (IsInFront(axis, endPoint)) {
                     if (!IsInFront(axis, startingPoint))
@@ -193,9 +126,8 @@ std::vector<glm::vec3> BoundingMesh::Clip(glm::vec3 axis, const glm::mat4& trans
             }
             continue;
         }
-        auto startingPoint(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, geometry->VertexCount() - 1));
-        for (auto index = 0u; index < geometry->VertexCount(); ++index) {
-            auto v(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, index));
+        auto startingPoint(geometry->GetPositions().at<glm::vec3>(geometry->GetPositions().GetSize() - 1));
+        for (const auto& v : static_cast<Buffer::TypedAccessor<glm::vec3>>(geometry->GetPositions())) {
             glm::vec3 endPoint(transform * glm::vec4(v, 1.f));
             if (IsInFront(axis, endPoint)) {
                 if (!IsInFront(axis, startingPoint))
@@ -208,59 +140,4 @@ std::vector<glm::vec3> BoundingMesh::Clip(glm::vec3 axis, const glm::mat4& trans
     }
     return output;
 }
-/*
-BoundingElement::CollisionEdge BoundingMesh::GetBestEdge(glm::vec3 axis, const glm::mat4 &transform)
-{
-	auto mesh = GetMesh();
-	CollisionEdge collisionEdge;
-	//std::shared_ptr<::Geometry> edgeGeometry;
-	//auto edgeIndex(0u);
-	auto maxVDotAxis(std::numeric_limits<float>::lowest());
-	auto minEDotAxis(std::numeric_limits<float>::max());
-	for (const auto &geometry : mesh->Geometrys()) {
-		for (auto i = 0u; i < geometry->EdgeCount(); ++i) {
-			auto edge(geometry->GetEdge(i));
-			auto a(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, edge[0]));
-			auto b(geometry->GetVertex<glm::vec3>(Geometry::AccessorKey::Position, edge[1]));
-			a = transform * glm::vec4(a, 1.f);
-			b = transform * glm::vec4(b, 1.f);
-			auto aDotn(dot(a, axis));
-			auto bDotn(dot(b, axis));
-			auto eDotn(dot(normalize(a - b), axis));
-			if (aDotn >= bDotn) {
-				if (aDotn == maxVDotAxis) {
-					if (eDotn < minEDotAxis) {
-						collisionEdge.a = a;
-						collisionEdge.b = b;
-						minEDotAxis = eDotn;
-					}
-				}
-				if (aDotn > maxVDotAxis) {
-					collisionEdge.a = a;
-					collisionEdge.b = b;
-					collisionEdge.maximumProjection = a;
-					maxVDotAxis = aDotn;
-					minEDotAxis = eDotn;
-				}
-			}
-			else {
-				if (bDotn == maxVDotAxis) {
-					if (eDotn < minEDotAxis) {
-						collisionEdge.a = a;
-						collisionEdge.b = b;
-						minEDotAxis = eDotn;
-					}
-				}
-				if (bDotn > maxVDotAxis) {
-					collisionEdge.a = a;
-					collisionEdge.b = b;
-					collisionEdge.maximumProjection = b;
-					maxVDotAxis = bDotn;
-					minEDotAxis = eDotn;
-				}
-			}
-		}
-	}
-	return collisionEdge;
 }
-*/

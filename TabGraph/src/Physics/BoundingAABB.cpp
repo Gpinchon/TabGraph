@@ -5,45 +5,19 @@
 * @Last Modified time: 2021-01-11 08:46:11
 */
 
-#include "Physics/BoundingAABB.hpp"
-#include "Physics/Ray.hpp"
+#include <Physics/BoundingAABB.hpp>
+#include <Physics/Ray.hpp>
 
 #include <array>
 #include <glm/gtx/matrix_decompose.hpp>
 
+namespace TabGraph::Physics {
 BoundingAABB::BoundingAABB(glm::vec3 minV, glm::vec3 maxV)
-    : BoundingElement(Type::AABB)
-    , _min(minV)
-    , _max(maxV)
+    : Inherit(Type::AABB)
 {
+    SetMin(minV);
+    SetMax(maxV);
 }
-
-glm::vec3 BoundingAABB::Min() const
-{
-    return _min;
-}
-
-void BoundingAABB::SetMin(glm::vec3 min)
-{
-    _min = min;
-}
-
-glm::vec3 BoundingAABB::Max() const
-{
-    return _max;
-}
-
-void BoundingAABB::SetMax(glm::vec3 max)
-{
-    _max = max;
-}
-
-/*#include <glm/gtx/component_wise.hpp>
-
-Intersection BoundingAABB::IntersectAABB(const std::shared_ptr<BoundingAABB>& other) const
-{
-    return IntersectFunction(*this, *other);
-}*/
 
 std::set<glm::vec3, compareVec> BoundingAABB::GetSATAxis(const glm::mat4& /*transform*/) const
 {
@@ -54,11 +28,11 @@ std::set<glm::vec3, compareVec> BoundingAABB::GetSATAxis(const glm::mat4& /*tran
 
 glm::mat3 BoundingAABB::LocalInertiaTensor(const float& mass) const
 {
-    auto w = fabs(Max().x - Min().x);
+    auto w = fabs(GetMax().x - GetMin().x);
     auto w2 = w * w;
-    auto h = fabs(Max().y - Min().y);
+    auto h = fabs(GetMax().y - GetMin().y);
     auto h2 = h * h;
-    auto d = fabs(Max().z - Min().z);
+    auto d = fabs(GetMax().z - GetMin().z);
     auto d2 = d * d;
     auto m = 1 / 12.f * mass;
     return {
@@ -82,20 +56,16 @@ BoundingElement::ProjectionInterval BoundingAABB::Project(const glm::vec3& axis,
     glm::vec4 perspective;
 
     glm::decompose(transform, scale, rotation, translation, skew, perspective);
-
-    //std::cout << "axis : " << vec.x << ' ' << vec.y << ' ' << vec.z << '\n';
-    //std::cout << "min  : " << Min().x << ' ' << Min().y << ' ' << Min().z << '\n';
-    //std::cout << "max  : " << Max().x << ' ' << Max().y << ' ' << Max().z << '\n';
     {
         static std::array<glm::vec3, 8> vertex;
-        vertex.at(0) = Max() + translation;
-        vertex.at(1) = glm::vec3(Min().x, Min().y, Max().z) + translation;
-        vertex.at(2) = glm::vec3(Min().x, Max().y, Max().z) + translation;
-        vertex.at(3) = glm::vec3(Min().x, Max().y, Min().z) + translation;
-        vertex.at(4) = glm::vec3(Max().x, Max().y, Min().z) + translation;
-        vertex.at(5) = glm::vec3(Max().x, Min().y, Min().z) + translation;
-        vertex.at(6) = glm::vec3(Max().x, Min().y, Max().z) + translation;
-        vertex.at(7) = Min() + translation;
+        vertex.at(0) = GetMax() + translation;
+        vertex.at(1) = glm::vec3(GetMin().x, GetMin().y, GetMax().z) + translation;
+        vertex.at(2) = glm::vec3(GetMin().x, GetMax().y, GetMax().z) + translation;
+        vertex.at(3) = glm::vec3(GetMin().x, GetMax().y, GetMin().z) + translation;
+        vertex.at(4) = glm::vec3(GetMax().x, GetMax().y, GetMin().z) + translation;
+        vertex.at(5) = glm::vec3(GetMax().x, GetMin().y, GetMin().z) + translation;
+        vertex.at(6) = glm::vec3(GetMax().x, GetMin().y, GetMax().z) + translation;
+        vertex.at(7) = GetMin() + translation;
         glm::vec3 minV;
         float minDot { std::numeric_limits<float>::max() };
         glm::vec3 maxV;
@@ -111,31 +81,8 @@ BoundingElement::ProjectionInterval BoundingAABB::Project(const glm::vec3& axis,
                 maxV = v;
             }
         }
-        /*std::cout << "BruteForce :\n";
-        std::cout << "minV : " << minV.x << ' ' << minV.y << ' ' << minV.z << '\n';
-        std::cout << "maxV : " << maxV.x << ' ' << maxV.y << ' ' << maxV.z << '\n';*/
         return ProjectionInterval(vec, minV, maxV);
     }
-    /*auto position = (Max() + Min()) * 0.5f;
-    auto size = (Max() - Min());
-    auto half = size * 0.5f;
-    auto minV = glm::vec3(
-                    (vec.x < 0) ? half.x : -half.x,
-                    (vec.y < 0) ? half.y : -half.y,
-                    (vec.z < 0) ? half.z : -half.z)
-        + position + translation;
-    auto maxV = glm::vec3(
-                    (vec.x < 0) ? -half.x : half.x,
-                    (vec.y < 0) ? -half.y : half.y,
-                    (vec.z < 0) ? -half.z : half.z)
-        + position + translation;
-    std::cout << "Smartypants :\n";
-    std::cout << " half : " << half.x << ' ' << half.y << ' ' << half.z << '\n';
-    std::cout << " posi : " << position.x << ' ' << position.y << ' ' << position.z << '\n';
-    std::cout << "minV : " << minV.x << ' ' << minV.y << ' ' << minV.z << '\n';
-    std::cout << "maxV : " << maxV.x << ' ' << maxV.y << ' ' << maxV.z << '\n';
-    std::cout << std::endl;
-    return ProjectionInterval(vec, minV, maxV);*/
 }
 
 static inline auto IsInFront(glm::vec3 axis, glm::vec3 point)
@@ -163,13 +110,13 @@ std::vector<glm::vec3> BoundingAABB::Clip(glm::vec3 axis, const glm::mat4& trans
     static std::array<glm::vec3, 7> vertex;
 
     glm::decompose(transform, scale, rotation, translation, skew, perspective);
-    vertex.at(0) = Max() + translation;
-    vertex.at(1) = glm::vec3(Min().x, Min().y, Max().z) + translation;
-    vertex.at(2) = glm::vec3(Min().x, Max().y, Max().z) + translation;
-    vertex.at(3) = glm::vec3(Min().x, Max().y, Min().z) + translation;
-    vertex.at(4) = glm::vec3(Max().x, Max().y, Min().z) + translation;
-    vertex.at(5) = glm::vec3(Max().x, Min().y, Min().z) + translation;
-    vertex.at(6) = glm::vec3(Max().x, Min().y, Max().z) + translation;
+    vertex.at(0) = GetMax() + translation;
+    vertex.at(1) = glm::vec3(GetMin().x, GetMin().y, GetMax().z) + translation;
+    vertex.at(2) = glm::vec3(GetMin().x, GetMax().y, GetMax().z) + translation;
+    vertex.at(3) = glm::vec3(GetMin().x, GetMax().y, GetMin().z) + translation;
+    vertex.at(4) = glm::vec3(GetMax().x, GetMax().y, GetMin().z) + translation;
+    vertex.at(5) = glm::vec3(GetMax().x, GetMin().y, GetMin().z) + translation;
+    vertex.at(6) = glm::vec3(GetMax().x, GetMin().y, GetMax().z) + translation;
     auto startingPoint(vertex.at(6));
     for (const auto& v : vertex) {
         glm::vec3 endPoint(glm::vec4(v, 1.f));
@@ -191,33 +138,27 @@ std::vector<glm::vec3> BoundingAABB::Clip(glm::vec3 axis, const glm::mat4& trans
 static inline Intersection CreateAABBRayIntersection(const bool intersects, const float distance, const BoundingAABB* aabb, const Ray& ray)
 {
     auto position = ray.direction * distance + ray.origin;
-    auto c = (aabb->Min() + aabb->Max()) * 0.5f;
-    auto d = (aabb->Min() - aabb->Max()) * 0.5f;
+    auto c = (aabb->GetMin() + aabb->GetMax()) * 0.5f;
+    auto d = (aabb->GetMin() - aabb->GetMax()) * 0.5f;
     auto p = position - c;
     auto bias = 1.000001;
     auto normal = glm::vec3(p.x / abs(d.x) * bias,
         p.y / abs(d.y) * bias,
         p.z / abs(d.z) * bias);
-    normal = normalize(normal);
+    normal = glm::normalize(normal);
     return Intersection(intersects, distance, normal);
 }
 
 Intersection BoundingAABB::IntersectRay(const Ray& ray) const
 {
-    /*glm::vec3 min = (Min() - ray.origin) / ray.direction;
-    glm::vec3 max = (Max() - ray.origin) / ray.direction;
-    float tmin = glm::compMin(min);
-    float tmax = glm::compMin(max);
-    if (tmin > tmax)
-        return intersection;*/
-    float tmin = (Min().x - ray.origin.x) / ray.direction.x;
-    float tmax = (Max().x - ray.origin.x) / ray.direction.x;
+    float tmin = (GetMin().x - ray.origin.x) / ray.direction.x;
+    float tmax = (GetMax().x - ray.origin.x) / ray.direction.x;
 
     if (tmin > tmax)
         std::swap(tmin, tmax);
 
-    float tymin = (Min().y - ray.origin.y) / ray.direction.y;
-    float tymax = (Max().y - ray.origin.y) / ray.direction.y;
+    float tymin = (GetMin().y - ray.origin.y) / ray.direction.y;
+    float tymax = (GetMax().y - ray.origin.y) / ray.direction.y;
 
     if (tymin > tymax)
         std::swap(tymin, tymax);
@@ -231,8 +172,8 @@ Intersection BoundingAABB::IntersectRay(const Ray& ray) const
     if (tymax < tmax)
         tmax = tymax;
 
-    float tzmin = (Min().z - ray.origin.z) / ray.direction.z;
-    float tzmax = (Max().z - ray.origin.z) / ray.direction.z;
+    float tzmin = (GetMin().z - ray.origin.z) / ray.direction.z;
+    float tzmax = (GetMax().z - ray.origin.z) / ray.direction.z;
 
     if (tzmin > tzmax)
         std::swap(tzmin, tzmax);
@@ -245,4 +186,5 @@ Intersection BoundingAABB::IntersectRay(const Ray& ray) const
         tmax = tzmax;
 
     return CreateAABBRayIntersection(true, tmin, this, ray);
+}
 }

@@ -15,30 +15,29 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/norm.hpp>
 
-glm::mat4 CreateTransformMatrix(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
+namespace TabGraph::Physics {
+glm::mat4 CreateTransformMatrix(const glm::vec3& position, const glm::quat& rotation)
 {
-    return glm::translate(position) * glm::mat4(rotation) * glm::scale(scale);
+    return glm::translate(position) * glm::mat4(rotation);
 }
 
 bool CollisionAlgorithmGJKRaycast::Collides(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, Collision& out)
 {
-    auto colliderA(a->GetCollider());
-    auto colliderB(b->GetCollider());
+    auto colliderA(a->GetBoundingElement());
+    auto colliderB(b->GetBoundingElement());
 
     SimplexSolver simplex;
 
     glm::vec3 linVelA, linVelB;
-    linVelA = a->GetNextPosition() - a->GetCurrentPosition();
-    linVelB = b->GetNextPosition() - b->GetCurrentPosition();
+    linVelA = a->GetLastPosition() - a->GetLocalPosition();
+    linVelB = b->GetLastPosition() - b->GetLocalPosition();
 
     float lambda = float(0.);
 
-    auto interpolatedPositionA{ a->GetCurrentPosition() };
-    auto interpolatedRotationA{ a->GetCurrentRotation() };
-    auto interpolatedScaleA{ a->GetCurrentScale() };
-    auto interpolatedPositionB{ b->GetCurrentPosition() };
-    auto interpolatedRotationB{ b->GetCurrentRotation() };
-    auto interpolatedScaleB{ b->GetCurrentScale() };
+    auto interpolatedPositionA{ a->GetLocalPosition() };
+    auto interpolatedRotationA{ a->GetLocalRotation() };
+    auto interpolatedPositionB{ b->GetLocalPosition() };
+    auto interpolatedRotationB{ b->GetLocalRotation() };
 
     ///take relative motion
     glm::vec3 r = linVelA - linVelB;
@@ -61,8 +60,8 @@ bool CollisionAlgorithmGJKRaycast::Collides(const std::shared_ptr<RigidBody>& a,
     float VdotR;
 
     while ((dist2 > epsilon) && maxIter--) {
-        supVertexA = colliderA->Project(-v, CreateTransformMatrix(interpolatedPositionA, interpolatedRotationA, interpolatedScaleA)).Max();
-        supVertexB = colliderB->Project(v, CreateTransformMatrix(interpolatedPositionB, interpolatedRotationB, interpolatedScaleB)).Max();
+        supVertexA = colliderA->Project(-v, CreateTransformMatrix(interpolatedPositionA, interpolatedRotationA)).Max();
+        supVertexB = colliderB->Project(v, CreateTransformMatrix(interpolatedPositionB, interpolatedRotationB)).Max();
         w = supVertexA - supVertexB;
 
         float VdotW = dot(v, w);
@@ -81,12 +80,10 @@ bool CollisionAlgorithmGJKRaycast::Collides(const std::shared_ptr<RigidBody>& a,
                 //interpolate to next lambda
                 //  x = s + lambda * r;
 
-                interpolatedPositionA = glm::mix(a->GetCurrentPosition(), a->GetNextPosition(), lambda);
-                interpolatedRotationA = glm::mix(a->GetCurrentRotation(), a->GetNextRotation(), lambda);
-                interpolatedScaleA = glm::mix(a->GetCurrentScale(), a->GetNextScale(), lambda);
-                interpolatedPositionB = glm::mix(b->GetCurrentPosition(), b->GetNextPosition(), lambda);
-                interpolatedRotationB = glm::mix(b->GetCurrentRotation(), b->GetNextRotation(), lambda);
-                interpolatedScaleB = glm::mix(b->GetCurrentScale(), b->GetNextScale(), lambda);
+                interpolatedPositionA = glm::mix(a->GetLastPosition(), a->GetLocalPosition(), lambda);
+                interpolatedRotationA = glm::mix(a->GetLastRotation(), a->GetLocalRotation(), lambda);
+                interpolatedPositionB = glm::mix(b->GetLastPosition(), b->GetLocalPosition(), lambda);
+                interpolatedRotationB = glm::mix(b->GetLastRotation(), b->GetLocalRotation(), lambda);
                 //simplex.reset();
                 //check next line
                 w = supVertexA - supVertexB;
@@ -126,38 +123,24 @@ bool CollisionAlgorithmGJKRaycast::Collides(const std::shared_ptr<RigidBody>& a,
         _intersectionResult.SetNormal(glm::vec3(0.f));
 
     //don't report time of impact for motion away from the contact normal (or causes minor penetration)
-    if (dot(_intersectionResult.Normal(), r) >= -AllowedPenetration() || lambda > 1) {
+    if (dot(_intersectionResult.GetNormal(), r) >= -GetAllowedPenetration() || lambda > 1) {
         return false;
     }
 
     glm::vec3 hitA, hitB;
     simplex.ComputePoints(hitA, hitB);
     auto ab = hitA - hitB;
-    auto d = -dot(ab, _intersectionResult.Normal());
+    auto d = -dot(ab, _intersectionResult.GetNormal());
     _intersectionResult.SetFraction(lambda);
     _intersectionResult.SetHitPointA(hitA);
     _intersectionResult.SetHitPointB(hitB);
     _intersectionResult.SetPenetrationDepth(d);
-    //std::cout << "ab : " << ab.x << ' ' << ab.y << ' ' << ab.z << '\n';
-    //std::cout << "n  : " << _intersectionResult.Normal().x << ' ' << _intersectionResult.Normal().y << ' ' << _intersectionResult.Normal().z << '\n';
-    //std::cout << "d  : " << d << '\n';
-    //std::cout << glm::distance(hitA, hitB) << '\n';
-    out = Collision(Collision::CollideesPair(a, b), _intersectionResult.HitPoint(), _intersectionResult.Normal(), _intersectionResult.PenetrationDepth());
+    out = Collision(Collision::CollideesPair(a, b), _intersectionResult.HitPoint(), _intersectionResult.GetNormal(), _intersectionResult.GetPenetrationDepth());
     return true;
-    //return length2(n) > 0;
-}
-
-float CollisionAlgorithmGJKRaycast::AllowedPenetration() const
-{
-    return _allowedPenetration;
-}
-
-void CollisionAlgorithmGJKRaycast::SetAllowedPenetration(float allowedPenetration)
-{
-    _allowedPenetration = allowedPenetration;
 }
 
 float CollisionAlgorithmGJKRaycast::GetFraction() const
 {
-    return _intersectionResult.Fraction();
+    return _intersectionResult.GetFraction();
+}
 }

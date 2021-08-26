@@ -1,34 +1,20 @@
-#include "Physics/RigidBody.hpp"
-#include "Node.hpp"
-#include "Physics/BoundingElement.hpp"
-#include "Physics/BoundingSphere.hpp"
-#include <glm/gtc/quaternion.hpp>
+#include <Physics/RigidBody.hpp>
+#include <Physics/BoundingElement.hpp>
+#include <Tools/Tools.hpp>
 
-RigidBody::RigidBody(const std::string& name, const std::shared_ptr<Node>& node, const std::shared_ptr<BoundingElement>& collider)
-    : Component(name)
+#include <glm/gtx/transform.hpp>
+
+namespace TabGraph::Physics {
+RigidBody::RigidBody(const std::string& name, const std::shared_ptr<Nodes::Node>& node, const std::shared_ptr<BoundingElement>& collider)
+    : Inherit(name)
 {
     SetNode(node);
-    SetCollider(collider);
+    SetBoundingElement(collider);
 }
 
-std::shared_ptr<Node> RigidBody::GetNode() const
+glm::mat4 RigidBody::GetCurrentTransform()
 {
-    return GetComponent<Node>();
-}
-
-void RigidBody::SetNode(std::shared_ptr<Node> target)
-{
-    SetComponent(target);
-}
-
-glm::mat4 RigidBody::GetCurrentTransform() const
-{
-    return glm::translate(GetCurrentPosition()) * glm::mat4(GetCurrentRotation()) * glm::scale(GetCurrentScale());
-}
-
-glm::mat4 RigidBody::GetNextTransform() const
-{
-    return glm::translate(GetNextPosition()) * glm::mat4(GetNextRotation()) * glm::scale(GetNextScale());
+    return GetLocalTransformMatrix();
 }
 
 void RigidBody::ApplyAngularImpulse(const glm::vec3& impulse)
@@ -62,15 +48,15 @@ void RigidBody::SetInertiaLocal(glm::vec3 inertia)
         inertia.z ? 1.f / inertia.z : 0.f));
 }
 
-glm::mat3 RigidBody::InertiaTensor() const
+glm::mat3 RigidBody::InertiaTensor()
 {
     auto &transform = GetCurrentTransform();
-    auto localInertiaTensor = GetCollider()->LocalInertiaTensor(GetMass());
+    auto localInertiaTensor = GetBoundingElement()->LocalInertiaTensor(GetMass());
     glm::mat3 inverseLocalToWorld = glm::inverse(transform);
     return glm::transpose(inverseLocalToWorld) * localInertiaTensor * inverseLocalToWorld;
 }
 
-glm::mat3 RigidBody::InvInertiaTensor() const
+glm::mat3 RigidBody::InvInertiaTensor()
 {
     return GetMass() ? glm::inverse(InertiaTensor()) : glm::mat3(0.f);
 }
@@ -121,20 +107,6 @@ void RigidBody::ApplyWorldPush(glm::vec3 pushDirection, glm::vec3 pushLocation, 
     ApplyLocalPush(pushDirection, pushLocation - originalPosition);
 }
 
-void RigidBody::SetCollider(const std::shared_ptr<BoundingElement>& collider)
-{
-    SetComponent(collider);
-}
-
-std::shared_ptr<BoundingElement> RigidBody::GetCollider() const
-{
-    return GetComponent<BoundingElement>();
-}
-
-#include "Tools/Tools.hpp"
-
-#define HALF_PI (M_PI * 0.5f)
-
 void RigidBody::IntegrateVelocities(float step)
 {
     if (GetStatic())
@@ -149,8 +121,9 @@ void RigidBody::IntegrateVelocities(float step)
 
 #define MAX_ANGVEL HALF_PI
     /// clamp angular velocity. collision calculations will fail on higher angular velocities
-    float angvel = GetAngularVelocity().length();
+    auto angvel = length(GetAngularVelocity());
     if (angvel * step > MAX_ANGVEL) {
         SetAngularVelocity(GetAngularVelocity() * float(MAX_ANGVEL / step) / angvel);
     }
+}
 }

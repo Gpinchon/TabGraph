@@ -1,16 +1,20 @@
 #pragma once
 
-#include "BoundingElement.hpp"
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Physics/BoundingElement.hpp>
+#include <Core/Inherit.hpp>
+#include <Core/Property.hpp>
 
-class BoundingBox : public BoundingElement
-{
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Physics {
+class BoundingBox : public Core::Inherit<BoundingElement, BoundingBox> {
+    PROPERTY(glm::vec3, Size, 0);
 public:
 	glm::vec3 Min(const glm::mat4 &transformMatrix) const;
     glm::vec3 Max(const glm::mat4 &transformMatrix) const;
-    glm::vec3 Size() const;
-    void SetSize(glm::vec3 size);
-
-private:
-	glm::vec3 _size { 0 };
-
 };
+}

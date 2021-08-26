@@ -5,17 +5,18 @@
 * @Last Modified time: 2020-08-03 17:12:30
 */
 
-#include "Physics/CollisionAlgorithmSAT.hpp"
-#include "Physics/Collision.hpp"
-#include "Physics/RigidBody.hpp"
+#include <Physics/CollisionAlgorithmSAT.hpp>
+#include <Physics/Collision.hpp>
+#include <Physics/RigidBody.hpp>
 
+namespace TabGraph::Physics {
 bool CheckAxis(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, const glm::vec3 axis, Collision& out)
 {
     auto collidees = Collision::CollideesPair(a, b);
-    auto& transformA = a->GetNextTransform();
-    auto& transformB = b->GetNextTransform();
-    auto projectA = a->GetCollider()->Project(axis, transformA);
-    auto projectB = b->GetCollider()->Project(axis, transformB);
+    auto& transformA = a->GetCurrentTransform();
+    auto& transformB = b->GetCurrentTransform();
+    auto projectA = a->GetBoundingElement()->Project(axis, transformA);
+    auto projectB = b->GetBoundingElement()->Project(axis, transformB);
     auto A = projectA.MinDot();
     auto B = projectA.MaxDot();
     auto C = projectB.MinDot();
@@ -40,12 +41,12 @@ bool CheckAxis(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidB
 bool CollisionAlgorithmSAT::Collides(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, Collision& out)
 {
 
-    auto boundingElementA(a->GetComponent<BoundingElement>());
-    auto boundingElementB(b->GetComponent<BoundingElement>());
+    auto boundingElementA(a->GetBoundingElement());
+    auto boundingElementB(b->GetBoundingElement());
     if (boundingElementA == nullptr || boundingElementB == nullptr)
         return false;
-    auto& transformA = a->GetNextTransform();
-    auto& transformB = b->GetNextTransform();
+    auto& transformA = a->GetCurrentTransform();
+    auto& transformB = b->GetCurrentTransform();
     auto axisA(boundingElementA->GetSATAxis(transformA));
     auto axisB(boundingElementB->GetSATAxis(transformB));
 
@@ -63,44 +64,14 @@ bool CollisionAlgorithmSAT::Collides(const std::shared_ptr<RigidBody>& a, const 
         Collision collision;
         if (!CheckAxis(a, b, axis, collision)) //if true, we found separating Axis
             return false;
-        if (bestCollision.PenetrationDepth() == std::numeric_limits<float>::infinity() || collision.PenetrationDepth() >= bestCollision.PenetrationDepth())
+        if (bestCollision.GetPenetrationDepth() == std::numeric_limits<float>::infinity() || collision.GetPenetrationDepth() >= bestCollision.GetPenetrationDepth())
             bestCollision = collision;
     }
-    std::cout << __FUNCTION__ << " D : " << bestCollision.PenetrationDepth() << std::endl;
-    std::cout << __FUNCTION__ << " N : " << bestCollision.Normal().x << " " << bestCollision.Normal().y << " " << bestCollision.Normal().z << std::endl;
-    std::cout << __FUNCTION__ << " P : " << bestCollision.Position().x << " " << bestCollision.Position().y << " " << bestCollision.Position().z << std::endl;
+    std::cout << __FUNCTION__ << " D : " << bestCollision.GetPenetrationDepth() << std::endl;
+    std::cout << __FUNCTION__ << " N : " << bestCollision.GetNormal().x << " " << bestCollision.GetNormal().y << " " << bestCollision.GetNormal().z << std::endl;
+    std::cout << __FUNCTION__ << " P : " << bestCollision.GetPosition().x << " " << bestCollision.GetPosition().y << " " << bestCollision.GetPosition().z << std::endl;
     //We haven't found a separating axis
     out = bestCollision;
-    /*glm::vec3 overlapNormal;
-    //loop through all the normals
-    for (const auto& normal : axisA) {
-        auto intervalA = boundingElementA->Project(normal, matrixA);
-        auto intervalB = boundingElementB->Project(normal, matrixB);
-        auto finalVelocity = dot(a->LinearVelocity() - b->LinearVelocity(), normal);
-        auto velocityInterval = intervalA;
-        if (finalVelocity > 0.f)
-            velocityInterval.end += finalVelocity;
-        else
-            velocityInterval.start += finalVelocity;
-        if (!intervalA.Overlaps(intervalB))
-            return Intersection(false, intervalA.GetDistance(intervalB));
-        auto overlap(intervalA.GetOverlap(intervalB));
-        if (intervalA.Contains(intervalB) || intervalB.Contains(intervalA)) {
-            double mins = abs(intervalA.start - intervalB.start);
-            double maxs = abs(intervalA.end - intervalB.end);
-            // NOTE: depending on which is smaller you may need to
-            // negate the separating axis!!
-            if (mins < maxs) {
-                overlap += mins;
-            } else {
-                overlap += maxs;
-            }
-        }
-        if (overlap < minOverlap) {
-            // then set this one as the smallest
-            minOverlap = overlap;
-            overlapNormal = normal;
-        }
-    }*/
     return true;
+}
 }

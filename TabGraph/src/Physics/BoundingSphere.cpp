@@ -4,31 +4,12 @@
 
 #include <glm/gtx/matrix_decompose.hpp>
 
+namespace TabGraph::Physics {
 BoundingSphere::BoundingSphere(const glm::vec3& center, float radius)
-    : BoundingElement(BoundingElement::Type::Sphere)
-    , _center(center)
-    , _radius(radius)
+    : Inherit(BoundingElement::Type::Sphere)
 {
-}
-
-glm::vec3 BoundingSphere::GetCenter() const
-{
-    return _center;
-}
-
-void BoundingSphere::SetCenter(glm::vec3 center)
-{
-    _center = center;
-}
-
-float BoundingSphere::GetRadius() const
-{
-    return _radius;
-}
-
-void BoundingSphere::SetRadius(float radius)
-{
-    _radius = radius;
+    SetCenter(center);
+    SetRadius(radius);
 }
 
 glm::mat3 BoundingSphere::LocalInertiaTensor(const float& mass) const
@@ -36,16 +17,6 @@ glm::mat3 BoundingSphere::LocalInertiaTensor(const float& mass) const
     auto alpha = 2 / 3.f * mass * GetRadius();
     return glm::mat3(alpha);
 }
-
-/*Intersection BoundingSphere::IntersectSphere(const std::shared_ptr<BoundingSphere> &other) const
-{
-	return IntersectFunction(*this, *other);
-}
-
-void BoundingSphere::Transform(const glm::vec3 &translation, const glm::quat &, const glm::vec3 &)
-{
-    SetCenter(translation);
-}*/
 
 glm::vec3 sphere_normal(glm::vec3 position, glm::vec3 intersectPosition, float radius)
 {
@@ -89,8 +60,6 @@ Intersection SphereIntersection(const Ray ray, glm::vec3 position, float /*radiu
             glm::dot(eye, eye) - radius2,
             &distance)))
         return Intersection(false, distance);
-    //glm::vec3 position = ray.origin + ray.direction * distance;
-    //glm::vec3 normal = sphere_normal(position, position, radius);
     return (Intersection(true, distance));
 }
 
@@ -150,4 +119,5 @@ std::vector<glm::vec3> BoundingSphere::Clip(glm::vec3 /*axis*/, const glm::mat4&
 {
     std::vector<glm::vec3> output;
     return output;
+}
 }

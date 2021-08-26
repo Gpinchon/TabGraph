@@ -87,34 +87,6 @@ public:
         const glm::vec3 _max { std::numeric_limits<float>::infinity() };
         const float _minDot { std::numeric_limits<float>::max() };
         const float _maxDot { std::numeric_limits<float>::lowest() };
-        /*float start { std::numeric_limits<float>::max() };
-        float end { std::numeric_limits<float>::lowest() };
-        auto GetDistance(const ProjectionInterval& other)
-        {
-            if (other.end > start)
-                return other.end - start;
-            else if (end > other.start)
-                return end - other.start;
-            else {
-                debugLog("the ProjectionIntervals overlap");
-                return 0.f;
-            }
-        }
-        auto Overlaps(const ProjectionInterval& other) { return end > other.start || start > other.end; }
-        auto GetOverlap(const ProjectionInterval& other)
-        {
-            if (!Overlaps(other))
-                return 0.f;
-            if (end > other.start)
-                return end - other.start;
-            else if (start > other.end)
-                return start - other.end;
-            else {
-                debugLog("the ProjectionIntervals don't overlap");
-                return 0.f;
-            }
-        }
-        auto Contains(const ProjectionInterval& other) { return start <= other.start && end >= other.end; }*/
     };
     BoundingElement(BoundingElement::Type);
     virtual BoundingElement::Type GetType() const final;

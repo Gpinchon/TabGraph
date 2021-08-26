@@ -1,54 +1,60 @@
 #pragma once
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include <Core/Property.hpp>
 
 #include <glm/glm.hpp>
 #include <memory>
 
+////////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Physics {
 class RigidBody;
+}
 
+////////////////////////////////////////////////////////////////////////////////
+// Class declarations
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Physics {
 class Collision {
 public:
     class CollideesPair {
+        READONLYPROPERTY(std::shared_ptr<RigidBody>, First, nullptr);
+        READONLYPROPERTY(std::shared_ptr<RigidBody>, Second, nullptr);
     public:
         CollideesPair() = default;
         CollideesPair(const std::shared_ptr<RigidBody>& first, const std::shared_ptr<RigidBody>& second)
-            : _first(first)
-            , _second(second)
         {
+            _SetFirst(first);
+            _SetSecond(second);
         }
         bool operator==(const CollideesPair& other) const
         {
-            if (First() == other.First() || First() == other.Second()) {
-                return Second() == other.First() || Second() == other.Second();
+            if (GetFirst() == other.GetFirst() || GetFirst() == other.GetSecond()) {
+                return GetSecond() == other.GetFirst() || GetSecond() == other.GetSecond();
             }
             return false;
         }
-        std::shared_ptr<RigidBody> First() const { return _first; }
-        std::shared_ptr<RigidBody> Second() const { return _second; }
-
-    private:
-        std::shared_ptr<RigidBody> _first { nullptr };
-        std::shared_ptr<RigidBody> _second { nullptr };
     };
+    PROPERTY(glm::vec3, Position, std::numeric_limits<float>::infinity());
+    PROPERTY(glm::vec3, Normal, 0);
+    PROPERTY(float, PenetrationDepth, std::numeric_limits<float>::infinity());
+    READONLYPROPERTY(CollideesPair, CollideesPair, );
+
+public:
     Collision() = default;
     Collision(const CollideesPair& collidees, const glm::vec3& position, const glm::vec3& normal, const float& penetrationDepth)
-        : _collidees(collidees)
-        , _position(position)
-        , _normal(normal)
-        , _penetrationDepth(penetrationDepth)
     {
+        _SetCollideesPair(collidees);
+        SetPosition(position);
+        SetNormal(normal);
+        SetPenetrationDepth(penetrationDepth);
     }
-    auto Collidees() const { return _collidees; }
-    auto Position() const { return _position; }
-    auto Normal() const { return _normal; }
-    auto PenetrationDepth() const { return _penetrationDepth; }
     bool operator==(const Collision& other)
     {
-        return Collidees() == other.Collidees() && glm::distance(Position(), other.Position()) <= 0.0001;
+        return GetCollideesPair() == other.GetCollideesPair() && glm::distance(GetPosition(), other.GetPosition()) <= 0.0001;
     }
-
-private:
-    CollideesPair _collidees;
-    glm::vec3 _position { std::numeric_limits<float>::infinity() };
-    glm::vec3 _normal { 0.f };
-    float _penetrationDepth { std::numeric_limits<float>::infinity() };
 };
+}
