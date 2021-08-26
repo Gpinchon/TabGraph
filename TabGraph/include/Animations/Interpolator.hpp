@@ -28,31 +28,27 @@ static inline T cubicSpline(T previousPoint, T prevTangent, T nextPoint, T nextT
 }
 
 template <typename T>
-inline T Interpolate(const Channel<T>& channel, const size_t& prevKey, const size_t& nextKey, float keyDelta, float interpolationValue)
+inline T Interpolate(const typename Channel<T>::KeyFrame& prev, const typename Channel<T>::KeyFrame& next, const Animations::Interpolation interpolation, const float keyDelta, const float interpolationValue)
 {
-    if (channel.interpolation == Channel<T>::Interpolation::CubicSpline) {
-        auto prev(channel.keyFrames.at(prevKey * 3 + 1).value);
-        auto prevOutputTangent(channel.keyFrames.at(prevKey * 3 + 2).value);
-        auto nextInputTangent(channel.keyFrames.at(nextKey * 3 + 0).value);
-        auto next(channel.keyFrames.at(nextKey * 3 + 0).value);
+    switch (interpolation) {
+    case Animations::Interpolation::CubicSpline: {
+        auto prevOutputTangent(prev.outputTangent);
+        auto nextInputTangent(next.inputTangent);
         auto prevTangent = keyDelta * prevOutputTangent;
         auto nextTangent = keyDelta * nextInputTangent;
-        return cubicSpline(prev, prevTangent, next, nextTangent, interpolationValue);
+        return cubicSpline(prev.value, prevTangent, next.value, nextTangent, interpolationValue);
     }
-    auto prev(channel.keyFrames.at(prevKey).value);
-    auto next(channel.keyFrames.at(nextKey).value);
-    switch (channel.interpolation) {
-    case Channel<T>::Interpolation::Linear: {
+    case Animations::Interpolation::Linear: {
         if constexpr (std::is_same_v<T, glm::quat>)
-            return glm::slerp(prev, next, interpolationValue);
-        return glm::mix(prev, next, interpolationValue);
+            return glm::slerp(prev.value, next.value, interpolationValue);
+        return glm::mix(prev.value, next.value, interpolationValue);
     }
-    case Channel<T>::Interpolation::Step:
-        return prev;
+    case Animations::Interpolation::Step:
+        return prev.value;
     default:
-        break;
+        throw std::runtime_error("Unknown animation interpolation");
     }
-    return next;
+    return next.value;
 }
 
 }

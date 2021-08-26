@@ -33,14 +33,24 @@ public:
 
 public:
     Animation();
-    auto& GetChannelPosition() {
-        return _positions;
+    void AddChannelPosition(const Channel<glm::vec3>& channel) {
+        _positions.push_back(channel);
     }
-    auto& GetChannelScale() {
-        return _scales;
+    void AddChannelScale(const Channel<glm::vec3>& channel) {
+        _scales.push_back(channel);
     }
-    auto& GetChannelRotation() {
-        return _rotations;
+    void AddChannelRotation(const Channel<glm::quat>& channel) {
+        _rotations.push_back(channel);
+    }
+
+    auto& GetChannelPosition(size_t index) {
+        return _positions.at(index);
+    }
+    auto& GetChannelScale(size_t index) {
+        return _scales.at(index);
+    }
+    auto& GetChannelRotation(size_t index) {
+        return _rotations.at(index);
     }
     /** @brief Start playing the animation */
     void Play();
@@ -52,9 +62,9 @@ public:
     void Reset();
 
 private:
-    Channel<glm::vec3> _positions;
-    Channel<glm::vec3> _scales;
-    Channel<glm::quat> _rotations;
+    std::vector<Channel<glm::vec3>> _positions;
+    std::vector<Channel<glm::vec3>> _scales;
+    std::vector<Channel<glm::quat>> _rotations;
     float _currentTime { 0 };
 };
 

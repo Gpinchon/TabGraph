@@ -18,15 +18,17 @@ class Node;
 // Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Animations {
+enum class Interpolation {
+    Linear,
+    Step,
+    CubicSpline
+};
 template<typename T>
 struct Channel {
-    enum class Interpolation {
-        Linear,
-        Step,
-        CubicSpline
-    };
     struct KeyFrame {
+        T inputTangent{};
         T value{};
+        T outputTangent{};
         float time{ 0 };
         bool operator<(const KeyFrame& other) {
             return time < other.time;
@@ -36,8 +38,8 @@ struct Channel {
     size_t previousKey{ 0 };
     std::shared_ptr<Nodes::Node> target;
     std::vector<KeyFrame> keyFrames;
-    inline void InsertKeyFrame(const T& value, float time) {
-        keyFrames.push_back({ value, time });
+    inline void InsertKeyFrame(const KeyFrame& keyFrame) {
+        keyFrames.push_back(keyFrame);
         std::sort(keyFrames.begin(), keyFrames.end());
     }
 };
