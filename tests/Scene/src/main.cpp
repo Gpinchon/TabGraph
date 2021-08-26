@@ -7,7 +7,7 @@
 #define USE_HIGH_PERFORMANCE_GPU
 #include <DLLExport.hpp>
 
-#include <Animation/Animation.hpp>
+#include <Animations/Animation.hpp>
 #include <Assets/Asset.hpp>
 #include <Assets/Parser.hpp>
 #include <Assets/Image.hpp>
@@ -32,8 +32,14 @@
 #include <Tools/Tools.hpp>
 #include <Window.hpp>
 
+#include <Nodes/Node.hpp>
+#include <Nodes/Scene.hpp>
+#include <Visitors/SearchVisitor.hpp>
+
 #include <csignal>
 #include <filesystem>
+
+using namespace TabGraph;
 
 #define QUITK Keyboard::Key::Escape
 #define DOWNK Keyboard::Key::PageDown
@@ -67,20 +73,18 @@ void CallbackQuality(const Event::Keyboard& event)
 std::shared_ptr<Light> s_light;
 std::vector<std::shared_ptr<Camera>> s_cameras;
 
-#include <SceneGraph/Nodes/Node.hpp>
-#include <SceneGraph/Nodes/Scene.hpp>
-#include <SceneGraph/Visitors/SearchVisitor.hpp>
+
 
 void SceneGraphTest()
 {
     //build a test scene
-    auto scene { std::make_shared<SceneGraph::Nodes::Scene>() };
-    auto node0 { std::make_shared<SceneGraph::Nodes::Node>("node0") };
+    auto scene { std::make_shared<Nodes::Scene>() };
+    auto node0 { std::make_shared<Nodes::Group>("node0") };
     for (int i = 0; i < 5; ++i) {
-        auto testNode { std::make_shared<SceneGraph::Nodes::Node>("node1") };
+        auto testNode { std::make_shared<Nodes::Group>("node1") };
         testNode->SetParent(node0);
         for (int j = 0; j < 2; ++j) {
-            auto testNode1 { std::make_shared<SceneGraph::Nodes::Node>("node1") };
+            auto testNode1 { std::make_shared<Nodes::Node>("node1") };
             testNode1->SetParent(testNode);
         }
     }
@@ -88,7 +92,7 @@ void SceneGraphTest()
 
     //test search visitor
     {
-        SceneGraph::Visitors::SearchVisitor search(std::string("node1"), SceneGraph::Visitors::NodeVisitor::Mode::VisitChildren);
+        Visitors::SearchVisitor search(std::string("node1"), Visitors::NodeVisitor::Mode::VisitChildren);
         scene->Accept(search);
         std::cout << "Search by name : \n";
         for (const auto& obj : search.GetResult())
@@ -97,7 +101,7 @@ void SceneGraphTest()
 
     //test search by type
     {
-        SceneGraph::Visitors::SearchVisitor search(typeid(SceneGraph::Nodes::Node), SceneGraph::Visitors::NodeVisitor::Mode::VisitChildren);
+        Visitors::SearchVisitor search(typeid(Nodes::Node), Visitors::NodeVisitor::Mode::VisitChildren);
         scene->Accept(search);
         std::cout << "Search by type : \n";
         for (const auto& obj : search.GetResult())
