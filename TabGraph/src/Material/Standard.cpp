@@ -100,7 +100,7 @@ void Standard::RemoveExtension(std::shared_ptr<Extension> extension)
     _extensions.erase(extension);
 }
 
-std::shared_ptr<Extension> Standard::GetExtension(const std::string& name) const
+std::shared_ptr<Extensions::Extension> Standard::GetExtension(const std::string& name) const
 {
     for (const auto& extension : _extensions)
         if (extension->GetName() == name) return extension;
