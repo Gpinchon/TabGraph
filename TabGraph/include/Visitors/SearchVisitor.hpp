@@ -56,11 +56,6 @@ public:
     {
         return _result;
     }
-    inline void operator()(Core::Object& object) override
-    {
-        if (_functor(*this, object))
-            _result.insert(&object);
-    }
 
 private:
     inline virtual void _Visit(Nodes::Node& node) override
