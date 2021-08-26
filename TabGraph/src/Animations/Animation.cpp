@@ -28,9 +28,12 @@ Animation::Animation()
 void Animation::Reset()
 {
     _currentTime = 0;
-    _scales.previousKey = 0;
-    _positions.previousKey = 0;
-    _rotations.previousKey = 0;
+    for (auto& channel : _scales)
+        channel.previousKey = 0;
+    for (auto& channel : _positions)
+        channel.previousKey = 0;
+    for (auto& channel : _rotations)
+        channel.previousKey = 0;
 }
 
 template<typename T>
@@ -58,7 +61,10 @@ auto InterpolateChannel(Channel<T>& channel, float t, bool& animationPlayed)
     if (keyDelta != 0)
         interpolationValue = (t - prevKeyFrame.time) / keyDelta;
     animationPlayed |= t < maxKey.time;
-    return Interpolator::Interpolate(channel, channel.previousKey, nextKey, keyDelta, interpolationValue);
+    return Interpolator::Interpolate<T>(
+        channel.keyFrames.at(channel.previousKey), channel.keyFrames.at(nextKey),
+        channel.interpolation, keyDelta, interpolationValue
+    );
 }
 
 void Animation::Advance(float delta)
@@ -66,9 +72,12 @@ void Animation::Advance(float delta)
     if (!GetPlaying()) return;
     _currentTime += delta * GetSpeed();
     bool animationPlayed(false);
-    _scales.target->SetLocalScale(InterpolateChannel(_scales, _currentTime, animationPlayed));
-    _positions.target->SetLocalPosition(InterpolateChannel(_positions, _currentTime, animationPlayed));
-    _rotations.target->SetLocalRotation(InterpolateChannel(_rotations, _currentTime, animationPlayed));
+    for (auto &channel : _scales)
+        channel.target->SetLocalScale(InterpolateChannel(channel, _currentTime, animationPlayed));
+    for (auto& channel : _positions)
+        channel.target->SetLocalPosition(InterpolateChannel(channel, _currentTime, animationPlayed));
+    for (auto& channel : _rotations)
+        channel.target->SetLocalRotation(InterpolateChannel(channel, _currentTime, animationPlayed));
     if (!animationPlayed) {
         if (GetLoop()) {
             if (GetLoopMode() == LoopMode::Repeat)
