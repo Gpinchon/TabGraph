@@ -4,8 +4,12 @@
 * @Last Modified by:   gpinchon
 * @Last Modified time: 2021-07-21 22:04:50
 */
+
 #pragma once
 
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
 #include <Core/Property.hpp>
 
 #include <variant>
@@ -13,6 +17,9 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+////////////////////////////////////////////////////////////////////////////////
+// Class definition
+////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Cameras {
 class Projection {
     PROPERTY(float, TemporalJitterIntensity, 1 / 1024.f);
@@ -77,7 +84,7 @@ private:
     static void _ApplyTemporalJitter(glm::mat4& matrix, float intensity);
 };
 
-Projection::Projection(PerspectiveInfinite data)
+inline Projection::Projection(PerspectiveInfinite data)
     : type(Type::PerspectiveInfinite)
     , _data(data)
     , _matrixFunctor([](const Projection& proj) {
@@ -89,7 +96,7 @@ Projection::Projection(PerspectiveInfinite data)
 {
 }
 
-Projection::Projection(Perspective data)
+inline Projection::Projection(Perspective data)
     : type(Type::Perspective)
     , _data(data)
     , _matrixFunctor([](const Projection& proj) {
@@ -101,7 +108,7 @@ Projection::Projection(Perspective data)
 {
 }
 
-Projection::Projection(Orthographic data)
+inline Projection::Projection(Orthographic data)
     : type(Type::Orthographic)
     , _data(data)
     , _matrixFunctor([](const Projection& proj) {

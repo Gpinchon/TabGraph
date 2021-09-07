@@ -10,18 +10,10 @@
 #include <algorithm>
 
 namespace TabGraph::Buffer {
-template<typename T>
-TypedAccessor<T>::TypedAccessor()
-    : Inherit()
-{
-    static size_t s_bufferAccessorNbr = 0;
-    SetName("Buffer::TypedAccessor_" + std::to_string(++s_bufferAccessorNbr));
-}
-
+size_t Accessor::s_bufferAccessorNbr = 0;
 Accessor::Accessor()
     : Inherit()
 {
-    static size_t s_bufferAccessorNbr = 0;
     SetName("Buffer::Accessor_" + std::to_string(++s_bufferAccessorNbr));
 }
 }

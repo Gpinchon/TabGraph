@@ -9,11 +9,11 @@
 
 using namespace TabGraph;
 
-void Renderer::ShapeRendererDeleter::operator()(ShapeRenderer* p)
-{
-	delete p;
-}
-
 Shapes::Shape::~Shape()
 {
+}
+
+void TabGraph::Renderer::ShapeRendererDeleter::operator()(ShapeRenderer* p) const
+{
+	delete p;
 }

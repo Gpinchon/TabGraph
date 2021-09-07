@@ -11,10 +11,10 @@
 #include <Assets/Asset.hpp>
 #include <Assets/Parser.hpp>
 #include <Assets/Image.hpp>
-#include <Camera/FPSCamera.hpp>
+#include <Cameras/FPS.hpp>
 #include <Config.hpp>
 #include <Engine.hpp>
-#include <Events/EventsManager.hpp>
+#include <Events/Manager.hpp>
 #include <Events/GameController.hpp>
 #include <Events/InputDevice/GameController.hpp>
 #include <Events/InputDevice/Keyboard.hpp>
@@ -23,11 +23,11 @@
 #include <Light/HDRLight.hpp>
 #include <Light/PointLight.hpp>
 #include <Light/SkyLight.hpp>
-#include <Material/Material.hpp>
+#include <Material/Standard.hpp>
 #include <Renderer/FrameRenderer.hpp>
-#include <Scene/Scene.hpp>
+#include <Nodes/Scene.hpp>
 #include <StackTracer.hpp>
-#include <Surface/Skybox.hpp>
+#include <Shapes/Skybox.hpp>
 #include <Texture/TextureCubemap.hpp>
 #include <Tools/Tools.hpp>
 #include <Window.hpp>
@@ -38,6 +38,7 @@
 
 #include <csignal>
 #include <filesystem>
+#include <iostream>
 
 using namespace TabGraph;
 
@@ -53,16 +54,16 @@ using namespace TabGraph;
 
 float speed = 1.f;
 
-void FullscreenCallback(const Event::Keyboard& event)
+void FullscreenCallback(const Events::Event::Keyboard& event)
 {
-    if (event.key == Keyboard::Key::Return && event.alt && !event.repeat && event.state) {
+    if (event.key == Events::Keyboard::Key::Return && event.alt && !event.repeat && event.state) {
         static bool fullscreen = false;
         fullscreen = !fullscreen;
         event.window->SetFullscreen(fullscreen);
     }
 }
 
-void CallbackQuality(const Event::Keyboard& event)
+void CallbackQuality(const Events::Event::Keyboard& event)
 {
     if (!event.state || event.repeat)
         return;
@@ -70,10 +71,8 @@ void CallbackQuality(const Event::Keyboard& event)
     Config::Global().Set("InternalQuality", quality);
 }
 
-std::shared_ptr<Light> s_light;
-std::vector<std::shared_ptr<Camera>> s_cameras;
-
-
+std::shared_ptr<Lights::Light> s_light;
+std::vector<std::shared_ptr<Cameras::Camera>> s_cameras;
 
 void SceneGraphTest()
 {

@@ -62,7 +62,7 @@ void Framebuffer::BlitTo(std::shared_ptr<Framebuffer> to, BufferMask mask, Textu
     return _impl->BlitTo(to, mask, filter);
 }
 
-void Framebuffer::BlitTo(std::shared_ptr<Window> to, BufferMask mask, Textures::Sampler::Filter filter)
+void Framebuffer::BlitTo(std::shared_ptr<Core::Window> to, BufferMask mask, Textures::Sampler::Filter filter)
 {
     return _impl->BlitTo(to, mask, filter);
 }

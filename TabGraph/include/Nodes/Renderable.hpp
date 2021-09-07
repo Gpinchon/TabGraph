@@ -22,6 +22,8 @@ class Shape;
 namespace TabGraph::Nodes {
 class Renderable : public Core::Inherit<Node, Renderable> {
 public:
+    Renderable() = default;
+    Renderable(const std::string& name) : Inherit(name) {}
     inline void Add(std::shared_ptr<Shapes::Shape> shape)
     {
         _shapes.insert(shape);

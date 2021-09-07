@@ -21,7 +21,7 @@
 #include <SDL.h>
 #include <SDL_gamecontroller.h>
 
-namespace SDL2::GameController {
+namespace TabGraph::SDL2::GameController {
 const static std::map<TabGraph::Events::GameController::Button, SDL_GameControllerButton> s_buttonLUT {
     { TabGraph::Events::GameController::Button::Unknown, SDL_CONTROLLER_BUTTON_INVALID },
     { TabGraph::Events::GameController::Button::A, SDL_CONTROLLER_BUTTON_A },

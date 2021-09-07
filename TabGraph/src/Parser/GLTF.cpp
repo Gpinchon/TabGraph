@@ -276,7 +276,7 @@ static inline auto ParseTextures(const rapidjson::Document& document, std::vecto
         }
         if (textureValue.HasMember("sampler")) {
             auto sampler(samplers.at(textureValue["sampler"].GetInt()));
-            texture->SetTextureSampler(sampler);
+            texture->SetSampler(sampler);
         }
         texture->SetCompressed(container->parsingOptions.texture.compress);
         texture->SetCompressionQuality(container->parsingOptions.texture.compressionQuality);

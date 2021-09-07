@@ -181,8 +181,8 @@ void DirectionalLightRenderer::_RenderShadow(TabGraph::Lights::DirectionalLight&
         auto shadowRes { glm::ivec2(light.GetShadowResolution()) };
         if (_shadowBuffer == nullptr) {
             auto shadowBuffer { std::make_shared<Textures::Texture2D>(shadowRes, Pixel::SizedFormat::Depth24) };
-            shadowBuffer->GetTextureSampler()->SetCompareMode(Textures::Sampler::CompareMode::CompareRefToTexture);
-            shadowBuffer->GetTextureSampler()->SetCompareFunc(Textures::Sampler::CompareFunc::LessEqual);
+            shadowBuffer->GetSampler()->SetCompareMode(Textures::Sampler::CompareMode::CompareRefToTexture);
+            shadowBuffer->GetSampler()->SetCompareFunc(Textures::Sampler::CompareFunc::LessEqual);
             shadowBuffer->SetMipMapNbr(1);
             _shadowBuffer = std::make_shared<Framebuffer>(shadowRes);
             _shadowBuffer->SetDepthBuffer(shadowBuffer);

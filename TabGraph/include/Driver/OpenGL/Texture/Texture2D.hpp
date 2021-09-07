@@ -24,7 +24,7 @@ class Asset;
 namespace Events {
 struct Event;
 }
-namespace Textures::Pixel {
+namespace Pixel {
 struct Description;
 }
 }

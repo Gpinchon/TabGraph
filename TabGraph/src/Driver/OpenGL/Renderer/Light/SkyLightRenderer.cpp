@@ -166,7 +166,7 @@ void SkyLightRenderer::_UpdateLUT(TabGraph::Lights::SkyLight& light, const Rende
     OpenGL::Framebuffer::Bind(nullptr);
     s_diffuseLUTBuffer->SetColorBuffer(nullptr, 0);
     _reflectionLUT->GenerateMipmap();
-    _reflectionLUT->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
+    _reflectionLUT->GetSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
     _dirty = false;
 }
 };

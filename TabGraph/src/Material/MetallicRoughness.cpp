@@ -10,25 +10,25 @@ MetallicRoughness::MetallicRoughness() : Inherit("MetallicRoughness")
     SetCode({ extensionCode, "MetallicRoughness();" });
 }
 
-inline void MetallicRoughness::SetTextureBaseColor(std::shared_ptr<Textures::Texture2D> texture)
+void MetallicRoughness::SetTextureBaseColor(std::shared_ptr<Textures::Texture2D> texture)
 {
     SetTexture("MetallicRoughnessTextures.BaseColor", texture);
     texture ? SetDefine("METALLIC_ROUGHNESS_TEXTURE_USE_BASECOLOR") : RemoveDefine("METALLIC_ROUGHNESS_TEXTURE_USE_BASECOLOR");
 }
 
-inline void MetallicRoughness::SetTextureMetallicRoughness(std::shared_ptr<Textures::Texture2D> texture)
+void MetallicRoughness::SetTextureMetallicRoughness(std::shared_ptr<Textures::Texture2D> texture)
 {
     SetTexture("MetallicRoughnessTextures.MetallicRoughness", texture);
     texture ? SetDefine("METALLIC_ROUGHNESS_TEXTURE_USE_METALLICROUGHNESS") : RemoveDefine("METALLIC_ROUGHNESS_TEXTURE_USE_METALLICROUGHNESS");
 }
 
-inline void MetallicRoughness::SetTextureRoughness(std::shared_ptr<Textures::Texture2D> texture)
+void MetallicRoughness::SetTextureRoughness(std::shared_ptr<Textures::Texture2D> texture)
 {
     SetTexture("MetallicRoughnessTextures.Roughness", texture);
     texture ? SetDefine("METALLIC_ROUGHNESS_TEXTURE_USE_ROUGHNESS") : RemoveDefine("METALLIC_ROUGHNESS_TEXTURE_USE_ROUGHNESS");
 }
 
-inline void MetallicRoughness::SetTextureMetallic(std::shared_ptr<Textures::Texture2D> texture)
+void MetallicRoughness::SetTextureMetallic(std::shared_ptr<Textures::Texture2D> texture)
 {
     SetTexture("MetallicRoughnessTextures.Metallic", texture);
     texture ? SetDefine("METALLIC_ROUGHNESS_TEXTURE_USE_METALLIC") : RemoveDefine("METALLIC_ROUGHNESS_TEXTURE_USE_METALLIC");

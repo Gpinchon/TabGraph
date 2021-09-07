@@ -9,10 +9,10 @@
 #include <Events/Mouse.hpp>
 
 #if MEDIALIBRARY == SDL2
-#include <Driver/SDL2/Mouse.hpp>
+#include <Driver/SDL2/InputDevices/Mouse.hpp>
 #endif //MEDIALIBRARY == SDL2
 
-namespace Mouse {
+namespace TabGraph::Events::Mouse {
 InputDevice& Get()
 {
     static std::unique_ptr<InputDevice> s_instance(new InputDevice);

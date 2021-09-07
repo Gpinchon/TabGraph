@@ -81,51 +81,51 @@ void Window::Impl::Swap()
 }
 }
 
-namespace SDL2::Window {
-    TabGraph::Events::Event::Window::Type GetEventType(SDL_WindowEventID type)
+namespace TabGraph::SDL2::Window {
+    Events::Event::Window::Type GetEventType(SDL_WindowEventID type)
     {
         switch (type) {
         case SDL_WINDOWEVENT_NONE:
-            return TabGraph::Events::Event::Window::Type::Unknown;
+            return Events::Event::Window::Type::Unknown;
         case SDL_WINDOWEVENT_SHOWN:
-            return TabGraph::Events::Event::Window::Type::Shown;
+            return Events::Event::Window::Type::Shown;
         case SDL_WINDOWEVENT_HIDDEN:
-            return TabGraph::Events::Event::Window::Type::Hidden;
+            return Events::Event::Window::Type::Hidden;
         case SDL_WINDOWEVENT_EXPOSED:
-            return TabGraph::Events::Event::Window::Type::Exposed;
+            return Events::Event::Window::Type::Exposed;
         case SDL_WINDOWEVENT_MOVED:
-            return TabGraph::Events::Event::Window::Type::Moved;
+            return Events::Event::Window::Type::Moved;
         case SDL_WINDOWEVENT_RESIZED:
-            return TabGraph::Events::Event::Window::Type::Resized;
+            return Events::Event::Window::Type::Resized;
         case SDL_WINDOWEVENT_SIZE_CHANGED:
-            return TabGraph::Events::Event::Window::Type::SizeChanged;
+            return Events::Event::Window::Type::SizeChanged;
         case SDL_WINDOWEVENT_MINIMIZED:
-            return TabGraph::Events::Event::Window::Type::Minimized;
+            return Events::Event::Window::Type::Minimized;
         case SDL_WINDOWEVENT_MAXIMIZED:
-            return TabGraph::Events::Event::Window::Type::Maximized;
+            return Events::Event::Window::Type::Maximized;
         case SDL_WINDOWEVENT_RESTORED:
-            return TabGraph::Events::Event::Window::Type::Restored;
+            return Events::Event::Window::Type::Restored;
         case SDL_WINDOWEVENT_ENTER:
-            return TabGraph::Events::Event::Window::Type::Enter;
+            return Events::Event::Window::Type::Enter;
         case SDL_WINDOWEVENT_LEAVE:
-            return TabGraph::Events::Event::Window::Type::Leave;
+            return Events::Event::Window::Type::Leave;
         case SDL_WINDOWEVENT_FOCUS_GAINED:
-            return TabGraph::Events::Event::Window::Type::FocusGained;
+            return Events::Event::Window::Type::FocusGained;
         case SDL_WINDOWEVENT_FOCUS_LOST:
-            return TabGraph::Events::Event::Window::Type::FocusLost;
+            return Events::Event::Window::Type::FocusLost;
         case SDL_WINDOWEVENT_CLOSE:
-            return TabGraph::Events::Event::Window::Type::Close;
+            return Events::Event::Window::Type::Close;
         case SDL_WINDOWEVENT_TAKE_FOCUS:
-            return TabGraph::Events::Event::Window::Type::TakeFocus;
+            return Events::Event::Window::Type::TakeFocus;
         default:
             throw std::runtime_error("Unknown TabGraph::Events::Event::Window::Type");
         }
     }
-    TabGraph::Events::Event::Window CreateEventData(const SDL_WindowEvent& SDLevent)
+    Events::Event::Window CreateEventData(const SDL_WindowEvent& SDLevent)
     {
-        TabGraph::Events::Event::Window event;
+        Events::Event::Window event;
         event.type = GetEventType(SDL_WindowEventID(SDLevent.event));
-        event.window = TabGraph::Core::Window::Get(SDLevent.windowID);
+        event.window = Core::Window::Get(SDLevent.windowID);
         return event;
     }
 }

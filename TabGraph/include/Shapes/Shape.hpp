@@ -18,9 +18,10 @@
 // Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Renderer {
-class ShapeRenderer;
+struct ShapeRenderer;
 struct ShapeRendererDeleter {
-    void operator()(ShapeRenderer* p);
+    void operator()(ShapeRenderer* p) const;
+
 };
 };
 

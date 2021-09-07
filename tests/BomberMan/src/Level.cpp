@@ -135,8 +135,8 @@ std::shared_ptr<Level> Level::Create(const std::filesystem::path& path)
     floorImageAsset->AddComponent(floorImage);
     floorImageAsset->SetLoaded(true);
     auto floorTexture = std::make_shared<Textures::Texture2D>(floorImageAsset);
-    floorTexture->GetTextureSampler()->SetMagFilter(Textures::Sampler::Filter::Nearest);
-    floorTexture->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::Nearest);
+    floorTexture->GetSampler()->SetMagFilter(Textures::Sampler::Filter::Nearest);
+    floorTexture->GetSampler()->SetMinFilter(Textures::Sampler::Filter::Nearest);
     floorMesh->GetGeometryMaterial(0)->SetTextureDiffuse(floorTexture);
     auto skybox = std::make_shared<Skybox>("Skybox");
     auto diffuseMap{ std::make_shared<Assets::Asset>(path.parent_path() / "env.png") };

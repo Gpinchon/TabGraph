@@ -8,6 +8,8 @@
 
 #include <GL/glew.h>
 
+#include <iostream>
+
 #ifdef DEBUG_MOD
 inline void GLAPIENTRY MessageCallback(GLenum source,
     GLenum type,

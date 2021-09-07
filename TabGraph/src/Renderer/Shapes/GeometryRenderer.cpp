@@ -5,17 +5,17 @@
 * @Last Modified time: 2021-03-22 23:18:00
 */
 
-#include <Renderer/Surface/ShapeRenderer.hpp>
-#include <Surface/Geometry.hpp>
+#include <Renderer/Shapes/ShapeRenderer.hpp>
+#include <Shapes/Geometry.hpp>
 
 #if RENDERINGAPI == OpenGL
-#include <Driver/OpenGL/Renderer/Surface/GeometryRenderer.hpp>
+#include <Driver/OpenGL/Renderer/Shapes/GeometryRenderer.hpp>
 #endif
 
 
 
-namespace Renderer {
-void Render(std::shared_ptr<Geometry> geometry, bool doubleSided)
+namespace TabGraph::Renderer {
+void Render(std::shared_ptr<Shapes::Geometry> geometry, bool doubleSided)
 {
     static_cast<GeometryRenderer&>(geometry->GetRenderer()).Render(doubleSided);
 }

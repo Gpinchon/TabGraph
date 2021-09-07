@@ -66,9 +66,9 @@ void Texture::SetAutoMipMap(bool autoMipmap)
     return _impl->SetAutoMipMap(autoMipmap);
 }
 
-void Texture::SetTextureSampler(std::shared_ptr<Textures::Sampler> textureSampler)
+void Texture::SetSampler(std::shared_ptr<Textures::Sampler> textureSampler)
 {
-    return _impl->SetTextureSampler(textureSampler);
+    return _impl->SetSampler(textureSampler);
 }
 
 bool Texture::GetLoaded() const
@@ -81,9 +81,9 @@ TabGraph::Pixel::Description Texture::GetPixelDescription() const
     return _impl->GetPixelDescription();
 }
 
-std::shared_ptr<Sampler> Texture::GetTextureSampler() const
+std::shared_ptr<Sampler> Texture::GetSampler() const
 {
-    return _impl->GetTextureSampler();
+    return _impl->GetSampler();
 }
 
 void Texture::SetMipMapNbr(uint8_t mipNbr)

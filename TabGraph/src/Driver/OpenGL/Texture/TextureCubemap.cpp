@@ -43,8 +43,7 @@ void TextureCubemap::Impl::Load()
             Assets::Parser::ParsingTask::Type::Sync,
             GetImage()
         });
-        assert(!GetImage()->images.empty());
-        auto image { GetImage()->images.at(0) };
+        auto image { GetImage()->Get<Assets::Image>().at(0) }; //will crash if no image
         SetSize(glm::ivec2(std::min(image->GetSize().x, image->GetSize().y)));
         SetPixelDescription(image->GetPixelDescription());
         _AllocateStorage();

@@ -5,64 +5,62 @@
 * @Last Modified time: 2021-07-01 22:12:49
 */
 
-#include <Driver/SDL2/Mouse.hpp>
-#include <Events/EventsManager.hpp>
+#include <Driver/SDL2/InputDevices/Mouse.hpp>
+#include <Events/Manager.hpp>
 #include <Events/InputDevice/Mouse.hpp>
 #include <Window.hpp>
 
 #include <SDL_events.h>
 #include <SDL_mouse.h> // for SDL_GetMouseState, SDL_GetRelativeMouseMode
 
-namespace SDL2 {
-namespace Mouse {
-    const static std::unordered_map<uint8_t, ::Mouse::Button> s_buttonLUT {
-        { SDL_BUTTON_LEFT, ::Mouse::Button::Left },
-        { SDL_BUTTON_MIDDLE, ::Mouse::Button::Middle },
-        { SDL_BUTTON_RIGHT, ::Mouse::Button::Right },
-        { SDL_BUTTON_X1, ::Mouse::Button::X1 },
-        { SDL_BUTTON_X2, ::Mouse::Button::X2 }
+namespace TabGraph::SDL2::Mouse {
+    const static std::unordered_map<uint8_t, TabGraph::Events::Mouse::Button> s_buttonLUT {
+        { SDL_BUTTON_LEFT, TabGraph::Events::Mouse::Button::Left },
+        { SDL_BUTTON_MIDDLE, TabGraph::Events::Mouse::Button::Middle },
+        { SDL_BUTTON_RIGHT, TabGraph::Events::Mouse::Button::Right },
+        { SDL_BUTTON_X1, TabGraph::Events::Mouse::Button::X1 },
+        { SDL_BUTTON_X2, TabGraph::Events::Mouse::Button::X2 }
     };
     const static auto s_reversebuttonLUT { [&]() {
-        std::unordered_map<::Mouse::Button, uint8_t> map;
+        std::unordered_map<TabGraph::Events::Mouse::Button, uint8_t> map;
         for (const auto& [key, value] : s_buttonLUT)
             map[value] = key;
         return map;
     }() };
-    Event::MouseButton CreateEventData(const SDL_MouseButtonEvent& event)
+    Events::Event::MouseButton CreateEventData(const SDL_MouseButtonEvent& event)
     {
         return {
-            Window::Get(event.windowID),
-            ::Mouse::GetPosition(),
+            Core::Window::Get(event.windowID),
+            Events::Mouse::GetPosition(),
             s_buttonLUT.at(event.button)
         };
     }
-    Event::MouseWheel CreateEventData(const SDL_MouseWheelEvent& event)
+    Events::Event::MouseWheel CreateEventData(const SDL_MouseWheelEvent& event)
     {
         return {
-            Window::Get(event.windowID),
-            ::Mouse::GetPosition(),
-            event.direction == SDL_MOUSEWHEEL_FLIPPED ? ::Mouse::WheelDirection::Flipped : ::Mouse::WheelDirection::Natural,
+            Core::Window::Get(event.windowID),
+            TabGraph::Events::Mouse::GetPosition(),
+            event.direction == SDL_MOUSEWHEEL_FLIPPED ? TabGraph::Events::Mouse::WheelDirection::Flipped : TabGraph::Events::Mouse::WheelDirection::Natural,
             glm::ivec2(event.x, event.y)
         };
     }
-    Event::MouseMove CreateEventData(const SDL_MouseMotionEvent& event)
+    Events::Event::MouseMove CreateEventData(const SDL_MouseMotionEvent& event)
     {
         return {
-            Window::Get(event.windowID),
-            ::Mouse::GetPosition(),
+            Core::Window::Get(event.windowID),
+            TabGraph::Events::Mouse::GetPosition(),
             glm::ivec2(event.xrel, event.yrel)
         };
     }
 }
-}
 
-namespace Mouse {
+namespace TabGraph::Events::Mouse {
 InputDevice::InputDevice()
 {
-    EventsManager::On(Event::Type::MouseMotion).ConnectMember(this, &InputDevice::_ProcessEvent);
-    EventsManager::On(Event::Type::MouseButtonDown).ConnectMember(this, &InputDevice::_ProcessEvent);
-    EventsManager::On(Event::Type::MouseButtonUp).ConnectMember(this, &InputDevice::_ProcessEvent);
-    EventsManager::On(Event::Type::MouseWheel).ConnectMember(this, &InputDevice::_ProcessEvent);
+    Events::Manager::On(Event::Type::MouseMotion).ConnectMember(this, &InputDevice::_ProcessEvent);
+    Events::Manager::On(Event::Type::MouseButtonDown).ConnectMember(this, &InputDevice::_ProcessEvent);
+    Events::Manager::On(Event::Type::MouseButtonUp).ConnectMember(this, &InputDevice::_ProcessEvent);
+    Events::Manager::On(Event::Type::MouseWheel).ConnectMember(this, &InputDevice::_ProcessEvent);
 }
 bool InputDevice::GetRelative() const
 {
@@ -75,7 +73,7 @@ void InputDevice::SetRelative(bool value)
 bool InputDevice::GetButtonState(Button button) const
 {
     auto mask = SDL_GetMouseState(nullptr, nullptr);
-    return (mask & SDL_BUTTON(SDL2::Mouse::s_reversebuttonLUT.at(button)));
+    return (mask & SDL_BUTTON(TabGraph::SDL2::Mouse::s_reversebuttonLUT.at(button)));
 }
 glm::ivec2 InputDevice::GetPosition() const
 {

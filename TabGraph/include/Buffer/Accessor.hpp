@@ -19,9 +19,121 @@
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
+// Forward declaration
+////////////////////////////////////////////////////////////////////////////////
+namespace TabGraph::Buffer {
+template<typename>
+class TypedAccessor;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Class declaration
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Buffer {
+class Accessor : public Core::Inherit<Core::Object, Buffer::Accessor> {
+public:
+    enum class ComponentType {
+        Unknown = -1,
+        Int8, Uint8,
+        Int16, Uint16, Float16,
+        Int32, Uint32, Float32,
+        MaxValue
+    };
+    PROPERTY(size_t, ByteOffset, 0);
+    PROPERTY(size_t, Size, 0);
+    PROPERTY(uint8_t, ComponentTypeSize, 0);
+    PROPERTY(uint8_t, ComponentNbr, 0);
+    PROPERTY(ComponentType, ComponentType, ComponentType::Unknown);
+    PROPERTY(std::shared_ptr<Buffer::View>, BufferView, nullptr);
+    PROPERTY(bool, Normalized, false);
+
+public:
+    Accessor();
+    Accessor(const std::shared_ptr<Buffer::View>& bufferView, const size_t& byteOffset, const size_t& size, const ComponentType& componentType, const uint8_t& componentsNbr)
+        : Accessor()
+    {
+        SetBufferView(bufferView);
+        SetByteOffset(byteOffset);
+        SetSize(size);
+        SetComponentType(componentType);
+        SetComponentNbr(componentsNbr);
+        SetComponentTypeSize(GetComponentTypeSize(GetComponentType()));
+        if (GetBufferView() == nullptr)
+            SetBufferView(std::make_shared<Buffer::View>(GetByteOffset() + GetDataByteSize()));
+    }
+    inline static uint8_t GetComponentTypeSize(const ComponentType& componentType) {
+        switch (componentType)
+        {
+        case ComponentType::Int8:
+        case ComponentType::Uint8:
+            return 1;
+            break;
+        case ComponentType::Int16:
+        case ComponentType::Uint16:
+        case ComponentType::Float16:
+            return 2;
+            break;
+        case ComponentType::Int32:
+        case ComponentType::Uint32:
+        case ComponentType::Float32:
+            return 4;
+            break;
+        }
+    }
+    inline size_t GetDataByteSize() const {
+        return size_t(GetComponentTypeSize()) * GetComponentNbr();
+    }
+    template<typename T>
+    inline auto begin()
+    {
+        assert(sizeof(T) == GetDataByteSize());
+        const auto& bufferView{ GetBufferView() };
+        bufferView->Load();
+        return Iterator<T>(&bufferView->at(GetByteOffset()), bufferView->GetByteStride());
+    }
+    template<typename T>
+    inline const auto begin() const
+    {
+        assert(sizeof(T) == GetDataByteSize());
+        const auto& bufferView{ GetBufferView() };
+        bufferView->Load();
+        return Iterator<T>(&bufferView->at(GetByteOffset()), bufferView->GetByteStride());
+    }
+
+    template<typename T>
+    inline const Iterator<T> end() const
+    {
+        return begin<T>() + GetSize();
+    }
+    template<typename T>
+    inline Iterator<T> end()
+    {
+        return begin<T>() + GetSize();
+    }
+    template<typename T>
+    inline const T& at(const size_t& index) const {
+        assert(index < GetSize());
+        return *(begin<T>() + index);
+    }
+    template<typename T>
+    inline T& at(const size_t& index) {
+        assert(index < GetSize());
+        return *(begin<T>() + index);
+    }
+    bool empty() const {
+        return GetSize() == 0;
+    }
+
+    template<typename T>
+    inline operator TypedAccessor<T>() const {
+        assert(GetDataByteSize() == sizeof(T));
+        return TypedAccessor<T>(GetBufferView(), GetByteOffset(), GetSize());
+    }
+private:
+    template<typename> friend class TypedAccessor;
+    static size_t s_bufferAccessorNbr;
+};
+
 /**
 * A typed view into a bufferView
 * A bufferView contains raw binary data.
@@ -47,7 +159,11 @@ public:
     PROPERTY(T, Max, 0);
 
 public:
-    TypedAccessor();
+    TypedAccessor()
+        : Inherit()
+    {
+        SetName("Buffer::TypedAccessor_" + std::to_string(++Accessor::s_bufferAccessorNbr));
+    }
     TypedAccessor(std::shared_ptr<Buffer::View> bufferView)
         : TypedAccessor()
     {
@@ -120,105 +236,4 @@ public:
         return vector;
     }
 };
-class Accessor : public Core::Inherit<Core::Object, Buffer::Accessor> {
-public:
-    enum class ComponentType {
-        Unknown = -1,
-        Int8, Uint8,
-        Int16, Uint16, Float16,
-        Int32, Uint32, Float32,
-        MaxValue
-    };
-    PROPERTY(size_t, ByteOffset, 0);
-    PROPERTY(size_t, Size, 0);
-    PROPERTY(uint8_t, ComponentTypeSize, 0);
-    PROPERTY(uint8_t, ComponentNbr, 0);
-    PROPERTY(ComponentType, ComponentType, ComponentType::Unknown);
-    PROPERTY(std::shared_ptr<Buffer::View>, BufferView, nullptr);
-    PROPERTY(bool, Normalized, false);
-
-public:
-    Accessor();
-    Accessor(const std::shared_ptr<Buffer::View>& bufferView, const size_t& byteOffset, const size_t& size, const ComponentType& componentType, const uint8_t& componentsNbr)
-        : Accessor()
-    {
-        SetBufferView(bufferView);
-        SetByteOffset(byteOffset);
-        SetSize(size);
-        SetComponentType(componentType);
-        SetComponentNbr(componentsNbr);
-        SetComponentTypeSize(GetComponentTypeSize(GetComponentType()));
-        if (GetBufferView() == nullptr)
-            SetBufferView(std::make_shared<Buffer::View>(GetDataByteSize()));
-    }
-    inline static uint8_t GetComponentTypeSize(const ComponentType& componentType) {
-        switch (componentType)
-        {
-        case ComponentType::Int8:
-        case ComponentType::Uint8:
-            return 1;
-            break;
-        case ComponentType::Int16:
-        case ComponentType::Uint16:
-        case ComponentType::Float16:
-            return 2;
-            break;
-        case ComponentType::Int32:
-        case ComponentType::Uint32:
-        case ComponentType::Float32:
-            return 4;
-            break;
-        }
-    }
-    inline size_t GetDataByteSize() const {
-        return size_t(GetComponentTypeSize()) * GetComponentNbr();
-    }
-    template<typename T>
-    inline auto begin()
-    {
-        assert(sizeof(T) == GetDataByteSize());
-        const auto& bufferView{ GetBufferView() };
-        bufferView->Load();
-        return Iterator<T>(&bufferView->at(GetByteOffset()), bufferView->GetByteStride());
-    }
-    template<typename T>
-    inline const auto begin() const
-    {
-        assert(sizeof(T) == GetDataByteSize());
-        const auto& bufferView{ GetBufferView() };
-        bufferView->Load();
-        return Iterator<T>(&bufferView->at(GetByteOffset()), bufferView->GetByteStride());
-    }
-    
-    template<typename T>
-    inline const Iterator<T> end() const
-    {
-        return begin<T>() + GetSize();
-    }
-    template<typename T>
-    inline Iterator<T> end()
-    {
-        return begin<T>() + GetSize();
-    }
-    template<typename T>
-    inline const T& at(const size_t& index) const {
-        assert(index < GetSize());
-        return *(begin<T>() + index);
-    }
-    template<typename T>
-    inline T& at(const size_t& index) {
-        assert(index < GetSize());
-        return *(begin<T>() + index);
-    }
-    bool empty() const {
-        return GetSize() == 0;
-    }
-
-    template<typename T>
-    inline operator TypedAccessor<T>() const {
-        assert(GetDataByteSize() == sizeof(T));
-        return TypedAccessor<T>(GetBufferView(), GetByteOffset(), GetSize());
-    }
-};
-
 }

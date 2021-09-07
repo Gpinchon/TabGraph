@@ -1,10 +1,12 @@
-#include "Texture/Texture2D.hpp"
-#include "Texture/PixelUtils.hpp"
-#include "Assets/Asset.hpp"
+#include <Texture/Texture2D.hpp>
+#include <Texture/PixelUtils.hpp>
+#include <Assets/Asset.hpp>
 
 #if RENDERINGAPI == OpenGL
 #include "Driver/OpenGL/Texture/Texture2D.hpp"
 #endif
+
+using namespace TabGraph::Textures;
 
 Texture2D::Texture2D(const Texture2D& other)
     : Texture(other)

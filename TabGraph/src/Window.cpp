@@ -5,7 +5,7 @@
 * @Last Modified time: 2021-07-01 22:12:47
 */
 
-#include <Events/EventsManager.hpp> // for Events
+#include <Events/Manager.hpp> // for Events
 #include <Window.hpp>
 
 #if MEDIALIBRARY == SDL2
@@ -13,6 +13,8 @@
 #endif //MEDIALIBRARY == SDL2
 
 #include <stdexcept> // for runtime_error
+
+using namespace TabGraph::Core;
 
 static std::unordered_map<uint32_t, std::shared_ptr<Window>> s_windows;
 static uint32_t s_currentWindow { 0 };
@@ -43,19 +45,19 @@ uint32_t Window::GetId()
 Window::Window(const std::string& name, const glm::ivec2 resolution, const Style style)
     : _impl(new Window::Impl(name, resolution, style))
 {
-    EventsManager::On(Event::Type::WindowEvent).ConnectMember(this, &Window::_ProcessEvent);
+    Events::Manager::On(Events::Event::Type::WindowEvent).ConnectMember(this, &Window::_ProcessEvent);
 }
 
-void Window::_ProcessEvent(const Event& event)
+void Window::_ProcessEvent(const Events::Event& event)
 {
-    auto& windowEvent { event.Get<Event::Window>() };
-    if (windowEvent.type == Event::Window::Type::FocusGained)
+    auto& windowEvent { event.Get<Events::Event::Window>() };
+    if (windowEvent.type == Events::Event::Window::Type::FocusGained)
         s_currentWindow = windowEvent.window->GetId();
-    else if (windowEvent.type == Event::Window::Type::FocusLost
+    else if (windowEvent.type == Events::Event::Window::Type::FocusLost
         && s_currentWindow == windowEvent.window->GetId())
         s_currentWindow = 0;
     _impl->OnEvent(windowEvent.type)(windowEvent);
-    if (windowEvent.type == Event::Window::Type::Close) {
+    if (windowEvent.type == Events::Event::Window::Type::Close) {
         s_windows.erase(windowEvent.window->GetId());
         if (s_currentWindow == windowEvent.window->GetId())
             s_currentWindow = 0;
@@ -67,7 +69,7 @@ Window::Impl& Window::GetImpl()
     return *_impl;
 }
 
-Signal<Event::Window>& Window::OnEvent(const Event::Window::Type type)
+TabGraph::Events::Signal<TabGraph::Events::Event::Window>& Window::OnEvent(const Events::Event::Window::Type type)
 {
     return _impl->OnEvent(type);
 }

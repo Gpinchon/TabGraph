@@ -25,7 +25,7 @@ public:
     {
         return _id;
     }
-    inline auto GetName() const
+    inline auto &GetName() const
     {
         return _name;
     }

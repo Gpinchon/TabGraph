@@ -21,7 +21,7 @@
 // Forward declarations
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Textures {
-struct Sampler;
+class Sampler;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,13 +56,13 @@ public:
 
     Texture::Type GetType() const;
     Pixel::Description GetPixelDescription() const;
-    std::shared_ptr<Sampler> GetTextureSampler() const;
+    std::shared_ptr<Sampler> GetSampler() const;
     bool GetLoaded() const;
     bool GetAutoMipMap() const;
     uint8_t GetMipMapNbr() const;
 
     void SetAutoMipMap(bool autoMipmap);
-    void SetTextureSampler(std::shared_ptr<Sampler> textureSampler);
+    void SetSampler(std::shared_ptr<Sampler> textureSampler);
     void SetMipMapNbr(uint8_t mipNbr);
     
 

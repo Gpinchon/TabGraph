@@ -56,7 +56,7 @@ void OpenGL::Texture::Delete(TabGraph::Textures::Texture::Impl::Handle handle)
 namespace TabGraph::Textures {
 Texture::Impl::Impl(const Impl& other)
     : _type(other._type)
-    , _textureSampler(other._textureSampler)
+    , _Sampler(other._Sampler)
     , _mipMapNbr(other._mipMapNbr)
     , _autoMipMap(other._autoMipMap)
     , _PixelDescription(other._PixelDescription)
@@ -65,14 +65,14 @@ Texture::Impl::Impl(const Impl& other)
 
 Texture::Impl::Impl(Texture::Type type)
     : _type(type)
-    , _textureSampler(std::make_shared<Textures::Sampler>())
+    , _Sampler(std::make_shared<Textures::Sampler>())
 {
 }
 
 Texture::Impl::Impl(Texture::Type type, const Pixel::Description& description)
     : _type(type)
     , _PixelDescription(description)
-    , _textureSampler(std::make_shared<Textures::Sampler>())
+    , _Sampler(std::make_shared<Textures::Sampler>())
 {
 }
 

@@ -9,10 +9,10 @@
 #include <Events/Keyboard.hpp>
 
 #if MEDIALIBRARY == SDL2
-#include <Driver/SDL2/Keyboard.hpp>
+#include <Driver/SDL2/InputDevices/Keyboard.hpp>
 #endif //MEDIALIBRARY == SDL2
 
-namespace Keyboard {
+namespace TabGraph::Events::Keyboard {
 InputDevice& Get()
 {
     static std::unique_ptr<InputDevice> s_instance(new InputDevice);

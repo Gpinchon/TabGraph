@@ -208,7 +208,7 @@ void Program::Impl::SetTexture(const std::string& name, const std::shared_ptr<Te
             if (value != nullptr) {
                 value->Load();
                 glBindTexture(OpenGL::GetEnum(value->GetType()), value->GetImpl().GetHandle());
-                glBindSampler(index->second, value->GetTextureSampler()->GetImpl().GetHandle());
+                glBindSampler(index->second, value->GetSampler()->GetImpl().GetHandle());
             } else {
                 glBindTexture(OpenGL::GetEnum(Textures::Texture::Type::Texture1D), 0);
                 glBindTexture(OpenGL::GetEnum(Textures::Texture::Type::Texture1DArray), 0);

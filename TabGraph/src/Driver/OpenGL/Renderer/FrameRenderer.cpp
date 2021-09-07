@@ -76,11 +76,11 @@ static inline auto CreateDeferredRenderBuffer(const std::string& name, const glm
     buffer->AddColorBuffer(std::make_shared<Textures::Texture2D>(size, Pixel::SizedFormat::Float16_RG)); //Velocity
     buffer->AddColorBuffer(std::make_shared<Textures::Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); // Color (Unlit/Emissive/Final Color)
     buffer->SetDepthBuffer(depthStencilBuffer);
-    buffer->GetColorBuffer(0)->SetTextureSampler(FrameBufferSampler());
-    buffer->GetColorBuffer(1)->SetTextureSampler(FrameBufferSampler());
-    buffer->GetColorBuffer(2)->SetTextureSampler(FrameBufferSampler());
-    buffer->GetColorBuffer(3)->SetTextureSampler(FrameBufferSampler());
-    buffer->GetColorBuffer(4)->SetTextureSampler(FrameBufferSampler());
+    buffer->GetColorBuffer(0)->SetSampler(FrameBufferSampler());
+    buffer->GetColorBuffer(1)->SetSampler(FrameBufferSampler());
+    buffer->GetColorBuffer(2)->SetSampler(FrameBufferSampler());
+    buffer->GetColorBuffer(3)->SetSampler(FrameBufferSampler());
+    buffer->GetColorBuffer(4)->SetSampler(FrameBufferSampler());
     buffer->GetColorBuffer(0)->SetAutoMipMap(false);
     buffer->GetColorBuffer(1)->SetAutoMipMap(false);
     buffer->GetColorBuffer(2)->SetAutoMipMap(false);
@@ -100,8 +100,8 @@ static inline auto CreateLightingBuffer(const std::string& name, const glm::ivec
     auto buffer = std::make_shared<Framebuffer>(size);
     buffer->AddColorBuffer(std::make_shared<Textures::Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); //Diffuse
     buffer->AddColorBuffer(std::make_shared<Textures::Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); //Reflection
-    buffer->GetColorBuffer(0)->SetTextureSampler(FrameBufferSampler());
-    buffer->GetColorBuffer(1)->SetTextureSampler(FrameBufferSampler());
+    buffer->GetColorBuffer(0)->SetSampler(FrameBufferSampler());
+    buffer->GetColorBuffer(1)->SetSampler(FrameBufferSampler());
     buffer->GetColorBuffer(0)->SetAutoMipMap(false);
     buffer->GetColorBuffer(1)->SetAutoMipMap(false);
     buffer->GetColorBuffer(0)->SetMipMapNbr(1);
@@ -131,7 +131,7 @@ static inline auto CreateOpaqueRenderBuffer(const std::string& name, const glm::
 {
     auto buffer = std::make_shared<Framebuffer>(size);
     buffer->AddColorBuffer(std::make_shared<Textures::Texture2D>(size, Pixel::SizedFormat::Float16_RGB)); //Color
-    buffer->GetColorBuffer(0)->SetTextureSampler(FrameBufferSampler());
+    buffer->GetColorBuffer(0)->SetSampler(FrameBufferSampler());
     buffer->GetColorBuffer(0)->SetAutoMipMap(true);
     return buffer;
 }
@@ -140,7 +140,7 @@ static inline auto CreateFinalRenderBuffer(const std::string& name, glm::ivec2 r
 {
     auto buffer = std::make_shared<Framebuffer>(res);
     buffer->AddColorBuffer(std::make_shared<Textures::Texture2D>(res, Pixel::SizedFormat::Uint8_NormalizedRGB)); //Color
-    buffer->GetColorBuffer(0)->SetTextureSampler(FrameBufferSampler());
+    buffer->GetColorBuffer(0)->SetSampler(FrameBufferSampler());
     buffer->GetColorBuffer(0)->SetAutoMipMap(false);
     buffer->GetColorBuffer(0)->SetMipMapNbr(1);
     return buffer;
@@ -183,9 +183,9 @@ FrameRenderer::Impl::Impl(std::weak_ptr<Core::Window> window, FrameRenderer& ren
     brdfImageAsset->assets.push_back(brdfImage);
     brdfImageAsset->SetLoaded(true);
     _defaultBRDF->SetName("BrdfLUT");
-    _defaultBRDF->GetTextureSampler()->SetWrapS(Textures::Sampler::Wrap::ClampToEdge);
-    _defaultBRDF->GetTextureSampler()->SetWrapT(Textures::Sampler::Wrap::ClampToEdge);
-    Buffer::Accessor<glm::vec3> accessor(3);
+    _defaultBRDF->GetSampler()->SetWrapS(Textures::Sampler::Wrap::ClampToEdge);
+    _defaultBRDF->GetSampler()->SetWrapT(Textures::Sampler::Wrap::ClampToEdge);
+    Buffer::Accessor accessor(nullptr, 0, 3, Buffer::Accessor::ComponentType::Uint8, 3);
     _displayQuad = std::make_shared<Shapes::Geometry>("GetDisplayQuad");
     _displayQuad->SetDrawingMode(Shapes::Geometry::DrawingMode::Triangles);
     _displayQuad->SetPositions(accessor);
@@ -219,12 +219,12 @@ void FrameRenderer::Impl::_HZBPass()
         _hzbBuffer = std::make_shared<Framebuffer>(depthTexture->GetSize());
     }
     depthTexture->GenerateMipmap();
-    depthTexture->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
+    depthTexture->GetSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
     auto numLevels = depthTexture->GetMipMapNbr(); //1 + unsigned(floorf(log2f(fmaxf(depthTexture->GetSize().x, depthTexture->GetSize().y))));
     auto currentSize = depthTexture->GetSize();
     for (auto i = 1; i < numLevels; i++) {
-        depthTexture->GetTextureSampler()->SetMinLOD(i - 1);
-        depthTexture->GetTextureSampler()->SetMaxLOD(i - 1);
+        depthTexture->GetSampler()->SetMinLOD(i - 1);
+        depthTexture->GetSampler()->SetMaxLOD(i - 1);
         currentSize /= 2;
         currentSize = glm::max(currentSize, glm::ivec2(1));
         _hzbBuffer->SetSize(currentSize);
@@ -239,9 +239,9 @@ void FrameRenderer::Impl::_HZBPass()
         _hzbBuffer->SetDepthBuffer(nullptr);
         //framebuffer->set_attachement(0, nullptr);
     }
-    depthTexture->GetTextureSampler()->SetMinLOD(0);
-    depthTexture->GetTextureSampler()->SetMaxLOD(numLevels - 1);
-    depthTexture->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
+    depthTexture->GetSampler()->SetMinLOD(0);
+    depthTexture->GetSampler()->SetMaxLOD(numLevels - 1);
+    depthTexture->GetSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
     OpenGL::Framebuffer::Bind(nullptr);
 }
 
@@ -565,8 +565,8 @@ void FrameRenderer::Impl::_CompositingPass()
         _compositingShader->Attach(Shader::Stage(Shader::Stage::Type::Fragment, { compositingShaderCode, "Composite();" }));
     }
     oBuffer->GetColorBuffer(0)->GenerateMipmap();
-    oBuffer->GetColorBuffer(0)->GetTextureSampler()->SetMinLOD(1);
-    oBuffer->GetColorBuffer(0)->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
+    oBuffer->GetColorBuffer(0)->GetSampler()->SetMinLOD(1);
+    oBuffer->GetColorBuffer(0)->GetSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
     oBuffer->SetStencilBuffer(tBuffer->GetStencilBuffer());
 
     OpenGL::Framebuffer::Bind(oBuffer);
@@ -592,8 +592,8 @@ void FrameRenderer::Impl::_CompositingPass()
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
-    oBuffer->GetColorBuffer(0)->GetTextureSampler()->SetMinLOD(0);
-    oBuffer->GetColorBuffer(0)->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapNearest);
+    oBuffer->GetColorBuffer(0)->GetSampler()->SetMinLOD(0);
+    oBuffer->GetColorBuffer(0)->GetSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapNearest);
     oBuffer->SetStencilBuffer(nullptr);
 }
 

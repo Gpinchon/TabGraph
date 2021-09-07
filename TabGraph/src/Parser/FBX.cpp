@@ -6,14 +6,14 @@
 */
 
 #include "Assets/Parser.hpp"
-#include "Material/Material.hpp"
-#include "Surface/Geometry.hpp"
-#include "Surface/Mesh.hpp"
+#include "Material/Standard.hpp"
+#include "Shapes/Geometry.hpp"
+#include "Shapes/Mesh/Mesh.hpp"
 #include "Parser/FBX/FBXDocument.hpp"
 #include "Parser/FBX/FBXNode.hpp"
 #include "Parser/FBX/FBXObject.hpp"
 #include "Parser/FBX/FBXProperty.hpp"
-#include "Scene/Scene.hpp"
+#include "Nodes/Scene.hpp"
 #include <glm/glm.hpp>
 #include <iostream>
 #include <memory>

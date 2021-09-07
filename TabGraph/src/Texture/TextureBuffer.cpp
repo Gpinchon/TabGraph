@@ -16,7 +16,7 @@ namespace TabGraph::Textures {
 TextureBuffer::TextureBuffer(Pixel::SizedFormat internalFormat, std::shared_ptr<Buffer::View> bufferAccessor)
     : Inherit()
 {
-    SetBufferAccessor(bufferAccessor);
+    SetBuffer(bufferAccessor);
     _impl.reset(new TextureBuffer::Impl(internalFormat, bufferAccessor));
 }
 

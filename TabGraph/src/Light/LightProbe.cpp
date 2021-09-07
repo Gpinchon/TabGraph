@@ -16,7 +16,7 @@ Probe::Probe(ProbeGroup& lightProbeGroup)
 {
     SetReflectionBuffer(std::make_shared<Renderer::Framebuffer>(lightProbeGroup.GetResolution()));
     auto cubemap {std::make_shared<Textures::TextureCubemap>(lightProbeGroup.GetResolution(), Pixel::SizedFormat::Float16_RGB) };
-    cubemap->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
+    cubemap->GetSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
     GetReflectionBuffer()->AddColorBuffer(cubemap);
 }
 

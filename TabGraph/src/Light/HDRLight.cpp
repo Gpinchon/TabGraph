@@ -33,7 +33,7 @@ void HDRLight::SetHDRImage(std::shared_ptr<Assets::Asset> image)
     if (GetHDRTexture() == nullptr) return;
     _SetHDRTexture(std::make_shared<Textures::TextureCubemap>(image));
     GetHDRTexture()->SetAutoMipMap(true);
-    GetHDRTexture()->GetTextureSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
+    GetHDRTexture()->GetSampler()->SetMinFilter(Textures::Sampler::Filter::LinearMipmapLinear);
 }
 
 glm::vec2 ToImageCoords(double phi, double theta, int width, int height)

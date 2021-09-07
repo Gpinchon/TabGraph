@@ -5,14 +5,14 @@
 * @Last Modified time: 2021-01-11 08:46:15
 */
 
-#include "Assets/Asset.hpp"
-#include "Assets/Parser.hpp"
-#include "Assets/Image.hpp" // for ImageParser
-#include "Debug.hpp"
-#include "Material/Material.hpp" // for Material
-#include "Material/MetallicRoughness.hpp"
-#include "Material/SpecularGlossiness.hpp"
-#include "Parser/InternalTools.hpp" // for parse_vec3, t_obj_parser, strspl...
+#include <Assets/Asset.hpp>
+#include <Assets/Parser.hpp>
+#include <Assets/Image.hpp> // for ImageParser
+#include <Debug.hpp>
+#include <Material/Standard.hpp> // for Material
+#include <Material/MetallicRoughness.hpp>
+#include <Material/SpecularGlossiness.hpp>
+#include <Parser/InternalTools.hpp> // for parse_vec3, t_obj_parser, strspl...
 #include <filesystem>
 #include <glm/glm.hpp> // for s_vec3, glm::vec3, vec3_fdiv, CLAMP
 #include <memory> // for shared_ptr, allocator, __shared_...
@@ -21,6 +21,8 @@
 #include <stdlib.h> // for errno
 #include <string.h> // for strerror
 #include <vector> // for vector
+
+using namespace TabGraph;
 
 void ParseMTLLIB(const std::shared_ptr<Assets::Asset>);
 
@@ -41,11 +43,11 @@ auto MTLLIBMimesParsers{
 #include <sys/io.h>
 #endif // for access, R_OK
 
-std::shared_ptr<MetallicRoughness> GetOrCreateMetallicRoughnessExtention(std::shared_ptr<Material> mtl)
+std::shared_ptr<Material::Extensions::MetallicRoughness> GetOrCreateMetallicRoughnessExtention(std::shared_ptr<Material::Standard> mtl)
 {
-    auto extension = std::static_pointer_cast<MetallicRoughness>(mtl->GetExtension("MetallicRoughness"));
+    auto extension = std::static_pointer_cast<Material::Extensions::MetallicRoughness>(mtl->GetExtension("MetallicRoughness"));
     if (extension == nullptr) {
-        extension = std::make_shared<MetallicRoughness>();
+        extension = std::make_shared<Material::Extensions::MetallicRoughness>();
         extension->SetMetallic(0.f);
         extension->SetRoughness(0.f);
         mtl->AddExtension(extension);
@@ -53,18 +55,18 @@ std::shared_ptr<MetallicRoughness> GetOrCreateMetallicRoughnessExtention(std::sh
     return extension;
 }
 
-std::shared_ptr<SpecularGlossiness> GetOrCreateSpecularGlossinessExtention(std::shared_ptr<Material> mtl)
+std::shared_ptr<Material::Extensions::SpecularGlossiness> GetOrCreateSpecularGlossinessExtention(std::shared_ptr<Material::Standard> mtl)
 {
-    auto extension = std::static_pointer_cast<SpecularGlossiness>(mtl->GetExtension("SpecularGlossiness"));
+    auto extension = std::static_pointer_cast<Material::Extensions::SpecularGlossiness>(mtl->GetExtension("SpecularGlossiness"));
     if (extension == nullptr) {
-        extension = std::make_shared<SpecularGlossiness>();
+        extension = std::make_shared<Material::Extensions::SpecularGlossiness>();
         extension->SetSpecular(glm::vec3(0));
         mtl->AddExtension(extension);
     }
     return extension;
 }
 
-static inline void parse_color(std::vector<std::string>& split, std::shared_ptr<Material> mtl)
+static inline void parse_color(std::vector<std::string>& split, std::shared_ptr<Material::Standard> mtl)
 {
     if (split[0] == "Kd") {
         mtl->SetDiffuse(parse_vec3(split));
@@ -91,7 +93,7 @@ auto GetOrCreateImage(std::filesystem::path path, std::shared_ptr<Assets::Asset>
     return textureDatabase[absolutePath] = std::make_shared<Textures::Texture2D>(asset);
 }
 
-static inline void parse_texture(std::shared_ptr<Material> mtl, const std::string& textureType, std::filesystem::path path, std::shared_ptr<Assets::Asset> container)
+static inline void parse_texture(std::shared_ptr<Material::Standard> mtl, const std::string& textureType, std::filesystem::path path, std::shared_ptr<Assets::Asset> container)
 {
     try {
         if (textureType == "map_Kd") {
@@ -127,7 +129,7 @@ static inline void parse_texture(std::shared_ptr<Material> mtl, const std::strin
     }
 }
 
-static inline void parse_number(std::vector<std::string>& split, std::shared_ptr<Material> mtl)
+static inline void parse_number(std::vector<std::string>& split, std::shared_ptr<Material::Standard> mtl)
 {
 
     if (split[0] == "Np") {
@@ -158,10 +160,10 @@ static inline void parse_number(std::vector<std::string>& split, std::shared_ptr
     }
 }
 
-static inline std::shared_ptr<Material> parse_mtl(FILE* fd, std::string& name, const std::filesystem::path& basePath, std::shared_ptr<Assets::Asset> container)
+static inline std::shared_ptr<Material::Standard> parse_mtl(FILE* fd, std::string& name, const std::filesystem::path& basePath, std::shared_ptr<Assets::Asset> container)
 {
     char line[4096];
-    auto mtl = std::make_shared<Material>(name);
+    auto mtl = std::make_shared<Material::Standard>(name);
     fpos_t pos = 0;
     fgetpos(fd, &pos);
     while (fgets(line, 4096, fd) != nullptr) {
@@ -207,7 +209,7 @@ void ParseMTLLIB(std::shared_ptr<Assets::Asset> container)
             auto split = strsplitwspace(line);
             if (split.size() > 1 && split[0][0] != '#') {
                 if (split[0] == "newmtl") {
-                    container->AddComponent(parse_mtl(fd, split[1], basePath, container));
+                    container->assets.push_back(parse_mtl(fd, split[1], basePath, container));
                 }
             }
         } catch (std::exception& e) {

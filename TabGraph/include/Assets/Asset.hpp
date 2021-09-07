@@ -56,6 +56,27 @@ public:
         }
         return objects;
     }
+    inline auto GetByName(const std::string& name) {
+        std::vector<std::shared_ptr<Core::Object>> objects;
+        for (const auto& object : assets) {
+            if (object->GetName() == name)
+                objects.push_back(object);
+        }
+        return objects;
+    }
+
+    template<typename T>
+    inline auto GetByName(const std::string& name) {
+        std::vector<std::shared_ptr<T>> objects;
+        for (const auto& object : Get<T>()) {
+            if (object->GetName() == name)
+                objects.push_back(object);
+        }
+        return objects;
+    }
+    inline void Add(std::shared_ptr<Asset> a_asset) {
+        assets.insert(assets.end(), a_asset->assets.begin(), a_asset->assets.end());
+    }
     std::vector<std::shared_ptr<Core::Object>> assets;
 
 private:

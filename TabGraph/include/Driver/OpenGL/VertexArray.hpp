@@ -100,7 +100,7 @@ static inline auto GetOpenGLType<glm::vec4>() {
 }
 
 template<typename T>
-VertexArray& VertexArray::BindAccessor(const TabGraph::Buffer::TypedAccessor<T>& accessor, int index)
+inline VertexArray& VertexArray::BindAccessor(const TabGraph::Buffer::TypedAccessor<T>& accessor, int index)
 {
     auto bufferView(accessor.GetBufferView());
     if (bufferView == nullptr) {
@@ -144,11 +144,11 @@ inline static auto GetOpenGLType(const TabGraph::Buffer::Accessor::ComponentType
     case TabGraph::Buffer::Accessor::ComponentType::Float32:
         return GL_FLOAT;
     default:
-        break;
+        throw std::runtime_error("Unknown Buffer::Accessor::ComponentType");
     }
 }
 
-VertexArray& OpenGL::VertexArray::BindAccessor(const TabGraph::Buffer::Accessor& accessor, int index)
+inline VertexArray& OpenGL::VertexArray::BindAccessor(const TabGraph::Buffer::Accessor& accessor, int index)
 {
     auto bufferView(accessor.GetBufferView());
     if (bufferView == nullptr) {

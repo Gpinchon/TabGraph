@@ -19,6 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 namespace TabGraph::Textures {
 class Texture::Impl {
+    PROPERTY(std::shared_ptr<Sampler>, Sampler, nullptr);
     READONLYPROPERTY(TabGraph::Pixel::Description, PixelDescription, );
 public:
     using Handle = OpenGL::ObjectHandle;
@@ -37,10 +38,6 @@ public:
     {
         return _type;
     }
-    inline std::shared_ptr<Textures::Sampler> GetTextureSampler() const
-    {
-        return _textureSampler;
-    }
     inline uint8_t GetMipMapNbr() const
     {
         return _mipMapNbr;
@@ -50,10 +47,6 @@ public:
         return _autoMipMap;
     }
 
-    inline void SetTextureSampler(std::shared_ptr<Textures::Sampler> textureSampler)
-    {
-        _textureSampler = textureSampler;
-    }
     inline void SetMipMapNbr(const uint8_t mipMapNbr)
     {
         if (_mipMapNbr == mipMapNbr)
@@ -96,7 +89,6 @@ protected:
     Handle _handle { 0 };
     bool _loaded { false };
     Texture::Type _type { Texture::Type::Unknown };
-    std::shared_ptr<Textures::Sampler> _textureSampler { nullptr };
     uint8_t _mipMapNbr { 1 };
     bool _autoMipMap { true };
 };
