@@ -50,7 +50,7 @@ struct ViewPort {
     glm::ivec2 offset{ 0 };
     glm::ivec2 size{ 0 };
 };
-class FrameRenderer : std::enable_shared_from_this<FrameRenderer> {
+class FrameRenderer : public std::enable_shared_from_this<FrameRenderer> {
 public:
     FrameRenderer(std::weak_ptr<Core::Window> window);
     ~FrameRenderer();
