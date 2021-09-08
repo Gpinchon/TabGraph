@@ -32,9 +32,6 @@ class Skybox;
 namespace Cameras {
 class Camera;
 }
-namespace Renderer {
-class SceneRenderer;
-}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,15 +49,11 @@ public:
     {
         SetName(name);
     }
-    ~Scene();
-    auto& GetRenderer() const {
-        return _renderer;
-    }
-    inline void Add(std::shared_ptr<Node> node)
+    inline void AddNode(std::shared_ptr<Node> node)
     {
         node->SetParent(std::static_pointer_cast<Group>(shared_from_this()));
     }
-    inline void Remove(std::shared_ptr<Node> node)
+    inline void RemoveNode(std::shared_ptr<Node> node)
     {
         if (node->GetParent().get() == this)
             node->SetParent(nullptr);
@@ -71,15 +64,14 @@ public:
     inline auto GetLights() const {
         return _lights;
     }
-    inline auto Add(std::shared_ptr<Animations::Animation> animation) {
+    inline auto AddAnimation(std::shared_ptr<Animations::Animation> animation) {
         _animations.push_back(animation);
     }
-    inline auto Add(std::shared_ptr<Lights::Light> light) {
+    inline auto AddLight(std::shared_ptr<Lights::Light> light) {
         _lights.push_back(light);
     }
 
 private:
-    Renderer::SceneRenderer& _renderer;
     std::vector<std::shared_ptr<Animations::Animation>> _animations;
     std::vector<std::shared_ptr<Lights::Light>> _lights;
 };

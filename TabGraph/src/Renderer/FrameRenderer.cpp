@@ -11,11 +11,13 @@
 #endif
 
 namespace TabGraph::Renderer {
-
-std::shared_ptr<FrameRenderer> FrameRenderer::Create(std::weak_ptr<Core::Window> window)
+FrameRenderer::FrameRenderer(std::weak_ptr<Core::Window> window)
+    : _impl(new FrameRenderer::Impl(window, *this))
 {
-    std::shared_ptr<FrameRenderer> renderer(new FrameRenderer(window));
-    return renderer;
+}
+
+Renderer::FrameRenderer::~FrameRenderer()
+{
 }
 
 void FrameRenderer::SetViewPort(const glm::ivec2& min, const glm::ivec2& max)
@@ -26,11 +28,6 @@ void FrameRenderer::SetViewPort(const glm::ivec2& min, const glm::ivec2& max)
 void FrameRenderer::SetViewPort(const glm::ivec2& size)
 {
     return SetViewPort(glm::ivec2(0), size);
-}
-
-FrameRenderer::FrameRenderer(std::weak_ptr<Core::Window> window)
-    : _impl(new FrameRenderer::Impl(window, *this))
-{
 }
 
 uint32_t FrameRenderer::GetFrameNumber() const

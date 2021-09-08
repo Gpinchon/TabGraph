@@ -83,7 +83,7 @@ void MeshRenderer::Render(
     auto prevTransform = parentLastTransform * _prevTransformMatrix;
     auto skinTransform = glm::inverse(parentTransform);
     auto skinPrevTransform = glm::inverse(parentLastTransform);
-    auto& lightProbe = options.scene->GetRenderer().GetClosestLightProbe(transformMatrix * glm::vec4(0, 0, 0, 1));
+    auto& lightProbe = Renderer::GetRenderer(options.scene).GetClosestLightProbe(transformMatrix * glm::vec4(0, 0, 0, 1));
 
     auto normal_matrix = glm::inverseTranspose(glm::mat3(transformMatrix));
 

@@ -763,7 +763,7 @@ static inline auto ParseScenes(
             std::cout << nodes.at(node.GetInt())->GetName() << " is part of Scene " << newScene->GetName() << std::endl;
         }
         for (const auto& animation : animations) {
-            newScene->Add(animation);
+            newScene->AddAnimation(animation);
             std::cout << (animation ? animation->GetName() : "nullptr") << std::endl;
         }
         sceneVector.push_back(newScene);

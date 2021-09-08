@@ -22,7 +22,9 @@ class Scene;
 }
 
 namespace TabGraph::Renderer {
+class SceneRenderer;
 struct Options;
+SceneRenderer& GetRenderer(std::shared_ptr<Nodes::Scene> scene);
 void OnFrameBegin(std::shared_ptr<Nodes::Scene> scene, const Options& options);
 void Render(std::shared_ptr<Nodes::Scene> scene, const Options& options);
 void Render(std::shared_ptr<Nodes::Scene> scene, const Options& options, const glm::mat4& rootMatrix);

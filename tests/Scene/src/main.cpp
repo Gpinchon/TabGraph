@@ -42,15 +42,15 @@
 
 using namespace TabGraph;
 
-#define QUITK Keyboard::Key::Escape
-#define DOWNK Keyboard::Key::PageDown
-#define UPK Keyboard::Key::PageUp
-#define FORWARDK Keyboard::Key::Up
-#define BACKWARDK Keyboard::Key::Down
-#define LEFTK Keyboard::Key::Left
-#define RIGHTK Keyboard::Key::Right
-#define SPEEDUPK Keyboard::Key::NumpadPlus
-#define SPEEDDOWNK Keyboard::Key::NumpadMinus
+#define QUITK      Events::Keyboard::Key::Escape
+#define DOWNK      Events::Keyboard::Key::PageDown
+#define UPK        Events::Keyboard::Key::PageUp
+#define FORWARDK   Events::Keyboard::Key::Up
+#define BACKWARDK  Events::Keyboard::Key::Down
+#define LEFTK      Events::Keyboard::Key::Left
+#define RIGHTK     Events::Keyboard::Key::Right
+#define SPEEDUPK   Events::Keyboard::Key::NumpadPlus
+#define SPEEDDOWNK Events::Keyboard::Key::NumpadMinus
 
 float speed = 1.f;
 
@@ -83,15 +83,15 @@ void SceneGraphTest()
         auto testNode { std::make_shared<Nodes::Group>("node1") };
         testNode->SetParent(node0);
         for (int j = 0; j < 2; ++j) {
-            auto testNode1 { std::make_shared<Nodes::Node>("node1") };
+            auto testNode1 { std::make_shared<Nodes::Node>("node2") };
             testNode1->SetParent(testNode);
         }
     }
-    scene->Add(node0);
+    scene->AddNode(node0);
 
     //test search visitor
     {
-        Visitors::SearchVisitor search(std::string("node1"), Visitors::NodeVisitor::Mode::VisitChildren);
+        Visitors::SearchVisitor search(std::string("node2"), Visitors::NodeVisitor::Mode::VisitChildren);
         scene->Accept(search);
         std::cout << "Search by name : \n";
         for (const auto& obj : search.GetResult())
@@ -112,65 +112,66 @@ int main(int argc, char** argv)
 {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     SceneGraphTest();
-    /*if (argc <= 1)
+    if (argc <= 1)
         return -42;
     {
         StackTracer::set_signal_handler(SIGABRT);
         StackTracer::set_signal_handler(SIGSEGV);
-        Config::Global().Parse(Engine::GetResourcePath() / "config.ini");
-        auto window = Window::Create(Config::Global().Get("WindowName", std::string("")), Config::Global().Get("WindowSize", glm::vec2(1280, 720)));
-        auto renderer = Renderer::FrameRenderer::Create(window);
-        auto engine = Engine::Create(renderer);
+        Config::Global().Parse(Core::Engine::GetResourcePath() / "config.ini");
+        auto window = Core::Window::Create(Config::Global().Get("WindowName", std::string("")), Config::Global().Get("WindowSize", glm::vec2(1280, 720)));
+        auto renderer = std::make_shared<Renderer::FrameRenderer>(window);
+        auto engine = Core::Engine::Create(renderer);
         renderer->SetSwapInterval(Renderer::SwapInterval(Config::Global().Get("SwapInterval", 0)));
         std::filesystem::path filePath = (std::string(argv[1]));
         if (!filePath.is_absolute()) {
-            filePath = Engine::GetExecutionPath() / filePath;
+            filePath = Core::Engine::GetExecutionPath() / filePath;
         }
         {
             std::cout << filePath << std::endl;
-            auto fpsCamera = std::make_shared<FPSCamera>("main_camera");
+            auto fpsCamera = std::make_shared<Cameras::FPS>("main_camera");
             //fpsCamera->SetZfar(1000);
             auto asset { std::make_shared<Assets::Asset>(filePath) };
             Assets::Parser::AddParsingTask({
                 Assets::Parser::ParsingTask::Type::Sync,
                 asset
             });
-            auto assetCameras = asset->GetComponents<Camera>();
+            auto assetScene = asset->Get<Nodes::Scene>();
+            auto assetCameras = asset->Get<Cameras::Camera>();
             s_cameras.push_back(fpsCamera);
             s_cameras.insert(s_cameras.end(), assetCameras.begin(), assetCameras.end());
-            auto scene = asset->scenes.at(0);
+            auto scene = assetScene.at(0);
             if (scene == nullptr) {
                 return -43;
             }
             scene->SetCamera(fpsCamera);
-            auto newEnv = std::make_shared<Skybox>("Skybox");
-            auto diffuseAsset { std::make_shared<Assets::Asset>(Engine::GetResourcePath() / "env/diffuse.jpg") };
+            auto newEnv = std::make_shared<Shapes::Skybox>("Skybox");
+            auto diffuseAsset { std::make_shared<Assets::Asset>(Core::Engine::GetResourcePath() / "env/diffuse.jpg") };
             diffuseAsset->parsingOptions.image.maximumResolution = 2048;
-            newEnv->SetTexture(std::make_shared<TextureCubemap>(diffuseAsset));
+            newEnv->SetTexture(std::make_shared<Textures::TextureCubemap>(diffuseAsset));
             scene->SetSkybox(newEnv);
 
-            auto hdrLight { std::make_shared<HDRLight>(diffuseAsset) };
+            auto hdrLight { std::make_shared<Lights::HDRLight>("HDRLight", diffuseAsset)};
             //auto skyLight{ std::make_shared<SkyLight>() };
             //skyLight->SetSunDirection(glm::vec3(1, 1, 1));
             //skyLight->SetSpecularPower(0);
             //auto dirLight =  std::make_shared<DirectionnalLight>("MainLight", glm::vec3(0.025), -skyLight->GetSunDirection(), false);
             //dirLight->SetHalfSize(glm::vec3(50));
-            auto dirLight = std::make_shared<DirectionalLight>("MainLight", glm::vec3(0.5), glm::vec3(1, 1, 1), false);
-            auto pointLight = std::make_shared<PointLight>("PointLight", glm::vec3(1, 1, 1));
+            auto dirLight = std::make_shared<Lights::DirectionalLight>("MainLight", glm::vec3(0.5), glm::vec3(1, 1, 1), false);
+            auto pointLight = std::make_shared<Lights::PointLight>("PointLight", glm::vec3(1, 1, 1));
             //pointLight->SetPosition(glm::vec3(0, 0.1, 0));
             pointLight->SetPower(2);
-            pointLight->SetParent(fpsCamera);
+            //pointLight->SetParent(fpsCamera);
             s_light = pointLight;
 
-            scene->Add(hdrLight);
+            scene->AddLight(hdrLight);
             //scene->Add(skyLight);
-            scene->Add(dirLight);
-            scene->Add(pointLight);
+            scene->AddLight(dirLight);
+            scene->AddLight(pointLight);
             engine->SetCurrentScene(scene);
         }
         //setup callbacks
         {
-            auto speedCB = [](const Event::Keyboard& event) {
+            auto speedCB = [](const Events::Event::Keyboard& event) {
                 if (!event.state)
                     return;
                 if (event.key == SPEEDDOWNK)
@@ -179,8 +180,8 @@ int main(int argc, char** argv)
                     ++speed;
                 speed = std::max(1.f, speed);
             };
-            auto quitCB = [engine = std::weak_ptr(engine)](const Event::Keyboard&) { engine.lock()->Stop(); };
-            auto changeCameraCB = [engine = std::weak_ptr(engine)](const Event::Keyboard& event) {
+            auto quitCB = [engine = std::weak_ptr(engine)](const Events::Event::Keyboard&) { engine.lock()->Stop(); };
+            auto changeCameraCB = [engine = std::weak_ptr(engine)](const Events::Event::Keyboard& event) {
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
                 if (!event.state || event.repeat)
@@ -190,9 +191,9 @@ int main(int argc, char** argv)
                 if (s_currentCamera >= s_cameras.size())
                     s_currentCamera = 0;
                 engine.lock()->GetCurrentScene()->SetCamera(s_cameras.at(s_currentCamera));
-                s_light->SetParent(engine.lock()->GetCurrentScene()->GetCamera());
+                //s_light->SetParent(engine.lock()->GetCurrentScene()->GetCamera());
             };
-            auto animationCB = [engine = std::weak_ptr(engine)](const Event::Keyboard& event) {
+            auto animationCB = [engine = std::weak_ptr(engine)](const Events::Event::Keyboard& event) {
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
                 if (!event.state || event.repeat || engine.lock()->GetCurrentScene()->GetAnimations().empty())
@@ -203,39 +204,39 @@ int main(int argc, char** argv)
                 currentAnimation++;
                 if (currentAnimation == animations.end())
                     currentAnimation = animations.begin();
-                (*currentAnimation)->SetRepeat(true);
+                (*currentAnimation)->SetLoop(true);
                 (*currentAnimation)->Play();
             };
-            auto wheelCB = [engine = std::weak_ptr(engine)](const Event::MouseWheel& event) {
+            auto wheelCB = [engine = std::weak_ptr(engine)](const Events::Event::MouseWheel& event) {
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
                 auto scene { engine.lock()->GetCurrentScene() };
                 auto proj = scene->GetCamera()->GetProjection();
-                if (proj.type == Camera::Projection::Type::PerspectiveInfinite) {
-                    auto perspectiveInfinite = proj.Get<Camera::Projection::PerspectiveInfinite>();
+                if (proj.type == Cameras::Projection::Type::PerspectiveInfinite) {
+                    auto perspectiveInfinite = proj.Get<Cameras::Projection::PerspectiveInfinite>();
                     perspectiveInfinite.fov -= event.amount.y;
                     perspectiveInfinite.fov = glm::clamp(perspectiveInfinite.fov, 1.f, 70.f);
                     scene->GetCamera()->SetProjection(perspectiveInfinite);
                 }
-                else if (proj.type == Camera::Projection::Type::Perspective) {
-                    auto perspective = proj.Get<Camera::Projection::Perspective>();
+                else if (proj.type == Cameras::Projection::Type::Perspective) {
+                    auto perspective = proj.Get<Cameras::Projection::Perspective>();
                     perspective.fov -= event.amount.y;
                     perspective.fov = glm::clamp(perspective.fov, 1.f, 70.f);
                     scene->GetCamera()->SetProjection(perspective);
                 }
             };
-            auto moveCB = [engine = std::weak_ptr(engine)](const Event::MouseMove& event) {
+            auto moveCB = [engine = std::weak_ptr(engine)](const Events::Event::MouseMove& event) {
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
-                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine.lock()->GetCurrentScene()->GetCamera());
+                auto camera = std::dynamic_pointer_cast<Cameras::FPS>(engine.lock()->GetCurrentScene()->GetCamera());
                 if (camera == nullptr)
                     return;
                 static glm::vec3 cameraRotation {};
-                if (Mouse::GetButtonState(Mouse::Button::Left)) {
+                if (Events::Mouse::GetButtonState(Events::Mouse::Button::Left)) {
                     cameraRotation.x -= event.relative.x * 0.05 * Config::Global().Get("MouseSensitivity", 2.f);
                     cameraRotation.y -= event.relative.y * 0.05 * Config::Global().Get("MouseSensitivity", 2.f);
                 }
-                if (Mouse::GetButtonState(Mouse::Button::Right))
+                if (Events::Mouse::GetButtonState(Events::Mouse::Button::Right))
                     cameraRotation.z += event.relative.x * 0.05 * Config::Global().Get("MouseSensitivity", 2.f);
                 camera->SetYaw(cameraRotation.x);
                 camera->SetPitch(cameraRotation.y);
@@ -244,54 +245,54 @@ int main(int argc, char** argv)
             auto refreshCB = [engine = std::weak_ptr(engine)](float delta) {
                 if (engine.lock()->GetCurrentScene() == nullptr)
                     return;
-                auto camera = std::dynamic_pointer_cast<FPSCamera>(engine.lock()->GetCurrentScene()->GetCamera());
+                auto camera = std::dynamic_pointer_cast<Cameras::FPS>(engine.lock()->GetCurrentScene()->GetCamera());
                 if (camera == nullptr)
                     return;
                 glm::vec2 laxis = glm::vec2(0, 0);
                 float taxis = 0;
                 //Mouse::set_relative(SDL_TRUE);
-                laxis.x = Keyboard::GetKeyState(LEFTK) - Keyboard::GetKeyState(RIGHTK);
-                laxis.y = Keyboard::GetKeyState(BACKWARDK) - Keyboard::GetKeyState(FORWARDK);
-                taxis += Keyboard::GetKeyState(UPK);
-                taxis -= Keyboard::GetKeyState(DOWNK);
-                camera->SetPosition(camera->GetPosition() - float(delta * laxis.x * speed) * camera->Right());
-                camera->SetPosition(camera->GetPosition() - float(delta * laxis.y * speed) * camera->Forward());
-                camera->SetPosition(camera->GetPosition() + float(delta * taxis * speed) * Common::Up());
+                laxis.x = Events::Keyboard::GetKeyState(LEFTK) - Events::Keyboard::GetKeyState(RIGHTK);
+                laxis.y = Events::Keyboard::GetKeyState(BACKWARDK) - Events::Keyboard::GetKeyState(FORWARDK);
+                taxis += Events::Keyboard::GetKeyState(UPK);
+                taxis -= Events::Keyboard::GetKeyState(DOWNK);
+                camera->SetLocalPosition(camera->GetLocalPosition() - float(delta * laxis.x * speed) * camera->Right());
+                camera->SetLocalPosition(camera->GetLocalPosition() - float(delta * laxis.y * speed) * camera->Forward());
+                camera->SetLocalPosition(camera->GetLocalPosition() + float(delta * taxis * speed) * Common::Up());
             };
-            GameController::OnButtonDown(0, GameController::Button::A).Connect([](const Event::GameControllerButton& event) {
+            Events::GameController::OnButtonDown(0, Events::GameController::Button::A).Connect([](const Events::Event::GameControllerButton& event) {
                 std::cout << (event.state ? "Button pressed " : "Button released ") << int(event.button) << " on Controller " << event.id << std::endl;
-                GameController::Rumble(0, 0.5, 0.5, 500);
+                Events::GameController::Rumble(0, 0.5, 0.5, 500);
             });
-            Keyboard::OnKey(SPEEDUPK).Connect(speedCB);
-            Keyboard::OnKey(SPEEDDOWNK).Connect(speedCB);
-            Keyboard::OnKey(QUITK).Connect(quitCB);
-            Keyboard::OnKey(Keyboard::Key::Return).Connect(FullscreenCallback);
-            Keyboard::OnKey(Keyboard::Key::Q).Connect(CallbackQuality);
-            Keyboard::OnKey(Keyboard::Key::A).Connect(animationCB);
-            Keyboard::OnKey(Keyboard::Key::C).Connect(changeCameraCB);
-            Mouse::OnMove().Connect(moveCB);
-            Mouse::OnWheel().Connect(wheelCB);
+            Events::Keyboard::OnKey(SPEEDUPK).Connect(speedCB);
+            Events::Keyboard::OnKey(SPEEDDOWNK).Connect(speedCB);
+            Events::Keyboard::OnKey(QUITK).Connect(quitCB);
+            Events::Keyboard::OnKey(Events::Keyboard::Key::Return).Connect(FullscreenCallback);
+            Events::Keyboard::OnKey(Events::Keyboard::Key::Q).Connect(CallbackQuality);
+            Events::Keyboard::OnKey(Events::Keyboard::Key::A).Connect(animationCB);
+            Events::Keyboard::OnKey(Events::Keyboard::Key::C).Connect(changeCameraCB);
+            Events::Mouse::OnMove().Connect(moveCB);
+            Events::Mouse::OnWheel().Connect(wheelCB);
             engine->OnFixedUpdate().Connect(refreshCB);
-            window->OnEvent(Event::Window::Type::SizeChanged).Connect(
-                [engine = std::weak_ptr(engine)](const Event::Window& event) {
+            window->OnEvent(Events::Event::Window::Type::SizeChanged).Connect(
+                [engine = std::weak_ptr(engine)](const Events::Event::Window& event) {
                     if (engine.lock()->GetCurrentScene() == nullptr)
                         return;
                     auto scene{ engine.lock()->GetCurrentScene() };
                     auto proj = scene->GetCamera()->GetProjection();
-                    if (proj.type == Camera::Projection::Type::PerspectiveInfinite) {
-                        auto perspectiveInfinite = proj.Get<Camera::Projection::PerspectiveInfinite>();
+                    if (proj.type == Cameras::Projection::Type::PerspectiveInfinite) {
+                        auto perspectiveInfinite = proj.Get<Cameras::Projection::PerspectiveInfinite>();
                         perspectiveInfinite.aspectRatio = event.window->GetSize().x / float(event.window->GetSize().y);
                         scene->GetCamera()->SetProjection(perspectiveInfinite);
                     }
-                    else if (proj.type == Camera::Projection::Type::Perspective) {
-                        auto perspective = proj.Get<Camera::Projection::Perspective>();
+                    else if (proj.type == Cameras::Projection::Type::Perspective) {
+                        auto perspective = proj.Get<Cameras::Projection::Perspective>();
                         perspective.aspectRatio = event.window->GetSize().x / float(event.window->GetSize().y);
                         scene->GetCamera()->SetProjection(perspective);
                 }
             });
         }
         engine->Start();
-    }*/
+    }
     _CrtDumpMemoryLeaks();
     return 0;
 }

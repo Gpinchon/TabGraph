@@ -46,9 +46,14 @@ enum class SwapInterval {
     Immediate, //No V-Sync
     Synchronized //Enable V-Sync
 };
+struct ViewPort {
+    glm::ivec2 offset{ 0 };
+    glm::ivec2 size{ 0 };
+};
 class FrameRenderer : std::enable_shared_from_this<FrameRenderer> {
 public:
-    static std::shared_ptr<FrameRenderer> Create(std::weak_ptr<Core::Window> window);
+    FrameRenderer(std::weak_ptr<Core::Window> window);
+    ~FrameRenderer();
     void SetViewPort(const glm::ivec2& min, const glm::ivec2& max);
     void SetViewPort(const glm::ivec2& size);
     uint32_t GetFrameNumber() const;
@@ -113,6 +118,5 @@ private:
     class Impl;
     friend Impl;
     std::unique_ptr<Impl> _impl;
-    FrameRenderer(std::weak_ptr<Core::Window> window);
 };
 }

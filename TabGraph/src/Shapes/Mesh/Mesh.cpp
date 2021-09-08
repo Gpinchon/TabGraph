@@ -53,7 +53,7 @@ void Mesh::AddGeometry(std::shared_ptr<Geometry> geometry, std::shared_ptr<Mater
 std::shared_ptr<Material::Standard> Mesh::GetGeometryMaterial(std::shared_ptr<Geometry> geometry) const
 {
     auto itr { _geometries.find(geometry) };
-    return itr == _geometries.end() ? itr->second : nullptr;
+    return itr != _geometries.end() ? itr->second : nullptr;
 }
 
 void Mesh::SetGeometryMaterial(std::shared_ptr<Geometry> geometry, std::shared_ptr<Material::Standard> material)

@@ -14,24 +14,42 @@
 
 #include <glm/glm.hpp>
 
+#include <map>
+
 namespace TabGraph::Renderer {
+static std::map<std::weak_ptr<Nodes::Scene>, Renderer::SceneRenderer, std::owner_less<>> s_sceneRenderers;
+Renderer::SceneRenderer& GetRenderer(std::shared_ptr<Nodes::Scene> scene) {
+    auto renderer{ s_sceneRenderers.find(scene) };
+    s_sceneRenderers.try_emplace(scene, *scene);
+    return s_sceneRenderers.at(scene);
+}
+
+void CleanupRenderers() {
+    for (auto it = s_sceneRenderers.begin(); it != s_sceneRenderers.end();) {
+        if (it->first.lock() == nullptr)
+            s_sceneRenderers.erase(it++);
+        else ++it;
+    }
+}
+
 void OnFrameBegin(std::shared_ptr<Nodes::Scene> scene, const Options& options)
 {
-    scene->GetRenderer().OnFrameBegin(options);
+    CleanupRenderers();
+    GetRenderer(scene).OnFrameBegin(options);
 }
 
 void Render(std::shared_ptr<Nodes::Scene> scene, const Options& options)
 {
-    scene->GetRenderer().Render(options, glm::mat4(1));
+    GetRenderer(scene).Render(options, glm::mat4(1));
 }
 
 void Render(std::shared_ptr<Nodes::Scene> scene, const Options& options, const glm::mat4& rootMatrix)
 {
-    scene->GetRenderer().Render(options, rootMatrix);
+    GetRenderer(scene).Render(options, rootMatrix);
 }
 
 void OnFrameEnd(std::shared_ptr<Nodes::Scene> scene, const Options& options)
 {
-    scene->GetRenderer().OnFrameEnd(options);
+    GetRenderer(scene).OnFrameEnd(options);
 }
 };

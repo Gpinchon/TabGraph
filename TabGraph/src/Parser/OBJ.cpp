@@ -392,7 +392,7 @@ void ParseOBJ(std::shared_ptr<Assets::Asset> container)
     for (const auto& mesh : container->Get<Shapes::Mesh>()) {
         renderable->Add(mesh);
     }
-    scene->Add(renderable);
+    scene->AddNode(renderable);
     container->assets.push_back(scene);
     container->SetLoaded(true);
 }
