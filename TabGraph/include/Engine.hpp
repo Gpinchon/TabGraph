@@ -35,7 +35,8 @@ namespace TabGraph::Core {
 /** @brief This class orchestrates the rendering loop and logics around it */
 class Engine {
 public:
-    static std::shared_ptr<Engine> Create(std::shared_ptr<Renderer::FrameRenderer> frameRenderer);
+    Engine(std::shared_ptr<Renderer::FrameRenderer> frameRenderer);
+    ~Engine();
     void SetCurrentScene(std::shared_ptr<Nodes::Scene>);
     std::shared_ptr<Nodes::Scene> GetCurrentScene() const;
     void SetFrameRenderer(std::shared_ptr<Renderer::FrameRenderer>);
@@ -57,7 +58,6 @@ public:
     static const std::filesystem::path GetResourcePath(void);
 
 private:
-    Engine(std::shared_ptr<Renderer::FrameRenderer> frameRenderer);
     class Impl;
     friend Impl;
     std::unique_ptr<Impl> _impl;

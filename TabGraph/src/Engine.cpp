@@ -25,14 +25,12 @@
 #endif //MEDIALIBRARY == SDL2
 
 namespace TabGraph::Core {
-std::shared_ptr<Engine> Engine::Create(std::shared_ptr<Renderer::FrameRenderer> frameRenderer)
-{
-    std::shared_ptr<Engine> engine(new Engine(frameRenderer));
-    return engine;
-}
-
 Engine::Engine(std::shared_ptr<Renderer::FrameRenderer> frameRenderer)
     : _impl(new Engine::Impl(frameRenderer))
+{
+}
+
+Engine::~Engine()
 {
 }
 

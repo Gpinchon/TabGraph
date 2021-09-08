@@ -120,7 +120,7 @@ int main(int argc, char** argv)
         Config::Global().Parse(Core::Engine::GetResourcePath() / "config.ini");
         auto window = Core::Window::Create(Config::Global().Get("WindowName", std::string("")), Config::Global().Get("WindowSize", glm::vec2(1280, 720)));
         auto renderer = std::make_shared<Renderer::FrameRenderer>(window);
-        auto engine = Core::Engine::Create(renderer);
+        auto engine = std::make_shared<Core::Engine>(renderer);
         renderer->SetSwapInterval(Renderer::SwapInterval(Config::Global().Get("SwapInterval", 0)));
         std::filesystem::path filePath = (std::string(argv[1]));
         if (!filePath.is_absolute()) {
