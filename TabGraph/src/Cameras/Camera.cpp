@@ -27,17 +27,17 @@ Camera::Camera(const std::string& name, Projection projection)
 
 std::array<glm::vec3, 8> Camera::ExtractFrustum()
 {
-    static std::array<glm::vec3, 8> NDCCube {
-        glm::vec3(-1.0f, -1.0f, 1.0f),
-        glm::vec3(-1.0f, 1.0f, 1.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(1.0f, -1.0f, 1.0f),
+    std::array<glm::vec3, 8> NDCCube {
+        glm::vec3(-1.0f, -1.0f,  1.0f),
+        glm::vec3(-1.0f,  1.0f,  1.0f),
+        glm::vec3( 1.0f,  1.0f,  1.0f),
+        glm::vec3( 1.0f, -1.0f,  1.0f),
         glm::vec3(-1.0f, -1.0f, -1.0f),
-        glm::vec3(-1.0f, 1.0f, -1.0f),
-        glm::vec3(1.0f, 1.0f, -1.0f),
-        glm::vec3(1.0f, -1.0f, -1.0f)
+        glm::vec3(-1.0f,  1.0f, -1.0f),
+        glm::vec3( 1.0f,  1.0f, -1.0f),
+        glm::vec3( 1.0f, -1.0f, -1.0f)
     };
-    auto invVP = glm::inverse(GetProjection() * GetViewMatrix());
+    const auto invVP = glm::inverse(GetProjection() * GetViewMatrix());
     for (auto& v : NDCCube) {
         glm::vec4 normalizedCoord = invVP * glm::vec4(v, 1);
         v = glm::vec3(normalizedCoord) / normalizedCoord.w;
