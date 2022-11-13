@@ -1,18 +1,17 @@
-cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
-cmake_policy(VERSION 3.17)
+cmake_minimum_required(VERSION 3.19)
 cmake_policy(SET CMP0074 NEW)
-message(STATUS "Platform Generator : ${CMAKE_GENERATOR_PLATFORM}")
+
+include(FetchContent)
+include(cmake/GroupSources.cmake)
+include(cmake/AddSubdirectory.cmake)
+
 project(TabGraph LANGUAGES CXX)
+
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CXX_STANDARD 17)
-#option(BUILD_SHARED_LIBS "Build shared libraries ?" OFF)
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
-#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+set(CMAKE_CXX_FLAGS_RELEASE "-Ox")
+
 
 # Uncomment for debug
 set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -30,15 +29,16 @@ set(GLEW_USE_STATIC_LIBS ON)
 add_definitions(-DGLEW_STATIC)
 add_definitions(-DNOMINMAX)
 
-include(cmake/FetchDependencies.cmake)
+#add_subdirectory(Core)
+add_subdirectory(Tools)
+add_subdirectory(SceneGraph)
+#add_subdirectory(TabGraph)
 
-add_subdirectory(TabGraph)
-add_library(TabGraph::TabGraph ALIAS TabGraph)
-add_library(TabGraph::Plugins ALIAS TabGraphPlugins)
+add_subdirectory(UnitTests)
 
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-add_subdirectory(tests)
-endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+#if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+#add_subdirectory(tests)
+#endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package(Doxygen)
 

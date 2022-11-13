@@ -452,20 +452,16 @@ target_link_libraries(TabGraph PUBLIC SDL2::Core)
 target_link_libraries(TabGraph PUBLIC SDL2::Image)
 target_link_libraries(TabGraph PUBLIC FasTCCore)
 target_link_libraries(TabGraph PUBLIC FasTCBase)
-#target_link_libraries(Tabgraph PUBLIC ImGui)
 
 export(TARGETS TabGraph
        NAMESPACE "${CMAKE_PROJECT_NAME}-"
        APPEND FILE ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}-targets.cmake)
 
-#target_link_libraries(TabGraph ${RAPIDJSON_LIBRARIES})
-#target_link_libraries(TabGraph ${GLEW_LIBRARIES})
-#target_link_libraries(TabGraph ${ZLIB_LIBRARIES})
+add_library(TabGraph::TabGraph ALIAS TabGraph)
+add_library(TabGraph::Plugins ALIAS TabGraphPlugins)
 
 if(MSVC_IDE)
 	set(CMAKE_DEBUG_POSTFIX "d")
-	#source_group(Sources FILES ${TABGRAPH_SOURCE_FILES})
-	#source_group(Include FILES ${TABGRAPH_HEADER_FILES})
 	source_group(Shaders FILES ${TABGRAPH_SHADER_FILES})
 	# Macro to preserve source files hierarchy in the IDE
 	macro(GroupSources curdir)
